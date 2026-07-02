@@ -1,0 +1,431 @@
+{
+  "1355.0.0": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1355.1001.0": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1355.1001.1": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled creates a unicast MAC arp entry with port always set as Flooding\n\n[Log-derived analysis] Verifies NLB unicast learning under arp-mac-disparity. With arp-mac-disparity enabled on a VLAN, an ARP reply advertising a unicast MAC is injected on a member port and the test confirms the resulting ARP entry is learnt against that port with its flooding next-hop entry present and the interface in VLAN flooding mode.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709288",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.2": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled creates a multicast MAC with port always set as Flooding\n\n[Log-derived analysis] Verifies NLB multicast learning under arp-mac-disparity. With arp-mac-disparity enabled on a VLAN, an ARP reply advertising a multicast MAC is injected and the test confirms the multicast MAC ARP entry is learnt against the member port with its flooding next-hop entry showing the interface in VLAN flooding mode.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709296",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.3": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks static ARP entry with multiple ports does forward traffic to all member ports\n\n[Log-derived analysis] Verifies that a static ARP entry pointing at a port list forwards traffic to all of its member ports. Installs a static ARP entry with multiple ports, sends traffic to it, and sniffs the member links to confirm the packets are delivered to every listed port.",
+    "reference": "None",
+    "past_crs": [
+      "61125"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709303",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.4": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a unicast MAC with port set as Flooding and then sends pkts destined to that MAC address and confirms it floods\n\n[Log-derived analysis] Verifies NLB unicast flooding behaviour. With arp-mac-disparity enabled, learns a unicast MAC ARP entry in flooding mode, then sends packets destined to that MAC and confirms they are flooded to the other ports within the VLAN.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709313",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.5": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a multicast MAC with port set as Flooding and then sends pkts destined to that MAC address\n\n[Log-derived analysis] Verifies NLB multicast flooding behaviour. With arp-mac-disparity enabled, learns a multicast MAC ARP entry in flooding mode, then sends packets destined to that MAC and confirms they are flooded to the other ports within the VLAN.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709319",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.6": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a multicast MAC with port set as Flooding and then sends pkts destined to that MAC address and confirms it does not flood other vlans\n\n[Log-derived analysis] Verifies NLB multicast flooding is scoped to the correct VLAN. With arp-mac-disparity enabled, learns a multicast MAC in flooding mode, sends packets to that MAC, and confirms they are flooded within the VLAN but NOT leaked into other VLANs.",
+    "reference": "None",
+    "past_crs": [
+      "57247"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709328",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.7": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks static ARP entry with multiple ports does forward traffic to all member ports after master failover and rejoin\n\n[Log-derived analysis] Verifies static-ARP port-list forwarding survives a stack master failover. Builds a multi-member stack, reboots the Active Master, and after the backup takes over confirms the static ARP entry still forwards traffic to all member ports, the rebooted unit rejoins/resyncs cleanly, the running-config is preserved, and no exceptions occur.",
+    "reference": "None",
+    "past_crs": [
+      "72961"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357606",
+      "log_uid": "93698686",
+      "platform": "GS980MX-tb203.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.8": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a unicast MAC with port set as Flooding and then sends pkts destined to that MAC address and confirms it floods after master failover and rejoin\n\n[Log-derived analysis] Verifies NLB unicast flooding survives a stack master failover. With arp-mac-disparity enabled on a stack, reboots the Active Master, then relearns the unicast MAC in flooding mode and confirms packets to that MAC are still flooded across the VLAN, the stack resyncs cleanly, and no exceptions occur.",
+    "reference": "None",
+    "past_crs": [
+      "59260",
+      "SYST-7459",
+      "SYST-7459"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357606",
+      "log_uid": "93698731",
+      "platform": "GS980MX-tb203.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.9": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a multicast MAC with port set as Flooding and then sends pkts destined to that MAC address after master failover and rejoin\n\n[Log-derived analysis] Verifies NLB multicast flooding survives a stack master failover. With arp-mac-disparity enabled on a stack, reboots the Active Master, then relearns the multicast MAC in flooding mode and confirms packets to that MAC are still flooded across the VLAN, the stack resyncs cleanly, and no exceptions occur.",
+    "reference": "None",
+    "past_crs": [
+      "59260"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357606",
+      "log_uid": "93698818",
+      "platform": "GS980MX-tb203.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.10": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and then sends pkts destined to that MAC address to all member ports\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding. With arp-mac-disparity multicast-igmp enabled, learns a multicast MAC with the port in igmp-group flooding mode, then sends packets to that MAC and confirms they are delivered to the IGMP member ports.",
+    "reference": "None",
+    "past_crs": [
+      "57412"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709355",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.11": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and does not send pkts to non member ports\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding is restricted to IGMP members. With arp-mac-disparity multicast-igmp enabled, learns a multicast MAC in igmp-group mode, has hosts send IGMP reports, and confirms traffic to that MAC is delivered to the IGMP-member link but not to non-member ports.",
+    "reference": "None",
+    "past_crs": [
+      "59150",
+      "62233",
+      "CR-61352",
+      "57348",
+      "77665"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357975",
+      "log_uid": "93709061",
+      "platform": "IE210-tb144.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.12": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity disabled, does not create a unicast MAC arp entry with port set as Flooding\n\n[Log-derived analysis] Negative test for arp-mac-disparity. With arp-mac-disparity disabled, injects an ARP reply with a unicast MAC and confirms the entry is learnt as a normal ARP entry, i.e. NO flooding-mode (disparate) entry is created.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709429",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.13": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast disabled does not creates a multicast MAC ARP entry\n\n[Log-derived analysis] Negative test for arp-mac-disparity multicast. With multicast disparity disabled, injects an ARP reply with a multicast MAC and confirms NO multicast MAC ARP entry is created.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709433",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.14": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and then sends pkts destined to that MAC address to all member ports after master failover and rejoin\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding survives a stack master failover. With arp-mac-disparity multicast-igmp enabled on a stack, reboots the Active Master, then relearns the multicast MAC in igmp-group mode and confirms packets are still delivered to the IGMP member ports, the stack resyncs cleanly, and no exceptions occur.",
+    "reference": "None",
+    "past_crs": [
+      "57412",
+      "59260"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357606",
+      "log_uid": "93699128",
+      "platform": "GS980MX-tb203.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.15": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and does not send pkts to non member ports\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding is restricted to IGMP members. With arp-mac-disparity multicast-igmp enabled, learns a multicast MAC in igmp-group mode, sends an IGMP join, and confirms traffic to that MAC is delivered to the IGMP member ports and not to non-member ports.",
+    "reference": "None",
+    "past_crs": [
+      "57295",
+      "59150",
+      "67336",
+      "68158"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709446",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.16": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if port-group type arp entry count remains constant across multiple failovers.Reproduces scenario similar to CR-56062\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that the port-group-type ARP entry count stays constant across repeated stack master failovers (regression for CR-56062). Reported UNSUPPORTED because the test is only valid on the SBx8100 platform and ran on a different platform.",
+    "reference": "None",
+    "past_crs": [
+      "60016"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1355.1001.17": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity enabled learns a multicast MAC with port set as Flooding and then sends pkts destined to that MAC address over a LAG\n\n[Log-derived analysis] Verifies NLB multicast flooding over a LAG. With arp-mac-disparity enabled, learns a multicast MAC in flooding mode, then sends packets to that MAC and confirms they are flooded to the other VLAN ports including across an aggregated (LAG) link.",
+    "reference": "None",
+    "past_crs": [
+      "68157",
+      "SYST-7691",
+      "SYST-7893"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709473",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.18": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and then sends pkts destined to that MAC address to LAG member ports\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding over a LAG. With arp-mac-disparity multicast-igmp enabled, learns a multicast MAC in igmp-group mode, then sends packets to that MAC and confirms they are delivered to the IGMP member port and the LAG member port.",
+    "reference": "None",
+    "past_crs": [
+      "59725",
+      "62224",
+      "65782"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357990",
+      "log_uid": "93709492",
+      "platform": "GS980M-tb280.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1355.1001.112": {
+    "suite_id": "1355",
+    "suite_name": "1355_nlb",
+    "description": "Test checks if vlan with arp-mac-disparity multicast-igmp enabled learns a multicast MAC with port set as igmp-group and does not send pkts to non member ports\n\n[Log-derived analysis] Verifies NLB multicast-igmp forwarding is restricted to IGMP members on a non-default VLAN. With arp-mac-disparity multicast-igmp enabled, learns a multicast MAC in igmp-group mode, has hosts send IGMP reports, and confirms traffic to that MAC is delivered to the IGMP-member link but not to non-member ports.",
+    "reference": "1355.1001.11",
+    "past_crs": [
+      "62233",
+      "CR-61352",
+      "77665"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357975",
+      "log_uid": "93709185",
+      "platform": "IE210-tb144.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  }
+}

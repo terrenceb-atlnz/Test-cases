@@ -1,0 +1,360 @@
+{
+  "1351.0.0": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1351.1001.0": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1351.1001.1": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Check default gratuitous arp is working\n\n[Log-derived analysis] Verifies default gratuitous-ARP-on-link behaviour. With the default gratuitous-arp-link interval configured on a VLAN interface, the test flips a port down then up and captures packets on the connected test box, confirming the switch emits periodic gratuitous ARP requests for its own interface IP at the default interval and that at least two are seen within the expected timing window. Config is restored and verified unchanged afterwards.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93711898",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.2": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Check gratuitous arp with different time buffers\n\n[Log-derived analysis] Verifies the configurable gratuitous-ARP-link timer. Sets a non-default gratuitous-arp-link interval, flips a port, and captures the emitted gratuitous ARP requests, confirming they are sent at the configured interval (inter-packet spacing within the allowed tolerance).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93711977",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.3": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Check gratuitous arp does not send when set to 0\n\n[Log-derived analysis] Verifies that setting gratuitous-arp-link to 0 disables the feature. Flips a port with the interval set to 0 and confirms that NO gratuitous ARP packets are emitted by the switch.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93711984",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.4": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Gratuitous arp sends requests after multiple port flips\n\n[Log-derived analysis] Verifies gratuitous ARP across multiple simultaneous port flips. Toggles several ports/interfaces down and up together and confirms the switch emits gratuitous ARP requests for each affected interface IP over repeated cycles.",
+    "reference": "",
+    "past_crs": [
+      "81510"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93711988",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.5": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Check tables are correct after gratuitous arp request\n\n[Log-derived analysis] Verifies ARP/neighbour table correctness after an ARP exchange. Pings the test box to trigger an ARP request/reply, then checks 'show arp' and the kernel neighbour table ('ip neigh') to confirm the peer is learnt with the correct MAC, interface, port and dynamic type.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93711996",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.6": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Send Gratuitous ARP from DUT and simulate reply\n\n[Log-derived analysis] Verifies gratuitous-ARP send plus reply handling. Captures the initial ARP state, has the DUT send a gratuitous ARP and simulates a reply from the peer, and confirms the ARP table is updated/maintained correctly through the exchange.",
+    "reference": "",
+    "past_crs": [
+      "CR-85532"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712005",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.8": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Static arp with no reply\n\n[Log-derived analysis] Verifies static ARP entries survive a port flip with no reply. With a static ARP entry installed, flips the port (gratuitous ARP requests are emitted) and confirms the static entry remains present in 'show arp' (static entries are not aged out even when unanswered).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712010",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.9": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Static arp with reply\n\n[Log-derived analysis] Verifies static ARP entry behaviour when a reply is received. With a static ARP entry, flips the port and simulates an ARP reply from the peer, confirming the static entry is retained/handled correctly.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712019",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.10": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "VCS Failover Master- Check gratuitous arp sent out\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that after a VCS stack master failover the newly elected Active Master emits gratuitous ARP for its interfaces. Reported UNSUPPORTED because it requires a stack of size > 1 (ran on a single, non-stacked unit).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1351.1001.11": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Broadcast Gratuitious ARP request in ARP opportunistic-nd mode\n\n[Log-derived analysis] Verifies ARP behaviour in opportunistic-/optimistic-ND mode. Flips a port with the interface in ARP opportunistic-nd mode and confirms the learnt IP is retained in 'show arp' as a dynamic, REACHABLE entry.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712041",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.12": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "NLB behaviour\n\n[Log-derived analysis] Verifies Network Load Balancing (NLB) disparate-ARP handling. Sends ARP requests where the host IP differs from the 'tell' IP (NLB style) and, with 'arp-mac-disparity multicast' configured on the VLAN, confirms the disparate entry is NOT installed in 'show arp' / 'ip neigh' as expected.",
+    "reference": "",
+    "past_crs": [
+      "52228",
+      "52357"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712051",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.13": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "NLB behaviour with Static ARP\n\n[Log-derived analysis] Verifies NLB disparate-ARP handling in combination with a static ARP entry. With a static ARP entry present, confirms it remains shown as static/PERMANENT, and that disparate (NLB) ARPs are handled per the 'arp-mac-disparity multicast' configuration.",
+    "reference": "",
+    "past_crs": [
+      "52228",
+      "58201"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358077",
+      "log_uid": "93712064",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1351.1001.14": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Checking platform table ip output with MCast arp learnt\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify the hardware/platform IP table output for a multicast-ARP-learnt entry. Reported UNSUPPORTED because it is only applicable to stacks of size > 1 (ran on a single unit).",
+    "reference": "",
+    "past_crs": [
+      "52482",
+      "55972",
+      "59150",
+      "SYST-7518",
+      "SYST-7699",
+      "CR-87037"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1351.1002.0": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1351.1002.1": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Static-channel-group port flipping, rstp disabled\n\n[Log-derived analysis] Verifies gratuitous-ARP behaviour for a static channel-group (LAG) with RSTP disabled. Confirms that flipping an individual member port of the group emits NO gratuitous ARP, while flipping the whole static channel-group DOES emit gratuitous ARP requests for the interface IP.",
+    "reference": "",
+    "past_crs": [
+      "50756"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3340381",
+      "log_uid": "93280404",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-08",
+      "result": "PASS"
+    }
+  },
+  "1351.1002.2": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "Static-channel-group port flipping, rstp enabled\n\n[Log-derived analysis] Verifies gratuitous-ARP behaviour for a static channel-group (LAG) with RSTP enabled. As with the RSTP-disabled case, flipping a single member port emits no gratuitous ARP, while flipping the whole channel-group emits gratuitous ARP requests.",
+    "reference": "",
+    "past_crs": [
+      "50756"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3340381",
+      "log_uid": "93280438",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-08",
+      "result": "PASS"
+    }
+  },
+  "1351.1002.3": {
+    "suite_id": "1351",
+    "suite_name": "1351_gratuitous_arp",
+    "description": "VCS Failover Master (Static channel) - Check gratuitous arp sent out\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify gratuitous ARP is sent by the new Active Master after a VCS failover when the uplink is a static channel-group. Reported UNSUPPORTED because it requires a stack of size > 1 (ran on a single unit).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  }
+}

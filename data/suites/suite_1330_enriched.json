@@ -1,0 +1,1633 @@
+{
+  "1330.0.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "CR-86639",
+      "CR-90317"
+    ],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.2001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "CR-86639"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.2001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "RSTP, L2_unicast, power_cycle\n\n[Log-derived analysis] Layer-2 redundancy under RSTP. Builds a multi-member stack plus partner switches with RSTP running for loop prevention, runs a steady L2 unicast traffic stream and confirms baseline connectivity over a loop-free topology. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36200",
+      "37170",
+      "38572",
+      "38980",
+      "58586",
+      "64176",
+      "65872",
+      "CR-62619",
+      "71588",
+      "74973",
+      "SYST-7905",
+      "CR-87771",
+      "SYST-8418",
+      "SYST-8643",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93622513",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1330.2001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "RSTP, multicast, power_cycle\n\n[Log-derived analysis] Layer-2 redundancy under RSTP. Builds a multi-member stack plus partner switches with RSTP running for loop prevention, runs a steady L2 multicast traffic stream and confirms baseline connectivity over a loop-free topology. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "63620",
+      "63491",
+      "65571",
+      "65872",
+      "62619",
+      "71588",
+      "76879",
+      "77682",
+      "CR-87771",
+      "CR-50257",
+      "SYST-8436",
+      "SYST-8191",
+      "SYST-8367",
+      "SYST-7071"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93623575",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1330.2001.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "RSTP, L2_unicast, rolling_reboot\n\n[Log-derived analysis] Layer-2 redundancy under RSTP. Builds a multi-member stack plus partner switches with RSTP running for loop prevention, runs a steady L2 unicast traffic stream and confirms baseline connectivity over a loop-free topology. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "58586",
+      "76937",
+      "CR-87771",
+      "CR-87771"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93624924",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1330.2001.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "RSTP, multicast, rolling_reboot\n\n[Log-derived analysis] Layer-2 redundancy under RSTP. Builds a multi-member stack plus partner switches with RSTP running for loop prevention, runs a steady L2 multicast traffic stream and confirms baseline connectivity over a loop-free topology. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38319",
+      "61036",
+      "65571",
+      "76937",
+      "CR-87771",
+      "SYST-7459"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93626144",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "CR-86639"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.2002.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "MSTP, L2_unicast_tagged, power_cycle\n\n[Log-derived analysis] Layer-2 redundancy under MSTP. Builds a multi-member stack plus partner switches with MSTP running for loop prevention, runs a steady tagged L2 unicast traffic stream and confirms baseline connectivity over a loop-free topology. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "40784",
+      "56323",
+      "58586",
+      "58905",
+      "63620",
+      "62252",
+      "62619",
+      "71588",
+      "CR-87771",
+      "CR-88299",
+      "SYST-8039"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93627565",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "EPSR Master, L2_unicast_tagged, power_cycle\n\n[Log-derived analysis] Layer-2 redundancy with the stack as an EPSR Master node. Builds an EPSR ring across the stack and partner switches, runs a steady tagged L2 unicast traffic stream over the protected VLAN and confirms a loop-free Complete ring. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the EPSR ring stays loop-free and recovers to a forwarding state across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38328",
+      "39080",
+      "42169",
+      "51090",
+      "55575",
+      "61090",
+      "65951",
+      "77682",
+      "CR-87771",
+      "CR-88299",
+      "SYST-8039",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93626533",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "EPSR Transit, L2_unicast_tagged, power_cycle\n\n[Log-derived analysis] Layer-2 redundancy with the stack as an EPSR Transit node. Builds an EPSR ring across the stack and partner switches, runs a steady tagged L2 unicast traffic stream over the protected VLAN and confirms a loop-free Complete ring. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the EPSR ring stays loop-free and recovers to a forwarding state across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "37994",
+      "56323",
+      "58905",
+      "61090",
+      "63620",
+      "61312",
+      "65710",
+      "62619",
+      "CR-88299",
+      "SYST-8467",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93627677",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "MSTP, L2_unicast_tagged, rolling_reboot\n\n[Log-derived analysis] Layer-2 redundancy under MSTP. Builds a multi-member stack plus partner switches with MSTP running for loop prevention, runs a steady tagged L2 unicast traffic stream and confirms baseline connectivity over a loop-free topology. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms spanning-tree keeps the L2 topology loop-free and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "58677",
+      "63620",
+      "CR-87771",
+      "CR-88299",
+      "CR-88299",
+      "CR-50258"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93630649",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.5": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "EPSR Master, L2_unicast_tagged, rolling_reboot\n\n[Log-derived analysis] Layer-2 redundancy with the stack as an EPSR Master node. Builds an EPSR ring across the stack and partner switches, runs a steady tagged L2 unicast traffic stream over the protected VLAN and confirms a loop-free Complete ring. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the EPSR ring stays loop-free and recovers to a forwarding state across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38328",
+      "61090",
+      "61393",
+      "CR-87771"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93628657",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.6": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "EPSR Transit, L2_unicast_tagged, rolling_reboot\n\n[Log-derived analysis] Layer-2 redundancy with the stack as an EPSR Transit node. Builds an EPSR ring across the stack and partner switches, runs a steady tagged L2 unicast traffic stream over the protected VLAN and confirms a loop-free Complete ring. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the EPSR ring stays loop-free and recovers to a forwarding state across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "61090",
+      "76937"
+    ],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93629371",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.2002.53151": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "CR53151 - Core dump \"ERROR: Failed to get a RPC reply from the source with MAC addr\" in long run\n\nTargeted regression check for CR53151 (core dump \"Failed to get an RPC reply from the source with MAC addr\" seen during long runs). Intended to confirm the fault does not recur under extended L2-redundancy failover load. No execution history (not currently scheduled).",
+    "reference": "CR53151",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 53151,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_runs"
+    }
+  },
+  "1330.4001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.4001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 static routes, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "40308",
+      "56323",
+      "58586",
+      "63620",
+      "60386",
+      "62619",
+      "71588",
+      "75495",
+      "CR-87771",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93633139",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 RIP, power_cycle\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 RIP\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF, power_cycle\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 BGP, power_cycle\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 BGP\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [
+      "37197"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.5": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 PIM-DM, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 PIM-DM\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36385",
+      "38284",
+      "50894",
+      "63620",
+      "65765",
+      "62619",
+      "72075",
+      "CR38555",
+      "CR-87157",
+      "CR-87119",
+      "SYST-8436"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93631010",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.6": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF PIM-SM, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF PIM-SM\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36385",
+      "37197",
+      "38805",
+      "50895",
+      "57185",
+      "50264",
+      "62619",
+      "79968",
+      "CR-87157",
+      "SYST-8039",
+      "SYST-8436",
+      "SYST-8367"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93631951",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.7": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 static routes, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38319",
+      "40308",
+      "40846",
+      "58586",
+      "63620",
+      "66014",
+      "75495",
+      "76937",
+      "CR-87771",
+      "SYST-8075",
+      "SYST-8075",
+      "CR-88299",
+      "CR-89864",
+      "SYST-8813"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93635736",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.8": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 RIP, rolling_reboot\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 RIP\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [
+      "37388",
+      "37644"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.9": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF, rolling_reboot\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.10": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 BGP, rolling_reboot\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 BGP\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur. Not currently scheduled; the same protocol is exercised by the scaled ~200-route variants in test-set 4002.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1330.4001.11": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 PIM-DM, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 PIM-DM\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36385",
+      "38284",
+      "62085",
+      "CR-87157"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93633342",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.12": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF PIM-SM, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF PIM-SM\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36385",
+      "38314",
+      "38319",
+      "57185",
+      "63620",
+      "62085",
+      "72349",
+      "CR-87157",
+      "SYST-7645",
+      "SYST-8436",
+      "CR-89653",
+      "SYST-8813",
+      "SYST-8367"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93634025",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.13": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 IS-IS, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 IS-IS\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "62619",
+      "71589",
+      "75495",
+      "SYST-7559"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93633790",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4001.14": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF PIM-SM MSDP, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF PIM-SM MSDP\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "SYST-4776",
+    "past_crs": [
+      "CR-79875",
+      "CR-79968",
+      "CR-87157"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93634913",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.4002.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 RIP, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 RIP\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "58586",
+      "61152",
+      "63620",
+      "71177",
+      "75495",
+      "CR-38838",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93638694",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "39094",
+      "56323",
+      "57185",
+      "63620",
+      "62597",
+      "75495",
+      "SYST-5129",
+      "SYST-8962"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93637048",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 BGP, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 BGP\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "39643",
+      "41873",
+      "53907",
+      "57185",
+      "75495",
+      "81499"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93638024",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 RIP, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 RIP\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "37388",
+      "37644",
+      "38319",
+      "58586",
+      "75495",
+      "76937",
+      "SYST-8813",
+      "CR-89864"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355276",
+      "log_uid": "93640313",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.5": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 OSPF, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 OSPF\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "37586",
+      "57185",
+      "51436",
+      "75495",
+      "SYST-8813"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93638263",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.6": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 BGP, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 BGP\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38319",
+      "38628",
+      "53907",
+      "75495",
+      "81499"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93638715",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4002.7": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 IS-IS, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv4 IS-IS\" at scale (~200 routes), establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "71589",
+      "75495"
+    ],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355262",
+      "log_uid": "93638937",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4003.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.4003.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ATMF IPv4 static routes, power_cycle\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover within an AMF (Allied Telesis Management Framework) network. Builds a multi-member stack plus partner switches, configures \"ATMF IPv4 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "50068",
+      "50259",
+      "58717",
+      "58717",
+      "75495",
+      "CR-87771",
+      "CR-88299"
+    ],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93640230",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.4003.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ATMF IPv4 static routes, rolling_reboot\n\n[Log-derived analysis] IPv4 routing-protocol convergence across a stack failover within an AMF (Allied Telesis Management Framework) network. Builds a multi-member stack plus partner switches, configures \"ATMF IPv4 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "50246",
+      "50068",
+      "52480",
+      "58717",
+      "75495"
+    ],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93640278",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.5001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.5001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 unicast VRRP. Stack is VRRP master, power_cycle\n\n[Log-derived analysis] First-hop redundancy under VRRP (IPv4 unicast) with the stack as the VRRP master. Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36584",
+      "39899",
+      "40556",
+      "56323",
+      "CR-87771",
+      "CR-88299"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93641299",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.5001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 unicast VRRP. Stack is VRRP backup, power_cycle\n\n[Log-derived analysis] First-hop redundancy under VRRP (IPv4 unicast) with the stack as the VRRP backup. Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "52376",
+      "52205",
+      "71177",
+      "CR-88299",
+      "SYST-8266"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93641856",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.5001.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 unicast VRRP. Stack is VRRP master, rolling_reboot\n\n[Log-derived analysis] First-hop redundancy under VRRP (IPv4 unicast) with the stack as the VRRP master. Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "39899",
+      "50176",
+      "82678",
+      "SYST-7562",
+      "CR-87771"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93641829",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.5001.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 unicast VRRP. Stack is VRRP backup, rolling_reboot\n\n[Log-derived analysis] First-hop redundancy under VRRP (IPv4 unicast) with the stack as the VRRP backup. Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38294",
+      "52205",
+      "63620"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93642170",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.5001.5": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv4 unicast VRRP. Stack is VRRP master, rolling_reboot with IGMP & MLD snooping disabled.\n\n[Log-derived analysis] First-hop redundancy under VRRP (IPv4 unicast) with the stack as the VRRP master (IGMP & MLD snooping disabled). Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "CR-82778",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355245",
+      "log_uid": "93643182",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.6001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 static routes, power_cycle\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "40556",
+      "61152",
+      "62619",
+      "71588",
+      "75495",
+      "78487",
+      "CR-86010",
+      "CR-87771",
+      "CR-88299"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93643319",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 RIPng, power_cycle\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 RIPng\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "65872",
+      "62619",
+      "71588"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93643960",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 OSPFv3, power_cycle\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 OSPFv3\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38322",
+      "36389",
+      "40371",
+      "57185",
+      "62619"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93644549",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 static routes, rolling_reboot\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 static routes\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38353",
+      "38925",
+      "40039",
+      "40121",
+      "40121",
+      "40668",
+      "57771",
+      "75495",
+      "CR-86010",
+      "CR-87771",
+      "CR-88299",
+      "CR-88299",
+      "CR-88299"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93644799",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.5": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 RIPng, rolling_reboot\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 RIPng\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "38319",
+      "57771",
+      "51436",
+      "75495",
+      "SYST-8014"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93645439",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.6": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 OSPFv3, rolling_reboot\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 OSPFv3\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "36389",
+      "40397",
+      "57771"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93645884",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.7": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 BGP4+, power_cycle\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 BGP4+\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "39850",
+      "53907",
+      "57185",
+      "65566",
+      "65872",
+      "62619",
+      "75495",
+      "SYST-8485",
+      "CR-89054",
+      "SYST-8367"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93646462",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.8": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 BGP4+, rolling_reboot\n\n[Log-derived analysis] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 BGP4+\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "53907",
+      "56170",
+      "75495",
+      "CR-89054",
+      "CR-89054",
+      "SYST-8367",
+      "SYST-8367"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93646901",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.9": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 VRRPv3, power_cycle\n\n[Log-derived analysis] First-hop redundancy under VRRPv3 (IPv6). Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "82787",
+      "CR-87771",
+      "SYST-8039"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93647358",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6001.10": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 VRRPv3, rolling_reboot\n\n[Log-derived analysis] First-hop redundancy under VRRPv3 (IPv6). Builds a multi-member stack plus partner switches, configures VRRP and confirms the expected VRRP role/state, runs a steady unicast traffic stream through the virtual router and confirms baseline connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the VRRP virtual-router role is maintained/restored and forwarding survives the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "82787",
+      "CR-87771",
+      "SYST-8039"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355250",
+      "log_uid": "93647908",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.6002.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.6002.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 6-to-4 tunnel, power_cycle\n\n[Inferred behavior \u2014 feature reported UNSUPPORTED on the current test platform; no recent PASS] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 6-to-4 tunnel\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "ER-3112",
+    "past_crs": [
+      "39082",
+      "50487"
+    ],
+    "current_crs": [],
+    "testSet": 6002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1330.6002.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "IPv6 6-to-4 tunnel, rolling_reboot\n\n[Inferred behavior \u2014 feature reported UNSUPPORTED on the current test platform; no recent PASS] IPv6 routing-protocol convergence across a stack failover. Builds a multi-member stack plus partner switches, configures \"IPv6 6-to-4 tunnel\", establishes its routes/adjacencies and confirms all neighbours are up with end-to-end connectivity. It then sequentially reboots each stack member in turn (rolling reboot) and analyses captured-packet gaps for disruption. Confirms the routing protocol re-establishes its adjacencies and routes reconverge across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "ER-3112",
+    "past_crs": [
+      "39221",
+      "39956",
+      "40066",
+      "40118",
+      "40213",
+      "50487",
+      "78931"
+    ],
+    "current_crs": [],
+    "testSet": 6002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1330.7001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.7001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "VRF-lite, IPv4_unicast, power_cycle\n\n[Log-derived analysis] VRF-lite forwarding resilience. Builds a multi-member stack plus partner switches with VRF-lite configured, runs a steady IPv4 unicast traffic stream within the VRF and confirms baseline connectivity. It then hardware power-cycles the stack Active Master to force an unplanned failover and analyses captured-packet gaps for disruption. Confirms VRF-lite forwarding state is preserved and re-converges across the failover. Verifies the backup member takes over as stack Active Master, the rebooted unit cleanly rejoins and resyncs the stack, stack ports return to their expected state, channel-group/LAG diagnostics stay clean, per-failover traffic disruption stays within acceptable thresholds, the running-config is preserved after teardown, and no exceptions or core dumps occur.",
+    "reference": "",
+    "past_crs": [
+      "52779"
+    ],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93648729",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.8001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.8001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Measure EPSR recovery time using traffic interruption during EPSR failover, swi_a as EPSR Master.\n\n[Log-derived analysis] EPSR ring-protection recovery-time measurement, with the stack acting as the EPSR Master node. Builds an EPSR ring across the stack and partner switches, runs a steady traffic stream over the protected data VLAN, then induces an EPSR ring failover and measures the traffic-interruption (recovery) time, asserting the ring returns to a loop-free Complete/forwarding state and recovery is within the EPSR failover-time budget, with config preserved and no exceptions.",
+    "reference": "-",
+    "past_crs": [
+      "61090",
+      "63353",
+      "SYST-8368",
+      "SYST-8160"
+    ],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93650266",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.8001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Measure EPSR recovery time using traffic interruption during EPSR failover, swi_a as EPSR Transit Node.\n\n[Log-derived analysis] EPSR ring-protection recovery-time measurement, with the stack acting as the EPSR Transit node. Builds an EPSR ring across the stack and partner switches, runs a steady traffic stream over the protected data VLAN, then induces an EPSR ring failover and measures the traffic-interruption (recovery) time, asserting the ring returns to a loop-free Complete/forwarding state and recovery is within the EPSR failover-time budget, with config preserved and no exceptions.",
+    "reference": "-",
+    "past_crs": [
+      "61090",
+      "63353"
+    ],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355264",
+      "log_uid": "93651162",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1330.9001.0": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1330.9001.1": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ISSU Upgrade, IPv4 static routes\n\n[Log-derived analysis] VCS In-Service Software Upgrade (ISSU) test with IPv4 static routes configured. Builds a multi-member chassis stack plus partner switches, installs the routing configuration and routes, runs a steady traffic stream, then performs an ISSU rolling upgrade of the stack from a base build to the newer target build (each CFC/member reboots in turn so the stack keeps forwarding). Verifies the upgrade completes, all members converge on the target build, routing adjacencies stay up and routes stay converged, traffic disruption stays within ISSU limits, config is preserved, and no exceptions/core dumps occur.",
+    "reference": "1330.4001.1",
+    "past_crs": [
+      "53390",
+      "53478",
+      "57098",
+      "57286",
+      "57838",
+      "77337",
+      "83417"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3322223",
+      "log_uid": "92823851",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "5.5.6-0.3-rc7",
+      "run_date": "2026-05-23",
+      "result": "PASS"
+    }
+  },
+  "1330.9001.2": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ISSU Upgrade, IPv4 PIM-DM\n\n[Log-derived analysis] VCS In-Service Software Upgrade (ISSU) test with IPv4 PIM-DM configured. Builds a multi-member chassis stack plus partner switches, installs the routing configuration and routes, runs a steady traffic stream, then performs an ISSU rolling upgrade of the stack from a base build to the newer target build (each CFC/member reboots in turn so the stack keeps forwarding). Verifies the upgrade completes, all members converge on the target build, routing adjacencies stay up and routes stay converged, traffic disruption stays within ISSU limits, config is preserved, and no exceptions/core dumps occur.",
+    "reference": "1330.4001.5",
+    "past_crs": [
+      "53390",
+      "53478",
+      "57098",
+      "57286",
+      "57838",
+      "77337",
+      "83417"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3322223",
+      "log_uid": "92824823",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "5.5.6-0.3-rc7",
+      "run_date": "2026-05-23",
+      "result": "PASS"
+    }
+  },
+  "1330.9001.3": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ISSU Upgrade, IPv4 OSPF, 200 Routes\n\n[Log-derived analysis] VCS In-Service Software Upgrade (ISSU) test with IPv4 OSPF configured with a scaled route table (~200 routes). Builds a multi-member chassis stack plus partner switches, installs the routing configuration and routes, runs a steady traffic stream, then performs an ISSU rolling upgrade of the stack from a base build to the newer target build (each CFC/member reboots in turn so the stack keeps forwarding). Verifies the upgrade completes, all members converge on the target build, routing adjacencies stay up and routes stay converged, traffic disruption stays within ISSU limits, config is preserved, and no exceptions/core dumps occur.",
+    "reference": "1330.4002.2",
+    "past_crs": [
+      "53390",
+      "53478",
+      "57098",
+      "57286",
+      "57838",
+      "77337",
+      "83417"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3322223",
+      "log_uid": "92826060",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "5.5.6-0.3-rc7",
+      "run_date": "2026-05-23",
+      "result": "PASS"
+    }
+  },
+  "1330.9001.4": {
+    "suite_id": "1330",
+    "suite_name": "Suite 1330",
+    "description": "ISSU Upgrade to same build, IPv4 OSPF, 200 Routes\n\n[Log-derived analysis] VCS In-Service Software Upgrade (ISSU) test with IPv4 OSPF configured with a scaled route table (~200 routes). Builds a multi-member chassis stack plus partner switches, installs the routing configuration and routes, runs a steady traffic stream, then performs an ISSU rolling upgrade of the stack from a base build to the same target build (no-op upgrade path) (each CFC/member reboots in turn so the stack keeps forwarding). Verifies the upgrade completes, all members converge on the target build, routing adjacencies stay up and routes stay converged, traffic disruption stays within ISSU limits, config is preserved, and no exceptions/core dumps occur.",
+    "reference": "1330.4002.2",
+    "past_crs": [
+      "77366",
+      "82879",
+      "SYST-7744",
+      "CR-87498"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3326407",
+      "log_uid": "92944830",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "awplus_main-20260526-1457",
+      "run_date": "2026-05-27",
+      "result": "PASS"
+    }
+  }
+}

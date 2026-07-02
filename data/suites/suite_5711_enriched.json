@@ -1,0 +1,100 @@
+{
+  "5711.1001.0": {
+    "suite_id": "5711",
+    "suite_name": "5711_InterfaceTest",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5711.1001.10": {
+    "suite_id": "5711",
+    "suite_name": "5711_InterfaceTest",
+    "description": "Test interface for 20 min\n\n[Log-derived analysis] Test interface for 20 min",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1208459",
+      "log_uid": "35021662",
+      "platform": "x310-tb176.rel",
+      "sw_version": "5.5.0-1.1",
+      "run_date": "2020-07-17",
+      "result": "PASS"
+    }
+  },
+  "5711.1001.20": {
+    "suite_id": "5711",
+    "suite_name": "5711_InterfaceTest",
+    "description": "Check Test Count output\n\n[Log-derived analysis] Check Test Count output",
+    "reference": "",
+    "past_crs": [
+      "64464"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1208459",
+      "log_uid": "35021663",
+      "platform": "x310-tb176.rel",
+      "sw_version": "5.5.0-1.1",
+      "run_date": "2020-07-17",
+      "result": "PASS"
+    }
+  },
+  "5711.1001.30": {
+    "suite_id": "5711",
+    "suite_name": "5711_InterfaceTest",
+    "description": "Check Test Count output\n\n[Log-derived analysis] Check Test Count output",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1208459",
+      "log_uid": "35021664",
+      "platform": "x310-tb176.rel",
+      "sw_version": "5.5.0-1.1",
+      "run_date": "2020-07-17",
+      "result": "PASS"
+    }
+  },
+  "5711.1002.10": {
+    "suite_id": "5711",
+    "suite_name": "5711_InterfaceTest",
+    "description": "Running autoburnin for 360 min\n\n[Log-derived analysis] Running autoburnin for 360 min",
+    "reference": "",
+    "past_crs": [
+      "65744",
+      "65679",
+      "68412",
+      "68413"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1208459",
+      "log_uid": "35021665",
+      "platform": "x310-tb176.rel",
+      "sw_version": "5.5.0-1.1",
+      "run_date": "2020-07-18",
+      "result": "FAIL"
+    }
+  }
+}

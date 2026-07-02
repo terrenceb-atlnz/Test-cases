@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33274": {
+    "objective": "<ul><li>The AT-EPSRv2-MIB (and related atr-MIB) is supported, with OIDs accessible via SNMP and returning values consistent with the device's EPSR configuration and operational state as shown in CLI.</li><li>EPSR domain priority is correctly exposed through the MIB and matches the configured priority and CLI output.</li><li>EPSR-SLP port flags (IsOnCommonSegment and HasControlOfPortBlocking for primary and secondary ports) are accurately reported via SNMP and align with device state.</li><li>EPSR master node and transit node traps are generated with the correct bindings, including trap type, domain name, from and to states, control VLAN ID, primary/secondary port indices, and port states.</li><li>MIB table entries (e.g. atEpsrv2VariablesTable) and individual EPSR variables function as expected and are consistent with show commands.</li><li>EPSR MIB support includes proper trap notifications and handles documented behaviors such as fromState returning \"unknown\" (6) in certain conditions.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink EPSR MIB family (AWP-3991, AWP-1498, AWP-10347, AWP-4009, AWP-4010, AWP-1310, AWP-25021 and related). ART coverage from 5704 (AT-EPSRv2 MIB) and 1334 (EPSR trap behavior).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an EPSR domain with a specific priority and ports. Query the AT-EPSRv2-MIB (and atr-MIB) OIDs for domain priority and confirm values match the CLI show output.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify EPSR-SLP specific MIB variables (domain priority, primary/secondary IsOnCommonSegment and HasControlOfPortBlocking flags) via SNMP and confirm they reflect the current EPSR state as per CLI.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure SNMP trap host and EPSR traps. Induce EPSR state changes to trigger master and transit node scenarios. Capture traps and verify all bindings (trap type, domain name, from/to states, control VLAN, primary/secondary port and state) match expectations.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Query the atEpsrv2VariablesTable and key EPSR MIB objects. Confirm the table and variables are populated correctly and consistent with device EPSR status.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test MIB access in different EPSR roles (master, transit) and states. Confirm values update correctly and traps are sent with appropriate state transitions.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that documented MIB behaviors are observed (e.g. epsrv2FromState may report \"unknown\" (6) in some cases) and that overall MIB support aligns with TestLink expectations.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

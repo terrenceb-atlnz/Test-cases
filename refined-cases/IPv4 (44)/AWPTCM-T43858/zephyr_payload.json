@@ -1,0 +1,22 @@
+{
+  "AWPTCM-T43858": {
+    "objective": "<ul><li>BGPv4 peering establishes successfully to the Established state.</li><li>BGPv4 learns and installs routes from Update messages.</li><li>BGPv4 unicast traffic passes through the scenario at line rate as expected.</li><li>BGPv4 status and functionality are correct under unicast traffic load.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-7650 (BGPv4 Unicast Traffic). Top relevant: AWP-14120 (BGP4+ Unicast), AWP-7681 (Static Unicast), AWP-7775 (VCS Unicast). ART: 2001.1.1/1.2/1.3 (BGP connection, Established, routes), 2036.1.1/1.2/1.3 (similar BGP4), 2002 (attributes, forwarding).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Run background unicast traffic in the relevant BGPv4 scenario. Verify that traffic passes through the scenario at line rate as expected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify BGPv4 establishes to Established state, learns routes from Updates, and forwards unicast traffic correctly.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,4469 @@
+{
+  "1346.0.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1001.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "CR-69886",
+      "70277",
+      "SYST-6512"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1001.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check port shutdown\n\n[Log-derived analysis] Shuts down a port and verifies the shutdown state is reflected correctly in the running configuration.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710660",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check shutdown port forwards no packets\n\n[Log-derived analysis] Shuts down a port and verifies that no packets are forwarded through the shut-down port.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710664",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check shutdown port sends no BPDU packets\n\n[Log-derived analysis] Shuts down a port with RSTP enabled and verifies that the shut-down port sends no BPDU packets.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710668",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check ports send BPDU packets when RSTP is enabled\n\n[Log-derived analysis] Enables RSTP on ports and verifies that BPDU packets are sent out on the active ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93270895",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check port enabling\n\n[Log-derived analysis] Re-enables a previously shut-down port and verifies that it resumes forwarding packets.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710670",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check re-enabled port forwards packets\n\n[Log-derived analysis] Re-enables a shut-down port with RSTP enabled and verifies that it resumes sending BPDU packets.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710675",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check re-enabled port sends BPDU packets\n\n[Log-derived analysis] Re-enables multiple shut-down ports with RSTP enabled and verifies that they resume sending BPDU packets on all configured ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93270917",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check re-enabled ports send BPDU packets when RSTP is enabled\n\n[Log-derived analysis] Runs interface commands against stack ports and verifies that the switch handles them without crashing.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93270940",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test interface commands on stack ports and confirm no crashes occur\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures logging to external media (USB) with rotation and size limits and verifies that logs are written, rotated, and filtered correctly.",
+    "reference": "",
+    "past_crs": [
+      "SYST-8846"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Logging to external media\n\n[Log-derived analysis] Configures VLAN double tagging to add an outer tag on ingress and strip it on egress and verifies the tagging behaviour (feature support is platform-dependent).",
+    "reference": "",
+    "past_crs": [
+      "67063",
+      "79089",
+      "SYST-8964"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356465",
+      "log_uid": "93658426",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.20": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at all supported speeds.\n\n[Inferred behavior \u2014 no execution history for this case] Intended to confirm that links come up at all supported speeds and forward traffic.",
+    "reference": "None",
+    "past_crs": [
+      "59242",
+      "59596",
+      "59948",
+      "60085",
+      "59704",
+      "60561"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1001.30": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 0 is enforced.\n\n[Log-derived analysis] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93271057",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.31": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of none is enforced.\n\n[Log-derived analysis] Configures port security with a learning limit of none and verifies that learning is unrestricted/handled as specified with violation detection.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93271069",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.32": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 1 is enforced.\n\n[Log-derived analysis] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [
+      "CR-86009",
+      "SYST-8127",
+      "SYST-7256"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93271079",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.33": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 64 is enforced.\n\n[Log-derived analysis] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93271090",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.34": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 256 is enforced.\n\n[Log-derived analysis] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [
+      "SYST-8127"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 34,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93271097",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.40": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 20 frames.\n\n[Log-derived analysis] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "77517",
+      "88225"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710712",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.41": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 320 frames.\n\n[Log-derived analysis] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "77517"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710737",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.42": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 1280 frames.\n\n[Log-derived analysis] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "77517",
+      "CR-86538",
+      "CR-88225",
+      "CR-88225"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 42,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710764",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.43": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 300 second MAC age timer with 1280 frames.\n\n[Log-derived analysis] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "77517",
+      "88225",
+      "86538"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 43,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710831",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.50": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710841",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.51": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "55140"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 51,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710862",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.52": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 52,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710879",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.53": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 128B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "38375",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 53,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710907",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.54": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 256B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "38375",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 54,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710917",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.55": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 512B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "38375",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 55,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710940",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.56": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "38375",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 56,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710953",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.57": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 0% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "65227",
+      "67460"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 57,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710966",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.60": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "75983"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710974",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.61": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "75983",
+      "SYST-7239"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711015",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.62": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 62,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711028",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.63": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 128B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "38375",
+      "38126",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 63,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711045",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.64": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 256B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "CR-67276",
+      "38375",
+      "38126",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 64,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711055",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.65": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 512B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "38375",
+      "38126",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 65,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711065",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.66": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "38375",
+      "38126",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 66,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711081",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.67": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 0% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "61519",
+      "65227",
+      "67460"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 67,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711091",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.70": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN translation\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures VLAN translation to map ingress VLAN IDs to different target VLANs and verifies bidirectional translation of tagged frames in both directions.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.71": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN Double Tagging\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures VLAN translation over a LAG and verifies bidirectional VLAN translation across the aggregated link (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 71,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.72": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN translation over LAG\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures VLAN double tagging over a LAG and verifies the outer tag is added on ingress and stripped on egress across the aggregated link (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [
+      "75908"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 72,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.73": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN Double Tagging over LAG\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures combined VLAN double tagging and translation on the same LAG port and verifies both behaviours apply together correctly (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 73,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.74": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN Double Tagging and Translation on same LAG port\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures VLAN-based QinQ across multiple tagged VLAN translations and verifies the outer tags are applied as configured (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 74,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.75": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN-based QinQ\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures the DHCP client on interfaces with and without Option 61 and verifies each interface successfully obtains an address from the DHCP server.",
+    "reference": "Proj2420",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 75,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.80": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DNS configuration and CLI output\n\n[Log-derived analysis] Configures DNS name servers and domain name and verifies the resulting CLI/running-config output is correct.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 80,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711095",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.81": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IRDP configuration and CLI output\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Configures IRDP (ICMP Router Discovery Protocol) parameters and verifies the configuration and CLI output behave as expected on this platform.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 81,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.82": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - action link-down\n\n[Log-derived analysis] Configures loop protection with the link-down action and verifies that on loop detection the affected port is taken link-down and the event is logged.",
+    "reference": "None",
+    "past_crs": [
+      "SYST-8341"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 82,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272234",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.83": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - action port-disable\n\n[Log-derived analysis] Configures loop protection with the port-disable action and verifies that on loop detection the port is disabled and the blocking/disable state is reported.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 83,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272239",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.84": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - vlan-disable\n\n[Log-derived analysis] Configures loop protection with the vlan-disable action and verifies that on detecting loop frames the affected VLAN is disabled on the port.",
+    "reference": "None",
+    "past_crs": [
+      "60053",
+      "60053"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 84,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272244",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.85": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IP helper CLI output\n\n[Log-derived analysis] Configures an IP helper address on an interface and verifies it appears correctly in the running-config CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 85,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711111",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.86": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IP directed-broadcast CLI output\n\n[Log-derived analysis] Configures IP directed-broadcast on an interface and verifies it appears correctly in the running-config CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 86,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711114",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.87": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DNS forwarding configuration and CLI output\n\n[Log-derived analysis] Configures DNS forwarding parameters (such as retry and timeout) and verifies the values are displayed correctly in CLI output.",
+    "reference": "None",
+    "past_crs": [
+      "65140"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 87,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711118",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.88": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - sample rate\n\n[Log-derived analysis] Configures sFlow sampling at a given rate and verifies that the proportion of sampled packets matches the configured rate within an acceptable margin.",
+    "reference": "None",
+    "past_crs": [
+      "74723"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 88,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272287",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.89": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - max-datagram-size\n\n[Log-derived analysis] Configures the sFlow max-datagram-size and verifies that generated sFlow datagrams do not exceed the configured limit.",
+    "reference": "None",
+    "past_crs": [
+      "74723"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 89,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272303",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.90": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - ingress port types\n\n[Log-derived analysis] Enables sFlow sampling on ports in different VLAN/port modes and verifies that sampling occurs correctly on both access and trunk port types.",
+    "reference": "None",
+    "past_crs": [
+      "74723"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 90,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272315",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.91": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - polling switchport counters\n\n[Log-derived analysis] Configures sFlow counter polling at a given interval and verifies that switchport input counters are reported correctly over successive polls.",
+    "reference": "None",
+    "past_crs": [
+      "74723",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 91,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272364",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.92": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - type interface up/down\n\n[Log-derived analysis] Configures triggers that activate on interface up/down events and verifies the triggers fire, run their scripts, and log activation correctly.",
+    "reference": "None",
+    "past_crs": [
+      "82809"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 92,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711126",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.93": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - periodic\n\n[Log-derived analysis] Configures a periodic trigger and verifies that it activates repeatedly at the configured interval and logs each activation.",
+    "reference": "None",
+    "past_crs": [
+      "67059",
+      "82809"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 93,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711160",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.94": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - type reboot\n\n[Log-derived analysis] Configures a trigger that activates on device reboot and verifies the trigger fires and logs the event after the switch reboots.",
+    "reference": "None",
+    "past_crs": [
+      "66433",
+      "82809"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 94,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711171",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.95": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC thrashing - link-down\n\n[Log-derived analysis] Induces MAC thrashing across ports and verifies that thrashing protection detects the condition, takes the link-down action, and logs the reason.",
+    "reference": "None",
+    "past_crs": [
+      "65643"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 95,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93272541",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.7754": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DHCP client with option 61\n\n[Log-derived analysis] Runs 'show tech-support' on the switch and verifies it completes without crashing and without causing port up/down events.",
+    "reference": "SYST-7754",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7754,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711334",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.57875": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Crash or port up/down when running show tech-support\n\n[Log-derived analysis] Disables ingress filtering on a port and verifies forwarding behaviour of VLAN-tagged packets to the ingress-filter-disabled port as expected.",
+    "reference": "CR-57875, CR-54366",
+    "past_crs": [
+      "CR-65647",
+      "67280",
+      "68247",
+      "73859"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 57875,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711326",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.73696": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "CR-73696 - switch forward all vlan packet to ingress-filter disabled port\n\n[Log-derived analysis] Intended to confirm that links come up at all supported speeds and forward traffic.",
+    "reference": "CR-73696",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 73696,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711328",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.80695": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IP domain name with invalid-length\n\n[Log-derived analysis] Verifies the maximum-length IP domain-name can be set and persists, while an over-length domain-name is rejected.",
+    "reference": "CR-80695, 1346.1001.80",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 80695,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711108",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.500100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 500100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710851",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.501000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "CR-85432"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 501000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710858",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.510100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 510100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710867",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.511000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "CR-85432"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 511000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710871",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.520100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 520100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710890",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.521000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "68252",
+      "CR-85432",
+      "SYST-7239"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 521000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710895",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.600100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 600100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710980",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.601000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "CR-85432"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 601000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93710984",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.610100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 610100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711019",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.611000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "CR-85432"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 611000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711022",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.620100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 100Mbps with 64B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 620100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711033",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.621000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 1000Mbps with 1024B sized packets.\n\n[Log-derived analysis] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "68252",
+      "85432"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 621000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711038",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.806950": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DNS configuration and CLI output, max-length ip domain-name\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify DNS configuration and CLI output for a maximum-length ip domain-name.",
+    "reference": "CR-80695, 1346.1001.80",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 806950,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1001.20000000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed auto.\n\n[Log-derived analysis] Brings a link up at auto-negotiated speed and duplex and verifies the link comes up and forwards packets between ports.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "68288",
+      "76019",
+      "83298",
+      "CR-85432",
+      "CR-84233"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20000000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356465",
+      "log_uid": "93661676",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.20000010": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 10.\n\n[Log-derived analysis] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "83164",
+      "SYST-7768"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20000010,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356465",
+      "log_uid": "93661705",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.20000100": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 100.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "62006",
+      "66104",
+      "73724",
+      "76796",
+      "76845",
+      "83164"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20000100,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20001000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 1000.\n\n[Log-derived analysis] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "67862",
+      "77838",
+      "79128",
+      "SYST-7760"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20001000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356465",
+      "log_uid": "93661808",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1346.1001.20002500": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 2500.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "67641",
+      "69925",
+      "74225"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20002500,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20005000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 5000.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "62293",
+      "67641",
+      "69925"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20005000,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20010000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 10000.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [
+      "68288"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20010000,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20012500": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 12500.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20012500,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20040000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 40000.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20040000,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1001.20100000": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at speed 100000.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Brings ports up at a fixed low speed across duplex modes and verifies the links come up and forward packets correctly in each configuration.",
+    "reference": "1346.1001.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20100000,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1002.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1002.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Confirm link comes up at all supported speeds.\n\n[Inferred behavior \u2014 no execution history for this case] Intended to confirm that links come up at all supported speeds and forward traffic.",
+    "reference": "None",
+    "past_crs": [
+      "51562",
+      "52151",
+      "52585",
+      "52404",
+      "52415",
+      "X908NG-1425"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1003.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1003.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 0 is enforced.\n\n[Inferred behavior \u2014 no execution history for this case] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1003.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of none is enforced.\n\n[Inferred behavior \u2014 no execution history for this case] Configures port security with a learning limit of none and verifies that learning is unrestricted/handled as specified with violation detection.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1003.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 64 is enforced.\n\n[Inferred behavior \u2014 no execution history for this case] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1003.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 1 is enforced.\n\n[Inferred behavior \u2014 no execution history for this case] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1003.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC learning limit of 256 is enforced.\n\n[Inferred behavior \u2014 no execution history for this case] Configures port security with a MAC learning limit of 0 and verifies that no MAC addresses are learned and that limit-violation handling is triggered.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1004.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 20 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "39100",
+      "39871"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 320 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "38412",
+      "39100",
+      "39871"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 1280 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 100 second MAC age timer with 2000 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "38412",
+      "39100",
+      "39871"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 300 second MAC age timer with 20 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.14": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 300 second MAC age timer with 1280 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.15": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 300 second MAC age timer with 2000 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "38412",
+      "39100",
+      "39871"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.26": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 600 second MAC age timer with 20 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1004.30": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 600 second MAC age timer with 5120 frames.\n\n[Inferred behavior \u2014 no execution history for this case] Configures the MAC ageing timer and verifies that learned dynamic MAC addresses are aged out of the forwarding table within the expected time window.",
+    "reference": "None",
+    "past_crs": [
+      "38412",
+      "39100"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1005.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 25% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 128B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 128B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 25% limit on broadcast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.12": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.14": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 512B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.16": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 512B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.17": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.18": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.20": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1005.21": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 0% limit on broadcast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% broadcast storm-control limit and verifies that broadcast traffic is rate-limited to within the configured threshold while multicast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51131",
+      "51222"
+    ],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1006.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 25% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 64B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 128B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 128B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 25% limit on multicast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.12": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 256B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.14": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 512B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.16": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 512B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.17": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 5% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.18": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 10% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "55630",
+      "51628"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.20": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 50% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1006.21": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test 0% limit on multicast traffic at 10Mbps with 1024B sized packets.\n\n[Inferred behavior \u2014 no execution history for this case] Configures a 10Mbps port with a 5% multicast storm-control limit and verifies that multicast traffic is rate-limited to within the configured threshold while broadcast traffic passes through normally.",
+    "reference": "None",
+    "past_crs": [
+      "51132",
+      "51222",
+      "55630"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1007.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1007.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Packets sent out trunk port are correctly double-tagged.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that packets sent out a trunk port are correctly double-tagged (private-VLAN/customer-edge feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Double-tagged packets sent in the trunk port are stripped and sent to the customer port.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that double-tagged packets received on a trunk port are stripped and forwarded to the customer-edge port (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Double-tagged packets sent in the trunk port are dropped if they don't match the ports VLAN/s.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that double-tagged packets received on a trunk port are dropped when they do not match the port's VLAN membership (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Packets sent in the trunk port are dropped if they are not tagged.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that untagged packets received on a trunk port are dropped (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trunk port cannot be set as an access/customer-edge port as well.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a trunk port cannot also be configured as an access/customer-edge port (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Customer-edge-port cannot be set to trunk mode.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a customer-edge port cannot be reconfigured into trunk mode (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trunk port in multiple VLANs only sends packets to the tagged VLAN.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a trunk port that is a member of multiple VLANs only sends packets to the tagged VLAN (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trunk port in single VLAN doesn't send packets to VLAN it's not a member of.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a trunk port in a single VLAN does not send packets to VLANs it is not a member of (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Multiple customer edge ports in the same VLAN all receive the same packets.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that multiple customer-edge ports in the same VLAN all receive the same packets (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN hopping attack.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a VLAN-hopping attack is prevented (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1007.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Customer edge port can be a member of only one VLAN.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies that a customer-edge port can be a member of only one VLAN (feature support is platform-dependent).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1008.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1008.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN intra-communication.\n\n[Log-derived analysis] Verifies private-VLAN isolated-VLAN intra-communication: host ports cannot communicate with each other but both can reach the promiscuous port.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697494",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Community VLAN intra-communication.\n\n[Log-derived analysis] Verifies private-VLAN community-VLAN intra-communication: host ports in the community can communicate with each other and with the promiscuous port.",
+    "reference": "None",
+    "past_crs": [
+      "50739"
+    ],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697513",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Community VLAN inter-communication.\n\n[Log-derived analysis] Verifies private-VLAN community-VLAN inter-communication behaviour between community host ports and the promiscuous port.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697533",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Untagged broadcast from promiscuous port goes to all host ports.\n\n[Log-derived analysis] Verifies that an untagged broadcast from the promiscuous port is delivered to all host ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697549",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Tagged broadcasts packets go only to the tagged VLAN.\n\n[Log-derived analysis] Verifies that tagged broadcast packets from the promiscuous port are delivered only to host ports in the matching VLAN.",
+    "reference": "None",
+    "past_crs": [
+      "76928",
+      "CR-89653"
+    ],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697568",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Community VLAN broadcast packets from a host port are received by all other ports.\n\n[Log-derived analysis] Verifies that a broadcast from a community-VLAN host port is received by all other ports in the community including the promiscuous port.",
+    "reference": "None",
+    "past_crs": [
+      "50739"
+    ],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697582",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1008.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN broadcast packets from a host port only reach the promiscuous port.\n\n[Log-derived analysis] Verifies that a broadcast from an isolated-VLAN host port reaches only the promiscuous port and not other isolated host ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697605",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1009.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN intra-communication. Host port -> promiscuous port.\n\n[Log-derived analysis] Verifies isolated-VLAN intra-communication from host port to promiscuous port: host ports can reach the promiscuous port but not each other.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697803",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN intra-communication. Promiscuous port -> host ports.\n\n[Log-derived analysis] Verifies isolated-VLAN intra-communication from promiscuous port to host ports: the promiscuous port can reach the isolated host ports.",
+    "reference": "None",
+    "past_crs": [
+      "CR-89653"
+    ],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697815",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN host port broadcast.\n\n[Log-derived analysis] Verifies that an isolated-VLAN host-port broadcast is delivered only to the promiscuous port.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697826",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Isolated VLAN promiscuous port broadcast.\n\n[Log-derived analysis] Verifies that an isolated-VLAN promiscuous-port broadcast reaches all host ports in that VLAN.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697835",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Multiple isolated vlans with same promiscuous port in both, promiscuous port broadcast.\n\n[Log-derived analysis] Verifies that with the same promiscuous port in multiple isolated VLANs, a promiscuous-port broadcast for each VLAN reaches only that VLAN's host ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697850",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Multiple isolated vlans with same promiscuous port in both, host port broadcast.\n\n[Log-derived analysis] Verifies that with the same promiscuous port in multiple isolated VLANs, a host-port broadcast reaches only the promiscuous port and not host ports in other VLANs.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697875",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Mix of isolated and standard VLANs with promiscuous port in both, promiscuous port broadcast.\n\n[Log-derived analysis] Verifies that with the same promiscuous port shared between an isolated and a standard VLAN, a promiscuous-port broadcast for each VLAN reaches only the corresponding ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697894",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Mix of isolated and standard VLANs with the same promiscuous port in both, send host & access port packets.\n\n[Log-derived analysis] Verifies that with a promiscuous port shared between isolated and standard VLANs, packets sent from host ports reach only the promiscuous port for their VLAN.",
+    "reference": "None",
+    "past_crs": [
+      "38352"
+    ],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697904",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Mix of isolated and standard VLANs with promiscuous port in both, promiscuous port packets.\n\n[Log-derived analysis] Verifies that with a promiscuous port shared between isolated and standard VLANs, the promiscuous port forwards unicast packets correctly to the relevant ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697924",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Mix of isolated and standard VLANs with promiscuous port in both, host/access port broadcast.\n\n[Log-derived analysis] Verifies that with a promiscuous port shared between isolated and standard VLANs, host/access-port broadcasts reach only the promiscuous port and not other VLAN ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697942",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1009.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Multiple isolated vlans with same promiscuous port in both, bad VLAN tag host port broadcast.\n\n[Log-derived analysis] Verifies that with multiple isolated VLANs sharing a promiscuous port, a host-port broadcast bearing a bad/invalid VLAN tag is not delivered to any port.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357257",
+      "log_uid": "93697959",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1010.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1010.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DNS configuration and CLI output\n\n[Inferred behavior \u2014 no execution history for this case] Configures DNS name servers and domain name and verifies the resulting CLI/running-config output is correct.",
+    "reference": "None",
+    "past_crs": [
+      "39905"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IRDP configuration and CLI output\n\n[Inferred behavior \u2014 no execution history for this case] Configures IRDP (ICMP Router Discovery Protocol) parameters and verifies the configuration and CLI output behave as expected on this platform.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - action link-down\n\n[Inferred behavior \u2014 no execution history for this case] Configures loop protection with the link-down action and verifies that on loop detection the affected port is taken link-down and the event is logged.",
+    "reference": "None",
+    "past_crs": [
+      "39612"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - action port-disable\n\n[Inferred behavior \u2014 no execution history for this case] Configures loop protection with the port-disable action and verifies that on loop detection the port is disabled and the blocking/disable state is reported.",
+    "reference": "None",
+    "past_crs": [
+      "39612"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Loop protection - vlan-disable\n\n[Inferred behavior \u2014 no execution history for this case] Configures loop protection with the vlan-disable action and verifies that on detecting loop frames the affected VLAN is disabled on the port.",
+    "reference": "None",
+    "past_crs": [
+      "39612"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IP helper CLI output\n\n[Inferred behavior \u2014 no execution history for this case] Configures an IP helper address on an interface and verifies it appears correctly in the running-config CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "IP directed-broadcast CLI output\n\n[Inferred behavior \u2014 no execution history for this case] Configures IP directed-broadcast on an interface and verifies it appears correctly in the running-config CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "DNS forwarding configuration and CLI output\n\n[Inferred behavior \u2014 no execution history for this case] Configures DNS forwarding parameters (such as retry and timeout) and verifies the values are displayed correctly in CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.101": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - sample rate\n\n[Inferred behavior \u2014 no execution history for this case] Configures sFlow sampling at a given rate and verifies that the proportion of sampled packets matches the configured rate within an acceptable margin.",
+    "reference": "None",
+    "past_crs": [
+      "50278"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.102": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - max-datagram-size\n\n[Inferred behavior \u2014 no execution history for this case] Configures the sFlow max-datagram-size and verifies that generated sFlow datagrams do not exceed the configured limit.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 102,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.103": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - ingress port types\n\n[Inferred behavior \u2014 no execution history for this case] Enables sFlow sampling on ports in different VLAN/port modes and verifies that sampling occurs correctly on both access and trunk port types.",
+    "reference": "None",
+    "past_crs": [
+      "50211"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 103,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.104": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "sFlow - polling switchport counters\n\n[Inferred behavior \u2014 no execution history for this case] Configures sFlow counter polling at a given interval and verifies that switchport input counters are reported correctly over successive polls.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 104,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.201": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - type interface up/down\n\n[Inferred behavior \u2014 no execution history for this case] Configures triggers that activate on interface up/down events and verifies the triggers fire, run their scripts, and log activation correctly.",
+    "reference": "None",
+    "past_crs": [
+      "56376"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 201,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.202": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - periodic\n\n[Inferred behavior \u2014 no execution history for this case] Configures a periodic trigger and verifies that it activates repeatedly at the configured interval and logs each activation.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 202,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.203": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Trigger - type reboot\n\n[Inferred behavior \u2014 no execution history for this case] Configures a trigger that activates on device reboot and verifies the trigger fires and logs the event after the switch reboots.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 203,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1010.301": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "MAC thrashing - link-down\n\n[Inferred behavior \u2014 no execution history for this case] Induces MAC thrashing across ports and verifies that thrashing protection detects the condition, takes the link-down action, and logs the reason.",
+    "reference": "None",
+    "past_crs": [
+      "CR-55702"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 301,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1011.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1011.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check rmon alarm etherStatsBroadcastPkts\n\n[Log-derived analysis] Configures an RMON alarm on the broadcast-packets counter and verifies that rising and falling threshold crossings fire the associated events and are logged.",
+    "reference": "CR39583",
+    "past_crs": [
+      "39583",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357046",
+      "log_uid": "93683469",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check rmon alarm etherStatsPkts\n\n[Log-derived analysis] Configures an RMON alarm on the total-packets counter and verifies that rising and falling threshold crossings fire the associated events and are logged.",
+    "reference": "CR39583",
+    "past_crs": [
+      "39583",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711626",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check rmon alarm etherStatsMulticastPkts\n\n[Log-derived analysis] Configures an RMON alarm on the multicast-packets counter and verifies that rising and falling threshold crossings fire the associated events and are logged.",
+    "reference": "CR39583",
+    "past_crs": [
+      "39583",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711642",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check 'show rmon statistics' shows correct packet counts\n\n[Log-derived analysis] Sends test traffic and verifies that 'show rmon statistics' reports the packet counts accurately.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711644",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check 'show rmon history' shows correct output\n\n[Log-derived analysis] Configures RMON history collection and verifies that 'show rmon history' displays the configured values correctly.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711651",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check 'show rmon alarm' shows correct output\n\n[Log-derived analysis] Configures an RMON alarm and verifies that 'show rmon alarm' displays the alarm configuration parameters correctly.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711656",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check 'show rmon event' shows correct output\n\n[Log-derived analysis] Configures an RMON event and verifies that 'show rmon event' displays the event configuration and updates the Last-Time-Sent field when the alarm triggers.",
+    "reference": "CR39583",
+    "past_crs": [
+      "39583",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711658",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check data type for historyControl oids with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON historyControl OID objects return the correct data types (integers, OIDs, and strings).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711663",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check Value for historyControl oids with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON historyControl OID objects return values within their valid ranges.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711667",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test read-only and read-write for historyControl oids with snmp-set\n\n[Log-derived analysis] Uses SNMP to verify access control on RMON historyControl OIDs: read-only objects reject writes and read-write objects accept valid values.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711672",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check data type for alarm oids with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON alarm OID objects return the correct data types (integer, OID, and string).",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711675",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.12": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check Value for alarm oids with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON alarm OID objects return the expected values for index, interval, thresholds, event indices, and owner.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711681",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.13": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test read-only and read-write for alarm oids with snmp-set\n\n[Log-derived analysis] Uses SNMP to verify access control on RMON alarm OIDs: read-only objects reject writes and read-write objects accept valid values within range.",
+    "reference": "CR39499",
+    "past_crs": [
+      "39499"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711690",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.14": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check Data type for etherStats oids (rmon collection stats) with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON etherStats collection OID objects return the correct data types across the various octet, packet, broadcast, multicast, error, and size-distribution counters.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711698",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.15": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check Value for etherStats oids (rmon collection stats) with snmp-get\n\n[Log-derived analysis] Uses SNMP to verify that the RMON etherStats collection OID objects return expected values and ranges for the various counters.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711701",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.16": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Do read and write tests for etherStats oids (rmon collection stats) with snmpset\n\n[Log-derived analysis] Uses SNMP to verify read-only access control on the RMON etherStats collection OIDs: counter and statistics objects reject write attempts.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711712",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.17": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Check multiple alarms being set off on same event\n\n[Log-derived analysis] Verifies that multiple RMON alarms on the same monitored variable can fire together across rising and falling threshold crossings, with correct logging and event associations.",
+    "reference": "CR39767",
+    "past_crs": [
+      "67661",
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711502",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.18": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Raise the falling threshold rmon alarm twice\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies behaviour when a falling-threshold alarm is raised repeatedly, checking alarm state transitions after counter resets.",
+    "reference": "CR39767",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1011.19": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Raise alarm controlled by multiple events\n\n[Log-derived analysis] Verifies that an alarm can be controlled by multiple independent events, confirming both rising and falling threshold alarms fire with their respective event descriptions.",
+    "reference": "",
+    "past_crs": [
+      "39583",
+      "75892",
+      "CR-75892"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711719",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.101": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Triggers - ping-poll trigger\n\n[Log-derived analysis] Configures a ping-poll/interface trigger that runs an ACL-applying script when a monitored port goes down and verifies the trigger activates and is logged.",
+    "reference": "",
+    "past_crs": [
+      "50612",
+      "61001",
+      "82809"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93274057",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1011.102": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Triggers - SNMP trap\n\n[Log-derived analysis] Verifies SNMP trap generation when a trigger event occurs, confirming traps carry the correct trigger identifiers and that the associated configuration is applied.",
+    "reference": "",
+    "past_crs": [
+      "60063",
+      "82809"
+    ],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 102,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339835",
+      "log_uid": "93274066",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-07",
+      "result": "PASS"
+    }
+  },
+  "1346.1012.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1346.1012.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLAN translation\n\n[Inferred behavior \u2014 no execution history for this case] Configures VLAN translation to map ingress VLAN IDs to different target VLANs and verifies bidirectional translation of tagged frames in both directions.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1346.1013.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1013.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite isolation\n\n[Log-derived analysis] Verifies VRF isolation: confirms traffic cannot cross between named VRF instances or between a named VRF and the global VRF without explicit routing.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051090",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite communication within the same instance\n\n[Log-derived analysis] Verifies VRF intra-instance connectivity without routes and confirms that communication between different VRF instances fails when no interconnecting routes exist.",
+    "reference": "None",
+    "past_crs": [
+      "57121"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051091",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite communication between VRFs with static routes\n\n[Log-derived analysis] Verifies that connectivity can be established between different VRF instances, and between a VRF and the global VRF, when interconnecting static routes are configured.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051092",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite isolation after VCS failovers\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify VRF isolation is maintained across a VCS master failover. Requires a stack of size > 1.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1013.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite communication between VRFs with static routes after VCS failovers\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify inter-VRF connectivity via static routes is maintained across a VCS master failover. Requires a stack of size > 1.",
+    "reference": "None",
+    "past_crs": [
+      "59232"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1013.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite with tagged VLANs\n\n[Log-derived analysis] Verifies that VRF-Lite supports tagged VLAN interfaces for connectivity and that isolation between VRF instances is preserved on tagged ingress ports.",
+    "reference": "None",
+    "past_crs": [
+      "57121"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051093",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite with management tools\n\n[Log-derived analysis] Verifies that management tools (ping, traceroute, SSH, packet capture) operate correctly within an isolated VRF instance and respect VRF boundaries.",
+    "reference": "None",
+    "past_crs": [
+      "61029",
+      "CR-62205",
+      "73865"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051094",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.8": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite instance stress test\n\n[Log-derived analysis] Stress-tests VRF creation and deletion by repeatedly cycling through creating and removing the maximum number of VRF instances and confirms stable operation.",
+    "reference": "None",
+    "past_crs": [
+      "57119",
+      "57440",
+      "68849"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051095",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.9": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite max-static-routes\n\n[Log-derived analysis] Verifies that a per-VRF static-route limit can be configured and is enforced, affecting only the configured VRF instance.",
+    "reference": "AWP-23668",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051096",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1346.1013.10": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite max-fib-routes\n\n[Log-derived analysis] Verifies that a per-VRF dynamic-route limit can be configured and is enforced, affecting only the configured VRF instance.",
+    "reference": "AWP-23667",
+    "past_crs": [
+      "57357"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051097",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1013.11": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VRF-Lite with ARP\n\n[Log-derived analysis] Verifies that static and dynamic ARP entries work correctly and remain isolated within their VRF instances.",
+    "reference": "None",
+    "past_crs": [
+      "61029"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2809095",
+      "log_uid": "78051098",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20250122-396",
+      "run_date": "2025-01-23",
+      "result": "PASS"
+    }
+  },
+  "1346.1014.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1014.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLANAPI - /api/v1/vlan/vlans get all vlans\n\n[Log-derived analysis] Uses the REST API to retrieve and validate all VLAN objects, confirming correct name, enabled status, and tagged/untagged port memberships.",
+    "reference": "None",
+    "past_crs": [
+      "59645"
+    ],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711757",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1014.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLANAPI - stack resiliancy link shows correctly (Broadcom stack only)\n\n[Log-derived analysis] Verifies that VLAN stack resiliency-link information is reported correctly via the REST API. Platform/stack-specific.",
+    "reference": "None",
+    "past_crs": [
+      "59645",
+      "SYST-8284"
+    ],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711759",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1014.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "VLANAPI - /api/v1/vlan/vlans/ - create vlans\n\n[Log-derived analysis] Uses the REST API to create and validate VLANs via batch operations, persists the configuration across a reboot, and verifies creation and deletion of VLAN ranges.",
+    "reference": "None",
+    "past_crs": [
+      "59645",
+      "73620",
+      "SYST-7484",
+      "CR-86506",
+      "SYST-8058"
+    ],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711779",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1015.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP\n\n[Log-derived analysis] Sends email via SMTP with no authentication and verifies it passes through the mail queue and is received at the destination mail server.",
+    "reference": "[WIKI] SMTP - Feature Page",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711800",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using AUTH PLAIN\n\n[Log-derived analysis] Sends email via SMTP using PLAIN authentication and verifies successful authentication, transmission, and receipt at the destination mail server.",
+    "reference": "[WIKI] SMTP - Feature Page",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711804",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using AUTH LOGIN\n\n[Log-derived analysis] Sends email via SMTP using LOGIN authentication and verifies successful authentication, transmission, and receipt at the destination mail server.",
+    "reference": "[WIKI] SMTP - Feature Page",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711808",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using AUTH CRAM-MD5\n\n[Log-derived analysis] Sends email via SMTP using CRAM-MD5 authentication and verifies successful authentication, transmission, and receipt at the destination mail server.",
+    "reference": "[WIKI] SMTP - Feature Page",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711812",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using port 2525\n\n[Log-derived analysis] Sends email via SMTP on a non-standard server port and verifies successful transmission and delivery, confirming port configurability.",
+    "reference": "[WIKI] SMTP - Feature Page",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711813",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using STARTTLS - secure SNMP over TLS connection\n\n[Log-derived analysis] Sends email via SMTP using STARTTLS with LOGIN authentication and verifies the TLS session is established and the message is delivered.",
+    "reference": "SYST-6123 - ER-5174 TLS Authentication support",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711815",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.7": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Send an email via SMTP using SMTPS - secure SNMP over TLS connection\n\n[Log-derived analysis] Sends email via SMTP using implicit TLS (SMTPS) with LOGIN authentication and verifies the secure connection is established and the message is delivered.",
+    "reference": "SYST-6123 - ER-5174 TLS Authentication support",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711821",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1015.32400": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "CR32400 - When the trigger works for the member leave, the SMTP(mail) packet is transmitted two times.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify email transmission continues across a stack member failure. Requires a stack of size > 1.",
+    "reference": "CR32400",
+    "past_crs": [
+      "82809",
+      "SYST-8594"
+    ],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 32400,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1346.1015.35288": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "CR35288 - log emails keep added to the queue in backup member\n\n[Log-derived analysis] Verifies that log emails are queued following port state changes and that the accumulated log messages are eventually delivered.",
+    "reference": "CR35288",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 35288,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358034",
+      "log_uid": "93711845",
+      "platform": "AR1050V-tb260.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.0": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1346.1016.1": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test low memory - Syslog messages\n\n[Log-derived analysis] Verifies that a syslog message is generated when available system memory falls below the configured low threshold.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634576",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.2": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test low memory - SNMP traps\n\n[Log-derived analysis] Verifies that SNMP traps are generated when memory falls below the configured threshold and again when it returns to normal.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634577",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.3": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test very low memory - Syslog messages\n\n[Log-derived analysis] Verifies that a syslog message is generated when available memory falls below the very-low threshold and that a debug snapshot is captured for diagnostics.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634578",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.4": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test very low memory - SNMP traps\n\n[Log-derived analysis] Verifies that SNMP traps are generated for a very-low memory condition and that a debug snapshot is automatically captured.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634579",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.5": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test process termination upon reaching low memory termination threshold\n\n[Log-derived analysis] Verifies that processes are automatically terminated when memory reaches the critical termination threshold and that debug information is captured.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634580",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  },
+  "1346.1016.6": {
+    "suite_id": "1346",
+    "suite_name": "1346_swi_misc",
+    "description": "Test configured low-memory restart\n\n[Log-derived analysis] Verifies that the system automatically restarts when available memory falls below the configured restart threshold, confirming the low-memory recovery mechanism.",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2728372",
+      "log_uid": "75634581",
+      "platform": "AR3050S-tb115.rel",
+      "sw_version": "awplus_main-20241030-233",
+      "run_date": "2024-10-31",
+      "result": "PASS"
+    }
+  }
+}

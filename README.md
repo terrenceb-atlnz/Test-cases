@@ -1,6 +1,23 @@
 # Test-cases
 
+Tools, data, and workflows for enriching and mapping **AWPTCM manual test cases** (Zephyr) using historical TestLink cases and enriched ATPyLib automated test suites.
+
 This directory contains the data, tools, and analysis for a project to improve and contextualize manual test cases using historical and automated sources.
+
+## Getting Started
+
+```bash
+git clone https://github.com/terrenceb-atlnz/Test-cases.git
+cd Test-cases
+```
+
+**Requirements:** Python 3.
+
+**Note on data files:** Large raw exports (the original Zephyr XML, full JSONL extracts) are excluded from this repository via `.gitignore` to keep clones fast and respect GitHub file size limits. 
+
+- Use the scripts under `tool/` (e.g. `extract_zephyr_xml.py`) to regenerate working artifacts when you have the source XML.
+- See `data/zephyr_full/README.md` for details on the extracted files and recommended access patterns (slim_index.json is small and very useful).
+- Smaller data files (candidates, decisions, enriched suites, slim indexes, refined-cases) are included.
 
 ## Project Framing
 
@@ -28,7 +45,7 @@ The objective of the `.json` enrichment process (specifically the log-derived, i
 
 ## Data Sources
 
-Note: Data is organized across `data/` and `data/suites/`.
+Note: Data is organized across `data/` and `data/suites/`. See the "Getting Started" section above for notes on which large files are committed vs. excluded from the repository.
 
 - **Manual Test Cases** (`data/zephyr_master.json` for raw, `data/candidates.json` for pre-ranked): The ~410 AWPTCM-Txxxx cases (target) that need Objectives and mapping. See `data/suites/zephyr_master.json` copy if present.
 - **Historical TestLink Cases** (`data/suites/testlink_awp.json` and related extraction tools in `tool/`): Older test definitions (AWP ids) used for overlap detection and context. The review/decisions pipeline (batches, decisions) currently operates primarily on this source.
@@ -56,15 +73,9 @@ The enrichment of automated test case descriptions (via log analysis) is central
 
 ## Location and Workflow
 
-The authoritative copy of this work lives on `terrenceb-dl` at:
-`/media/terrenceb/mnt/testbox_home/copilot/Test-cases/`
-
-This local directory is a synchronized mirror (see sync commands in root `AGENTS.md`).
-
-Work (especially data gathering and heavy processing) is performed on `terrenceb-dl` via nested SSH:
-`ssh mrfuji@diglettscave.cooldad.top "ssh terrenceb@10.33.22.17 '...' "`
-
 Focus is on data transformation, enrichment accuracy, overlap identification, Objective synthesis, and relationship mapping. Writing updates back to Zephyr is the final step.
+
+> **Note:** The primary development environment for this work is an internal machine (terrenceb-dl). This GitHub repository is a published copy of the working tree. Some references to internal paths or AGENTS.md may remain for context.
 
 ### Uploading Refined Cases
 Once one or more cases have `refined-cases/<Category>/AWPTCM-Txxxx/zephyr_payload.json` (with objective + testScript), use the uploader:
@@ -109,3 +120,7 @@ See [data/suites/ENRICHMENT_STATE.md](data/suites/ENRICHMENT_STATE.md) for detai
 - `secrets.md` — API keys (JIRA, TestLink) — gitignored in some contexts.
 - Root project [AGENTS.md](../AGENTS.md) — Broader context, access patterns, and Terrenceb-dl details.
 - Drafting tool work: See `drafting-tool/PROGRESS.md` (status, backlog, technical debt, handoff), `drafting-tool/SERVER-README.md` (usage + architecture), `drafting-tool/LESSONS_LEARNED.md`. Recent progress: real data for Steps 1-3 + LLM pre-select in Step 3, dynamic cases + pre-fills for T33234 demo, UI compaction for one-page fit, human-readable Step 4 output. Always start with `drafting-tool/PROGRESS.md` + cross-ref root README + `SESSION_STATE.md`.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

@@ -1,0 +1,292 @@
+{
+  "5009.1801.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Device|stack startup time\n\n[Inferred behavior \u2014 no execution history for this case] Device|stack startup time",
+    "reference": "1094.20",
+    "past_crs": [
+      "34089",
+      "34154"
+    ],
+    "current_crs": [],
+    "testSet": 1801,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1801.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Device|stack startup time\n\n[Inferred behavior \u2014 no execution history for this case] Device|stack startup time",
+    "reference": "1094.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1801,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1801.3": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Device|stack startup time\n\n[Inferred behavior \u2014 no execution history for this case] Device|stack startup time",
+    "reference": "1094.20",
+    "past_crs": [
+      "34089",
+      "34154"
+    ],
+    "current_crs": [],
+    "testSet": 1801,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1801.4": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Device|stack startup time\n\n[Inferred behavior \u2014 no execution history for this case] Device|stack startup time",
+    "reference": "1094.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1801,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1802.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Command Execution time\n\n[Inferred behavior \u2014 no execution history for this case] Command Execution time",
+    "reference": "1094.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1802,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1803.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "High VLANS [1024] Memory Usage\n\n[Inferred behavior \u2014 no execution history for this case] High VLANS [1024] Memory Usage",
+    "reference": "1094.22.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1803,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1803.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "High VLANS [2050] Memory Usage\n\n[Inferred behavior \u2014 no execution history for this case] High VLANS [2050] Memory Usage",
+    "reference": "1094.22.2",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1803,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1803.3": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "High VLANS [4090] Memory Usage\n\n[Inferred behavior \u2014 no execution history for this case] High VLANS [4090] Memory Usage",
+    "reference": "1094.22.3",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1803,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1901.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. 10 access-lists, 10 vlans, 10 PIM lists, 10 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. 10 access-lists, 10 vlans, 10 PIM lists, 10 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1901,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1901.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. 10 access-lists, 10 vlans, 10 PIM lists, 10 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. 10 access-lists, 10 vlans, 10 PIM lists, 10 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1901,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1902.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. 100 access-lists, 100 vlans, 100 PIM lists, 100 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. 100 access-lists, 100 vlans, 100 PIM lists, 100 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1902,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1902.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. 100 access-lists, 100 vlans, 100 PIM lists, 100 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. 100 access-lists, 100 vlans, 100 PIM lists, 100 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1902,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1903.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. 200 access-lists, 500 vlans, 500 PIM lists, 500 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. 200 access-lists, 500 vlans, 500 PIM lists, 500 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1903,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1903.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. 200 access-lists, 500 vlans, 500 PIM lists, 500 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. 200 access-lists, 500 vlans, 500 PIM lists, 500 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1903,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1904.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. 200 access-lists, 1000 vlans, 200 PIM lists, 1000 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. 200 access-lists, 1000 vlans, 200 PIM lists, 1000 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1904,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1904.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. 200 access-lists, 1000 vlans, 200 PIM lists, 1000 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. 200 access-lists, 1000 vlans, 200 PIM lists, 1000 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1904,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1905.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. 1024 access-lists, 4093 vlans, 1024 PIM lists, 1000 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. 1024 access-lists, 4093 vlans, 1024 PIM lists, 1000 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [
+      "30364"
+    ],
+    "testSet": 1905,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1905.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. 1024 access-lists, 4093 vlans, 1024 PIM lists, 1000 static IP routes\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. 1024 access-lists, 4093 vlans, 1024 PIM lists, 1000 static IP routes",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [
+      "30364"
+    ],
+    "testSet": 1905,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1906.1": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by reboot of Master. Japanese hospital scenario\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by reboot of Master. Japanese hospital scenario",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1906,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5009.1906.2": {
+    "suite_id": "5009",
+    "suite_name": "5009_performance_failover",
+    "description": "Master failover by power failure of Master. Japanese hospital scenario\n\n[Inferred behavior \u2014 no execution history for this case] Master failover by power failure of Master. Japanese hospital scenario",
+    "reference": "1304.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1906,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

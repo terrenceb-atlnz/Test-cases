@@ -1,0 +1,46 @@
+{
+  "AWPTCM-T33250": {
+    "objective": "<ul><li>A VLAN configured with arp-mac-disparity accepts ARP replies that map a unicast IP address to a virtual multicast MAC address (NLB cluster).</li><li>A VLAN configured with arp-mac-disparity unicast accepts ARP replies using a virtual unicast MAC address for an NLB cluster.</li><li>Static ARP entries can be configured with a unicast IP address and multicast MAC address and bound to specific ports.</li><li>The arp-mac-disparity configuration (including multicast, unicast, and multicast-igmp modes) persists in the running and startup configuration and survives stack failover.</li><li>When arp-mac-disparity is enabled with appropriate mode and port binding, traffic to the virtual NLB address is forwarded only to the configured ports instead of being flooded across the VLAN.</li><li>arp-mac-disparity operates correctly when the relevant VLAN interface belongs to a VRF instance.</li><li>Disparate ARP entries are correctly reflected in show arp and platform MAC/IP tables.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink NLB/arp-mac-disparity family (AWP-20263, AWP-21286–21288, AWP-21298, AWP-21239, AWP-21248, AWP-21299, AWP-21302) and ART 1355 + 1351.1001.12/13.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a VLAN with arp-mac-disparity (or multicast mode). Send an ARP reply using a virtual multicast MAC for a unicast IP. Verify the disparate ARP entry is learned and visible in show arp.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure arp-mac-disparity unicast on a VLAN. Send a virtual unicast MAC ARP reply and confirm the entry is learned and traffic is handled appropriately.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a static ARP entry using unicast IP + multicast MAC bound to specific ports. Verify the binding and that mac-address-table reflects the entry on the configured ports.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the arp-mac-disparity configuration (with mode) to startup-config. Perform a reload or VCS failover. Confirm the configuration and disparate ARP behaviour are restored.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With arp-mac-disparity and static ARP binding configured, send traffic to the virtual IP/MAC. Confirm forwarding occurs only to the bound ports (no VLAN-wide flooding).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the NLB server VLAN inside a VRF instance with arp-mac-disparity. Verify the feature functions (ARP learning and forwarding) within the VRF.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that show arp, show platform table macaddr, and related commands accurately report the disparate ARP entries, virtual MACs, and port bindings.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable arp-mac-disparity (or change modes). Confirm that subsequent virtual MC ARP replies are dropped or handled according to default behaviour.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

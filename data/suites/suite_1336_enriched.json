@@ -1,0 +1,1860 @@
+{
+  "1336.0.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.101.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.101.11": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, deny ICMP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies ICMP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching ICMP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "RED: TCM-1 (ACLs)",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655110",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.12": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, deny IP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies IP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching IP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.101.2",
+    "past_crs": [
+      "36902",
+      "39581",
+      "50813",
+      "57299"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655155",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.13": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, deny TCP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies TCP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching TCP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.101.3",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655205",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.14": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, deny UDP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies UDP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching UDP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.101.4",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655258",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.15": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, deny IP proto (1 ~ 255)\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies an arbitrary IP protocol number traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching an arbitrary IP protocol number traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.101.5",
+    "past_crs": [
+      "36161",
+      "50813",
+      "62641",
+      "70781"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655661",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.21": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, deny ICMP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies ICMP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching ICMP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.111.1",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655742",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.22": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, deny IP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies IP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching IP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.111.2",
+    "past_crs": [
+      "36902",
+      "39581",
+      "50813",
+      "57299"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655794",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.23": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, deny TCP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies TCP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching TCP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.111.3",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655860",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.24": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, deny UDP\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies UDP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching UDP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.111.4",
+    "past_crs": [
+      "39581",
+      "50813"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93655997",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.25": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, deny IP proto (1 ~ 255)\n\n[Log-derived analysis] Verifies a hardware IP ACL that denies an arbitrary IP protocol number traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching an arbitrary IP protocol number traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "test-1312.111.5",
+    "past_crs": [
+      "36161",
+      "50813",
+      "62641"
+    ],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93656272",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.26": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Show ACL statistics CLI command and API call\n\n[Log-derived analysis] Verifies the ACL hit-statistics CLI command and the equivalent management API call. Clears counters, confirms they read zero via both CLI and API, applies a deny ACL and drives matching traffic, then confirms both the CLI packet-hit counter and the API rule-hit counter increment to the expected value.",
+    "reference": "Project: 2625 - SYST-5096",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93644447",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.101.27": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "QoS name length test\n\n[Log-derived analysis] Configuration boundary test: confirms a maximum-length QoS/match access-group name is accepted and correctly applied without truncation or error. Restores and re-verifies config.",
+    "reference": "test-1336.101.27",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 101,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93656499",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.102.11": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: copy-to-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'copy-to-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is delivered to the CPU, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.103.1",
+    "past_crs": [
+      "36567",
+      "39581",
+      "CR-89334"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93251430",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.102.12": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: copy-to-mirror\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'copy-to-mirror' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is seen on the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.103.2",
+    "past_crs": [
+      "39581"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93656888",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.13": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: permit\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'permit' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are permitted and switched through the DUT, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.103.3",
+    "past_crs": [
+      "39581"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93656918",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.14": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: send-to-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are diverted to the CPU rather than switched, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.103.4",
+    "past_crs": [
+      "36567",
+      "39581",
+      "50994",
+      "CR-89334"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93251465",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.102.15": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: send-to-mirror\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-mirror' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are redirected to the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.103.5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93644705",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.16": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: send-to-vlan-port\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-vlan-port' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are redirected to the specified VLAN port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1336.102.13",
+    "past_crs": [
+      "SYST-8098",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93644727",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.17": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, action: deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'deny-and-not-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "SYST-6688",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93644749",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.21": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, applied via QoS, action: copy-to-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'copy-to-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is delivered to the CPU, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.113.1",
+    "past_crs": [
+      "36137",
+      "36567",
+      "39581",
+      "SYST-8098"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93251519",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.102.22": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, action: copy-to-mirror\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'copy-to-mirror' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is seen on the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.113.2",
+    "past_crs": [
+      "39581",
+      "SYST-8098",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93657775",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.23": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, applied via QoS, action: permit\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'permit' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are permitted and switched through the DUT, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.113.3",
+    "past_crs": [
+      "39581"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93657805",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.24": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, applied via QoS, action: send-to-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are diverted to the CPU rather than switched, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.113.4",
+    "past_crs": [
+      "36264",
+      "36567",
+      "39581",
+      "50994",
+      "51582",
+      "75967"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93251561",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.102.25": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, applied via QoS, action: send-to-mirror\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-mirror' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are redirected to the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1312.113.5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93644981",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.26": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware ACL, applied via QoS, action: send-to-vlan-port\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'send-to-vlan-port' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are redirected to the specified VLAN port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "test-1336.102.23",
+    "past_crs": [
+      "SYST-8098",
+      "CR-88708",
+      "SYST-8418"
+    ],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93645010",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.102.27": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, applied via QoS, action: deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware IP/MAC ACL 'deny-and-not-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "SYST-6688",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 102,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93645038",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.103.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.103.1": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware MAC ACL, deny packets\n\n[Log-derived analysis] Verifies a hardware MAC ACL that denies frames matching a source/destination MAC, applied to the ingress port. Confirms frames are switched normally first, then that matching frames are discarded once the ACL is applied, and switching resumes after removal. Restores and re-verifies config.",
+    "reference": "test-1312.102.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93658817",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.103.2": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IP ACL, limit testing\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify the maximum supported number of hardware IP ACL entries, programming ACLs up to the platform limit and confirming the switch enforces the limit without exceeding hardware capacity.",
+    "reference": "test-1312.104.1",
+    "past_crs": [
+      "36159"
+    ],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1336.103.3": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware MAC ACL, limit testing\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify the maximum supported number of hardware MAC ACL entries, programming ACLs up to the platform limit and confirming the switch enforces the limit without exceeding hardware capacity.",
+    "reference": "test-1312.105.1",
+    "past_crs": [
+      "36159"
+    ],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1336.103.4": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware MAC ACL, action: deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware MAC ACL 'deny-and-not-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "ER-5362",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93645209",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.103.5": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware MAC ACL, applied via QoS, action: deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware MAC ACL 'deny-and-not-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "ER-5362",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 103,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93645233",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.104.1": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-protection enable/disable\n\n[Log-derived analysis] Verifies the storm-protection enable/disable control. Configures storm-protection on an ingress port, drives a broadcast/traffic storm and confirms the port is err-disabled when protection is active, then confirms the port stays up once storm-protection is disabled. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "51465",
+      "57312",
+      "76267",
+      "80999"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659350",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.2": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Storm-rate command\n\n[Log-derived analysis] Verifies the storm-rate threshold command. Confirms the port is err-disabled when traffic exceeds the configured storm-rate, and that the port is left up when the transmit rate stays below the rate. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "41588",
+      "51465",
+      "57312"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659380",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.3": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Storm-window command\n\n[Log-derived analysis] Verifies the storm-window command. Confirms storm-protection triggers (port err-disabled) only when the offending traffic rate is sustained across the configured measurement window. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "51465",
+      "57312"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659413",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.4": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-downtime command - 1 second\n\n[Log-derived analysis] Verifies the storm-downtime command. After storm-protection disables the port, measures the interval between the port-down and port-up log events and confirms it matches the configured downtime before the port is automatically re-enabled. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "41588",
+      "57312",
+      "62294"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659436",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.5": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-downtime command - 10 seconds\n\n[Log-derived analysis] Verifies the storm-downtime command. After storm-protection disables the port, measures the interval between the port-down and port-up log events and confirms it matches the configured downtime before the port is automatically re-enabled. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "41588",
+      "57312",
+      "81182",
+      "CR-85616"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659465",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.6": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-action command - port disable, ingress port on stack master\n\n[Log-derived analysis] Verifies the storm-action port-disable behaviour. Drives repeated storm cycles and confirms that on storm detection the ingress port is placed in the Disabled state (and only that port), recovering between cycles. The ingress port resides on the stack Active Master. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40587"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659614",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.7": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-protection - linkdown, ingress port on stack master\n\n[Log-derived analysis] Verifies the storm-protection linkdown action. Drives repeated storm cycles and confirms storm-protection is triggered the expected number of times, taking the ingress link down on each detection. The ingress port resides on the stack Active Master. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40574",
+      "41588",
+      "57312",
+      "SYST-8155"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659636",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.8": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-action command - vlan disable\n\n[Log-derived analysis] Verifies the storm-action vlan-disable behaviour. Drives repeated storm cycles and confirms that when a storm is detected the offending VLAN is disabled on the ingress port (port shown Disabled) so the storm traffic is blocked, recovering between cycles. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40579",
+      "57312"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659703",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.9": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-action command - vlan disable, ingress port on stack master\n\n[Log-derived analysis] Verifies the storm-action vlan-disable behaviour. Drives repeated storm cycles and confirms that when a storm is detected the offending VLAN is disabled on the ingress port (port shown Disabled) so the storm traffic is blocked, recovering between cycles. The ingress port resides on the stack Active Master. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "40579",
+      "57312",
+      "57871",
+      "65703"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659778",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.60": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-action command - port disable, ingress port on stack backup member\n\n[Log-derived analysis] Verifies the storm-action port-disable behaviour. Drives repeated storm cycles and confirms that on storm detection the ingress port is placed in the Disabled state (and only that port), recovering between cycles. The ingress port resides on a stack backup member to exercise the cross-member path. Restores and re-verifies config.",
+    "reference": "1336.104.6",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659957",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.70": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-protection - linkdown, ingress port on stack backup member\n\n[Log-derived analysis] Verifies the storm-protection linkdown action. Drives repeated storm cycles and confirms storm-protection is triggered the expected number of times, taking the ingress link down on each detection. The ingress port resides on a stack backup member to exercise the cross-member path. Restores and re-verifies config.",
+    "reference": "1336.104.7",
+    "past_crs": [
+      "SYST-8013",
+      "CR-84350",
+      "CR-87902"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93659980",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.104.90": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "storm-action command - vlan disable, ingress port on stack backup member\n\n[Log-derived analysis] Verifies the storm-action vlan-disable behaviour. Drives repeated storm cycles and confirms that when a storm is detected the offending VLAN is disabled on the ingress port (port shown Disabled) so the storm traffic is blocked, recovering between cycles. The ingress port resides on a stack backup member to exercise the cross-member path. Restores and re-verifies config.",
+    "reference": "CR-79169, 1336.104.9",
+    "past_crs": [
+      "SYST-8040"
+    ],
+    "current_crs": [],
+    "testSet": 104,
+    "caseId": 90,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93660039",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.105.11": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, deny ICMPv6\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies ICMPv6 traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching ICMPv6 traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.11",
+    "past_crs": [
+      "CR-65957",
+      "CR-66244",
+      "68058",
+      "68767"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93660402",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.12": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, deny IP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies IP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching IP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.12",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93660448",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.13": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, deny TCP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies TCP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching TCP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.13",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93660479",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.14": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, deny UDP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies UDP traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching UDP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.14",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93660527",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.15": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, deny IP Proto\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies an arbitrary IP protocol number traffic, applied directly to the ingress port. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching an arbitrary IP protocol number traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.15",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661063",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.21": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS, deny ICMPv6\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies ICMPv6 traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching ICMPv6 traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.21",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661131",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.22": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS deny IP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies IP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching IP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.22",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661176",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.23": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS deny TCP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies TCP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching TCP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.23",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661230",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.24": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS deny UDP\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies UDP traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching UDP traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.24",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661316",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.25": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS deny IP Proto\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies an arbitrary IP protocol number traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching an arbitrary IP protocol number traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.101.25",
+    "past_crs": [
+      "65957",
+      "SYST-6579",
+      "SYST-6579",
+      "SYST-6579"
+    ],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661547",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.105.68767": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS, deny ICMPv6, config replay\n\n[Log-derived analysis] Verifies a hardware IPv6 ACL that denies ICMPv6 traffic, applied via a QoS policy-map. Confirms baseline connectivity (via ping6 and switched test frames), applies deny ACLs (numbered/named variants) and confirms the matching ICMPv6 traffic is dropped while other traffic is still switched, then removes the ACL and confirms connectivity is restored. Restores and re-verifies config.",
+    "reference": "1336.105.21, CR-68767",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 105,
+    "caseId": 68767,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93661678",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.106.11": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action copy-to-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'copy-to-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is delivered to the CPU, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.11",
+    "past_crs": [
+      "CR-89334"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93253459",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.106.12": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action copy-to-mirror\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'copy-to-mirror' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is seen on the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.12",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93662245",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.13": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action permit\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'permit' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are permitted and switched through the DUT, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.13",
+    "past_crs": [
+      "65957"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93662261",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.14": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action send-to-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are diverted to the CPU rather than switched, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.14",
+    "past_crs": [
+      "50994",
+      "65957",
+      "CR-89334"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93253494",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.106.15": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action send-to-mirror\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-mirror' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are redirected to the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.15",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648175",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.16": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action send-to-vlan-port\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-vlan-port' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are redirected to the specified VLAN port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.16",
+    "past_crs": [
+      "65957",
+      "SYST-8098"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648195",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.17": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, action deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'deny-and-not-cpu' action, with the ACL applied directly to the ingress port. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648219",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.21": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action copy-to-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'copy-to-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is delivered to the CPU, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.21",
+    "past_crs": [
+      "65957",
+      "SYST-8098"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93253538",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.106.22": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action copy-to-mirror\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'copy-to-mirror' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are still switched normally AND a copy is seen on the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.22",
+    "past_crs": [
+      "65957",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93662979",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.23": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action permit\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'permit' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are permitted and switched through the DUT, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.23",
+    "past_crs": [
+      "65957",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93663008",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.24": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action send-to-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are diverted to the CPU rather than switched, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.24",
+    "past_crs": [
+      "50994",
+      "51582",
+      "65957",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3339046",
+      "log_uid": "93253581",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1336.106.25": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL, applied via QoS, action: send-to-mirror\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-mirror' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are redirected to the mirror port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.25",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648359",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.26": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action send-to-vlan-port\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'send-to-vlan-port' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are redirected to the specified VLAN port, then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.26",
+    "past_crs": [
+      "65957",
+      "SYST-8098",
+      "CR-88708"
+    ],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648383",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.106.27": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Hardware IPv6 ACL applied via QoS, action deny-and-not-cpu\n\n[Log-derived analysis] Verifies the hardware IPv6 ACL 'deny-and-not-cpu' action, with the ACL applied via a QoS policy-map. Sends matching traffic through the DUT and confirms matching packets are dropped in hardware and are NOT punted to the CPU (verified via SDMA/CPU counters), then removes the ACL and confirms normal switching resumes. Restores and re-verifies config.",
+    "reference": "1336.102.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 106,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93648411",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.107.1": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Check IPv4 ACL Group functionality\n\n[Log-derived analysis] Verifies IPv4 ACL Group functionality by checking that the expected number of hardware ACL entries are programmed. Reads the hardware ACL count, adds an ACL group (and/or port ACL group), then adds and removes hosts/rules, confirming the hardware ACL count grows and shrinks to the expected value for each change. Restores and re-verifies config.",
+    "reference": "None",
+    "past_crs": [
+      "56459",
+      "57870",
+      "79503"
+    ],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93663982",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.2": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Check Port ACL Group functionality\n\n[Log-derived analysis] Verifies Port ACL Group functionality by checking that the expected number of hardware ACL entries are programmed. Reads the hardware ACL count, adds an ACL group (and/or port ACL group), then adds and removes hosts/rules, confirming the hardware ACL count grows and shrinks to the expected value for each change. Restores and re-verifies config.",
+    "reference": "None",
+    "past_crs": [
+      "79503"
+    ],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93663998",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.3": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Check IPv6 ACL Group with two hosts creates two IPv6 ACLs\n\n[Log-derived analysis] Verifies IPv6 ACL Group functionality by checking that the expected number of hardware ACL entries are programmed. Reads the hardware ACL count, adds an ACL group (and/or port ACL group), then adds and removes hosts/rules, confirming the hardware ACL count grows and shrinks to the expected value for each change. Restores and re-verifies config.",
+    "reference": "None",
+    "past_crs": [
+      "59972",
+      "79130",
+      "79503",
+      "SYST-8816"
+    ],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664015",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.4": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Check IPv4 ACL Group and Port ACL Group functionality\n\n[Log-derived analysis] Verifies IPv4 ACL Group functionality by checking that the expected number of hardware ACL entries are programmed. Reads the hardware ACL count, adds an ACL group (and/or port ACL group), then adds and removes hosts/rules, confirming the hardware ACL count grows and shrinks to the expected value for each change. Restores and re-verifies config.",
+    "reference": "None",
+    "past_crs": [
+      "79503"
+    ],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664037",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.5": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Check IPv6 ACL Group with two hosts and Port ACL Group with two rules creates four IPv6 ACLs\n\n[Log-derived analysis] Verifies IPv6 ACL Group functionality by checking that the expected number of hardware ACL entries are programmed. Reads the hardware ACL count, adds an ACL group (and/or port ACL group), then adds and removes hosts/rules, confirming the hardware ACL count grows and shrinks to the expected value for each change. Restores and re-verifies config.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664056",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.107.10": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Broadcom IPv6 ACLs Limit Test for groups and Interfaces - LIMITED\n\n[Log-derived analysis] ACL group/interface scaling limit test for the Broadcom hardware classifier. Allocates IPv6 ACL groups across interfaces up to the platform limit and confirms the device enforces the maximum supported entries without exceeding hardware capacity or raising exceptions. Marked LIMITED as it depends on platform classifier capacity.",
+    "reference": "test-1336.107.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 107,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "895330",
+      "log_uid": "27217981",
+      "platform": "x930-tb46.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-25",
+      "result": "PASS"
+    }
+  },
+  "1336.108.0": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1336.108.1": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Management ACL, SSH\n\n[Log-derived analysis] Verifies a management ACL restricting SSH access to the switch. Confirms baseline SSH reachability, then applies a management ACL and confirms SSH connections are permitted from allowed source addresses and denied from disallowed sources. Restores and re-verifies config.",
+    "reference": "Project:1848 Architectural Impact Statement - Management ACLs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664449",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.2": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Management ACL, Telnet\n\n[Log-derived analysis] Verifies a management ACL restricting Telnet access to the switch. Confirms baseline Telnet reachability, then applies a management ACL and confirms Telnet connections are permitted from allowed source addresses and denied from disallowed sources. Restores and re-verifies config.",
+    "reference": "Project:1848 Architectural Impact Statement - Management ACLs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664604",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.3": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Software IP ACL, SNMP\n\n[Log-derived analysis] Verifies a software IP ACL applied to SNMP control traffic. Confirms SNMP reachability/exchange baseline, applies standard ACLs (host and wildcard-masked) and confirms SNMP traffic is denied from blocked sources while permitted from allowed sources. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664844",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.4": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Software IP ACL, IGMP\n\n[Log-derived analysis] Verifies a software IP ACL applied to IGMP control traffic. Confirms IGMP reachability/exchange baseline, applies standard ACLs (host and wildcard-masked) and confirms IGMP traffic is denied from blocked sources while permitted from allowed sources. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664862",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.5": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Software IP ACL, PIM\n\n[Log-derived analysis] Verifies a software IP ACL applied to PIM control traffic. Confirms PIM reachability/exchange baseline, applies standard ACLs (host and wildcard-masked) and confirms PIM traffic is denied from blocked sources while permitted from allowed sources. Restores and re-verifies config.",
+    "reference": "proj-1848",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356327",
+      "log_uid": "93664872",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.6": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Software IP ACL, OSPF, out\n\n[Log-derived analysis] Verifies a software IP ACL applied to OSPF control traffic in the outbound direction. Confirms OSPF reachability/exchange baseline, applies standard ACLs (host and wildcard-masked) and confirms OSPF traffic is denied from blocked sources while permitted from allowed sources. Restores and re-verifies config.",
+    "reference": "",
+    "past_crs": [
+      "CR-85333"
+    ],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355849",
+      "log_uid": "93649789",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1336.108.7": {
+    "suite_id": "1336",
+    "suite_name": "1336_acl",
+    "description": "Software IP ACL, BGP, out\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify a software IP ACL filtering BGP control-plane traffic in the outbound direction, confirming the ACL permits BGP from allowed sources and denies it from disallowed sources.",
+    "reference": "",
+    "past_crs": [
+      "SYST-7658"
+    ],
+    "current_crs": [],
+    "testSet": 108,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  }
+}

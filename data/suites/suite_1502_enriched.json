@@ -1,0 +1,3583 @@
+{
+  "1502.1000.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Security, Checking whether IP reputation and Web control can be turned on\n\n[Log-derived analysis] Security, Checking whether IP reputation and Web control can be turned on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286728",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1000.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring readonly users do not have access to router security tabs\n\n[Log-derived analysis] Ensuring readonly users do not have access to router security tabs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286729",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1000.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Turning on and off IP reputation and web control for a network group\n\n[Log-derived analysis] Turning on and off IP reputation and web control for a network group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286730",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1000.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Turning on and off IP reputation and web control for a network group\n\n[Inferred behavior \u2014 no execution history for this case] Turning on and off IP reputation and web control for a network group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1502.1001.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check for helpful information if users network is not setup for ATS\n\n[Log-derived analysis] Check for helpful information if users network is not setup for ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286731",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1001.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Open ATS settings from the network map and toggle ATS\n\n[Log-derived analysis] Open ATS settings from the network map and toggle ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286732",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1003.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigating to the SD-WAN page and checking for rules\n\n[Log-derived analysis] Navigating to the SD-WAN page and checking for rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286733",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1003.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Test filters on the SD-WAN page\n\n[Log-derived analysis] Test filters on the SD-WAN page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286734",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1003.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Add and delete a new SD-WAN rule:\n\n[Log-derived analysis] Add and delete a new SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286735",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1003.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edit and revert changes to an SD-WAN rule:\n\n[Log-derived analysis] Edit and revert changes to an SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286736",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.1003.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check graphs are displayed for SD-WAN feature\n\n[Log-derived analysis] Check graphs are displayed for SD-WAN feature",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286737",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1004.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check active cells and filters for ACL Matrix\n\n[Log-derived analysis] Check active cells and filters for ACL Matrix",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286738",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1004.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that we can display host/port groups\n\n[Log-derived analysis] Check that we can display host/port groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286739",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1004.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Add, apply and delete policy of Smart ACL\n\n[Log-derived analysis] Add, apply and delete policy of Smart ACL",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286740",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.1004.1001": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check active cells and filters for ACL Matrix\n\n[Log-derived analysis] Check active cells and filters for ACL Matrix",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2201716",
+      "log_uid": "60399843",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-06-29",
+      "result": "PASS"
+    }
+  },
+  "1502.1004.1002": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that we can display host/port groups\n\n[Log-derived analysis] Check that we can display host/port groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2201716",
+      "log_uid": "60399844",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-06-29",
+      "result": "PASS"
+    }
+  },
+  "1502.1004.1003": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that we can display host/port groups\n\n[Log-derived analysis] Check that we can display host/port groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2201716",
+      "log_uid": "60399845",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-06-29",
+      "result": "PASS"
+    }
+  },
+  "1502.1005.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:\n\n[Log-derived analysis] Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286741",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1005.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As admin, deploy an existing Application Priority policy to R1 from the map and then delete the deployment:\n\n[Log-derived analysis] As admin, deploy an existing Application Priority policy to R1 from the map and then delete the deployment:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286742",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1005.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Create and delete a new Application Priority policy :\n\n[Log-derived analysis] Create and delete a new Application Priority policy :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286743",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1005.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edit and overwrite existing Application Priority policy:\n\n[Log-derived analysis] Edit and overwrite existing Application Priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286744",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1005.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Clone and save an existing Application Priority priority policy:\n\n[Log-derived analysis] Clone and save an existing Application Priority priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286745",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1006.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct\n\n[Log-derived analysis] Checking that the numbers of devices displayed on the dashboard are correct",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286746",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1007.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Updating Device GUI from url\n\n[Log-derived analysis] Updating Device GUI from url",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286747",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1008.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a user can navigate the file system\n\n[Log-derived analysis] Check that a user can navigate the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286750",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1008.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a user can upload to the file system\n\n[Log-derived analysis] Check that a user can upload to the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286751",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1008.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a user can delete file\n\n[Log-derived analysis] Check that a user can delete file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286752",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1009.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Log-derived analysis] Tom can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286753",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1009.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can update the devices firmware\n\n[Log-derived analysis] Tom can navigate to the firmware tab and can update the devices firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286754",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring statuses of Devices and Links on the network map change after a topology refresh\n\n[Log-derived analysis] Ensuring statuses of Devices and Links on the network map change after a topology refresh",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286759",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring devices are shown in the groups tab\n\n[Log-derived analysis] Ensuring devices are shown in the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286760",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the groups tab\n\n[Log-derived analysis] Ensuring devices are hidden when toggled visibility on the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286761",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Adding a device to an existing group and then removing that device from the group\n\n[Log-derived analysis] Adding a device to an existing group and then removing that device from the group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286762",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Adding a device to a new group, Moving a device, Renaming a group, and Removing a group\n\n[Log-derived analysis] Adding a device to a new group, Moving a device, Renaming a group, and Removing a group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286763",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Adding a device to an existing site and then removing that device from the site\n\n[Log-derived analysis] Adding a device to an existing site and then removing that device from the site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286764",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.7": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Adding a device to a new site and moving that node to a different site, and also removing a site\n\n[Log-derived analysis] Adding a device to a new site and moving that node to a different site, and also removing a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286765",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.8": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Having 3 layers of sites visible\n\n[Log-derived analysis] Having 3 layers of sites visible",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286766",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.9": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the sites tab\n\n[Log-derived analysis] Ensuring devices are hidden when toggled visibility on the sites tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286767",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.10": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Renaming a site\n\n[Log-derived analysis] Renaming a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286768",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.11": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map\n\n[Log-derived analysis] Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286769",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.1010.12": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Using search input to trace paths and fail tracing paths on the network map\n\n[Log-derived analysis] Using search input to trace paths and fail tracing paths on the network map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286770",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.1010.13": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved\n\n[Log-derived analysis] Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286771",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.14": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking undo button on layout removes blue dot and undoes actions\n\n[Log-derived analysis] Checking undo button on layout removes blue dot and undoes actions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286772",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.15": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking Blue dot disappears when saving as a new Layout\n\n[Log-derived analysis] Checking Blue dot disappears when saving as a new Layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286773",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1010.16": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking Blue dot stays present when user opens and closes topology menu\n\n[Log-derived analysis] Checking Blue dot stays present when user opens and closes topology menu",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286774",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1011.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Internet breakout, turn on and off, check tabs when on and off as an admin user\n\n[Log-derived analysis] Internet breakout, turn on and off, check tabs when on and off as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286775",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1012.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that an admin user can backup, favourite and delete unfavourited backups of device configurations\n\n[Log-derived analysis] Check that an admin user can backup, favourite and delete unfavourited backups of device configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286776",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1012.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that the user can compare two backups\n\n[Log-derived analysis] Check that the user can compare two backups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286777",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1012.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a user can delete from the file system\n\n[Log-derived analysis] Check that a user can delete from the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2206619",
+      "log_uid": "60545732",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-07-05",
+      "result": "FAIL"
+    }
+  },
+  "1502.1012.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that the user can compare two backups\n\n[Log-derived analysis] Check that the user can compare two backups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2206619",
+      "log_uid": "60545733",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-07-05",
+      "result": "PASS"
+    }
+  },
+  "1502.1013.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders\n\n[Log-derived analysis] Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286779",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1013.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring a user can't edit their username\n\n[Log-derived analysis] Ensuring a user can't edit their username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286780",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1013.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)\n\n[Log-derived analysis] Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286781",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1013.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring a user can change their network topology layout\n\n[Log-derived analysis] Ensuring a user can change their network topology layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286782",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1014.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Provision a device and then delete the provisioning as an admin user\n\n[Log-derived analysis] Provision a device and then delete the provisioning as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286783",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1014.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as an admin user\n\n[Log-derived analysis] Provision a device and then delete the provisioning using the menu in the network map, as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286784",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1015.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As an admin user, Jordan can load an old database with no radius configuration, users, groups and NAS should be found device configuration\n\n[Log-derived analysis] As an admin user, Jordan can load an old database with no radius configuration, users, groups and NAS should be found device configuration",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286791",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1016.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "User can check the auto recovery and configuration totals\n\n[Log-derived analysis] User can check the auto recovery and configuration totals",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286792",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1016.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "User can download a PDF report\n\n[Log-derived analysis] User can download a PDF report",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286793",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1016.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "User can check how many nodes were last active\n\n[Log-derived analysis] User can check how many nodes were last active",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286794",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1017.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Display basic walk path on side panel\n\n[Log-derived analysis] Display basic walk path on side panel",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286795",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1018.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Admin user can create, edit and delete VLAN through the device map node and vlan list\n\n[Log-derived analysis] Admin user can create, edit and delete VLAN through the device map node and vlan list",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1018,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286820",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1018.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Admin user can set and discard a native VLAN\n\n[Log-derived analysis] Admin user can set and discard a native VLAN",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1018,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286821",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1019.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Display basic walk path on side panel\n\n[Log-derived analysis] Display basic walk path on side panel",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286822",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1020.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Create an event rule\n\n[Log-derived analysis] Create an event rule",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286748",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1020.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Remove SES alarm on the side-panel when receive Whitelist Accept syslog message\n\n[Log-derived analysis] Remove SES alarm on the side-panel when receive Whitelist Accept syslog message",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286749",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1021.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checks the health score on the health monitoring dashboard\n\n[Log-derived analysis] Checks the health score on the health monitoring dashboard",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286755",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1021.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checks the network health trend on the health monitoring dashboard\n\n[Log-derived analysis] Checks the network health trend on the health monitoring dashboard",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286756",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1021.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "add new probe and chech the network health\n\n[Log-derived analysis] add new probe and chech the network health",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286757",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1021.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "add a new rule for dismissible alarms and then delete the rule\n\n[Log-derived analysis] add a new rule for dismissible alarms and then delete the rule",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286758",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check the QoS dashboard\n\n[Log-derived analysis] Check the QoS dashboard",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286785",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check Enable and Disable QoS polling\n\n[Log-derived analysis] Check Enable and Disable QoS polling",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286786",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check validation for Queue Monitoring Thresholds\n\n[Log-derived analysis] Check validation for Queue Monitoring Thresholds",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286787",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Disable queue thresholds\n\n[Log-derived analysis] Disable queue thresholds",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286788",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check Queue Drops by Device list\n\n[Log-derived analysis] Check Queue Drops by Device list",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286789",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1022.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check Queue Drops by Device dashboard when disabled\n\n[Log-derived analysis] Check Queue Drops by Device dashboard when disabled",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286790",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.1023.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Enable and view offline devices\n\n[Log-derived analysis] Enable and view offline devices",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1023,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286778",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2002.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Read write user with permissions for all devices can make changes\n\n[Log-derived analysis] Read write user with permissions for all devices can make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286796",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2002.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure read write without permissions for all devices or readonly user can read but not make changes\n\n[Log-derived analysis] Ensure read write without permissions for all devices or readonly user can read but not make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286797",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigating to the SD-WAN page and checking for rules\n\n[Log-derived analysis] Navigating to the SD-WAN page and checking for rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286798",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Test filters on the SD-WAN page\n\n[Log-derived analysis] Test filters on the SD-WAN page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286799",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Add and delete a new SD-WAN rule:\n\n[Log-derived analysis] Add and delete a new SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286800",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edit and revert changes to an SD-WAN rule:\n\n[Log-derived analysis] Edit and revert changes to an SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286801",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.2003.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check graphs are displayed for SD-WAN feature\n\n[Log-derived analysis] Check graphs are displayed for SD-WAN feature",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286802",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure that read only accounts cannot add, edit, or delete rules:\n\n[Log-derived analysis] Ensure that read only accounts cannot add, edit, or delete rules:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286803",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2003.7": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check graphs are displayed for only allowed SD-WAN user\n\n[Log-derived analysis] Check graphs are displayed for only allowed SD-WAN user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286804",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2004.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As <username>, deploy an existing Application Priority policy to <node> from the map and then delete the deployment:\n\n[Log-derived analysis] As <username>, deploy an existing Application Priority policy to <node> from the map and then delete the deployment:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269170",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2004.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure that admin options on the Application Priority page are not accessible to read only or read/write user <username>:\n\n[Log-derived analysis] Ensure that admin options on the Application Priority page are not accessible to read only or read/write user <username>:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269171",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2004.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure menu for read/write user <username> when right clicking <node> includes Deploy Policy but does not include Add policy:\n\n[Log-derived analysis] Ensure menu for read/write user <username> when right clicking <node> includes Deploy Policy but does not include Add policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269172",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2004.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure menu for readonly user <username> when right clicking <node> does not include Application Priority options:\n\n[Log-derived analysis] Ensure menu for readonly user <username> when right clicking <node> does not include Application Priority options:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269173",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2005.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking that the correct number of devices are displayed for logged in users\n\n[Log-derived analysis] Checking that the correct number of devices are displayed for logged in users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286805",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2005.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checking that the correct number of devices are displayed for logged in read/write users\n\n[Log-derived analysis] Checking that the correct number of devices are displayed for logged in read/write users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286806",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2006.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a user can not upload and delete from the file system\n\n[Log-derived analysis] Check that a user can not upload and delete from the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286807",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2007.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1502.2008.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Internet breakout, turn on and off, check tabs when on and off as read/write user\n\n[Log-derived analysis] Internet breakout, turn on and off, check tabs when on and off as read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286808",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2008.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Internet breakout, unable to turn on as a readonly user\n\n[Log-derived analysis] Internet breakout, unable to turn on as a readonly user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286809",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2008.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Internet Breakout, Select multiple applications on separate IBO\n\n[Log-derived analysis] Internet Breakout, Select multiple applications on separate IBO",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286810",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2008.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Internet Breakout, Select breakout using eth\n\n[Log-derived analysis] Internet Breakout, Select breakout using eth",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286811",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2009.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Provision a device and then delete the provisioning as the read/write user <username>\n\n[Log-derived analysis] Provision a device and then delete the provisioning as the read/write user <username>",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269181",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2009.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as the read/write user <username>\n\n[Log-derived analysis] Provision a device and then delete the provisioning using the menu in the network map, as the read/write user <username>",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269182",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.2010.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As an admin user, Jordan can add and remove groups\n\n[Log-derived analysis] As an admin user, Jordan can add and remove groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2573483",
+      "log_uid": "71154844",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-09",
+      "result": "PASS"
+    }
+  },
+  "1502.2010.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Read-only user cannot create or delete groups\n\n[Log-derived analysis] Read-only user cannot create or delete groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2573483",
+      "log_uid": "71154845",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-09",
+      "result": "PASS"
+    }
+  },
+  "1502.2010.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Admin user can migrate users between groups\n\n[Log-derived analysis] Admin user can migrate users between groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2573483",
+      "log_uid": "71154846",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-09",
+      "result": "PASS"
+    }
+  },
+  "1502.2011.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Admin user can create and remove a NAS\n\n[Log-derived analysis] Admin user can create and remove a NAS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286814",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2011.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Read-only user cannot create or delete a NAS\n\n[Log-derived analysis] Read-only user cannot create or delete a NAS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286815",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2012.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As an admin user, Jordan can create, delete and export key's for RADIUS user's\n\n[Log-derived analysis] As an admin user, Jordan can create, delete and export key's for RADIUS user's",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286816",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2012.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Read-only user cannot create or delete users\n\n[Log-derived analysis] Read-only user cannot create or delete users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286817",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2012.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "As an admin user, Jordan can create and delete users for RADIUS group devices\n\n[Log-derived analysis] As an admin user, Jordan can create and delete users for RADIUS group devices",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286818",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2013.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensuring User users do not have access to the system management tab\n\n[Log-derived analysis] Ensuring User users do not have access to the system management tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286819",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2014.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Manage device by a user with admin permissions\n\n[Log-derived analysis] Manage device by a user with admin permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286812",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.2014.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Manage device by a user with read only permissions\n\n[Log-derived analysis] Manage device by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286813",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Export a CSV file\n\n[Log-derived analysis] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286823",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select a column\n\n[Log-derived analysis] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286824",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select and deselect columns\n\n[Log-derived analysis] Select and deselect columns",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286825",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deselect all columns but one (there always must be at least one)\n\n[Log-derived analysis] Deselect all columns but one (there always must be at least one)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286826",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select and deselect filters\n\n[Log-derived analysis] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286827",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select and apply filters\n\n[Log-derived analysis] Select and apply filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286828",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.7": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select filters and search on every field\n\n[Log-derived analysis] Select filters and search on every field",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286829",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.8": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Search for an empty device table\n\n[Log-derived analysis] Search for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286830",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.9": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Filter for an empty device table\n\n[Log-derived analysis] Filter for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286831",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.10": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Creating, editing and deleting a static node\n\n[Log-derived analysis] Creating, editing and deleting a static node",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286832",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.11": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Show the device list page by page in inventory\n\n[Log-derived analysis] Show the device list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286833",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.12": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for an admin user\n\n[Log-derived analysis] Network status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286834",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.13": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Filter devices by group of different user permissions\n\n[Log-derived analysis] Filter devices by group of different user permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286835",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.3000.14": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deleting an existing node\n\n[Log-derived analysis] Deleting an existing node",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286836",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.3000.15": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deleting a node which is down\n\n[Log-derived analysis] Deleting a node which is down",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286837",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3000.16": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edit and Reset an existing node\n\n[Log-derived analysis] Edit and Reset an existing node",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286838",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3001.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigating to the event_log and filtering for critical events\n\n[Log-derived analysis] Navigating to the event_log and filtering for critical events",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286839",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3002.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Testing Global and message Syslog Search\n\n[Log-derived analysis] Testing Global and message Syslog Search",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286840",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3002.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Testing syslog filters\n\n[Log-derived analysis] Testing syslog filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286841",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3002.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Testing filtering by time period\n\n[Log-derived analysis] Testing filtering by time period",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286842",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3002.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Testing changing syslog expiry shows toast\n\n[Log-derived analysis] Testing changing syslog expiry shows toast",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286843",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3002.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Making sure a User account type can't view syslogs\n\n[Log-derived analysis] Making sure a User account type can't view syslogs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286844",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Export a CSV file\n\n[Log-derived analysis] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286845",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select a column\n\n[Log-derived analysis] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286846",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Adding a Group\n\n[Log-derived analysis] Adding a Group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286847",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Select and deselect filters\n\n[Log-derived analysis] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286848",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Show the group list page by page in inventory\n\n[Log-derived analysis] Show the group list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286849",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Filter using the Search box\n\n[Log-derived analysis] Filter using the Search box",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286850",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.7": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Search for an empty groups table\n\n[Log-derived analysis] Search for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286851",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.8": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Filter for an empty groups table\n\n[Log-derived analysis] Filter for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286852",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3003.9": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Groups status for an admin user\n\n[Log-derived analysis] Groups status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286853",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigating to the network map checking the numbers of nodes displayed\n\n[Log-derived analysis] Navigating to the network map checking the numbers of nodes displayed",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286854",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Search for a device name and a device ip address\n\n[Log-derived analysis] Search for a device name and a device ip address",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286855",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Use the Integrated Map to navigate to a node page\n\n[Log-derived analysis] Use the Integrated Map to navigate to a node page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286856",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Assign devices to site using the Integrated Map\n\n[Log-derived analysis] Assign devices to site using the Integrated Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286857",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Assign devices to group using the Integrated Map\n\n[Log-derived analysis] Assign devices to group using the Integrated Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286858",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Add and remove Static node using integrated map\n\n[Log-derived analysis] Add and remove Static node using integrated map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286859",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.7": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deleting the device S3 which is down\n\n[Log-derived analysis] Deleting the device S3 which is down",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286860",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.8": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure that map nodes can be moved while the topology layout is unlocked\n\n[Log-derived analysis] Ensure that map nodes can be moved while the topology layout is unlocked",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286861",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.9": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deleting a running device from network map\n\n[Log-derived analysis] Deleting a running device from network map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286862",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3004.10": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edit and Reset an existing device from Network map page\n\n[Log-derived analysis] Edit and Reset an existing device from Network map page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286863",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3005.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that user can write, save and delete notes in device search and the device's page\n\n[Log-derived analysis] Check that user can write, save and delete notes in device search and the device's page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286864",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3006.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Backup vista manager in system management.\n\n[Log-derived analysis] Backup vista manager in system management.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286865",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3007.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Can create a new valid user\n\n[Log-derived analysis] Can create a new valid user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286866",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3007.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Shows correct validation fields then correcting each error\n\n[Log-derived analysis] Shows correct validation fields then correcting each error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286867",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3007.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Shows correct validation fields then correcting each Invalid value error\n\n[Log-derived analysis] Shows correct validation fields then correcting each Invalid value error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286868",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3007.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Cannot create users with same email address\n\n[Log-derived analysis] Cannot create users with same email address",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286869",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.3007.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Cannot create users with same username\n\n[Log-derived analysis] Cannot create users with same username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286870",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Log-derived analysis] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286871",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Log-derived analysis] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286872",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Log-derived analysis] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286873",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Log-derived analysis] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286874",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Log-derived analysis] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286875",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4000.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Log-derived analysis] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286876",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4001.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edan can navigate to the firmware tab and can click the update firmware button\n\n[Log-derived analysis] Edan can navigate to the firmware tab and can click the update firmware button",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269249",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.4001.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edan can navigate to the firmware tab as <account> and can't see any firmware to update\n\n[Log-derived analysis] Edan can navigate to the firmware tab as <account> and can't see any firmware to update",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269250",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.4001.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Edan can navigate to the firmware tab and can not click the update firmware button\n\n[Log-derived analysis] Edan can navigate to the firmware tab and can not click the update firmware button",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2539298",
+      "log_uid": "70269251",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-05-14",
+      "result": "FAIL"
+    }
+  },
+  "1502.4002.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Log-derived analysis] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286878",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4002.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Log-derived analysis] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286879",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4002.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Log-derived analysis] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286880",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4002.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Log-derived analysis] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286881",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4002.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Log-derived analysis] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286882",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4002.6": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Log-derived analysis] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286883",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4003.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure that the menu shown when right clicking the node <device> is not shown for the read only user <username>\n\n[Log-derived analysis] Ensure that the menu shown when right clicking the node <device> is not shown for the read only user <username>",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286884",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4003.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Deleting the device S3 which is down as a read/write user\n\n[Log-derived analysis] Deleting the device S3 which is down as a read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286885",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4003.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure the option to delete a device which is down is not present for a readonly user:\n\n[Log-derived analysis] Ensure the option to delete a device which is down is not present for a readonly user:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286886",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4004.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Check that a readonly user cannot create backups or delete backup configurations\n\n[Log-derived analysis] Check that a readonly user cannot create backups or delete backup configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286887",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4005.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Ensure that the provision device button is not visible for the read only user <username>\n\n[Log-derived analysis] Ensure that the provision device button is not visible for the read only user <username>",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286888",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4006.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Trigger existing service monitors and ensure that statuses are as expected as a readwrite user\n\n[Log-derived analysis] Trigger existing service monitors and ensure that statuses are as expected as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286889",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4006.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring\n\n[Log-derived analysis] Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286890",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4006.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Can edit an existing service monitor as a user with readwrite permissions for service monitoring\n\n[Log-derived analysis] Can edit an existing service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286891",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4006.4": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Delete existing service monitor as a readwrite user\n\n[Log-derived analysis] Delete existing service monitor as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286892",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4006.5": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Account with readonly permissions for service monitoring cannot create or edit service monitoring rules\n\n[Log-derived analysis] Account with readonly permissions for service monitoring cannot create or edit service monitoring rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286893",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4007.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes\n\n[Log-derived analysis] Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286894",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4007.2": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes\n\n[Log-derived analysis] Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286895",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4007.3": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "<account> readonly user cannot create, edit and delete VLANs on <account>\n\n[Log-derived analysis] <account> readonly user cannot create, edit and delete VLANs on <account>",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286896",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "PASS"
+    }
+  },
+  "1502.4008.1": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigating to the event_log with Routers login and search for switches events\n\n[Log-derived analysis] Navigating to the event_log with Routers login and search for switches events",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2577738",
+      "log_uid": "71286877",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2024-06-13",
+      "result": "FAIL"
+    }
+  },
+  "1502.9999.9999": {
+    "suite_id": "1502",
+    "suite_name": "1502_gart_tests",
+    "description": "Navigate to all pages and take screenshots\n\n[Log-derived analysis] Navigate to all pages and take screenshots",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 9999,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2310222",
+      "log_uid": "63330494",
+      "platform": "GART_Network_1",
+      "sw_version": "3.10.0.20220708.1157",
+      "run_date": "2023-10-09",
+      "result": "PASS"
+    }
+  }
+}

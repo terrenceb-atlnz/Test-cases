@@ -1,0 +1,329 @@
+{
+  "1335.0.0": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1335.0.1": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Download .gz files from each switch and delete them from flash\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness cleanup step: downloads the diagnostic/results .gz archives from each switch under test and removes them from the device flash to reclaim space. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1335.0.2": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Publish results to the DB\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness step: publishes the suite's run results to the results database. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1335.0.4": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Publish results to the old DB\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness step: publishes the suite's run results to the legacy/old results database. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1335.1001.0": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1335.1001.1": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with ACL matching on destination IP addresses with non-consecutive bitmask\n\n[Log-derived analysis] Policy-Based Routing forwarding test. Configures and attaches a PBR with an ACL that matches on destination IP using a non-consecutive (non-contiguous) address bitmask, then injects a stream of matching traffic and confirms it is policy-routed out the configured next-hop egress port rather than following the normal routing table. Verifies the running-config is restored on tear-down and that no exceptions occur.",
+    "reference": "AW+_3612",
+    "past_crs": [
+      "40645",
+      "57096",
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644216",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.2": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with no action\n\n[Log-derived analysis] Policy-Based Routing 'no action' / permit-deny behaviour test. Attaches a PBR whose ACL has no routing action and verifies matched traffic is NOT policy-routed but instead follows the normal forwarding path; then reconfigures the policy and confirms traffic egresses as expected on the standard port. Checks config restoration and absence of exceptions.",
+    "reference": "AW+_3613, AW+_3614",
+    "past_crs": [
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644243",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.3": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with two ACLs, one matching on source IP and the other matching on destination IP, both with non-consecutive bitmasks\n\n[Log-derived analysis] Policy-Based Routing test using two ACLs in one policy, one matching on source IP and the other on destination IP, both with non-consecutive bitmasks. Injects traffic matching each ACL in turn and confirms each is policy-routed to its configured next hop. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3615",
+    "past_crs": [
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644262",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.4": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with no-action ACL matching on both source and destination IP addresses with non-consecutive bitmasks\n\n[Log-derived analysis] Policy-Based Routing 'no-action' test with an ACL matching on both source and destination IP using non-consecutive bitmasks. Confirms that traffic matching the no-action rule is exempted from policy routing and forwarded normally on both directions. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3616",
+    "past_crs": [
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644278",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.5": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with ACL matching on both source and destination IP addresses with non-consecutive bitmasks\n\n[Log-derived analysis] Policy-Based Routing test with an ACL matching on both source and destination IP addresses using non-consecutive bitmasks. Injects traffic that matches both fields and confirms it is policy-routed to the configured next-hop egress port. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3616",
+    "past_crs": [
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644298",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.6": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with ACL matching on many fields, including non-consecutive bitmasks\n\n[Log-derived analysis] Policy-Based Routing test with an ACL matching on many fields at once (including non-consecutive bitmasks, e.g. protocol, addresses and ports). Confirms traffic that matches all fields is policy-routed to the next hop while traffic differing in a single field (e.g. a different L4 protocol) is not matched and follows normal forwarding. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3617",
+    "past_crs": [
+      "CR-64238",
+      "72724"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644319",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1001.7": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR after stack master failover with VMAC enabled\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that PBR continues to forward correctly after a Virtual Chassis Stacking master failover with virtual-MAC (VMAC) enabled. Reported UNSUPPORTED/not-runnable because it requires a stack of more than one member and the current setup is a single-member stack.",
+    "reference": "AW+_3618",
+    "past_crs": [
+      "35739",
+      "40645"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1335.1001.58874": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "CR-58874 - ARP request won't be sent to nexthop of PBR on x510 after neighbor entry is removed\n\n[Log-derived analysis] Regression test for CR-58874: ensures the switch re-issues an ARP request for a PBR next-hop after the next-hop's ARP/neighbor entry has been removed, so policy-routed traffic is not black-holed. Establishes PBR forwarding, clears the ARP cache, then re-injects traffic and confirms it is still resolved and policy-routed to the next hop. Verifies config restoration and no exceptions.",
+    "reference": "CR-58874",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 58874,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644428",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1002.0": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1335.1002.1": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR and ACL filter on the same ports\n\n[Log-derived analysis] Policy-Based Routing combined with ACL filtering on the same ports. Verifies that when both PBR and an ACL filter are applied to the same interfaces, each traffic class is handled correctly: traffic is split so that the policy-routed and filtered/forwarded portions arrive on their expected egress ports in the correct counts. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3620",
+    "past_crs": [
+      "31218",
+      "51000",
+      "57281",
+      "CR-59333",
+      "CR-64238",
+      "72724",
+      "SYST-8308"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644558",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1002.2": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with ACL that matches on a range of L4 ports\n\n[Log-derived analysis] Policy-Based Routing test with an ACL that matches on a range of L4 ports. Injects traffic with L4 ports inside and outside the configured range and confirms only in-range traffic is policy-routed to the next hop while out-of-range traffic follows normal forwarding. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3621",
+    "past_crs": [
+      "51000",
+      "57281",
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644584",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1335.1002.3": {
+    "suite_id": "1335",
+    "suite_name": "Suite 1335",
+    "description": "PBR with ACL that matches on \"ne\" (!=) L4 port\n\n[Log-derived analysis] Policy-Based Routing test with an ACL using a 'ne' (not-equal, !=) L4 port match. Injects traffic with matching and non-matching L4 ports and confirms traffic whose port does not equal the specified value is policy-routed while the excluded port is not. Verifies config restoration and no exceptions.",
+    "reference": "AW+_3621",
+    "past_crs": [
+      "40645",
+      "51000",
+      "57281",
+      "64238"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355896",
+      "log_uid": "93644601",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

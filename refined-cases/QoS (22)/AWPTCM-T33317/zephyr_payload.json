@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33317": {
+    "objective": "<ul><li>The policed-dscp map can be configured with mls qos map policed-dscp to remap bandwidth classes (green, yellow, red) to new-dscp, new-cos, new-queue and new-bandwidth-class values.</li><li>Policed-dscp map configuration appears in running-config and is preserved in startup-config after save and restart.</li><li>The policed-dscp map can be reverted to default using the \"no mls qos map policed-dscp\" command.</li><li>When a single-rate (or twin-rate) policer with action policed-dscp-transmit is applied (on switchport or static LAG), egress traffic in each bandwidth class is remarked according to the policed-dscp map.</li><li>Remarked packets (green/yellow/red) carry the new DSCP values defined in the map; packet counts match with no unexpected drops.</li><li>Configuration and remarking behavior is verified on switchport and static LAG interfaces.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink policed-dscp map family (AWP-9126 primary map config/show/restart, AWP-9127 no revert, AWP-9129/9130 single-rate policing remark on switchport/LAG + twin-rate variants). ART coverage from 1344 (QoS class-map + policer tests on trunk/switchport and static channel/LAG, policer counters).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable QoS. Configure mls qos map policed-dscp for a dscp value across bandwidth-classes (green to new-dscp/cos/queue/bandwidth-class etc.). Verify the map shows in running-config and show mls qos maps policed-dscp.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save config, restart the DUT, and confirm the policed-dscp map is present in startup-config and after boot.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Use \"no mls qos map policed-dscp ...\" to remove the map entry and confirm it reverts to default.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a policy-map with class default using police single-rate ... action policed-dscp-transmit. Apply to ingress switchport. Send traffic that exercises green/yellow/red. Verify on egress (capture + counters) that packets are remarked per the policed-dscp map with no drops.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the policer + policed-dscp-transmit on a static LAG interface. Confirm remarking works for the LAG.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify behavior for twin-rate policer variants if applicable.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

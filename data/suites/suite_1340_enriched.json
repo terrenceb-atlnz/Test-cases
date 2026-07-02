@@ -1,0 +1,1027 @@
+{
+  "1340.0.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.0.1": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Download .gz files from each switch and delete them from flash\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness/maintenance step: intended to download the .gz diagnostic files from each switch and then delete them from flash to reclaim space. Not a functional behaviour test.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.0.3": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Archive all log and pkt capture files\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness/maintenance step: intended to archive all log and packet-capture files generated during the suite run. Not a functional behaviour test.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.0.4": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Publish results to the old DB\n\n[Inferred behavior \u2014 no execution history for this case] Test-harness/maintenance step: intended to publish the suite's results to the legacy results database. Not a functional behaviour test.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.1001.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.1001.26616": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR26616 - Station movement\n\n[Log-derived analysis] Regression for CR26616 (station movement). Pings the DUT to learn a host on one access port, then moves the station to a different port and re-pings, verifying the MAC address-table and ARP/platform table both relearn the host on the new port and that connectivity recovers. Confirms configuration is restored and no exceptions are logged.",
+    "reference": "CR26616, CR33959",
+    "past_crs": [
+      "40051",
+      "39329",
+      "33959",
+      "CR-87049",
+      "CR-90009"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 26616,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691437",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.39052": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR39052 - SBx8100 do not ARP resolve when roaming to other port leaving the linkup.\n\n[Log-derived analysis] Regression for CR39052 (SBx8100 fails to ARP-resolve when a station roams while the link stays up). Confirms baseline ping to the DUT, then reconfigures the source switch to move the station to a different port without bouncing the link, and verifies the DUT re-resolves ARP and connectivity is maintained across each move.",
+    "reference": "CR39052",
+    "past_crs": [
+      "40051"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 39052,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691471",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.39261": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR39261 - A commucation failure on an enabled vlan at a trunk port with the disable state vlan when using \"vlan all\".\n\n[Log-derived analysis] Regression for CR39261 (communication failure on an enabled VLAN at a trunk port carrying a disabled-state VLAN when 'vlan all' is used). Pings the DUT management interface while enabling, disabling, removing and re-adding the VLAN/port membership, confirming reachability is preserved through each VLAN configuration change.",
+    "reference": "CR39261",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 39261,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691513",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.42363": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR42363 - Network loop has occured in RSTP topology. It seems like that a lot of IGMPv2 general membership query packet has generated\n\n[Log-derived analysis] Regression for CR42363 (RSTP loop caused by flooded IGMP general-membership queries). Sends IGMP packets and confirms a valid join is processed via IGMP snooping, then injects IGMP packets so they would ingress the DUT's discarding/alternate STP port and verifies they are NOT processed, ensuring blocked ports do not create a snooping/forwarding loop.",
+    "reference": "CR42363",
+    "past_crs": [
+      "51852"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 42363,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93628712",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.50191": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR50191 - MLD Snooping - Mrouter port is not dynamically learned preventing multicast traffic being routed\n\n[Log-derived analysis] Regression for CR50191 (MLD snooping mrouter port not dynamically learned). Brings up OSPFv3 and PIM-SM (IPv6) neighbours, then verifies via MLD snooping statistics that the mrouter port is dynamically learnt so that multicast traffic can be routed.",
+    "reference": "CR50191",
+    "past_crs": [
+      "68795",
+      "78404",
+      "81256",
+      "81516"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 50191,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93628754",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.53989": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "DHCP snooping does not work with dhcp relay\n\n[Log-derived analysis] Regression for CR53989 (DHCP snooping with DHCP relay). Drives a full DHCP Discover/Offer and Request/ACK exchange through the relay and confirms the leased client appears both in the DHCP snooping binding table and the DHCP server binding list.",
+    "reference": "CR-53989",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 53989,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93658930",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.55306": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "BGP - Local Peer with graceful-start does not send default route UPDATE message when remote peer resets session (clear bgp *)\n\n[Log-derived analysis] Regression for CR55306 (BGP graceful-restart local peer fails to re-advertise the default route after a session reset). Verifies the remote peer receives the BGP default route initially, then again after clearing the BGP session on the remote peer and after clearing it on the local peer.",
+    "reference": "CR-55306",
+    "past_crs": [
+      "81499"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 55306,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93628973",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.55530": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "ip radius source-interface does not work after rebooting\n\n[Log-derived analysis] Regression for CR55530 ('ip radius source-interface' not honoured after reboot). Configures the RADIUS source interface, performs dot1x user authentications, and confirms via the auth supplicant table and RADIUS logs that the switch uses the configured source IP for RADIUS communication, including after a reboot.",
+    "reference": "CR-55530",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 55530,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93629078",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.56168": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "NGFW BGP with password authentication never gets to 'Established'\n\n[Log-derived analysis] Regression for CR56168 (NGFW BGP with password/MD5 authentication never reaching Established). Brings up an MD5-authenticated BGP neighbour and confirms the session reaches Established and that the advertised prefix is installed in the peer's BGP and routing tables.",
+    "reference": "CR-56168",
+    "past_crs": [
+      "81499"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 56168,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93629315",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.1001.65686": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "802.1x auth is failed once if 2 or more users login same time when 2nd server is used\n\n[Log-derived analysis] Regression for CR65686 (one dot1x authentication failing when multiple users log in simultaneously against a second RADIUS server). Spawns concurrent dot1x authentications for many supplicants and confirms all are authenticated successfully with no spurious failures.",
+    "reference": "CR-65686",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 65686,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93629377",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.2001.391": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "ER-391 - x230 Management Stacking (mstack)\n\n[Log-derived analysis] Regression for ER-391 (x230 Management Stacking / mstack). Disables ATMF and configures mstack across the command node and member switches, then confirms all nodes join the mstack network and that remote-login from the command node to each member works. Restores ATMF and the original configuration afterwards.",
+    "reference": "ER-391",
+    "past_crs": [
+      "56192",
+      "60598",
+      "CR-70396",
+      "CR-70479",
+      "73386"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 391,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1769691",
+      "log_uid": "49063529",
+      "platform": "x320-tb234.rel",
+      "sw_version": "5.5.0-2.14-rc2",
+      "run_date": "2022-04-12",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.33296": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR33296 - Station movement L2 recovery\n\n[Log-derived analysis] Regression for CR33296 (station movement L2 recovery). Repeatedly injects learning frames alternately into the two host ports and confirms the MAC address-table consistently shows the host moving to whichever port last sourced traffic, verifying correct and rapid L2 relearning under continuous station movement.",
+    "reference": "CR33296",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 33296,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691610",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.40827": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR40827 - Multicast Routing table does not register correctly after dynamic configuration change.\n\n[Log-derived analysis] Regression for CR40827 (multicast routing table not registering correctly after a dynamic configuration change). Establishes end-to-end unicast and multicast flow via an IGMP join, then applies VLAN reconfiguration, restoration and port/aggregator flap, re-verifying after each change that both unicast and multicast traffic still flow correctly.",
+    "reference": "CR40827",
+    "past_crs": [
+      "56685",
+      "63572",
+      "68159",
+      "CR-68519",
+      "71702",
+      "76757",
+      "78404",
+      "CR-87119"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 40827,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "92999515",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.42559": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR42559 - MLD report packet had occurred loop to received on Router port.\n\n[Log-derived analysis] Regression for CR42559 (MLD report packet looping back out a router port). Confirms IPv6 connectivity and that the mrouter port is dynamically learnt on the downstream switches, then injects MLD packets and uses per-port counters to verify they are not transmitted back out the router port (no loop).",
+    "reference": "CR42559",
+    "past_crs": [
+      "52081",
+      "78404"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 42559,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "92999545",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.42713": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR42713 - RIP route which has different subnet mask is not added.\n\n[Log-derived analysis] Regression for CR42713 (RIP route with a different subnet mask not being added). Confirms that a RIP-learned route with a differing subnet mask is correctly installed in the DUT's routing table.",
+    "reference": "CR42713",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 42713,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93629998",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.52319": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR52319 - When Using IGMP Proxy, received GSQ from upstream, a Switch send IGMP Join sometimes even though group does not remain.\n\n[Log-derived analysis] Regression for CR52319 (IGMP Proxy spuriously sending a Join after an upstream GSQ when no group remains). Repeatedly sends IGMP joins and leaves and verifies multicast traffic egresses the downstream port only while the group is joined and stops once the group is left.",
+    "reference": "CR52319",
+    "past_crs": [
+      "60230",
+      "68519",
+      "78404"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 52319,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "92999633",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.55907": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Both OSPF neighbours lost after links to 1 are disconnected\n\n[Log-derived analysis] Regression for CR55907 (both OSPF neighbours lost when links to one are disconnected). Configures OSPF, then disconnects the links to one neighbour and verifies OSPF continues receiving packets on the remaining interfaces in the same VRF, so a single failure does not drop all adjacencies.",
+    "reference": "CR-55907",
+    "past_crs": [
+      "68373"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 55907,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "92999898",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.58664": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "IGMP Proxy : Proxy switch doesn't respond to GSQ even if downstream have the multicast group.\n\n[Log-derived analysis] Regression for CR58664 (IGMP Proxy not responding to a GSQ while a downstream client still holds the group). Has two clients join a multicast group, confirms both receive traffic, then has one client leave and verifies the remaining client still receives traffic and that the downstream port and IGMP group registration are retained.",
+    "reference": "CR-58664",
+    "past_crs": [
+      "78404",
+      "77464"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 58664,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356825",
+      "log_uid": "93671038",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.59342": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "GS948MX 'show platform port' causes 10G SFP+ port link down / UP\n\n[Log-derived analysis] Regression for CR59342 (GS948MX 'show platform port' causing a 10G SFP+ port to bounce). Runs the diagnostic command and confirms the tech-support file is generated and that no port link-down/up disruptions are logged on any device.",
+    "reference": "CR-59342",
+    "past_crs": [
+      "66492",
+      "79057",
+      "75846",
+      "CR-88382",
+      "SYST-8052"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 59342,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691679",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.60610": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "After supplicant is authenticated by port-auth, communication (including amf) fails\n\n[Log-derived analysis] Regression for CR60610 (communication, including AMF, failing after a supplicant is authenticated by port-auth). Confirms the ATMF network and link states are healthy, authenticates a supplicant and verifies it is authorized with the correct dynamic VLAN, then re-confirms end-to-end connectivity and that all ATMF nodes remain joined.",
+    "reference": "CR-60610",
+    "past_crs": [
+      "SYST-8365"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60610,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "93000122",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.64237": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR64237 - VRF uses the wrong SIPA in ICMP error messages\n\n[Log-derived analysis] Regression for CR64237 (VRF using the wrong source IP in ICMP error messages). Confirms the correct source IP address is returned in ICMP error responses and that the first traceroute hop is correct within the VRF.",
+    "reference": "CR64237",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 64237,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93630823",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.70785": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Communication is not possible because the ARP of nexthop set in PBR is not automatically resolved\n\n[Log-derived analysis] Regression for CR70785 (communication impossible because the PBR next-hop ARP is not automatically resolved). Confirms the target IP can be pinged through a policy-based-routing next hop, including after the ARP cache is cleared, verifying the next-hop ARP is resolved automatically.",
+    "reference": "CR-70785",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 70785,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3354234",
+      "log_uid": "93592929",
+      "platform": "IE340-tb232.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.78634": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Show platform port may not restore XEM2-12XSv2 link - New show command, show tech limited\n\n[Log-derived analysis] Regression for CR78634 (show platform port may not restore an XEM2-12XSv2 link). Brings all ports up on unique VLANs, waits for stable link state, runs 'show tech limited' on every device, and confirms the tech-support file is created and that no port disruptions are logged.",
+    "reference": "CR-78634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 78634,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691745",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.786341": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Show platform port may not restore XEM2-12XSv2 link - New show command, show tech extended\n\n[Log-derived analysis] Regression for CR78634, exercising the 'show tech extended' variant. Brings all ports up on unique VLANs, waits for stable link state, runs 'show tech extended' on every device, and confirms the tech-support file is created and no port disruptions occur.",
+    "reference": "CR-78634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 786341,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93662210",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.786342": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Show platform port may not restore XEM2-12XSv2 link - Updated show command, show platform port\n\n[Log-derived analysis] Regression for CR78634, exercising the updated 'show platform port' command. With all ports up on unique VLANs and link state stable, runs 'show platform port' on every device and confirms no port link-down/up disruptions are logged.",
+    "reference": "CR-78634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 786342,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93662272",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.2001.786343": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Show platform port may not restore XEM2-12XSv2 link - New show command, show platform port extended\n\n[Log-derived analysis] Regression for CR78634, exercising the 'show platform port extended' command. With all ports up on unique VLANs and link state stable, runs 'show platform port extended' on every device and confirms no port disruptions are logged.",
+    "reference": "CR-78634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 786343,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93662340",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.3001.41421": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR41421 - communication is interrupted for approximately 5 sec when epsr ring come back.\n\n[Inferred behavior \u2014 no execution history for this case] Intended as a regression for CR41421 (roughly 5 seconds of communication interruption when an EPSR ring recovers). Would build an EPSR ring, break and restore it, and verify traffic interruption on ring recovery stays within an acceptable bound.",
+    "reference": "CR41421",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 41421,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.3001.53151": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR53151 - Core dump \"ERROR: Failed to get a RPC reply from the source with MAC addr\" in long run\n\n[Log-derived analysis] Regression for CR53151 (RPC-reply core dump in long runs). Thrashes a remote-diff diagnostic command while sampling the platform receive queue length, confirming the queue does not grow (stays at zero) and no fault occurs.",
+    "reference": "CR53151",
+    "past_crs": [
+      "57479"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 53151,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691837",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.54499": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "VRRP MAC not used when responding to ICMP requests\n\n[Log-derived analysis] Regression for CR54499 (VRRP virtual MAC not used when responding to ICMP). Configures a VRRP master/backup pair, confirms the master/backup roles, and verifies that ICMP replies to the virtual IP are sourced from the VRRP virtual MAC address rather than the interface MAC.",
+    "reference": "CR54499",
+    "past_crs": [
+      "63539",
+      "SYST-6731",
+      "SYST-7536"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 54499,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3354155",
+      "log_uid": "93587800",
+      "platform": "AR3050S-tb97.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.56344": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Unexpected VRF/VRRP behaviour\n\n[Log-derived analysis] Regression for CR56344 (unexpected VRF/VRRP behaviour). Adds a route on the test box and pings a client located in another VRF network, confirming inter-VRF reachability behaves as expected.",
+    "reference": "CR-56344",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 56344,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3354155",
+      "log_uid": "93587856",
+      "platform": "AR3050S-tb97.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.57887": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Communication fails after vlan setting is changed\n\n[Log-derived analysis] Regression for CR57887 (communication failing after a VLAN setting change). Verifies OSPF routes and end-to-end reachability to a remote loopback and neighbour, then flaps the directly connected VLAN/port and confirms the routing table and connectivity recover correctly.",
+    "reference": "CR-57887",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 57887,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "93000674",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.59601": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "When host port of private VLAN is LAG port, unable to forward packet to promiscuous port\n\n[Log-derived analysis] Regression for CR59601 (private VLAN host port that is a LAG cannot forward to the promiscuous port). Confirms private-VLAN packets are forwarded to the promiscuous port both when the host port is a LAG and after switching to a non-LAG host-port configuration.",
+    "reference": "CR-59601",
+    "past_crs": [
+      "80181"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 59601,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93663352",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.59991": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "After imi crash, communication isn't recovered\n\n[Log-derived analysis] Regression for CR59991 (communication not recovered after an imi crash). Confirms ICMP traffic is hardware-forwarded (not punted to the CPU) before the fault, simulates an imi crash, waits for recovery, and confirms traffic is again forwarded end-to-end and still not sent to the CPU.",
+    "reference": "CR-59991",
+    "past_crs": [
+      "71017",
+      "SYST-6656"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 59991,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93691955",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.63493": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR-63493 - port down on SFP causes other ports to flap\n\n[Log-derived analysis] Regression for CR63493 (a port going down on an SFP causing other ports to flap). Sequentially shuts down each connected port on every device and verifies that no other port link flaps as a result.",
+    "reference": "CR-63493, SYST-3912",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 63493,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "885266",
+      "log_uid": "26938587",
+      "platform": "x510-tb15.rel",
+      "sw_version": "5.4.8-2.9-rc1",
+      "run_date": "2019-06-11",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.63898": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Issue with OSPF inter-area range routes\n\n[Log-derived analysis] Regression for CR63898 (OSPF inter-area range routes). Verifies the correct OSPF inter-area routes are present as a neighbour is made to disappear (via ACL) with the link up, then with the link down, then after the link is recovered.",
+    "reference": "CR-63898",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 63898,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329518",
+      "log_uid": "93001012",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.65781": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "ATMF not discovering static IP guest node\n\n[Log-derived analysis] Regression for CR65781 (ATMF not discovering a static-IP guest node). Waits for ATMF to stabilise and confirms from the ATMF master that the statically addressed guest node is discovered and that all expected ATMF nodes and guests are present.",
+    "reference": "CR-65781",
+    "past_crs": [
+      "SYST-7302",
+      "SYST-7739",
+      "CR-87320"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 65781,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93692044",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.70672": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Hardware routing entry for directconnect disappears when backup route is learned by dynamic route\n\n[Log-derived analysis] Regression for CR70672 (hardware routing entry for a direct-connect route disappearing when a backup route is learned dynamically). Verifies the correct route entries appear in both the route database and the hardware table as routes change, ensuring the directly connected hardware entry is retained.",
+    "reference": "CR-70672, ER-2476",
+    "past_crs": [
+      "SYST-7738",
+      "CR-87195"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 70672,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356484",
+      "log_uid": "93664138",
+      "platform": "FS980-tb34.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.3001.414211": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR41421. Measure traffic interruption during EPSR failover, enhancedrecovery disabled.\n\n[Inferred behavior \u2014 no execution history for this case] Intended as a regression for CR41421, measuring the traffic-interruption duration during an EPSR failover with enhanced-recovery disabled. Would induce an EPSR failover and confirm the measured outage is within the expected limit for that mode.",
+    "reference": "CR41421",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 414211,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.3001.414212": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "CR41421. Measure traffic interruption during EPSR failover, enhancedrecovery enabled.\n\n[Inferred behavior \u2014 no execution history for this case] Intended as a regression for CR41421, measuring the traffic-interruption duration during an EPSR failover with enhanced-recovery enabled. Would induce an EPSR failover and confirm the measured outage is within the expected (reduced) limit for that mode.",
+    "reference": "CR41421",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 414212,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1340.4001.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.4001.63493": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Port down on SFP causes other ports to flap\n\n[Log-derived analysis] Regression for CR63493 (port down on an SFP causing other ports to flap), run on this test set's topology. Sequentially shuts down each connected port on every device and confirms no other port link flaps.",
+    "reference": "CR-63493, SYST-3912",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 63493,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93692267",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.4001.71762": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "ARP request sent from VCS vlan\n\n[Log-derived analysis] Regression for CR71762 (ARP request sent from a VCS VLAN). Verifies that ARP requests originating from the VCS VLAN do not trigger martian-source log messages on the DUT.",
+    "reference": "CR-71762, SYST-5408",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 71762,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355379",
+      "log_uid": "93634336",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1340.4001.72144": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "VCS sync timeout log message after repeated link-up/link-down\n\n[Log-derived analysis] Regression for CR72144 (VCS sync-timeout log message after repeated link up/down). Repeatedly flaps the link and confirms no VCS sync-timeout (or other) errors are logged in either the running or permanent log.",
+    "reference": "CR-72144, SYST-5406",
+    "past_crs": [
+      "84455"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 72144,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357316",
+      "log_uid": "93692370",
+      "platform": "AR1050V-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.4001.86716": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Perform show tech-support immediately after bootup\n\n[Log-derived analysis] Regression for CR86716 (running show tech-support immediately after bootup). Reboots each device and runs 'show tech' right after boot, confirming the command completes without failure on every device.",
+    "reference": "CR-86716",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 86716,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357445",
+      "log_uid": "93698387",
+      "platform": "XS900-tb43.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1340.5001.0": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1340.5001.391": {
+    "suite_id": "1340",
+    "suite_name": "1340_past_issues_2",
+    "description": "ER-391 - x230 Management Stacking (mstack)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended as a regression for ER-391 (x230 Management Stacking / mstack), verifying mstack node join and remote-login across the stack members. Reported UNSUPPORTED on the current test setup (the required multi-unit stacking topology was not available); no recent PASS.",
+    "reference": "ER-391",
+    "past_crs": [
+      "81559"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 391,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  }
+}

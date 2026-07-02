@@ -1,0 +1,5547 @@
+{
+  "1353.0.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "59355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1001.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "51464",
+      "53198",
+      "58234",
+      "72140",
+      "86338",
+      "CR-87956",
+      "89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93621104",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.11": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - Firewall\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the firewall feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "CR-65811",
+      "79710",
+      "86338",
+      "CR-87956",
+      "89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93621154",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.12": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - IPS - builtin\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the ips - builtin feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "76661",
+      "79747",
+      "81931",
+      "86338",
+      "CR-86694",
+      "CR-87956",
+      "89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93621318",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.13": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - Malware Protection\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the malware protection feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "76663",
+      "82277",
+      "84902"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93678138",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.14": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - Antivirus\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the antivirus feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "81998",
+      "CR-87376"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93678456",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.15": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - DPI Procera\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the dpi procera feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "86338",
+      "CR-87956",
+      "88574",
+      "CR-89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93678539",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.16": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - IP Reputation\n\n[Log-derived analysis] Throughput/performance test for IPv4 unicast forwarding with the ip reputation feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "87624",
+      "CR-87956",
+      "89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93678626",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.17": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 unicast performance - IPS - proofpoint\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Throughput/performance test for IPv4 unicast forwarding with the ips - proofpoint feature enabled. Generates bidirectional traffic at increasing rates across the router and measures forwarding rate and packet loss to characterise data-plane performance.",
+    "reference": "",
+    "past_crs": [
+      "77829",
+      "CR-87956",
+      "89057"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE\n\n[Log-derived analysis] Brings up a PPPoE client session and verifies the session negotiates, an address is obtained, and traffic passes over the PPPoE link. Config is restored afterwards.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "79707"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625486",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.21": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE - On-Demand\n\n[Log-derived analysis] Brings up a PPPoE client session with on-demand dial-up and verifies the session negotiates, an address is obtained, and traffic passes over the PPPoE link. Config is restored afterwards.",
+    "reference": "",
+    "past_crs": [
+      "88574",
+      "SYST-8306"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625559",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.22": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE - IP Borrow\n\n[Log-derived analysis] Brings up a PPPoE client session using IP-borrow (unnumbered) addressing and verifies the session negotiates, an address is obtained, and traffic passes over the PPPoE link. Config is restored afterwards.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625578",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "OpenVPN\n\n[Log-derived analysis] Brings up an OpenVPN tunnel between a client and the router and verifies the session authenticates, the tunnel establishes, and traffic passes over it.",
+    "reference": "",
+    "past_crs": [
+      "53437",
+      "75811",
+      "77549"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625618",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "OpenVPN with pre-shared tls key\n\n[Log-derived analysis] Verifies an OpenVPN tunnel using a pre-shared TLS key establishes successfully and carries traffic.",
+    "reference": "",
+    "past_crs": [
+      "SYST-8462"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625650",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Firewall\n\n[Log-derived analysis] Verifies basic firewall operation: permitted traffic is forwarded and denied traffic is blocked according to the configured firewall policy.",
+    "reference": "RED: NMM (Firewall logging, Console)",
+    "past_crs": [
+      "83135",
+      "88574"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625762",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "NAT\n\n[Log-derived analysis] Verifies basic NAT operation: translates source addresses for outbound traffic and confirms reply traffic is correctly un-translated and forwarded back to the originating host.",
+    "reference": "",
+    "past_crs": [
+      "51543"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93625814",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (downloading 3rd party resources)\n\n[Log-derived analysis] Verifies the router downloads third-party UTM/DPI resource files from the configured update server and loads them successfully.",
+    "reference": "",
+    "past_crs": [
+      "57844",
+      "59515",
+      "61137",
+      "67546",
+      "70796",
+      "77457",
+      "81998",
+      "84902",
+      "87376",
+      "87624",
+      "CR-88574"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93679342",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.301": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (downloading 3rd party resources) - dpi + antivirus\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies the router can download third-party UTM resource files for the dpi + antivirus feature combination from the update server.",
+    "reference": "CR-77457",
+    "past_crs": [
+      "81998"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 301,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.302": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (downloading 3rd party resources) - dpi + malware-protection\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies the router can download third-party UTM resource files for the protection feature combination from the update server.",
+    "reference": "CR-77457",
+    "past_crs": [
+      "77457"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 302,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.303": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (downloading 3rd party resources) - dpi + ip-reputation\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies the router can download third-party UTM resource files for the reputation feature combination from the update server.",
+    "reference": "CR-77457",
+    "past_crs": [
+      "77457",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 303,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.304": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (downloading 3rd party resources) - dpi + url-filter\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies the router can download third-party UTM resource files for the filter feature combination from the update server.",
+    "reference": "CR-77457",
+    "past_crs": [
+      "77457"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 304,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.310": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (webgui)\n\n[Log-derived analysis] Verifies update-server interaction via the web GUI, confirming resource/release information is retrieved and displayed correctly.",
+    "reference": "",
+    "past_crs": [
+      "60578",
+      "61093",
+      "67546",
+      "79712",
+      "81450",
+      "82007",
+      "82334",
+      "88574",
+      "SYST-8306"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 310,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93627071",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.400": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Ethernet sub-interfaces (L2)\n\n[Log-derived analysis] Verifies L2 ethernet sub-interfaces (VLAN sub-interfaces) are created and bridge/forward tagged traffic correctly.",
+    "reference": "RED: TCM-1 (VLAN 802.1Q)",
+    "past_crs": [
+      "55172",
+      "62034",
+      "CR-65811",
+      "67639"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 400,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90718933",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.410": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Ethernet sub-interfaces - IPv4 and IPv6\n\n[Log-derived analysis] Verifies ethernet sub-interfaces carry both IPv4 and IPv6 traffic, confirming dual-stack forwarding on the sub-interfaces.",
+    "reference": "RED: TCM-1 (VLAN 802.1Q)",
+    "past_crs": [
+      "67639",
+      "75735",
+      "SYST-8306",
+      "CR-88574"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 410,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90718972",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.500": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Standard Modem test - ping & show ip route\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies basic cellular/standard modem connectivity by checking ping reachability and the resulting IP routing table over the modem interface.",
+    "reference": "",
+    "past_crs": [
+      "66462",
+      "75735",
+      "77147",
+      "77692"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 500,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.2865": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Project:2865 MAC Address Filter for Routers\n\n[Log-derived analysis] Verifies the router's MAC-address filter permits or denies traffic based on configured source MAC entries.",
+    "reference": "SYST-2865",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2865,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2293687",
+      "log_uid": "62890876",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "main-20230922-3",
+      "run_date": "2023-09-24",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.7288": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported traffic control rules\n\n[Log-derived analysis] Scale test configuring the maximum supported number of traffic-control rules and confirming the device accepts them and still classifies traffic.",
+    "reference": "SYST-7288",
+    "past_crs": [
+      "88664",
+      "SYST-8439"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7288,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93705549",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.8808": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "8808 - IPv6 Router Solicitation are not always sent when AW+ router is rebooted\n\n[Log-derived analysis] Regression test that IPv6 Router Solicitations are reliably sent after the router reboots, guarding against a defect where RS messages were sometimes missing.",
+    "reference": "SYST-8808",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8808,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93705030",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.11541": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE maximum number of interfaces\n\n[Log-derived analysis] Scale test creating the maximum supported number of PPPoE client interfaces and confirming each can establish a session without exceeding limits or crashing.",
+    "reference": "",
+    "past_crs": [
+      "75735"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11541,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93627296",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.14309": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Maximum OpenVPN sessions\n\n[Log-derived analysis] Scale test establishing the maximum supported number of concurrent OpenVPN sessions and confirming each connects without exceeding limits or crashing.",
+    "reference": "",
+    "past_crs": [
+      "53437",
+      "77549",
+      "CR-85378",
+      "SYST-7722"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14309,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93627353",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.18157": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported firewall rules\n\n[Log-derived analysis] Scale test configuring the maximum supported number of IPv4 firewall rules and confirming the device accepts them all and continues to filter traffic correctly.",
+    "reference": "AWP-18157",
+    "past_crs": [
+      "84021"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18157,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2636310",
+      "log_uid": "73047788",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20240723-1",
+      "run_date": "2024-08-08",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.18158": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported firewall connections\n\n[Inferred behavior \u2014 no execution history for this case] Scale test driving the maximum supported number of concurrent firewall connections and confirming the connection table reaches the limit without crashing.",
+    "reference": "AWP-18158",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18158,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1353.1001.18403": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported interfaces on a bridge group\n\n[Log-derived analysis] Scale test adding the maximum supported number of member interfaces to a single bridge group and confirming the bridge accepts them and still forwards traffic.",
+    "reference": "AWP-18403",
+    "past_crs": [
+      "57355",
+      "62034",
+      "75735",
+      "81976",
+      "82270",
+      "83873",
+      "SYST-8810"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18403,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628376",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.18494": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported bridge groups\n\n[Log-derived analysis] Scale test creating the maximum supported number of bridge groups and confirming each is created without exceeding device limits.",
+    "reference": "AWP-18494",
+    "past_crs": [
+      "75735",
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18494,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628455",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.27142": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CR27142 - VRRP: Default AUTH type set as 1 instead of 0.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Regression test that VRRP advertisements default to authentication type 0 (none) rather than type 1, guarding against a defect that set the wrong default AUTH type.",
+    "reference": "1331.2001.27142, CR27142, CR-77539",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 27142,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.1001.28651": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2 Source MAC Address Filtering\n\n[Log-derived analysis] Verifies the bridge can filter frames based on source MAC address, permitting or dropping traffic according to the configured L2 source-MAC filter.",
+    "reference": "SYST-6287",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 28651,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93629985",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.52661": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SNMP: linkDown trap for eth port of router not sent to SNMP manager\n\n[Log-derived analysis] Regression test that the router emits an SNMP linkDown trap for an ethernet port event to the configured SNMP manager, guarding against a defect where the trap was not sent.",
+    "reference": "CR-52661",
+    "past_crs": [
+      "71444",
+      "75735",
+      "SYST-8433"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 52661,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628501",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.52826": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "NGFW: OpenVPN tunnels still reserve the default listen port (1194) when the tunnel mode is changed to GRE.\n\n[Log-derived analysis] Regression test that OpenVPN still reserves the default listen port (1194) even when the tunnel mode is changed, guarding against a port-reservation defect.",
+    "reference": "CR-52826",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 52826,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90720569",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.54429": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CR-54429: OpenVPN server allocates route with 32 bit IP address to OpenVPN client when Framed-Route is set to \"0.0.0.0/0 nexthop\"\n\n[Log-derived analysis] Regression test that the OpenVPN server allocates the correct route for a client when a RADIUS Framed-Route is supplied, guarding against a defect allocating a /32 host route incorrectly.",
+    "reference": "CR-54429",
+    "past_crs": [
+      "77549",
+      "SYST-7200",
+      "CR-89033"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 54429,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628635",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.56147": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CR-56147 - ipset errors when using the same network entity more than once in a zone\n\n[Log-derived analysis] Regression test that reusing the same network entity more than once within a zone does not produce ipset errors, guarding against a defect in zone/entity handling.",
+    "reference": "CR-56147",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 56147,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628665",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.57171": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "NAT portfwd destination ports changing to the number of the rule after upgrade\n\n[Log-derived analysis] Regression test that NAT port-forward destination ports are preserved across a software upgrade, guarding against a defect where the forwarded port was overwritten with the rule number.",
+    "reference": "CR-57171",
+    "past_crs": [
+      "85346"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 57171,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628677",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.63671": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "NGFW: disable the firewall policy breaks NAT port forwarding\n\n[Log-derived analysis] Regression test confirming NAT port forwarding continues to work (or fails predictably) when the firewall policy is disabled, guarding against the policy state breaking port-forward translation.",
+    "reference": "CR-63671",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 63671,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628705",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.64796": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CR-64796 - IPv6 Router Solicitation can not be sent when firewall is enabled after AW+ router is rebooted\n\n[Log-derived analysis] Regression test that IPv6 Router Solicitations are still sent after reboot when the firewall is enabled, guarding against a firewall-related defect that suppressed them.",
+    "reference": "CR-64796",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 64796,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628861",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.65620": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CR-65620: OpenVPN connection fails after upgrading to 5.4.9-1.1\n\n[Log-derived analysis] Regression test that OpenVPN connections still succeed after a software upgrade, guarding against a defect introduced in a specific release that broke OpenVPN.",
+    "reference": "CR-65620",
+    "past_crs": [
+      "77549",
+      "83867",
+      "88320",
+      "CR-89033",
+      "CR-89033"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 65620,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93629279",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.67385": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "br interface does not come up in some cases\n\n[Log-derived analysis] Regression test that a bridge (br) interface reliably comes up, guarding against an intermittent defect where the bridge interface failed to transition to up.",
+    "reference": "CR-67385",
+    "past_crs": [
+      "81976"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 67385,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93629355",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.68301": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported traffic control classes per policy\n\n[Log-derived analysis] Scale test configuring the maximum supported number of traffic-control classes within a single policy and confirming the device accepts them.",
+    "reference": "SYST-6830",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 68301,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93681015",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.70402": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP commands entered on a tunnel that is down are not saved in the running config\n\n[Log-derived analysis] Regression test that IP commands configured on a down tunnel interface are still persisted to the running configuration, guarding against a defect that dropped them.",
+    "reference": "CR-70402",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 70402,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90720932",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.73790": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "AR1050V fails to boot up with 5.5.1-0.2\n\n[Log-derived analysis] Regression test that the AR1050V boots successfully on the affected release, guarding against a defect that prevented boot-up.",
+    "reference": "CR-73790",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 73790,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93629616",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.76071": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Confirm that geoip can be enabled\n\n[Log-derived analysis] Verifies the GeoIP feature can be enabled and the GeoIP database/state is correctly reported by the device.",
+    "reference": "SYST-7607, 6002.4050.108",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 76071,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93681304",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.76680": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (release file) - release availability is logged\n\n[Log-derived analysis] Verifies that when checking the update server, the availability of a new release is correctly logged by the router.",
+    "reference": "SYST-7668, Project: 3116",
+    "past_crs": [
+      "87471"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 76680,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3112036",
+      "log_uid": "86725635",
+      "platform": "AR4050S-tb340.rel",
+      "sw_version": "awplus_main-20251028-984",
+      "run_date": "2025-10-28",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.76681": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (release file) - downloaded release boots\n\n[Log-derived analysis] Verifies a release image downloaded from the update server boots successfully on the router.",
+    "reference": "SYST-7668, Project: 3116, RED: SUM-1 (Console), SUM-2 (Console), SUM-3 (Console)",
+    "past_crs": [
+      "87471"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 76681,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3334336",
+      "log_uid": "93156583",
+      "platform": "AR4050S-tb340.rel",
+      "sw_version": "awplus_main-20260602-1476",
+      "run_date": "2026-06-02",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.76682": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Update Server (release file) - update all now will download release when update interval is \"never\"\n\n[Log-derived analysis] Verifies that an 'update all now' command downloads an available release even when the scheduled update interval is set to never.",
+    "reference": "SYST-7668, Project: 3116",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 76682,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338201",
+      "log_uid": "93234990",
+      "platform": "AR4050S-tb340.rel",
+      "sw_version": "marvelldev_x980-20260603-230",
+      "run_date": "2026-06-05",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.80881": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Specifying a range of ports that do not exist will cause a coredump\n\n[Log-derived analysis] Regression test that configuring a non-existent port range does not cause a coredump, confirming graceful handling of invalid port-range input.",
+    "reference": "CR-80881, 1331.1001.808812",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 80881,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93629962",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.181574": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported IPv4 firewall rules\n\n[Log-derived analysis] Scale test configuring the maximum supported number of IPv4 firewall rules and confirming the device accepts them all and continues to filter traffic correctly.",
+    "reference": "AWP-18157, 1353.1001.18157",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 181574,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93627582",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.181576": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported IPv6 firewall rules\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "AWP-18157, 1353.1001.18157",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 181576,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93627771",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1001.528260": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "NGFW: OpenVPN tunnels still reserve the default listen port (1194) when the tunnel mode is changed to IPSec.\n\n[Log-derived analysis] Regression test that OpenVPN still reserves the default listen port (1194) even when the tunnel mode is changed, guarding against a port-reservation defect.",
+    "reference": "CR-52826 - SYST",
+    "past_crs": [
+      "83867"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 528260,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93628592",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1004.1": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI - Provider Procera\n\n[Log-derived analysis] Verifies DPI using the Procera provider: confirms the Procera resource downloads and loads, the engine runs, and application traffic is classified.",
+    "reference": "",
+    "past_crs": [
+      "59492",
+      "72509",
+      "84186"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93681833",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.2": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI - Provider Built-In\n\n[Log-derived analysis] Verifies DPI using the built-in provider: confirms the engine runs with the built-in signature set and classifies application traffic.",
+    "reference": "RED: TCM (DPI, Console)",
+    "past_crs": [
+      "68791",
+      "72087",
+      "81976",
+      "82270",
+      "CR-84187",
+      "CR-84187"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90721262",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.3": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI Learning\n\n[Log-derived analysis] Verifies DPI application learning: with the DPI engine active and resource loaded, generated application traffic is correctly identified and per-application statistics are recorded.",
+    "reference": "SYST-4900, AWPTCM-T30834",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90713298",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.4": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI Learning\n\n[Log-derived analysis] Verifies DPI application learning: with the DPI engine active and resource loaded, generated application traffic is correctly identified and per-application statistics are recorded.",
+    "reference": "SYST-4900, AWPTCM-T30854",
+    "past_crs": [
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90713365",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.5": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI Learning\n\n[Log-derived analysis] Verifies DPI application learning: with the DPI engine active and resource loaded, generated application traffic is correctly identified and per-application statistics are recorded.",
+    "reference": "SYST-4900, AWPTCM-T30850",
+    "past_crs": [
+      "79538"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90713457",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI Web Categorization\n\n[Log-derived analysis] Verifies DPI web categorization correctly classifies web traffic into its category based on the loaded categorization database.",
+    "reference": "AWPTCM-T32206",
+    "past_crs": [
+      "77521",
+      "83149"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93682475",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.11": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DPI Web Categorization - Customized category\n\n[Log-derived analysis] Verifies DPI web categorization honours a user-defined custom category, classifying matching web traffic under the customized category.",
+    "reference": "AWPTCM-T32211",
+    "past_crs": [
+      "77521"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93682527",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.1904": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv4 firewall connection limiting\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "RED: TCM (Firewall zones, Console)",
+    "past_crs": [
+      "63987",
+      "SYST-7421"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1904,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93634363",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.18158": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported IPv4 firewall connections\n\n[Log-derived analysis] Scale test driving the maximum supported number of concurrent firewall connections and confirming the connection table reaches the limit without crashing.",
+    "reference": "AWP-18158",
+    "past_crs": [
+      "67514",
+      "SYST-8755"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 18158,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93634946",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.56394": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "portfwd does not work when used with the UTM proxy feature.\n\n[Log-derived analysis] Regression test that NAT port forwarding still functions when a UTM proxy feature is enabled, guarding against the proxy intercepting and breaking forwarded connections.",
+    "reference": "CR-56394",
+    "past_crs": [
+      "CR-85893",
+      "SYST-7490",
+      "CR-86725"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 56394,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93634983",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1004.58985": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Ensure that the limit of 15 sport/dport is enforced\n\n[Log-derived analysis] Verifies the router enforces the maximum of 15 source/destination ports in a rule, rejecting configurations that exceed the limit.",
+    "reference": "CR-58985",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 58985,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93635003",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1006.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "59355"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1006.1904": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv6 Firewall connection limiting\n\n[Log-derived analysis] Verifies the firewall enforces a configured connection limit for IPv6 traffic, allowing connections up to the limit and rejecting/dropping those beyond it.",
+    "reference": "",
+    "past_crs": [
+      "CR-63987",
+      "66106",
+      "SYST-7525",
+      "SYST-8166",
+      "88627"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1904,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93636159",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1006.18158": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "max supported IPv6 firewall connections\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "AWP-18158",
+    "past_crs": [
+      "67514",
+      "SYST-8305",
+      "88746",
+      "SYST-8690",
+      "SYST-8735"
+    ],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 18158,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93636633",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1501.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Hello World\n\n[Log-derived analysis] Basic sanity test that the router (in bridging configuration where applicable) forwards traffic between two endpoints, establishing baseline connectivity.",
+    "reference": "",
+    "past_crs": [
+      "65811",
+      "81976",
+      "82296"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90718925",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - MAC learning\n\n[Log-derived analysis] Verifies the bridge dynamically learns source MAC addresses on the correct ingress interface and uses the learned entries to forward frames to the right port.",
+    "reference": "",
+    "past_crs": [
+      "84199",
+      "SYST-8733"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90718961",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.201": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - MAC learning\n\n[Log-derived analysis] Verifies the bridge dynamically learns source MAC addresses on the correct ingress interface and uses the learned entries to forward frames to the right port.",
+    "reference": "1353.1501.200",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 201,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93707115",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.210": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - Disable MAC learning\n\n[Log-derived analysis] Verifies that disabling MAC learning on the bridge causes the switch to flood rather than learn, with no dynamic MAC entries added to the bridge table.",
+    "reference": "",
+    "past_crs": [
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 210,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719010",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.220": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - Disable local MAC trapping\n\n[Log-derived analysis] Verifies behaviour when local MAC trapping is disabled on the bridge, confirming locally-destined frames are handled per the configured (non-trapping) policy.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 220,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719040",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - L2TPv3\n\n[Log-derived analysis] Verifies an L2TPv3 pseudowire used as a bridged L2 link: bridges frames between the routers over the L2TPv3 tunnel and confirms learned MACs and forwarded traffic across the bridge.",
+    "reference": "",
+    "past_crs": [
+      "52792",
+      "CR-65811",
+      "67639",
+      "75735"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719089",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.400": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Offset Filter IPv4\n\n[Log-derived analysis] Verifies bridge offset-based packet filtering: matches a byte pattern at a configured offset in the frame and permits/denies the frame accordingly.",
+    "reference": "",
+    "past_crs": [
+      "65811",
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 400,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719117",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.401": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Offset Filter IPv6\n\n[Log-derived analysis] Verifies bridge offset-based packet filtering: matches a byte pattern at a configured offset in the frame and permits/denies the frame accordingly.",
+    "reference": "",
+    "past_crs": [
+      "65811"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 401,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719141",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.410": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv4 Src\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on IPv4 source address, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 410,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719168",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.411": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv6 Src\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on IPv4 source address, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 411,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719198",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.420": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv4 Dst\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on IPv4 destination address, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 420,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719224",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.421": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv6 Dst\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on IPv4 destination address, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 421,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719250",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.430": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv4 UDP Dport\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on UDP destination port, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 430,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719292",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.431": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Protocol Filter IPv6 UDP Dport\n\n[Log-derived analysis] Verifies bridge protocol-based filtering matching on UDP destination port, confirming matching frames are permitted/denied as configured while non-matching frames follow the default action.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 431,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719335",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.440": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE client on bridge interface\n\n[Log-derived analysis] Verifies a PPPoE client can run over a bridge interface, establishing the session and passing traffic with the client bound to the bridge.",
+    "reference": "",
+    "past_crs": [
+      "81976",
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 440,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719364",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1501.450": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE through bridge\n\n[Log-derived analysis] Verifies PPPoE session frames are correctly bridged through the router so a downstream client can establish its PPPoE session across the bridge.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1501,
+    "caseId": 450,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90719402",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  },
+  "1353.1502.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1502,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.1502.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router Bridging Hello World\n\n[Log-derived analysis] Basic sanity test that the router (in bridging configuration where applicable) forwards traffic between two endpoints, establishing baseline connectivity.",
+    "reference": "",
+    "past_crs": [
+      "CR-82022",
+      "CR-81976",
+      "82296"
+    ],
+    "current_crs": [],
+    "testSet": 1502,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93636824",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1502.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - MAC learning\n\n[Log-derived analysis] Verifies the bridge dynamically learns source MAC addresses on the correct ingress interface and uses the learned entries to forward frames to the right port.",
+    "reference": "",
+    "past_crs": [
+      "82270"
+    ],
+    "current_crs": [],
+    "testSet": 1502,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93636850",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.1502.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Bridging - L2TPv3\n\n[Log-derived analysis] Verifies an L2TPv3 pseudowire used as a bridged L2 link: bridges frames between the routers over the L2TPv3 tunnel and confirms learned MACs and forwarded traffic across the bridge.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1502,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724561",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.2001.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Router hello world\n\n[Log-derived analysis] Basic sanity test that the router (in bridging configuration where applicable) forwards traffic between two endpoints, establishing baseline connectivity.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93637100",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "GRE (IPv4) tunnel\n\n[Log-derived analysis] Establishes a GRE-over-IPv4 tunnel between the routers and verifies the tunnel interface comes up and forwards encapsulated traffic end-to-end.",
+    "reference": "",
+    "past_crs": [
+      "56338"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724684",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.210": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv6 tunnel\n\n[Log-derived analysis] Establishes an IPv6 tunnel interface between the routers and verifies it comes up and carries traffic across the tunnel.",
+    "reference": "",
+    "past_crs": [
+      "56338"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 210,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724704",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.220": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPSEC IPv4 tunnel\n\n[Log-derived analysis] Establishes an IPsec IPv4 site-to-site tunnel between the two routers and verifies the tunnel comes up, the security association is negotiated, and protected traffic passes end-to-end across it. Config is restored and confirmed unchanged afterwards.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 220,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93637320",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.230": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPSEC IPv6 tunnel\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "",
+    "past_crs": [
+      "51437",
+      "57851",
+      "71821"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 230,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93637338",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.240": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv3 over IPv4 or IPv6\n\n[Log-derived analysis] Verifies an L2TPv3 pseudowire over IPv4 or IPv6 transport comes up and bridges/forwards traffic across the two routers.",
+    "reference": "",
+    "past_crs": [
+      "CR-65811",
+      "67639",
+      "75735",
+      "82296"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 240,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90727868",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.241": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv3 over IPv4 or IPv6 (eth only)\n\n[Inferred behavior \u2014 no execution history for this case] Verifies an L2TPv3 pseudowire over IPv4 or IPv6 transport comes up and bridges/forwards traffic across the two routers. Variant restricted to ethernet interfaces only.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 241,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1353.2001.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow sample rate on routers\n\n[Log-derived analysis] Verifies the sFlow sampling rate configuration is honoured, with samples generated at approximately the configured rate.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728026",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.301": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow max-datagram-size\n\n[Log-derived analysis] Verifies the sFlow max-datagram-size setting limits exported datagram size as configured.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [
+      "79494"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 301,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728182",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.302": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow - sampling port types - encapsulation dot1q interface\n\n[Log-derived analysis] Verifies sFlow sampling works on an 802.1Q-encapsulated (dot1q) interface, exporting flow samples for tagged traffic.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [
+      "79305"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 302,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728221",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.303": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sFlow - polling port counters\n\n[Log-derived analysis] Verifies sFlow periodic counter polling exports interface counter samples to the collector.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 303,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728625",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.304": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow - sampling port types - sflow on l2tp tunnel\n\n[Log-derived analysis] Verifies sFlow sampling works on an L2TP tunnel interface, exporting flow samples for tunnelled traffic.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 304,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728280",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.305": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow - sampling port types - sflow on bridge interface\n\n[Log-derived analysis] Verifies sFlow sampling works on a bridge interface, exporting flow samples for bridged traffic.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 305,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728313",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.306": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sflow - sampling port types - sflow on vlan interface\n\n[Log-derived analysis] Verifies sFlow sampling works on a VLAN interface, exporting flow samples for that VLAN's traffic.",
+    "reference": "Project: 2623, SYST-5092",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 306,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90723102",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1911": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv2 IPv4 tunnel\n\n[Log-derived analysis] Establishes an L2TPv2 IPv4 tunnel between the routers and verifies the tunnel/session come up and traffic passes across it.",
+    "reference": "",
+    "past_crs": [
+      "62072",
+      "72434",
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1911,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724771",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1912": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv2 IPv6 tunnel\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "",
+    "past_crs": [
+      "72434",
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1912,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724794",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1913": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Maximum number of L2TPv2 tunnels\n\n[Log-derived analysis] Scale test bringing up the maximum supported number of concurrent L2TPv2 tunnels and confirming each establishes and carries traffic without resource exhaustion or exceptions.",
+    "reference": "",
+    "past_crs": [
+      "72434",
+      "75735",
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1913,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90724916",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1914": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv2 over IPsec tunnel\n\n[Log-derived analysis] Establishes an L2TPv2 session running inside an IPsec tunnel and verifies the layered tunnel comes up and forwards traffic correctly over the encrypted path.",
+    "reference": "",
+    "past_crs": [
+      "62578",
+      "71060",
+      "72434",
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1914,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90727606",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1915": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Throughput testing of tunnel mode l2tp ipv4\n\n[Log-derived analysis] Measures sustained throughput across an L2TP IPv4 tunnel-mode interface, driving traffic through the tunnel and confirming forwarding without tunnel loss or exceptions.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "71060",
+      "72434",
+      "CR-85266",
+      "CR-87956"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1915,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90727756",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.1916": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "MSS Clamping on L2TPv2 over IPsec tunnel\n\n[Log-derived analysis] Verifies TCP MSS clamping is applied to traffic on an L2TPv2-over-IPsec tunnel so segment sizes fit the tunnel MTU and fragmentation is avoided.",
+    "reference": "",
+    "past_crs": [
+      "56218",
+      "65901",
+      "72434",
+      "CR-85266"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1916,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90727807",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.2047": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "DS-Lite\n\n[Log-derived analysis] Verifies DS-Lite operation: tunnels IPv4 traffic over an IPv6 access network through the AFTR/B4 model and confirms IPv4 connectivity is preserved across the IPv6 transport.",
+    "reference": "",
+    "past_crs": [
+      "59783",
+      "62072",
+      "73006",
+      "76449",
+      "67751",
+      "CR-89371",
+      "SYST-8611"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2047,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93643374",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.2201": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "MSS Clamping on Eth interface\n\n[Log-derived analysis] Verifies TCP MSS clamping applied on an ethernet interface reduces advertised segment sizes to the configured value to avoid fragmentation.",
+    "reference": "Project:1839 MSS Clamping",
+    "past_crs": [
+      "53461",
+      "CR-65901",
+      "79305"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2201,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93643404",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.2301": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "MSS Clamping on GRE over IPSEC tunnel\n\n[Log-derived analysis] Verifies TCP MSS clamping is correctly applied to traffic traversing a GRE-over-IPsec tunnel so that segment sizes are reduced to fit the tunnel MTU and avoid fragmentation.",
+    "reference": "Project:1839 MSS Clamping",
+    "past_crs": [
+      "56361",
+      "65901"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2301,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90728829",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.9000": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Stress testing with traffic\n\n[Log-derived analysis] Stress test driving sustained high-rate traffic through the router to confirm it remains stable, forwards traffic, and raises no exceptions under load.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 9000,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90729980",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.9100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Throughput testing of tunnel mode IPSEC IPv4\n\n[Log-derived analysis] Measures sustained data-plane throughput across an IPsec IPv4 tunnel-mode interface, driving traffic through the encrypted tunnel and confirming the router forwards it without loss of the tunnel or exceptions.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "71169",
+      "75892",
+      "86338",
+      "87956",
+      "SYST-8429",
+      "CR-89071"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 9100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93640746",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.13810": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Maximum number of IPsec tunnels\n\n[Log-derived analysis] Scale test that brings up the maximum supported number of simultaneous IPsec tunnels and confirms each SA establishes and carries traffic without resource exhaustion or crashes.",
+    "reference": "",
+    "past_crs": [
+      "53233",
+      "57561",
+      "62323",
+      "75735",
+      "84216",
+      "SYST-8182"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 13810,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90730430",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.13811": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Maximum number of IPSEC tunnels (eth only)\n\n[Inferred behavior \u2014 no execution history for this case] Scale test that brings up the maximum supported number of simultaneous IPsec tunnels and confirms each SA establishes and carries traffic without resource exhaustion or crashes. Variant restricted to ethernet interfaces only.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 13811,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1353.2001.19539": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Maximum number of L2TPv3 tunnels\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "",
+    "past_crs": [
+      "75735"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 19539,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90724942",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.51564": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Memory leak and crash occur on AR4050S.\n\n[Log-derived analysis] Regression/soak test that the router does not leak memory or crash under the conditions that previously triggered the AR4050S defect.",
+    "reference": "CR-51564",
+    "past_crs": [
+      "75735"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 51564,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93645532",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.53882": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPv6 tunnel crash during ping\n\n[Log-derived analysis] Regression test that pinging across an IPv6 tunnel does not crash the router, guarding against a defect that triggered a crash during ICMP over the tunnel.",
+    "reference": "CR-53882",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 53882,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93645634",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.55694": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "L2TPv2 IPv4 tunnel after L2TPv3 de-configured\n\n[Log-derived analysis] Verifies an L2TPv2 IPv4 tunnel can be brought up and pass traffic after a previously configured L2TPv3 instance has been de-configured, checking the two tunnelling stacks do not interfere.",
+    "reference": "CR-55694, SYST-1498",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 55694,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690460",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.60068": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "AWP router sends wrong remote selector for ISAKMP Phase-2\n\n[Log-derived analysis] Regression test that the router advertises the correct remote traffic selector during IKE/ISAKMP Phase-2 negotiation, guarding against a defect where the wrong remote selector was sent.",
+    "reference": "CR-60068",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60068,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93645784",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2001.61398": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "ICMP Time Exceeded of TraceRoute is discarded in Firewall\n\n[Log-derived analysis] Regression test that the firewall does not wrongly drop ICMP Time-Exceeded replies, so traceroute through the router works correctly.",
+    "reference": "CR-61398",
+    "past_crs": [
+      "74286",
+      "74694"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 61398,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93645810",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "59355"
+    ],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.2102.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - disabled\n\n[Log-derived analysis] Verifies that with policy-based routing disabled, traffic follows the normal routing table rather than any PBR next-hop.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690596",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Enabled\n\n[Log-derived analysis] Verifies policy-based routing is applied when enabled: matching traffic is steered to the PBR-specified egress/next-hop rather than the route-table path.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690615",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Match based on destination\n\n[Log-derived analysis] Verifies PBR rules that match on destination address steer matching traffic to the policy next-hop while other traffic uses the normal route.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690642",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.310": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Match based on source\n\n[Log-derived analysis] Verifies PBR rules that match on source address steer matching traffic to the policy next-hop while other traffic uses the normal route.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 310,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690662",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.400": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Test that matching packet TCP/UDP use the correct route and non-matching packets use routing table\n\n[Log-derived analysis] Verifies PBR rules matching TCP/UDP traffic forward matching packets via the policy route while non-matching packets follow the default route.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 400,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690688",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.600": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Test first match rule\n\n[Log-derived analysis] Verifies PBR evaluates rules in order and applies the first matching rule, confirming earlier rules take precedence over later ones.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 600,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690706",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2102.700": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PBR - Match based on ipv6 destination address\n\n[Log-derived analysis] Verifies PBR rules matching on an IPv6 destination address steer matching IPv6 traffic to the configured policy next-hop.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2102,
+    "caseId": 700,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93690722",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.2200.1": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - HTB CIR bandwidth enforcement\n\n[Log-derived analysis] Verifies HTB traffic-control CIR enforcement: shapes a class to its committed information rate and confirms the shaped traffic is limited to the configured CIR.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355174",
+      "log_uid": "93644246",
+      "platform": "ARX200S-tb310.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.2": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - HTB PIR/CIR bandwidth enforcement validation\n\n[Log-derived analysis] Verifies HTB traffic-control PIR/CIR enforcement: confirms a class is allowed to burst up to its peak rate above the committed rate and is capped at the PIR.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93710451",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.3": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - WRR weighted bandwidth distribution\n\n[Log-derived analysis] Verifies WRR scheduling distributes available bandwidth across classes in proportion to their configured weights.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355174",
+      "log_uid": "93644403",
+      "platform": "ARX200S-tb310.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.4": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - Priority strict ordering verification\n\n[Log-derived analysis] Verifies strict-priority scheduling: higher-priority traffic is always serviced ahead of lower-priority traffic.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93710672",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.5": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - Priority policy starvation prevention\n\n[Log-derived analysis] Verifies the priority policy still prevents complete starvation of lower-priority classes under sustained high-priority load.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93710680",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.6": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - Application-based traffic matching and classification\n\n[Log-derived analysis] Verifies traffic control can match and classify traffic by application (via DPI), placing matched flows into the correct shaping class.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93710687",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.2200.7": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Traffic Control - Multi-zone traffic matching\n\n[Log-derived analysis] Verifies traffic-control matching across multiple zones, confirming traffic from different zones is classified into the correct classes.",
+    "reference": "SYST-8383, RED: TCM-1 (Traffic Control)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2200,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93710695",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.2501.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2501,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.2501.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Legacy IPSEC\n\n[Log-derived analysis] Verifies the legacy (non-tunnel-interface) IPsec configuration mode still establishes a working IPv4 IPsec SA and forwards protected traffic between the routers.",
+    "reference": "",
+    "past_crs": [
+      "79502"
+    ],
+    "current_crs": [],
+    "testSet": 2501,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355173",
+      "log_uid": "93642257",
+      "platform": "AR3050S-tb75.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.3001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [
+      "59355"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.3001.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Ethernet Bypass port - Power Down\n\n[Log-derived analysis] Verifies the hardware ethernet bypass port closes (passes traffic through) when the router is powered down, maintaining link continuity.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355173",
+      "log_uid": "93642422",
+      "platform": "AR3050S-tb75.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.3001.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Ethernet Bypass port - VRRP\n\n[Log-derived analysis] Verifies ethernet bypass interaction with VRRP, confirming bypass and VRRP failover behave correctly together.",
+    "reference": "",
+    "past_crs": [
+      "52792"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246581",
+      "log_uid": "90728618",
+      "platform": "AR2050V-tb178.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.4001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.4001.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Basic VRF\n\n[Log-derived analysis] Verifies VRF isolation and leaking: traffic does not flow between the global and named VRFs (or between two named VRFs) without leaked routes, and does flow once appropriate routes are added, while intra-VRF traffic always passes.",
+    "reference": "RED: TCM (VRF, Console)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90731802",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.4001.25": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "VRF Lite with PPPoE inter-VRF traffic\n\n[Log-derived analysis] Verifies VRF-Lite with a PPPoE uplink for inter-VRF traffic, confirming traffic between different VRFs is forwarded correctly via the PPPoE path when routes permit.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "61048"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90731835",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.4001.26": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "PPPoE\n\n[Inferred behavior \u2014 no execution history for this case] Brings up a PPPoE client session and verifies the session negotiates, an address is obtained, and traffic passes over the PPPoE link. Config is restored afterwards.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1353.4001.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "VRF Lite with PPPoE intra-VRF traffic\n\n[Log-derived analysis] Verifies VRF-Lite with a PPPoE uplink for intra-VRF traffic, confirming traffic within the same VRF is forwarded correctly over the PPPoE link.",
+    "reference": "",
+    "past_crs": [
+      "58234",
+      "61048"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90731857",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.4001.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "VRF Lite with Firewall\n\n[Log-derived analysis] Verifies VRF-Lite combined with firewall policies, confirming per-VRF traffic is correctly forwarded and filtered according to firewall rules.",
+    "reference": "",
+    "past_crs": [
+      "81723",
+      "SYST-7540"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90731929",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.4001.101": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Firewall\n\n[Inferred behavior \u2014 no execution history for this case] Verifies basic firewall operation: permitted traffic is forwarded and denied traffic is blocked according to the configured firewall policy.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1353.5001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.5001.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SD WAN Packet Loss\n\n[Log-derived analysis] Verifies SD-WAN failover on packet loss: the router selects a healthy next-hop, and when probe-measured packet loss exceeds threshold on the active path it fails over to the alternate next-hop.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732117",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.5001.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SD WAN Packet Delay\n\n[Log-derived analysis] Verifies SD-WAN failover on excessive latency: the router fails over to an alternate next-hop when probe-measured packet delay exceeds the configured threshold.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732253",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.5001.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SD WAN Packet Jitter\n\n[Log-derived analysis] Verifies SD-WAN failover on excessive jitter: the router fails over to an alternate next-hop when probe-measured jitter exceeds the configured threshold.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732320",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.5001.40": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SD WAN Match nDPI Applications\n\n[Log-derived analysis] Verifies SD-WAN can steer traffic by matched nDPI application, routing identified applications over the chosen SD-WAN path.",
+    "reference": "",
+    "past_crs": [
+      "76284",
+      "TQROUT-512"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732340",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.5001.50": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "SD WAN Metric Preference\n\n[Log-derived analysis] Verifies SD-WAN path selection honours configured metric preference, choosing the preferred next-hop among healthy candidates.",
+    "reference": "",
+    "past_crs": [
+      "60261",
+      "61093"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732459",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.6000.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "HTTP traffic is unaffected with no UTM features configured\n\n[Log-derived analysis] Baseline test confirming that with no UTM features enabled, normal HTTP traffic passes through the router unmodified and unblocked.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93691575",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Malware Protection functional test\n\n[Log-derived analysis] Verifies the malware-protection UTM feature: with the feature enabled and resources loaded, malicious/EICAR-style content is detected and blocked while clean traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "84902"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93691653",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS functional test\n\n[Log-derived analysis] Verifies the IPS UTM feature using the built-in ruleset: with rules loaded, attack/exploit traffic is detected and blocked while benign traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93691687",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS - proofpoint functional test\n\n[Log-derived analysis] Verifies the IPS UTM feature using the Proofpoint ruleset: attack traffic is detected and blocked while benign traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "77829",
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93643161",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.32": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS functional test - errors check\n\n[Log-derived analysis] Runs the IPS feature using the built-in ruleset and checks the logs for engine errors/exceptions, confirming the IPS subsystem runs cleanly.",
+    "reference": "",
+    "past_crs": [
+      "80723"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2338212",
+      "log_uid": "64179639",
+      "platform": "AR4050S-tb340.rel",
+      "sw_version": "main-20231103-3",
+      "run_date": "2023-11-05",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.33": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS - proofpoint functional test - errors check\n\n[Log-derived analysis] Runs the Proofpoint IPS ruleset and checks logs for engine errors/exceptions, confirming the IPS subsystem runs cleanly.",
+    "reference": "SURIUP-36",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2338212",
+      "log_uid": "64179640",
+      "platform": "AR4050S-tb340.rel",
+      "sw_version": "main-20231103-3",
+      "run_date": "2023-11-05",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.40": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation functional test - lac\n\n[Log-derived analysis] Verifies the IP-reputation UTM feature using the LAC feed: traffic to/from addresses flagged by the reputation feed is blocked while reputable traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "79686",
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93692141",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.41": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation functional test - lac - whitelist\n\n[Log-derived analysis] Verifies IP-reputation whitelisting using the LAC feed: whitelisted addresses are permitted even when otherwise flagged by the reputation feed.",
+    "reference": "",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93692246",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.45": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation functional test - proofpoint\n\n[Log-derived analysis] Verifies the IP-reputation UTM feature using the Proofpoint feed: traffic to/from addresses flagged by the reputation feed is blocked while reputable traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 45,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93692555",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.50": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "URL Filter functional test\n\n[Log-derived analysis] Verifies the URL-filter UTM feature: requests to blocked URLs/categories are denied while allowed URLs pass.",
+    "reference": "RED: TCM (URL Filtering, Console)",
+    "past_crs": [
+      "83229"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93692606",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.60": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all Suricata-based features\n\n[Log-derived analysis] Enables all Suricata-based UTM features simultaneously and confirms they all become ready and the router runs cleanly with the combined feature set active.",
+    "reference": "",
+    "past_crs": [
+      "68698",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93692668",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.61": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all Suricata-based features with IPS proofpoint\n\n[Log-derived analysis] Enables all Suricata-based UTM features simultaneously with the Proofpoint IPS ruleset and confirms they all become ready and the router runs cleanly with the combined feature set active.",
+    "reference": "",
+    "past_crs": [
+      "81998",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93644200",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.62": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all Suricata-based features, excluding Malware protection and URL-filter\n\n[Log-derived analysis] Enables all Suricata-based UTM features simultaneously, excluding malware-protection and URL-filter and confirms they all become ready and the router runs cleanly with the combined feature set active.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 62,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93693096",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.63": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all Suricata-based features with IPS proofpoint, excluding Malware protection and URL-filter\n\n[Log-derived analysis] Enables all Suricata-based UTM features simultaneously with the Proofpoint IPS ruleset, excluding malware-protection and URL-filter and confirms they all become ready and the router runs cleanly with the combined feature set active.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 63,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93644334",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.70": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Antivirus functional test\n\n[Log-derived analysis] Verifies the antivirus UTM feature: with the AV engine and signatures loaded, infected (EICAR-style) downloads are detected and blocked while clean traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "80667",
+      "81998",
+      "CR-87376",
+      "CR-82818"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93693664",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6000.80465": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation eventually blocks existing flows\n\n[Log-derived analysis] Verifies IP reputation eventually blocks an already-established flow once the remote address is classified as malicious, not just new connections.",
+    "reference": "CR-80465, 1353.6000.40",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6000,
+    "caseId": 80465,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3042714",
+      "log_uid": "84755371",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "5.5.2-2.12-rc1",
+      "run_date": "2025-08-29",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.6001.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "UTM Offload device boots\n\n[Log-derived analysis] Verifies the UTM offload device boots successfully and becomes available to host offloaded UTM processing.",
+    "reference": "",
+    "past_crs": [
+      "83628"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93645118",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Malware Protection is offloaded to the Offload device\n\n[Log-derived analysis] Verifies the malware-protection UTM feature with processing offloaded to the UTM offload device: with the feature enabled and resources loaded, malicious/EICAR-style content is detected and blocked while clean traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "60567",
+      "66582",
+      "78852"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93607151",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS is offloaded to the Offload device\n\n[Log-derived analysis] Verifies the IPS UTM feature using the built-in ruleset with processing offloaded to the UTM offload device: with rules loaded, attack/exploit traffic is detected and blocked while benign traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "60567",
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93607217",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS - proofpoint is offloaded to the Offload device\n\n[Log-derived analysis] Verifies the IPS UTM feature using the Proofpoint ruleset with processing offloaded to the UTM offload device: attack traffic is detected and blocked while benign traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "77856",
+      "78852",
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93607308",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.32": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS offload - errors check\n\n[Log-derived analysis] Runs offloaded IPS and checks the logs for engine errors/exceptions, confirming the offloaded IPS subsystem runs cleanly.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2337181",
+      "log_uid": "64145586",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "main-20231103-3",
+      "run_date": "2023-11-04",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.33": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS offload - proofpoint - errors check\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SURIUP-36",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2339930",
+      "log_uid": "64229345",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "main-20231103-3",
+      "run_date": "2023-11-07",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.40": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation is offloaded to the Offload device\n\n[Log-derived analysis] Verifies the IP-reputation UTM feature with processing offloaded to the UTM offload device: traffic to/from addresses flagged by the reputation feed is blocked while reputable traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "60567",
+      "66582",
+      "77584",
+      "78852",
+      "83012",
+      "79686",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3351803",
+      "log_uid": "93542568",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260616-1519",
+      "run_date": "2026-06-17",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.41": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation offload functional test - whitelist\n\n[Log-derived analysis] Verifies IP-reputation whitelisting with processing offloaded to the UTM offload device: whitelisted addresses are permitted even when otherwise flagged by the reputation feed.",
+    "reference": "",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93607687",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.45": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation offload functional test - proofpoint\n\n[Log-derived analysis] Verifies the IP-reputation UTM feature using the Proofpoint feed with processing offloaded to the UTM offload device: traffic to/from addresses flagged by the reputation feed is blocked while reputable traffic passes.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 45,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93608097",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.50": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "URL Filter is offloaded to the Offload device\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies the URL-filter UTM feature with processing offloaded to the UTM offload device: requests to blocked URLs/categories are denied while allowed URLs pass.",
+    "reference": "",
+    "past_crs": [
+      "60567",
+      "66582",
+      "75532",
+      "78852"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6001.60": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all offloadable UTM features\n\n[Log-derived analysis] Enables all offloadable UTM features on the UTM offload device simultaneously and confirms they all become ready and run cleanly together.",
+    "reference": "",
+    "past_crs": [
+      "60567",
+      "66582",
+      "78852",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93608195",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.61": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all offloadable UTM features, with IPS proofpoint\n\n[Log-derived analysis] Enables all offloadable UTM features with the Proofpoint IPS ruleset on the UTM offload device simultaneously and confirms they all become ready and run cleanly together.",
+    "reference": "",
+    "past_crs": [
+      "77856",
+      "78852",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93608265",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6001.600": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all offloadable UTM features, include URL filter\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Enables all offloadable UTM features, including URL filter on the UTM offload device simultaneously and confirms they all become ready and run cleanly together.",
+    "reference": "1353.6001.60",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 600,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6001.610": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Turn on all offloadable UTM features, with IPS proofpoint, include URL filter\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Enables all offloadable UTM features with the Proofpoint IPS ruleset, including URL filter on the UTM offload device simultaneously and confirms they all become ready and run cleanly together.",
+    "reference": "1353.6001.601",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 610,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6001.80465": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IP Reputation offload eventually blocks existing flows\n\n[Log-derived analysis] Verifies IP reputation with processing offloaded to the UTM offload device eventually blocks an already-established flow once the remote address is classified as malicious, not just new connections.",
+    "reference": "CR-80465, 1353.6001.40",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 80465,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93651994",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1353.6100.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.6100.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with no UTM features configured\n\n[Log-derived analysis] Baseline robustness test running an nmap port scan against the router with no UTM features enabled, confirming it survives the scan without crash or exception.",
+    "reference": "",
+    "past_crs": [
+      "CR-81094",
+      "CR-85828",
+      "86683"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93694433",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with Malware Protection\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with malware protection enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93694805",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with IPS - builtin\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with ips - builtin enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "82233",
+      "CR-85828"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93695184",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with IPS - proofpoint\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with ips - proofpoint enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93653966",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.32": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS functional test - errors check\n\n[Log-derived analysis] Runs the IPS feature using the built-in ruleset and checks the logs for engine errors/exceptions, confirming the IPS subsystem runs cleanly.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2225150",
+      "log_uid": "61072569",
+      "platform": "AR4050S-tb162.rel",
+      "sw_version": "main-20230725-2",
+      "run_date": "2023-07-27",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.33": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "IPS - proofpoint functional test - errors check\n\n[Log-derived analysis] Runs the Proofpoint IPS ruleset and checks logs for engine errors/exceptions, confirming the IPS subsystem runs cleanly.",
+    "reference": "SURIUP-36",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2225264",
+      "log_uid": "61075761",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "main-20230725-2",
+      "run_date": "2023-07-27",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.40": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with IP Reputation\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with ip reputation enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93695582",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.50": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with URL Filter\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with url filter enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93695919",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.60": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all Suricata-based features\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all suricata-based features enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93696238",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.61": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all Suricata-based features with IPS proofpoint\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all suricata-based features with ips proofpoint enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93655856",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.62": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all Suricata-based features\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all suricata-based features enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 62,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93696568",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.63": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all Suricata-based features with IPS proofpoint\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all suricata-based features with ips proofpoint enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 63,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355139",
+      "log_uid": "93656782",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.70": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with Antivirus\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with antivirus enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "81998"
+    ],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93696653",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.613": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature antivirus, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the antivirus UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.613",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 613,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93697026",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.614": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature dpi, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the dpi UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.614",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 614,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93697359",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.615": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature url-filter, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the url-filter UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.615",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 615,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93712078",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.619": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature malware-protection, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the malware-protection UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.619",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 619,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93697930",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.620": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ip-reputation, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ip-reputation UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.620",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 620,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93712157",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.6100.621": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ips, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ips UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.621",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6100,
+    "caseId": 621,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357721",
+      "log_uid": "93712204",
+      "platform": "ARX200S-tb12.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.6101.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with utm offload enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3352975",
+      "log_uid": "93578351",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260617-1523",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload Malware Protection\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with utm offload malware protection enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93613047",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload IPS\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with utm offload ips enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93613520",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload IPS - proofpoint\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with utm offload ips - proofpoint enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "82233"
+    ],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3350700",
+      "log_uid": "93517301",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260615-1516",
+      "run_date": "2026-06-16",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.40": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload IP Reputation\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with utm offload ip reputation enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "83012",
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3347000",
+      "log_uid": "93441519",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260612-1511",
+      "run_date": "2026-06-13",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.50": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with UTM Offload URL Filter\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Robustness test running an nmap port scan against the router with utm offload url filter enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6101.60": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all UTM Offload features\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all utm offload features enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3350700",
+      "log_uid": "93517578",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260615-1516",
+      "run_date": "2026-06-16",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.61": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all UTM Offload features, with IPS proofpoint\n\n[Log-derived analysis] Robustness test running an nmap port scan against the router with all utm offload features, with ips proofpoint enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "",
+    "past_crs": [
+      "87624"
+    ],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3350700",
+      "log_uid": "93517884",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260615-1516",
+      "run_date": "2026-06-16",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.600": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all UTM Offload features, include URL filters\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Robustness test running an nmap port scan against the router with all utm offload features, include url filters enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "1353.6101.60",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 600,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6101.610": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Port Scan with all UTM Offload features, with IPS proofpoint, include URL filter\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Robustness test running an nmap port scan against the router with all utm offload features, with ips proofpoint, include url filter enabled, confirming the feature(s) process the scan traffic without crashing the device.",
+    "reference": "1353.6101.61",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 610,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1353.6101.613": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature antivirus, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the antivirus UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.613",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 613,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3254494",
+      "log_uid": "90990426",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260319-1301",
+      "run_date": "2026-03-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.614": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature dpi, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the dpi UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.614",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 614,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3254494",
+      "log_uid": "90990705",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260319-1301",
+      "run_date": "2026-03-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.615": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature url-filter, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the url-filter UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.615",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 615,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3254494",
+      "log_uid": "90991139",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260319-1301",
+      "run_date": "2026-03-20",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.616": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature malware-protection, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the malware-protection UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.616",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 616,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353966",
+      "log_uid": "93613904",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.617": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ip-reputation, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ip-reputation UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.617",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 617,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3352975",
+      "log_uid": "93578978",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260617-1523",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.618": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ips, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ips UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.618",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 618,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3352975",
+      "log_uid": "93579289",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260617-1523",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.619": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature malware-protection, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the malware-protection UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.619",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 619,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3241547",
+      "log_uid": "90591791",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260306-1276",
+      "run_date": "2026-03-07",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.620": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ip-reputation, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ip-reputation UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.620",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 620,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3241547",
+      "log_uid": "90592023",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260306-1276",
+      "run_date": "2026-03-07",
+      "result": "PASS"
+    }
+  },
+  "1353.6101.621": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Enable UTM feature ips, then disable during nmap port scan to check for crash\n\n[Log-derived analysis] Crash/robustness test: enables the ips UTM feature, then disables it mid nmap port-scan to confirm toggling the feature under active scanning traffic does not crash the router.",
+    "reference": "1353.6101.621",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6101,
+    "caseId": 621,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3254494",
+      "log_uid": "90991906",
+      "platform": "AR4050S-tb66.rel",
+      "sw_version": "awplus_main-20260319-1301",
+      "run_date": "2026-03-20",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.7000.1": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - configuration\n\n[Log-derived analysis] Verifies HTTP-mode web-redirect can be configured and the settings are correctly applied/shown on the device.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732604",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.2": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - basic http redirect\n\n[Log-derived analysis] Verifies basic HTTP-mode web-redirect: an unauthenticated client's HTTP request is redirected to the configured redirect URL.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732625",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.3": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - repeat-time\n\n[Log-derived analysis] Verifies the web-redirect repeat-time setting controls how often a client is re-redirected.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732637",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.4": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - destination/source IPv4, Source Full/Vendor OUI MAC\n\n[Log-derived analysis] Verifies web-redirect match criteria based on destination/source IPv4 address and source full or vendor-OUI MAC, redirecting only matching clients.",
+    "reference": "ER-4939",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732688",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.5": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - destination/source IPv6\n\n[Log-derived analysis] Verifies web-redirect match criteria based on destination/source IPv6 address, redirecting only matching clients.",
+    "reference": "ER-4939",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732709",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.7000.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Web-Redirect HTTP mode - idle-time\n\n[Log-derived analysis] Verifies the web-redirect idle-time setting expires a client session after the configured period of inactivity.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7000,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246749",
+      "log_uid": "90732658",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.8000.1": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "CLI config, show ip route\n\n[Log-derived analysis] Verifies routes can be configured via the CLI and are correctly reflected in the IP routing table shown by the device.",
+    "reference": "[JIRA TEST] AWPTCM-T31318",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733143",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.2": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "API config, curl */routes\n\n[Log-derived analysis] Verifies routes can be configured/queried through the REST API routes endpoint and that the API state matches the device routing table.",
+    "reference": "[JIRA TEST] AWPTCM-T31322",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733154",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.3": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Check that routes are allocated as expected\n\n[Log-derived analysis] Verifies the router allocates routes (connected, static, tunnel) into the routing table as expected for the configured topology.",
+    "reference": "[JIRA TEST] AWPTCM-T31320",
+    "past_crs": [
+      "SYST-6166"
+    ],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733283",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.4": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Default route\n\n[Log-derived analysis] Verifies a configured default route is installed and used to forward traffic to destinations not matched by more-specific routes.",
+    "reference": "[JIRA TEST] AWPTCM-T31321",
+    "past_crs": [
+      "SYST-6166"
+    ],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733318",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.5": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Tunnel weighted routes\n\n[Log-derived analysis] Verifies weighted (ECMP-style) routes across tunnel interfaces distribute traffic according to the configured weights.",
+    "reference": "[JIRA TEST] AWPTCM-T31496",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733348",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.8000.6": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Supports VRF weighted routes\n\n[Log-derived analysis] Verifies weighted routes are supported within a VRF, distributing traffic across next-hops by configured weight inside the VRF routing table.",
+    "reference": "[JIRA TEST] AWPTCM-T31488",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3246463",
+      "log_uid": "90733390",
+      "platform": "AR3050S-tb212.rel",
+      "sw_version": "5.5.5-2.4-rc1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.9000.10": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Check 2FA self-registration can be enabled/disabled via CLI and status shown via CLI\n\n[Log-derived analysis] Verifies 2FA self-registration can be enabled and disabled via the CLI and that the current status is correctly reported by the CLI.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648395",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.11": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA self-registration, default authentication\n\n[Log-derived analysis] Verifies 2FA self-registration using the default (local) authentication: a user can register and the generated TOTP/OTP is accepted for login.",
+    "reference": "Project:2784",
+    "past_crs": [
+      "82906"
+    ],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648418",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.12": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA self-registration - default authentication, testing different users/scenarios\n\n[Log-derived analysis] Verifies 2FA self-registration with default authentication across multiple users and edge-case scenarios, confirming each registers and authenticates correctly.",
+    "reference": "Project:2784",
+    "past_crs": [
+      "82906"
+    ],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648444",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.20": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA self-registration, RADIUS authentication\n\n[Log-derived analysis] Verifies 2FA self-registration backed by RADIUS authentication: the user registers and the 2FA code is accepted alongside RADIUS credentials.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648466",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.21": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA self-registration, firewall blocked RADIUS authentication server\n\n[Log-derived analysis] Verifies 2FA self-registration behaviour when the RADIUS server is unreachable due to a firewall block, confirming the failure is handled gracefully.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648513",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.22": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA self-registration - RADIUS authentication, testing different users/scenarios\n\n[Log-derived analysis] Verifies 2FA self-registration with RADIUS authentication across multiple users and scenarios, confirming correct registration and authentication outcomes.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648546",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.23": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test an OpenVPN connection (RADIUS authentication) with 2FA code generated via CLI\n\n[Log-derived analysis] Verifies an OpenVPN connection using RADIUS authentication succeeds with a 2FA code generated via the CLI.",
+    "reference": "Project:2784",
+    "past_crs": [
+      "SYST-8469"
+    ],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648572",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.24": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test an OpenVPN connection (RADIUS authentication) with 2FA code generated via self-registration\n\n[Log-derived analysis] Verifies an OpenVPN connection using RADIUS authentication succeeds with a 2FA code obtained through self-registration.",
+    "reference": "Project:2784",
+    "past_crs": [
+      "SYST-8469"
+    ],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648592",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.30": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "2FA Email OTP default, custom, edited templates\n\n[Log-derived analysis] Verifies 2FA email-OTP message templates (default, custom, and edited) are applied correctly when sending one-time codes by email.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648620",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.31": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test if 2FA Email OTP is sent via SMTP and 2FA logs are seen\n\n[Log-derived analysis] Verifies a 2FA email OTP is actually sent via SMTP and that the corresponding 2FA log entries are recorded.",
+    "reference": "Project:2784",
+    "past_crs": [
+      "SYST-8188",
+      "SYST-8470",
+      "CR-89033"
+    ],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648649",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9000.32": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test an OpenVPN connection (RADIUS authentication) with 2FA code generated via email\n\n[Log-derived analysis] Verifies an OpenVPN connection using RADIUS authentication succeeds with a 2FA code delivered via email OTP.",
+    "reference": "Project:2784",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9000,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93648675",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.0": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1353.9001.100": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm8 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Verifies IPsec IPv4 data-plane traffic protected with the AES-GCM crypto profile. Brings up the IPsec peer between the two routers, confirms baseline connectivity, then runs unidirectional/bidirectional traffic across the encrypted path and checks the SA is established and traffic is correctly carried over the tunnel. Restores and verifies config afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699102",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.101": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm12 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699141",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.102": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm16 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 102,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699180",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.103": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha1 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Verifies IPsec IPv4 data-plane traffic protected with the HMAC-SHA1 (AES-CBC) crypto profile. Brings up the IPsec peer between the two routers, confirms baseline connectivity, then runs unidirectional/bidirectional traffic across the encrypted path and checks the SA is established and traffic is correctly carried over the tunnel. Restores and verifies config afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 103,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649326",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.104": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha256 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 104,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649382",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.105": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha512 IPSEC IPv4 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 105,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649524",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.200": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm8 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699334",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.201": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm12 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 201,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699364",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.202": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "gcm16 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 202,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699402",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.203": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha1 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 203,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649738",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.204": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha256 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 204,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649800",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.205": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "sha512 IPSEC IPv6 traffic test\n\n[Log-derived analysis] Functional verification test for the described router/firewall feature: configures the feature, drives the relevant traffic or operation, and asserts the expected behaviour is observed, restoring configuration afterwards.",
+    "reference": "SYST-6542",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 205,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355168",
+      "log_uid": "93649865",
+      "platform": "AR1050V-tb90.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.300": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test STOAT clients using LLDP\n\n[Log-derived analysis] Verifies STOAT (device/client tracking) correctly discovers and tracks connected clients using LLDP.",
+    "reference": "SYST-5890",
+    "past_crs": [
+      "CR-87716",
+      "CR-87716"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699661",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1353.9001.301": {
+    "suite_id": "1353",
+    "suite_name": "1353_router",
+    "description": "Test STOAT clients using Dot1x\n\n[Log-derived analysis] Verifies STOAT correctly discovers and tracks connected clients authenticated via 802.1X (dot1x).",
+    "reference": "SYST-5890",
+    "past_crs": [
+      "CR-87716"
+    ],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 301,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356993",
+      "log_uid": "93699706",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

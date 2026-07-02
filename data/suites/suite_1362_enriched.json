@@ -1,0 +1,1663 @@
+{
+  "1362.0.0": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1362.1001.0": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1362.1001.1": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when an IGMPv2 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710585",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.2": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when when platform stop-unreg-mc-flooding is enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710673",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.3": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast forward-first-packet is enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast forward-first-packet enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710683",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.4": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding, and ip multicast forward-first-packet are enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast forward-first-packet enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710691",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.5": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast traffic is forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710704",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.6": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding is enabled, multicast traffic is forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710715",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.7": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast forward-first-packet is enabled, multicast traffic is forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710724",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.8": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding and ip multicast forward-first-packet are enabled, multicast traffic is forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710740",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.9": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when a IGMPv3 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710744",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.10": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when when platform stop-unreg-mc-flooding is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710748",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.11": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710755",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.12": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when enable ip multicast forward-first-packet is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710759",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.13": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, and ip multicast forward-first-packet are enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710770",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.14": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710780",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.15": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when when platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710788",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.16": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710799",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.17": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when enable ip multicast forward-first-packet is enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710812",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.18": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, and ip multicast forward-first-packet are enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93710823",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.19": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "72097",
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701227",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.20": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding is enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701242",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.21": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast forward-first-packet is enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast forward-first-packet enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576",
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701259",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.22": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding and ip multicast forward-first-packet are enabled, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding, ip multicast forward-first-packet enabled. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701272",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.23": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701292",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.24": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701322",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.25": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast forward-first-packet is enabled , multicast packets are forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701353",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.26": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding and ip multicast forward-first-packet are enabled, multicast packets are forwarded, an IGMPv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding, ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701375",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.27": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701392",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.28": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701430",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.29": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast-routing ssm-only-hw is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast-routing ssm-only-hw enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701450",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.30": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast forward-first-packet is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576",
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701467",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.31": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, and ip multicast forward-first-packet are enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701488",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.32": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, multicast packets are not forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy. Confirms unregistered multicast is not flooded before any join, then sends an IGMPv3 join and checks that subsequent matching traffic is forwarded only to the receiver port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.33": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.34": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast-routing ssm-only-hw is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast-routing ssm-only-hw enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 34,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.35": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast forward-first-packet is enabled , an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 35,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.36": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, and ip multicast forward-first-packet are enabled, multicast packets are forwarded, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, ip multicast forward-first-packet enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 36,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.37": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv2 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 37,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702136",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.38": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv2 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 38,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702183",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.39": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv2 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576",
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 39,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702242",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.40": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv2 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702304",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.41": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv3 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702382",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.42": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv3 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 42,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702575",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.43": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv3 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 43,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702638",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.44": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv3 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576",
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 44,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702726",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.45": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a IGMPv3 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "75786"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 45,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702813",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.46": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when a MLDv1 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Sends an MLDv1 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 46,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711646",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.47": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding is enabled, a MLDv1 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an MLDv1 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 47,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425011",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.48": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast packets are forwarded, a MLDv1 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv1 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 48,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711679",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.49": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, a MLDv1 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv1 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 49,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425013",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.50": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when a MLDv2 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711707",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.51": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding is enabled, a MLDv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 51,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425015",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.52": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, a MLDv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 52,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711736",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.53": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding and ip multicast-routing ssm-only-hw are enabled, a MLDv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 53,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425017",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.54": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 54,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711756",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.55": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 55,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425019",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.56": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 56,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93711777",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.57": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when platform stop-unreg-mc-flooding and ip multicast-routing ssm-only-hw are enabled, multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 57,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425021",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.58": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a MLDv1 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Sends an MLDv1 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 58,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703405",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.59": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding is enabled, a MLDv1 Join is sent first, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an MLDv1 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 59,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425023",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.60": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded, a MLDv1 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv1 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703451",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.61": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, a MLDv1 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv1 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425025",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.62": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when a MLDv2 Join is sent and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 62,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703510",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.63": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding is enabled, a MLDv2 Join is sent first, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 63,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425027",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.64": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, a MLDv2 Join is sent first, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 64,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703579",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.65": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding and ip multicast-routing ssm-only-hw, a MLDv2 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw enabled. Sends an MLDv2 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 65,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425029",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.66": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 66,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703641",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.67": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding is enabled, multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 67,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425031",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.68": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, multicast packets are forwarded, a MLDv2 Join is sent first, then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 68,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703690",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.69": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when platform stop-unreg-mc-flooding and ip multicast-routing ssm-only-hw, multicast packets are forwarded, a MLDv2 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L3 routed IPv6 multicast forwarding driven by group membership. Configures the DUT with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw enabled. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an MLDv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 69,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2056052",
+      "log_uid": "56425033",
+      "platform": "x950-tb76.rel",
+      "sw_version": "5.5.0-2.17-rc2",
+      "run_date": "2023-02-08",
+      "result": "FAIL",
+      "no_recent_pass": true
+    }
+  },
+  "1362.1001.70": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv2 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703743",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.71": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv2 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv2 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 71,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703780",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.72": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv3 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 72,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703841",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.73": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv3 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 73,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703886",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.74": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv3 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 74,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93703998",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.75": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L3 multicast behaviour when multicast packets are forwarded then a IGMPv3 Join is sent, then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L3 routed IPv4 multicast forwarding driven by group membership. First sends multicast before any membership exists (checking the pre-join flood/no-flood behaviour for the configured mode), then sends an IGMPv3 join for the group, re-sends the multicast stream, and confirms it is now forwarded only to the joined receiver port and to no other port. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 75,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93704030",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.76": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast packets for two streams are forwarded, an IGMPv3 Join is sent, and then multicast packets for both streams are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Forwards two multicast streams for the same group before sending an IGMPv3 join, then re-sends both streams and confirms only the joined source's traffic is delivered to the receiver port while the unjoined source is correctly dropped. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 76,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93712097",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.77": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when ip multicast-routing ssm-only-hw is enabled, multicast packets for two streams are forwarded, an IGMPv3 Join is sent, and then multicast packets for both streams are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT with ip multicast-routing ssm-only-hw enabled. Forwards two multicast streams for the same group before sending an IGMPv3 join, then re-sends both streams and confirms only the joined source's traffic is delivered to the receiver port while the unjoined source is correctly dropped. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "None",
+    "past_crs": [
+      "71576"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 77,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93712120",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.78": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Canary testcase to check for fix of CR-70882\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Canary/regression guard for the fix of CR-70882. Sends multicast traffic before any IGMP join exists and confirms the switch floods unregistered multicast correctly to all member ports (the behaviour that regressed under CR-70882), then restores config and checks for exceptions.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 78,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1362.1001.79": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when multicast packets with ttl=1 are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Sends multicast packets with TTL=1 and confirms the switch's snooping path still forwards them to a joined receiver without the TTL being decremented to zero and dropped. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "ER-4305, SYST-5103",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 79,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358032",
+      "log_uid": "93712161",
+      "platform": "x250-tb446.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.321": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, an IGMPv3 Join is sent, and then multicast packets are forwarded.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "1362.1001.32, CR-75048",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 321,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701507",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.331": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding is enabled, IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "1362.1001.33, CR-75048",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 331,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701647",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.341": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast-routing ssm-only-hw is enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast-routing ssm-only-hw enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "1362.1001.34, CR-75048",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 341,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701827",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.351": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, ip multicast forward-first-packet is enabled , an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "1362.1001.35, CR-75048",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 351,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93701951",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1362.1001.361": {
+    "suite_id": "1362",
+    "suite_name": "1362_multicast",
+    "description": "Test checks L2 multicast behaviour when using IGMP proxy, platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, and ip multicast forward-first-packet are enabled, an IGMPv3 Join is sent, and then multicast packets are forwarded again.\n\n[Log-derived analysis] Verifies L2 snooped IPv4 multicast forwarding driven by group membership. Configures the DUT for IGMP proxy with platform stop-unreg-mc-flooding, ip multicast-routing ssm-only-hw, ip multicast forward-first-packet enabled. Sends an IGMPv3 join for the group, confirms the DUT records the membership in its snooping/mroute state, then transmits a matching multicast stream and confirms every packet is forwarded only to the joined receiver port and never leaks to other ports. Saves and restores the running-config and checks it is unchanged, and confirms no exceptions are logged on the stack members.",
+    "reference": "1362.1001.36, CR-75048",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 361,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357687",
+      "log_uid": "93702022",
+      "platform": "x330-tb195.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

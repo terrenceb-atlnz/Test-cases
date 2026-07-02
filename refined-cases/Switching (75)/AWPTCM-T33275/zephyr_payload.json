@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33275": {
+    "objective": "<ul><li>Enhanced recovery mode can be enabled and disabled per EPSR domain via CLI.</li><li>When enhanced recovery is enabled on a transit node, a Link Forward Request is transmitted on the control VLAN when a port comes up.</li><li>When a Permission Link Forward is received in response to a Link Forward Request, the port transitions to the forwarding state.</li><li>The EPSR master transmits a Permission Link Forward in response to a Link Forward Request when no health checks are circulating.</li><li>Enhanced recovery behavior is independent per domain: disabling the mode on the master or on a transit affects recovery only for domains where it is disabled.</li><li>Single link failure and recovery with enhanced recovery enabled completes successfully with no loop forming at any time.</li><li>Multiple and partial link failures/recoveries with enhanced recovery allow traffic to flow in recovered segments while the ring returns to the complete state.</li><li>Enhanced recovery uses the Link Forward Request / Permission Link Forward protocol to optimize recovery compared to standard EPSR behavior.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink Enhanced Recovery family (AWP-145, AWP-4076, AWP-4077, AWP-4078, AWP-4083, AWP-4084, AWP-4086 and related multi-domain cases). ART coverage from 1334.3001.6-10 (Link Forward Request / Permission Link Forward protocol on master and transit) + 1340 (CR41421 timing).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an EPSR domain and enable enhanced recovery (`epsr <ep> enhancedrecovery enable`). Confirm the configuration is accepted and show epsr reports the mode as enabled for the domain.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With enhanced recovery enabled on a transit node, induce a port down/up (or link failure/recovery). Verify that a Link Forward Request is sent on the control VLAN and that a Permission Link Forward response causes the port to transition to forwarding.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform the equivalent port/link recovery on the master node with enhanced recovery enabled. Confirm the master transmits Permission Link Forward as expected and the ring returns to Complete state with no loop.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure multiple EPSR domains. Enable enhanced recovery on some domains only. Induce failures and verify that recovery (forwarding / traffic flow) occurs only on the domains where enhanced recovery is enabled.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test single link failure + recovery with enhanced recovery enabled. Confirm no loop forms at any time and the ring returns to Complete state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test multiple link failures (two or more) followed by partial then full recovery. Confirm recovered segments allow traffic flow and the full ring eventually reaches Complete state with no loops.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that disabling enhanced recovery on the master or a transit changes recovery behavior for that domain (e.g. segments do not forward until full ring recovery).",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

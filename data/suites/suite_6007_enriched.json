@@ -1,0 +1,617 @@
+{
+  "6007.0.0": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6007.1001.0": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6007.1001.1": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Basic check that all setup members are running\n\n[Log-derived analysis] Basic check that all setup members are running",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655062",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.2": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Basic check that all setup members have IP connectivity\n\n[Log-derived analysis] Basic check that all setup members have IP connectivity",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655063",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.3": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Check that all setup members can be rebooted\n\n[Log-derived analysis] Check that all setup members can be rebooted",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655064",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.4": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Check of master failover on all stacks\n\n[Log-derived analysis] Check of master failover on all stacks",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655065",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.100": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Log environment info from Init\n\n[Log-derived analysis] Log environment info from Init",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220871",
+      "log_uid": "89934057",
+      "platform": "SBx908NG-tb202.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.200": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_all_ports\n\n[Log-derived analysis] Switch get_all_ports",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220871",
+      "log_uid": "89934058",
+      "platform": "SBx908NG-tb202.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.300": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_all_eth_ports\n\n[Log-derived analysis] Switch get_all_eth_ports",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934625",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.400": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_port_ifrange_list\n\n[Log-derived analysis] Switch get_port_ifrange_list",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 400,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934626",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.500": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack get_port_ifrange_list\n\n[Log-derived analysis] Stack get_port_ifrange_list",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 500,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934627",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.600": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"get\" functions\n\n[Log-derived analysis] Switch \"get\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 600,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934628",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.601": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"is\" functions\n\n[Log-derived analysis] Switch \"is\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 601,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934629",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.602": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"has\" functions\n\n[Log-derived analysis] Switch \"has\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 602,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934630",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.700": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"get\" functions\n\n[Log-derived analysis] Stack \"get\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 700,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934631",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.701": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"is\" functions\n\n[Log-derived analysis] Stack \"is\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 701,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934678",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.1001.702": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"has\" functions\n\n[Log-derived analysis] Stack \"has\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 702,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934679",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.0": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6007.2001.1": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Basic check that all setup members are running\n\n[Log-derived analysis] Basic check that all setup members are running",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655071",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.2": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Basic check that all setup members have IP connectivity\n\n[Log-derived analysis] Basic check that all setup members have IP connectivity",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655072",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.3": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Check that all setup members can be rebooted\n\n[Log-derived analysis] Check that all setup members can be rebooted",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655073",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.4": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Check of master failover on all stacks\n\n[Log-derived analysis] Check of master failover on all stacks",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3209554",
+      "log_uid": "89655074",
+      "platform": "x980-tb245.rel",
+      "sw_version": "marvelldev_x980-20260125-148",
+      "run_date": "2026-01-29",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.100": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Log environment info from Init\n\n[Log-derived analysis] Log environment info from Init",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934680",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.200": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_all_ports\n\n[Log-derived analysis] Switch get_all_ports",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 200,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220884",
+      "log_uid": "89934635",
+      "platform": "x530-tb383.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.300": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_all_eth_ports\n\n[Log-derived analysis] Switch get_all_eth_ports",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 300,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934682",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.400": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch get_port_ifrange_list\n\n[Log-derived analysis] Switch get_port_ifrange_list",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 400,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934683",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.500": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack get_port_ifrange_list\n\n[Log-derived analysis] Stack get_port_ifrange_list",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 500,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934684",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.600": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"get\" functions\n\n[Log-derived analysis] Switch \"get\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 600,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934685",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.601": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"is\" functions\n\n[Log-derived analysis] Switch \"is\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 601,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934686",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.602": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Switch \"has\" functions\n\n[Log-derived analysis] Switch \"has\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 602,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934687",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.700": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"get\" functions\n\n[Log-derived analysis] Stack \"get\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 700,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934688",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.701": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"is\" functions\n\n[Log-derived analysis] Stack \"is\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 701,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934689",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  },
+  "6007.2001.702": {
+    "suite_id": "6007",
+    "suite_name": "6007_ART_framework_test",
+    "description": "Stack \"has\" functions\n\n[Log-derived analysis] Stack \"has\" functions",
+    "reference": "SYST-8036",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 702,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3220888",
+      "log_uid": "89934690",
+      "platform": "x530-tb99.rel",
+      "sw_version": "awplus_main-20260206-1207",
+      "run_date": "2026-02-06",
+      "result": "PASS"
+    }
+  }
+}

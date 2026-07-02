@@ -1,0 +1,4866 @@
+{
+  "5049.1001.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.1001.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic check of Ixia traffic\n\n[Log-derived analysis] Basic check of Ixia traffic",
+    "reference": "",
+    "past_crs": [
+      "52388",
+      "CR52818"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009051",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.1001.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic check of AMF members\n\n[Log-derived analysis] Basic check of AMF members",
+    "reference": "",
+    "past_crs": [
+      "52388",
+      "52713",
+      "53079"
+    ],
+    "current_crs": [
+      "53690",
+      "58933"
+    ],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009052",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.1001.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic check of log errors\n\n[Log-derived analysis] Basic check of log errors",
+    "reference": "",
+    "past_crs": [
+      "52729",
+      "54655"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009053",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.1001.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic check of exception log\n\n[Log-derived analysis] Basic check of exception log",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009054",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.1002.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [1] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [1] in scenario",
+    "reference": "",
+    "past_crs": [
+      "51170",
+      "50915",
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1002.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [2] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [2] in scenario",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1002.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [3] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [3] in scenario",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1002.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [4] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [4] in scenario",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1002.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [5] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [5] in scenario",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1002.6": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Failover of stack [6] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [6] in scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1003.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Flipping single portlinks on scenario\n\n[Inferred behavior \u2014 no execution history for this case] Flipping single portlinks on scenario",
+    "reference": "",
+    "past_crs": [
+      "50920",
+      "52156"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1003.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Flipping static aggregators on scenario\n\n[Inferred behavior \u2014 no execution history for this case] Flipping static aggregators on scenario",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.1004.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Hotswap Lif/XEM\n\n[Inferred behavior \u2014 no execution history for this case] Hotswap Lif/XEM",
+    "reference": "",
+    "past_crs": [
+      "52388"
+    ],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2001.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take SA10 down/up on Dorm-A multiple times and check scenario after each\n\n[Inferred behavior \u2014 no execution history for this case] Take SA10 down/up on Dorm-A multiple times and check scenario after each",
+    "reference": "",
+    "past_crs": [
+      "52279"
+    ],
+    "current_crs": [
+      "52279"
+    ],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2001.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take SA30 down/up on Dorm-A multiple times and check scenario after each\n\n[Inferred behavior \u2014 no execution history for this case] Take SA30 down/up on Dorm-A multiple times and check scenario after each",
+    "reference": "CR40307",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2001.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take PO21 down/up on Dept-A multiple times and check scenario after each\n\n[Inferred behavior \u2014 no execution history for this case] Take PO21 down/up on Dept-A multiple times and check scenario after each",
+    "reference": "",
+    "past_crs": [
+      "53063"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2001.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take port1.0.13 down/up on Dept-B multiple times and check scenario after each\n\n[Inferred behavior \u2014 no execution history for this case] Take port1.0.13 down/up on Dept-B multiple times and check scenario after each",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2011.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of core 6|8-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of core 6|8-stack",
+    "reference": "",
+    "past_crs": [
+      "51170",
+      "51631",
+      "52492",
+      "52516",
+      "52615",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [
+      "52026",
+      "53079"
+    ],
+    "testSet": 2011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2011.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of core 6|8-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of core 6|8-stack",
+    "reference": "",
+    "past_crs": [
+      "51170",
+      "51594",
+      "52516",
+      "52615",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [
+      "52026"
+    ],
+    "testSet": 2011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2011.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of core 6|8-stack between members 1|4\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of core 6|8-stack between members 1|4",
+    "reference": "CR-50723",
+    "past_crs": [
+      "51170",
+      "51017",
+      "51664",
+      "51594",
+      "52093",
+      "52615",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [
+      "52026"
+    ],
+    "testSet": 2011,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2011.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct rolling reboot of x610 6-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct rolling reboot of x610 6-stack",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2011,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2012.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of x310 2-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of x310 2-stack",
+    "reference": "",
+    "past_crs": [
+      "52615",
+      "52713",
+      "53052",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2012.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of x310 2-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of x310 2-stack",
+    "reference": "",
+    "past_crs": [
+      "52615",
+      "52713",
+      "53052",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2012.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct rolling reboot of x310 2-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct rolling reboot of x310 2-stack",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2013.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct rolling reboot of core 6|8-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct rolling reboot of core 6|8-stack",
+    "reference": "CR-50573",
+    "past_crs": [
+      "50962",
+      "52073",
+      "52713",
+      "52746"
+    ],
+    "current_crs": [
+      "50889",
+      "52980"
+    ],
+    "testSet": 2013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2013.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct rolling reboot of x310 2-stack\n\n[Inferred behavior \u2014 no execution history for this case] Conduct rolling reboot of x310 2-stack",
+    "reference": "",
+    "past_crs": [
+      "52211",
+      "52713",
+      "53052",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [],
+    "testSet": 2013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2014.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Reboot Backup-member [2] of core 6|8-stack\n\n[Inferred behavior \u2014 no execution history for this case] Reboot Backup-member [2] of core 6|8-stack",
+    "reference": "CR-51652",
+    "past_crs": [
+      "51652",
+      "51594",
+      "52757",
+      "53071",
+      "53361"
+    ],
+    "current_crs": [],
+    "testSet": 2014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2014.10": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Reboot multiple Backup-members [2,3,4] of core 6|8-stack simultaneously\n\n[Inferred behavior \u2014 no execution history for this case] Reboot multiple Backup-members [2,3,4] of core 6|8-stack simultaneously",
+    "reference": "CR-50459",
+    "past_crs": [
+      "51652"
+    ],
+    "current_crs": [
+      "50459",
+      "51436"
+    ],
+    "testSet": 2014,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2014.15": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Reboot multiple Backup-members [4,5,6] of core 6|8-stack simultaneously\n\n[Inferred behavior \u2014 no execution history for this case] Reboot multiple Backup-members [4,5,6] of core 6|8-stack simultaneously",
+    "reference": "CR-50459, CR-50622",
+    "past_crs": [
+      "50622",
+      "51594"
+    ],
+    "current_crs": [
+      "50459",
+      "50889",
+      "51436"
+    ],
+    "testSet": 2014,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2020.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Shut/No shut of static-channel-group that has numerous PIM interfaces\n\n[Inferred behavior \u2014 no execution history for this case] Shut/No shut of static-channel-group that has numerous PIM interfaces",
+    "reference": "CR37432",
+    "past_crs": [
+      "50772",
+      "51864"
+    ],
+    "current_crs": [],
+    "testSet": 2020,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2030.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic SSH connectivity Test\n\n[Inferred behavior \u2014 no execution history for this case] Basic SSH connectivity Test",
+    "reference": "",
+    "past_crs": [
+      "52211"
+    ],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2030,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2030.10": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd feature works with AW+ privileges\n\n[Inferred behavior \u2014 no execution history for this case] Testing ssh execCmd feature works with AW+ privileges",
+    "reference": "CR-50638",
+    "past_crs": [],
+    "current_crs": [
+      "50638"
+    ],
+    "testSet": 2030,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2030.15": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd reboot crashes imish\n\n[Inferred behavior \u2014 no execution history for this case] Testing ssh execCmd reboot crashes imish",
+    "reference": "CR-50637",
+    "past_crs": [
+      "50637"
+    ],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2030,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2031.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that atmf restricted login is enabled on [node-id] when AMF master is not present\n\n[Inferred behavior \u2014 no execution history for this case] Check that atmf restricted login is enabled on [node-id] when AMF master is not present",
+    "reference": "CR-52728",
+    "past_crs": [
+      "52728"
+    ],
+    "current_crs": [],
+    "testSet": 2031,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2032.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct AMF reboot-rolling on all nodes EXCEPT the AMF master\n\n[Inferred behavior \u2014 no execution history for this case] Conduct AMF reboot-rolling on all nodes EXCEPT the AMF master",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2032,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2033.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "ATMF Recovery of node: [swi_dorm_c]\n\n[Inferred behavior \u2014 no execution history for this case] ATMF Recovery of node: [swi_dorm_c]",
+    "reference": "CR-53127",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2033,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2033.101": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "ATMF Recovery of node: [swi_server_a]\n\n[Inferred behavior \u2014 no execution history for this case] ATMF Recovery of node: [swi_server_a]",
+    "reference": "CR-53127",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2033,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.10": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: ALL SWITCHES\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: ALL SWITCHES",
+    "reference": "",
+    "past_crs": [
+      "51864",
+      "52146",
+      "52188",
+      "52213",
+      "52559",
+      "52713",
+      "52746",
+      "52995",
+      "53036",
+      "53882",
+      "53219",
+      "53382"
+    ],
+    "current_crs": [
+      "52411",
+      "53079"
+    ],
+    "testSet": 2040,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: [stk_core_stk]\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: [stk_core_stk]",
+    "reference": "",
+    "past_crs": [
+      "52559",
+      "52713",
+      "52746",
+      "52995",
+      "53882",
+      "53219",
+      "53382"
+    ],
+    "current_crs": [
+      "52411"
+    ],
+    "testSet": 2040,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.22": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: [stk_dorm_d_stk]\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: [stk_dorm_d_stk]",
+    "reference": "",
+    "past_crs": [
+      "52213",
+      "52559",
+      "52713",
+      "53882",
+      "53219",
+      "53382"
+    ],
+    "current_crs": [
+      "52411",
+      "53079"
+    ],
+    "testSet": 2040,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.23": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dorm_b]\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dorm_b]",
+    "reference": "",
+    "past_crs": [
+      "52559",
+      "52713",
+      "53882",
+      "53219",
+      "53382"
+    ],
+    "current_crs": [
+      "52411"
+    ],
+    "testSet": 2040,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.24": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dept_d]\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dept_d]",
+    "reference": "",
+    "past_crs": [
+      "51864",
+      "52188",
+      "52559",
+      "52713",
+      "53219",
+      "53382",
+      "53882"
+    ],
+    "current_crs": [
+      "52411"
+    ],
+    "testSet": 2040,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2040.25": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dept_b]\n\n[Inferred behavior \u2014 no execution history for this case] Measure time that scenario takes to pass full traffic from warm reboot of: [swi_dept_b]",
+    "reference": "",
+    "past_crs": [
+      "52146",
+      "52559",
+      "52713",
+      "53882",
+      "53219",
+      "53382"
+    ],
+    "current_crs": [
+      "52411",
+      "53079"
+    ],
+    "testSet": 2040,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospfd] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [ospfd] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [
+      "52516",
+      "52713"
+    ],
+    "current_crs": [],
+    "testSet": 2051,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [lacpd] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [lacpd] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2051,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [mstpd] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [
+      "52343"
+    ],
+    "current_crs": [],
+    "testSet": 2051,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [imi] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [imi] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [
+      "52257",
+      "52261",
+      "52713"
+    ],
+    "current_crs": [],
+    "testSet": 2051,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [atmfd] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2051,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2051.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on stk_core_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [hsl] process on stk_core_stk",
+    "reference": "",
+    "past_crs": [
+      "52713"
+    ],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2051,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2052.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on stk_dorm_d_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [mstpd] process on stk_dorm_d_stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2052,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2052.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on stk_dorm_d_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [atmfd] process on stk_dorm_d_stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2052,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2052.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on stk_dorm_d_stk\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [hsl] process on stk_dorm_d_stk",
+    "reference": "",
+    "past_crs": [
+      "52713",
+      "53036",
+      "53052"
+    ],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2052,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2053.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospfd] process on swi_dorm_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [ospfd] process on swi_dorm_a",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [
+      "53079"
+    ],
+    "testSet": 2053,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2053.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on swi_dorm_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [mstpd] process on swi_dorm_a",
+    "reference": "",
+    "past_crs": [
+      "52516"
+    ],
+    "current_crs": [
+      "52980"
+    ],
+    "testSet": 2053,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2053.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on swi_dorm_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [atmfd] process on swi_dorm_a",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2053,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2053.12": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [apteryxd] process on swi_dorm_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [apteryxd] process on swi_dorm_a",
+    "reference": "",
+    "past_crs": [
+      "52305"
+    ],
+    "current_crs": [],
+    "testSet": 2053,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2053.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on swi_dorm_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [hsl] process on swi_dorm_a",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2053,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2054.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [lacpd] process on swi_dept_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [lacpd] process on swi_dept_a",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2054,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2054.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on swi_dept_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [atmfd] process on swi_dept_a",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2054,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2054.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on swi_dept_a\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [hsl] process on swi_dept_a",
+    "reference": "",
+    "past_crs": [
+      "52516",
+      "52713"
+    ],
+    "current_crs": [],
+    "testSet": 2054,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2055.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [pimd] process on swi_dept_b\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [pimd] process on swi_dept_b",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2055,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.2055.6": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospf6d] process on swi_dept_b\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [ospf6d] process on swi_dept_b",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2055,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3006.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Reboot Box41 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Reboot Box41 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "54003",
+      "54143",
+      "54562",
+      "56464"
+    ],
+    "current_crs": [
+      "56548"
+    ],
+    "testSet": 3006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3006.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Powercycle Box41 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Powercycle Box41 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "54003",
+      "54562",
+      "55455",
+      "55803",
+      "56163",
+      "54143"
+    ],
+    "current_crs": [
+      "55092",
+      "-55785",
+      "55918",
+      "56464"
+    ],
+    "testSet": 3006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3007.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Reboot Box2 (Main-building Backup AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Reboot Box2 (Main-building Backup AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "54562"
+    ],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3007.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Powercycle Box2 (Main-building Backup AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Powercycle Box2 (Main-building Backup AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "54562",
+      "55455",
+      "55803"
+    ],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3011.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of box41 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of box41 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "53574",
+      "53741",
+      "54350",
+      "55720",
+      "55803",
+      "54143",
+      "56167",
+      "56244"
+    ],
+    "current_crs": [
+      "53690",
+      "53745",
+      "56548"
+    ],
+    "testSet": 3011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3011.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of box41 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master powercycle of box41 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "55803",
+      "56167",
+      "56244"
+    ],
+    "current_crs": [
+      "56548"
+    ],
+    "testSet": 3011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3012.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-CFC reboot of box2 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-CFC reboot of box2 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "53676",
+      "53741",
+      "54350",
+      "55470",
+      "55720",
+      "56244"
+    ],
+    "current_crs": [
+      "53690",
+      "53745"
+    ],
+    "testSet": 3012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3012.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-CFC Powercycle of box2 (Main-building AMF Master)\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-CFC Powercycle of box2 (Main-building AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "53818",
+      "53741",
+      "53925",
+      "54508",
+      "54682",
+      "54350",
+      "55470",
+      "55575",
+      "55578",
+      "54143",
+      "56244"
+    ],
+    "current_crs": [
+      "53745"
+    ],
+    "testSet": 3012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3013.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of box15\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of box15",
+    "reference": "",
+    "past_crs": [
+      "53925",
+      "53699",
+      "56244"
+    ],
+    "current_crs": [],
+    "testSet": 3013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3013.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of box15\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of box15",
+    "reference": "",
+    "past_crs": [
+      "53925",
+      "56244"
+    ],
+    "current_crs": [
+      "53690"
+    ],
+    "testSet": 3013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3014.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of box35\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of box35",
+    "reference": "",
+    "past_crs": [
+      "53925",
+      "55575",
+      "55578",
+      "55455",
+      "56244"
+    ],
+    "current_crs": [
+      "55918"
+    ],
+    "testSet": 3014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3014.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of box35\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of box35",
+    "reference": "",
+    "past_crs": [
+      "55575",
+      "55578",
+      "56244"
+    ],
+    "current_crs": [],
+    "testSet": 3014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3015.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of box49\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master reboot of box49",
+    "reference": "",
+    "past_crs": [
+      "56244"
+    ],
+    "current_crs": [],
+    "testSet": 3015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3015.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master Powercycle of box49\n\n[Inferred behavior \u2014 no execution history for this case] Conduct Active-Master Powercycle of box49",
+    "reference": "",
+    "past_crs": [
+      "56244"
+    ],
+    "current_crs": [],
+    "testSet": 3015,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.1004": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Box4 (main-building: Member)\n\n[Inferred behavior \u2014 no execution history for this case] Backup Box4 (main-building: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3021,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.1039": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Box39 (main-building: Member)\n\n[Inferred behavior \u2014 no execution history for this case] Backup Box39 (main-building: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3021,
+    "caseId": 1039,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.1078": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Box78 (building1: Area Master)\n\n[Inferred behavior \u2014 no execution history for this case] Backup Box78 (building1: Area Master)",
+    "reference": "",
+    "past_crs": [
+      "55137"
+    ],
+    "current_crs": [],
+    "testSet": 3021,
+    "caseId": 1078,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.2004": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Box4 (main-building: Member)\n\n[Inferred behavior \u2014 no execution history for this case] Recover Box4 (main-building: Member)",
+    "reference": "",
+    "past_crs": [
+      "55338",
+      "55455"
+    ],
+    "current_crs": [],
+    "testSet": 3021,
+    "caseId": 2004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.2039": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Box39 (main-building: Member) virtual-link to Box2)\n\n[Inferred behavior \u2014 no execution history for this case] Recover Box39 (main-building: Member) virtual-link to Box2)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3021,
+    "caseId": 2039,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3021.2078": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Box78 (building1: Area Master)\n\n[Inferred behavior \u2014 no execution history for this case] Recover Box78 (building1: Area Master)",
+    "reference": "",
+    "past_crs": [
+      "55338"
+    ],
+    "current_crs": [
+      "56658"
+    ],
+    "testSet": 3021,
+    "caseId": 2078,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3105.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3105,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3105.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check can form working-set of all devices\n\n[Log-derived analysis] Check can form working-set of all devices",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3105,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601813",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3105.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check can form working-set of actual HW\n\n[Log-derived analysis] Check can form working-set of actual HW",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3105,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601814",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3105.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check controller can see and reach all AMF areas\n\n[Log-derived analysis] Check controller can see and reach all AMF areas",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3105,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601815",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3105.12": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check Network converges correct after powercycle\n\n[Log-derived analysis] Check Network converges correct after powercycle",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3105,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601816",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3107.103": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a1swi3] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a1swi3] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 103,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601817",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.104": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a1swi4] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a1swi4] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 104,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601818",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.121": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a3swi21] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a3swi21] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 121,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601819",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.132": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a7stk32] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a7stk32] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 132,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601820",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.138": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a5stk38] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a5stk38] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 138,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601821",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.147": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a8stk47] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a8stk47] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 147,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601822",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.156": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a4swi56] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a4swi56] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 156,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601823",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.157": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a4swi57] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a4swi57] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 157,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601824",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3107.181": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [acore2] and [a10stk81] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [acore2] and [a10stk81] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "CR-62840"
+    ],
+    "current_crs": [],
+    "testSet": 3107,
+    "caseId": 181,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601825",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3108.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3108,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3108.103": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [a10stk81] and [a10swi83] Down/Up multiple times.\n\n[Inferred behavior \u2014 no execution history for this case] Take link[s] between [a10stk81] and [a10swi83] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3108,
+    "caseId": 103,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3108.1082": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [a10stk81] and [a10swi82] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [a10stk81] and [a10swi82] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3108,
+    "caseId": 1082,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601826",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3108.1083": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [a10stk81] and [a10swi83] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [a10stk81] and [a10swi83] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3108,
+    "caseId": 1083,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601827",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3109.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3109,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3109.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic SSH connectivity Test - AMF Area: A\n\n[Log-derived analysis] Basic SSH connectivity Test - AMF Area: A",
+    "reference": "",
+    "past_crs": [
+      "63669"
+    ],
+    "current_crs": [],
+    "testSet": 3109,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601828",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3109.10": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd feature works with AW+ privileges\n\n[Log-derived analysis] Testing ssh execCmd feature works with AW+ privileges",
+    "reference": "CR-50638",
+    "past_crs": [],
+    "current_crs": [
+      "50638"
+    ],
+    "testSet": 3109,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601829",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "FAIL"
+    }
+  },
+  "5049.3109.15": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd reboot crashes imish\n\n[Log-derived analysis] Testing ssh execCmd reboot crashes imish",
+    "reference": "CR-50637",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3109,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601830",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "FAIL"
+    }
+  },
+  "5049.3111.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3111,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3111.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of Acore2 (A: AMF Master)\n\n[Log-derived analysis] Conduct Active-Master reboot of Acore2 (A: AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "57729",
+      "57866",
+      "57937",
+      "57940",
+      "57836",
+      "59703",
+      "61004"
+    ],
+    "current_crs": [
+      "57938",
+      "59230",
+      "63531"
+    ],
+    "testSet": 3111,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601831",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "FAIL"
+    }
+  },
+  "5049.3111.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of Acore2 (A: AMF Master)\n\n[Log-derived analysis] Conduct Active-Master powercycle of Acore2 (A: AMF Master)",
+    "reference": "",
+    "past_crs": [
+      "57729",
+      "57409",
+      "57866",
+      "57937",
+      "57836",
+      "59703",
+      "59365"
+    ],
+    "current_crs": [
+      "57938",
+      "59230"
+    ],
+    "testSet": 3111,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601832",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "FAIL"
+    }
+  },
+  "5049.3112.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3112,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3112.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of a5stk38\n\n[Log-derived analysis] Conduct Active-Master reboot of a5stk38",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "59702",
+      "63425",
+      "63589"
+    ],
+    "current_crs": [],
+    "testSet": 3112,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601833",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-19",
+      "result": "PASS"
+    }
+  },
+  "5049.3112.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of a5stk38\n\n[Log-derived analysis] Conduct Active-Master powercycle of a5stk38",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "63425",
+      "63589"
+    ],
+    "current_crs": [],
+    "testSet": 3112,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601834",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3113.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3113,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3113.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of a7stk32\n\n[Log-derived analysis] Conduct Active-Master reboot of a7stk32",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57889",
+      "63425"
+    ],
+    "current_crs": [],
+    "testSet": 3113,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601835",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3113.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of a7stk32\n\n[Log-derived analysis] Conduct Active-Master powercycle of a7stk32",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "63425"
+    ],
+    "current_crs": [
+      "57938"
+    ],
+    "testSet": 3113,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601836",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3114.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3114,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3114.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of a8stk47\n\n[Log-derived analysis] Conduct Active-Master reboot of a8stk47",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57805",
+      "63425"
+    ],
+    "current_crs": [],
+    "testSet": 3114,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601837",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3114.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of a8stk47\n\n[Log-derived analysis] Conduct Active-Master powercycle of a8stk47",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57805",
+      "63425",
+      "62473"
+    ],
+    "current_crs": [],
+    "testSet": 3114,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601838",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3115.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3115,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3115.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of a10stk81\n\n[Log-derived analysis] Conduct Active-Master reboot of a10stk81",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57805",
+      "63425"
+    ],
+    "current_crs": [
+      "57938"
+    ],
+    "testSet": 3115,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601839",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3115.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of a10stk81\n\n[Log-derived analysis] Conduct Active-Master powercycle of a10stk81",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57805",
+      "63425"
+    ],
+    "current_crs": [],
+    "testSet": 3115,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601840",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3116.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3116,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3116.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-CFC reboot of Bchs74 (B: AMF Controller)\n\n[Log-derived analysis] Conduct Active-CFC reboot of Bchs74 (B: AMF Controller)",
+    "reference": "",
+    "past_crs": [
+      "64017"
+    ],
+    "current_crs": [],
+    "testSet": 3116,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601841",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3121.1002": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Acore2 (A: Area Master)\n\n[Log-derived analysis] Backup Acore2 (A: Area Master)",
+    "reference": "",
+    "past_crs": [
+      "CR-64581"
+    ],
+    "current_crs": [
+      "64581"
+    ],
+    "testSet": 3121,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601852",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1013": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup a1swi13 (A: Member)\n\n[Log-derived analysis] Backup a1swi13 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1013,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601850",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1021": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup a3swi21 (A: Member)\n\n[Log-derived analysis] Backup a3swi21 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1021,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601842",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1051": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup a8swi51 (A: Member)\n\n[Log-derived analysis] Backup a8swi51 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1051,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601844",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1073": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Brtr73 (B: Area Master)\n\n[Log-derived analysis] Backup Brtr73 (B: Area Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1073,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601853",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1076": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Artr76 (A: Member)\n\n[Log-derived analysis] Backup Artr76 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1076,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601846",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1077": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Crtr77 (C: Area Master)\n\n[Log-derived analysis] Backup Crtr77 (C: Area Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1077,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601855",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.1090": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup Brtr90 (B: Member)\n\n[Log-derived analysis] Backup Brtr90 (B: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 1090,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601848",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2013": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover a1swi13 with newer product (A: Member)\n\n[Log-derived analysis] Recover a1swi13 with newer product (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2013,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601851",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2021": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover a3swi21 (A: Member)\n\n[Log-derived analysis] Recover a3swi21 (A: Member)",
+    "reference": "",
+    "past_crs": [
+      "58932"
+    ],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2021,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601843",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2051": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover a8swi51 (A: Member)\n\n[Log-derived analysis] Recover a8swi51 (A: Member)",
+    "reference": "",
+    "past_crs": [
+      "58932"
+    ],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2051,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601845",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2073": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Brtr73 (B: Area Master)\n\n[Log-derived analysis] Recover Brtr73 (B: Area Master)",
+    "reference": "",
+    "past_crs": [
+      "CR-58067"
+    ],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2073,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601854",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2076": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Artr76 (A: Member)\n\n[Log-derived analysis] Recover Artr76 (A: Member)",
+    "reference": "",
+    "past_crs": [
+      "CR-57494"
+    ],
+    "current_crs": [
+      "58067"
+    ],
+    "testSet": 3121,
+    "caseId": 2076,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601847",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3121.2077": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Crtr77 (C: Area Master)\n\n[Log-derived analysis] Recover Crtr77 (C: Area Master)",
+    "reference": "",
+    "past_crs": [
+      "64092"
+    ],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2077,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601856",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "FAIL"
+    }
+  },
+  "5049.3121.2090": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover Brtr90 (B: Member)\n\n[Log-derived analysis] Recover Brtr90 (B: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3121,
+    "caseId": 2090,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1475728",
+      "log_uid": "41601849",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.1-0.2",
+      "run_date": "2021-05-20",
+      "result": "PASS"
+    }
+  },
+  "5049.3122.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3122.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the ATMF topology API is correct on bchs74\n\n[Log-derived analysis] Check that the the ATMF topology API is correct on bchs74",
+    "reference": "",
+    "past_crs": [
+      "60486",
+      "60127"
+    ],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495034",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3122.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the Event API is correct on bchs74\n\n[Log-derived analysis] Check that the the Event API is correct on bchs74",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495035",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3122.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the ATMF topology API is correct on acore2\n\n[Log-derived analysis] Check that the the ATMF topology API is correct on acore2",
+    "reference": "",
+    "past_crs": [
+      "60127",
+      "61254"
+    ],
+    "current_crs": [
+      "61142"
+    ],
+    "testSet": 3122,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495036",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3122.12": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the Event API is correct on acore2\n\n[Log-derived analysis] Check that the the Event API is correct on acore2",
+    "reference": "",
+    "past_crs": [
+      "60919",
+      "61151"
+    ],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495037",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3122.31": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the ATMF topology API is correct on crtr77\n\n[Log-derived analysis] Check that the the ATMF topology API is correct on crtr77",
+    "reference": "",
+    "past_crs": [
+      "62147"
+    ],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495038",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3122.41": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check that the the ATMF topology API is correct on drtr87\n\n[Log-derived analysis] Check that the the ATMF topology API is correct on drtr87",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3122,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495039",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3130.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic SSH connectivity Test\n\n[Inferred behavior \u2014 no execution history for this case] Basic SSH connectivity Test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3130,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3130.10": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd feature works with AW+ privileges\n\n[Inferred behavior \u2014 no execution history for this case] Testing ssh execCmd feature works with AW+ privileges",
+    "reference": "CR-50638",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3130,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3130.15": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Testing ssh execCmd reboot crashes imish\n\n[Inferred behavior \u2014 no execution history for this case] Testing ssh execCmd reboot crashes imish",
+    "reference": "CR-50637",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3130,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3151.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3151.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospfd] process on acore2\n\n[Log-derived analysis] Kill active [ospfd] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495040",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3151.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [lacpd] process on acore2\n\n[Log-derived analysis] Kill active [lacpd] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495041",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3151.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on acore2\n\n[Log-derived analysis] Kill active [mstpd] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495042",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3151.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [imi] process on acore2\n\n[Log-derived analysis] Kill active [imi] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495043",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3151.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [apteryxd] process on acore2\n\n[Log-derived analysis] Kill active [apteryxd] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57843",
+      "60489",
+      "61275",
+      "62150",
+      "63531"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495044",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3151.6": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospf6d] process on acore2\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [ospf6d] process on acore2",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3151.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on acore2\n\n[Log-derived analysis] Kill active [atmfd] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57843",
+      "63831",
+      "63531"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495045",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3151.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on acore2\n\n[Log-derived analysis] Kill active [hsl] process on acore2",
+    "reference": "",
+    "past_crs": [
+      "57937",
+      "57843",
+      "63531"
+    ],
+    "current_crs": [],
+    "testSet": 3151,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495046",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3152.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.3152.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospfd] process on a5stk38\n\n[Log-derived analysis] Kill active [ospfd] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495047",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3152.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [lacpd] process on a5stk38\n\n[Log-derived analysis] Kill active [lacpd] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495048",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3152.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on a5stk38\n\n[Log-derived analysis] Kill active [mstpd] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495049",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3152.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [imi] process on a5stk38\n\n[Log-derived analysis] Kill active [imi] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495050",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.3152.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [apteryxd] process on a5stk38\n\n[Log-derived analysis] Kill active [apteryxd] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937",
+      "60489"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495051",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3152.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on a5stk38\n\n[Log-derived analysis] Kill active [atmfd] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495052",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3152.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on a5stk38\n\n[Log-derived analysis] Kill active [hsl] process on a5stk38",
+    "reference": "",
+    "past_crs": [
+      "CR-58028",
+      "57937"
+    ],
+    "current_crs": [],
+    "testSet": 3152,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495053",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.3156.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [ospfd] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [ospfd] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [lacpd] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [lacpd] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [mstpd] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [mstpd] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [imi] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [imi] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [apteryxd] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [apteryxd] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.11": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [atmfd] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [atmfd] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.3156.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Kill active [hsl] process on artr76\n\n[Inferred behavior \u2014 no execution history for this case] Kill active [hsl] process on artr76",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3156,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.4005.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4005,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4005.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check can form working-set of all devices\n\n[Log-derived analysis] Check can form working-set of all devices",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [
+      "58933"
+    ],
+    "testSet": 4005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009055",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4005.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check Network converges correct after powercycle\n\n[Log-derived analysis] Check Network converges correct after powercycle",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [
+      "58933"
+    ],
+    "testSet": 4005,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009056",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4007.223": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_b2_core] and [swi_b3_distribution] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_b2_core] and [swi_b3_distribution] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 223,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009057",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.224": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_b2_core] and [swi_b4_distribution] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_b2_core] and [swi_b4_distribution] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 224,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009058",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.236": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b3_distribution] and [swi_b6_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b3_distribution] and [swi_b6_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 236,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009059",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.237": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b3_distribution] and [swi_b7_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b3_distribution] and [swi_b7_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 237,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009060",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.246": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b4_distribution] and [swi_b6_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b4_distribution] and [swi_b6_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 246,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009061",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.247": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b4_distribution] and [swi_b7_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b4_distribution] and [swi_b7_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 247,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009062",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.312": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_c1_edge] and [swi_c2_core] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_c1_edge] and [swi_c2_core] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "61672"
+    ],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 312,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009063",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "FAIL"
+    }
+  },
+  "5049.4007.313": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_c1_edge] and [swi_c3_core] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_c1_edge] and [swi_c3_core] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 313,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009064",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.342": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_c4_distribution] and [swi_c2_core] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_c4_distribution] and [swi_c2_core] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 342,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009065",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.343": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_c4_distribution] and [swi_c3_core] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_c4_distribution] and [swi_c3_core] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 343,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009066",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.346": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_c4_distribution] and [swi_c6_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_c4_distribution] and [swi_c6_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 346,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009067",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4007.347": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [stk_c4_distribution] and [swi_c7_access] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [stk_c4_distribution] and [swi_c7_access] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 347,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009068",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4008.111": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_a1_edge] and [swi_isp1] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_a1_edge] and [swi_isp1] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 111,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009069",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.112": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_a1_edge] and [swi_isp2] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_a1_edge] and [swi_isp2] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009070",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.121": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b1_edge] and [swi_isp1] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b1_edge] and [swi_isp1] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 121,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009071",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.122": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_b1_edge] and [swi_isp2] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_b1_edge] and [swi_isp2] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 122,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009072",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.131": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_c1_edge] and [swi_isp1] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_c1_edge] and [swi_isp1] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 131,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009073",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.132": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_c1_edge] and [swi_isp2] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_c1_edge] and [swi_isp2] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 132,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009074",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.141": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_d1_edge] and [swi_isp1] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_d1_edge] and [swi_isp1] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 141,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009075",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4008.142": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [swi_d1_edge] and [swi_isp2] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [swi_d1_edge] and [swi_isp2] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4008,
+    "caseId": 142,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009076",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4009.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4009,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4009.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Basic SSH connectivity Test\n\n[Log-derived analysis] Basic SSH connectivity Test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009077",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4011.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4011,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4011.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of A2-Core (AMF Master)\n\n[Log-derived analysis] Conduct Active-Master reboot of A2-Core (AMF Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009078",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4012.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4012,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.4012.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of B2-Core\n\n[Log-derived analysis] Conduct Active-Master reboot of B2-Core",
+    "reference": "",
+    "past_crs": [
+      "59974",
+      "62483"
+    ],
+    "current_crs": [],
+    "testSet": 4012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009079",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4012.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of B2-Core\n\n[Log-derived analysis] Conduct Active-Master powercycle of B2-Core",
+    "reference": "",
+    "past_crs": [
+      "62483"
+    ],
+    "current_crs": [],
+    "testSet": 4012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009080",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4013.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4013,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.4013.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of C4-Distribution\n\n[Log-derived analysis] Conduct Active-Master reboot of C4-Distribution",
+    "reference": "",
+    "past_crs": [
+      "63589"
+    ],
+    "current_crs": [],
+    "testSet": 4013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009081",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4013.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of C4-Distribution\n\n[Log-derived analysis] Conduct Active-Master powercycle of C4-Distribution",
+    "reference": "",
+    "past_crs": [
+      "63589"
+    ],
+    "current_crs": [],
+    "testSet": 4013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009082",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4021.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4021,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.4021.1042": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup D2-Access (Member)\n\n[Log-derived analysis] Backup D2-Access (Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4021,
+    "caseId": 1042,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009083",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.4021.2042": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover D2-Access (A: Member)\n\n[Log-derived analysis] Recover D2-Access (A: Member)",
+    "reference": "",
+    "past_crs": [
+      "60513"
+    ],
+    "current_crs": [],
+    "testSet": 4021,
+    "caseId": 2042,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1125558",
+      "log_uid": "33009084",
+      "platform": "SBx81CFC960-tb69.rel",
+      "sw_version": "5.4.9-2.5-rc5",
+      "run_date": "2020-04-15",
+      "result": "PASS"
+    }
+  },
+  "5049.5001.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Full device failover\n\n[Inferred behavior \u2014 no execution history for this case] Full device failover",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5001.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Stack master failover\n\n[Inferred behavior \u2014 no execution history for this case] Stack master failover",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5001.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Stack member failover\n\n[Inferred behavior \u2014 no execution history for this case] Stack member failover",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5003.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Firewall test\n\n[Inferred behavior \u2014 no execution history for this case] Firewall test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5003.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Malware test\n\n[Inferred behavior \u2014 no execution history for this case] Malware test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5003.3": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Router VRF ping test\n\n[Inferred behavior \u2014 no execution history for this case] Router VRF ping test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5003.4": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Antivirus test\n\n[Inferred behavior \u2014 no execution history for this case] Antivirus test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5003.5": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "IPS test\n\n[Inferred behavior \u2014 no execution history for this case] IPS test",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5005.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5005,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5005.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check can form working-set of all devices\n\n[Log-derived analysis] Check can form working-set of all devices",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119810",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5005.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check can form working-set of [campus]\n\n[Log-derived analysis] Check can form working-set of [campus]",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119811",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5005.21": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Check Network converges correct after powercycle\n\n[Inferred behavior \u2014 no execution history for this case] Check Network converges correct after powercycle",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5005,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5007.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5007.101": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c1_x908_stk] and [e1_ar4050s] Down/Up multiple times.\n\n[Inferred behavior \u2014 no execution history for this case] Take link[s] between [c1_x908_stk] and [e1_ar4050s] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5007.111": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c1_x908_stk] and [d1_x550] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [c1_x908_stk] and [d1_x550] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 111,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119812",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.112": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c1_x908_stk] and [d2_x930] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [c1_x908_stk] and [d2_x930] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119813",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.120": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d1_x550] and [d2_x930] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d1_x550] and [d2_x930] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 120,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119814",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.121": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d1_x550] and [a1_xs900] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d1_x550] and [a1_xs900] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 121,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119815",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.122": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d1_x550] and [a2_x510l] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d1_x550] and [a2_x510l] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 122,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119816",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.123": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d1_x550] and [a3_gs900] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d1_x550] and [a3_gs900] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083",
+      "61463"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 123,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119817",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.124": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d1_x550] and [a4_fs980_stk] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d1_x550] and [a4_fs980_stk] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 124,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119818",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.131": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d2_x930] and [a1_xs900] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d2_x930] and [a1_xs900] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 131,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119819",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.132": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d2_x930] and [a2_x510l] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d2_x930] and [a2_x510l] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 132,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119820",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.133": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d2_x930] and [a3_gs900] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d2_x930] and [a3_gs900] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 133,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119821",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5007.134": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [d2_x930] and [a4_fs980_stk] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [d2_x930] and [a4_fs980_stk] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [
+      "58936",
+      "61083"
+    ],
+    "current_crs": [],
+    "testSet": 5007,
+    "caseId": 134,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119822",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5008.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5008,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5008.101": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c2_core_stk] and [c1_x908_stk] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [c2_core_stk] and [c1_x908_stk] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5008,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119823",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5008.111": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c2_core_stk] and [c2_access1] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [c2_core_stk] and [c2_access1] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5008,
+    "caseId": 111,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119824",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5008.112": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Take link[s] between [c2_core_stk] and [c2_access2] Down/Up multiple times.\n\n[Log-derived analysis] Take link[s] between [c2_core_stk] and [c2_access2] Down/Up multiple times.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5008,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119825",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "FAIL"
+    }
+  },
+  "5049.5011.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5011,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5011.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of c1-x908-STK (AMF Master)\n\n[Log-derived analysis] Conduct Active-Master reboot of c1-x908-STK (AMF Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119826",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5011.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of c1-x908-STK (AMF Master)\n\n[Log-derived analysis] Conduct Active-Master powercycle of c1-x908-STK (AMF Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119827",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5012.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5012,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5012.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of c2-core-stk (AMF Master)\n\n[Log-derived analysis] Conduct Active-Master reboot of c2-core-stk (AMF Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119828",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5012.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of c2-core-stk (AMF Master)\n\n[Log-derived analysis] Conduct Active-Master powercycle of c2-core-stk (AMF Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119829",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5013.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master reboot of a4-fs980-stk\n\n[Log-derived analysis] Conduct Active-Master reboot of a4-fs980-stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119830",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5013.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Conduct Active-Master powercycle of a4-fs980-stk\n\n[Log-derived analysis] Conduct Active-Master powercycle of a4-fs980-stk",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119831",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5049.5021.111": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup a1-xs900 (Member)\n\n[Log-derived analysis] Backup a1-xs900 (Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 111,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119832",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.112": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup a3-gs900 (Member)\n\n[Inferred behavior \u2014 no execution history for this case] Backup a3-gs900 (Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5021.113": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup d1-x550 (Member)\n\n[Log-derived analysis] Backup d1-x550 (Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 113,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119834",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.114": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup e1-ar4050s (Member)\n\n[Log-derived analysis] Backup e1-ar4050s (Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 114,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119836",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.211": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover a1-xs900 (A: Member)\n\n[Log-derived analysis] Recover a1-xs900 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 211,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119833",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.212": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover a3-gs900 (A: Member)\n\n[Inferred behavior \u2014 no execution history for this case] Recover a3-gs900 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 212,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5049.5021.213": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover d1-x550 (A: Member)\n\n[Log-derived analysis] Recover d1-x550 (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 213,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119835",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.214": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Recover e1-ar4050s (A: Member)\n\n[Log-derived analysis] Recover e1-ar4050s (A: Member)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 214,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119837",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.1101": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup c1-x908-stk (Master)\n\n[Log-derived analysis] Backup c1-x908-stk (Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 1101,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119838",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.5021.1201": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Backup c2-core-stk (Master)\n\n[Log-derived analysis] Backup c2-core-stk (Master)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5021,
+    "caseId": 1201,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "891966",
+      "log_uid": "27119839",
+      "platform": "SBx908NG-tb105.rel",
+      "sw_version": "5.4.9-0.7-rc2",
+      "run_date": "2019-06-20",
+      "result": "PASS"
+    }
+  },
+  "5049.9001.0": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "5049.9001.1": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Download .gz files from each switch and delete them from flash\n\n[Log-derived analysis] Download .gz files from each switch and delete them from flash",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1471613",
+      "log_uid": "41495054",
+      "platform": "SBx81CFC960-tb109.rel",
+      "sw_version": "5.5.0-2.9-rc2",
+      "run_date": "2021-05-15",
+      "result": "PASS"
+    }
+  },
+  "5049.9001.2": {
+    "suite_id": "5049",
+    "suite_name": "5049_validation_example",
+    "description": "Perform a master failover on all stacks in the scenario\n\n[Inferred behavior \u2014 no execution history for this case] Perform a master failover on all stacks in the scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

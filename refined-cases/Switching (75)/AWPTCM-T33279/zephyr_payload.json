@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33279": {
+    "objective": "<ul><li>The spanning-tree bpdu forward (and related forward-untagged-vlan, forward-vlan, discard) commands are available under the spanning-tree configuration context.</li><li>When any spanning tree protocol (STP, RSTP or MSTP) is enabled, the BPDU Forwarding setting is automatically disabled and removed from the running configuration.</li><li>BPDU Forwarding can be explicitly disabled with the discard option; the disabled form does not appear in the running config.</li><li>When BPDU Forwarding is active, BPDUs are forwarded without VLAN tags on the wire (even on trunk ports).</li><li>When using forward-untagged-vlan or forward-vlan options, BPDUs are forwarded only to ports in the matching VLAN(s).</li><li>Static channel groups (LAGs) are treated as a single logical port for BPDU forwarding purposes.</li><li>BPDU Forwarding inter-operates correctly with features that also generate or consume BPDU-like frames (e.g. 802.1x).</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink BPDU Forwarding family (AWP-9399, AWP-9400, AWP-9401, AWP-9407, AWP-9409 + platform variants). ART coverage from 1346 (BPDU transmission under RSTP), 2031/2032/2021 (IxANVL RSTP/STP/MSTP BPDU packet and state machine handling).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure `spanning-tree bpdu forward` (and variants forward-untagged-vlan, forward-vlan). Confirm the commands are accepted and appear in running config. Verify `spanning-tree bpdu discard` disables it cleanly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With BPDU Forwarding enabled, enable any spanning tree protocol (rstp, stp or mstp). Confirm that the bpdu forward setting is automatically removed from the running config and the feature is disabled.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With BPDU Forwarding active on a trunk port carrying multiple VLANs, generate or inject BPDUs and confirm they are forwarded without VLAN tags.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure BPDU Forwarding with forward-untagged-vlan or forward-vlan options. Verify BPDUs are only forwarded to ports belonging to the matching VLAN(s).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a static channel group on ports with BPDU Forwarding enabled. Confirm the LAG is treated as a single logical port for forwarding (BPDUs not duplicated per member).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test interaction with 802.1x (or other BPDU-using features). Confirm expected forwarding or handling behaviour.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

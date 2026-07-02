@@ -1,0 +1,55 @@
+{
+  "key": "AWPTCM-T30649",
+  "primary": {
+    "m": "AWP-13791",
+    "c": "med",
+    "w": "DHCPv6 server address-range config"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-01 22:55:11.570938",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-24090",
+        "title": "Config DHCPv6 dns-server to use interface with no assigned IPv6 address",
+        "justification": "Related TestLink case"
+      },
+      {
+        "id_or_key": "AWP-24084",
+        "title": "DHCPv6 Client Does not install default route",
+        "justification": "Related TestLink case"
+      },
+      {
+        "id_or_key": "AWP-24091",
+        "title": "Check IPV6 DNS information is stored on device.",
+        "justification": "Related TestLink case"
+      }
+    ]
+  },
+  "step2": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step3": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step4": {},
+  "gaps": "",
+  "art_string": "",
+  "full_session": {},
+  "updated_at": "2026-07-01 22:55:11.570947",
+  "llm_config": {
+    "provider": "mock",
+    "auth_method": "api_key",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  }
+}

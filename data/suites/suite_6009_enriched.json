@@ -1,0 +1,983 @@
+{
+  "6009.0.0": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6009.1000.0": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6009.1000.1": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Port Interface Self Test - Short Duration\n\n[Log-derived analysis] Factory Port Interface Self Test - Short Duration",
+    "reference": "Production Test Procedure, Document Number: 802-000880, 6009.1000.10",
+    "past_crs": [
+      "62146",
+      "63511",
+      "64828",
+      "63556",
+      "64464",
+      "64266",
+      "70518",
+      "71144",
+      "71128",
+      "74147",
+      "75274",
+      "86137",
+      "SYST-8012",
+      "SYST-7465"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3252048",
+      "log_uid": "90888614",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "5.5.3-2.9-rc2",
+      "run_date": "2026-03-16",
+      "result": "PASS"
+    }
+  },
+  "6009.1000.2": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Port Interface Self Test - Long Duration\n\n[Log-derived analysis] Factory Port Interface Self Test - Long Duration",
+    "reference": "Production Test Procedure, Document Number: 802-000880, 6009.1000.20",
+    "past_crs": [
+      "64828",
+      "64464",
+      "67819",
+      "70518",
+      "71144",
+      "71128",
+      "73736",
+      "74147"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3079040",
+      "log_uid": "85730385",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20250926-920",
+      "run_date": "2025-09-28",
+      "result": "PASS"
+    }
+  },
+  "6009.1000.3": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Startup Messages Test\n\n[Log-derived analysis] Factory Startup Messages Test",
+    "reference": "We made this one up with no spec's",
+    "past_crs": [
+      "68519"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1166833",
+      "log_uid": "33966677",
+      "platform": "x310-tb176.rel",
+      "sw_version": "5.5.0-0.3-rc2",
+      "run_date": "2020-05-29",
+      "result": "PASS"
+    }
+  },
+  "6009.1000.10": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Port Interface Self Test - Short Duration\n\n[Log-derived analysis] Factory Port Interface Self Test - Short Duration",
+    "reference": "Production Test Procedure, Document Number: 802-000880, 6009.1000.1",
+    "past_crs": [
+      "CR-87729",
+      "SYST-8607",
+      "CR-89691"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93691274",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.1000.20": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Port Interface Self Test - Long Duration\n\n[Log-derived analysis] Factory Port Interface Self Test - Long Duration",
+    "reference": "Production Test Procedure, Document Number: 802-000880, 6009.1000.2",
+    "past_crs": [
+      "CR-87729",
+      "CR-89691"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357996",
+      "log_uid": "93709764",
+      "platform": "GS980EM-tb281.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.0": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6009.2000.1": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, ATMF Clean\n\n[Log-derived analysis] Factory File System test, ATMF Clean",
+    "reference": "Production Test Procedure, Document Number: 802-000880",
+    "past_crs": [
+      "63663",
+      "68915",
+      "69024",
+      "72371",
+      "74885",
+      "82012",
+      "81839",
+      "SYST-6705",
+      "CR-85776",
+      "SYST-6880",
+      "SYST-8134",
+      "SYST-8139",
+      "SYST-8197",
+      "CR-88930",
+      "CR-89661",
+      "CR-89264",
+      "SYST-8608",
+      "SYST-8727"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93689396",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.2": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory default config - show system environment\n\n[Log-derived analysis] Factory default config - show system environment",
+    "reference": "Production Test Procedure, Document Number 802-000816, revision F",
+    "past_crs": [
+      "69949",
+      "70779",
+      "71141",
+      "71140",
+      "71139",
+      "73350",
+      "ER-4599",
+      "ROUT5G-347",
+      "77513",
+      "ER-4998",
+      "ER-5051",
+      "X530-4664",
+      "CR-85234",
+      "SYST-8043",
+      "CR-83705",
+      "CR-85670",
+      "ER-7184",
+      "CR-85234",
+      "CR-87973"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93688437",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.3": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Built In Self Test (BIST)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Factory Built In Self Test (BIST)",
+    "reference": "Production Test Procedure, Document Number: 802-000816",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6009.2000.4": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory default config - show interface brief\n\n[Log-derived analysis] Factory default config - show interface brief",
+    "reference": "We made this one up with no spec's",
+    "past_crs": [
+      "67270",
+      "68849",
+      "72419",
+      "SYST-6596",
+      "CR-83705",
+      "CR-88938",
+      "SYST-8515",
+      "CR-89107",
+      "CR-89171"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93688749",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.10": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, Erase factory default\n\n[Log-derived analysis] Factory File System test, Erase factory default",
+    "reference": "Production Test Procedure, Document Number: 802-000880",
+    "past_crs": [
+      "74885",
+      "82012",
+      "81839",
+      "CR-85776",
+      "SYST-6880",
+      "SYST-8197",
+      "SYST-8535",
+      "CR-89123",
+      "CR-89661",
+      "SYST-8727"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93689676",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.11": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, ATMF Clean, Device GUI check\n\n[Log-derived analysis] Factory File System test, ATMF Clean, Device GUI check",
+    "reference": "CR-75617",
+    "past_crs": [
+      "SYST-8044",
+      "CR-88930",
+      "SYST-8584",
+      "SYST-8727"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93689816",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.12": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, Erase factory default, Device GUI check\n\n[Log-derived analysis] Factory File System test, Erase factory default, Device GUI check",
+    "reference": "CR-75617",
+    "past_crs": [
+      "SYST-8044",
+      "CR-88930",
+      "SYST-8584",
+      "CR-89264",
+      "SYST-8727"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93690051",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.13": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, ATMF Clean, WebGUI GUI check\n\n[Log-derived analysis] Factory File System test, ATMF Clean, WebGUI GUI check",
+    "reference": "CR-75617",
+    "past_crs": [
+      "CR-88930",
+      "SYST-8584",
+      "CR-89264"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93690242",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.14": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, Erase factory default, WebGUI GUI check\n\n[Log-derived analysis] Factory File System test, Erase factory default, WebGUI GUI check",
+    "reference": "CR-75617",
+    "past_crs": [
+      "CR-88930",
+      "SYST-8584",
+      "CR-89264"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93690357",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.22": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Verify environment parameters like fan speed, voltage levels are within set limits\n\n[Log-derived analysis] Verify environment parameters like fan speed, voltage levels are within set limits",
+    "reference": "Production Test Procedure, Document Number 802-000816, revision F",
+    "past_crs": [
+      "81374",
+      "75742"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93687595",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.23": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "show system environment with high CPU load using API\n\n[Log-derived analysis] show system environment with high CPU load using API",
+    "reference": "CR-73350",
+    "past_crs": [
+      "80940",
+      "81374",
+      "75742"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93687746",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.30": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Port scan result comparison\n\n[Log-derived analysis] Port scan result comparison",
+    "reference": "SYST-5546",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2222362",
+      "log_uid": "60986907",
+      "platform": "IE510-tb120.rel",
+      "sw_version": "5.5.1_2-20230720-1",
+      "run_date": "2023-07-24",
+      "result": "FAIL"
+    }
+  },
+  "6009.2000.5663": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Setting date and time from uboot should sync with DUT\n\n[Log-derived analysis] Setting date and time from uboot should sync with DUT",
+    "reference": "SYST-5663",
+    "past_crs": [
+      "81808"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 5663,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3247842",
+      "log_uid": "90746724",
+      "platform": "AR2010V-tb199.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.5850": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory File System test, Erase flash, copy release, check file timestamp\n\n[Log-derived analysis] Factory File System test, Erase flash, copy release, check file timestamp",
+    "reference": "SYST-5850",
+    "past_crs": [
+      "79843"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 5850,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3234737",
+      "log_uid": "90335571",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260226-1257",
+      "run_date": "2026-02-26",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.8002": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "File System Utilization - release file size + GUI file size\n\n[Log-derived analysis] File System Utilization - release file size + GUI file size",
+    "reference": "SYST-8002, 1356.1001.100",
+    "past_crs": [
+      "CR-88802",
+      "CR-88791",
+      "CR-88930",
+      "SYST-8584",
+      "CR-89264",
+      "SYST-8560",
+      "SYST-8727",
+      "SYST-8989"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 8002,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357738",
+      "log_uid": "93704032",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.41668": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "SNMP walk comparison between previous and current release\n\n[Log-derived analysis] SNMP walk comparison between previous and current release",
+    "reference": "1331.2001.41668",
+    "past_crs": [
+      "76925",
+      "80347",
+      "SYST-8045",
+      "SYST-8499",
+      "SYST-8499",
+      "SYST-8560",
+      "CR-89961",
+      "SYST-8727"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 41668,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93690951",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.59342": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "CR-59342 - 'show platform port' causes 10G SFP+ port link down / UP\n\n[Log-derived analysis] CR-59342 - 'show platform port' causes 10G SFP+ port link down / UP",
+    "reference": "CR-59342",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 59342,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2335155",
+      "log_uid": "64078731",
+      "platform": "AR3050S-tb318.rel",
+      "sw_version": "main-20231102-1",
+      "run_date": "2023-11-02",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.71980": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Standalone switch, Confirm the size of reboot history\n\n[Log-derived analysis] Standalone switch, Confirm the size of reboot history",
+    "reference": "ER-6332, SYST-7198. 6009.2000.71981. Previously 1338.1001.5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 71980,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3247853",
+      "log_uid": "90748713",
+      "platform": "AR2050V-tb327.rel",
+      "sw_version": "5.5.3-20260217-1",
+      "run_date": "2026-03-12",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.71981": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Standalone switch, Confirm the size of reboot history\n\n[Log-derived analysis] Standalone switch, Confirm the size of reboot history",
+    "reference": "ER-6332, SYST-7198. 6009.2000.71980. Previously 1338.1001.5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 71981,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355230",
+      "log_uid": "93632609",
+      "platform": "AR3050S-tb318.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.73350": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "show system environment with high CPU load\n\n[Log-derived analysis] show system environment with high CPU load",
+    "reference": "CR-73350",
+    "past_crs": [
+      "80940",
+      "SYST-6347"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 73350,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93688247",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.75853": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Console speed setting not changed by CLI, with reboot test\n\n[Log-derived analysis] Console speed setting not changed by CLI, with reboot test",
+    "reference": "CR-75853, 1331.1001.75853",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 75853,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355212",
+      "log_uid": "93635508",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.75862": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Device will boot with factory default bootloader settings\n\n[Log-derived analysis] Device will boot with factory default bootloader settings",
+    "reference": "CR-75862",
+    "past_crs": [
+      "81095",
+      "SYST-7736",
+      "SYST-8990"
+    ],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 75862,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355212",
+      "log_uid": "93635840",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6009.2000.86075": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Device should not fail to boot after removing license with licensed-feature config present\n\n[Log-derived analysis] Device should not fail to boot after removing license with licensed-feature config present",
+    "reference": "CR-86075",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2000,
+    "caseId": 86075,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358060",
+      "log_uid": "93711782",
+      "platform": "IE560-tb442.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "6009.3000.0": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6009.3000.1": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Factory Startup Messages Test\n\n[Log-derived analysis] Factory Startup Messages Test",
+    "reference": "We made this one up with no spec's",
+    "past_crs": [
+      "70407",
+      "70465",
+      "72806",
+      "73643",
+      "73477",
+      "74558",
+      "75274",
+      "78232",
+      "78413",
+      "78949",
+      "79529",
+      "79827",
+      "80895",
+      "80894",
+      "81641",
+      "81318",
+      "82812",
+      "83938",
+      "84912",
+      "CR-83668",
+      "CR-86934",
+      "SYST-8280",
+      "SYST-8322",
+      "CR-89013",
+      "SYST-8658",
+      "SYST-8658",
+      "SYST-8990"
+    ],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93691314",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.3000.59342": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "CR-59342 - 'show platform port' causes 10G SFP+ port link down / UP\n\n[Log-derived analysis] CR-59342 - 'show platform port' causes 10G SFP+ port link down / UP",
+    "reference": "CR-59342",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 59342,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93691201",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.3000.76686": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Check for unwanted known errors in startup log\n\n[Log-derived analysis] Check for unwanted known errors in startup log",
+    "reference": "CR-76686",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 76686,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93691136",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.3000.83158": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "CR-69950 - \"No such file or directory\" errors running show tech\n\n[Log-derived analysis] CR-69950 - \"No such file or directory\" errors running show tech",
+    "reference": "CR-69950, CR-83158",
+    "past_crs": [
+      "CR-88574",
+      "CR-88937",
+      "CR-89169"
+    ],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 83158,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357189",
+      "log_uid": "93691245",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.0": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6009.4000.1": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test low memory - Syslog messages\n\n[Log-derived analysis] Test low memory - Syslog messages",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [
+      "CR-88574"
+    ],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93695776",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.2": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test low memory - SNMP traps\n\n[Log-derived analysis] Test low memory - SNMP traps",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93695896",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.3": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test very low memory - Syslog messages\n\n[Log-derived analysis] Test very low memory - Syslog messages",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [
+      "CR-88574"
+    ],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93696020",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.4": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test very low memory - SNMP traps\n\n[Log-derived analysis] Test very low memory - SNMP traps",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93696204",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.5": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test process termination upon reaching low memory termination threshold\n\n[Log-derived analysis] Test process termination upon reaching low memory termination threshold",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93696305",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6009.4000.6": {
+    "suite_id": "6009",
+    "suite_name": "6009_ART_factory_test",
+    "description": "Test configured low-memory restart\n\n[Log-derived analysis] Test configured low-memory restart",
+    "reference": "SYST-7109 - ER-5749",
+    "past_crs": [
+      "CR-88574",
+      "SYST-8756",
+      "SYST-9005"
+    ],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357303",
+      "log_uid": "93696456",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

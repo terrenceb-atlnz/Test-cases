@@ -1,0 +1,51 @@
+{
+  "6101.0.0": {
+    "suite_id": "6101",
+    "suite_name": "6101_ART_stability_check",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6101.1001.0": {
+    "suite_id": "6101",
+    "suite_name": "6101_ART_stability_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6101.1001.101": {
+    "suite_id": "6101",
+    "suite_name": "6101_ART_stability_check",
+    "description": "Perform custom actions on the devices in the setup\n\n[Log-derived analysis] Perform custom actions on the devices in the setup",
+    "reference": "1343.001.4",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3096135",
+      "log_uid": "86227956",
+      "platform": "TQ3403R-tb91.rel",
+      "sw_version": "awplus_main-20251010-954",
+      "run_date": "2025-10-14",
+      "result": "PASS"
+    }
+  }
+}

@@ -1,0 +1,3057 @@
+{
+  "2025.1.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT transmits PIM Hello message through each interface(s).\n\n[Log-derived analysis] Quick test to verify that DUT transmits PIM Hello message through each interface(s).",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621930",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid Hello Hold Time Option\n\n[Log-derived analysis] Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid Hello Hold Time Option",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621931",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid LAN Prune Delay Option\n\n[Log-derived analysis] Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid LAN Prune Delay Option",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621932",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid Generation ID Option\n\n[Log-derived analysis] Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid Generation ID Option",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621933",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid State Refresh Capable Option\n\n[Log-derived analysis] Quick test to verify that DUT transmits PIM Hello message through each interface(s) with valid State Refresh Capable Option",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621934",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "PIM-DM assumes that when a source starts sending, all downstream systems want to receive multicast datagrams.\n\n[Log-derived analysis] PIM-DM assumes that when a source starts sending, all downstream systems want to receive multicast datagrams.",
+    "reference": "draft-ietf-pim-dm-new-v2-03.txt s3 p5 PIM-DM Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621935",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Prune state has a finite lifetime. When that lifetime expires, data will again be forwarded down the previously pruned branch.\n\n[Log-derived analysis] Prune state has a finite lifetime. When that lifetime expires, data will again be forwarded down the previously pruned branch.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s3 p5 PIM-DM Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621936",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Prune state is associated with an (S,G) pair. When a new member for a group G appears in a pruned area, a router can \"graft\" toward the source S for the group, thereby turning the pruned branch back into a forwarding branch.\n\n[Log-derived analysis] Prune state is associated with an (S,G) pair. When a new member for a group G appears in a pruned area, a router can \"graft\" toward the source S for the group, thereby turning the pruned branch back into a forwarding branch.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s3 p5 PIM-DM Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621937",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "There are no periodic joins transmitted, only explicitly triggered prunes and grafts.\n\n[Log-derived analysis] There are no periodic joins transmitted, only explicitly triggered prunes and grafts.",
+    "reference": "draft-ietf-pim-dm-new-v2-03.txt s3 p6 PIM-DM Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621938",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT sends Assert message with metric value correctly\n\n[Log-derived analysis] Quick test to verify that DUT sends Assert message with metric value correctly",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621939",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.1.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Quick test to verify that DUT sends Assert message with metric preference value correctly\n\n[Log-derived analysis] Quick test to verify that DUT sends Assert message with metric preference value correctly",
+    "reference": "ANVL Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621940",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.2.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The macro local_receiver_include(*,G,I) is true if the IGMP module or other local membership mechanism has determined that there are local members on interface I that desire to receive all traffic sent to G.\n\n[Log-derived analysis] The macro local_receiver_include(*,G,I) is true if the IGMP module or other local membership mechanism has determined that there are local members on interface I that desire to receive all traffic sent to G.",
+    "reference": "draft-ietf-pim-dm-new-v2-03.txt s4.1.3 p9 State Summarization Macros",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621941",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.3.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the RPF check has been passed, an outgoing interface list is constructed for the packet. If this list is not empty, then the packet MUST be forwarded to all listed interfaces.\n\n[Log-derived analysis] If the RPF check has been passed, an outgoing interface list is constructed for the packet. If this list is not empty, then the packet MUST be forwarded to all listed interfaces.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.2 p10 Data Packet Forwarding Rules",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621943",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.3.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the RPF check has been passed, an outgoing interface list is constructed for the packet. If the list is empty, then the router will conduct a prune process for the (S,G) pair specified in the packet.\n\n[Log-derived analysis] If the RPF check has been passed, an outgoing interface list is constructed for the packet. If the list is empty, then the router will conduct a prune process for the (S,G) pair specified in the packet.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.2 p10 Data Packet Forwarding Rules",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621944",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Hello messages are sent periodically on each PIM enabled interface.\n\n[Log-derived analysis] Hello messages are sent periodically on each PIM enabled interface.",
+    "reference": "draft-ietf-pim-dm-new-v2-03.txt s4.3.1 p10 Sending Hello Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621945",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When PIM is enabled on an interface or a router first starts, the Hello Timer(HT) MUST be set to random value between 0 and Triggered_Hello_Delay\n\n[Log-derived analysis] When PIM is enabled on an interface or a router first starts, the Hello Timer(HT) MUST be set to random value between 0 and Triggered_Hello_Delay",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.1 p10 Sending Hello Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621946",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "A single Hello timer MAY be used to trigger sending Hello messages on all active interfaces.\n\n[Log-derived analysis] A single Hello timer MAY be used to trigger sending Hello messages on all active interfaces.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.1 p11 Sending Hello Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621947",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If a Hello message is received from a new neighbor, the receiving router SHOULD send its own Hello message after a random delay between 0 and Triggered_Hello_Delay.\n\n[Log-derived analysis] If a Hello message is received from a new neighbor, the receiving router SHOULD send its own Hello message after a random delay between 0 and Triggered_Hello_Delay.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.2 p11 Receiving Hello Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621948",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The Hold Time in the Hello Message should be set to a value that can reasonably be expected to keep the Hello active until a new Hello message is received.\n\n[Log-derived analysis] The Hold Time in the Hello Message should be set to a value that can reasonably be expected to keep the Hello active until a new Hello message is received.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.3 p11 Hello Message Hold Time",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621950",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the Hold Time is set to '0xffff', the receiving router MUST NOT time out that Hello message. This feature might be used for on-demand links to avoid keeping the link up with periodic Hello messages.\n\n[Log-derived analysis] If the Hold Time is set to '0xffff', the receiving router MUST NOT time out that Hello message. This feature might be used for on-demand links to avoid keeping the link up with periodic Hello messages.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.3 p11 Hello Message Hold Time",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621951",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If a Hold Time of '0' is received, the corresponding neighbor state is expired immediately.\n\n[Log-derived analysis] If a Hold Time of '0' is received, the corresponding neighbor state is expired immediately.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.3 p11 Hello Message Hold Time",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621952",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a PIM router takes an interface down, a Hello message with a zero Hold Time SHOULD be sent immediately to cause any PIM neighbors to remove the old information immediately.\n\n[Log-derived analysis] When a PIM router takes an interface down, a Hello message with a zero Hold Time SHOULD be sent immediately to cause any PIM neighbors to remove the old information immediately.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.3 p11 Hello Message Hold Time",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621953",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a PIM router takes an interface changes IP address, a Hello message with a zero Hold Time SHOULD be sent immediately (with the old IP address if the IP address is changed) to cause any PIM neighbors to remove the old information immediately.\n\n[Log-derived analysis] When a PIM router takes an interface changes IP address, a Hello message with a zero Hold Time SHOULD be sent immediately (with the old IP address if the IP address is changed) to cause any PIM neighbors to remove the old information immediately.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.3 p11 Hello Message Hold Time",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621954",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If a Hello message is received from an active neighbor with a different Generation ID (GenID), the neighbor has restarted and may not contain the correct (S,G) state. A Hello message SHOULD be sent after a random delay between 0 and Triggered_Hello_Delay before any other messages are sent.\n\n[Log-derived analysis] If a Hello message is received from an active neighbor with a different Generation ID (GenID), the neighbor has restarted and may not contain the correct (S,G) state. A Hello message SHOULD be sent after a random delay between 0 and Triggered_Hello_Delay before any other messages are sent.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.4 p11 Handling Router Failures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621955",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the neighbor is downstream, the router MAY replay the last State Refresh message for any (S,G) pairs for which it is the Assert Winner indicating Prune and Assert status to the downstream router. These State Refresh messages SHOULD be sent out immediately after the Hello message.\n\n[Log-derived analysis] If the neighbor is downstream, the router MAY replay the last State Refresh message for any (S,G) pairs for which it is the Assert Winner indicating Prune and Assert status to the downstream router. These State Refresh messages SHOULD be sent out immediately after the Hello message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.4 p11 Handling Router Failures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621956",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the neighbor is the upstream neighbor for an (S,G) entry, the router MAY cancel its Prune Limit Timer to permit sending a prune and reestablishing a Pruned state in the upstream router.\n\n[Log-derived analysis] If the neighbor is the upstream neighbor for an (S,G) entry, the router MAY cancel its Prune Limit Timer to permit sending a prune and reestablishing a Pruned state in the upstream router.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.4 p11 Handling Router Failures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621957",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Upon startup, a router MAY use any State Refresh messages received within Hello_Period of its first Hello message on an interface to establish state information. If the Prune Indicator is set, the router SHOULD set the PruneLimitTimer to Prune_Holdtime\n\n[Log-derived analysis] Upon startup, a router MAY use any State Refresh messages received within Hello_Period of its first Hello message on an interface to establish state information. If the Prune Indicator is set, the router SHOULD set the PruneLimitTimer to Prune_Holdtime",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.4 p12 Handling Router Failures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621958",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.4.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the Prune Indicator is set, the router SHOULD set the PruneTimer on all downstream interfaces to the State Refresh's Interval times two\n\n[Log-derived analysis] If the Prune Indicator is set, the router SHOULD set the PruneTimer on all downstream interfaces to the State Refresh's Interval times two",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.3.4 p12 Handling Router Failures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621959",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In the case of two downstream routers A and B, where A wishes to continue receiving data and B does not, A will send a Join in response to B's Prune to override the Prune.\n\n[Log-derived analysis] In the case of two downstream routers A and B, where A wishes to continue receiving data and B does not, A will send a Join in response to B's Prune to override the Prune.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4, p13 PIM-DM Prune, Join and Graft Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621960",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Finally, a Graft message is used to re-join a previously pruned branch to the delivery tree.\n\n[Log-derived analysis] Finally, a Graft message is used to re-join a previously pruned branch to the delivery tree.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4, p13 PIM-DM Prune, Join and Graft Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621962",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding (F) state, Data Packet arrives on RPF_Interface(S) AND olist(S,G) == NULL AND S NOT directly connected. The Upstream(S,G) state machine MUST transition to the Pruned (P) state, send a Prune(S,G) to RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding (F) state, Data Packet arrives on RPF_Interface(S) AND olist(S,G) == NULL AND S NOT directly connected. The Upstream(S,G) state machine MUST transition to the Pruned (P) state, send a Prune(S,G) to RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p15 Transitions from the Forwarding (F) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621963",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding (F) state, State Refresh(S,G) Received from RPF'(S). The Upstream(S,G) state machine remains in a Forwarding state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding (F) state, State Refresh(S,G) Received from RPF'(S). The Upstream(S,G) state machine remains in a Forwarding state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p16 Transitions from the Forwarding (F) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621964",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding (F) state, The OverrideTimer (OT(S,G)) expires. The router MUST send a Join(S,G) to RPF'(S) to override a previously detected prune. The Upstream(S,G) state machine remains in the Forwarding (F) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding (F) state, The OverrideTimer (OT(S,G)) expires. The router MUST send a Join(S,G) to RPF'(S) to override a previously detected prune. The Upstream(S,G) state machine remains in the Forwarding (F) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p16 Transitions from the Forwarding (F) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621965",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding (F) state, olist(S,G) -> NULL AND S NOT directly connected. The Upstream(S,G) state machine MUST transition to the Pruned (P) state, send a Prune(S,G) to RPF'(S)\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding (F) state, olist(S,G) -> NULL AND S NOT directly connected. The Upstream(S,G) state machine MUST transition to the Pruned (P) state, send a Prune(S,G) to RPF'(S)",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p16 Transitions from the Forwarding (F) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621966",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding (F) state, RPF'(S) Changes AND olist(S,G) is non-NULL AND S NOT directly connected. Unicast routing or Assert state causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine MUST transition to the AckPending (AP) state, unicast a Graft to the new RPF'(S) (Here Unicast routing changes the RPF'(S))\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding (F) state, RPF'(S) Changes AND olist(S,G) is non-NULL AND S NOT directly connected. Unicast routing or Assert state causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine MUST transition to the AckPending (AP) state, unicast a Graft to the new RPF'(S) (Here Unicast routing changes the RPF'(S))",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p16 Transitions from the Forwarding (F) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621967",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Forwarding(F) state, RPF'(S) Changes AND olist(S,G) is NULL. Unicast routing or Assert state causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine MUST transition to the Pruned(P) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Forwarding(F) state, RPF'(S) Changes AND olist(S,G) is NULL. Unicast routing or Assert state causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine MUST transition to the Pruned(P) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.1, p16 Transitions from the Forwarding (F) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621968",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Pruned (P) state, Data arrives on RPF_interface(S) AND PLT(S,G) not running AND S NOT directly connected, a Prune(S,G) MUST be sent to RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Pruned (P) state, Data arrives on RPF_interface(S) AND PLT(S,G) not running AND S NOT directly connected, a Prune(S,G) MUST be sent to RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.2, p17 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621971",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Pruned (P) state, olist(S,G)->non-NULL AND S NOT directly connected. The set of interfaces defined by the olist(S,G) macro becomes non-empty indicating traffic from S addressed to group G must be forwarded. The Upstream(S,G) state machine MUST cancel PLT(S,G), transition to the AckPending (AP) state and unicast a Graft message to RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Pruned (P) state, olist(S,G)->non-NULL AND S NOT directly connected. The set of interfaces defined by the olist(S,G) macro becomes non-empty indicating traffic from S addressed to group G must be forwarded. The Upstream(S,G) state machine MUST cancel PLT(S,G), transition to the AckPending (AP) state and unicast a Graft message to RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.2, p17 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621972",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Pruned (P) state, RPF'(S) Changes AND olist(S,G) == non-NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine transition to the AckPending (AP) state, send a Graft unicast to the new RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Pruned (P) state, RPF'(S) Changes AND olist(S,G) == non-NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine transition to the AckPending (AP) state, send a Graft unicast to the new RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.2, p17 Transitions from the Pruned (P) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621973",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Pruned (P) state, RPF'(S) Changes AND olist(S,G) == NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the Pruned (P) state and MUST cancel the PLT(S,G) timer.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Upstream(S,G) state machine is in the Pruned (P) state, RPF'(S) Changes AND olist(S,G) == NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the Pruned (P) state and MUST cancel the PLT(S,G) timer.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.2, p17 Transitions from the Pruned (P) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.5.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the Pruned (P) state, Unicast routing changed so that S is directly connected. The Upstream(S,G) state machine remains in the Pruned (P) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the Pruned (P) state, Unicast routing changed so that S is directly connected. The Upstream(S,G) state machine remains in the Pruned (P) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.2, p18 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621974",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, State Refresh(S,G) Received from RPF'(S) with Prune Indicator == 1. The Upstream(S,G) state machine remains in an AckPending state. The router must override the upstream router's Prune state after a short random interval.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, State Refresh(S,G) Received from RPF'(S) with Prune Indicator == 1. The Upstream(S,G) state machine remains in an AckPending state. The router must override the upstream router's Prune state after a short random interval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p18 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621975",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.15": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, State Refresh(S,G) Received from RPF'(S) with Prune Indicator == 0. The router MUST cancel its GraftRetry Timer (GRT(S,G)) and transition to the Forwarding (F) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, State Refresh(S,G) Received from RPF'(S) with Prune Indicator == 0. The router MUST cancel its GraftRetry Timer (GRT(S,G)) and transition to the Forwarding (F) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p18 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621976",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.16": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, The OverrideTimer (OT(S,G)) expires. The router MUST send a Join(S,G) to RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, The OverrideTimer (OT(S,G)) expires. The router MUST send a Join(S,G) to RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p18 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621977",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.17": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, The OverrideTimer (OT(S,G)) expires. The Upstream(S,G) state machine remains in the AckPending (AP) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, The OverrideTimer (OT(S,G)) expires. The Upstream(S,G) state machine remains in the AckPending (AP) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p18 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621978",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.18": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, The set of interfaces defined by the olist(S,G) macro becomes null indicating traffic from S addressed to group G should no longer be forwarded. The Upstream(S,G) state machine MUST transition to the Pruned (P) state. A Prune(S,G) MUST be multicast to the RPF_interface(S) with RPF'(S) namedin the upstream neighbor field.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, The set of interfaces defined by the olist(S,G) macro becomes null indicating traffic from S addressed to group G should no longer be forwarded. The Upstream(S,G) state machine MUST transition to the Pruned (P) state. A Prune(S,G) MUST be multicast to the RPF_interface(S) with RPF'(S) namedin the upstream neighbor field.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p18 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621979",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.19": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, RPF'(S) Changes AND olist(S,G) does not become NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the AckPending (AP) state. A Graft MUST be unicast to the new RPF'(S).\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, RPF'(S) Changes AND olist(S,G) does not become NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the AckPending (AP) state. A Graft MUST be unicast to the new RPF'(S).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621980",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.20": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, RPF'(S) Changes AND olist(S,G) does not become NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the AckPending (AP) state. A Graft MUST be unicast to the new RPF'(S) and the GraftRetry Timer (GRT(S,G)) reset to Graft_Retry_Period.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, RPF'(S) Changes AND olist(S,G) does not become NULL AND S NOT directly connected. Unicast routing causes RPF'(S) to change, including changes to RPF_Interface(S). The Upstream(S,G) state machine stays in the AckPending (AP) state. A Graft MUST be unicast to the new RPF'(S) and the GraftRetry Timer (GRT(S,G)) reset to Graft_Retry_Period.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621981",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.21": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, Unicast routing has changed so that S is directly connected. The GraftRetry Timer MUST be cancelled.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, Unicast routing has changed so that S is directly connected. The GraftRetry Timer MUST be cancelled.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621982",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.22": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, Unicast routing has changed so that S is directly connected. The Upstream(S,G) state machine MUST transition to the Forwarding(F) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, Unicast routing has changed so that S is directly connected. The Upstream(S,G) state machine MUST transition to the Forwarding(F) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621983",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.23": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, The GraftRetry Timer (GRT(S,G)) expires for this (S,G) entry. The Upstream(S,G) state machine stays in the AckPending (AP) state. Another Graft message for (S,G) SHOULD be unicasted to RPF'(S) and the GraftRetry Timer (GRT(S,G)) reset to Graft_Retry_Period.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, The GraftRetry Timer (GRT(S,G)) expires for this (S,G) entry. The Upstream(S,G) state machine stays in the AckPending (AP) state. Another Graft message for (S,G) SHOULD be unicasted to RPF'(S) and the GraftRetry Timer (GRT(S,G)) reset to Graft_Retry_Period.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621984",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.5.24": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Upstream(S,G) state machine is in the AckPending (AP) State, A GraftAck is received from RPF'(S). The GraftRetry Timer MUST be cancelled and the Upstream(S,G) state machine MUST transition to the Forwarding(F) state.\n\n[Log-derived analysis] When the Upstream(S,G) state machine is in the AckPending (AP) State, A GraftAck is received from RPF'(S). The GraftRetry Timer MUST be cancelled and the Upstream(S,G) state machine MUST transition to the Forwarding(F) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.1.3, p19 Transitions from the AckPending (AP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621985",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I.The Prune(S,G) Downstream state machine on interface I MUST transition to the PrunePending(PP) state if the router has more than one neighbor on I.\n\n[Log-derived analysis] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I.The Prune(S,G) Downstream state machine on interface I MUST transition to the PrunePending(PP) state if the router has more than one neighbor on I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p21 Transitions from the NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621986",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The PrunePending Timer (PPT(S,G,I)) MUST be set to J/P_Override_Interval if the router has more than one neighbor on I.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The PrunePending Timer (PPT(S,G,I)) MUST be set to J/P_Override_Interval if the router has more than one neighbor on I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p21 Transitions from the NoInfo State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.6.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. If the router has only one neighbor on interface I, then it SHOULD set the PPT(S,G,I) to zero, effectively transitioning immediately to the Pruned (P) state.\n\n[Log-derived analysis] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Prune(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. If the router has only one neighbor on interface I, then it SHOULD set the PPT(S,G,I) to zero, effectively transitioning immediately to the Pruned (P) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p21 Transitions from the NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621987",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p22 Transitions from the NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621988",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state. A GraftAck(S,G) MUST be unicasted to the originator of the Graft(S,G) message.\n\n[Log-derived analysis] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state. A GraftAck(S,G) MUST be unicasted to the originator of the Graft(S,G) message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p22 Transitions from the NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621989",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state. A GraftAck(S,G) MUST be unicasted to the originator of the Graft(S,G) message.\n\n[Log-derived analysis] When the Prune(S,G) Downstream state machine is in the NoInfo(NI) state, A Graft(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I stays in the NoInfo (NI) state. A GraftAck(S,G) MUST be unicasted to the originator of the Graft(S,G) message.",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.4.2.1 p22 Transitions from the NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621990",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the PrunePending (PP) state, A Join(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the PrunePending (PP) state, A Join(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.2 p22 Transitions from the PrunePending (PP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621991",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state and MUST unicast a Graft Ack message to the Graft originator.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state and MUST unicast a Graft Ack message to the Graft originator.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.2 p22 Transitions from the PrunePending (PP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621992",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,the PrunePending Timer (PPT(S,G,I)) expires indicating that no neighbors have overridden the previous Prune(S,G) message.The Prune(S,G) Downstream state machine on interface I MUST transition to the Pruned(P) state. A PruneEcho(S,G) MUST be sent on I if I has more than one PIM neighbor.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,the PrunePending Timer (PPT(S,G,I)) expires indicating that no neighbors have overridden the previous Prune(S,G) message.The Prune(S,G) Downstream state machine on interface I MUST transition to the Pruned(P) state. A PruneEcho(S,G) MUST be sent on I if I has more than one PIM neighbor.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.2 p22 Transitions from the PrunePending (PP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621993",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,the PrunePending Timer (PPT(S,G,I)) expires indicating that no neighbors have overridden the previous Prune(S,G) message.The Prune(S,G) Downstream state machine on interface I MUST transition to the Pruned(P) state. A PruneEcho(S,G) is OPTIONAL on an interface with only one PIM neighbor.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Prune(S,G) downstream state machine is in the PrunePending (PP) state,the PrunePending Timer (PPT(S,G,I)) expires indicating that no neighbors have overridden the previous Prune(S,G) message.The Prune(S,G) Downstream state machine on interface I MUST transition to the Pruned(P) state. A PruneEcho(S,G) is OPTIONAL on an interface with only one PIM neighbor.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.2 p22 Transitions from the PrunePending (PP) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.6.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the PrunePending (PP) state, the upstream interface for S has changed. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the PrunePending (PP) state, the upstream interface for S has changed. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.2 p22 Transitions from the PrunePending (PP) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621994",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Prune(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I remains in the Pruned (P) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Prune(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I remains in the Pruned (P) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621995",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Prune(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune Timer (PT(S,G,I)) SHOULD be reset to the holdtime contained in the Prune(S,G) message if it is greater than the current value.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Prune(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune Timer (PT(S,G,I)) SHOULD be reset to the holdtime contained in the Prune(S,G) message if it is greater than the current value.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621996",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Join(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Join(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.2.2.3 p23 Transitions from the Prune (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621997",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.15": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Join(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Join(S,G) is received on the interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.2.2.3 p23 Transitions from the Prune (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93621998",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.16": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.2.2.3 p23 Transitions from the Prune (P) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622000",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.17": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I send a Graft Ack back to the Graft's source.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, A Graft(S,G) is received on interface I with the upstream neighbor field set to the router's address on I. The Prune(S,G) Downstream state machine on interface I send a Graft Ack back to the Graft's source.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.2.2.3 p23 Transitions from the Prune (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622001",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.18": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, The Prune Timer (PT(S,G,I)) expires indicating that it is again time to flood data from S addressed to group G onto interface I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, The Prune Timer (PT(S,G,I)) expires indicating that it is again time to flood data from S addressed to group G onto interface I. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622002",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.19": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, The upstream interface for S has changed. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, The upstream interface for S has changed. The Prune(S,G) Downstream state machine on interface I MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622003",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.20": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, Send State Refresh(S,G) out interface I. The router MUST reset the Prune Timer (PT(S,G,I)) to the Holdtime from an active Prune received on interface I. The Holdtime used SHOULD be the largest active one,\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, Send State Refresh(S,G) out interface I. The router MUST reset the Prune Timer (PT(S,G,I)) to the Holdtime from an active Prune received on interface I. The Holdtime used SHOULD be the largest active one,",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622004",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.6.21": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Prune(S,G) downstream state machine is in the Prune state, Send State Refresh(S,G) out interface I. The router MUST reset the Prune Timer (PT(S,G,I)) to the Holdtime from an active Prune received on interface I. The Holdtime used SHOULD be the largest active one, but MAY be the most recently received active Prune Holdtime.\n\n[Log-derived analysis] When the Prune(S,G) downstream state machine is in the Prune state, Send State Refresh(S,G) out interface I. The router MUST reset the Prune Timer (PT(S,G,I)) to the Holdtime from an active Prune received on interface I. The Holdtime used SHOULD be the largest active one, but MAY be the most recently received active Prune Holdtime.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.4.2.3 p23 Transitions from the Pruned (P) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622005",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (iif != RPF_interface(S)) return; If a State Refresh message is received from originator S, on a non RPF interface for S then the State Refresh message should be ignored.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (iif != RPF_interface(S)) return; If a State Refresh message is received from originator S, on a non RPF interface for S then the State Refresh message should be ignored.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622006",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (iif != RPF_interface(S)) return; If a State Refresh message is received from originator S, on a non RPF interface for S then the State Refresh message should be ignored.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (iif != RPF_interface(S)) return; If a State Refresh message is received from originator S, on a non RPF interface for S then the State Refresh message should be ignored.",
+    "reference": "NEGATIVE draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622007",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (RPF'(S) != srcaddr(SRM)) return; If a State Refresh message is received from originator S, on a RPF interface for S, but the IP header of the State Refresh message has IP source address not set to the IP address of the RPF neighbor for S, then State Refresh message should be ignored.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (RPF'(S) != srcaddr(SRM)) return; If a State Refresh message is received from originator S, on a RPF interface for S, but the IP header of the State Refresh message has IP source address not set to the IP address of the RPF neighbor for S, then State Refresh message should be ignored.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622008",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (RPF'(S) != srcaddr(SRM)) return; If a State Refresh message is received from originator S, on a RPF interface for S, but the IP header of the State Refresh message has IP source address not set to the IP address of the RPF neighbor for S, then State Refresh message should be ignored.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (RPF'(S) != srcaddr(SRM)) return; If a State Refresh message is received from originator S, on a RPF interface for S, but the IP header of the State Refresh message has IP source address not set to the IP address of the RPF neighbor for S, then State Refresh message should be ignored.",
+    "reference": "NEGATIVE draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622009",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (StateRefreshRateLimit(S,G) == TRUE) return; StateRefreshRateLimit(S,G) evaluates to TRUE if the time elapsed since the last received StateRefresh(S,G) is less than the configured RefreshLimitInterval.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (StateRefreshRateLimit(S,G) == TRUE) return; StateRefreshRateLimit(S,G) evaluates to TRUE if the time elapsed since the last received StateRefresh(S,G) is less than the configured RefreshLimitInterval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622010",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (StateRefreshRateLimit(S,G) == TRUE) return; StateRefreshRateLimit(S,G) evaluates to TRUE if the time elapsed since the last received StateRefresh(S,G) is less than the configured RefreshLimitInterval.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (StateRefreshRateLimit(S,G) == TRUE) return; StateRefreshRateLimit(S,G) evaluates to TRUE if the time elapsed since the last received StateRefresh(S,G) is less than the configured RefreshLimitInterval.",
+    "reference": "NEGATIVE draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622011",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (TTL(SRM) == 0) continue; /* Out of TTL, skip this interface */ TTL(SRM) returns the TTL contained in the State Refresh Message, SRM. This is different from the TTL contained in the IP header.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (TTL(SRM) == 0) continue; /* Out of TTL, skip this interface */ TTL(SRM) returns the TTL contained in the State Refresh Message, SRM. This is different from the TTL contained in the IP header.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622012",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if ((TTL(SRM) - 1) continue; /* Out of TTL, skip this interface */ Threshold(I) returns the minimum TTL that a packet must have before it can be transmitted on interface I.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if ((TTL(SRM) - 1) continue; /* Out of TTL, skip this interface */ Threshold(I) returns the minimum TTL that a packet must have before it can be transmitted on interface I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622013",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if ((TTL(SRM) - 1) continue; /* Out of TTL, skip this interface */ Threshold(I) returns the minimum TTL that a packet must have before it can be transmitted on interface I.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if ((TTL(SRM) - 1) continue; /* Out of TTL, skip this interface */ Threshold(I) returns the minimum TTL that a packet must have before it can be transmitted on interface I.",
+    "reference": "NEGATIVE draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622014",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I == iif) continue; /* This is the incoming interface, skip it */ The State Refresh message is not forwarded through the incoming interface\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I == iif) continue; /* This is the incoming interface, skip it */ The State Refresh message is not forwarded through the incoming interface",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622015",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I contained in prunes(S,G)) { set Prune Indicator bit of SRM' to 1; } If the outgoing interface is a pruned one then set the Prune Indicator bit of the forwarded State Refresh Message to 1\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I contained in prunes(S,G)) { set Prune Indicator bit of SRM' to 1; } If the outgoing interface is a pruned one then set the Prune Indicator bit of the forwarded State Refresh Message to 1",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622016",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I contained in prunes(S,G)) { ... } else { set Prune Indicator bit of SRM' to 0; } If the outgoing interface is not pruned one then set the Prune Indicator bit of the forwarded State Refresh Message to 0\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (I contained in prunes(S,G)) { ... } else { set Prune Indicator bit of SRM' to 0; } If the outgoing interface is not pruned one then set the Prune Indicator bit of the forwarded State Refresh Message to 0",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622017",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. set srcaddr(SRM') to my_addr(I) A forwarded State Refresh message must have IP src address set to IP address of the interface through which the packet has been forwarded.\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. set srcaddr(SRM') to my_addr(I) A forwarded State Refresh message must have IP src address set to IP address of the interface through which the packet has been forwarded.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24-25 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622018",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. set metric of SRM' to metric of unicast route used to reach S\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. set metric of SRM' to metric of unicast route used to reach S",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p24 Forwarding of State Refresh Messages",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.7.15": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (AssertState == NoInfo) { set Assert Override of SRM' to 1; }\n\n[Log-derived analysis] When a State Refresh message, SRM, is received, it is forwarded according to the following pseudo-code. if (AssertState == NoInfo) { set Assert Override of SRM' to 1; }",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.1. p25 Forwarding of State Refresh Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622019",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.16": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The State Refresh messages are generated periodically by the PIM-DM router that is directly connected to a source.\n\n[Log-derived analysis] The State Refresh messages are generated periodically by the PIM-DM router that is directly connected to a source.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2 p25 State Refresh Message Origination",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355042",
+      "log_uid": "93619550",
+      "platform": "AR4050S-atr45.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.17": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the NotOriginator (NO) state, Data Packet received from directly connected Source S addressed to group G. The router MUST transition to an Originator (O) state,\n\n[Log-derived analysis] When the Originating(S,G) state machine is in the NotOriginator (NO) state, Data Packet received from directly connected Source S addressed to group G. The router MUST transition to an Originator (O) state,",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.1 p27 Transitions from the NotOriginator (NO) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622021",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.18": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the NotOriginator (NO) state, Data Packet received from directly connected Source S addressed to group G. The router MUST transition to an Originator (O) state. The router SHOULD record the TTL of the packet for use in State Refresh messages.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Originating(S,G) state machine is in the NotOriginator (NO) state, Data Packet received from directly connected Source S addressed to group G. The router MUST transition to an Originator (O) state. The router SHOULD record the TTL of the packet for use in State Refresh messages.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.1 p27 Transitions from the NotOriginator (NO) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.7.19": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, Receive Data Packet from S addressed to G. The router SHOULD increase its recorded TTL to match the TTL of the packet, if the packet's TTL is larger than the previously recorded TTL.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Originating(S,G) state machine is in the Originator (O) state, Receive Data Packet from S addressed to G. The router SHOULD increase its recorded TTL to match the TTL of the packet, if the packet's TTL is larger than the previously recorded TTL.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.7.20": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, SRT(S,G) Expires. The router remains in the Originator (O) state and MUST reset SRT(S,G) to StateRefreshInterval.\n\n[Log-derived analysis] When the Originating(S,G) state machine is in the Originator (O) state, SRT(S,G) Expires. The router remains in the Originator (O) state and MUST reset SRT(S,G) to StateRefreshInterval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622022",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.21": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, If the Prune(S,G) Downstream state machine for I is in the NoInfo (NI) state, then the Prune-Indicator bit MUST be set to 0 in the State Refresh message being sent over I.\n\n[Log-derived analysis] When the Originating(S,G) state machine is in the Originator (O) state, If the Prune(S,G) Downstream state machine for I is in the NoInfo (NI) state, then the Prune-Indicator bit MUST be set to 0 in the State Refresh message being sent over I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State, s4.4.2.3 Transitions from the Pru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622023",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.22": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, If the Prune(S,G) Downstream state machine for I is in the NoInfo (NI) state, then the Prune-Indicator bit MUST be set to 0 in the State Refresh message being sent over I. Otherwise the Prune-Indicator bit MUST be set to 1.\n\n[Log-derived analysis] When the Originating(S,G) state machine is in the Originator (O) state, If the Prune(S,G) Downstream state machine for I is in the NoInfo (NI) state, then the Prune-Indicator bit MUST be set to 0 in the State Refresh message being sent over I. Otherwise the Prune-Indicator bit MUST be set to 1.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622024",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.7.23": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, SAT(S,G) Expires. The router MUST cancel the SRT(S,G) timer and transition to the NotOriginator (NO) state.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When the Originating(S,G) state machine is in the Originator (O) state, SAT(S,G) Expires. The router MUST cancel the SRT(S,G) timer and transition to the NotOriginator (NO) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.7.24": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When the Originating(S,G) state machine is in the Originator (O) state, S is no longer directly connected. The router MUST transition to the NotOriginator (NO) state and cancel both the SAT(S,G) and SRT(S,G).\n\n[Log-derived analysis] When the Originating(S,G) state machine is in the Originator (O) state, S is no longer directly connected. The router MUST transition to the NotOriginator (NO) state and cancel both the SAT(S,G) and SRT(S,G).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.5.2.2 p27 Transitions from the Originator (O) State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622026",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. (Here route_metric value is tested)\n\n[Log-derived analysis] When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. (Here route_metric value is tested)",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.1 p28 Assert Metrics",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622027",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. (Here route_metric value is tested)\n\n[Log-derived analysis] When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. (Here route_metric value is tested)",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.6.1 p28 Assert Metrics",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622028",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. If all fields are equal, the IP address of the router that sourced the Assert message is used as a tie-breaker, with the highest IP address winning.\n\n[Log-derived analysis] When comparing assert_metrics, the metric_preference and route_metric field are compared in order, where the first lower value wins. If all fields are equal, the IP address of the router that sourced the Assert message is used as a tie-breaker, with the highest IP address winning.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.1 p28 Assert Metrics",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622029",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "An AssertCancel(S,G) message is simply an Assert message for (S,G) with infinite metric. The Assert winner sends such a message when it changes its upstream interface to this interface.\n\n[Log-derived analysis] An AssertCancel(S,G) message is simply an Assert message for (S,G) with infinite metric. The Assert winner sends such a message when it changes its upstream interface to this interface.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.2 p29 AssertCancel Messages",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622030",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "FAIL"
+    }
+  },
+  "2025.8.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, An (S,G) data packet arrived on a downstream interface. It is optimistically assumed that this router will be the Assert winner for this (S,G). The Assert state machine MUST transition to the \"I am Assert Winner\" state,send an Assert(S,G) to interface I,\n\n[Log-derived analysis] When in NoInfo state, An (S,G) data packet arrived on a downstream interface. It is optimistically assumed that this router will be the Assert winner for this (S,G). The Assert state machine MUST transition to the \"I am Assert Winner\" state,send an Assert(S,G) to interface I,",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1 p31 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622031",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, An Assert is received for (S,G) that is inferior to our own assert metric on interface I. The Assert state machine MUST transition to the \"I am Assert Winner\" state, send an Assert(S,G) to interface I,\n\n[Log-derived analysis] When in NoInfo state, An Assert is received for (S,G) that is inferior to our own assert metric on interface I. The Assert state machine MUST transition to the \"I am Assert Winner\" state, send an Assert(S,G) to interface I,",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1, p32 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622032",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, received Assert has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state.\n\n[Log-derived analysis] When in NoInfo state, received Assert has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1, p32 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622033",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, received Assert has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.\n\n[Log-derived analysis] When in NoInfo state, received Assert has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1, p32 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622034",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, received State Refresh has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the received State Refresh Interval.\n\n[Log-derived analysis] When in NoInfo state, received State Refresh has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the received State Refresh Interval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1, p32 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622035",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in NoInfo state, received State Refresh has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. The router MUST also multicast a Prune(S,G) to the Assert winner.\n\n[Log-derived analysis] When in NoInfo state, received State Refresh has a better metric than this router's and therefore the Assert state machine MUST transition to the \"I am Assert Loser\" state. The router MUST also multicast a Prune(S,G) to the Assert winner.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.1, p32 Transitions from NoInfo State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622036",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) data packet arrived on a downstream interface. The Assert state machine remains in the \"I am Assert Winner\" state. The router MUST send an Assert(S,G) to interface I.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) data packet arrived on a downstream interface. The Assert state machine remains in the \"I am Assert Winner\" state. The router MUST send an Assert(S,G) to interface I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622037",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) Assert is received containing a metric for S that is worse metric than this router's metric for S. Whoever sent the Assert is in error. The router MUST send an Assert(S,G) to interface I.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) Assert is received containing a metric for S that is worse metric than this router's metric for S. Whoever sent the Assert is in error. The router MUST send an Assert(S,G) to interface I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622038",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) Assert is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) Assert is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622040",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.15": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) Assert is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) Assert is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622041",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.16": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) State Refresh is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the State Refresh Interval.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) State Refresh is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the State Refresh Interval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622042",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.17": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, An (S,G) State Refresh is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. The router MUST also multicast a Prune(S,G) to the Assert winner.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, An (S,G) State Refresh is received that has a better metric than this router's metric for S on interface I. The Assert state machine MUST transition to \"I am Assert Loser\" state. The router MUST also multicast a Prune(S,G) to the Assert winner.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p32 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622043",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.18": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, The router is sending a State Refresh(S,G) message on interface I. The router MUST set the Assert Timer (AT(S,G,I)) to three times the State Refresh Interval contained in the State Refresh(S,G) message.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, The router is sending a State Refresh(S,G) message on interface I. The router MUST set the Assert Timer (AT(S,G,I)) to three times the State Refresh Interval contained in the State Refresh(S,G) message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p33 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622044",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.19": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, The (S,G) Assert Timer (AT(S,G,I)) expires. The Assert state machine MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, The (S,G) Assert Timer (AT(S,G,I)) expires. The Assert state machine MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p33 Transitions from Winner State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622045",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.20": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Winner\" state, This router's RPF interface changed so as to make CouldAssert(S,G,I) become false. This router can no longer perform the actions of the Assert winner, and so the Assert state machine MUST transition to NoInfo (NI) state, send an AssertCancel(S,G) to interface I.\n\n[Log-derived analysis] When in \"I am Assert Winner\" state, This router's RPF interface changed so as to make CouldAssert(S,G,I) become false. This router can no longer perform the actions of the Assert winner, and so the Assert state machine MUST transition to NoInfo (NI) state, send an AssertCancel(S,G) to interface I.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.2, p33 Transitions from Winner State",
+    "past_crs": [
+      "32938"
+    ],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622046",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "FAIL"
+    }
+  },
+  "2025.8.21": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, An Assert is received from the current Assert winner that is worse than this router's metric for S (typically the winner's metric became worse). The Assert state machine MUST transition to NoInfo (NI) state.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, An Assert is received from the current Assert winner that is worse than this router's metric for S (typically the winner's metric became worse). The Assert state machine MUST transition to NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622047",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.22": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622048",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.23": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric was received in an Assert, the router MUST set the Assert Timer (AT(S,G,I)) to Assert_Time.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622049",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.24": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the received State Refresh Interval.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, An Assert is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric was received in a State Refresh, the router MUST set the Assert Timer (AT(S,G,I)) to three times the received State Refresh Interval.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622050",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.25": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, An State Refresh is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric is better than the current Assert Winner, the router MUST store the address and metric of the new Assert Winner and if CouldAssert == TRUE, the router MUST multicast a Prune(S,G) to the new Assert winner.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, An State Refresh is received that has a metric better than or equal to that of the current Assert winner. The Assert state machine remains in Loser (L) state. If the metric is better than the current Assert Winner, the router MUST store the address and metric of the new Assert Winner and if CouldAssert == TRUE, the router MUST multicast a Prune(S,G) to the new Assert winner.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622051",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.26": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, The (S,G) Assert Timer (AT(S,G,I)) expires. The Assert state machine MUST transition to NoInfo (NI) state.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, The (S,G) Assert Timer (AT(S,G,I)) expires. The Assert state machine MUST transition to NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p33 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622052",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.27": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, The current Assert winner's NeighborLiveness Timer (NLT(N,I)) has expired. The Assert state machine MUST transition to the NoInfo (NI) state.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, The current Assert winner's NeighborLiveness Timer (NLT(N,I)) has expired. The Assert state machine MUST transition to the NoInfo (NI) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p34 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622053",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.28": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, A Prune(S,G) message was received on interface I with its upstream neighbor address set to the router's address on I. The router MUST send an Assert(S,G) on the receiving interface I to initiate an Assert negotiation. The Assert state machine remains in the Assert Loser(L) state.\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, A Prune(S,G) message was received on interface I with its upstream neighbor address set to the router's address on I. The router MUST send an Assert(S,G) on the receiving interface I to initiate an Assert negotiation. The Assert state machine remains in the Assert Loser(L) state.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p34 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622054",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.8.29": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "When in \"I am Assert Loser\" state, A Prune(S,G), Join(S,G) or Graft(S,G) message was received on interface I with its upstream neighbor address set to the router's address on I. The Assert state machine remains in the Assert Loser(L) state. If a Graft(S,G) was received, the router MUST respond with a GraftAck(S,G).\n\n[Log-derived analysis] When in \"I am Assert Loser\" state, A Prune(S,G), Join(S,G) or Graft(S,G) message was received on interface I with its upstream neighbor address set to the router's address on I. The Assert state machine remains in the Assert Loser(L) state. If a Graft(S,G) was received, the router MUST respond with a GraftAck(S,G).",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.6.4.3, p34 Transitions from Loser State",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622055",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Prune msg is checked)\n\n[Log-derived analysis] All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Prune msg is checked)",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7 p35 PIM Packet Formats",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622056",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Prune msg is checked)\n\n[Log-derived analysis] All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Prune msg is checked)",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.7 p35 PIM Packet Formats",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622057",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Assert msg is checked)\n\n[Log-derived analysis] All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Assert msg is checked)",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7 p35 PIM Packet Formats",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622058",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Assert msg is checked)\n\n[Log-derived analysis] All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Assert msg is checked)",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.7 p35 PIM Packet Formats",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622059",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Hello msg is checked)\n\n[Log-derived analysis] All PIM-DM messages except Graft and Graft Ack messages MUST be sent to the ALL-PIM-ROUTERS group. (Here Hello msg is checked)",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7 p35 PIM Packet Formats",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622060",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "PIM router should send a PIM-Graft/PIM-Graft-Ack message with Reserved field set to 0 on transmission\n\n[Log-derived analysis] PIM router should send a PIM-Graft/PIM-Graft-Ack message with Reserved field set to 0 on transmission",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.1 p35 PIM Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622061",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The checksum is standard IP checksum, i.e. the 16 bit one's complement of the one's complement sum of the entire PIM message.\n\n[Log-derived analysis] The checksum is standard IP checksum, i.e. the 16 bit one's complement of the one's complement sum of the entire PIM message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.1 p35 PIM Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622062",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In Encoded Group address B indicates the group range should use Bidirectional PIM. Transmitted as zero, ignored upon receipt.\n\n[Log-derived analysis] In Encoded Group address B indicates the group range should use Bidirectional PIM. Transmitted as zero, ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.3 p36 Encoded Group Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622063",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.9": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In Encoded Group address Z indicates the group range is an admin scope zone. This is used in the Bootstrap Router Mechanism only. For all other purposes, this bit is set to zero and ignored on receipt.\n\n[Log-derived analysis] In Encoded Group address Z indicates the group range is an admin scope zone. This is used in the Bootstrap Router Mechanism only. For all other purposes, this bit is set to zero and ignored on receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.3 p37 Encoded Group Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622064",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.10": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In an Encoded Source address S is the Sparse Bit. Set to 0 for PIM-DM. Ignored upon receipt.\n\n[Log-derived analysis] In an Encoded Source address S is the Sparse Bit. Set to 0 for PIM-DM. Ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.4 p37 Encoded Source Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622065",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.11": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In an Encoded Source address W is the Wild Card Bit.Set to 0 for PIM-DM. Ignored upon receipt.\n\n[Log-derived analysis] In an Encoded Source address W is the Wild Card Bit.Set to 0 for PIM-DM. Ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.4 p37 Encoded Source Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622066",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.12": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In an Encoded Source address R is the Rendezvous Point Tree bit. Set to 0 for PIM-DM. Ignored upon receipt.\n\n[Log-derived analysis] In an Encoded Source address R is the Rendezvous Point Tree bit. Set to 0 for PIM-DM. Ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.4 p37 Encoded Source Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622067",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.13": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Hold Time is the number of seconds a receiver MUST keep the neighbor reachable. If the Hold Time is set to '0xffff', the receiver of this message never times out the neighbor.\n\n[Log-derived analysis] Hold Time is the number of seconds a receiver MUST keep the neighbor reachable. If the Hold Time is set to '0xffff', the receiver of this message never times out the neighbor.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.1 p39 Hello Hold Time Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622068",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.14": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "If the Holdtime is set to '0', the information is timed out immediately.\n\n[Log-derived analysis] If the Holdtime is set to '0', the information is timed out immediately.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.1 p39 Hello Hold Time Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622069",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.15": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The LAN_Prune_Delay option is used to tune the prune propagation delay on multi-access LANs. The T bit is used by PIM-SM and SHOULD be set to 0 by PIM-DM routers and ignored upon receipt.\n\n[Log-derived analysis] The LAN_Prune_Delay option is used to tune the prune propagation delay on multi-access LANs. The T bit is used by PIM-SM and SHOULD be set to 0 by PIM-DM routers and ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.2 p39 LAN Prune Delay Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622070",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.16": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Generation ID is a random value for the interface on which the Hello message is sent. The Generation ID is regenerated whenever PIM forwarding is started or restarted on the interface.\n\n[Log-derived analysis] Generation ID is a random value for the interface on which the Hello message is sent. The Generation ID is regenerated whenever PIM forwarding is started or restarted on the interface.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.3, p40 Generation ID Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622071",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.17": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Generation ID is a random value for the interface on which the Hello message is sent. Generation ID option MAY be used by PIM-DM routers.\n\n[Log-derived analysis] Generation ID is a random value for the interface on which the Hello message is sent. Generation ID option MAY be used by PIM-DM routers.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.3, p40 Generation ID Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622072",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.18": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Generation ID is a random value for the interface on which the Hello message is sent.The Generation ID option MAY be used by PIM-DM routers.\n\n[Log-derived analysis] Generation ID is a random value for the interface on which the Hello message is sent.The Generation ID option MAY be used by PIM-DM routers.",
+    "reference": "NEGATIVE: draft-ietf-pim-dm-new-v2-04.txt s4.7.5.3, p40 Generation ID Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622073",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.19": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "The Reserved field is set to zero of the State Refresh Capable Option and ignore upon reception.\n\n[Log-derived analysis] The Reserved field is set to zero of the State Refresh Capable Option and ignore upon reception.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.5.4, p40 State Refresh Capable Option",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622074",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.20": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In a Join/Prune messages PIM-DM routers MUST set Upstream Neighbor Address field to the RPF next hop.\n\n[Log-derived analysis] In a Join/Prune messages PIM-DM routers MUST set Upstream Neighbor Address field to the RPF next hop.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.6, p41 Join/Prune Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622075",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.21": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Hold Time is the number of seconds a receiving PIM-DM router MUST keep a Prune state alive, unless removed by a Join or Graft message. If the Hold Time is '0xffff', the receiver MUST NOT remove the Prune state unless a corresponding Join or Graft message is received. The Hold Time is ignored in Join messages.\n\n[Log-derived analysis] Hold Time is the number of seconds a receiving PIM-DM router MUST keep a Prune state alive, unless removed by a Join or Graft message. If the Hold Time is '0xffff', the receiver MUST NOT remove the Prune state unless a corresponding Join or Graft message is received. The Hold Time is ignored in Join messages.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.6, p41 Join/Prune Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622076",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.22": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In Assert Message R is the Rendezvous Point Tree bit. Set to 0 for PIM-DM.\n\n[Log-derived analysis] In Assert Message R is the Rendezvous Point Tree bit. Set to 0 for PIM-DM.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.7 p43 Assert Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622077",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.23": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "PIM Graft messages use the same format as Join/Prune messages except the Type field is set to 6. The source address MUST be in the Join section of the message. The Hold Time field SHOULD be zero and SHOULD be ignored when a Graft is received.\n\n[Log-derived analysis] PIM Graft messages use the same format as Join/Prune messages except the Type field is set to 6. The source address MUST be in the Join section of the message. The Hold Time field SHOULD be zero and SHOULD be ignored when a Graft is received.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.8 p43 Graft Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622078",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.24": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "PIM Graft Ack messages are identical in format to the received Graft message except the Type field is set to 7. The Upstream Neighbor Address field SHOULD be set to the sender of the Graft message and SHOULD be ignored upon receipt.\n\n[Log-derived analysis] PIM Graft Ack messages are identical in format to the received Graft message except the Type field is set to 7. The Upstream Neighbor Address field SHOULD be set to the sender of the Graft message and SHOULD be ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.9 p43 Graft Ack Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622079",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.25": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "TTL is Time To Live of the State Refresh message. Decremented each time the message is forwarded.\n\n[Log-derived analysis] TTL is Time To Live of the State Refresh message. Decremented each time the message is forwarded.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.10 p45 State Refresh Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622080",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.26": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In State Refresh message. N is Prune Now flag. This SHOULD be set to 1 by the State Refresh originator on every third State Refresh message and SHOULD be ignored upon receipt.\n\n[Log-derived analysis] In State Refresh message. N is Prune Now flag. This SHOULD be set to 1 by the State Refresh originator on every third State Refresh message and SHOULD be ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.10 p45 State Refresh Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622081",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.27": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "In State Refresh Message O is Assert Override flag. This SHOULD be set to 1 by upstream routers on a LAN if the Assert Timer (AT(S,G)) is not running and SHOULD be ignored upon receipt.\n\n[Log-derived analysis] In State Refresh Message O is Assert Override flag. This SHOULD be set to 1 by upstream routers on a LAN if the Assert Timer (AT(S,G)) is not running and SHOULD be ignored upon receipt.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.10 p45 State Refresh Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622082",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.9.28": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Interval is set by the originating router to the interval(in seconds) between consecutive State Refresh messages for this (S,G) pair.\n\n[Log-derived analysis] Interval is set by the originating router to the interval(in seconds) between consecutive State Refresh messages for this (S,G) pair.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.7.10 p45 State Refresh Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622083",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.1": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Neighbor Liveness Timer (NLT(N,I)). This timer is used to indicate the liveness of a PIM Neighbor.\n\n[Log-derived analysis] Neighbor Liveness Timer (NLT(N,I)). This timer is used to indicate the liveness of a PIM Neighbor.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p46 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622084",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.2": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "PrunePending Timer (PPT(S,G,I)). This timer is used to indicate Short time after a Prune to allow other routers on the LAN to send a Join.\n\n[Log-derived analysis] PrunePending Timer (PPT(S,G,I)). This timer is used to indicate Short time after a Prune to allow other routers on the LAN to send a Join.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p46 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622085",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.3": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Prune Timer (PT(S,G,I)). This timer indicates the liveness of the Pruned state. This value is the Hold Time read from Prune Message.\n\n[Log-derived analysis] Prune Timer (PT(S,G,I)). This timer indicates the liveness of the Pruned state. This value is the Hold Time read from Prune Message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p47 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622086",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.4": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Assert Timer (AT(S,G,I)). This timer indicates the Period after last assert before assert state is timed out.\n\n[Log-derived analysis] Assert Timer (AT(S,G,I)). This timer indicates the Period after last assert before assert state is timed out.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p47 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622088",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.5": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Graft Retry Timer (GRT(S,G)). In the absence of receipt of a GraftAck message, the time before retransmission of a Graft message.\n\n[Log-derived analysis] Graft Retry Timer (GRT(S,G)). In the absence of receipt of a GraftAck message, the time before retransmission of a Graft message.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p47 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622089",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.6": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Prune Limit Timer (PLT(S,G)). Used to prevent Prune storms on a LAN.\n\n[Log-derived analysis] Prune Limit Timer (PLT(S,G)). Used to prevent Prune storms on a LAN.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p47 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622091",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "2025.10.7": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "Source Active Timer (SAT(S,G)). Period of time after receiving a multicast message a directly attached router will continue to send State Refresh messages.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Source Active Timer (SAT(S,G)). Period of time after receiving a multicast message a directly attached router will continue to send State Refresh messages.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p48 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2025.10.8": {
+    "suite_id": "2025",
+    "suite_name": "2025_IxANVL_pim_dm",
+    "description": "State Refresh Timer (SRT(S,G)). Interval between successive state refresh messages.\n\n[Log-derived analysis] State Refresh Timer (SRT(S,G)). Interval between successive state refresh messages.",
+    "reference": "draft-ietf-pim-dm-new-v2-04.txt s4.8 p48 PIM-DM Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355251",
+      "log_uid": "93622093",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  }
+}

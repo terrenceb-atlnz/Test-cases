@@ -1,0 +1,1274 @@
+{
+  "6006.1001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.1001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "54377",
+      "57952"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "57952"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.11456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 11456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.31280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 31280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.31456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 31456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.51456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 51456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.71280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 71280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1002.71456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 71456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1101.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.1101.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput with VRF, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput with VRF, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "54377"
+    ],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.1101.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Basic Throughput with VRF, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Basic Throughput with VRF, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.2001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "57952"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.2001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Firewall Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Firewall Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "57952"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.3001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "54375",
+      "59251"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.3001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPS Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPS Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "59251",
+      "70538"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.4001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.4001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IP Reputation Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IP Reputation Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "59211",
+      "70538"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.5001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.5001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Malware Protection Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Malware Protection Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "56239",
+      "59479",
+      "70538"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.6001.21280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 21280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.60064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 60064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.60128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 60128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.60256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 60256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.60512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 60512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.61024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 61024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.61280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 61280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.6001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "DPI Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] DPI Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "56999",
+      "70538"
+    ],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.7001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.7001.21518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Traffic Control Throughput, eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] Traffic Control Throughput, eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 21518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.7001.61518": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Traffic Control Throughput, eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] Traffic Control Throughput, eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 61518,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.0": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6006.8001.30064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 30064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.30128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 30128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.30256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 30256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.30512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 30512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.31024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 31024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.31280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 31280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.31456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, eth_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, eth_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "56005",
+      "57952",
+      "59267",
+      "71169"
+    ],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 31456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.51456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_vlan_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_vlan_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "57952",
+      "71169"
+    ],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 51456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.70064": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 70064,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.70128": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 70128,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.70256": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 70256,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.70512": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 70512,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.71024": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 71024,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.71280": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 71280,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6006.8001.71456": {
+    "suite_id": "6006",
+    "suite_name": "6006_Router_Performance",
+    "description": "IPSec Throughput, vlan_eth_eth_eth_bi\n\n[Inferred behavior \u2014 no execution history for this case] IPSec Throughput, vlan_eth_eth_eth_bi",
+    "reference": "RFC2544 Throughput",
+    "past_crs": [
+      "56005",
+      "57952",
+      "59267",
+      "71169"
+    ],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 71456,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

@@ -1,0 +1,2043 @@
+{
+  "2016.1.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The Chassis ID TLV is a mandatory TLV that identifies the chassis containing the IEEE 802 LAN station associated with the transmitting LLDP agent\n\n[Log-derived analysis] The Chassis ID TLV is a mandatory TLV that identifies the chassis containing the IEEE 802 LAN station associated with the transmitting LLDP agent",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709062",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.1.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The Port ID TLV is a mandatory TLV that identifies the port component of the MSAP identifier associated with the transmitting LLDP agent\n\n[Log-derived analysis] The Port ID TLV is a mandatory TLV that identifies the port component of the MSAP identifier associated with the transmitting LLDP agent",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709063",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.1.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The Time To Live TLV is mandatory and shall be the third TLV in the LLDPDU.\n\n[Log-derived analysis] The Time To Live TLV is mandatory and shall be the third TLV in the LLDPDU.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709064",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.1.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "End Of LLDPDU TLV is necessary to prevent non-zero pad octets from being interpreted by the receiving LLDP agent as another TLV. AND c) The End Of LLDPDU TLV shall be the last TLV in the LLDPDU. AND The LLDPDU shall contain an ordered sequence of three mandatory TLVs followed by one or more optional TLVs plus an End Of LLDPDU TLV\n\n[Log-derived analysis] End Of LLDPDU TLV is necessary to prevent non-zero pad octets from being interpreted by the receiving LLDP agent as another TLV. AND c) The End Of LLDPDU TLV shall be the last TLV in the LLDPDU. AND The LLDPDU shall contain an ordered sequence of three mandatory TLVs followed by one or more optional TLVs plus an End Of LLDPDU TLV",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.1 Page 20 'End Of LLDPDU TLV' IEEE Std 802.1AB-2005 Section 9.2 Page 18 'LLDPDU format'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709065",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.2.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The destination address shall be as specified in Table 8-1(i.e 01-80-C2-00-00-0E).\n\n[Log-derived analysis] The destination address shall be as specified in Table 8-1(i.e 01-80-C2-00-00-0E).",
+    "reference": "IEEE Std 802.1AB-2005 Section 8.1 Page 16 'Destination address'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709066",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.2.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "This address is within the range reserved by IEEE Std 802.1D-2004 for protocols constrained to an individual LAN, and ensures that the LLDPDU will not be forward by MAC Bridges that conform to IEEE Std 802.1D-2004.\n\n[Log-derived analysis] This address is within the range reserved by IEEE Std 802.1D-2004 for protocols constrained to an individual LAN, and ensures that the LLDPDU will not be forward by MAC Bridges that conform to IEEE Std 802.1D-2004.",
+    "reference": "IEEE Std 802.1AB-2005 Section 8.1 Page 16 'Destination address'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709067",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.2.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.\n\n[Inferred behavior \u2014 no execution history for this case] If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.2.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.\n\n[Inferred behavior \u2014 no execution history for this case] If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.2.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The virtual router MAC address is used as the source in all periodic VRRP messages sent by the Master router to enable bridge learning in an extended LAN.\n\n[Inferred behavior \u2014 no execution history for this case] The virtual router MAC address is used as the source in all periodic VRRP messages sent by the Master router to enable bridge learning in an extended LAN.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.2.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "A Backup router will not attempt to preempt the Master unless it has higher priority.\n\n[Inferred behavior \u2014 no execution history for this case] A Backup router will not attempt to preempt the Master unless it has higher priority.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.2.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "It's also possible to administratively prohibit all preemption attempts. While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: Here we check that when Preempt_Mode is FALSE, DUT still stays in BACKUP mode)\n\n[Inferred behavior \u2014 no execution history for this case] It's also possible to administratively prohibit all preemption attempts. While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: Here we check that when Preempt_Mode is FALSE, DUT still stays in BACKUP mode)",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 3 p10 VRRP Overview RFC 5798 Sec 6.4.2 p",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Each LLDPDU shall contain one, and only one Chassis ID TLV AND A chassis ID subtype is used to indicate the type of component being referenced by the chassis ID field.\n\n[Log-derived analysis] Each LLDPDU shall contain one, and only one Chassis ID TLV AND A chassis ID subtype is used to indicate the type of component being referenced by the chassis ID field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV' IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709068",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The Chassis ID TLV shall be the first TLV in the LLDPDU\n\n[Log-derived analysis] The Chassis ID TLV shall be the first TLV in the LLDPDU",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709069",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Chassis ID TLV and the chassis ID field value shall remain constant for all LLDPDUs while the connection remains operational. (Test DUT by sending the received Chassis ID and checking the Chassis ID sent in the subsequent LLDP PDU)\n\n[Log-derived analysis] Chassis ID TLV and the chassis ID field value shall remain constant for all LLDPDUs while the connection remains operational. (Test DUT by sending the received Chassis ID and checking the Chassis ID sent in the subsequent LLDP PDU)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709070",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Chassis ID TLV and the chassis ID field value shall remain constant for all LLDPDUs while the connection remains operational. (Test DUT by sending improper LLDP PDU i.e without all the mandatory TLVs and checking the Chassis ID sent in the subsequent LLDP PDU)\n\n[Log-derived analysis] Chassis ID TLV and the chassis ID field value shall remain constant for all LLDPDUs while the connection remains operational. (Test DUT by sending improper LLDP PDU i.e without all the mandatory TLVs and checking the Chassis ID sent in the subsequent LLDP PDU)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section 9.5.2 Page 21 'Chassis ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709071",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-2 for the chassis ID shall be non-null.\n\n[Log-derived analysis] Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-2 for the chassis ID shall be non-null.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.2.3 Page 22 'chassis ID'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709072",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Each LLDPDU shall contain one, and only one , Port ID TLV AND A port Id subtype is used to indicate how the port is being referenced in the Port Id field.\n\n[Log-derived analysis] Each LLDPDU shall contain one, and only one , Port ID TLV AND A port Id subtype is used to indicate how the port is being referenced in the Port Id field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV' IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV' IE",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709073",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The Port ID TLV shall be the second TLV in the LLDPDU\n\n[Log-derived analysis] The Port ID TLV shall be the second TLV in the LLDPDU",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709074",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.8": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The port ID value shall remain constant for all LLDPDUs while the transmitting port remains operational. (Test DUT by sending the received Port ID and checking the Port ID sent in the subsequent LLDP PDU)\n\n[Log-derived analysis] The port ID value shall remain constant for all LLDPDUs while the transmitting port remains operational. (Test DUT by sending the received Port ID and checking the Port ID sent in the subsequent LLDP PDU)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709075",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The port ID value shall remain constant for all LLDPDUs while the transmitting port remains operational. (Test DUT by sending improper LLDP PDU i.e without all the mandatory TLVs and checking the Port ID sent in the subsequent LLDP PDU)\n\n[Log-derived analysis] The port ID value shall remain constant for all LLDPDUs while the transmitting port remains operational. (Test DUT by sending improper LLDP PDU i.e without all the mandatory TLVs and checking the Port ID sent in the subsequent LLDP PDU)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section 9.5.3 Page 22 'Port ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709076",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The chassis ID and the port ID values are concatenated to form a logical MSAP identifier that is used by the recipient to identify the sending LLDP agent/port AND Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-3 for the port ID shall be non-null. AND Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-2 for the chassis ID shall be non-null.\n\n[Log-derived analysis] The chassis ID and the port ID values are concatenated to form a logical MSAP identifier that is used by the recipient to identify the sending LLDP agent/port AND Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-3 for the port ID shall be non-null. AND Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-2 for the chassis ID shall be non-null.",
+    "reference": "IEEE Std 802.1AB-2005 Section 7.2 Page 12 'Connectivity and management information' IEEE Std 802.1AB-2005 Section 9.5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709077",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.11": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-3 for the port ID shall be non-null.\n\n[Log-derived analysis] Because chassis ID and port ID values are concatenated to form the local MSAPidentifier, the value chosen from Table 9-3 for the port ID shall be non-null.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.3.3 Page 24 'port ID'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709078",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The TTL field shall contain an integer value in the range 0 65535 seconds\n\n[Log-derived analysis] The TTL field shall contain an integer value in the range 0 65535 seconds",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4.1 Page 24 'time to live (TTL)'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709079",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.13": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.\n\n[Log-derived analysis] When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709080",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.14": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.\n\n[Inferred behavior \u2014 no execution history for this case] When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.15": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "When the TTL field is non-zero the receiving LLDP agent is notified to completely replace all information associated with this MSAP identifier with the information in the received LLDPDU.\n\n[Inferred behavior \u2014 no execution history for this case] When the TTL field is non-zero the receiving LLDP agent is notified to completely replace all information associated with this MSAP identifier with the information in the received LLDPDU.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.16": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "When the TTL field is non-zero the receiving LLDP agent is notified to completely replace allinformation associated with this MSAP identifier with the information in the received LLDPDU. AND If no match is found, create a new MIB structure to receive information associated with the new MSAP identifier, and set these MIB objects to the values indicated in their respective TLVs. (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and checked that one does not replace the other and both exists)\n\n[Inferred behavior \u2014 no execution history for this case] When the TTL field is non-zero the receiving LLDP agent is notified to completely replace allinformation associated with this MSAP identifier with the information in the received LLDPDU. AND If no match is found, create a new MIB structure to receive information associated with the new MSAP identifier, and set these MIB objects to the values indicated in their respective TLVs. (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and checked that one does not replace the other and both exists)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV' IEEE Std 802.1AB-2005 Section 10.3.5 Page 40 'LLDP remote",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.17": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If rxTTL is zero, delete all information associated with the MSAP identifier from the LLDP remote systems MIB, set the variable somethingChangedRemote to TRUE, and wait for the next LLDPDU (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and then a LLDP PDU with TTL value 0 is sent for the first MSAP and checked that the first is deleted and second is not deleted)\n\n[Inferred behavior \u2014 no execution history for this case] If rxTTL is zero, delete all information associated with the MSAP identifier from the LLDP remote systems MIB, set the variable somethingChangedRemote to TRUE, and wait for the next LLDPDU (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and then a LLDP PDU with TTL value 0 is sent for the first MSAP and checked that the first is deleted and second is not deleted)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.3 Page 38 'TLV/MIB object value comparison'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.18": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If RFC2863 is implemented, the ifDescr object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If RFC2863 is implemented, the ifDescr object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.5.2 Page 25 'port description'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.19": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should not contain more than one Port Description TLV.\n\n[Log-derived analysis] An LLDPDU should not contain more than one Port Description TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.5.3 Page 25 'Port Description TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709081",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.20": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If implementations support IETF RFC 3418, the sysName object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If implementations support IETF RFC 3418, the sysName object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.6.2 Page 25 'system name'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.21": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should not contain more than one System Name TLV.\n\n[Log-derived analysis] An LLDPDU should not contain more than one System Name TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.6.3 Page 26 'System Name TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709082",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.22": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If implementations support IETF RFC 3418, the sysDescr object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If implementations support IETF RFC 3418, the sysDescr object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.7.2 Page 26 'system description'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.23": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should not contain more than one System Description TLV.\n\n[Log-derived analysis] An LLDPDU should not contain more than one System Description TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.7.3 Page 26 'System Description TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709083",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.24": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should not contain more than one System Capabilities TLV.\n\n[Log-derived analysis] An LLDPDU should not contain more than one System Capabilities TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709084",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.25": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded. (Note: Here the received System Capabilities TLV's System Supported is AND ed with System Enabled and checked if it is equal to System Enabled)\n\n[Log-derived analysis] If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded. (Note: Here the received System Capabilities TLV's System Supported is AND ed with System Enabled and checked if it is equal to System Enabled)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709085",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.26": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.27": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) The returned address should be the most appropriate for management use, typically a layer 3 address such as the IPv4 address, 192.168.254.10 (see also Table 9-2, footnote 1).\n\n[Log-derived analysis] a) The returned address should be the most appropriate for management use, typically a layer 3 address such as the IPv4 address, 192.168.254.10 (see also Table 9-2, footnote 1).",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.4 Page 28 'management address'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709086",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.28": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The interface number field shall contain the assigned number within the system that identifies the specificinterface associated with this management address. If the value of the interface subtype is unknown, this field shall be set to zero.\n\n[Inferred behavior \u2014 no execution history for this case] The interface number field shall contain the assigned number within the system that identifies the specificinterface associated with this management address. If the value of the interface subtype is unknown, this field shall be set to zero.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.6 Page 29 'interface number'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.3.29": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) At least one Management Address TLV should be included in every LLDPDU. AND b) Since there are typically a number of different addresses associated with a MSAP identifier, anindividual LLDPDU may contain more than one Management Address TLV.\n\n[Log-derived analysis] a) At least one Management Address TLV should be included in every LLDPDU. AND b) Since there are typically a number of different addresses associated with a MSAP identifier, anindividual LLDPDU may contain more than one Management Address TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.9 Page 29 'Management Address TLV usage rules' IEEE Std 802.1AB-2005 Section 9.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709087",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.3.30": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Organizationally Specific TLVs shall conform to 9.6.1 (i.e Organizationallly defined TLV information string length should be between 4 to 511 octets)\n\n[Log-derived analysis] Organizationally Specific TLVs shall conform to 9.6.1 (i.e Organizationallly defined TLV information string length should be between 4 to 511 octets)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.6 Page 29 'Organizationally Specific TLVs'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709088",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.4.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and msgTxInterval is set to a much larger value than txDelay)\n\n[Log-derived analysis] To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and msgTxInterval is set to a much larger value than txDelay)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2 Page 33 'Frame transmission' IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmi",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709089",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.4.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and msgTxInterval is set to a much larger value than txDelay, but DUT should send LLDP TTL at msgTxInterval only)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and msgTxInterval is set to a much larger value than txDelay, but DUT should send LLDP TTL at msgTxInterval only)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2 Page 33 'Frame transmission' IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmi",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2016.4.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and somethingChangedLocal is TRUE (Note: Here somethingchangedLocal is TRUE and msgTxInterval is set to a much larger value than txDelay and successive LLDP PDU received after txDelay interval)\n\n[Inferred behavior \u2014 no execution history for this case] To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and somethingChangedLocal is TRUE (Note: Here somethingchangedLocal is TRUE and msgTxInterval is set to a much larger value than txDelay and successive LLDP PDU received after txDelay interval)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2 Page 33 'Frame transmission' IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmi",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The LLDPDU shall not include any optional TLVs and should be transmitted before the interface isdisabled.\n\n[Log-derived analysis] The LLDPDU shall not include any optional TLVs and should be transmitted before the interface isdisabled.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2.1.2 Page 35 'Shutdown LLDPDU construction'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709090",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.4.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "In the event where adminStatus is transitioning to the disabled state and the LLDP agent will be shutting down, then thisshutdown procedure should be executed for all local ports.\n\n[Log-derived analysis] In the event where adminStatus is transitioning to the disabled state and the LLDP agent will be shutting down, then thisshutdown procedure should be executed for all local ports.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2.1.2 Page 35 'Shutdown LLDPDU construction'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709091",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.4.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) The first TLV shall be extracted:1) If the extracted TLV type value does not equal 1, the TLV is not a Chassis ID TLV: IEEE i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.\n\n[Inferred behavior \u2014 no execution history for this case] a) The first TLV shall be extracted:1) If the extracted TLV type value does not equal 1, the TLV is not a Chassis ID TLV: IEEE i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length < 2)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length < 2)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.8": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length > 256)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length > 256)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "1) If the extracted TLV type value does not equal 2, the TLV is not a Port ID TLV:i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.\n\n[Inferred behavior \u2014 no execution history for this case] 1) If the extracted TLV type value does not equal 2, the TLV is not a Port ID TLV:i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length < 2)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length < 2)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.11": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length > 256)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length > 256)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "1) If the extracted TLV type value does not equal 3, the TLV is not a Time To Live TLV.i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.\n\n[Inferred behavior \u2014 no execution history for this case] 1) If the extracted TLV type value does not equal 3, the TLV is not a Time To Live TLV.i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.13": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Chassis Id TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Chassis Id TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.14": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Port Id TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Port Id TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.15": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one TTL TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one TTL TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.16": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if organizationally defined subtype and OUI Value is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if organizationally defined subtype and OUI Value is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.17": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only organizationally defined subtype is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only organizationally defined subtype is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.18": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only OUI Value is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only OUI Value is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.19": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If TLV_type_value is in the range of reserved TLV types in Table 9-1, the TLV is unrecognized andmay be a basic TLV from a later LLDP version. The statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated.\n\n[Inferred behavior \u2014 no execution history for this case] If TLV_type_value is in the range of reserved TLV types in Table 9-1, the TLV is unrecognized andmay be a basic TLV from a later LLDP version. The statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.20": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "b) Since there are typically a number of different addresses associated with a MSAP identifier, an individual LLDPDU may contain more than one Management Address TLV. AND d) If more than one Management Address TLV is included in an LLDPDU, each management address shall be different from the management address in any other management address TLV in the LLDPDU.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] b) Since there are typically a number of different addresses associated with a MSAP identifier, an individual LLDPDU may contain more than one Management Address TLV. AND d) If more than one Management Address TLV is included in an LLDPDU, each management address shall be different from the management address in any other management address TLV in the LLDPDU.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.9 Page 29 'Management Address TLV usage rules' IEEE Std 802.1AB-2005 Section 9.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2016.4.21": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Upon receipt of an LLDPDU, the LLDP transmission module shall: a) Prepend the appropriate source and destination addresses plus the LLDP Ethertype to the LLDPDU as defined in 8.1, 8.2, and 8.3 to complete the construction of the MA_UNITDATA.request. b) Utilize the services of the LLC to pass the MA_UNITDATA.request to the MAC for final frame formatting and transmission. c) Increment the statsFramesOutTotal counter. AND a) Transmission counter: 1) statsFramesOutTotal: A count of all LLDP frames transmitted through the port (10.5.2).\n\n[Inferred behavior \u2014 no execution history for this case] Upon receipt of an LLDPDU, the LLDP transmission module shall: a) Prepend the appropriate source and destination addresses plus the LLDP Ethertype to the LLDPDU as defined in 8.1, 8.2, and 8.3 to complete the construction of the MA_UNITDATA.request. b) Utilize the services of the LLC to pass the MA_UNITDATA.request to the MAC for final frame formatting and transmission. c) Increment the statsFramesOutTotal counter. AND a) Transmission counter: 1) statsFramesOutTotal: A count of all LLDP frames transmitted through the port (10.5.2).",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2.2 Page 35 'LLDP frame formatting/transmission' IEEE Std 802.1AB-2005 Section 11.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.22": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. (Note: Test by disabling the interface and checking the Remote MIB entry exists when rxInfoTTL timer does not expire)\n\n[Inferred behavior \u2014 no execution history for this case] If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. (Note: Test by disabling the interface and checking the Remote MIB entry exists when rxInfoTTL timer does not expire)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.7 Page 40 'LLDP local port/connection failure'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.23": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. If rxInfoTTL timer associated with an MSAP identifier expires, all information associated with that MSAP identifier shall be deleted (Note: Test by disabling the interface and checking the Remote MIB entry does not exist when rxInfoTTL timer expires)\n\n[Inferred behavior \u2014 no execution history for this case] If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. If rxInfoTTL timer associated with an MSAP identifier expires, all information associated with that MSAP identifier shall be deleted (Note: Test by disabling the interface and checking the Remote MIB entry does not exist when rxInfoTTL timer expires)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.7 Page 40 'LLDP local port/connection failure' IEEE Std 802.1AB-2005 Section 10.3.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.24": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) adminStatus: This is a per-port variable that indicates whether or not the local LLDP agent is enabled. The defined values for this variable are: 1) enabledRxTx: the local LLDP agent can both transmit and receive LLDP frames through the port. 'enabledRxTx' is the adminStatus recommended default value. 2) enabledTxOnly: the local LLDP agent can only transmit LLDP frames. 3) enabledRxOnly: the local LLDP agent can only receive LLDP frames. 4) disabled: the local LLDP agent can neither transmit or receive LLDP frames.\n\n[Inferred behavior \u2014 no execution history for this case] a) adminStatus: This is a per-port variable that indicates whether or not the local LLDP agent is enabled. The defined values for this variable are: 1) enabledRxTx: the local LLDP agent can both transmit and receive LLDP frames through the port. 'enabledRxTx' is the adminStatus recommended default value. 2) enabledTxOnly: the local LLDP agent can only transmit LLDP frames. 3) enabledRxOnly: the local LLDP agent can only receive LLDP frames. 4) disabled: the local LLDP agent can neither transmit or receive LLDP frames.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.1 Page 43 'Global variables' IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.1 Page 54",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.25": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Leave TX_SHUTDOWN_FRAME when txShutdownWhile == 0 AND c) reinitDelay: This parameter indicates the amount of delay from when adminStatus becomes \"disabled\" until re-initialization will be attempted. The recommended default value for reinitDelay is 2 seconds. AND There is an inherent race condition between an interface knowing it is going down and its ability to send \"one more frame\". If possible, the actual termination of the connection should be delayed until after this frame is transmitted\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Leave TX_SHUTDOWN_FRAME when txShutdownWhile == 0 AND c) reinitDelay: This parameter indicates the amount of delay from when adminStatus becomes \"disabled\" until re-initialization will be attempted. The recommended default value for reinitDelay is 2 seconds. AND There is an inherent race condition between an interface knowing it is going down and its ability to send \"one more frame\". If possible, the actual termination of the connection should be delayed until after this frame is transmitted",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmit state machine diagram' IEEE Std 802.1AB-2005 Section 10.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2016.4.26": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "b) txTTL: This variable indicates the time remaining before information in the outgoing LLDPDU will no longer be valid. The TTL field in the Time To Live TLV is set to txTTL during LLDPDU construction (see 10.2.1.1). The value of txTTL depends on the following: 1) During normal operation, txTTL is set according to the following: (msgTxInterval X msgTxHold) < txTTL < 65535\n\n[Inferred behavior \u2014 no execution history for this case] b) txTTL: This variable indicates the time remaining before information in the outgoing LLDPDU will no longer be valid. The TTL field in the Time To Live TLV is set to txTTL during LLDPDU construction (see 10.2.1.1). The value of txTTL depends on the following: 1) During normal operation, txTTL is set according to the following: (msgTxInterval X msgTxHold) < txTTL < 65535",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.4.1 Page 45 'Transmit state machine variables'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.4.27": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) msgTxHold: .... The recommended default value for msgTxHold is 4. b) msgTxInterval: .... The recommended default value for msgTxInterval is 30 seconds. c) reinitDelay: .... The recommended default value for reinitDelay is 2 seconds.\n\n[Inferred behavior \u2014 no execution history for this case] a) msgTxHold: .... The recommended default value for msgTxHold is 4. b) msgTxInterval: .... The recommended default value for msgTxInterval is 30 seconds. c) reinitDelay: .... The recommended default value for reinitDelay is 2 seconds.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.3.3 Page 44 'Transmit state machine timing parameters'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n\n[Inferred behavior \u2014 no execution history for this case] 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.2 Page 52 'LLDP operational statistics counters' IEEE Std 802.1AB-2005 Section 11.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "4) statsFramesInTotal: A count of all LLDP frames received at the port (10.5.2).\n\n[Inferred behavior \u2014 no execution history for this case] 4) statsFramesInTotal: A count of all LLDP frames received at the port (10.5.2).",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.2 Page 52 'LLDP operational statistics counters' IEEE Std 802.1AB-2005 Section 111",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "a) mibBasicTLVsTxEnable: This variable lists the single-instance-use basic management TLVs, each with a bit map indicating the system ports through which the referenced TLV is enabled for transmission. AND lldpPortConfigTLVsTxEnable OBJECT-TYPE SYNTAX BITS { portDesc(0), sysName(1), sysDesc(2), sysCap(3) }\n\n[Inferred behavior \u2014 no execution history for this case] a) mibBasicTLVsTxEnable: This variable lists the single-instance-use basic management TLVs, each with a bit map indicating the system ports through which the referenced TLV is enabled for transmission. AND lldpPortConfigTLVsTxEnable OBJECT-TYPE SYNTAX BITS { portDesc(0), sysName(1), sysDesc(2), sysCap(3) }",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.1 Page 54 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Chassis ID chassis ID subtype lldpLocChassisIdSubtype chassis ID lldpLocChassisId\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Chassis ID chassis ID subtype lldpLocChassisIdSubtype chassis ID lldpLocChassisId",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Port ID port ID subtype lldpLocPortIdSubtype port ID lldpLocPortId\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Port ID port ID subtype lldpLocPortIdSubtype port ID lldpLocPortId",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Port Description port description lldpLocPortDesc\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Port Description port description lldpLocPortDesc",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Name system name lldpLocSysName\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Name system name lldpLocSysName",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.8": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Description system description lldpLocSysDesc\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Description system description lldpLocSysDesc",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Capabilities system capabilities lldpLocSysCapSupported enabled capabilities lldpLocSysCapEnabled\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects System Capabilities system capabilities lldpLocSysCapSupported enabled capabilities lldpLocSysCapEnabled",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Management Address management address length lldpLocManAddrLen interface numbering subtype lldpLocManAddrIfSubtype interface number lldpLocManAddrIfId\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-2 lists the relationship between the basic TLV variables and their corresponding LLDP local system MIB objects Management Address management address length lldpLocManAddrLen interface numbering subtype lldpLocManAddrIfSubtype interface number lldpLocManAddrIfId",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.2 Page 55 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.11": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Chassis ID chassis ID subtype lldpRemChassisSubtype (Note: lldpRemChassisSubtype corresponds to lldpRemChassisIdSubtype in LLDP MIB Module)\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Chassis ID chassis ID subtype lldpRemChassisSubtype (Note: lldpRemChassisSubtype corresponds to lldpRemChassisIdSubtype in LLDP MIB Module)",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.3 Page 56 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Port ID port subtype lldpRemPortIdSubtype\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Port ID port subtype lldpRemPortIdSubtype",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.3 Page 56 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.13": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Port Description port description lldpRemPortDesc\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Port Description port description lldpRemPortDesc",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.3 Page 56 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.5.14": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Management Address interface numbering subtype lldpRemManAddrIfSubtype interface number lldpRemManAddrIfId\n\n[Inferred behavior \u2014 no execution history for this case] Table 11-3 lists the relationship between the basic TLV variables and their corresponding LLDP remote system MIB objects Management Address interface numbering subtype lldpRemManAddrIfSubtype interface number lldpRemManAddrIfId",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.3 Page 56 'Relationship between LLDP variables and LLDP managed objects'<",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the systems are actually configured to be on different VLANs, but happen to be connected to a common link with different views of what is the port VLAN on that link, communication problems between the management stacks may exist.\n\n[Inferred behavior \u2014 no execution history for this case] If the systems are actually configured to be on different VLANs, but happen to be connected to a common link with different views of what is the port VLAN on that link, communication problems between the management stacks may exist.",
+    "reference": "IEEE Std 802.1AB-2005 Section E.2.1 Page 104 'Port VLAN ID TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "- If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check with default and non-default Adver_timer)\n\n[Inferred behavior \u2014 no execution history for this case] - If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check with default and non-default Adver_timer)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 5798 Sec 6.4.1 p21 Initialize",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "- If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state (Note: We check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)\n\n[Inferred behavior \u2014 no execution history for this case] - If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state (Note: We check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 5798 Sec 6.4.1 p21 Initialize",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "- If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check whether DUT transits to backup state by expiring master down timer and waiting for advertisements from DUT since it should be in master state now. We check using non-default Advertisement Interval) (Also we check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)\n\n[Inferred behavior \u2014 no execution history for this case] - If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check whether DUT transits to backup state by expiring master down timer and waiting for advertisements from DUT since it should be in master state now. We check using non-default Advertisement Interval) (Also we check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.1 p21 Initialize RFC 5798 Sec 6.4",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST discard packets with a destination link layer MAC address equal to the virtual router MAC address.\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST discard packets with a destination link layer MAC address equal to the virtual router MAC address.",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Master_Down_Timer o Transition to the {Initialize} state (Note: Here we check that after shutdown is received and DUT transits to Initialize state and doesnot send any advertisements when ANVL doesnot send any advertisement for more than Master_Down_Interval time)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Master_Down_Timer o Transition to the {Initialize} state (Note: Here we check that after shutdown is received and DUT transits to Initialize state and doesnot send any advertisements when ANVL doesnot send any advertisement for more than Master_Down_Interval time)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Send an ADVERTISEMENT\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Send an ADVERTISEMENT",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Set the Master_Down_Timer to Skew_Time o Transition to the {Master} state\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Set the Master_Down_Timer to Skew_Time o Transition to the {Master} state",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.13": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: This test is when Priority is greater, we check DUT sets Master_Down_Interval properly by expiring the same)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: This test is when Priority is greater, we check DUT sets Master_Down_Interval properly by expiring the same)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.14": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is lesser than local priority)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is lesser than local priority)",
+    "reference": "RFC 3768 Sec 6.4.2 p17 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.15": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is equal to local priority)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is equal to local priority)",
+    "reference": "RFC 3768 Sec 6.4.2 p17 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.20": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST forward packets with a destination link layer MAC address equal to the virtual router MAC address.\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST forward packets with a destination link layer MAC address equal to the virtual router MAC address.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p24 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.21": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST NOT accept packets addressed to the IP address(es) associated with the virtual router if it is not the IP address owner.\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST NOT accept packets addressed to the IP address(es) associated with the virtual router if it is not the IP address owner.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.22": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IP address(es) associated with the virtual router if it is the IP address owner.\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IP address(es) associated with the virtual router if it is the IP address owner.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.23": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is IP Address owner)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.24": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is not the IP Address owner)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is not the IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.25": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is IP Address owner)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.26": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is not the IP Address owner)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is not the IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.27": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is greater)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is greater)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.28": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is equal but IP Address is greater. The ANVL router's address is set to be greater than DUTs address)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is equal but IP Address is greater. The ANVL router's address is set to be greater than DUTs address)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.29": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is low and DUT should discard advertisement)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is low and DUT should discard advertisement)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p26 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.30": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then.. else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is equal but IP Address is lesser and DUT should discard Advertisement)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then.. else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is equal but IP Address is lesser and DUT should discard Advertisement)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p26 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.31": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is the IPvX owner and Accept_Mode is False\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is the IPvX owner and Accept_Mode is False",
+    "reference": "RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.6.32": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is not the IPvX owner and Accept_Mode is True\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is not the IPvX owner and Accept_Mode is True",
+    "reference": "RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPPDU should contain no more than one Port VLAN ID TLV\n\n[Log-derived analysis] An LLDPPDU should contain no more than one Port VLAN ID TLV",
+    "reference": "IEEE Std 802.1AB-2005 Section F.2.2 Page 108 'Port VLAN ID usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709092",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.7.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Test by enabling VLAN but not enabling Protocol VLAN and expecting PPVID set to 0)\n\n[Log-derived analysis] If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Test by enabling VLAN but not enabling Protocol VLAN and expecting PPVID set to 0)",
+    "reference": "IEEE Std 802.1AB-2005 Section F.3.2 Page 109 'port and protocol VLAN ID (PPVID)'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709093",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.7.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Note: Test with both PPVID flags set to 0)\n\n[Inferred behavior \u2014 no execution history for this case] If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Note: Test with both PPVID flags set to 0)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section F.3.2 Page 109 'port and protocol VLAN ID (PPVID)'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Note: Test with only PPVID Enabled flag set to 0)\n\n[Inferred behavior \u2014 no execution history for this case] If the port is not capable of supporting port and protocol VLANs and/or the port is not enabled with any port and protocol VLAN, the PPVID number should be zero. (Note: Test with only PPVID Enabled flag set to 0)",
+    "reference": "NEGATIVE IEEE Std 802.1AB-2005 Section F.3.2 Page 109 'port and protocol VLAN ID (PPVID)'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the support bit (bit 1) of the flag field indicates that the port is not capable of supporting port and protocol VLANs but the enabled bit (bit 2) indicates that the port is enabled with one or more port and protocol VLANs, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the support bit (bit 1) of the flag field indicates that the port is not capable of supporting port and protocol VLANs but the enabled bit (bit 2) indicates that the port is enabled with one or more port and protocol VLANs, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.3.3 Page 109 'Port And Protocol VLAN ID TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If the PPVID reference number is greater than 4094, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the PPVID reference number is greater than 4094, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.3.3 Page 109 'Port And Protocol VLAN ID TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If more than one VLAN Name TLV is defined for a port, the VLAN ID and the associated VLAN name combination shall be different from any other VLAN ID and VLAN name combination defined for the port.\n\n[Log-derived analysis] If more than one VLAN Name TLV is defined for a port, the VLAN ID and the associated VLAN name combination shall be different from any other VLAN ID and VLAN name combination defined for the port.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.4.5 Page 110 'VLAN Name TLv usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709094",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.7.8": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "If more than one Protocol Identity TLV is defined for a port, the protocol identity field value shall be different from any other Protocol Identity TLV defined for the port.\n\n[Log-derived analysis] If more than one Protocol Identity TLV is defined for a port, the protocol identity field value shall be different from any other Protocol Identity TLV defined for the port.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.5.4 Page 110 'Protocol Identity TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709095",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.7.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Port And Protocol port and protocol lldpXdot1LocProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1LocProtoVlanEnabled VLAN enabled\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Port And Protocol port and protocol lldpXdot1LocProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1LocProtoVlanEnabled VLAN enabled",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. VLAN Name VLAN name lldpXdot1LocVlanName\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. VLAN Name VLAN name lldpXdot1LocVlanName",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.11": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Protocol Identity protocol identity lldpXdot1LocProtoId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Protocol Identity protocol identity lldpXdot1LocProtoId",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Port And Protocol port and protocol lldpXdot1RemProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1RemProtoVlanEnabled VLAN enabled\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Port And Protocol port and protocol lldpXdot1RemProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1RemProtoVlanEnabled VLAN enabled",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.13": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. VLAN Name VLAN name lldpXdot1RemVlanName\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. VLAN Name VLAN name lldpXdot1RemVlanName",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.7.14": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Protocol Identity protocol identity lldpXdot1RemProtoId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Protocol Identity protocol identity lldpXdot1RemProtoId",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.1": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should contain no more than one MAC/PHY Configuration/Status TLV.\n\n[Log-derived analysis] An LLDPDU should contain no more than one MAC/PHY Configuration/Status TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section G.2.4 Page 133 'MAC/PHY Configuration/Status TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709096",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.8.2": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should contain no more than one Power Via MDI TLV.\n\n[Log-derived analysis] An LLDPDU should contain no more than one Power Via MDI TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section G.3.4 Page 135 'Power Via MDI TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709097",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.8.3": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should contain no more than one Link Aggregation TLV.\n\n[Log-derived analysis] An LLDPDU should contain no more than one Link Aggregation TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section G.4.3 Page 135 'Link Aggregation TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709098",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.8.4": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "An LLDPDU should contain no more than one Maximum Frame Size TLV.\n\n[Log-derived analysis] An LLDPDU should contain no more than one Maximum Frame Size TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section G.5.2 Page 136 'Maximum Frame Size TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357980",
+      "log_uid": "93709099",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2016.8.5": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. MAC/PHY Auto-negotiation lldpXdot3LocPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3LocPortAutoNegEnabled status PMD lldpXdot3LocPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3LocPortOperMauType type\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. MAC/PHY Auto-negotiation lldpXdot3LocPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3LocPortAutoNegEnabled status PMD lldpXdot3LocPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3LocPortOperMauType type",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 138 Table G-6 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.6": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Power Via MDI PortClass lldpXdot3LocPowerPortClass PSE MDI power support lldpXdot3LocPowerMDISupported PSE MDI power state lldpXdot3LocPowerMDIEnabled PSE pairs control lldpXdot3LocPowerPairControlable ability PSE power pair lldpXdot3LocPowerPairs power class lldpXdot3LocPowerClass\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Power Via MDI PortClass lldpXdot3LocPowerPortClass PSE MDI power support lldpXdot3LocPowerMDISupported PSE MDI power state lldpXdot3LocPowerMDIEnabled PSE pairs control lldpXdot3LocPowerPairControlable ability PSE power pair lldpXdot3LocPowerPairs power class lldpXdot3LocPowerClass",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 138 Table G-6 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.7": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Link Aggregation aggregation status lldpXdot3LocLinkAggStatus aggregation port ID lldpXdot3LocLinkAggPortId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Link Aggregation aggregation status lldpXdot3LocLinkAggStatus aggregation port ID lldpXdot3LocLinkAggPortId",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 138 Table G-6 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.8": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Maximum Frame Size maximum frame size lldpXdot3LocMaxFrameSize\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Maximum Frame Size maximum frame size lldpXdot3LocMaxFrameSize",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 138 Table G-6 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.9": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. MAC/PHY Auto-negotiation lldpXdot3RemPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3RemPortAutoNegEnabled status PMD lldpXdot3RemPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3RemPortOperMauType type (Note: lldpXdot3RemPortAutoNegAdvCap corresponds to lldpXdot3RemPortAutoNegAdvertisedCap in IEEE 802.3 LLDP extension MIB Module)\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. MAC/PHY Auto-negotiation lldpXdot3RemPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3RemPortAutoNegEnabled status PMD lldpXdot3RemPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3RemPortOperMauType type (Note: lldpXdot3RemPortAutoNegAdvCap corresponds to lldpXdot3RemPortAutoNegAdvertisedCap in IEEE 802.3 LLDP extension MIB Module)",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.10": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Power Via MDI PortClass lldpXdot3RemPowerPortClass PSE MDI power support lldpXdot3RemPowerMDISupported PSE MDI power state lldpXdot3RemPowerMDIEnabled PSE pairs control lldpXdot3RemPowerPairControlable ability PSE power pair lldpXdot3RemPowerPairs power class lldpXdot3RemPowerClass\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Power Via MDI PortClass lldpXdot3RemPowerPortClass PSE MDI power support lldpXdot3RemPowerMDISupported PSE MDI power state lldpXdot3RemPowerMDIEnabled PSE pairs control lldpXdot3RemPowerPairControlable ability PSE power pair lldpXdot3RemPowerPairs power class lldpXdot3RemPowerClass",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.11": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Link Aggregation aggregation status lldpXdot3RemLinkAggStatus aggregation port ID lldpXdot3RemLinkAggPortId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Link Aggregation aggregation status lldpXdot3RemLinkAggStatus aggregation port ID lldpXdot3RemLinkAggPortId",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2016.8.12": {
+    "suite_id": "2016",
+    "suite_name": "2016_IxANVL_lldp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Maximum Frame Size maximum frame size lldpXdot3RemMaxFrameSize\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Maximum Frame Size maximum frame size lldpXdot3RemMaxFrameSize",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

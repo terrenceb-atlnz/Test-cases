@@ -1,0 +1,160 @@
+{
+  "6010.0.0": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6010.1001.0": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6010.1001.10": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Test interface for 20 min\n\n[Log-derived analysis] Test interface for 20 min",
+    "reference": "",
+    "past_crs": [
+      "71144",
+      "71128"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355695",
+      "log_uid": "93640007",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6010.1001.20": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Check Test Count output\n\n[Log-derived analysis] Check Test Count output",
+    "reference": "",
+    "past_crs": [
+      "64464",
+      "70518",
+      "71144",
+      "71128",
+      "74147",
+      "CR-87729"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355695",
+      "log_uid": "93640211",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6010.1001.30": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Check Test Output\n\n[Log-derived analysis] Check Test Output",
+    "reference": "",
+    "past_crs": [
+      "71144",
+      "71128"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355695",
+      "log_uid": "93640436",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6010.1002.0": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6010.1002.10": {
+    "suite_id": "6010",
+    "suite_name": "6010_ART_interface_test",
+    "description": "Running autoburnin for 360 min\n\n[Log-derived analysis] Running autoburnin for 360 min",
+    "reference": "",
+    "past_crs": [
+      "65744",
+      "65679",
+      "68412",
+      "68413",
+      "71872",
+      "71994",
+      "71144",
+      "71128",
+      "72504",
+      "72419",
+      "73204",
+      "73814",
+      "73814",
+      "74835",
+      "74822",
+      "74851",
+      "75274",
+      "76562",
+      "77553",
+      "83001",
+      "86315",
+      "86472SYST-8888",
+      "SYST-8012"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355695",
+      "log_uid": "93650836",
+      "platform": "AR1050V-tb169.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

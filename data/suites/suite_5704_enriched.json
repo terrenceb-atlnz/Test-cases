@@ -1,0 +1,438 @@
+{
+  "5704.1001.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ALMMON - MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ALMMON - MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-ALMMON-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1002.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ATMF - Master\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ATMF - Master",
+    "reference": "ATKK SNMP Spreadsheet - AT-ATMF-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1002.2": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ATMF - Controller\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ATMF - Controller",
+    "reference": "ATKK SNMP Spreadsheet - AT-ATMF-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1002.3": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ATMF - Controller\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ATMF - Controller",
+    "reference": "ATKK SNMP Spreadsheet - AT-ATMF-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1003.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - LLDP-EXT-MED - MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - LLDP-EXT-MED - MIB",
+    "reference": "ATKK SNMP Spreadsheet - LLDP-EXT-MED-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1004.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-DNS - MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-DNS - MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-DNS-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - Fan\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - Fan",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.2": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - Voltage\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - Voltage",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.3": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - Temp\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - Temp",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.4": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - PSB info\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - PSB info",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.5": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - Fault Led\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - Fault Led",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1005.6": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-ENVMONv2 - Contact and PSU Table\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-ENVMONv2 - Contact and PSU Table",
+    "reference": "ATKK SNMP Spreadsheet - AT-ENVMONv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1006.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-EPSRv2 - MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-EPSRv2 - MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-EPSRv2-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1007.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-FILE - MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-FILE - MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-FILE-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1008.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-IP-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-IP-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-IP-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1009.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-LICENSE-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-LICENSE-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-LICENSE-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1009.2": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-LICENSE- Removal\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-LICENSE- Removal",
+    "reference": "ATKK SNMP Spreadsheet - AT-LICENSE-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1010.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-LOG-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-LOG-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-LOG-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1011.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-MIBVERSIONMIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-MIBVERSIONMIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-MIBVERSION-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1012.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-NTP-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-NTP-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-NTP-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1013.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-PLUGGABLE-DIAGNOSTICS-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-PLUGGABLE-DIAGNOSTICS-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-PLUGGABLE-DIAGNOSTICS-MIB)",
+    "past_crs": [
+      "CR-58929"
+    ],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1014.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-RESOURCE-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-RESOURCE-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-RESOURCE-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1015.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-SETUP-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-SETUP-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-SETUP-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1016.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-SYSINFO-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-SYSINFO-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-SYSINFO-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1017.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-TRIGGER-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-TRIGGER-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-TRIGGER-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1018.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-USER-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-USER-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-USER-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1018,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1020.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-VLAN-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-VLAN-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-VLAN-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.1021.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "SNMP MIB - AT-XEM-MIB\n\n[Inferred behavior \u2014 no execution history for this case] SNMP MIB - AT-XEM-MIB",
+    "reference": "ATKK SNMP Spreadsheet - AT-XEM-MIB)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.9999.0": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5704.9999.1": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "Link Trap\n\n[Inferred behavior \u2014 no execution history for this case] Link Trap",
+    "reference": "Private MIB - LinkTrap",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5704.9999.2": {
+    "suite_id": "5704",
+    "suite_name": "5704_Private_MIB",
+    "description": "AT - Trigger Trap\n\n[Inferred behavior \u2014 no execution history for this case] AT - Trigger Trap",
+    "reference": "Private MIB - TriggerTrap",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "6400.0.0": {
+    "suite_id": "6400",
+    "suite_name": "6400_lup_environment",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6400.1000.1": {
+    "suite_id": "6400",
+    "suite_name": "6400_lup_environment",
+    "description": "show system environment\n\n[Log-derived analysis] show system environment",
+    "reference": "LUP-22",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2801941",
+      "log_uid": "77871280",
+      "platform": "SBx90xGEN3-tb388.rel",
+      "sw_version": "marvelldev_5.5.4A_2-20250114-7",
+      "run_date": "2025-01-17",
+      "result": "PASS"
+    }
+  }
+}

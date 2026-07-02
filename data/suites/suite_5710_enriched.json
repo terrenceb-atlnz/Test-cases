@@ -1,0 +1,160 @@
+{
+  "5710.1001.0": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "5710.1001.1": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Repeated reconfiguration of power-inline\n\n[Inferred behavior \u2014 no execution history for this case] Repeated reconfiguration of power-inline",
+    "reference": "AWPTCM-T12258 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.2": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Repeated reconfiguration of power-inline\n\n[Inferred behavior \u2014 no execution history for this case] Repeated reconfiguration of power-inline",
+    "reference": "AWPTCM-T12258 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.3": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Repeated reconfiguration of power-inline\n\n[Inferred behavior \u2014 no execution history for this case] Repeated reconfiguration of power-inline",
+    "reference": "AWPTCM-T12258 (1.0)",
+    "past_crs": [
+      "CR-62109"
+    ],
+    "current_crs": [
+      "62109"
+    ],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.4": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Repeated reconfiguration of power-inline\n\n[Inferred behavior \u2014 no execution history for this case] Repeated reconfiguration of power-inline",
+    "reference": "AWPTCM-T12258 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.5": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "PoE configuration remains after reboot\n\n[Inferred behavior \u2014 no execution history for this case] PoE configuration remains after reboot",
+    "reference": "AWPTCM-T12255 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.6": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Reboot device with PoE load\n\n[Inferred behavior \u2014 no execution history for this case] Reboot device with PoE load",
+    "reference": "AWPTCM-T12343 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.7": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Reboot device with PoE load after setting PoE port priority\n\n[Inferred behavior \u2014 no execution history for this case] Reboot device with PoE load after setting PoE port priority",
+    "reference": "AWPTCM-T12344 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1001.8": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "Test commands to remove power-inline configurations\n\n[Inferred behavior \u2014 no execution history for this case] Test commands to remove power-inline configurations",
+    "reference": "N/A",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1002.1": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "PoE High Availability Process Kill and Restart\n\n[Inferred behavior \u2014 no execution history for this case] PoE High Availability Process Kill and Restart",
+    "reference": "AWPTCM-T12289 (1.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5710.1003.1": {
+    "suite_id": "5710",
+    "suite_name": "5710_Platform_PoE",
+    "description": "PoE Priority\n\n[Inferred behavior \u2014 no execution history for this case] PoE Priority",
+    "reference": "AWPTCM-T12321 (2.0)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

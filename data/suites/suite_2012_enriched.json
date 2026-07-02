@@ -1,0 +1,2052 @@
+{
+  "2012.1.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "An IPv6 host must respond to all ICMPv6 Echo Requests sent to it, by sending an ICMPv6 Echo Reply back to the sender of ICMPv6 Echo Request.\n\n[Log-derived analysis] An IPv6 host must respond to all ICMPv6 Echo Requests sent to it, by sending an ICMPv6 Echo Reply back to the sender of ICMPv6 Echo Request.",
+    "reference": "ANVL Setup Specific",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713348",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.1.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "An IPv6 router must forward all the ICMPv6 Echo Requests and replies to and from the networks it is connected to.\n\n[Log-derived analysis] An IPv6 router must forward all the ICMPv6 Echo Requests and replies to and from the networks it is connected to.",
+    "reference": "ANVL Setup Specific",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713349",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.2.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Length of the IPv6 payload, i.e. the rest of the packet following this IPv6 header, in octets, can be odd\n\n[Log-derived analysis] Length of the IPv6 payload, i.e. the rest of the packet following this IPv6 header, in octets, can be odd",
+    "reference": "RFC 2460 s3 p4 IPv6 Header Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713350",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.2.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Length of the IPv6 payload, i.e. the rest of the packet following this IPv6 header, in octets, can be odd\n\n[Log-derived analysis] Length of the IPv6 payload, i.e. the rest of the packet following this IPv6 header, in octets, can be odd",
+    "reference": "RFC 2460 s3 p4 IPv6 Header Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713351",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header\n\n[Log-derived analysis] The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header",
+    "reference": "NEGATIVE RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713352",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header\n\n[Log-derived analysis] The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header",
+    "reference": "RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713353",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, as a result of processing a header, a node is required to proceed to the next header but the Next Header value in the current header is unrecognized by the node, it should discard the packet (This tests for a router ignoring the unrecognized Next Header value)\n\n[Log-derived analysis] If, as a result of processing a header, a node is required to proceed to the next header but the Next Header value in the current header is unrecognized by the node, it should discard the packet (This tests for a router ignoring the unrecognized Next Header value)",
+    "reference": "RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713354",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the Next Header value in the current header is unrecognized by by the node, it should send an ICMPv6 parameter problem to the source of the packet, with an ICMPv6 code value of 1 (Unrecognized Next Header type encountered) and the ICMPv6 Pointer field containing the offset of the unrecognized value within the original packet\n\n[Log-derived analysis] If the Next Header value in the current header is unrecognized by by the node, it should send an ICMPv6 parameter problem to the source of the packet, with an ICMPv6 code value of 1 (Unrecognized Next Header type encountered) and the ICMPv6 Pointer field containing the offset of the unrecognized value within the original packet",
+    "reference": "RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713355",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.5": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If a node encounters a Next Header value of zero in any header otherthan an IPv6 header (e,g Fragment Header), it should discard the packet\n\n[Log-derived analysis] If a node encounters a Next Header value of zero in any header otherthan an IPv6 header (e,g Fragment Header), it should discard the packet",
+    "reference": "RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713356",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.6": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If a node encounters a Next Header value of zero in any header other than an IPv6 header (e,g Destination Option Header), it should discard the packet\n\n[Log-derived analysis] If a node encounters a Next Header value of zero in any header other than an IPv6 header (e,g Destination Option Header), it should discard the packet",
+    "reference": "RFC 2460 s4 p7 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713357",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.7": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If a node encounters a Next Header value of zero in any header other than the IPv6 header, it should send an ICMP parameter problem message to the source of the packet, with an ICMP code value of 1 (unrecognized Next Header type encountered) and the ICMP Pointer field containing the offset of the unrecognized value within the original packet\n\n[Log-derived analysis] If a node encounters a Next Header value of zero in any header other than the IPv6 header, it should send an ICMP parameter problem message to the source of the packet, with an ICMP code value of 1 (unrecognized Next Header type encountered) and the ICMP Pointer field containing the offset of the unrecognized value within the original packet",
+    "reference": "RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713358",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.8": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header is an integer multiple of 8 octets long, in order to retain 8-octet alignment for subsequent headers\n\n[Log-derived analysis] Each extension header is an integer multiple of 8 octets long, in order to retain 8-octet alignment for subsequent headers",
+    "reference": "RFC 2460 s4 p6 IPv6Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713359",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.9": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, as a result of processing a header, a node is required to proceed to the next header but the Next Header value in the current header is unrecognized by the node, it should discard the packet\n\n[Log-derived analysis] If, as a result of processing a header, a node is required to proceed to the next header but the Next Header value in the current header is unrecognized by the node, it should discard the packet",
+    "reference": "RFC 2460 s4 p7 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713360",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.3.10": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header is an integer multiple of 8 octets long, in order to retain 8-octet alignment for subsequent headers\n\n[Log-derived analysis] Each extension header is an integer multiple of 8 octets long, in order to retain 8-octet alignment for subsequent headers",
+    "reference": "RFC 2460 s4 p6 IPv6Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713361",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.4.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header should occur at most once except Destination Option Header\n\n[Log-derived analysis] Each extension header should occur at most once except Destination Option Header",
+    "reference": "RFC 2460 s4.1 p7 Extension Header Order",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713362",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.4.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header should occur at most once except Destination Option Header AND IPv6 nodes must accept and attempt to process extension headers in any order and occurring any number of times in the same packet\n\n[Log-derived analysis] Each extension header should occur at most once except Destination Option Header AND IPv6 nodes must accept and attempt to process extension headers in any order and occurring any number of times in the same packet",
+    "reference": "RFC 2460 s4.1 p7 Extension Header Order",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713363",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.4.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header should occur at most once except Destination Option Header\n\n[Log-derived analysis] Each extension header should occur at most once except Destination Option Header",
+    "reference": "RFC 2460 s4.1 p8 Extension Header Order",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713364",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.4.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Each extension header should occur at most once except Destination Option Header IPv6 nodes must accept and attempt to process extension headers in any order and occurring any number of times in the same packet\n\n[Log-derived analysis] Each extension header should occur at most once except Destination Option Header IPv6 nodes must accept and attempt to process extension headers in any order and occurring any number of times in the same packet",
+    "reference": "NEGATIVE RFC 2460 s4.1 p7 Extension Header Order",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713365",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Hop-by-Hop Option Header, it skips over this option and continues processing the header\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Hop-by-Hop Option Header, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713366",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Destination Option header, it skips over this option and continues processing the header\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Destination Option header, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713367",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713368",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header\n\n[Log-derived analysis] When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713369",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.5": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01 of a Hop-by-Hop Option Header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01 of a Hop-by-Hop Option Header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708926",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.6": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header and if the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header and if the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708927",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.7": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 01 of a Destination Option header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 01 of a Destination Option header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713372",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.8": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713373",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.9": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708930",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.10": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708931",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.11": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713376",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.12": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p8 Option RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708933",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.13": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the option Type with higher order 2-bits 10, it discards the packet and sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the option Type with higher order 2-bits 10, it discards the packet and sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357262",
+      "log_uid": "93689918",
+      "platform": "AR4050S-atr45.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2012.5.14": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p8 Option RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713379",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.15": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Destination Option Header,the options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Destination Option Header,the options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713380",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.16": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713381",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.17": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option header, and with multicast destination address, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Destination Option header, and with multicast destination address, it discards the packet",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713382",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.18": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713383",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.19": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with with higher order 2-bits 10 of a Destination Option header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with with higher order 2-bits 10 of a Destination Option header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p8 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713384",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.20": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708941",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.21": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708942",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.22": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11 of a Destination Option header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11 of a Destination Option header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713387",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.23": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Destination Option Header, the sequence of options must be processed strictly in the order they appear appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713388",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.24": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708945",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.25": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast Hop-by-Hop Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast Hop-by-Hop Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357978",
+      "log_uid": "93708946",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.26": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with with higher order 2-bits 11 of a Destination Option header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with with higher order 2-bits 11 of a Destination Option header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713391",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.27": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Destination Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast packet's Destination Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Destination Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast packet's Destination Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713392",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.28": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713393",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.29": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11 of a Destination Option header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11 of a Destination Option header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.6 p22 Destination Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713394",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.30": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Pad1 option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length\n\n[Log-derived analysis] Pad1 option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length",
+    "reference": "RFC 2460 s4.2 p9 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713395",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.31": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Pad1 option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: Test description of test-5.31 is not directly copied from the RFC. In RFC 2460, two sentences are merged to make this test case\n\n[Log-derived analysis] Pad1 option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: Test description of test-5.31 is not directly copied from the RFC. In RFC 2460, two sentences are merged to make this test case",
+    "reference": "RFC 2460 s4.2 p9 Options, 4.6 Destination option header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713396",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.5.32": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: Test description of test-5.32 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: Test description of test-5.32 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p9 Options, 4.3 Hop-by-Hop Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713397",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: Test description of test-6.1 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] PadN option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: Test description of test-6.1 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p9 Options, Appendix B, p30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713398",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Hop-by-Hop Option header with two PadN Options to a multiple of 8 octets in length [Note: Test description of test-6.2 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] PadN option can be used to pad out a Hop-by-Hop Option header with two PadN Options to a multiple of 8 octets in length [Note: Test description of test-6.2 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p9 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713399",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Destination Option header with two Options to a multiple of 8 octets in length [Note: Test description of test-6.3 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] PadN option can be used to pad out a Destination Option header with two Options to a multiple of 8 octets in length [Note: Test description of test-6.3 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p10 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713400",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.6": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Both Pad1 and PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: Test description of test-6.6 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] Both Pad1 and PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: Test description of test-6.6 is not directly copied from the RFC. In RFC 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p9 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713401",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.7": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Both Pad1 and PadN option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: test description of test-6.7 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] Both Pad1 and PadN option can be used to pad out a Destination Option header to a multiple of 8 octets in length [Note: test description of test-6.7 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p9 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713402",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.8": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Hop-by-Hop Option header with two Options to a multiple of 8 octets in length [Note: test description of test-6.8 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] PadN option can be used to pad out a Hop-by-Hop Option header with two Options to a multiple of 8 octets in length [Note: test description of test-6.8 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p11 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713403",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.6.9": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Both Pad1 and PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: test description of test-6.9 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test\n\n[Log-derived analysis] Both Pad1 and PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length [Note: test description of test-6.9 is not directly copied from the rfc. in rfc 2460, two sentences from different sections are merged to make this test",
+    "reference": "RFC 2460 s4.2 p10 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713404",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.7.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value, and if Segments Left is zero, the node must ignore the Routing header and proceed to process the next header in the packet\n\n[Log-derived analysis] If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value, and if Segments Left is zero, the node must ignore the Routing header and proceed to process the next header in the packet",
+    "reference": "RFC 2460 s4.4 p12 Routing Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713405",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.7.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value and if Segments Left is non-zero, it sends an ICMP Parameter Problem, Code 0, message to the packet's Source Address, pointing to the unrecognized Routing Type\n\n[Log-derived analysis] If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value and if Segments Left is non-zero, it sends an ICMP Parameter Problem, Code 0, message to the packet's Source Address, pointing to the unrecognized Routing Type",
+    "reference": "RFC 2460 s4.4 p12 Routing Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713406",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.7.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value, and if Segments Left is zero, the node must ignore the Routing header and proceed to process the next header in the packet\n\n[Log-derived analysis] If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value, and if Segments Left is zero, the node must ignore the Routing header and proceed to process the next header in the packet",
+    "reference": "RFC 2460 s4.4 p12 Routing Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713407",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.7.5": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value and if Segments Left is non-zero, it sends an ICMP Parameter Problem, Code 0, message to the packet's Source Address, pointing to the unrecognized Routing Type\n\n[Log-derived analysis] If, while processing an IPv6 packet, a node encounters a Routing header with an unrecognized Routing Type value and if Segments Left is non-zero, it sends an ICMP Parameter Problem, Code 0, message to the packet's Source Address, pointing to the unrecognized Routing Type",
+    "reference": "RFC 2460 s4.4 p12 Routing Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713408",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "While reassembling fragmented packets, if duplicate fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet should not be affected [Note: Test description of test-8.1 is not directly copied from the RFC. In RFC 2460, there is no such comment on the duplicate fragment. In error conditions mentioned in the RFC there is also no such comments about the duplicate fragment. So we have assumed that duplicate fragment should not affect the reassembly]\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] While reassembling fragmented packets, if duplicate fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet should not be affected [Note: Test description of test-8.1 is not directly copied from the RFC. In RFC 2460, there is no such comment on the duplicate fragment. In error conditions mentioned in the RFC there is also no such comments about the duplicate fragment. So we have assumed that duplicate fragment should not affect the reassembly]",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [
+      "39989"
+    ],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2012.8.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The fragment offset of the first(leftmost) fragment is 0 An M flag value of 0 if the fragment is the last one\n\n[Log-derived analysis] The fragment offset of the first(leftmost) fragment is 0 An M flag value of 0 if the fragment is the last one",
+    "reference": "RFC 2460 s4.5 p16 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713409",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "A receiving node should not start reassembly of a complete packet, till the fragments with same Fragment Identification values have been received [Note: test description of test-8.3 is not directly copied from the rfc. 2460\n\n[Log-derived analysis] A receiving node should not start reassembly of a complete packet, till the fragments with same Fragment Identification values have been received [Note: test description of test-8.3 is not directly copied from the rfc. 2460",
+    "reference": "RFC 2460 s4.5 p16 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713410",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The Fragment header is used by an IPv6 source to send a packet larger than would fit in the path MTU to its destination\n\n[Log-derived analysis] The Fragment header is used by an IPv6 source to send a packet larger than would fit in the path MTU to its destination",
+    "reference": "RFC 2460 s4.5 p16 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713411",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.5": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The Reserved and the Res field of Fragment Header is initialized to zero for transmission\n\n[Log-derived analysis] The Reserved and the Res field of Fragment Header is initialized to zero for transmission",
+    "reference": "RFC 2460 s4.5 p16 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713412",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.6": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "M flag value of Fragment Header is set to 0 if the fragment is the last (rightmost) one, else M flag value is set to 1\n\n[Log-derived analysis] M flag value of Fragment Header is set to 0 if the fragment is the last (rightmost) one, else M flag value is set to 1",
+    "reference": "RFC 2460 s4.5 p18 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713413",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.7": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Source Address checked]\n\n[Log-derived analysis] The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Source Address checked]",
+    "reference": "RFC 2460 s4.5 p19 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713414",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.8": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Destination Address checked]\n\n[Log-derived analysis] The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Destination Address checked]",
+    "reference": "RFC 2460 s4.5 p19 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713415",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.9": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Fragment Identification checked]\n\n[Log-derived analysis] The original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification [Note Here only same Fragment Identification checked]",
+    "reference": "RFC 2460 s4.5 p19 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713416",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.10": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "An original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification, irrespective of the order in which the fragments arrives\n\n[Log-derived analysis] An original packet is reassembled only from fragment packets that have the same Source Address, Destination Address, and Fragment Identification, irrespective of the order in which the fragments arrives",
+    "reference": "RFC 2460 s4.5 p19 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713417",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.11": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment (i.e. the one with the Fragment Offset of zero), reassembly of the packet must be abandoned and all the fragments that have been received for the packet must be discarded\n\n[Log-derived analysis] While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment (i.e. the one with the Fragment Offset of zero), reassembly of the packet must be abandoned and all the fragments that have been received for the packet must be discarded",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713418",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.12": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet must be abandoned and if the first fragment (i.e., the one with a Fragment Offset of zero) has been received, an ICMP Time Exceeded--Fragment Reassembly Time Exceeded message should be sent to the source of that fragment\n\n[Log-derived analysis] While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet must be abandoned and if the first fragment (i.e., the one with a Fragment Offset of zero) has been received, an ICMP Time Exceeded--Fragment Reassembly Time Exceeded message should be sent to the source of that fragment",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713419",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.13": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet must be abandoned and if the first fragment (i.e., the one with a Fragment Offset of zero) have been received, an ICMP Time Exceeded--Fragment Reassembly Time Exceeded message should be sent to the source of that fragment\n\n[Log-derived analysis] While reassembling fragmented packets, if insufficient fragments are received within 60 seconds of the arrival of the first arrived fragment, reassembly of the packet must be abandoned and if the first fragment (i.e., the one with a Fragment Offset of zero) have been received, an ICMP Time Exceeded--Fragment Reassembly Time Exceeded message should be sent to the source of that fragment",
+    "reference": "NEGATIVE RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713420",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.14": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the length of a fragment, as derived from the fragment packet's Payload Length field, is not a multiple of 8 octets and the M flag of that fragment is 1, then that fragment must be discarded\n\n[Log-derived analysis] If the length of a fragment, as derived from the fragment packet's Payload Length field, is not a multiple of 8 octets and the M flag of that fragment is 1, then that fragment must be discarded",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713421",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.15": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the length of a fragment, as derived from the fragment packet's Payload Length field, is not a multiple of 8 octets and the M flag of that fragment is 1, then an ICMP Parameter Problem, Code 0, message should be sent to the source of the fragment, pointing to the Payload Length field of the fragment packet\n\n[Log-derived analysis] If the length of a fragment, as derived from the fragment packet's Payload Length field, is not a multiple of 8 octets and the M flag of that fragment is 1, then an ICMP Parameter Problem, Code 0, message should be sent to the source of the fragment, pointing to the Payload Length field of the fragment packet",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713422",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.16": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the length and offset of a fragment are such that the Payload Length of the packet reassembled from that fragment would exceed 65,535 octets then an ICMP Parameter Problem, Code 0, message should be sent to the source of the fragment, pointing to the Fragment Offset field of the fragment packet\n\n[Log-derived analysis] If the length and offset of a fragment are such that the Payload Length of the packet reassembled from that fragment would exceed 65,535 octets then an ICMP Parameter Problem, Code 0, message should be sent to the source of the fragment, pointing to the Fragment Offset field of the fragment packet",
+    "reference": "RFC 2460 s4.5 p20 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713423",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.8.17": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If Next Header values in the Fragment headers of different fragments of the same original packet differ, only the value from the Offset zero fragment packet is used for reassembly\n\n[Log-derived analysis] If Next Header values in the Fragment headers of different fragments of the same original packet differ, only the value from the Offset zero fragment packet is used for reassembly",
+    "reference": "RFC 2460 s4.5 p21 Fragment Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713424",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.9.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the value of the Next Header field of an IPv6 header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of IPv6 Header those octets must be ignored, and passed on unchanged if the packet is forwarded\n\n[Log-derived analysis] If the value of the Next Header field of an IPv6 header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of IPv6 Header those octets must be ignored, and passed on unchanged if the packet is forwarded",
+    "reference": "RFC 2460 s4.7 p22 No Next Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713425",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.9.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the value of the Next Header field of any extension header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of the header those octets must be ignored, and passed on unchanged if the packet is forwarded\n\n[Log-derived analysis] If the value of the Next Header field of any extension header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of the header those octets must be ignored, and passed on unchanged if the packet is forwarded",
+    "reference": "RFC 2460 s4.7 p22 No Next Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713426",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.9.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the value of the Next Header field of an IPv6 header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of IPv6 Header those octets must be ignored, and passed on unchanged if the packet is forwarded\n\n[Log-derived analysis] If the value of the Next Header field of an IPv6 header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of IPv6 Header those octets must be ignored, and passed on unchanged if the packet is forwarded",
+    "reference": "RFC 2460 s4.7 p24 No Next Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713427",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.9.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the value of the Next Header field of any extension header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of the header those octets must be ignored, and passed on unchanged if the packet is forwarded\n\n[Log-derived analysis] If the value of the Next Header field of any extension header is 59 and if the Payload Length field of the IPv6 header indicates the presence of octets past the end of the header those octets must be ignored, and passed on unchanged if the packet is forwarded",
+    "reference": "RFC 2460 s4.7 p24 No Next Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713428",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.10.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "A node must be able to accept a fragmented packet that, after reassembly, is as large as 1500 octets.\n\n[Log-derived analysis] A node must be able to accept a fragmented packet that, after reassembly, is as large as 1500 octets.",
+    "reference": "RFC 2460 s5 p23 Packet Size Issues",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713429",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.12.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Nodes should ignore any bits of the Traffic Class field for which they do not support a specific use\n\n[Log-derived analysis] Nodes should ignore any bits of the Traffic Class field for which they do not support a specific use",
+    "reference": "RFC 2460 s7 p26 Traffic Classes",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713430",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.12.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Nodes should ignore any bits of the Traffic Class field for which they do not support a specific use\n\n[Log-derived analysis] Nodes should ignore any bits of the Traffic Class field for which they do not support a specific use",
+    "reference": "RFC 2460 s7 p24 Traffic Classes",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713431",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.13.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Any transport or other upper-layer protocol that includes the addresses from the IPv6 header in its checksum computation must use the Pseudo-Header in their checksum calculation\n\n[Log-derived analysis] Any transport or other upper-layer protocol that includes the addresses from the IPv6 header in its checksum computation must use the Pseudo-Header in their checksum calculation",
+    "reference": "RFC 2460 s8.1 p26 Upper-Layer Checksums",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713432",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.13.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "The IPv6 version of ICMP [ICMPv6] includes the Pseudo-Header in its checksum computation\n\n[Log-derived analysis] The IPv6 version of ICMP [ICMPv6] includes the Pseudo-Header in its checksum computation",
+    "reference": "RFC 2460 s8.1 p26 Upper-Layer Checksums",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713433",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.14.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "IPv6 packets are transmitted in standard Ethernet frames where the Ethernet type code MUST contain the value 86DD hexadecimal.\n\n[Log-derived analysis] IPv6 packets are transmitted in standard Ethernet frames where the Ethernet type code MUST contain the value 86DD hexadecimal.",
+    "reference": "NEGATIVE RFC 2464 s3 p2 Frame Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713434",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.14.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "IPv6 packets are transmitted in standard Ethernet frames where the Ethernet type code MUST contain the value 86DD hexadecimal.\n\n[Log-derived analysis] IPv6 packets are transmitted in standard Ethernet frames where the Ethernet type code MUST contain the value 86DD hexadecimal.",
+    "reference": "RFC 2464 s3 p2 Frame Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713435",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.14.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "An IPv6 packet with a multicast destination address DST, consisting of the sixteen octets DST[1] through DST[16], is transmitted to the Ethernet multicast address whose first two octets are the value 3333 hexadecimal and whose last four octets are the last four octets of DST\n\n[Log-derived analysis] An IPv6 packet with a multicast destination address DST, consisting of the sixteen octets DST[1] through DST[16], is transmitted to the Ethernet multicast address whose first two octets are the value 3333 hexadecimal and whose last four octets are the last four octets of DST",
+    "reference": "RFC 2464 s7 p5 Address Mapping -- Multicast",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713436",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.14.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "An IPv6 packet with a multicast destination address DST, consisting of the sixteen octets DST[1] through DST[16], is transmitted to the Ethernet multicast address whose first two octets are the value 3333 hexadecimal and whose last four octets are the last four octets of DST\n\n[Log-derived analysis] An IPv6 packet with a multicast destination address DST, consisting of the sixteen octets DST[1] through DST[16], is transmitted to the Ethernet multicast address whose first two octets are the value 3333 hexadecimal and whose last four octets are the last four octets of DST",
+    "reference": "NEGATIVE RFC 2464 s7 p5 Address Mapping -- Multicast",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713437",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.1": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Hop-by-Hop Option Header, it skips over this option and continues processing the header\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00 of a Hop-by-Hop Option Header, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713438",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.2": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type, with higher order 2-bits 00, it skips over this option and continues processing the header",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713439",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.3": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01 of a Hop-by-Hop Option Header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01 of a Hop-by-Hop Option Header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713440",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.4": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header and if the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header and if the processing IPv6 node does not recognize the Option Type with higher order 2-bits 01, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713441",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.5": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it discards the packet Note: Discarding the packet is verified by not receiving the Echo Reply packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it discards the packet Note: Discarding the packet is verified by not receiving the Echo Reply packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713442",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.6": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it discards the packet Note: Discarding the packet is verified by not receiving the Echo Reply packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10, it discards the packet Note: Discarding the packet is verified by not receiving the Echo Reply packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713443",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.7": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713444",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.8": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear in the Header. If the processing IPv6 Host does not recognize the option Type with higher order 2-bits 10, it discards the packet and sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear in the Header. If the processing IPv6 Host does not recognize the option Type with higher order 2-bits 10, it discards the packet and sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713445",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.9": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713446",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.10": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 10 of a Hop-by-Hop Option Header, and with multicast destination address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713447",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.11": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header, it discards the packet\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713448",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.12": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the sequence of options must be processed strictly in the order they appear in the Header. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, it discards the packet",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713449",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.13": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type\n\n[Log-derived analysis] If the processing IPv6 node does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and only if the packet's Destination Address was not a multicast address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address, pointing to the unrecognized Option Type",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713450",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.14": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast Hop-by-Hop Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] When multiple options are present in a Hop-by-Hop Option Header, the options must be processed strictly in the order they appear. If the processing IPv6 node does not recognize the Option Type with higher order 2-bits 11, with unicast Hop-by-Hop Address, it sends an ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713451",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.15": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "If the processing IPv6 host does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address\n\n[Log-derived analysis] If the processing IPv6 host does not recognize the Option Type with the higher order 2-bits 11 of a Hop-by-Hop Option Header and if the packet's Destination Address was a multicast address, it does not send ICMP Parameter Problem, Code 2, message to the packet's Source Address",
+    "reference": "RFC 2460 s4.2 p9 Options RFC 2460 s4.3 p11 Hop-by-Hop Options Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713452",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.16": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "Pad1 option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length\n\n[Log-derived analysis] Pad1 option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length",
+    "reference": "RFC 2460 s4.2 p9 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713453",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2012.15.17": {
+    "suite_id": "2012",
+    "suite_name": "2012_IxANVL_ipv6_core",
+    "description": "PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length\n\n[Log-derived analysis] PadN option can be used to pad out a Hop-by-Hop Option header to a multiple of 8 octets in length",
+    "reference": "RFC 2460 s4.2 p11 Options",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358131",
+      "log_uid": "93713454",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  }
+}

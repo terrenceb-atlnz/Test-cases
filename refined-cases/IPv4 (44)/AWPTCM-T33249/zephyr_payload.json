@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33249": {
+    "objective": "<ul><li>Enabling \"arp log\" causes ARP creation, aging timeout, static ARP create, static ARP delete, and ARP movement events to be logged to the system log.</li><li>MAC addresses appear in ARP log messages using the format selected by the mac-address-format setting (default dotted-hexadecimal or IEEE colon-separated).</li><li>The \"arp log\" command (including the mac-address-format ieee option) is accepted by the CLI and the configuration is stored correctly.</li><li>ARP logging configuration present in the startup configuration causes ARP events to be logged after device startup or reload.</li><li>The \"no arp log\" command removes the logging configuration and stops logging of ARP events.</li><li>ARP log messages are generated and visible via terminal monitor and show log commands with accurate event and address details.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink AWP-4397 (ARP Log: Functionality) and AWP-4396 (ARP Log: Command).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable \"arp log\" (with and without mac-address-format ieee). Generate dynamic ARP entries via traffic. Confirm creation events are logged with MAC addresses in the selected format.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Allow dynamic ARP entries to age out. Confirm aging/timeout events are logged correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create and delete static ARP entries. Confirm both create and delete events are logged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Induce an ARP movement (IP address associated with a new MAC). Confirm a movement event is logged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the arp log configuration to startup-config. Reload or restart the device. Confirm ARP events continue to be logged after startup.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable ARP logging using the \"no arp log\" command. Generate ARP activity and confirm no further ARP log messages are produced.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that show log and terminal monitor display the ARP log messages, and that the mac-address-format setting correctly controls the displayed address format.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1091 @@
+{
+  "6911.1001.1": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check the Boot System Backup release cannot be set to the same as the Boot System release.\n\n[Log-derived analysis] Boot System: Check the Boot System Backup release cannot be set to the same as the Boot System release.",
+    "reference": "TestLink: AWP2642",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226193",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.2": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the Boot System current and backup cannot be set to a file name that has now been moved to a different name.\n\n[Log-derived analysis] Boot System: Check that the Boot System current and backup cannot be set to a file name that has now been moved to a different name.",
+    "reference": "TestLink: AWP2643",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226194",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.3": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the Boot System current and backup relesae cannot be set to a file that is not a '.rel' file.\n\n[Log-derived analysis] Boot System: Check that the Boot System current and backup relesae cannot be set to a file that is not a '.rel' file.",
+    "reference": "TestLink: AWP2644",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226195",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.4": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the Boot System current and backup relesae cannot be set to a '.rel' file that is not a valid release version file.\n\n[Log-derived analysis] Boot System: Check that the Boot System current and backup relesae cannot be set to a '.rel' file that is not a valid release version file.",
+    "reference": "TestLink: AWP2645",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226196",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.5": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check both the Boot System current and backup cannot be set to a nonexistent file.\n\n[Log-derived analysis] Boot System: Check both the Boot System current and backup cannot be set to a nonexistent file.",
+    "reference": "AWP2648",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226197",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.6": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the file set as the Boot System current and backup cannot be moved to a different name.\n\n[Log-derived analysis] Boot System: Check that the file set as the Boot System current and backup cannot be moved to a different name.",
+    "reference": "AWP2659",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226198",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.7": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the file set as the Boot System current and backup cannot be edited.\n\n[Log-derived analysis] Boot System: Check that the file set as the Boot System current and backup cannot be edited.",
+    "reference": "AWP2661",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226199",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.8": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the file set as the Boot System current and backup cannot be deleted.\n\n[Log-derived analysis] Boot System: Check that the file set as the Boot System current and backup cannot be deleted.",
+    "reference": "AWP2665",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226200",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1001.9": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot System: Check that the file set as the Boot System current and backup can be copied.\n\n[Log-derived analysis] Boot System: Check that the file set as the Boot System current and backup can be copied.",
+    "reference": "AWP2663",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226201",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.10": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Skip Default config\n\n[Log-derived analysis] Skip Default config",
+    "reference": "AWP2716",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226202",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.20": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Filenames named ---w-z-03-09-a-y---.rel - Flash\n\n[Log-derived analysis] Filenames named ---w-z-03-09-a-y---.rel - Flash",
+    "reference": "AWP2750, AWP2751",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226203",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.21": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Filenames named ---w-z-03-09-a-y---.rel - SD Card\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Filenames named ---w-z-03-09-a-y---.rel - SD Card",
+    "reference": "AWP2750, AWP2751",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.22": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Filenames named ---w-z-03-09-a-y---.rel - USB media\n\n[Log-derived analysis] Filenames named ---w-z-03-09-a-y---.rel - USB media",
+    "reference": "AWP2750, AWP2751",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226205",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.30": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Try release for different platform\n\n[Log-derived analysis] Try release for different platform",
+    "reference": "AWP2684",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226206",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.40": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot default off usb\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Boot default off usb",
+    "reference": "AWP2707",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.41": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot default off sdcard\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Boot default off sdcard",
+    "reference": "AWP2707",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 41,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.42": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot default off usb\n\n[Log-derived analysis] Boot default off usb",
+    "reference": "AWP2707",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 42,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226208",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.50": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot fails with no release set\n\n[Log-derived analysis] Boot fails with no release set",
+    "reference": "AWP2640",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226209",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.60": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot with release, same name as cli\n\n[Log-derived analysis] Boot with release, same name as cli",
+    "reference": "AWP2682",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226210",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.61": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot with release, same name as cli - SD Card\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Boot with release, same name as cli - SD Card",
+    "reference": "AWP2682",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 61,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.62": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot with release, same name as cli - USB Media\n\n[Log-derived analysis] Boot with release, same name as cli - USB Media",
+    "reference": "AWP2682",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 62,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226212",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.70": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check bootloader version\n\n[Log-derived analysis] Check bootloader version",
+    "reference": "AWP2718",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226213",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.80": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Restart from boot menu\n\n[Log-derived analysis] Restart from boot menu",
+    "reference": "AWP2670",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 80,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226214",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.90": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot from backup (b)\n\n[Log-derived analysis] Boot from backup (b)",
+    "reference": "AWP2654",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 90,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226215",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.100": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for default boot\n\n[Log-derived analysis] Test all options for default boot",
+    "reference": "AWP2639, 2646, 2647, 2651, 2652, 2655, 2656, 2657, 2707, 2708, 2709, 2669, 2683, 2686, 2703, 2691",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226216",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.101": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for default boot - SD Card\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Test all options for default boot - SD Card",
+    "reference": "AWP2639, 2646, 2647, 2651, 2652, 2655, 2656, 2657, 2707, 2708, 2709, 2669, 2683, 2686, 2703, 2691",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 101,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.102": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for default boot - USB Media\n\n[Log-derived analysis] Test all options for default boot - USB Media",
+    "reference": "AWP2639, 2646, 2647, 2651, 2652, 2655, 2656, 2657, 2707, 2708, 2709, 2669, 2683, 2686, 2703, 2691",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 102,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226218",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.110": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for one off boot\n\n[Log-derived analysis] Test all options for one off boot",
+    "reference": "AWP2641, 2687, 2690, 2679, 2680, 2658, 2671, 2681, 2673, 2674, 2675",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 110,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226219",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.111": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for one off boot - SD Card\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Test all options for one off boot - SD Card",
+    "reference": "AWP2641, 2687, 2690, 2679, 2680, 2658, 2671, 2681, 2673, 2674, 2675",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 111,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.112": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test all options for one off boot - USB Media\n\n[Log-derived analysis] Test all options for one off boot - USB Media",
+    "reference": "AWP2641, 2687, 2690, 2679, 2680, 2658, 2671, 2681, 2673, 2674, 2675",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 112,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226221",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.113": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test one-off boot can read all of the flash\n\n[Log-derived analysis] Test one-off boot can read all of the flash",
+    "reference": "CR-82742",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 113,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226222",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.120": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test setting Boot System to SD Card without a backup\n\n[Log-derived analysis] Test setting Boot System to SD Card without a backup",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 120,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2468947",
+      "log_uid": "68162850",
+      "platform": "IE210-tb407.rel",
+      "sw_version": "main-20240308-1",
+      "run_date": "2024-03-08",
+      "result": "PASS"
+    }
+  },
+  "6911.1002.121": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test setting Boot System to SD Card without a backup\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Test setting Boot System to SD Card without a backup",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 121,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1002.122": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Test setting Boot System to USB Media without a backup\n\n[Log-derived analysis] Test setting Boot System to USB Media without a backup",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 122,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226224",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.1": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option '0. Restart'\n\n[Log-derived analysis] Diagnostics menu option '0. Restart'",
+    "reference": "AWP2754",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226225",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.2": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option '1. Full RAM test'\n\n[Log-derived analysis] Diagnostics menu option '1. Full RAM test'",
+    "reference": "AWP2755",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226226",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.3": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option '2. Quick RAM test'\n\n[Log-derived analysis] Diagnostics menu option '2. Quick RAM test'",
+    "reference": "AWP2756",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226227",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.4": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option 3, Battery backed RAM (NVS) test\n\n[Log-derived analysis] Diagnostics menu option 3, Battery backed RAM (NVS) test",
+    "reference": "AWP2757",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226228",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.5": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option 4, Bootloader ROM checksum test\n\n[Log-derived analysis] Diagnostics menu option 4, Bootloader ROM checksum test",
+    "reference": "AWP2758",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226229",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.6": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option 7, Enter the Bootup stage 2 diagnostics menu\n\n[Log-derived analysis] Diagnostics menu option 7, Enter the Bootup stage 2 diagnostics menu",
+    "reference": "AWP2759",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226230",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.7": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option 8, Quit to U-Boot shell\n\n[Log-derived analysis] Diagnostics menu option 8, Quit to U-Boot shell",
+    "reference": "AWP2760",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226231",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.8": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Diagnostics menu option 9, Quit the menu and continue rebooting\n\n[Log-derived analysis] Diagnostics menu option 9, Quit the menu and continue rebooting",
+    "reference": "AWP2761",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226232",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.9": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 0, Restart\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 0, Restart",
+    "reference": "AWP2762",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226233",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.10": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 2. Test FLASH (Filesystem only)\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 2. Test FLASH (Filesystem only)",
+    "reference": "AWP2763",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226239",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.11": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 4. Erase FLASH (Filesystem only)\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 4. Erase FLASH (Filesystem only)",
+    "reference": "AWP2764",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226238",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.12": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 5. Card slot test\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Boot stage 2 Diagnostics menu, option 5. Card slot test",
+    "reference": "AWP2765",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "6911.1003.13": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 7. USB slot test\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 7. USB slot test",
+    "reference": "AWP11517",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226235",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.14": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 8. Quit to U-Boot shell\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 8. Quit to U-Boot shell",
+    "reference": "AWP2766",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226236",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1003.15": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Boot stage 2 Diagnostics menu, option 9. Quit and continue booting\n\n[Log-derived analysis] Boot stage 2 Diagnostics menu, option 9. Quit and continue booting",
+    "reference": "AWP2767",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226237",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1004.1": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Access U-boot\n\n[Log-derived analysis] Access U-boot",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226240",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1004.2": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Change date in U-boot\n\n[Log-derived analysis] Change date in U-boot",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226241",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.1": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Access Security Settings Menu\n\n[Log-derived analysis] Access Security Settings Menu",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226242",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.2": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Set Security Level 2\n\n[Log-derived analysis] Set Security Level 2",
+    "reference": "AWP-13631, AWP-13632, AWP-13634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226243",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.3": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Set Security Level 3\n\n[Log-derived analysis] Set Security Level 3",
+    "reference": "AWP-13631, AWP-13633, AWP-13634",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226244",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.4": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check the password length limits, >5 and <24\n\n[Log-derived analysis] Check the password length limits, >5 and <24",
+    "reference": "AWP-13836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226245",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.5": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check all the valid characters for use in a password\n\n[Log-derived analysis] Check all the valid characters for use in a password",
+    "reference": "AWP-13838",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226246",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.6": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check that the security level is displayed in the Show Boot output\n\n[Log-derived analysis] Check that the security level is displayed in the Show Boot output",
+    "reference": "AWP-13858",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226247",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.7": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check that the passowrd timeout activates after 60 seconds and reboot the device\n\n[Log-derived analysis] Check that the passowrd timeout activates after 60 seconds and reboot the device",
+    "reference": "AWP-13839",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226248",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  },
+  "6911.1005.8": {
+    "suite_id": "6911",
+    "suite_name": "6911_bootloader",
+    "description": "Check that security levels 2 & 3 stop access to Start-Shell\n\n[Log-derived analysis] Check that security levels 2 & 3 stop access to Start-Shell",
+    "reference": "AWP-13857",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2471319",
+      "log_uid": "68226249",
+      "platform": "x530-tb407.rel",
+      "sw_version": "main-20240311-2",
+      "run_date": "2024-03-11",
+      "result": "PASS"
+    }
+  }
+}

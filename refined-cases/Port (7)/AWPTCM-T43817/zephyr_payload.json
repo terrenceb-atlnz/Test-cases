@@ -1,0 +1,30 @@
+{
+  "AWPTCM-T43817": {
+    "objective": "<ul><li>The cable-diagnostics TDR test can be started on an interface with an active link; the link goes down during the test and recovers afterward.</li><li>Completed VCT test results are displayed with per-pair status (OK) and approximate length.</li><li>Each new VCT test run updates the displayed results (latest test is shown).</li><li>The clear test cable-diagnostics tdr command removes previous results; show reports \"No test results available\".</li><li>VCT test completes within a short time (≤5 seconds on supported hardware).</li><li>VCT functions correctly on both standard and combo ports.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: No related ART tests. Primary coverage from TestLink AWP-17987 (VCT Basic Feature Test) and siblings in Virtual Cable Tester suite. Related cases linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect DUT to a link partner with traffic flowing. Start VCT test on the interface and confirm the link goes down during the test, then recovers. Verify show test cable-diagnostics tdr displays per-pair status and length.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Run VCT test on an interface connected to itself (loopback). Confirm the show command reflects the latest test results, not prior ones, and that the test completes in ≤5 seconds.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Issue clear test cable-diagnostics tdr followed by show. Confirm results are cleared and the show output reports 'No test results available'.",
+          "expectedResult": ""
+        },
+        {
+          "description": "If the platform has combo ports, repeat the basic VCT test sequence on a combo port and confirm identical behavior (link down, results, clear).",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

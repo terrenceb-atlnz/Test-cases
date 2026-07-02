@@ -1,0 +1,2948 @@
+{
+  "2030.1.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStats table test for row adding and deleting to end of table\n\n[Log-derived analysis] etherStats table test for row adding and deleting to end of table",
+    "reference": "RFC 1757 p.14, RFC 1757 p.10-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712978",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.1.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStats table test for row adding and deleting to middle of table\n\n[Log-derived analysis] etherStats table test for row adding and deleting to middle of table",
+    "reference": "RFC 1757 p.14, RFC 1757 p.10-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712979",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.1.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStats table test for row adding and deleting (STRESS)\n\n[Log-derived analysis] etherStats table test for row adding and deleting (STRESS)",
+    "reference": "RFC 1757 p.14, RFC 1757 p.10-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712980",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.1.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStats table test for adding rows out of table's index interval\n\n[Log-derived analysis] etherStats table test for adding rows out of table's index interval",
+    "reference": "RFC 1757 p.14, RFC 1757 p.10-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712981",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.1.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStats table test for adding row with index 65535\n\n[Log-derived analysis] etherStats table test for adding row with index 65535",
+    "reference": "RFC 1757 p.14, RFC 1757 p.10-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712982",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.2.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsIndex STATUS feature testing for integer object\n\n[Log-derived analysis] etherStatsIndex STATUS feature testing for integer object",
+    "reference": "RFC 1757 p.15",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712983",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.2.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsIndex ACCESS feature testing for read-only integer object\n\n[Log-derived analysis] etherStatsIndex ACCESS feature testing for read-only integer object",
+    "reference": "RFC 1757 p.15",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712984",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.2.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "RST BPDU Packet format: Protocol Identifier, Protocol Version,Type, Flags, Root Identifier, Root Path Cost, Bridge Identifier,Port Identifier, Max Age, Hello Time, Forward Delay, Message Age < Max Age, Version 1 Length(Test when RSTP Bridge operates in STP compatibility mode)\n\n[Inferred behavior \u2014 no execution history for this case] RST BPDU Packet format: Protocol Identifier, Protocol Version,Type, Flags, Root Identifier, Root Path Cost, Bridge Identifier,Port Identifier, Max Age, Hello Time, Forward Delay, Message Age < Max Age, Version 1 Length(Test when RSTP Bridge operates in STP compatibility mode)",
+    "reference": "IEEE Std 802.1D-2004 s9.3.3 P63 Rapid Spanning Tree BPDUs (RST BPDUs)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.3.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource STATUS feature testing for object id object\n\n[Log-derived analysis] etherStatsDataSource STATUS feature testing for object id object",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712985",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.3.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource ACCESS feature testing for read-write object id object\n\n[Log-derived analysis] etherStatsDataSource ACCESS feature testing for read-write object id object",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712986",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.3.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource semantic testing : set non-ethernet interface on read-write OID type object\n\n[Log-derived analysis] etherStatsDataSource semantic testing : set non-ethernet interface on read-write OID type object",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712987",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.3.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource semantic testing : set non-interface OID on read-write OID type object\n\n[Log-derived analysis] etherStatsDataSource semantic testing : set non-interface OID on read-write OID type object",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712988",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.3.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource semantic testing : set other ethernet interface on read-write OID type object\n\n[Log-derived analysis] etherStatsDataSource semantic testing : set other ethernet interface on read-write OID type object",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712989",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.3.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataSource semantic testing : counters are not incremented when DataSource is changed and sending to the original one\n\n[Log-derived analysis] etherStatsDataSource semantic testing : counters are not incremented when DataSource is changed and sending to the original one",
+    "reference": "RFC 1757 p.15-16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712990",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "FAIL"
+    }
+  },
+  "2030.3.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number 2 or moreAll octets that appear in the BPDU beyond the largest numberedoctet defined for version 2 for the given BPDU type shall beignored. (Test for octets beyond the 36th octet of RST BPDU)\n\n[Inferred behavior \u2014 no execution history for this case] For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number 2 or moreAll octets that appear in the BPDU beyond the largest numberedoctet defined for version 2 for the given BPDU type shall beignored. (Test for octets beyond the 36th octet of RST BPDU)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S9.3.4 P65 Validation of received BPDUs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.3.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number less than2, All BPDU parameters and flags for the given BPDU type that areundefined in received version shall be ignored.(Test for CONFIG BPDU)\n\n[Inferred behavior \u2014 no execution history for this case] For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number less than2, All BPDU parameters and flags for the given BPDU type that areundefined in received version shall be ignored.(Test for CONFIG BPDU)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S9.3.4 P65 Validation of received BPDUs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.3.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number less than2, All octets that appear in the BPDU beyond the largest numberedoctet defined for its version for the given BPDU type shall beignored. (Test for octets beyond the 35th octet of CONFIG BPDU)\n\n[Inferred behavior \u2014 no execution history for this case] For an implementation that supports version 2 of the protocol,and where received BPDU carries protocol version number less than2, All octets that appear in the BPDU beyond the largest numberedoctet defined for its version for the given BPDU type shall beignored. (Test for octets beyond the 35th octet of CONFIG BPDU)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S9.3.4 P65 Validation of received BPDUs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDropEvents STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsDropEvents STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712991",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.4.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDropEvents ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsDropEvents ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712992",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.4.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "For all other Bridges, it is the sum of the Port Path Costs onthe least cost path to the Root Bridge.\n\n[Inferred behavior \u2014 no execution history for this case] For all other Bridges, it is the sum of the Port Path Costs onthe least cost path to the Root Bridge.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The Port on each Bridge with the lowest Root Path Cost isassigned the role of Root Port for that Bridge (the Root Bridgedoes not have a Root Port).(Test for DUT when it is not a Root Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] The Port on each Bridge with the lowest Root Path Cost isassigned the role of Root Port for that Bridge (the Root Bridgedoes not have a Root Port).(Test for DUT when it is not a Root Bridge)",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The Root Bridge does not have a Root Port.\n\n[Inferred behavior \u2014 no execution history for this case] The Root Bridge does not have a Root Port.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139 Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If a Bridge has two or more ports with the same Root Path Cost,then the port with the best Port Identifier is selected as theRoot Port.\n\n[Inferred behavior \u2014 no execution history for this case] If a Bridge has two or more ports with the same Root Path Cost,then the port with the best Port Identifier is selected as theRoot Port.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Part of the Port Identifier is fixed and is different for eachPort on a Bridge, and part is a manageable priority component(9.2.7).(Tests the manageable priority component)\n\n[Inferred behavior \u2014 no execution history for this case] Part of the Port Identifier is fixed and is different for eachPort on a Bridge, and part is a manageable priority component(9.2.7).(Tests the manageable priority component)",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "This is the Root Path Cost of the lowest cost Bridge with aBridge Port connected to that LAN. This Bridge is selectedas the Designated Bridge for that LAN.\n\n[Inferred behavior \u2014 no execution history for this case] This is the Root Path Cost of the lowest cost Bridge with aBridge Port connected to that LAN. This Bridge is selectedas the Designated Bridge for that LAN.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139 Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If there are two or more Bridges with the same Root Path Cost,then the Bridge with the best priority (least numerical value)is selected as the Designated Bridge.\n\n[Inferred behavior \u2014 no execution history for this case] If there are two or more Bridges with the same Root Path Cost,then the Bridge with the best priority (least numerical value)is selected as the Designated Bridge.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139 Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.10": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If the Designated Bridge has two or more ports connected to theLAN, then the Bridge Port with the best priority Port Identifier(least numerical value) is selected as the Designated Port.\n\n[Inferred behavior \u2014 no execution history for this case] If the Designated Bridge has two or more ports connected to theLAN, then the Bridge Port with the best priority Port Identifier(least numerical value) is selected as the Designated Port.",
+    "reference": "IEEE Std 802.1D-2004 S17.3.1 P139 Computation of the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.11": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If MAC_Operational becomes FALSE the Port becomes a Disabled Portand received information is immediately discarded.(Tests that Disabled port role discards receive BPDUs)\n\n[Inferred behavior \u2014 no execution history for this case] If MAC_Operational becomes FALSE the Port becomes a Disabled Portand received information is immediately discarded.(Tests that Disabled port role discards receive BPDUs)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S17.9 P145 Changing spanning tree information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.4.12": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Ports that are enabled have Port Roles assigned according to thesource and relative priority of the spanning tree port priorityvectors (17.5, 17.6) as follows:b) Each Port whose port priority vector is its designated priorityvector is a Designated Port.\n\n[Inferred behavior \u2014 no execution history for this case] Ports that are enabled have Port Roles assigned according to thesource and relative priority of the spanning tree port priorityvectors (17.5, 17.6) as follows:b) Each Port whose port priority vector is its designated priorityvector is a Designated Port.",
+    "reference": "IEEE Std 802.1D-2004 S17.7 P145 Port Role Assignment",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.5.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOctets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsOctets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.16-17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712993",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.5.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOctets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsOctets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.16-17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712994",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.5.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOctets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsOctets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.16-17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712995",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.6.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712996",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.6.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712997",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.6.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsDataPkts semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsDataPkts semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712998",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.6.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "It treats a Port as no longer active when it becomes an Alternate,Backup, or Disabled Port and stops learning from received frames.(Tests for the Alternate port)\n\n[Inferred behavior \u2014 no execution history for this case] It treats a Port as no longer active when it becomes an Alternate,Backup, or Disabled Port and stops learning from received frames.(Tests for the Alternate port)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating learned station location information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.6.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "It treats a Port as no longer active when it becomes an Alternate,Backup, or Disabled Port and stops learning from received frames.(Tests for the Disabled port)\n\n[Inferred behavior \u2014 no execution history for this case] It treats a Port as no longer active when it becomes an Alternate,Backup, or Disabled Port and stops learning from received frames.(Tests for the Disabled port)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating learned station location information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.6.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "In the Learning Port State, information is added to the FilteringDatabase.(Tests on transition from Alternate to Designated; port is not edge port; associated LAN is not point-to-point)\n\n[Inferred behavior \u2014 no execution history for this case] In the Learning Port State, information is added to the FilteringDatabase.(Tests on transition from Alternate to Designated; port is not edge port; associated LAN is not point-to-point)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P148Updating learned station location information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.6.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Any port that has been dynamically excluded from forwarding andlearning from MAC frames, is assigned the Port State Discarding.(Test when a Port is in the Discarding Port State, the Forwarding Process shall discard received frames and shall not submit forwarded frames for transmission.(Test for Role transition from Designated to Alternate)\n\n[Inferred behavior \u2014 no execution history for this case] Any port that has been dynamically excluded from forwarding andlearning from MAC frames, is assigned the Port State Discarding.(Test when a Port is in the Discarding Port State, the Forwarding Process shall discard received frames and shall not submit forwarded frames for transmission.(Test for Role transition from Designated to Alternate)",
+    "reference": "IEEE Std 802.1D-2004 S17.4 P35 Port States and the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.6.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Any Port that has learning enabled but forwarding disabled hasthe Port State Learning,(Test When a Port is in the Learning Port State, the Forwarding Process discards received frames and shall not submit forwarded frames for transmission.(Tests on transition from Alternate to Designated; port is not edge port; associated LAN is not point-to-point)\n\n[Inferred behavior \u2014 no execution history for this case] Any Port that has learning enabled but forwarding disabled hasthe Port State Learning,(Test When a Port is in the Learning Port State, the Forwarding Process discards received frames and shall not submit forwarded frames for transmission.(Tests on transition from Alternate to Designated; port is not edge port; associated LAN is not point-to-point)",
+    "reference": "IEEE Std 802.1D-2004 S17.4 P35 Port States and the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.6.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Port that both learns and forwards frames has the Port StateForwarding.(Tests for Designated port)\n\n[Inferred behavior \u2014 no execution history for this case] Port that both learns and forwards frames has the Port StateForwarding.(Tests for Designated port)",
+    "reference": "IEEE Std 802.1D-2004 S7.4 P35 Port States and the active topology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsBroadcastPkts STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsBroadcastPkts STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93712999",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.7.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsBroadcastPkts ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsBroadcastPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713000",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.7.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsBroadcastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsBroadcastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.17",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713001",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.7.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsBroadcastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsBroadcastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713002",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.7.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Designated Ports also transmit Configuration Messages atregular intervals to guard against loss and to assist in thedetection of failed components (LANs, Bridges, or Bridge Ports).\n\n[Inferred behavior \u2014 no execution history for this case] Designated Ports also transmit Configuration Messages atregular intervals to guard against loss and to assist in thedetection of failed components (LANs, Bridges, or Bridge Ports).",
+    "reference": "IEEE Std 802.1D-2004 S17.8 P145Communicating Spanning Tree Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when better priority vector is receivedfrom the same Designated Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when better priority vector is receivedfrom the same Designated Bridge)",
+    "reference": "IEEE Std 802.1D-2004 S17.6 P144 Priority vector calculationsIEEE Std 802.1D-2004 S17.9 P145Changing spanning tree information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when worse priority vector is receivedfrom the same Designated Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when worse priority vector is receivedfrom the same Designated Bridge)",
+    "reference": "IEEE Std 802.1D-2004 S17.6 P144 Priority vector calculationsIEEE Std 802.1D-2004 S17.9 P145Changing spanning tree information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when better priority vector is receivedfrom the different Designated Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when better priority vector is receivedfrom the different Designated Bridge)",
+    "reference": "IEEE Std 802.1D-2004 S17.6 P144 Priority vector calculationsIEEE Std 802.1D-2004 S17.9 P145Changing spanning tree information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when worse priority vector is receivedfrom the different Designated Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] A message priority vector is the spanning tree priority vectorconveyed in a received Configuration Message. ...This message priority vector is superior to the port priorityvector and will replace it if, and only if, the message priorityvector is better than the port priority vectorEach Bridge accepts better information from any Bridge on a LANor revised information from the prior Designated Bridge for thatLAN.(Tests when worse priority vector is receivedfrom the different Designated Bridge)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S17.6 P144 Priority vector calculationsIEEE Std 802.1D-2004 S17.9 P145Changing spanning tree inform",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.7.10": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If the designated priority vector is better than the portpriority vector, the Port will be the Designated Port forthe attached LAN and the port priority vector will be updated.\n\n[Inferred behavior \u2014 no execution history for this case] If the designated priority vector is better than the portpriority vector, the Port will be the Designated Port forthe attached LAN and the port priority vector will be updated.",
+    "reference": "IEEE Std 802.1D-2004 S17.6 P144Priority vector calculations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.8.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsMulticastPkts STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsMulticastPkts STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17-18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713003",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.8.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsMulticastPkts ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsMulticastPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.17-18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713004",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.8.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsMulticastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsMulticastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.16",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713005",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.8.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsMulticastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsMulticastPkts semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713006",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.8.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The MAC_Operational parameter for each Bridge Port can signalfailure conditions in some MACs. If it becomes FALSE the Portbecomes a Disabled Port and received information is immediatelydiscarded.\n\n[Inferred behavior \u2014 no execution history for this case] The MAC_Operational parameter for each Bridge Port can signalfailure conditions in some MACs. If it becomes FALSE the Portbecomes a Disabled Port and received information is immediatelydiscarded.",
+    "reference": "IEEE Std 802.1D-2004 S17.9 P146Changing Spanning Tree Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.8.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If the Bridge has Designated Ports, changed information willbe transmitted and propagated.(Test the event of Alternate port becoming the Root Port)\n\n[Inferred behavior \u2014 no execution history for this case] If the Bridge has Designated Ports, changed information willbe transmitted and propagated.(Test the event of Alternate port becoming the Root Port)",
+    "reference": "IEEE Std 802.1D-2004 S17.9 P146Changing Spanning Tree Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.8.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If the Bridge has Designated Ports, changed information willbe transmitted and propagated.(Test the event when DUT Bridge becomes Root Bridge)\n\n[Inferred behavior \u2014 no execution history for this case] If the Bridge has Designated Ports, changed information willbe transmitted and propagated.(Test the event when DUT Bridge becomes Root Bridge)",
+    "reference": "IEEE Std 802.1D-2004 S17.9 P146Changing Spanning Tree Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.9.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsCRCAlignErrors STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsCRCAlignErrors STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713007",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.9.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsCRCAlignErrors ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsCRCAlignErrors ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713008",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.9.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The Topology Change state machine does not generate TCNs followingEdge Port (17.3, 17.19.17) Port State changes, as these do notaffect connectivity or station location information in the restof the network(Test for Port Role transition from Designated to Disabled)\n\n[Inferred behavior \u2014 no execution history for this case] The Topology Change state machine does not generate TCNs followingEdge Port (17.3, 17.19.17) Port State changes, as these do notaffect connectivity or station location information in the restof the network(Test for Port Role transition from Designated to Disabled)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating Learned Station Location Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.9.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The Topology Change state machine does not remove DynamicFiltering Entries for Edge Ports when TCNs are received fromother Bridges.\n\n[Inferred behavior \u2014 no execution history for this case] The Topology Change state machine does not remove DynamicFiltering Entries for Edge Ports when TCNs are received fromother Bridges.",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating Learned Station Location Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.9.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "All MAC addresses previously learned on a Root Port can bemoved to an Alternate Port that becomes the new Root Port;i.e., Dynamic Filtering Entries for those addresses may bemodified to show the new Root Port as their source, reducingthe need to flood frames when recovering from some componentfailures.(Test for Root Port made Disabled, and Alternate Port exists)\n\n[Inferred behavior \u2014 no execution history for this case] All MAC addresses previously learned on a Root Port can bemoved to an Alternate Port that becomes the new Root Port;i.e., Dynamic Filtering Entries for those addresses may bemodified to show the new Root Port as their source, reducingthe need to flood frames when recovering from some componentfailures.(Test for Root Port made Disabled, and Alternate Port exists)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating Learned Station Location Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.9.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "All MAC addresses previously learned on a Root Port can bemoved to an Alternate Port that becomes the new Root Port;i.e., Dynamic Filtering Entries for those addresses may bemodified to show the new Root Port as their source, reducingthe need to flood frames when recovering from some componentfailures.(Test for Root Port turning Alternate, and Alternate Port exists)\n\n[Inferred behavior \u2014 no execution history for this case] All MAC addresses previously learned on a Root Port can bemoved to an Alternate Port that becomes the new Root Port;i.e., Dynamic Filtering Entries for those addresses may bemodified to show the new Root Port as their source, reducingthe need to flood frames when recovering from some componentfailures.(Test for Root Port turning Alternate, and Alternate Port exists)",
+    "reference": "IEEE Std 802.1D-2004 S17.11 P149Updating Learned Station Location Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.10.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsUndersizePkts STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsUndersizePkts STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713009",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.10.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsUndersizePkts ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsUndersizePkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713010",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.10.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Configuration (9.3.1) and Topology Change Notification (9.3.2)BPDUs are transmitted instead of RST BPDUs (9.3.3), which are notrecognized by STP Bridges.(Note: Inspite of receiving config BPDU fromDUT, ANVL is sending RST BPDUs to DUT which is notrecognized by DUT and DUT will not update itself)\n\n[Inferred behavior \u2014 no execution history for this case] Configuration (9.3.1) and Topology Change Notification (9.3.2)BPDUs are transmitted instead of RST BPDUs (9.3.3), which are notrecognized by STP Bridges.(Note: Inspite of receiving config BPDU fromDUT, ANVL is sending RST BPDUs to DUT which is notrecognized by DUT and DUT will not update itself)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S17.4 P143 STP compatibility",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.11.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOversizePkts STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsOversizePkts STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713011",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.11.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOversizePkts ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsOversizePkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713012",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.11.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If rstpVersion is TRUE, operPointToPointMAC (6.4.3) is TRUE,and the received Configuration Message has the Agreement flagset, the agreed flag is set and the proposing flag is cleared.(if agreed flag is set then transition to forwarding state occurs without further delay)\n\n[Inferred behavior \u2014 no execution history for this case] If rstpVersion is TRUE, operPointToPointMAC (6.4.3) is TRUE,and the received Configuration Message has the Agreement flagset, the agreed flag is set and the proposing flag is cleared.(if agreed flag is set then transition to forwarding state occurs without further delay)",
+    "reference": "IEEE Std 802.1D-2004 S17.21.9 P166 recordAgreement()IEEE Std 802.1D-2004 S17.10 P147 Changing Port States",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.11.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "If rstpVersion is TRUE, operPointToPointMAC (6.4.3) is TRUE,and the received Configuration Message has the Agreement flagset, the agreed flag is set and the proposing flag is cleared.Otherwise, the agreed flag is cleared.(if agreed flag is set then transition to forwarding state occurs without further delay)(This test tests that if Agreement flag is not set in received BPDU then agreed flag is not set and hence forwarding flag is not set)\n\n[Inferred behavior \u2014 no execution history for this case] If rstpVersion is TRUE, operPointToPointMAC (6.4.3) is TRUE,and the received Configuration Message has the Agreement flagset, the agreed flag is set and the proposing flag is cleared.Otherwise, the agreed flag is cleared.(if agreed flag is set then transition to forwarding state occurs without further delay)(This test tests that if Agreement flag is not set in received BPDU then agreed flag is not set and hence forwarding flag is not set)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S17.21.9 P166 recordAgreement()IEEE Std 802.1D-2004 S17.10 P147 Changing Port States",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.12.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsFragments STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsFragments STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18-19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713013",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.12.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsFragments ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsFragments ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.18-19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713014",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.12.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Updates rcvdInfoWhile (17.17.6). The value assigned to rcvdInfoWhileis the three times the Hello Time, if Message Age, incremented by 1second and rounded to the nearest whole second, does not exceed MaxAge, and is zero otherwise. The values of Message Age, Max Age, andHello Time used in this calculation are taken from portTimes.(This test verifies rcvInfoWhile is zero)\n\n[Inferred behavior \u2014 no execution history for this case] Updates rcvdInfoWhile (17.17.6). The value assigned to rcvdInfoWhileis the three times the Hello Time, if Message Age, incremented by 1second and rounded to the nearest whole second, does not exceed MaxAge, and is zero otherwise. The values of Message Age, Max Age, andHello Time used in this calculation are taken from portTimes.(This test verifies rcvInfoWhile is zero)",
+    "reference": "IEEE Std 802.1D-2004 S17.9 P146Changing Spanning Tree InformationIEEE Std 802.1D-2004 S17.21.23 P168 updtRcvdInfoWhile()",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.13.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsJabbers STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsJabbers STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713015",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.13.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsJabbers ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsJabbers ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.19",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713016",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.13.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "In the REPEATED_DESIGNATED state, the message age associatedwith the information is recorded(Tests that the DUT Port Information correctly times out based on the message age conveyed in the Repeating BPDU sent to DUT)\n\n[Inferred behavior \u2014 no execution history for this case] In the REPEATED_DESIGNATED state, the message age associatedwith the information is recorded(Tests that the DUT Port Information correctly times out based on the message age conveyed in the Repeating BPDU sent to DUT)",
+    "reference": "IEEE Std 802.1D-2004 S17.27 P173 Port Information state machineIEEE Std 802.1D-2004 S17.21.23 P168 updtRcvdInfoWhile()",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.13.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "In the REPEATED_DESIGNATED state, If the received Messageconveys a Designated Port Role, and has the Proposal flagset, the proposed flag is set.(Test other ports should not stop forwarding and learning when a port receives repeat BPDU carrying a Proposal flag)\n\n[Inferred behavior \u2014 no execution history for this case] In the REPEATED_DESIGNATED state, If the received Messageconveys a Designated Port Role, and has the Proposal flagset, the proposed flag is set.(Test other ports should not stop forwarding and learning when a port receives repeat BPDU carrying a Proposal flag)",
+    "reference": "IEEE Std 802.1D-2004 S17.27 P173 Port Information state machineIEEE Std 802.1D-2004 S17.21.11 P167 recordProposal()",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsCollisions STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsCollisions STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.19-20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713017",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.14.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsCollisions ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsCollisions ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.19-20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713018",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.14.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The BLOCK_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is AlternatePort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Alternate)\n\n[Inferred behavior \u2014 no execution history for this case] The BLOCK_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is AlternatePort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Alternate)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.4 P177Alternate and Backup Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The BLOCK_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is BackupPort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Backup)\n\n[Inferred behavior \u2014 no execution history for this case] The BLOCK_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is BackupPort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Backup)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.4 P177Alternate and Backup Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The DISABLE_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is DisabledPort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Disabled)\n\n[Inferred behavior \u2014 no execution history for this case] The DISABLE_PORT state is entered if there is discrepancy betweencurrent role (role) and selectedRole, and if selectedRole is DisabledPort. The role is set to selectedRole, and learn and forward areset FALSE in order to disable learning and forwarding.(Test for Role transition from Designated to Disabled)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.1 P175 Disabled Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "A transition from ALTERNATE_PORT to BACKUP_PORT occurs if the valueof rbWhile is not equal to twice HelloTime and the Port role isBackupPort; this ensures that the value of rbWhile will be at itsmaximum if a role change to RootPort or DesignatedPort occurs.(Tests Root Port goes Forwarding exactly after twice HelloTime)\n\n[Inferred behavior \u2014 no execution history for this case] A transition from ALTERNATE_PORT to BACKUP_PORT occurs if the valueof rbWhile is not equal to twice HelloTime and the Port role isBackupPort; this ensures that the value of rbWhile will be at itsmaximum if a role change to RootPort or DesignatedPort occurs.(Tests Root Port goes Forwarding exactly after twice HelloTime)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.4 P177 Alternate and Backup Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Once all recent roots have been retired (reRooted, 17.20.10)the Root Port can transition to Forwarding.(Test during Port role transition from Alternate to Root)\n\n[Inferred behavior \u2014 no execution history for this case] Once all recent roots have been retired (reRooted, 17.20.10)the Root Port can transition to Forwarding.(Test during Port role transition from Alternate to Root)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.2 P175 Root Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Once all recent roots have been retired (reRooted, 17.20.10)the Root Port can transition to Forwarding.(Test during Port role transition from Designated to Root)\n\n[Inferred behavior \u2014 no execution history for this case] Once all recent roots have been retired (reRooted, 17.20.10)the Root Port can transition to Forwarding.(Test during Port role transition from Designated to Root)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.2 P175 Root Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discardingand Port is in agreement with current Spanning Tree information(Test for transition from Disabled to Designated for edge port)(test reference from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discardingand Port is in agreement with current Spanning Tree information(Test for transition from Disabled to Designated for edge port)(test reference from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176Designated port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.10": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Backup to Designated transit, Port not an Edge Port,test reference from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Backup to Designated transit, Port not an Edge Port,test reference from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176 Designated Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.11": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Disabled to Designated transit, Port not an Edge Port, from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Disabled to Designated transit, Port not an Edge Port, from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176 Designated Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.12": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Alternate to Designated transit, Port not an Edge Port, reference from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] Designated port transmits new information carrying Proposal flagif it is not edge port, forward is FALSE, Port is not in agreement with current Spanning Tree information, and it has notalready sent a Proposal flag to the Bridge on the connected LAN.(Test for Alternate to Designated transit, Port not an Edge Port, reference from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176 Designated Port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.13": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Backup to Designated of non-edge port)(Test reference from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Backup to Designated of non-edge port)(Test reference from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176Designated port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.14": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Disabled to Designated non-edge port)(Test reference from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Disabled to Designated non-edge port)(Test reference from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176Designated port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.14.15": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Alternate to Designated non-edge port)\n\n[Inferred behavior \u2014 no execution history for this case] On becoming a Designated port, it can transition to forwardingunder condition that the Root port has not been requested fromoutside in requesting all other ports to revert to Discarding,and Port is in agreement with current Spanning Tree information(Test for transition from Alternate to Designated non-edge port)",
+    "reference": "IEEE Std 802.1D-2004 S17.29.3 P176Designated port states",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.15.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts64Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts64Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713019",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.15.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts64Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts64Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713020",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.15.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts64Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts64Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713021",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.15.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts64Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts64Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713022",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts65to127Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713023",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts65to127Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713024",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713025",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713026",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713027",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713028",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts65to127Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.20",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713029",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.16.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On receiving TC information, the NOTIFIED_TC state is entered.tcProp is set TRUE for all other Ports of the Bridge(Test for Designated Port)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] On receiving TC information, the NOTIFIED_TC state is entered.tcProp is set TRUE for all other Ports of the Bridge(Test for Designated Port)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On receiving TCN information, the tcWhile timer is set for thePort. If the Port is not DesignatedPort, it transmits TCN BPDU.(Test for Root Port)\n\n[Inferred behavior \u2014 no execution history for this case] On receiving TCN information, the tcWhile timer is set for thePort. If the Port is not DesignatedPort, it transmits TCN BPDU.(Test for Root Port)",
+    "reference": "IEEE Std 802.1D-2004 S17.26 P172 Port Transmit state machineIEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.10": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "On receiving TC information, the NOTIFIED_TC state is entered.tcProp is set TRUE for all other Ports of the Bridge(Test for Root Port)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] On receiving TC information, the NOTIFIED_TC state is entered.tcProp is set TRUE for all other Ports of the Bridge(Test for Root Port)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.11": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The ACKNOWLEDGED state is entered if a BPDU is received in whichthe TC acknowledge flag is set. The tcWhile variable is cleared,and rcvdTcAck is set FALSE.(Test for a Root Port)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] The ACKNOWLEDGED state is entered if a BPDU is received in whichthe TC acknowledge flag is set. The tcWhile variable is cleared,and rcvdTcAck is set FALSE.(Test for a Root Port)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.12": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The PROPAGATING state is entered and the Filtering Database isflushed to remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Designated port detects a Topology Change)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] The PROPAGATING state is entered and the Filtering Database isflushed to remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Designated port detects a Topology Change)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.13": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The PROPAGATING state is entered the Filtering Database is flushedto remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Root port detects a Topology Change)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] The PROPAGATING state is entered the Filtering Database is flushedto remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Root port detects a Topology Change)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.14": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The PROPAGATING state is entered and the Filtering Database isflushed to remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Designated port enters the PROPAGATING state)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] The PROPAGATING state is entered and the Filtering Database isflushed to remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Designated port enters the PROPAGATING state)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.16.15": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The PROPAGATING state is entered the Filtering Database is flushedto remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Root port enters the PROPAGATING state)(this is from state diagram)\n\n[Inferred behavior \u2014 no execution history for this case] The PROPAGATING state is entered the Filtering Database is flushedto remove information that was learned on this Port.(Tests DUT flushes Filtering Database entries for all otherports when a Root port enters the PROPAGATING state)(this is from state diagram)",
+    "reference": "IEEE Std 802.1D-2004 S17.31 P178 Topology Change state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.17.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts128to255Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713030",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts128to255Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713031",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713032",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713033",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713034",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713035",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts128to255Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.20-21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713036",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.17.8": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The SENSING state entered is from CHECKING_RSTP on mdelayWhileexpiry. If mcheck becomes TRUE, indicating that management hasrequested re-checking of the appropriate BPDU type to send, thestate machine returns to CHECKING_RSTP.\n\n[Inferred behavior \u2014 no execution history for this case] The SENSING state entered is from CHECKING_RSTP on mdelayWhileexpiry. If mcheck becomes TRUE, indicating that management hasrequested re-checking of the appropriate BPDU type to send, thestate machine returns to CHECKING_RSTP.",
+    "reference": "IEEE Std 802.1D-2004 S17.24 P171Port Protocol Migration state machine(from state diagram)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.17.9": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "Once the mdelayWhile timer has expired, receipt of an RSTBPDU on the Port (rcvdRSTP is TRUE) causes a transitionto CHECKING_RSTP.\n\n[Inferred behavior \u2014 no execution history for this case] Once the mdelayWhile timer has expired, receipt of an RSTBPDU on the Port (rcvdRSTP is TRUE) causes a transitionto CHECKING_RSTP.",
+    "reference": "IEEE Std 802.1D-2004 S17.24 P171Port Protocol Migration state machine(from state diagram)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.17.10": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The mcheck variable (17.19.13) for the specified Port is set tothe value TRUE if the value of the forceVersion variable (17.13.4)is greater than or equal to 2.(Test that mcheck is set if forceVersion greater than or equal to 2)\n\n[Inferred behavior \u2014 no execution history for this case] The mcheck variable (17.19.13) for the specified Port is set tothe value TRUE if the value of the forceVersion variable (17.13.4)is greater than or equal to 2.(Test that mcheck is set if forceVersion greater than or equal to 2)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S14.8.2.4.4 P127 ProcedureIEEE Std 802.1D-2004 S17.24 P171Port Protocol Migration state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.17.11": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "The mcheck variable (17.19.13) for the specified Port is set tothe value TRUE if the value of the forceVersion variable (17.13.4)is greater than or equal to 2.(Test that mcheck is ignored if forceVersion less than 2)\n\n[Inferred behavior \u2014 no execution history for this case] The mcheck variable (17.19.13) for the specified Port is set tothe value TRUE if the value of the forceVersion variable (17.13.4)is greater than or equal to 2.(Test that mcheck is ignored if forceVersion less than 2)",
+    "reference": "NEGATIVEIEEE Std 802.1D-2004 S14.8.2.4.4 P127 ProcedureIEEE Std 802.1D-2004 S17.24 P171Port Protocol Migration state machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.18.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts256to511Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713037",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts256to511Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713038",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713039",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713040",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713041",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713042",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.18.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts256to511Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713043",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts512to1023Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713044",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts512to1023Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713045",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713046",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713047",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713048",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713049",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.19.7": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts512to1023Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713050",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets STATUS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets STATUS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713051",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets ACCESS feature testing for read-only counter object\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713052",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713053",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713054",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.5": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713055",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.20.6": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)\n\n[Log-derived analysis] etherStatsPkts1024to1518Octets semantic testing : incrementing feature of counter tested with packet sending to DUT (negative test)",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713056",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.21.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOwner STATUS feature testing for read-write owner string object\n\n[Log-derived analysis] etherStatsOwner STATUS feature testing for read-write owner string object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713057",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.21.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOwner ACCESS feature testing for read-write owner string object\n\n[Log-derived analysis] etherStatsOwner ACCESS feature testing for read-write owner string object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713058",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.21.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsOwner SYNTAX features testing for read-write owner string object\n\n[Log-derived analysis] etherStatsOwner SYNTAX features testing for read-write owner string object",
+    "reference": "RFC 1757 p.21",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713059",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.22.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsStatus STATUS feature testing for read-write entrystatus type object\n\n[Log-derived analysis] etherStatsStatus STATUS feature testing for read-write entrystatus type object",
+    "reference": "RFC 1757 p.21-22",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 22,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713060",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.22.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsStatus ACCESS feature testing for read-write entrystatus type object\n\n[Log-derived analysis] etherStatsStatus ACCESS feature testing for read-write entrystatus type object",
+    "reference": "RFC 1757 p.21-22",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 22,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713061",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.22.3": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsStatus SYNTAX feature testing for read-write entrystatus type object\n\n[Log-derived analysis] etherStatsStatus SYNTAX feature testing for read-write entrystatus type object",
+    "reference": "RFC 1757 p.21-22",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 22,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358112",
+      "log_uid": "93713062",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2030.22.4": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherStatsStatus state-change testing for entrystatus object\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] etherStatsStatus state-change testing for entrystatus object",
+    "reference": "RFC 1757 p.21-22, RFC 1757 p.13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 22,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2030.23.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryIndex STATUS feature testing for integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryIndex STATUS feature testing for integer object",
+    "reference": "RFC 1757 p.27",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.23.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryIndex ACCESS feature testing for read-only integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryIndex ACCESS feature testing for read-only integer object",
+    "reference": "RFC 1757 p.27",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.24.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistorySampleIndex STATUS feature testing for integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistorySampleIndex STATUS feature testing for integer object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.24.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistorySampleIndex ACCESS feature testing for read-only integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistorySampleIndex ACCESS feature testing for read-only integer object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.25.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryIntervalStart STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryIntervalStart STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.25.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryIntervalStart ACCESS feature testing for read-only time ticks object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryIntervalStart ACCESS feature testing for read-only time ticks object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.26.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryDropEvents STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryDropEvents STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.26.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryDropEvents ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryDropEvents ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.28",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.27.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryOctets STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryOctets STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.28-29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.27.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryOctets ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryOctets ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.28-29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.28.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryPkts STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryPkts STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.28.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryPkts ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.29.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryBroadcastPkts STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryBroadcastPkts STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.29.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryBroadcastPkts ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryBroadcastPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.30.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryMulticastPkts STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryMulticastPkts STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.30.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryMulticastPkts ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryMulticastPkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.29",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.31.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryCRCAlignErrors STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryCRCAlignErrors STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.29-30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 31,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.31.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryCRCAlignErrors ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryCRCAlignErrors ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.29-30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 31,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.32.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryUndersizePkts STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryUndersizePkts STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.32.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryUndersizePkts ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryUndersizePkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.33.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryOversizePkts STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryOversizePkts STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 33,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.33.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryOversizePkts ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryOversizePkts ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 33,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.34.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryFragments STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryFragments STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 34,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.34.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryFragments ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryFragments ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.30",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 34,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.35.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryJabbers STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryJabbers STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.30-31",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 35,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.35.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryJabbers ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryJabbers ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.30-31",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 35,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.36.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryCollisions STATUS feature testing for counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryCollisions STATUS feature testing for counter object",
+    "reference": "RFC 1757 p.31-32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 36,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.36.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryCollisions ACCESS feature testing for read-only counter object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryCollisions ACCESS feature testing for read-only counter object",
+    "reference": "RFC 1757 p.31-32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 36,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.37.1": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryUtilization STATUS feature testing for integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryUtilization STATUS feature testing for integer object",
+    "reference": "RFC 1757 p.32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 37,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2030.37.2": {
+    "suite_id": "2030",
+    "suite_name": "2030_IxANVL_rmon_ether",
+    "description": "etherHistoryUtilization ACCESS feature testing for read-only integer object\n\n[Inferred behavior \u2014 no execution history for this case] etherHistoryUtilization ACCESS feature testing for read-only integer object",
+    "reference": "RFC 1757 p.32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 37,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

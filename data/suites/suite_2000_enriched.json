@@ -1,0 +1,21 @@
+{
+  "2000.1.1": {
+    "suite_id": "2000",
+    "suite_name": "2000_IxANVL_link_check",
+    "description": "Check each link between the dut and the TestBox\n\n[Log-derived analysis] Connectivity sanity check run before the functional tests. Saves the running configuration, registers the DUT test ports, then verifies that each physical link between the DUT switch ports and the corresponding TestBox interfaces is up and correctly cabled as defined in the test setup. Restores the original configuration, confirms it matches the initial TestSet configuration, and checks the DUT logged no exceptions.",
+    "reference": "IxANVL",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3353930",
+      "log_uid": "93582525",
+      "platform": "AR4050S-atr45.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  }
+}

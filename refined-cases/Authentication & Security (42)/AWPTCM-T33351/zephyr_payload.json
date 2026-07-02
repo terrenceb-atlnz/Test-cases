@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33351": {
+    "objective": "<ul><li>In single-host mode, a supplicant successfully authenticates using 802.1X (dot1x) against the configured RADIUS server and is granted network access on the port.</li><li>After successful authentication in single-host mode, the supplicant is placed into the VLAN assigned by RADIUS or the configured Guest VLAN.</li><li>Unauthenticated traffic (prior to successful 802.1X authentication) is blocked on a port in single-host mode; only EAPOL frames are permitted.</li><li>The port correctly transitions to the authorized state for the single supplicant and reports the assigned VLAN and auth status in show commands.</li><li>Configuring single-host mode with \"auth host-mode single-host\" (combined with dot1x port-control auto) is accepted and the mode is accurately reflected in running configuration and operational state.</li><li>Upon receipt of an EAP-Logoff from the authenticated supplicant in single-host mode, the port returns to the unauthorized state, an EAP-Failure is sent, and the change is logged and visible.</li><li>Unsupported dynamic VLAN creation commands (e.g. auth dynamic-vlan-creation type multi on single-host) are rejected with an appropriate error.</li><li>802.1X configuration including host-mode, RADIUS servers, and related timers persists in running/startup config and is restored after reload where supported.</li><li>The switch handles the maximum supported number of 802.1X clients and correctly performs dynamic VLAN assignment for authenticated single-host supplicants.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink single-host combination family (AWP-6809 primary + AWP-6807/6808/6810/6811, AWP-6800 port control single-host, AWP-6805 EAP-Logoff single, AWP-6825 parallel WEB). ART coverage: 1348.1001.20 (basic dot1x auth success), 1348.1001.33 + 1341.6001.5090 (dynamic VLAN assignment), 1348.1001.11 (config), 1341.1001.4975 (max clients), 1348.1001.27/28 (RADIUS groups), plus related CR cases.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a port for 802.1X single-host mode (dot1x port-control auto + auth host-mode single-host). Connect a single supplicant. Verify successful authentication against RADIUS and that the supplicant is granted access and placed in the assigned (or Guest) VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Before authentication succeeds, confirm that non-EAPOL traffic from the supplicant is blocked. After auth succeeds, confirm data traffic is forwarded according to the assigned VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "From the authenticated single supplicant, send EAP-Logoff. Verify the port returns to unauthorized state, EAP-Failure is generated, logs are updated, and show commands reflect the deauthorized state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure unsupported dynamic-vlan options (e.g. auth dynamic-vlan-creation type multi) on the single-host dot1x port. Verify the command is rejected with an error. Confirm valid single-host configuration continues to work.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify show dot1x, show auth, and related commands accurately report the single-host mode, authorized/unauthorized state, assigned VLAN, and supplicant details.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure 802.1X parameters (host-mode single, RADIUS, timeouts) and verify they persist in running and startup config. Reload or restart the relevant process and confirm configuration and behavior are restored.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

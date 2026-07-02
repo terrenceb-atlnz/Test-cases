@@ -1,0 +1,526 @@
+{
+  "1334.0.0": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1334.1001.0": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1334.1001.1": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Trap and send hello packets, confirm EPSR status is complete.\n\n[Log-derived analysis] Establishes baseline EPSR ring operation. With the switch acting as ring master, traps and exchanges EPSR control (Hello) packets on the control VLAN and confirms 'show epsr' reports the ring as Enabled with State Complete (primary port forwarding, secondary port blocked).",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640217",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.2": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Set the Primary Port to down, look for Ring Down FDB flush and failed states on the secondary port.\n\n[Log-derived analysis] Verifies the master's response to a ring fault on the primary side. Brings the primary port down and confirms the switch emits EPSR Ring-Failed messages and a Ring-Down FDB-flush message, transitioning the ring to the failed state and unblocking the secondary port.",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640242",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.3": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Set the Primary Port to Link Up, look for Ring Up FDB flush and Complete states.\n\n[Log-derived analysis] Verifies recovery when the primary link is restored. Brings the primary port back up and confirms the switch issues a Ring-Up FDB-flush and the ring returns to the Complete state.",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640261",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.4": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Set the Secondary Port to Down, look for Ring Down FDB flush and EPSR failed states.\n\n[Log-derived analysis] Verifies the master's response to a fault on the secondary side. Brings the secondary port down and confirms an EPSR Ring-Failed message and a Ring-Down FDB-flush are emitted and the ring enters the failed state.",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640284",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.5": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Set the Secondary Port to Up, look for Ring Up FDB flush and EPSR Complete states.\n\n[Log-derived analysis] Verifies recovery when the secondary link is restored. Brings the secondary port back up and confirms a Ring-Up FDB-flush is sent and the ring returns to the Complete state.",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640303",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.6": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Start the switch with the Primary Port Down - Confirm Ring Up flush on Secondary - CR28185.\n\n[Log-derived analysis] Verifies correct startup behaviour when the master boots with its primary port already down. Confirms a Ring-Up FDB-flush is issued on the secondary port so the ring converges correctly from a degraded start (regression for CR28185).",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [
+      "36137"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640386",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.1001.7": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Start the switch with the Secondary Port Down - Confirm Ring Up flush message occurs on the Primary Port - CR28185.\n\n[Log-derived analysis] Verifies correct startup behaviour when the master boots with its secondary port already down. Confirms a Ring-Up FDB-flush message occurs on the primary port so the ring converges correctly from a degraded start (regression for CR28185).",
+    "reference": "ITU-T G.8032 operational specification",
+    "past_crs": [
+      "36137"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640457",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.0": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1334.2001.1": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Tranist node, no priority set, 16 rings with many data VLANs, confirm link down message\n\n[Log-derived analysis] Verifies transit-node link-down signalling at scale with no priority configured. Sets up many EPSR ring instances spanning multiple data VLANs, brings the instances down and up, and confirms each instance signals a link-down message and recovers to the Links-Up/Complete state.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36349"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93651146",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.2": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Master node, priority zero, confirm failed state without health checks\n\n[Log-derived analysis] Verifies master-node fault detection without health-check circulation when priority is zero. Confirms the master correctly enters the failed state in the absence of received health checks.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36349"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93640898",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.3": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Master node, priority non-zero, confirm failed state without health checks from startup\n\n[Log-derived analysis] Verifies master-node fault detection without health checks when a non-zero priority is set from startup. Confirms the master enters the failed state as expected when health checks are not circulating.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36349"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93641021",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.4": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "SLP, Master node, priority non-zero, confirm state after link down message received\n\n[Log-derived analysis] Verifies Super-Loop-Protection (SLP) master-node behaviour with a non-zero priority. Drives a link-down message into the master and confirms it transitions to the expected SLP state in response.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36349",
+      "77536"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93641387",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.5": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "SLP, transit node, single port on shared segment, confirm link down message after highest priority segment goes down\n\n[Log-derived analysis] Verifies SLP transit-node behaviour with a single port on the shared segment. When the highest-priority segment goes down, confirms the transit node forwards a link-down message only to the highest-priority domain master.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36137",
+      "36532",
+      "36349",
+      "SYST-8722",
+      "CR-89952"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93652976",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.2001.6": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "SLP, transit node, 16 instances, all different data VLANs, confirm link down message\n\n[Log-derived analysis] Verifies SLP transit-node link-down signalling at scale. Configures many EPSR instances each on a different data VLAN and confirms a link-down message is signalled per instance when the segment goes down.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "36137",
+      "36349"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653090",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.0": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1334.3001.1": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Super Loop Protection - transit node with single port on shared segment sends a link down message when shared segment goes down only to highest priority domain master, for each shared group of datavlans\n\n[Log-derived analysis] Verifies SLP transit-node selective signalling. With a single port on the shared segment, confirms that when the shared segment goes down a link-down message is sent only to the highest-priority domain master for each shared group of data VLANs, and not to lower-priority instances.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [
+      "SYST-8656",
+      "SYST-8722"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653403",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.2": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Super Loop Protection - transit node with EPSR instances on a shared segment. When ports on non-shared segments go down, sends a link down for each EPSR Instance as expceted.\n\n[Log-derived analysis] Verifies SLP transit-node signalling for non-shared segments. With EPSR instances on a shared segment, confirms that when ports on non-shared segments go down a link-down message is sent for each affected EPSR instance.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653453",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.3": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Super Loop Protection - transit node with EPSR instances on a shared segment. When port on shared segment comes up & Health checks circulated, EPSR is in blocking state. Ring up on higher priority EPSR instance brings port up. Ring up on lower priority does not bring port up.\n\n[Log-derived analysis] Verifies SLP transit-node blocking and priority-based recovery. When the shared-segment port comes up and health checks circulate, confirms the instance enters the blocking state, that a Ring-Up on the higher-priority instance unblocks the port, and that a Ring-Up on a lower-priority instance does not.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653544",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.4": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Super Loop Protection - higher priority master/lower priority transit node with primary port on shared segment. Shared segment ethA goes down . Expect Ringdown Flush DB, and unblocked secondary port on high prioirty ethC. Nothing on lower priority EPSR ethA\n\n[Log-derived analysis] Verifies SLP behaviour for a node that is high-priority master on one instance and lower-priority transit on another, with the primary port on the shared segment. When the shared segment goes down, confirms a Ring-Down FDB-flush and unblocking of the secondary port on the high-priority instance, and no action on the lower-priority instance.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93641854",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.5": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Super Loop Protection - High priority master/ lower prioirty transit node with EPSR instances on a shared segment. When ports on non-shared segments go down, sends a link down for lower priority, and a ring down flush db for higher EPSR Instance.\n\n[Log-derived analysis] Verifies SLP signalling for a combined high-priority-master / lower-priority-transit node when non-shared-segment ports go down. Confirms a link-down message for the lower-priority instance and a Ring-Down FDB-flush for the higher-priority instance.",
+    "reference": "EPSR-SLP TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93641883",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.6": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Enhanced Recovery Enabled - transit node (priorities set) when a port comes up with enhanced recovery enabled, a Link Forward Request is transmitted\n\n[Log-derived analysis] Verifies EPSR Enhanced Recovery on a transit node with priorities set. When a port comes up with enhanced recovery enabled, confirms a Link Forward Request is transmitted on the relevant control VLANs (and withheld where not expected).",
+    "reference": "EPSR+/++ TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653888",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.7": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Enhanced Recovery - transit node with EPSR instances (priorities set). When port goes down and comes up again, if a Permission Link Forward is sent in response to a Link Forward Request, the port goes forwarding.\n\n[Log-derived analysis] Verifies EPSR Enhanced Recovery forwarding on a transit node with priorities set. After a port goes down and comes back up, confirms that when a Permission Link Forward is received in response to the Link Forward Request the port transitions to forwarding.",
+    "reference": "EPSR+/++ TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653923",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.8": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Enhancd Recovery Enabled - transit node with no priority set - when a port comes up with enhanced recovery enabled, a Link Forward Request is transmitted\n\n[Log-derived analysis] Verifies EPSR Enhanced Recovery on a transit node with no priority configured. When a port comes up with enhanced recovery enabled, confirms a Link Forward Request is transmitted.",
+    "reference": "EPSR+/++ TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93653965",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.9": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Enhanced Recovery - transit node with EPSR instances. No priority set. When port goes down and comes up again, if a Permission Link Forward is sent in response to a Link Forward Request, the port goes forwarding.\n\n[Log-derived analysis] Verifies EPSR Enhanced Recovery forwarding on a transit node with no priority set. After a port flaps, confirms that a Permission Link Forward received in response to the Link Forward Request takes the port to forwarding.",
+    "reference": "EPSR+/++ TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356080",
+      "log_uid": "93654005",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1334.3001.10": {
+    "suite_id": "1334",
+    "suite_name": "1334_epsr",
+    "description": "EPSR - Enhanced Recovery Enabled - Master node (priorities set) when a Link Forwarding Request is received up with enhanced recovery enabled & no Health Checks are circulating - a Permission Link Forwarding is transmitted\n\n[Log-derived analysis] Verifies EPSR Enhanced Recovery from the master side with priorities set. When a Link Forward Request is received while no health checks are circulating, confirms the master transmits a Permission Link Forward.",
+    "reference": "EPSR+/++ TFS",
+    "past_crs": [
+      "77536"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355702",
+      "log_uid": "93642024",
+      "platform": "GS970EMX-tb328.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

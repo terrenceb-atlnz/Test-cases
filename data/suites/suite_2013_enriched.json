@@ -1,0 +1,2826 @@
+{
+  "2013.1.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A single request-response pair of packets is sufficient for both the initiator and the target to resolve each other's link-layer addresses\n\n[Log-derived analysis] A single request-response pair of packets is sufficient for both the initiator and the target to resolve each other's link-layer addresses",
+    "reference": "Setup Tests",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702421",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.2.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field of the Router Solicitation Message MUST be ignored by the receiver\n\n[Log-derived analysis] The Reserved field of the Router Solicitation Message MUST be ignored by the receiver",
+    "reference": "RFC 4861 s4.1 p19 Router Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702422",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.2.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Router Solicitation Message receivers MUST silently ignore any options they do not recognize and continue processing the message\n\n[Log-derived analysis] Router Solicitation Message receivers MUST silently ignore any options they do not recognize and continue processing the message",
+    "reference": "RFC 4861 s4.1 p19 Router Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702423",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.3.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Routers send out Router Advertisement messages periodically, (Note: They won't be strictly periodic. It'll vary within a small range.See ref-2\n\n[Log-derived analysis] Routers send out Router Advertisement messages periodically, (Note: They won't be strictly periodic. It'll vary within a small range.See ref-2",
+    "reference": "RFC 4861 s4.2 p19 Router Advertisement Message Format RFC 4861 s6.2.4 p47 Sending Unsolicited Router Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702424",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.3.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Routers send out Router Advertisement in response to a Router Solicitation\n\n[Log-derived analysis] Routers send out Router Advertisement in response to a Router Solicitation",
+    "reference": "RFC 4861 s4.2 p19 Router Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702425",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.3.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Source Address MUST be the link-local address assigned to the interface from which this message is sent.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Source Address MUST be the link-local address assigned to the interface from which this message is sent.",
+    "reference": "RFC 4861 s4.2 p19 Router Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.3.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved (6-bit unused) field of a Router Advertisement Message MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved (6-bit unused) field of a Router Advertisement Message MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.2 p20 Router Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702426",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.3.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router SHOULD include all its on-link prefixes (except the link-local prefix) so that multihomed hosts have complete prefix information about on-link destinations for the links to which they attach.\n\n[Log-derived analysis] A router SHOULD include all its on-link prefixes (except the link-local prefix) so that multihomed hosts have complete prefix information about on-link destinations for the links to which they attach.",
+    "reference": "RFC 4861 s4.2 p21 Router Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702427",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Neighbor Solicitations are multicast when the node needs to resolve an address\n\n[Log-derived analysis] Neighbor Solicitations are multicast when the node needs to resolve an address",
+    "reference": "RFC 4861 s4.3 p22 Neighbor Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702428",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field of the ICMP header in a Neighbor Solicitation Message MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved field of the ICMP header in a Neighbor Solicitation Message MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702429",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field of the ICMP header in a Neighbor Solicitation Message MUST be ignored by the receiver\n\n[Log-derived analysis] The Reserved field of the ICMP header in a Neighbor Solicitation Message MUST be ignored by the receiver",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702430",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Target Address field of the ICMP header in a Neighbor Solicitation Message MUST NOT be a multicast address\n\n[Log-derived analysis] The Target Address field of the ICMP header in a Neighbor Solicitation Message MUST NOT be a multicast address",
+    "reference": "NEGATIVE RFC 4861 s4.3 p23 Neighbor Solicitation Message Format RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702431",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Source link-layer address field of the ICMP options MUST NOT be included when the source IP address is the unspecified address\n\n[Log-derived analysis] The Source link-layer address field of the ICMP options MUST NOT be included when the source IP address is the unspecified address",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702432",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Otherwise, on link layers that have addresses, Source link-layer address option MUST be included in multicast solicitations\n\n[Log-derived analysis] Otherwise, on link layers that have addresses, Source link-layer address option MUST be included in multicast solicitations",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format RFC 4861 s7.2.2 p61 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702433",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Otherwise, on link layers that have addresses, Source link-layer address option SHOULD be included in unicast solicitations.\n\n[Log-derived analysis] Otherwise, on link layers that have addresses, Source link-layer address option SHOULD be included in unicast solicitations.",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format RFC 4861 s7.2.2 p61 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702434",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.4.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "On receiving a Neighbor Solicitation Message the receivers MUST silently ignore any options they do not recognize and continue processing the message\n\n[Log-derived analysis] On receiving a Neighbor Solicitation Message the receivers MUST silently ignore any options they do not recognize and continue processing the message",
+    "reference": "RFC 4861 s4.3 p23 Neighbor Solicitation Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702435",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node sends Neighbor Advertisements in response to Neighbor Solicitations\n\n[Log-derived analysis] A node sends Neighbor Advertisements in response to Neighbor Solicitations",
+    "reference": "RFC 4861 s4.4 p23 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702436",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "For solicited advertisements, the Destination Address contains the Source Address of an invoking Neighbor Solicitation or, if the solicitation's Source Address is the unspecified address, the all-nodes multicast address. (Tests when Source Address is the unspecified address)\n\n[Log-derived analysis] For solicited advertisements, the Destination Address contains the Source Address of an invoking Neighbor Solicitation or, if the solicitation's Source Address is the unspecified address, the all-nodes multicast address. (Tests when Source Address is the unspecified address)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702437",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "For solicited advertisements, the Destination Address contains the Source Address of an invoking Neighbor Solicitation or, if the solicitation's Source Address is the unspecified address, the all-nodes multicast address. (Tests when Source Address is not the unspecified address)\n\n[Log-derived analysis] For solicited advertisements, the Destination Address contains the Source Address of an invoking Neighbor Solicitation or, if the solicitation's Source Address is the unspecified address, the all-nodes multicast address. (Tests when Source Address is not the unspecified address)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702438",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "For unsolicited advertisements typically the all-nodes multicast address\n\n[Log-derived analysis] For unsolicited advertisements typically the all-nodes multicast address",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702439",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When set, the Router flag (R-bit) in a Neighbor Advertisement Message indicates the sender is a router (Note: when DUT is a router)\n\n[Log-derived analysis] When set, the Router flag (R-bit) in a Neighbor Advertisement Message indicates the sender is a router (Note: when DUT is a router)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p64 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702440",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When set, the Solicited flag indicates that the advertisement was sent in response to a Neighbor Solicitation from the Destination address. (Note: when NA is solicited)\n\n[Log-derived analysis] When set, the Solicited flag indicates that the advertisement was sent in response to a Neighbor Solicitation from the Destination address. (Note: when NA is solicited)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p64 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702441",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Solicited flag is used as a reachability confirmation for Neighbor Unreachability Detection. It MUST NOT be set in multicast advertisements (Note: when NA is not solicited)\n\n[Log-derived analysis] The Solicited flag is used as a reachability confirmation for Neighbor Unreachability Detection. It MUST NOT be set in multicast advertisements (Note: when NA is not solicited)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p64 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702442",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Override flag SHOULD NOT be set in solicited advertisements for anycast addresses.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] The Override flag SHOULD NOT be set in solicited advertisements for anycast addresses.",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4861 s7.2.7 p67 Anycast Neighbor Advertisements RFC 4291 s",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.5.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Override flag SHOULD be set in other solicited advertisements (Note: for solicited advertisements for unicast address of DUT)\n\n[Log-derived analysis] The Override flag SHOULD be set in other solicited advertisements (Note: for solicited advertisements for unicast address of DUT)",
+    "reference": "RFC 4861 s4.4 p24 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702443",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.12": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field in the Neighbor Advertisement Message MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved field in the Neighbor Advertisement Message MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702444",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.13": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field in the Neighbor Advertisement Message MUST be ignored by the receiver\n\n[Log-derived analysis] The Reserved field in the Neighbor Advertisement Message MUST be ignored by the receiver",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702445",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.14": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "For solicited advertisements, the Target Address field of the Neighbor Advertisement Message is the Target Address field in the Neighbor Solicitation Message that prompted this advertisement.\n\n[Log-derived analysis] For solicited advertisements, the Target Address field of the Neighbor Advertisement Message is the Target Address field in the Neighbor Solicitation Message that prompted this advertisement.",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702446",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.15": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Target link-layer address option MUST be included on link layers that have addresses when responding to multicast solicitations\n\n[Log-derived analysis] The Target link-layer address option MUST be included on link layers that have addresses when responding to multicast solicitations",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702447",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.16": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When responding to a unicast Neighbor Solicitation the Target link-layer option SHOULD be included.\n\n[Log-derived analysis] When responding to a unicast Neighbor Solicitation the Target link-layer option SHOULD be included.",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format RFC 4861 s7.2.4 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702448",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.5.17": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Receivers MUST silently ignore any options they do not recognize and continue processing the message.\n\n[Log-derived analysis] Receivers MUST silently ignore any options they do not recognize and continue processing the message.",
+    "reference": "RFC 4861 s4.4 p25 Neighbor Advertisement Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702449",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Source Address MUST be the link-local address assigned to the interface from which this message is sent.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Source Address MUST be the link-local address assigned to the interface from which this message is sent.",
+    "reference": "RFC 4861 s4.5 p26 Redirect Message Format RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [
+      "40404"
+    ],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.6.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Destination Address contains the Source Address of the packet that triggered the redirect.\n\n[Log-derived analysis] Destination Address contains the Source Address of the packet that triggered the redirect.",
+    "reference": "RFC 4861 s4.5 p26 Redirect Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702450",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field is unused. It MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved field is unused. It MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702451",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When the target is the actual endpoint of communication, i.e., the destination is a neighbor, the Target Address field MUST contain the same value as the ICMP Destination Address field.\n\n[Log-derived analysis] When the target is the actual endpoint of communication, i.e., the destination is a neighbor, the Target Address field MUST contain the same value as the ICMP Destination Address field.",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702452",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Otherwise the target is a better first-hop router and the Target Address MUST be the router's link-local address so that hosts can uniquely identify routers.\n\n[Log-derived analysis] Otherwise the target is a better first-hop router and the Target Address MUST be the router's link-local address so that hosts can uniquely identify routers.",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702453",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Destination Address is the IP address of the destination which is redirected to the target.\n\n[Log-derived analysis] Destination Address is the IP address of the destination which is redirected to the target.",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702454",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Target link-layer address is the link-layer address for the target. It SHOULD be included (if known).\n\n[Log-derived analysis] Target link-layer address is the link-layer address for the target. It SHOULD be included (if known).",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702455",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.6.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Redirected Header contains as much as possible of the IP packet that triggered the sending of the Redirect without making the redirect packet exceed the minimum MTU specified in [IPv6]. (Note: ... it is recommended that they be configured with an MTU of 1500 octets or greater, to accommodate possible encapsulations (i.e., tunneling) without incurring IPv6-layer fragmentation. \"Internet Protocol, Version 6 (IPv6) Specification\", RFC 2460, December 1998.) AND The original packet truncated to ensure that the size of the redirect message does not exceed the minimum MTU required to support IPv6 as specified in [IPv6].\n\n[Log-derived analysis] The Redirected Header contains as much as possible of the IP packet that triggered the sending of the Redirect without making the redirect packet exceed the minimum MTU specified in [IPv6]. (Note: ... it is recommended that they be configured with an MTU of 1500 octets or greater, to accommodate possible encapsulations (i.e., tunneling) without incurring IPv6-layer fragmentation. \"Internet Protocol, Version 6 (IPv6) Specification\", RFC 2460, December 1998.) AND The original packet truncated to ensure that the size of the redirect message does not exceed the minimum MTU required to support IPv6 as specified in [IPv6].",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format RFC 4861 s4.6.3 p32 Redirected Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702456",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.7.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved1 (6-bit unused field) and Reserved2 fields MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved1 (6-bit unused field) and Reserved2 fields MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.6.2 p30 Prefix Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702457",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.7.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Note that the value of this field MUST NOT exceed the Valid Lifetime field to avoid preferring addresses that are no longer valid.\n\n[Log-derived analysis] Note that the value of this field MUST NOT exceed the Valid Lifetime field to avoid preferring addresses that are no longer valid.",
+    "reference": "RFC 4861 s4.6.2 p31 Prefix Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356780",
+      "log_uid": "93667951",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2013.7.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The bits in the prefix after the prefix length are reserved and MUST be initialized to zero by the sender\n\n[Log-derived analysis] The bits in the prefix after the prefix length are reserved and MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.6.2 p31 Prefix Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356780",
+      "log_uid": "93667952",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2013.7.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router SHOULD NOT send a prefix option for the link-local prefix\n\n[Log-derived analysis] A router SHOULD NOT send a prefix option for the link-local prefix",
+    "reference": "RFC 4861 s4.6.2 p31 Prefix Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702460",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.8.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved fields are unused. They MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved fields are unused. They MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.6.3 p31 Redirected Header",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702461",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.9.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The Reserved field is unused. It MUST be initialized to zero by the sender\n\n[Log-derived analysis] The Reserved field is unused. It MUST be initialized to zero by the sender",
+    "reference": "RFC 4861 s4.6.4 p32 MTU",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356780",
+      "log_uid": "93667955",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2013.9.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The MTU option is used in Router Advertisement messages to ensure that all nodes on a link use the same MTU value in those cases where the link MTU is not well known.\n\n[Log-derived analysis] The MTU option is used in Router Advertisement messages to ensure that all nodes on a link use the same MTU value in those cases where the link MTU is not well known.",
+    "reference": "RFC 4861 s4.6.4 p32 MTU",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356780",
+      "log_uid": "93667956",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2013.10.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Entries are keyed on the neighbor's on-link unicast IP address and contain such information as its link-layer address, a flag indicating whether the neighbor is a router or a host (called IsRouter in this document), a pointer to any queued packets waiting for address resolution to complete, etc. (Note: check for no neighbor cache entry)\n\n[Log-derived analysis] Entries are keyed on the neighbor's on-link unicast IP address and contain such information as its link-layer address, a flag indicating whether the neighbor is a router or a host (called IsRouter in this document), a pointer to any queued packets waiting for address resolution to complete, etc. (Note: check for no neighbor cache entry)",
+    "reference": "RFC 4861 s5.1 p33 Conceptual Data Structures",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702464",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - The IP Hop Limit field has a value of 255, i.e., the packet could not possibly have been forwarded by a router. ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - The IP Hop Limit field has a value of 255, i.e., the packet could not possibly have been forwarded by a router. ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702465",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Checksum is valid. ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Checksum is valid. ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702466",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Code is 0 ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Code is 0 ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702467",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP length (derived from the IP length) is 8 or more octets. ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP length (derived from the IP length) is 8 or more octets. ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702468",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - All included options have a length that is greater than zero. ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - All included options have a length that is greater than zero. ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702469",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is the unspecified address, there is no source link-layer address option in the message. ...\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is the unspecified address, there is no source link-layer address option in the message. ...",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702470",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.11.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... (Tests that router does not discard a packet from unicast address that satisfies all the validity checks)\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... (Tests that router does not discard a packet from unicast address that satisfies all the validity checks)",
+    "reference": "NEGATIVE RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702471",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.11.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... (Tests that router does not discard a packet from unspecified address that satisfies all the validity checks)\n\n[Log-derived analysis] A router MUST silently discard any received Router Solicitation messages that do not satisfy all of the following validity checks: ... (Tests that router does not discard a packet from unspecified address that satisfies all the validity checks)",
+    "reference": "NEGATIVE RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages RFC 4291 s2.4 p6 Address Type Identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702472",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.11.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The contents of any defined options that are not specified to be used with Router Solicitation messages MUST be ignored and\n\n[Log-derived analysis] The contents of any defined options that are not specified to be used with Router Solicitation messages MUST be ignored and",
+    "reference": "RFC 4861 s6.1.1 p39 Validation of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702473",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.11.11": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The only defined option that MAY appear is the Source Link Layer Address Option (Note: Testing that this option get processed in router)\n\n[Log-derived analysis] The only defined option that MAY appear is the Source Link Layer Address Option (Note: Testing that this option get processed in router)",
+    "reference": "RFC 4861 s6.1.1 p39 Validation Of Router Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702474",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.12.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "An advertisement that passes the validity checks is called a \"valid advertisement\" (Tests that router sends valid Router Advertisement)\n\n[Log-derived analysis] An advertisement that passes the validity checks is called a \"valid advertisement\" (Tests that router sends valid Router Advertisement)",
+    "reference": "RFC 4861 s6.1.2 p40 Validation of Router Advertisement Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702475",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Note that AdvSendAdvertisements MUST be FALSE by default so that a node will not ... to send Router Advertisements A router MUST NOT send Router Advertisements out any interface that is not an advertising interface\n\n[Log-derived analysis] Note that AdvSendAdvertisements MUST be FALSE by default so that a node will not ... to send Router Advertisements A router MUST NOT send Router Advertisements out any interface that is not an advertising interface",
+    "reference": "RFC 4861 s6.2.1 p41 Router Configuration Variables RFC 4861 s6.2.2 p45 Becoming An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702476",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "MaxRtrAdvInterval : MUST be no less than 4 seconds and no greater than 1800 seconds\n\n[Log-derived analysis] MaxRtrAdvInterval : MUST be no less than 4 seconds and no greater than 1800 seconds",
+    "reference": "RFC 4861 s6.2.1 p41 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702477",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "MinRtrAdvInterval: MUST be no less than 3 seconds and no greater than 0.75 * MaxRtrAdvInterval (Note: Testing the minimum value for MinRtrAdvInterval)\n\n[Log-derived analysis] MinRtrAdvInterval: MUST be no less than 3 seconds and no greater than 0.75 * MaxRtrAdvInterval (Note: Testing the minimum value for MinRtrAdvInterval)",
+    "reference": "RFC 4861 s6.2.1 p41 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702478",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "MinRtrAdvInterval: Default: 0.33 * MaxRtrAdvInterval If MaxRtrAdvInterval >= 9 seconds otherwise, Default is MaxRtrAdvInterval\n\n[Log-derived analysis] MinRtrAdvInterval: Default: 0.33 * MaxRtrAdvInterval If MaxRtrAdvInterval >= 9 seconds otherwise, Default is MaxRtrAdvInterval",
+    "reference": "NEGATIVE RFC 4861 s6.2.1 p41 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702479",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvManagedFlag The TRUE/FALSE value to be placed in the \"Managed address configuration\" flag field in the Router Advertisement. Default: FALSE\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvManagedFlag The TRUE/FALSE value to be placed in the \"Managed address configuration\" flag field in the Router Advertisement. Default: FALSE",
+    "reference": "RFC 4861 s6.2.1 p41 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvOtherConfigFlag The TRUE/FALSE value to be placed in the \"Other stateful configuration\" flag field in the Router Advertisement. Default: FALSE\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvOtherConfigFlag The TRUE/FALSE value to be placed in the \"Other stateful configuration\" flag field in the Router Advertisement. Default: FALSE",
+    "reference": "RFC 4861 s6.2.1 p42 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvLinkMTU The value to be placed in MTU options sent by the router. A value of zero indicates that no MTU options are sent. Default: 0\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvLinkMTU The value to be placed in MTU options sent by the router. A value of zero indicates that no MTU options are sent. Default: 0",
+    "reference": "RFC 4861 s6.2.1 p42 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvReachableTime The value to be placed in the Reachable Time field in the Router Advertisement messages sent by the router. The value zero means unspecified (by this router)... Default: 0\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvReachableTime The value to be placed in the Reachable Time field in the Router Advertisement messages sent by the router. The value zero means unspecified (by this router)... Default: 0",
+    "reference": "RFC 4861 s6.2.1 p42 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvRetransTimer The value to be placed in the Retrans Timer field in the Router Advertisement messages sent by the router. The value zero means unspecified (by this router). Default: 0\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvRetransTimer The value to be placed in the Retrans Timer field in the Router Advertisement messages sent by the router. The value zero means unspecified (by this router). Default: 0",
+    "reference": "RFC 4861 s6.2.1 p42 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvCurHopLimit: The value to be placed in the Current Hop Limit field of Router Advertisements sent from the interface\n\n[Log-derived analysis] AdvCurHopLimit: The value to be placed in the Current Hop Limit field of Router Advertisements sent from the interface",
+    "reference": "RFC 4861 s6.2.1 p42 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702485",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.13.11": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvDefaultLifetime The value to be placed in the Router Lifetime field of Router Advertisements sent from the interface, in seconds... Default: 3 * MaxRtrAdvInterval\n\n[Log-derived analysis] AdvDefaultLifetime The value to be placed in the Router Lifetime field of Router Advertisements sent from the interface, in seconds... Default: 3 * MaxRtrAdvInterval",
+    "reference": "RFC 4861 s6.2.1 p43 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702486",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.12": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvDefaultLifetime ... MUST be either zero or between MaxRtrAdvInterval and 9000 seconds\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvDefaultLifetime ... MUST be either zero or between MaxRtrAdvInterval and 9000 seconds",
+    "reference": "RFC 4861 s6.2.1 p43 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.13": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvValidLifetime The value to be placed in the Valid ... in seconds... Default: 2592000 seconds (30 days), fixed (i.e., stays the same in consecutive advertisements).\n\n[Log-derived analysis] AdvValidLifetime The value to be placed in the Valid ... in seconds... Default: 2592000 seconds (30 days), fixed (i.e., stays the same in consecutive advertisements).",
+    "reference": "RFC 4861 s6.2.1 p43 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702487",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.13.14": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvValidLifetime ...Implementations MAY allow AdvValidLifetime to be specified in two ways: - a time that decrements in real time, ... one that will result in a Lifetime of zero at the specified time in the future, or - a fixed time that stays the same in consecutive advertisements.\n\n[Log-derived analysis] AdvValidLifetime ...Implementations MAY allow AdvValidLifetime to be specified in two ways: - a time that decrements in real time, ... one that will result in a Lifetime of zero at the specified time in the future, or - a fixed time that stays the same in consecutive advertisements.",
+    "reference": "RFC 4861 s6.2.1 p43 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702488",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.13.15": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvOnLinkFlag The value to be placed in the on-link flag (\"L-bit\") field in the Prefix Information option. Default: TRUE\n\n[Log-derived analysis] AdvOnLinkFlag The value to be placed in the on-link flag (\"L-bit\") field in the Prefix Information option. Default: TRUE",
+    "reference": "RFC 4861 s6.2.1 p44 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356780",
+      "log_uid": "93667982",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2013.13.16": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvPreferredLifetime The value to be placed in the Preferred ... seconds... Default: 604800 seconds (7 days), fixed (i.e., stays the same in consecutive advertisements).\n\n[Log-derived analysis] AdvPreferredLifetime The value to be placed in the Preferred ... seconds... Default: 604800 seconds (7 days), fixed (i.e., stays the same in consecutive advertisements).",
+    "reference": "RFC 4861 s6.2.1 p44 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702490",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.13.17": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvPreferredLifetime ... Implementations MAY allow AdvPreferredLifetime to be specified in two ways: - a time that decrements in real time, ... one that will result in a Lifetime of zero at the specified time in the future, or - a fixed time that stays the same in consecutive advertisements.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] AdvPreferredLifetime ... Implementations MAY allow AdvPreferredLifetime to be specified in two ways: - a time that decrements in real time, ... one that will result in a Lifetime of zero at the specified time in the future, or - a fixed time that stays the same in consecutive advertisements.",
+    "reference": "RFC 4861 s6.2.1 p44 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.13.18": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "AdvAutonomousFlag The value to be placed in the Autonomous Flag field in the Prefix Information option. Default: TRUE\n\n[Log-derived analysis] AdvAutonomousFlag The value to be placed in the Autonomous Flag field in the Prefix Information option. Default: TRUE",
+    "reference": "RFC 4861 s6.2.1 p44 Router Configuration Variables",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702492",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.14.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "An interface may become an advertising interface at times other than system startup. For example: - changing the AdvSendAdvertisements flag on an enabled interface from FALSE to TRUE\n\n[Log-derived analysis] An interface may become an advertising interface at times other than system startup. For example: - changing the AdvSendAdvertisements flag on an enabled interface from FALSE to TRUE",
+    "reference": "RFC 4861 s6.2.2 p45 Becoming An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702493",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.14.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST join the all-routers multicast address on an advertising interface. Routers respond to Router Solicitations sent to the all-routers address\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] A router MUST join the all-routers multicast address on an advertising interface. Routers respond to Router Solicitations sent to the all-routers address",
+    "reference": "RFC 4861 s6.2.2 p45 Becoming An Advertising Interface RFC 4291 s2.7.1 p16 Pre-Defined Multicast Addresses",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.15.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "However, when responding to a Router Solicitation a router SHOULD include all options so that all information (e.g., prefixes) is propagated quickly during system initialization\n\n[Log-derived analysis] However, when responding to a Router Solicitation a router SHOULD include all options so that all information (e.g., prefixes) is propagated quickly during system initialization",
+    "reference": "RFC 4861 s6.2.3 p46 Router Advertisement Message Content",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702495",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.16.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Unsolicited Router Advertisements are not strictly periodic: the interval between subsequent transmissions is randomized...Whenever a multicast...the timer is reset to a uniformly distributed random value between the interface's configured MinRtrAdvInterval and MaxRtrAdvInterval;\n\n[Log-derived analysis] Unsolicited Router Advertisements are not strictly periodic: the interval between subsequent transmissions is randomized...Whenever a multicast...the timer is reset to a uniformly distributed random value between the interface's configured MinRtrAdvInterval and MaxRtrAdvInterval;",
+    "reference": "RFC 4861 s6.2.4 p47 Sending Unsolicited Router Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702496",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.16.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "For the first few advertisements (up to MAX_INITIAL_RTR_ADVERTISEMENTS) sent from an interface when it becomes an advertising interface, if the randomly chosen interval is greater than MAX_INITIAL_RTR_ADVERT_INTERVAL, then timer SHOULD be set to MAX_INITIAL_RTR_ADVERT_INTERVAL instead\n\n[Log-derived analysis] For the first few advertisements (up to MAX_INITIAL_RTR_ADVERTISEMENTS) sent from an interface when it becomes an advertising interface, if the randomly chosen interval is greater than MAX_INITIAL_RTR_ADVERT_INTERVAL, then timer SHOULD be set to MAX_INITIAL_RTR_ADVERT_INTERVAL instead",
+    "reference": "RFC 4861 s6.2.4 p47 Sending Unsolicited Router Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702497",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.17.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In such cases the router SHOULD transmit one or more final (but not more than MAX_FINAL_RTR_ADVERTISEMENTS) multicast Router Advertisements on the interface with a Router Lifetime field of zero.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] In such cases the router SHOULD transmit one or more final (but not more than MAX_FINAL_RTR_ADVERTISEMENTS) multicast Router Advertisements on the interface with a Router Lifetime field of zero.",
+    "reference": "RFC 4861 s6.2.5 p48 Ceasing To Be An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.17.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In the case of a router becoming a host, the system SHOULD also depart from the all-routers IP multicast group on all interfaces on which the router supports IP multicast\n\n[Log-derived analysis] In the case of a router becoming a host, the system SHOULD also depart from the all-routers IP multicast group on all interfaces on which the router supports IP multicast",
+    "reference": "RFC 4861 s6.2.5 p48 Ceasing To Be An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702498",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.17.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In addition, the host MUST insure that subsequent Neighbor Advertisement messages sent from the interface have the Router flag set to zero (In case where router becomes a host)\n\n[Log-derived analysis] In addition, the host MUST insure that subsequent Neighbor Advertisement messages sent from the interface have the Router flag set to zero (In case where router becomes a host)",
+    "reference": "RFC 4861 s6.2.5 p48 Ceasing To Be An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702499",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.17.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "System management may disable router's IP forwarding capability (i.e., changing the system from being a router to being host), a step that does not necessarily imply that router's interfaces stop being advertising interfaces. In such cases, subsequent Router Advertisements MUST set Router Lifetime field to zero\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] System management may disable router's IP forwarding capability (i.e., changing the system from being a router to being host), a step that does not necessarily imply that router's interfaces stop being advertising interfaces. In such cases, subsequent Router Advertisements MUST set Router Lifetime field to zero",
+    "reference": "RFC 4861 s6.2.5 p48 Ceasing To Be An Advertising Interface",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.18.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In all cases, Router Advertisements sent in response to a Router Solicitation MUST be delayed by a random time between 0 and MAX_RA_DELAY_TIME seconds\n\n[Log-derived analysis] In all cases, Router Advertisements sent in response to a Router Solicitation MUST be delayed by a random time between 0 and MAX_RA_DELAY_TIME seconds",
+    "reference": "RFC 4861 s6.2.6 p48 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702500",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "FAIL"
+    }
+  },
+  "2013.18.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In addition, consecutive Router Advertisements sent to the all-nodes multicast address MUST be rate limited to no more than one advertisement every MIN_DELAY_BETWEEN_RAS seconds.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] In addition, consecutive Router Advertisements sent to the all-nodes multicast address MUST be rate limited to no more than one advertisement every MIN_DELAY_BETWEEN_RAS seconds.",
+    "reference": "RFC 4861 s6.2.6 p48 Processing Router Solicitations RFC 4291 s2.7.1 p16 Pre-Defined Multicast Addresses",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.18.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Note that a router is permitted to send multicast Router Advertisements more frequently than indicated by the MinRtrAdvInterval configuration variable so long as the more frequent advertisements are responses to Router Solicitations.\n\n[Log-derived analysis] Note that a router is permitted to send multicast Router Advertisements more frequently than indicated by the MinRtrAdvInterval configuration variable so long as the more frequent advertisements are responses to Router Solicitations.",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702501",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.18.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Unsolicited multicast advertisements MUST NOT be sent more frequently than indicated by MinRtrAdvInterval.\n\n[Log-derived analysis] Unsolicited multicast advertisements MUST NOT be sent more frequently than indicated by MinRtrAdvInterval.",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702502",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.18.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the router already has a Neighbor Cache entry for the solicitation's sender,... and the received link-layer address differs from that already in the cache, the link-layer address SHOULD be updated in the appropriate Neighbor Cache entry, and its reachability state MUST also be set to STALE.\n\n[Log-derived analysis] If the router already has a Neighbor Cache entry for the solicitation's sender,... and the received link-layer address differs from that already in the cache, the link-layer address SHOULD be updated in the appropriate Neighbor Cache entry, and its reachability state MUST also be set to STALE.",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702503",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.18.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If there is no existing Neighbor Cache entry for the solicitation's sender, the router creates one, installs the link-layer address and sets its reachability state to STALE\n\n[Log-derived analysis] If there is no existing Neighbor Cache entry for the solicitation's sender, the router creates one, installs the link-layer address and sets its reachability state to STALE",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702504",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.18.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Whether or not a Source Link-Layer Address option is provided, if a Neighbor Cache entry for the solicitation's sender exists the entry's IsRouter flag MUST be set to FALSE (Note: Case where Neighbor Cache entry exists)\n\n[Log-derived analysis] Whether or not a Source Link-Layer Address option is provided, if a Neighbor Cache entry for the solicitation's sender exists the entry's IsRouter flag MUST be set to FALSE (Note: Case where Neighbor Cache entry exists)",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702505",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.18.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Whether or not a Source Link-Layer Address option is provided, if a Neighbor Cache entry for the solicitation's sender is created the entry's IsRouter flag MUST be set to FALSE (Note: Case where Neighbor Cache entry doesn't exist)\n\n[Log-derived analysis] Whether or not a Source Link-Layer Address option is provided, if a Neighbor Cache entry for the solicitation's sender is created the entry's IsRouter flag MUST be set to FALSE (Note: Case where Neighbor Cache entry doesn't exist)",
+    "reference": "RFC 4861 s6.2.6 p49 Processing Router Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702506",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "ERROR"
+    }
+  },
+  "2013.21.12": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If a Neighbor Cache entry is created for the router its reachability state MUST be set to STALE\n\n[Log-derived analysis] If a Neighbor Cache entry is created for the router its reachability state MUST be set to STALE",
+    "reference": "RFC 4861 s6.3.4 p54 Processing Received Router Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702507",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: - The IP Hop Limit field has a value of 255, i.e., the packet could not possibly have been forwarded by a router.\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: - The IP Hop Limit field has a value of 255, i.e., the packet could not possibly have been forwarded by a router.",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702508",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Checksum is valid ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Checksum is valid ...",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702509",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Code is 0 ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP Code is 0 ...",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702510",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP length (derived from IP length) is 24 or more octets ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - ICMP length (derived from IP length) is 24 or more octets ...",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702511",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - Target Address is not a multicast address ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - Target Address is not a multicast address ...",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702512",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - All included options have a length greater than zero ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - All included options have a length greater than zero ...",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702513",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is unspecified address, the IP destination address is a solicited-node multicast address\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is unspecified address, the IP destination address is a solicited-node multicast address",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations RFC 4291 s2.4 p6 Address Type Identification RFC 4291 s2.7.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702514",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is the unspecified address, there is no source link-layer address option in the message\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all of the following validity checks: ... - If the IP source address is the unspecified address, there is no source link-layer address option in the message",
+    "reference": "RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702515",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all the following validity checks: ... (Tests that node does not discard Neighbor Solicitation, sent from unspecified address, that satisfies all validity checks)\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Solicitation messages that do not satisfy all the following validity checks: ... (Tests that node does not discard Neighbor Solicitation, sent from unspecified address, that satisfies all validity checks)",
+    "reference": "NEGATIVE RFC 4861 s7.1.1 p59 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702516",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.11": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The contents of any defined options that are not specified to be used with Neighbor Solicitation messages MUST be ignored and the packet processed as normal\n\n[Log-derived analysis] The contents of any defined options that are not specified to be used with Neighbor Solicitation messages MUST be ignored and the packet processed as normal",
+    "reference": "RFC 4861 s7.1.1 p60 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702517",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.23.12": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A Neighbor Solicitation that passes the validity checks is called a \"valid solicitation\" (Tests whether a node sends a valid Neighbor Solicitation)\n\n[Log-derived analysis] A Neighbor Solicitation that passes the validity checks is called a \"valid solicitation\" (Tests whether a node sends a valid Neighbor Solicitation)",
+    "reference": "RFC 4861 s7.1.1 p60 Validation of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702518",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... - The IP Hop Limit field has a value of 255, i.e., packet could not possibly have been forwarded by a router\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... - The IP Hop Limit field has a value of 255, i.e., packet could not possibly have been forwarded by a router",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702519",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP Checksum is valid ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP Checksum is valid ...",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702520",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP Code is 0 ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP Code is 0 ...",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702521",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP length (derived from IP length) is 24 or more octets ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- ICMP length (derived from IP length) is 24 or more octets ...",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702522",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- Target Address is not a Multicast Address\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- Target Address is not a Multicast Address",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702523",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- If the IP Destination Address is a multicast address the Solicited flag is zero\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- If the IP Destination Address is a multicast address the Solicited flag is zero",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702524",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- All included options have length that is greater than zero ...\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ...- All included options have length that is greater than zero ...",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702525",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... (Tests DUT does not discard unicast Neighbor Advertisement that satisfies all the validity checks)\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... (Tests DUT does not discard unicast Neighbor Advertisement that satisfies all the validity checks)",
+    "reference": "NEGATIVE RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702526",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... (Tests DUT does not discard multicast Neighbor Advertisement that satisfies all the validity checks)\n\n[Log-derived analysis] A node MUST silently discard any received Neighbor Advertisement messages that do not satisfy all of the following validity checks: ... (Tests DUT does not discard multicast Neighbor Advertisement that satisfies all the validity checks)",
+    "reference": "NEGATIVE RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702527",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The contents of any defined options that are not specified to be used with Neighbor Advertisement messages MUST be ignored and the packet processed as normal\n\n[Log-derived analysis] The contents of any defined options that are not specified to be used with Neighbor Advertisement messages MUST be ignored and the packet processed as normal",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702528",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.24.11": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A Neighbor Advertisement that passes the validity checks is called a \"valid advertisement\" (Tests whether a node sends a valid Neighbor Advertisement)\n\n[Log-derived analysis] A Neighbor Advertisement that passes the validity checks is called a \"valid advertisement\" (Tests whether a node sends a valid Neighbor Advertisement)",
+    "reference": "RFC 4861 s7.1.2 p60 Validation of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702529",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.25.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Address resolution is never performed on multicast addresses\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Address resolution is never performed on multicast addresses",
+    "reference": "RFC 4861 s7.2 p61 Address Resolution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.26.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "In such cases the node MUST join and leave the solicited-node multicast address corresponding to the new and old addresses, respectively\n\n[Log-derived analysis] In such cases the node MUST join and leave the solicited-node multicast address corresponding to the new and old addresses, respectively",
+    "reference": "RFC 4861 s7.2.1 p61 Interface Initialization",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702530",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.26.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A node MUST NOT leave the solicited-node multicast group until all assigned addresses corresponding to that multicast address have been removed\n\n[Log-derived analysis] A node MUST NOT leave the solicited-node multicast group until all assigned addresses corresponding to that multicast address have been removed",
+    "reference": "RFC 4861 s7.2.1 p61 Interface Initialization",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702531",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.27.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the source address of the packet prompting the solicitation is the same as one of the addresses assigned to the outgoing interface, that address SHOULD be placed in the IP Source Address of the outgoing solicitation\n\n[Log-derived analysis] If the source address of the packet prompting the solicitation is the same as one of the addresses assigned to the outgoing interface, that address SHOULD be placed in the IP Source Address of the outgoing solicitation",
+    "reference": "RFC 4861 s7.2.2 p61 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702532",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.27.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the source address of the packet prompting the solicitation is not the same as one of the addresses assigned to the outgoing interface, any one of the addresses assigned to the interface should be used\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If the source address of the packet prompting the solicitation is not the same as one of the addresses assigned to the outgoing interface, any one of the addresses assigned to the interface should be used",
+    "reference": "RFC 4861 s7.2.2 p61 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.27.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If no Neighbor Advertisement is received after MAX_MULTICAST_SOLICIT solicitations, address resolution has failed. The sender MUST return ICMP destination unreachable indications with code 3 (...) for each packet queued awaiting address resolution\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If no Neighbor Advertisement is received after MAX_MULTICAST_SOLICIT solicitations, address resolution has failed. The sender MUST return ICMP destination unreachable indications with code 3 (...) for each packet queued awaiting address resolution",
+    "reference": "RFC 4861 s7.2.2 p62 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.27.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the source address of the packet prompting the solicitation is not the same as one of the addresses assigned to the outgoing interface, any one of the addresses assigned to the interface should be used\n\n[Log-derived analysis] If the source address of the packet prompting the solicitation is not the same as one of the addresses assigned to the outgoing interface, any one of the addresses assigned to the interface should be used",
+    "reference": "RFC 4861 s7.2.2 p61 Sending Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702533",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.28.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A valid Neighbor Solicitation that does not meet any following requirements MUST be silently discarded: - The Target Address is a unicast address for which node is offering proxy service\n\n[Log-derived analysis] A valid Neighbor Solicitation that does not meet any following requirements MUST be silently discarded: - The Target Address is a unicast address for which node is offering proxy service",
+    "reference": "NEGATIVE RFC 4861 s7.2.3 p62 Receipt of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702534",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.28.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Otherwise, the following description applies. If the Source Address is ... of the solicitation. If an entry already exists, and the cache link-layer address differs from the one in the received Source Link-Layer option, .. the entry's reachability state MUST be set to STALE\n\n[Inferred behavior \u2014 no execution history for this case] Otherwise, the following description applies. If the Source Address is ... of the solicitation. If an entry already exists, and the cache link-layer address differs from the one in the received Source Link-Layer option, .. the entry's reachability state MUST be set to STALE",
+    "reference": "RFC 4861 s7.2.3 p63 Receipt of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2013.28.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If a Neighbor Cache entry is created the IsRouter flag SHOULD be set to FALSE\n\n[Log-derived analysis] If a Neighbor Cache entry is created the IsRouter flag SHOULD be set to FALSE",
+    "reference": "RFC 4861 s7.2.3 p63 Receipt of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702535",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.28.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the Source Address of Neighbor Solicitation is the unspecified address the node MUST NOT create the Neighbor Cache entry\n\n[Log-derived analysis] If the Source Address of Neighbor Solicitation is the unspecified address the node MUST NOT create the Neighbor Cache entry",
+    "reference": "RFC 4861 s7.2.3 p63 Receipt of Neighbor Solicitations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702536",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.29.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the solicitation's IP Destination Address is a multicast address, the Target Link-Layer option MUST be included in the advertisement.\n\n[Log-derived analysis] If the solicitation's IP Destination Address is a multicast address, the Target Link-Layer option MUST be included in the advertisement.",
+    "reference": "RFC 4861 s7.2.5 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702537",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.29.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Furthermore, if the node is a router, it MUST set the Router flag to one\n\n[Log-derived analysis] Furthermore, if the node is a router, it MUST set the Router flag to one",
+    "reference": "RFC 4861 s7.2.5 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702538",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.29.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the source of the solicitation is the unspecified address, the node MUST set the Solicited flag to zero and multicast the advertisement to the all-nodes address.\n\n[Log-derived analysis] If the source of the solicitation is the unspecified address, the node MUST set the Solicited flag to zero and multicast the advertisement to the all-nodes address.",
+    "reference": "RFC 4861 s7.2.4 p63 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702539",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.29.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Because unicast Neighbor Solicitations are not required to include a Source Link-Layer Address, it is possible that a node sending a solicited Neighbor Advertisement does not have a corresponding link-layer address for its neighbor in its Neighbor Cache. In such situations, a node will first have to use Neighbor Discovery to determine the link-layer address of its neighbor (i.e, send out a multicast Neighbor Solicitation).\n\n[Log-derived analysis] Because unicast Neighbor Solicitations are not required to include a Source Link-Layer Address, it is possible that a node sending a solicited Neighbor Advertisement does not have a corresponding link-layer address for its neighbor in its Neighbor Cache. In such situations, a node will first have to use Neighbor Discovery to determine the link-layer address of its neighbor (i.e, send out a multicast Neighbor Solicitation).",
+    "reference": "RFC 4861 s7.2.4 p64 Sending Solicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702540",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When a valid solicited Neighbor Advertisement is received (either solicited or unsolicited), the Neighbor Cache is searched for the target's entry. If no entry exists, the advertisement SHOULD be silently discarded (Tests with the receiver as target address)\n\n[Log-derived analysis] When a valid solicited Neighbor Advertisement is received (either solicited or unsolicited), the Neighbor Cache is searched for the target's entry. If no entry exists, the advertisement SHOULD be silently discarded (Tests with the receiver as target address)",
+    "reference": "RFC 4861 s7.2.5 p64 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702541",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When a valid unsolicited Neighbor Advertisement is received, the Neighbor Cache is searched for the target's entry. If no entry exists, the advertisement SHOULD be silently discarded (Tests with the sender as target address)\n\n[Log-derived analysis] When a valid unsolicited Neighbor Advertisement is received, the Neighbor Cache is searched for the target's entry. If no entry exists, the advertisement SHOULD be silently discarded (Tests with the sender as target address)",
+    "reference": "RFC 4861 s7.2.5 p64 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702542",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - If the advertisement's Solicited flag is set, the state of the entry is set to REACHABLE ...\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - If the advertisement's Solicited flag is set, the state of the entry is set to REACHABLE ...",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702543",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - If the advertisement's Solicited flag is set, ... , otherwise it is set to STALE\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - If the advertisement's Solicited flag is set, ... , otherwise it is set to STALE",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702544",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.5": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - It sets the IsRouter flag in the cache entry based on the Router flag in the received advertisements\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - It sets the IsRouter flag in the cache entry based on the Router flag in the received advertisements",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702545",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.6": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - It records the link-layer address in the Neighbor Cache Entry - It sends any packets queued for the neighbor ...\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in the INCOMPLETE ... If ... no Target Link-layer address option is included, ... Otherwise, the receiving node performs the following steps: - It records the link-layer address in the Neighbor Cache Entry - It sends any packets queued for the neighbor ...",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702546",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.7": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is clear and the supplied link-layer address differs from that in the cache, ... : if the state of the entry is REACHABLE, set it to STALE, but do not update the entry in any other way\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is clear and the supplied link-layer address differs from that in the cache, ... : if the state of the entry is REACHABLE, set it to STALE, but do not update the entry in any other way",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements RFC 4861 s7.2.6 p67 Sending Unsolicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702547",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.8": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... the received advertisement MUST update the Neighbor Cache entry as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... the received advertisement MUST update the Neighbor Cache entry as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702548",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.9": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... the received advertisement MUST update the Neighbore Cache entry as follows: - ... If Solicited flag is zero and the link-layer address was updated with different address the state MUST be set to STALE.\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... the received advertisement MUST update the Neighbore Cache entry as follows: - ... If Solicited flag is zero and the link-layer address was updated with different address the state MUST be set to STALE.",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements RFC 4861 s7.2.6 p67 Sending Unsolicited Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702549",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.10": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ...supplied link-layer address is the same ...as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ...supplied link-layer address is the same ...as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702550",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.11": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If ... no Target Link-layer address option was supplied, ... as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If ... no Target Link-layer address option was supplied, ... as follows: - If the Solicited flag is set, the state of the entry MUST be set to REACHABLE",
+    "reference": "RFC 4861 s7.2.5 p65 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702551",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.13": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "There is no need to update the state for unsolicited advertisements that do not change the contents of the cache (Tests that REACHABLE neighbor cache entry remains REACHABLE)\n\n[Log-derived analysis] There is no need to update the state for unsolicited advertisements that do not change the contents of the cache (Tests that REACHABLE neighbor cache entry remains REACHABLE)",
+    "reference": "RFC 4861 s7.2.5 p66 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702552",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.30.15": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... as follows: - The IsRouter flag in the cache entry MUST be set based on the Router flag in the received advertisement. (Tests that IsRouter flag changes from FALSE to TRUE)\n\n[Log-derived analysis] If the target's Neighbor Cache entry is in any state other than INCOMPLETE ... If the Override flag is set, ... as follows: - The IsRouter flag in the cache entry MUST be set based on the Router flag in the received advertisement. (Tests that IsRouter flag changes from FALSE to TRUE)",
+    "reference": "RFC 4861 s7.2.5 p66 Receipt of Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702553",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.31.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Neighbor Advertisements sent in response to a Neighbor Solicitation SHOULD be delayed by a random time between 0 and MAX_ANYCAST_DELAY_TIME\n\n[Log-derived analysis] Neighbor Advertisements sent in response to a Neighbor Solicitation SHOULD be delayed by a random time between 0 and MAX_ANYCAST_DELAY_TIME",
+    "reference": "RFC 4861 s7.2.7 p67 Anycast Neighbor Advertisements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 31,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1243494",
+      "log_uid": "35897065",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "5.5.0-0.6-rc1",
+      "run_date": "2020-08-27",
+      "result": "ERROR"
+    }
+  },
+  "2013.32.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "When ReachableTime milliseconds have passed since receipt of the last reachability confirmation for a neighbor, the Neighbor Cache entry's state changes from REACHABLE to STALE\n\n[Log-derived analysis] When ReachableTime milliseconds have passed since receipt of the last reachability confirmation for a neighbor, the Neighbor Cache entry's state changes from REACHABLE to STALE",
+    "reference": "RFC 4861 s7.3.3 p72 Node Behavior",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702554",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.32.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "The first time a node sends a packet to a neighbor whose entry is STALE, ... when the timer expires, the entry's state changes to PROBE. ... Upon entering the PROBE state, a node sends a unicast Neighbor Solicitation message to the neighbor using the cached link-layer address.\n\n[Log-derived analysis] The first time a node sends a packet to a neighbor whose entry is STALE, ... when the timer expires, the entry's state changes to PROBE. ... Upon entering the PROBE state, a node sends a unicast Neighbor Solicitation message to the neighbor using the cached link-layer address.",
+    "reference": "RFC 4861 s7.3.3 p72 Node Behavior",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702555",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.32.3": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "While in the PROBE state, a node retransmits Neighbor Solicitation messages every RetransTimer milliseconds until reachability confirmation is obtained\n\n[Log-derived analysis] While in the PROBE state, a node retransmits Neighbor Solicitation messages every RetransTimer milliseconds until reachability confirmation is obtained",
+    "reference": "RFC 4861 s7.3.3 p72 Node Behavior",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702556",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.32.4": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If no response is received after waiting RetransTimer milliseconds after sending the MAX_UNICAST_SOLICIT solicitations, retransmissions cease and the entry SHOULD be deleted\n\n[Log-derived analysis] If no response is received after waiting RetransTimer milliseconds after sending the MAX_UNICAST_SOLICIT solicitations, retransmissions cease and the entry SHOULD be deleted",
+    "reference": "RFC 4861 s7.3.3 p72 Node Behavior",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702557",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.33.14": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "Otherwise the target is a better first-hop router and the redirect that passes the validity checks is called a \"valid redirect\" (Tests that a router sends a valid Redirect message)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Otherwise the target is a better first-hop router and the redirect that passes the validity checks is called a \"valid redirect\" (Tests that a router sends a valid Redirect message)",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format RFC 4861 s8.1 p74 Validation of Redirect Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 33,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.33.15": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "If the destination is a neighbor, the Target Address field MUST contain the same value as the ICMP Destination Address field... A redirect that passes the validity checks is called a \"valid redirect\" (Tests that a router sends a valid Redirect message)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If the destination is a neighbor, the Target Address field MUST contain the same value as the ICMP Destination Address field... A redirect that passes the validity checks is called a \"valid redirect\" (Tests that a router sends a valid Redirect message)",
+    "reference": "RFC 4861 s4.5 p27 Redirect Message Format RFC 4861 s8.1 p74 Validation of Redirect Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 33,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2013.34.1": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router SHOULD send a redirect message, subject to rate limiting, whenever it forwards a packet that is not explicitly addressed to itself (i.e. a packet that is not source routed through the router) in which: - the Source Address field of the packet identifies a neighbor\n\n[Log-derived analysis] A router SHOULD send a redirect message, subject to rate limiting, whenever it forwards a packet that is not explicitly addressed to itself (i.e. a packet that is not source routed through the router) in which: - the Source Address field of the packet identifies a neighbor",
+    "reference": "RFC 4861 s8.2 p75 Router Specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 34,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357781",
+      "log_uid": "93702558",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2013.34.2": {
+    "suite_id": "2013",
+    "suite_name": "2013_IxANVL_ipv6_ndp",
+    "description": "A router MUST NOT update its routing tables upon receipt of a Redirect\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] A router MUST NOT update its routing tables upon receipt of a Redirect",
+    "reference": "RFC 4861 s8.2 p75 Router Specification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 34,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  }
+}

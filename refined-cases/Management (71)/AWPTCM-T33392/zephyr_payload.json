@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33392": {
+    "objective": "<ul><li>TFTP download and upload operations succeed when using a different destination filename from the source.</li><li>Downloaded and uploaded files are correctly renamed/copied to the specified different destination filename on the target (switch or server).</li><li>TFTP operates normally with the AT-TFTP server for both upload and download.</li><li>TFTP copy operations work correctly across different storage types on the switch (e.g., Flash, NVS, Card).</li><li>When the destination filename does not exist on the switch, TFTP upload handles the case appropriately without error or corruption.</li><li>When the target medium becomes full during TFTP download (Flash, NVS or Card), the operation handles the full condition gracefully.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink TFTP family (AWP-5488 primary different dest filename up/download, AWP-5497 AT-TFTP compat, AWP-5478 upload, AWP-5485 different storage, AWP-5490 non-existent filename, AWP-5489 full medium). ART coverage: 1345.1001.1 (tftp copy negative: unreachable/non-existent fail cleanly), 1331 (copy tftp via triggers, backupmember tftp failures).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Execute TFTP download using a different destination filename on the switch. Verify the operation succeeds and the file is saved with the specified different name.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Execute TFTP upload using a different destination filename on the server. Verify the operation succeeds and the file is stored with the specified different name on the server.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the upload and download tests using an AT-TFTP server. Confirm compatibility (normal operation).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform TFTP operations targeting different storage types on the switch (e.g. Flash, NVS, Card). Confirm success without issues.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test TFTP upload when the destination filename does not exist on the switch. Confirm appropriate handling.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test TFTP download when the target medium (Flash/NVS/Card) becomes full. Confirm graceful handling of the full condition.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

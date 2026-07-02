@@ -1,0 +1,955 @@
+{
+  "1333.0.0": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1333.1001.0": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1333.1001.1": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Packets are routed to CPU via Queue 5 when DHCP Snooping is enabled globally - Default VLAN\n\n[Log-derived analysis] Verifies that with DHCP snooping enabled globally on the default VLAN, DHCP packets received on an untrusted port are trapped to the CPU on the dedicated control queue (queue 5). Sends DHCP discovers into an untrusted port and confirms via the platform SDMA/queue counters that the packets are punted to the CPU on the expected queue.",
+    "reference": "Ref TCL 1165.2.1.1,2.1.2. Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "35913",
+      "36352",
+      "50277",
+      "57874",
+      "59992",
+      "CR-85172"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338895",
+      "log_uid": "93247289",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.2": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Packets are routed to CPU via Queue 5 when DHCP Snooping is enabled globally - Non-Default VLAN\n\n[Log-derived analysis] Same as the default-VLAN case but for a non-default VLAN: confirms that, with DHCP snooping enabled globally, DHCP packets received on an untrusted port in a non-default VLAN are trapped to the CPU on the dedicated control queue (queue 5).",
+    "reference": "Ref TCL 1165.2.1.1,2.1.2. Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "35913",
+      "36352",
+      "59992"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338895",
+      "log_uid": "93247313",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.3": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Packets cease to be routed to CPU when DHCP is disabled Globally\n\n[Log-derived analysis] Verifies that disabling DHCP snooping globally stops DHCP packets being punted to the CPU. With snooping disabled, sends DHCP packets and confirms via the platform queue counters that they are no longer trapped to the control queue.",
+    "reference": "Ref TCL 1165.2.1.1. Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "37102",
+      "77628"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644496",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.4": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP packets received on vlan without dhcpsnooping are forwarded\n\n[Log-derived analysis] Verifies that DHCP packets received on a VLAN that has no DHCP snooping enabled are forwarded normally in hardware rather than being intercepted/trapped by the snooping feature.",
+    "reference": "Ref TCL 1165.2.1.1. Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "37102",
+      "39469",
+      "76665"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644529",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.5": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Packets routed in SW and not in HW. No duplicate packets\n\n[Log-derived analysis] Verifies that snooped DHCP packets are routed/relayed in software and not duplicated in hardware. Runs DHCP exchanges across trusted and untrusted ports and confirms that exactly one of each DHCP message type (Discover/Offer/Request/ACK) is seen on each side, i.e. no duplicate DHCP packets are produced.",
+    "reference": "Ref TCL 1165.2.1.3. Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "35782",
+      "38039"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644566",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.6": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Snooping can be enabled per vlan\n\n[Log-derived analysis] Verifies that DHCP snooping can be enabled selectively on a per-VLAN basis, confirming the feature takes effect only on the VLAN(s) where it is configured.",
+    "reference": "Ref TCL 1165.2.1.4, 1305-2.1.5 Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "55258"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644631",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.7": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Snooping stable when other packets use port 67 & 68\n\n[Log-derived analysis] Robustness/stability test: floods the switch with bogus UDP packets that reuse the DHCP server/client UDP ports (67 & 68) and confirms the DHCP snooping process stays running, no exceptions or core dumps are logged, and a subsequent genuine DHCP exchange still populates the snooping binding database correctly.",
+    "reference": "Ref TCL 1165.2.1.7.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644681",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.8": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Snooping stable when corrupt DHCP packets are received\n\n[Log-derived analysis] Robustness test against malformed input: sends corrupt/garbage DHCP packets (null and broadcast chaddr, every BOOTP op value, random BOOTP payloads) and confirms the snooping binding database built by a prior valid exchange remains intact and no exceptions occur.",
+    "reference": "Ref TCL 1165.2.1.8, Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644732",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.9": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Ports untrusted by default. Untrusted ports drop DHCP Reply packets\n\n[Log-derived analysis] Verifies that ports are untrusted by default and that an untrusted port drops server-sourced DHCP reply packets (offer/ack/nak). Captures on the far side and confirms no such DHCP packets are forwarded.",
+    "reference": "Ref TCL 1165.2.2.1.1, 1305-2.2.1.2, Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644772",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.10": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 Management - Option 82 accepted and unchanged on trusted ports\n\n[Log-derived analysis] Verifies Option 82 handling on trusted ports: DHCP packets carrying a DHCP relay-agent Option 82 are accepted and forwarded unchanged through a trusted port, with the transmitted and received Option 82 strings compared for equality, and no spurious binding entries are created.",
+    "reference": "Ref TCL 1165.2.2.3.1.1 Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644816",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.11": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 management - DHCP Packet with Option 82 on untrusted ports are dropped by default.\n\n[Log-derived analysis] Verifies the default Option 82 policy on untrusted ports: DHCP packets that already contain an Option 82 field arriving on an untrusted port are dropped by default.",
+    "reference": "Ref TCL 1165.2.2.3.1.2, Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644865",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.12": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 Management - Option 82 on untrusted ports is allowed as a option\n\n[Log-derived analysis] Verifies the agent-option allow-untrusted override: with that option configured, DHCP packets containing Option 82 received on an untrusted port are accepted (rather than dropped), forwarded with Option 82 intact, and a corresponding snooping binding entry is created.",
+    "reference": "Ref TCL 1165.2.2.3.1.3, Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93644982",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.13": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 management -Option 82 Insertion is enabled. Trusted ports packets with Option 82 not affected\n\n[Log-derived analysis] Verifies that with Option 82 insertion enabled, DHCP packets that already carry Option 82 entering on trusted ports are forwarded unaffected (existing Option 82 preserved).",
+    "reference": "Ref TCL 1165.2.2.3.2.1 Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645022",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.14": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 Management - Insertion enabled, untrusted ports\n\n[Log-derived analysis] Verifies Option 82 insertion on untrusted ports: the switch inserts Option 82 into DHCP requests forwarded toward the server side, the client side never sees Option 82, the snooping binding correctly associates the client MAC with the ingress port, and a single discover is relayed to the server.",
+    "reference": "Ref TCL 1165.2.2.3.2.2.1, 1305.2.2.3.2.2.2, 1305.2.2.3.2.2.3, 1305.2.2.3,2.2.5 Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [
+      "36866",
+      "50919",
+      "57930",
+      "81032"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645075",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.15": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 Insertion and Virtual MAC\n\n[Log-derived analysis] Verifies Option 82 insertion in combination with a configured virtual MAC, confirming the inserted relay-agent information uses the expected (virtual) MAC/identifier.",
+    "reference": "Ref TCL 1165.2.2.3.2.2.6",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645112",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.16": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP ACK & RELEASE messages into trusted port result in DHCP Snooping Binding Database Entries being added and removed.\n\n[Log-derived analysis] Verifies that DHCP ACK messages arriving on a trusted port add entries to the DHCP snooping binding database and that DHCP RELEASE messages remove them. Runs many exchanges and confirms the expected set of bindings is present and then cleared.",
+    "reference": "Configure device so minimal number of ports are in the vlan with snooping enabled",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645192",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.17": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP ACK with invlaid chaddr, yiaddr, leasetime or option 54 will not be added to binding database\n\n[Log-derived analysis] Verifies input validation of the binding database: DHCP ACKs with invalid fields (empty/bad chaddr, zero or mismatched yiaddr, bad/oversized option 51 lease time, invalid option 54 server id) are rejected and not added, while only valid exchanges produce bindings.",
+    "reference": "Configure device so minimal number of ports are in the vlan with snooping enabled",
+    "past_crs": [
+      "65935"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645248",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.18": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CLI static entries in DHCP Snooping Database added correctly\n\n[Log-derived analysis] Verifies that CLI-configured static DHCP snooping binding entries are added correctly across a range of ports and VLANs, are all present in the binding database, and are fully removed when deleted.",
+    "reference": "Configure device so minimal number of ports are in the vlan with snooping enabled",
+    "past_crs": [
+      "65935"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645656",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.19": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CLI static entries that are invalid are not added to database\n\n[Log-derived analysis] Verifies input validation for static entries: invalid CLI static DHCP snooping binding entries are rejected and not added to the binding database.",
+    "reference": "Configure device so minimal number of ports are in the vlan with snooping enabled",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645701",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.20": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Snooping binding dabase entries time out correctly.\n\n[Log-derived analysis] Verifies that dynamic DHCP snooping binding entries honour the DHCP lease time and age out correctly, confirming the remaining lease time reported for each entry decrements as expected and never exceeds the configured lease.",
+    "reference": "Configure device so minimal number of ports are in the vlan with snooping enabled",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645807",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.21": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP Snooping binding database subject to max bindings limit per port.\n\n[Log-derived analysis] Verifies the per-port max-bindings limit: for a series of max-bindings values, runs DHCP exchanges that would create more bindings than allowed and confirms the binding database caps the number of entries on the port to exactly the configured limit.",
+    "reference": "Set max-bindings on untrusted port to 5",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93645973",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.22": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Entries that age out of snooping binding database can be replaced up to max-bindings\n\n[Log-derived analysis] Verifies that once entries age out of the snooping binding database, the freed slots can be reused: new bindings can be added back up to the per-port max-bindings limit after older ones expire.",
+    "reference": "configure port for max bindings 3",
+    "past_crs": [
+      "CR-75009"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646054",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.23": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Static entries in DHCP Snooping Database are subject to max bindings(??)\n\n[Log-derived analysis] Verifies that CLI-configured static binding entries also count against and are constrained by the per-port max-bindings limit.",
+    "reference": "configure port for max bindings 3",
+    "past_crs": [
+      "CR-75009"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646094",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.24": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective for ARPs passing through switch.- ARPs blocked until a dhcp snooping entry is added. IP Not configured\n\n[Log-derived analysis] Verifies ARP security for ARPs passing through the switch when the client IP is not pre-configured: ARP request/response traffic from an untrusted port is blocked until a matching DHCP snooping binding exists, after which the matching ARPs are forwarded.",
+    "reference": "",
+    "past_crs": [
+      "52768",
+      "60018"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646168",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.25": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective for ARPs passing through switch.- ARPs blocked until a dhcp snooping entry is added. IP Configured\n\n[Log-derived analysis] Same as the pass-through ARP security case but with the client IP configured: confirms ARPs are blocked until a DHCP snooping binding is established, then forwarded once it exists.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646241",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.26": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective for ARPs to switch- ARPs blocked until a dhcp snooping entry is added.\n\n[Log-derived analysis] Verifies ARP security for ARPs destined to the switch itself: such ARPs are blocked until a matching DHCP snooping binding entry is created, then permitted.",
+    "reference": "Setup DHCP Snooping with arp security",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646353",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.27": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective - ARPs that dont match correctly are blocked\n\n[Log-derived analysis] Verifies ARP security drops spoofed ARPs: ARPs whose IP/MAC do not match any DHCP snooping binding are blocked.",
+    "reference": "Setup DHCP Snooping with arp security",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646431",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.28": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective - ARPs that dont match correctly are blocked - ARPs sent to switch\n\n[Log-derived analysis] Same as the mismatched-ARP case but for ARPs sent to the switch: ARPs that do not correctly match a snooping binding are blocked.",
+    "reference": "Setup DHCP Snooping with arp security",
+    "past_crs": [
+      "36866"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646510",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.29": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective - Lease times out\n\n[Log-derived analysis] Verifies that ARP security follows binding lifetime: ARPs are forwarded while a valid binding exists, then blocked again once the DHCP lease (and hence the binding) times out.",
+    "reference": "Setup DHCP Snooping with arp security",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646600",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.30": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security - non-default vlan - snooping on vlan then add vlan to ports\n\n[Log-derived analysis] Verifies ARP security on a non-default VLAN, applying snooping to the VLAN first and then adding the VLAN to the ports; confirms ARP security still blocks/permits correctly in that ordering.",
+    "reference": "Setup new vlan an apply to untrusted and trusted ports",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646692",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.31": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security - non-default vlan - add ports to vlan then enable snooping\n\n[Log-derived analysis] Verifies ARP security on a non-default VLAN with the reverse provisioning order (add ports to the VLAN first, then enable snooping); confirms correct ARP blocking/permitting regardless of configuration order.",
+    "reference": "Setup new vlan an apply to untrusted and trusted ports",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646780",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.32": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective - per vlan\n\n[Log-derived analysis] Verifies that ARP security operates correctly on a per-VLAN basis, taking effect only on the VLAN(s) where it is enabled.",
+    "reference": "Create 2 vlans A & B",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646853",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.33": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is Effective - per vlan, trunk mode ports\n\n[Log-derived analysis] Verifies per-VLAN ARP security on trunk-mode (tagged) ports, confirming correct blocking/permitting of ARPs on a trunk carrying the snooped VLAN.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 33,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646935",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.34": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security is robust with corrupt ARPs\n\n[Log-derived analysis] Robustness test: sends corrupt/malformed ARP packets and confirms ARP security handles them gracefully without crashing or generating exceptions while still enforcing the binding-based policy.",
+    "reference": "",
+    "past_crs": [
+      "60018"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 34,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93646997",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.35": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security violation action - shutdown\n\n[Log-derived analysis] Verifies the 'shutdown' ARP security violation action: a bad ARP triggers the violation and the offending interface is brought down (subsequent good ARPs blocked), and once the port is manually re-enabled good ARPs and bound IP traffic are forwarded again.",
+    "reference": "",
+    "past_crs": [
+      "38040",
+      "68723",
+      "SYST-8307"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 35,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647070",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.36": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "ARP Security violation action - trap\n\n[Log-derived analysis] Verifies the 'trap' ARP security violation action: a bad ARP is logged in the ARP security statistics with the correct interface and 'No Lease' violation reason and generates an SNMP trap, without shutting the port down.",
+    "reference": "",
+    "past_crs": [
+      "35973"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 36,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647122",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.37": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Option 82 Management - Insertion enabled, untrusted ports, conflicting static FDB entry\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify Option 82 insertion on untrusted ports when a conflicting static FDB entry already exists for the client MAC, confirming the snooping binding and Option 82 insertion behave correctly despite the pre-existing static FDB entry.",
+    "reference": "Ref TCL 1165.2.2.3.2.2.1, 1305.2.2.3.2.2.2, 1305.2.2.3.2.2.3, 1305.2.2.3,2.2.5 Proj 1496 DHCP Snooping TFS.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 37,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1333.1001.56049": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CR-56049 - DHCP snooping database is not written to FLASH or NVS\n\n[Log-derived analysis] Regression for CR-56049: verifies the DHCP snooping binding database is persisted to a backup file in the filesystem (FLASH/NVS), that the backup file is present after exchanges populate the database, and that rebooting the device does not fail to open the backup file.",
+    "reference": "CR-56049",
+    "past_crs": [
+      "CR-79724"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 56049,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647301",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.58335": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CR-58335 - DHCPSnooping ACL are't attached correctly on ports\n\n[Log-derived analysis] Regression for CR-58335: verifies the DHCP snooping ACLs/classifiers are attached correctly to ports, so that after bindings are learned the bound clients can pass traffic (e.g. ping the VLAN SVI/gateway) as expected.",
+    "reference": "CR-58335",
+    "past_crs": [
+      "68723"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 58335,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647343",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.62593": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CR-62593: configuring \"ip dhcp snooping\" on one VLAN stops DHCP working on another VLAN\n\n[Log-derived analysis] Regression for CR-62593: verifies that enabling 'ip dhcp snooping' on one VLAN does not break DHCP on another VLAN; confirms a DHCP discover/offer still completes on the unaffected VLAN.",
+    "reference": "CR-62593",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 62593,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647507",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.1001.66003": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "CR-66003: Special size of DHCP packages would be dropped by switch\n\n[Log-derived analysis] Regression for CR-66003: verifies that DHCP packets of unusual/large sizes are not dropped by the switch, sending DHCP messages of several sizes across trusted ports and confirming all are received on both client and server sides.",
+    "reference": "CR-66003",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 66003,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93647464",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.2001.0": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1333.2001.1": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP snooping ACL/QOS on Switchport. Traffic for dynamic & static entries passes. Other IP traffic blocked\n\n[Log-derived analysis] Verifies the DHCP snooping ACL/QoS enforcement on a switchport (and via both access-group and service-policy input attachments): traffic whose source IP matches a static IP source binding or a dynamic/CLI snooping binding is forwarded, while non-matching source IP traffic is blocked.",
+    "reference": "TCL DHCP Snooping 1305.2.2.8.2.1, DHCP Snooping TFS",
+    "past_crs": [
+      "35813",
+      "38040",
+      "51740",
+      "54821",
+      "55600",
+      "CR-59813",
+      "68723"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93648106",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.2001.2": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP snooping ACL/QOS on static LAG. Traffic for dynamic & static entries passes. Other IP traffic blocked\n\n[Log-derived analysis] Same DHCP snooping ACL/QoS source-guard verification as the switchport case but applied over a static LAG (port-channel): matching dynamic and static bindings pass, other IP traffic is blocked.",
+    "reference": "TCL DHCP Snooping 1305.2.2.8.2.1, DHCP Snooping TFS",
+    "past_crs": [
+      "38040",
+      "51740",
+      "54821",
+      "55600",
+      "CR-59813",
+      "68723",
+      "76757"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93648160",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1333.2001.3": {
+    "suite_id": "1333",
+    "suite_name": "Suite 1333",
+    "description": "DHCP snooping ACL/QOS on dynamic LAG. Traffic for dynamic & static entries passes. Other IP traffic blocked\n\n[Log-derived analysis] Same DHCP snooping ACL/QoS source-guard verification but applied over a dynamic (LACP) LAG: matching dynamic and static bindings pass, other IP traffic is blocked.",
+    "reference": "TCL DHCP Snooping 1305.2.2.8.2.1, DHCP Snooping TFS",
+    "past_crs": [
+      "38040",
+      "51740",
+      "54821",
+      "55600",
+      "CR-59813",
+      "68723",
+      "SYST-7243"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355899",
+      "log_uid": "93648220",
+      "platform": "FS980-tb6.rel",
+      "sw_version": "5.5.1_2-20260217-1",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

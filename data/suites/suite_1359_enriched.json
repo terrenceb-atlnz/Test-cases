@@ -1,0 +1,400 @@
+{
+  "1359.0.0": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1359.1001.0": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1359.1001.1": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Check MODBUS mapping version\n\n[Log-derived analysis] Verifies the MODBUS register map version. Connects a MODBUS/TCP client to the switch and reads the Mapping Version register, confirming it returns the expected version value, then restores and verifies the configuration is unchanged.",
+    "reference": "1359.1001.140",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713705",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.10": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0001 System Name\n\n[Log-derived analysis] Reads the System Name register over MODBUS and confirms it matches the system name reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713708",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.20": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0044 Stack Members\n\n[Log-derived analysis] Reads the Stack Members register over MODBUS and confirms it matches the number of stack members reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713709",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.30": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0041 System HW Mac Address\n\n[Log-derived analysis] Reads the System HW MAC Address register over MODBUS and confirms it matches the MAC address reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713711",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.40": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0046 Fault Status (number of faults)\n\n[Log-derived analysis] Reads the Fault Status (number of faults) register over MODBUS and confirms it matches the fault count reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [
+      "64897"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 40,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713714",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.50": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0047 Number of Sensors\n\n[Log-derived analysis] Reads the Number of Sensors register over MODBUS and confirms it matches the sensor count reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 50,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713715",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.60": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0048 Number of Alarms\n\n[Log-derived analysis] Reads the Number of Alarms register over MODBUS and confirms it matches the alarm count reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [
+      "61844"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 60,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713716",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.70": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0045 Number of Ports\n\n[Log-derived analysis] Reads the Number of Ports register over MODBUS and confirms it matches the port count reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [
+      "66425"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 70,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713718",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.80": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0021 Software Version\n\n[Log-derived analysis] Reads the Software Version register over MODBUS and confirms it matches the software version reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 80,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713719",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.90": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0120-0x0124 Stack member system information\n\n[Log-derived analysis] Reads the per-stack-member system information register block over MODBUS (board count, number of ports, faults, sensors, and alarms) and confirms each value matches the corresponding value reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [
+      "63728",
+      "61844",
+      "64897",
+      "66425"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 90,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713722",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.100": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x0200-0x0A9D Stack member board information\n\n[Log-derived analysis] Reads the per-stack-member board information register block over MODBUS and confirms the reported board details match the values reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 100,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713726",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.110": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x1000-0x127F Stack member sensor information\n\n[Log-derived analysis] Reads the per-stack-member sensor information register block over MODBUS and confirms the reported sensor readings match the values reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 110,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713729",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.120": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x3000-0x317F Stack member alarm information\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to read the per-stack-member alarm information register block over MODBUS and confirm it matches the alarm data reported by the switch CLI. Reported UNSUPPORTED because the test platform does not support alarms.",
+    "reference": "https://intranet.atlnz.lc/awpwiki/index.php/VCStack_Support_for_MODBUS_TFS",
+    "past_crs": [
+      "61844"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 120,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1359.1001.130": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read MODBUS address 0x5000-0x644C Stack member port information\n\n[Log-derived analysis] Reads the per-stack-member port information register block over MODBUS (per-port current and configured state, PoE configuration and power, and input/output byte counters) and confirms each value matches the corresponding value reported by the switch CLI.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [
+      "75892"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 130,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713730",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.140": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "MODBUS client connection limiting\n\n[Log-derived analysis] Verifies MODBUS client connection limiting. With the maximum connection count set to one, confirms a first client can connect and read a register while a second is refused; raises the limit and confirms the second client can then connect; lowers the limit again and confirms only one client is allowed.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 140,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713732",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1001.150": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "MODBUS client access control\n\n[Log-derived analysis] Verifies MODBUS client access control. Confirms that a client whose source address is not permitted is refused connection while a permitted client can connect and read a register.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 150,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713733",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1002.0": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1359.1002.10": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Write MODBUS address 0x5000-0x644C Stack member port information\n\n[Log-derived analysis] Verifies writing port information via MODBUS. Issues MODBUS writes to change a port's administrative state and its PoE configuration, confirms each change is reflected in the switch CLI, and restores the port's original configuration afterwards.",
+    "reference": "[WIKI] VCStack Support for MODBUS TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713748",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1359.1002.20": {
+    "suite_id": "1359",
+    "suite_name": "1359_modbus",
+    "description": "Read/Write MODBUS address 0x004A-0x004C MODBUS/TCP Heartbeat\n\n[Log-derived analysis] Verifies the MODBUS/TCP heartbeat read/write registers. Sets the master heartbeat time over MODBUS, confirms the TCP connection uptime and heartbeat settings become active and are logged, then waits for the heartbeat to time out and confirms the master heartbeat time is reported as expired/disabled.",
+    "reference": "[WIKI] MODBUS TCP Heartbeat TFS",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358153",
+      "log_uid": "93713752",
+      "platform": "IE340-tb155.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  }
+}

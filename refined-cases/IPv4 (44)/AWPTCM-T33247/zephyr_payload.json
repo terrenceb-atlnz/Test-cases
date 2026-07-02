@@ -1,0 +1,30 @@
+{
+  "AWPTCM-T33247": {
+    "objective": "<ul><li>The clear arp-cache command removes all dynamic ARP entries from the ARP table.</li><li>Static ARP entries are not removed by the clear arp-cache command.</li><li>The clear arp-cache command updates both the software ARP table (show arp) and the hardware ARP table (ip neighbor / hsl fib).</li><li>After executing clear arp-cache, dynamic ARP entries no longer appear in show arp, show hsl fib, or ip neighbor output.</li><li>ARP entries learned after a clear arp-cache command are populated normally in both software and hardware tables.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink AWP-4339 (ARP Commands: Clear ARP).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure both static and dynamic ARP entries. Execute clear arp-cache and verify only dynamic entries are removed while static entries remain.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after clear arp-cache the dynamic ARP entries are removed from both the software table (show arp) and the hardware table (ip neighbor / show hsl fib).",
+          "expectedResult": ""
+        },
+        {
+          "description": "After clearing dynamic ARP entries, trigger new ARP learning and confirm the new dynamic entries are correctly populated in both software and hardware tables.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that static ARP entries can only be removed using the no arp command and are unaffected by clear arp-cache.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,391 @@
+{
+  "1332.0.0": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1332.1001.0": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1332.1001.1": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "This test checks the conformance of the LLDP-MED Capabilities Policy TLV received from the switch on ethA\n\n[Log-derived analysis] Verifies conformance of the LLDP-MED Capabilities TLV emitted by the switch. Triggers the switch to send an LLDP frame, decodes the LLDP-MED Capabilities sub-TLV, and confirms the advertised capability bitmap matches what is expected for a non-PoE port and that the device type is set to Network Connectivity device.",
+    "reference": "None",
+    "past_crs": [
+      "79689"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638052",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.2": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check the conformance of the LLDP Link Aggregation TLV without LAG\n\n[Log-derived analysis] Verifies the LLDP Link Aggregation TLV when the port is not aggregated. Captures an LLDP frame from the switch and confirms the Link Aggregation TLV is present, reporting aggregation as supported but not currently enabled (aggregated port ID of 0).",
+    "reference": "None",
+    "past_crs": [
+      "SYST-7839"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338867",
+      "log_uid": "93246585",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.3": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check the conformance of the LLDP Link Aggregation TLV with a static channel, tagged for VLAN 2\n\n[Log-derived analysis] Verifies the LLDP Link Aggregation TLV when the port is a member of a static channel-group tagged for a VLAN. Captures an LLDP frame and confirms the Link Aggregation TLV reports aggregation as supported and active (non-zero aggregated port ID).",
+    "reference": "None",
+    "past_crs": [
+      "SYST-7840"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338867",
+      "log_uid": "93246611",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.4": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check the conformance of the LLDP Link Aggregation TLV with a static channel, untagged for VLAN 3\n\n[Log-derived analysis] Verifies the LLDP Link Aggregation TLV when the port is a member of a static channel-group untagged for a VLAN. Captures an LLDP frame and confirms the Link Aggregation TLV reports aggregation as supported and active.",
+    "reference": "None",
+    "past_crs": [
+      "65782",
+      "SYST-7841",
+      "SYST-8637"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338867",
+      "log_uid": "93246627",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.5": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check the conformance of the LLDP Link Aggregation TLV with LACP, tagged for VLAN 4\n\n[Log-derived analysis] Verifies the LLDP Link Aggregation TLV when the port is a member of a LACP (dynamic) channel-group tagged for a VLAN. Captures an LLDP frame and confirms the Link Aggregation TLV reports aggregation as supported and active.",
+    "reference": "None",
+    "past_crs": [
+      "38594",
+      "65782",
+      "SYST-7842"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338867",
+      "log_uid": "93246644",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.6": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check the conformance of the LLDP Link Aggregation TLV with LACP, untagged for VLAN 5\n\n[Log-derived analysis] Verifies the LLDP Link Aggregation TLV when the port is a member of a LACP (dynamic) channel-group untagged for a VLAN. Captures an LLDP frame and confirms the Link Aggregation TLV reports aggregation as supported and active.",
+    "reference": "None",
+    "past_crs": [
+      "38594",
+      "SYST-7843"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3338867",
+      "log_uid": "93246666",
+      "platform": "x230v2-tb178.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-06",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.7": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "This test checks the maximum number neighbours that can be supported on the switch\n\n[Log-derived analysis] Verifies the switch can learn the maximum supported number of LLDP neighbours. Injects many LLDP frames each with a distinct source MAC, then confirms the LLDP neighbour table fills to the documented maximum and can subsequently be cleared cleanly.",
+    "reference": "Moved to 1341.1001.6835",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2541180",
+      "log_uid": "70313659",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "main-20240514-3",
+      "run_date": "2024-05-15",
+      "result": "PASS"
+    }
+  },
+  "1332.1001.8": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that the information contained in the LLDP frames are consistent with the CLI\n\n[Log-derived analysis] Verifies that the device information carried in the switch's LLDP frames matches the CLI. Sends an LLDP exchange, extracts the hardware revision, firmware version, serial number and board/model name from the received LLDP TLVs, and confirms each value is consistent with the corresponding CLI output.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638514",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.0": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1332.2001.1": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "This test checks the value of the cli and mib are the same\n\n[Log-derived analysis] Verifies that LLDP configuration values are reported identically via SNMP and the CLI. Reads the LLDP fast-start count (and related global settings) through both SNMP GET and the CLI across a range of values and confirms they remain consistent.",
+    "reference": "None",
+    "past_crs": [
+      "35973",
+      "67661",
+      "CR-85954"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638645",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.2": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "This test checks the number of received LLDP-MED frames based on Fast start count setting\n\n[Log-derived analysis] Verifies that the number of LLDP-MED fast-start frames emitted matches the configured fast-start count. Sets the fast-start count across a range of values, confirms it via both CLI and SNMP, and counts the LLDP-MED packets received to confirm exactly that many are sent.",
+    "reference": "None",
+    "past_crs": [
+      "35973",
+      "79283",
+      "CR-62210"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638745",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.3": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "This test checks that setting any of the LLDP MIB OIDs to NULL (or 0) does not cause the switch to crash\n\n[Log-derived analysis] Robustness test that sets many LLDP MIB OIDs to NULL/zero (including random objects) via SNMP and confirms the switch does not crash, logs no exceptions, and survives a reboot with configuration intact.",
+    "reference": "None",
+    "past_crs": [
+      "35973"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638813",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.4": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that when no voice vlan is configured no Network policy is sent\n\n[Log-derived analysis] Verifies that with no voice VLAN configured the switch does not advertise a Network Policy TLV. Captures the switch's LLDP frames and confirms the Network Policy TLV is correctly absent.",
+    "reference": "None",
+    "past_crs": [
+      "36137"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638831",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.5": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that correct LLDP frame is received when untagged voice vlan is configured.\n\n[Log-derived analysis] Verifies the LLDP Network Policy TLV when an untagged voice VLAN is configured. Captures the switch's LLDP frame and confirms it carries the correct Network Policy TLV settings for the untagged voice VLAN.",
+    "reference": "None",
+    "past_crs": [
+      "36137",
+      "SYST-8637"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638856",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.6": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that correct LLDP frame is received when dot1p voice vlan is configured.\n\n[Log-derived analysis] Verifies the LLDP Network Policy TLV when a dot1p (priority-tagged) voice VLAN is configured. Captures the switch's LLDP frame and confirms it carries the correct Network Policy TLV settings for the dot1p voice VLAN.",
+    "reference": "None",
+    "past_crs": [
+      "35973",
+      "36137",
+      "SYST-8637"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93638897",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.7": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that correct LLDP frame is received for various vlans, l2 priority values and dscp values\n\n[Log-derived analysis] Verifies the LLDP Network Policy TLV across a sweep of VLAN IDs, L2 priority values and DSCP values. For each combination, configures the switch, captures an LLDP frame, and confirms the Network Policy TLV carries the correct VLAN ID and that the DSCP and L2 priority values are consistent between the frame and SNMP.",
+    "reference": "None",
+    "past_crs": [
+      "35973",
+      "36137",
+      "SYST-8637"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93639018",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1332.2001.8": {
+    "suite_id": "1332",
+    "suite_name": "1332_lldp_med",
+    "description": "Check that switch's response LLDP frames have TIA TR-41 Committee TLVs\n\n[Log-derived analysis] Verifies that the switch's LLDP response frames include the TIA TR-41 Committee organisationally-specific TLVs. Captures the LLDP frames and confirms every frame carries the expected TR-41 TLVs.",
+    "reference": "CR-70209",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355616",
+      "log_uid": "93639037",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

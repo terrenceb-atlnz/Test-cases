@@ -1,0 +1,321 @@
+{
+  "1363.0.0": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1363.1001.0": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1363.1001.1": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks if ipv6 and ipv4 address can be configured on a vlan\n\n[Log-derived analysis] Verifies that both an IPv6 and an IPv4 address can be configured on the same VLAN interface. Applies dual-stack addressing to a VLAN and confirms the configuration is accepted, then restores and validates the original config.",
+    "reference": "None",
+    "past_crs": [
+      "SYST-8606"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700782",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.2": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks an interface with ipv6 and ipv4 addresses can be configured, is reachable from testbox\n\n[Log-derived analysis] Verifies that a dual-stack VLAN interface (IPv6 and IPv4 addresses) is reachable. After configuring both address families on the VLAN, pings the interface from the test box over both IPv6 and IPv4 and confirms both respond.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700795",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.3": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks if dut can detect ipv6 neighbours connected via ipv6 neighbour discovery\n\n[Log-derived analysis] Verifies IPv6 Neighbour Discovery. Configures an IPv6 address on a VLAN, confirms reachability via IPv6 ping, and checks that the connected device appears in the DUT's IPv6 neighbour table.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700803",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.4": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks if dut can recieve IPv6 Router Advertisement(RA) messages and use RA to configure its Global ipv6 address\n\n[Log-derived analysis] Verifies the DUT can receive ICMPv6 Router Advertisements and use them to autoconfigure its own global IPv6 address. Sends an RA from the test box and confirms the DUT's global IPv6 address is set from the advertised prefix.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700814",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.5": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks if dut can block action on IPv6 Router Advertisement by disabling accept-ra-pinfo\n\n[Log-derived analysis] Verifies that disabling accept-ra-pinfo blocks prefix-information processing from Router Advertisements. Sends an RA and confirms the DUT does NOT set a global IPv6 address from the advertised prefix, as expected.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700824",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.6": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks if RA guard feature blocks dut from accepting IPv6 Router Advertisements\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that the RA-guard feature blocks the DUT from accepting IPv6 Router Advertisements, so an injected RA does not autoconfigure a global IPv6 address on the protected VLAN.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1363.1001.7": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks with Neighbour Discovery Proxy disabled router vlan does not accept Router Advertisements from WAN ports\n\n[Log-derived analysis] Verifies that with Neighbour Discovery Proxy disabled, the router VLAN does not accept Router Advertisements arriving on WAN ports. Sends an RA via a WAN port and confirms it is rejected (no address learnt from it).",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700875",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.8": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks with Router advertisement suppressed the connected tb does not see an RA\n\n[Log-derived analysis] Verifies Router Advertisement suppression. With RA suppressed on the interface, confirms the connected test box sees no RA frames emitted on the switch ports.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700881",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.9": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks with Router advertisement(RA) enabled the connected tb receives RA pkts from DUT\n\n[Log-derived analysis] Verifies Router Advertisement transmission. With RA suppression disabled (RA enabled), confirms the DUT periodically emits RA frames on the connected switch ports and the test box receives them.",
+    "reference": "None",
+    "past_crs": [
+      "69919"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700895",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.10": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "CR-70982: Verify Router Solicitation messages are responded to by DUT\n\n[Log-derived analysis] Verifies the DUT responds to an IPv6 Router Solicitation with a Router Advertisement. The test box sends a Router Solicitation and confirms the DUT replies with an RA.",
+    "reference": "None",
+    "past_crs": [
+      "SYST-8336",
+      "SYST-8606"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700905",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.11": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "CR-70982: Verify Router Solicitation messages are responded to by DUT on multiple vlans\n\n[Log-derived analysis] Verifies the DUT responds to Router Solicitations with Router Advertisements across multiple VLANs. Sends Router Solicitations on several VLANs and confirms an RA is returned on each.",
+    "reference": "None",
+    "past_crs": [
+      "71731"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700918",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1001.12": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Verify Router Advertisements are not sent out for Router Solicitation with supress-ra option configured\n\n[Log-derived analysis] Verifies that with the suppress-ra option configured the DUT does not answer Router Solicitations. Sends a Router Solicitation and confirms no Router Advertisement is sent in response.",
+    "reference": "None",
+    "past_crs": [
+      "SYST-8336",
+      "SYST-8606"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93700929",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1002.0": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1363.1002.1": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks with Neighbour Discovery Proxy disabled router vlan does not accept Router Advertisements from WAN ports\n\n[Log-derived analysis] Verifies that with Neighbour Discovery Proxy disabled the router VLAN rejects Router Advertisements received from WAN ports. Confirms the RA is not accepted and no global IPv6 address is learnt from it.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93701112",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1363.1002.2": {
+    "suite_id": "1363",
+    "suite_name": "1363_ipv6",
+    "description": "Test checks with Neighbour Discovery Proxy disabled router vlan does not accept Router Advertisements from WAN ports\n\n[Log-derived analysis] Verifies router-VLAN / ND Proxy behaviour for Router Advertisements arriving on WAN ports. Brings up the dual-stack VLAN with ND Proxy in effect and confirms RA handling matches the configured proxy behaviour.",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357697",
+      "log_uid": "93701125",
+      "platform": "AR3050S-tb348.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}
