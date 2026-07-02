@@ -1,0 +1,12 @@
+# Secrets — live Jira/Zephyr PAT, never commit
+secrets.md
+
+# Discovery output may contain internal hostnames / IDs
+findings.md
+
+# Extracted corpora, backups, and review artifacts
+*.json
+backups/
+__pycache__/
+.venv/
+venv/

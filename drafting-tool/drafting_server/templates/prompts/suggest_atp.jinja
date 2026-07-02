@@ -1,0 +1,39 @@
+You are an expert at mapping manual test cases to relevant automated test cases in ATPyLib.
+
+Given the following:
+
+Case: {{ case_key }}
+Primary decision: {{ primary }}
+
+TestLink selections (historical context):
+{% for s in testlink_selections %}
+- {{ s.id_or_key }}: {{ s.title }} ({{ s.justification }})
+{% endfor %}
+
+Zephyr cross-references (current manual test context):
+{% for s in zephyr_selections %}
+- {{ s.id_or_key }}: {{ s.title }} ({{ s.justification }})
+{% endfor %}
+
+Gaps noted: {{ gaps }}
+
+Here is a list of candidate ATPyLib automated tests (id: short description):
+{% for c in candidates %}
+- {{ c.id }}: {{ c.description[:150] }}
+{% endfor %}
+
+Task:
+From the candidates above, select the 3-8 most relevant ones that best cover the artefacts, scenarios, and edge cases described in the TestLink and Zephyr selections above.
+
+Prioritize:
+- Direct coverage of the main functionality
+- Edge cases, error conditions, reporting mentioned
+- Related platform or configuration variations
+
+Return ONLY a JSON array (no other text):
+[
+  {"id": "1330.1.2", "reason": "Covers the main auto negotiation happy path from primary TL"},
+  ...
+]
+
+Limit to the most relevant. Use exact IDs from the list.

@@ -1,0 +1,1805 @@
+<!doctype html>
+<html class="dark">
+<head>
+<meta charset="utf-8">
+<title>Objective Drafting Tool — Server-Backed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+/* ========================================
+   Design Tokens — from design-guidelines-showcase
+   ======================================== */
+/* Default: Dark Theme (matches original UI) */
+:root {
+  --bg-primary: #0F0F0F;
+  --bg-secondary: #171717;
+  --bg-tertiary: #1E1E1E;
+  --bg-sidebar: #141414;
+  --bg-elevated: #1E1E1E;
+  --bg-hover: #1E1E1E;
+  --bg-active: #262626;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --text-inverse: #111827;
+
+  --border-default: #262626;
+  --border-subtle: #1E1E1E;
+  --border-strong: #3F3F46;
+
+  --accent-primary: #3B82F6;
+  --accent-hover: #60A5FA;
+  --accent-muted: #1E3A5F;
+  --accent-text: #60A5FA;
+
+  --status-critical: #F87171;
+  --status-critical-muted: #3B1111;
+  --status-high: #FB923C;
+  --status-high-muted: #3B1F06;
+  --status-medium: #FACC15;
+  --status-medium-muted: #3B3506;
+  --status-low: #9CA3AF;
+  --status-low-muted: #1E1E1E;
+  --status-success: #4ADE80;
+  --status-success-muted: #0B3B1B;
+
+  --focus-ring: #3B82F680;
+  --overlay: #FFFFFF15;
+
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+
+  /* Fonts */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* Light Theme */
+.light {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --bg-tertiary: #F1F3F5;
+  --bg-sidebar: #F8F9FA;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F1F3F5;
+  --bg-active: #E9ECEF;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-inverse: #FFFFFF;
+
+  --border-default: #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --border-strong: #D1D5DB;
+
+  --accent-primary: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-muted: #DBEAFE;
+  --accent-text: #1D4ED8;
+
+  --status-critical: #EF4444;
+  --status-critical-muted: #FEE2E2;
+  --status-high: #F97316;
+  --status-high-muted: #FFEDD5;
+  --status-medium: #EAB308;
+  --status-medium-muted: #FEF9C3;
+  --status-low: #6B7280;
+  --status-low-muted: #F3F4F6;
+  --status-success: #22C55E;
+  --status-success-muted: #DCFCE7;
+
+  --focus-ring: #3B82F680;
+  --overlay: #00000050;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+}
+
+/* Base */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* No top header bar - incorporated into sidebar per template */
+
+/* Layout - Sidebar + Main from design guidelines */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-default);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 16px 12px;
+  z-index: 40;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* Custom scrollbar for sidebar - with border effect to match template */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: var(--bg-sidebar);
+  border-left: 1px solid var(--border-default);
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+  border: 1px solid var(--bg-sidebar);
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Firefox */
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) var(--bg-sidebar);
+}
+
+.main {
+  flex: 1;
+  margin-left: 240px;
+  padding: 8px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  margin-bottom: 24px;
+}
+
+.sidebar-logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sidebar-section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 8px;
+  margin-top: 20px;
+  margin-bottom: 6px;
+}
+
+.sidebar-section-label:first-of-type {
+  margin-top: 8px;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: color 150ms;
+}
+
+.sidebar-nav-item:hover svg {
+  color: var(--text-secondary);
+}
+
+.sidebar-nav-item.active svg {
+  color: var(--accent-primary);
+}
+
+/* Additional components from design guidelines */
+.page-header {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.page-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.section {
+  margin-bottom: 8px;
+}
+
+.section-description {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.section-heading {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.card.compact {
+  padding: 16px;
+}
+
+/* Buttons - from design guidelines */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
+  white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--focus-ring);
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Legacy button support for existing onclicks */
+button:not(.btn) {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms, transform 100ms;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button:not(.btn):hover {
+  background: var(--accent-hover);
+}
+
+button.secondary:not(.btn) {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+button.secondary:not(.btn):hover {
+  background: var(--bg-hover);
+}
+
+/* Navigation */
+.nav {
+  margin: 12px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nav button {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  padding: 6px 12px;
+}
+
+.nav button:hover {
+  background: var(--bg-hover);
+}
+
+.nav button.active {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+
+/* Form inputs from design guidelines */
+.form-group {
+  margin-bottom: 16px;
+  max-width: 360px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: border-color 150ms, box-shadow 150ms;
+  cursor: text;
+}
+
+.form-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.form-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/* Tables - from design guidelines */
+.table-container {
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.table thead {
+  background: var(--bg-secondary);
+}
+
+.table th {
+  text-align: left;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table th.sortable:hover {
+  color: var(--text-primary);
+}
+
+.table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+.table .form-input {
+  height: 18px;
+  padding: 0 3px;
+  font-size: 10px;
+}
+.table .form-input.just-input {
+  width: 100px;
+}
+.table .form-input.z-just {
+  width: 90px;
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.table-container {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table .cell-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.table .cell-folder {
+  font-size: 10px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.synth-objective {
+  background: var(--bg-tertiary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.synth-objective ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.synth-steps {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.synth-steps li {
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+/* Status */
+.confirmed { color: var(--status-success); }
+
+/* Badges from design */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: var(--status-success-muted);
+  color: var(--status-success);
+}
+
+.badge-low {
+  background: var(--status-low-muted);
+  color: var(--status-low);
+}
+
+#theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Misc */
+#session-view, #synth-result pre {
+  background: var(--bg-tertiary);
+  padding: 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+/* Polish additions: review summary, editable synth, tighter components */
+.review-summary {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  font-size: 11px;
+}
+.review-summary h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.review-summary .sel-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 2px 0;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.review-summary .sel-item .badge {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+.review-summary .sel-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.nav-badge {
+  margin-left: 4px;
+  font-size: 9px !important;
+  padding: 0 3px !important;
+}
+
+.editable-area {
+  border: 1px dashed var(--border-default);
+  padding: 6px;
+  background: var(--bg-primary);
+  border-radius: 4px;
+  min-height: 60px;
+  font-size: 12px;
+}
+.editable-steps {
+  list-style: decimal;
+  margin: 0;
+  padding-left: 20px;
+}
+.editable-step {
+  margin-bottom: 4px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.editable-step input {
+  flex: 1;
+  font-size: 11px;
+  height: 20px;
+}
+
+.synth-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Reduce more inline reliance */
+.compact-flex {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar from design guidelines: extends full to top, no separate header above it -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-text">Objective Drafting Tool</span>
+    </div>
+
+    <!-- Theme toggle inside sidebar (no top header bar) -->
+    <button id="theme-toggle" title="Toggle light/dark mode" class="btn btn-ghost compact-flex" style="width:100%; margin-bottom:16px; font-size:12px; height:auto; padding:6px 10px;">
+      <span>Theme</span>
+      <span id="theme-icon">🌙</span>
+    </button>
+
+    <!-- Case controls -->
+    <div class="sidebar-section-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      Case
+    </div>
+    <select id="caseSel" class="form-select" style="width:100%; margin-bottom:8px; font-size:13px;">
+      <option value="">Select Test Case</option>
+    </select>
+    <div class="compact-flex" style="margin-bottom:12px;">
+      <button onclick="loadCase()" class="btn btn-primary" style="flex:1; font-size:12px; height:auto; padding:6px 10px;">Load</button>
+      <button onclick="exportBundle()" class="btn btn-secondary" style="flex:1; font-size:12px; height:auto; padding:6px 10px;">Export</button>
+    </div>
+
+    <!-- LLM Status -->
+    <div class="sidebar-section-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+      LLM
+    </div>
+    <div id="llm-status-sidebar" class="llm-status" style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">Not configured</div>
+    <button onclick="showLLMConfig()" class="btn btn-secondary" style="width:100%; margin-bottom:12px; font-size:12px; height:auto; padding:6px 10px;">Configure</button>
+
+    <!-- Steps navigation -->
+    <div class="sidebar-section-label">Steps</div>
+    <div class="sidebar-steps">
+      <div onclick="goToStep(1)" class="sidebar-nav-item active" data-step="1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        1. TestLink + Decisions
+      </div>
+      <div onclick="goToStep(2)" class="sidebar-nav-item" data-step="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        2. Zephyr
+      </div>
+      <div onclick="goToStep(3)" class="sidebar-nav-item" data-step="3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        3. ATPyLib + Gaps
+      </div>
+      <div onclick="goToStep(4)" class="sidebar-nav-item" data-step="4">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+        4. Synthesize (LLM)
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Objective Drafting</div>
+        <div class="page-description">Review data sources then synthesize with LLM.</div>
+      </div>
+    </div>
+
+    <!-- LLM Config Card (shown on demand) -->
+    <div id="llm-config-card" class="card" style="display:none;">
+      <div class="section">
+        <div class="section-heading">LLM Provider Login</div>
+        <div class="section-description">Configure Grok or Claude. Supports API key or account login.</div>
+
+        <div class="form-group" style="margin-bottom:8px;">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <select id="llmProvider" onchange="updateLLMDefaults()" class="form-select" style="width: auto;">
+              <option value="grok">Grok (xAI)</option>
+              <option value="claude">Claude (Anthropic)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <label style="font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+            <input type="radio" name="llmAuthMethod" value="api_key" checked onchange="updateAuthMethodUI()"> API Key
+          </label>
+          <label style="font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+            <input type="radio" name="llmAuthMethod" value="account" onchange="updateAuthMethodUI()"> Account Login
+          </label>
+          <button id="accountLoginBtn" onclick="prepareAccountLogin()" class="btn btn-secondary" style="font-size:12px; padding:2px 8px; height:26px; white-space:nowrap;">Show Instructions</button>
+
+          <input id="llmCredential" type="password" placeholder="API Key or Token" class="form-input" style="width:260px;">
+          <input id="llmModel" placeholder="Model (optional)" class="form-input" style="width:160px;">
+          <button onclick="setLLMConfig()" class="btn btn-primary">Apply / Login</button>
+          <span id="llmStatus" style="color:var(--text-secondary); font-size:12px;"></span>
+        </div>
+
+        <div id="accountInstructions" style="display:none; margin-top:12px; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:6px; font-size:13px; line-height:1.5;">
+          <div id="accountInstructionsText" style="margin-bottom:8px;"></div>
+          <button id="actuallyOpenBtn" onclick="actuallyOpenLoginTab()" class="btn btn-primary">Open Login Tab Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Contents -->
+    <div id="step-1" class="card">
+      <div class="section">
+        <div class="section-heading">Step 1: TestLink Review</div>
+        <div class="section-description">Review and confirm TestLink + decisions before proceeding.</div>
+        <div id="primary"></div>
+        <div id="tl-table" class="table-container"><em>Select a case above and click Load to see actual TestLink candidates here.</em></div>
+        <button onclick="confirmStep(1)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
+      </div>
+    </div>
+
+    <div id="step-2" class="card" style="display:none;">
+      <div class="section">
+        <div class="section-heading">Step 2: Zephyr Cross-Ref</div>
+        <div class="section-description">Review relevant Zephyr cases.</div>
+        <div id="zephyr-table" class="table-container"><em>Select a case above and click Load to see actual Zephyr cross-refs here.</em></div>
+        <button onclick="confirmStep(2)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
+      </div>
+    </div>
+
+    <div id="step-3" class="card" style="display:none;">
+      <div class="section">
+        <div class="section-heading">Step 3: ATPyLib + Gaps</div>
+        <div class="section-description">Search and select ATPyLib cases. Note gaps. Use LLM to pre-select relevant ones for approval.</div>
+        <div class="compact-flex">
+          <input id="search-atp" placeholder="search" oninput="searchATP()" class="form-input" style="width:200px;">
+          <button onclick="suggestATPWithLLM()" class="btn btn-secondary" style="font-size:12px; height:28px;">Suggest with LLM (pre-select)</button>
+        </div>
+        <div id="atp-results"></div>
+        <textarea id="gaps" placeholder="Gaps..." class="form-textarea" style="width:100%; height:60px; margin-top:8px;"></textarea>
+        <button onclick="confirmStep(3)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
+      </div>
+    </div>
+
+    <div id="step-4" class="card" style="display:none;">
+      <div class="section">
+        <div class="section-heading">Step 4: Synthesize Objectives &amp; Steps (LLM)</div>
+        <div class="section-description">Use the configured LLM with templated prompts to generate objectives and steps. Review prior selections below.</div>
+
+        <!-- Review Summary for richer preview of selections from steps 1-3 -->
+        <div id="review-summary" class="review-summary">
+          <h4>Review Summary (from confirmed steps)</h4>
+          <div id="review-summary-content"><em>Load and confirm steps 1-3 to see selection previews here.</em></div>
+        </div>
+
+        <button onclick="synthesize()" class="btn btn-primary">Synthesize with LLM (templated prompt)</button>
+        <div id="synth-result"></div>
+        <button onclick="exportBundle()" class="btn btn-secondary">Export Repeatable Bundle</button>
+      </div>
+    </div>
+
+    <pre id="session-view" style="background:var(--pre-bg); padding:8px; font-size:11px; max-height:200px; overflow:auto;"></pre>
+  </div>
+</div>
+
+<script>
+let currentSession = null;
+let currentKey = null;
+
+async function loadCase() {
+  const sel = document.getElementById('caseSel').value;
+  if (!sel) return;
+  currentKey = sel;
+  const res = await fetch(`/api/wizard/load_case/${sel}`, {method: 'POST'});
+  const data = await res.json();
+  currentSession = data.session;
+
+  // For LLM Mock demo: pre-fill selections for AWPTCM-T33234 (Auto-negotiation) in steps 1-3
+  if (currentKey === 'AWPTCM-T33234') {
+    if (!currentSession.step1 || !currentSession.step1.selections || currentSession.step1.selections.length === 0) {
+      currentSession.step1 = {
+        selections: [
+          { "id_or_key": "AWP-12285", "title": "Auto_Fixed Copper_Straight / Auto / Full / MDI-MDIX", "justification": "Primary match - covers default polarity handling" },
+          { "id_or_key": "AWP-12283", "title": "1G_Fixed Copper_Cross / 1000 / Auto/ MDI", "justification": "Relevant - related auto and MDI behavior" }
+        ],
+        confirmed: false
+      };
+    }
+    if (!currentSession.step2 || !currentSession.step2.selections || currentSession.step2.selections.length === 0) {
+      currentSession.step2 = {
+        selections: [
+          { "id_or_key": "AWPTCM-T33234", "title": "Port Auto MDI/MDI-X", "justification": "The case being refined" },
+          { "id_or_key": "AWPTCM-T13148", "title": "No Pluggins - SFP Copper/Fiber-Auto-MDIX", "justification": "Related Zephyr case for auto MDIX" }
+        ],
+        confirmed: false
+      };
+    }
+    if (!currentSession.step3 || !currentSession.step3.selections || currentSession.step3.selections.length === 0) {
+      currentSession.step3 = {
+        selections: [
+          { "id_or_key": "1342.301.12", "title": "Command Execution: Speed Bundle speed 100 speed auto shutdown", "justification": "Covers speed auto negotiation" },
+          { "id_or_key": "1339.1001.8", "title": "Automatic master group", "justification": "Auto configuration aspects" },
+          { "id_or_key": "1331.1001.63126", "title": "New command to allow ARPs for autoconfigure address 169.254.", "justification": "Auto address and ARP related" }
+        ],
+        confirmed: false
+      };
+    }
+  }
+
+  // Hook up real data for demo tables, restoring any previously confirmed selections
+  const step1Sels = (currentSession.step1 && currentSession.step1.selections) || [];
+  const step2Sels = (currentSession.step2 && currentSession.step2.selections) || [];
+
+  if (data.testlink_candidates) {
+    window.currentTestLink = data.testlink_candidates;
+    renderTestLinkTable(data.testlink_candidates, step1Sels);
+  }
+  if (data.zephyr_refs) {
+    window.currentZephyr = data.zephyr_refs;
+    renderZephyrTable(data.zephyr_refs, step2Sels);
+  }
+
+  updateUI();
+  updateLLMStatus();
+  restoreLLMUI();
+
+  // Handle Step 3 restoration or LLM suggestion on load for completeness
+  const step3Sels = (currentSession.step3 && currentSession.step3.selections) || [];
+  if (step3Sels.length > 0) {
+    const q = currentKey || (step3Sels[0] && step3Sels[0].title) || 'port';
+    document.getElementById('search-atp').value = q;
+    setTimeout(async () => {
+      await searchATP();
+      step3Sels.forEach(s => {
+        const cb = document.querySelector(`#atp-results input.atp-sel[data-id="${s.id_or_key}"]`);
+        const justEl = document.querySelector(`#atp-results .atp-just[data-id="${s.id_or_key}"]`);
+        if (cb) cb.checked = true;
+        if (justEl) justEl.value = s.justification || 'Previously selected';
+      });
+    }, 400);
+  } else if (currentKey) {
+    // For new cases, auto-populate a search so LLM suggest has results to work with
+    const q = currentKey.includes('Port') || currentKey.includes('T332') ? 'port auto' : 'arp dhcp';
+    document.getElementById('search-atp').value = q;
+    setTimeout(async () => {
+      await searchATP();
+    }, 500);
+  }
+
+  // Render human-readable synthesized output if step 4 data exists (e.g. after reload)
+  if (currentSession && currentSession.step4) {
+    renderSynthesized(currentSession.step4);
+  }
+  renderReviewSummary();
+}
+
+function updateUI() {
+  document.getElementById('session-view').textContent = JSON.stringify(currentSession, null, 2);
+  if (currentSession && currentSession.primary) {
+    document.getElementById('primary').innerHTML = `<b>Primary:</b> ${currentSession.primary.m || 'None'}`;
+  }
+  // Light visual for gating state using badges
+  const s = currentSession || {};
+  const c1 = s.step1 && s.step1.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
+  const c2 = s.step2 && s.step2.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
+  const c3 = s.step3 && s.step3.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
+  // Append status hints to headers if present (non-destructive for skeleton)
+  updateLLMStatus();
+
+  // Richer preview summary + visual confirms
+  renderReviewSummary();
+
+  // Visual confirm badges on nav items
+  document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+    const step = parseInt(item.getAttribute('data-step'));
+    let conf = false;
+    if (step === 1) conf = !!(s.step1 && s.step1.confirmed);
+    if (step === 2) conf = !!(s.step2 && s.step2.confirmed);
+    if (step === 3) conf = !!(s.step3 && s.step3.confirmed);
+    let b = item.querySelector('.nav-badge');
+    if (conf && !b) {
+      b = document.createElement('span');
+      b.className = 'nav-badge badge badge-success';
+      b.textContent = '✓';
+      item.appendChild(b);
+    } else if (!conf && b) {
+      b.remove();
+    }
+  });
+}
+
+// Render real selectable tables for full demo flow
+function renderTestLinkTable(cands, existingSelections = []) {
+  const cont = document.getElementById('tl-table');
+  if (!cands || cands.length === 0) {
+    cont.innerHTML = '<em>No TestLink candidates for this case.</em>';
+    return;
+  }
+  // Build lookup for saved selections
+  const saved = {};
+  existingSelections.forEach(s => { saved[s.id_or_key] = s.justification || ''; });
+
+  let html = '<table class="table"><thead><tr><th></th><th>ID</th><th>Title</th><th>Score</th><th>Justification (edit)</th></tr></thead><tbody>';
+  cands.forEach((c, idx) => {
+    const hasSaved = Object.keys(saved).length > 0;
+    const isChecked = saved.hasOwnProperty(c.id) || (!hasSaved && idx < 3);
+    const justValue = saved[c.id] || ((c.title || '').toLowerCase().includes('auto') ? 'Primary/relevant match from candidates' : 'Related TestLink case');
+    const checkedAttr = isChecked ? 'checked' : '';
+    html += `
+      <tr>
+        <td><input type="checkbox" class="tl-checkbox" data-id="${c.id}" ${checkedAttr}></td>
+        <td class="cell-id">${c.id}</td>
+        <td>${c.title || ''}</td>
+        <td>${c.score ? Number(c.score).toFixed(2) : ''}</td>
+        <td><input type="text" class="form-input tl-just just-input" data-id="${c.id}" value="${justValue}"></td>
+      </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+function renderZephyrTable(refs, existingSelections = []) {
+  const cont = document.getElementById('zephyr-table');
+  if (!refs || refs.length === 0) {
+    cont.innerHTML = '<em>No Zephyr references loaded.</em>';
+    return;
+  }
+  const saved = {};
+  existingSelections.forEach(s => { saved[s.id_or_key] = s.justification || ''; });
+
+  let html = '<table class="table"><thead><tr><th></th><th>Key</th><th>Title</th><th>Folder</th><th>Justification (edit)</th></tr></thead><tbody>';
+  refs.forEach((r, idx) => {
+    const hasSaved = Object.keys(saved).length > 0;
+    const isChecked = saved.hasOwnProperty(r.key) || (!hasSaved && idx < 2);
+    const justValue = saved[r.key] || (r.justification || 'Related in area');
+    const checkedAttr = isChecked ? 'checked' : '';
+    html += `
+      <tr>
+        <td><input type="checkbox" class="zephyr-checkbox" data-key="${r.key}" ${checkedAttr}></td>
+        <td class="cell-id">${r.key}</td>
+        <td>${r.title || ''}</td>
+        <td class="cell-folder">${r.folder || ''}</td>
+        <td><input type="text" class="form-input z-just" data-key="${r.key}" value="${justValue}"></td>
+      </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+
+function renderSynthesized(synth) {
+  const container = document.getElementById('synth-result');
+  if (!synth) {
+    container.innerHTML = '<em>No synthesized output yet. Click the button above to generate.</em>';
+    return;
+  }
+
+  const objective = synth.objective || '<ul><li>No objective generated</li></ul>';
+  const steps = (synth.testScript && synth.testScript.steps) || [];
+
+  let stepsHtml = '<p><em>No test steps generated.</em></p>';
+  if (steps.length > 0) {
+    stepsHtml = '<ol class="synth-steps">';
+    steps.forEach((s) => {
+      const desc = escapeHtml(s.description || '');
+      const exp = s.expectedResult ? `<div style="margin-top:2px; color:var(--text-secondary);"><em>Expected:</em> ${escapeHtml(s.expectedResult)}</div>` : '';
+      stepsHtml += `<li><div>${desc}</div>${exp}</li>`;
+    });
+    stepsHtml += '</ol>';
+  }
+
+  let provenanceHtml = '';
+  if (synth.provenance) {
+    provenanceHtml = `
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer; font-size:11px; color:var(--text-tertiary);">LLM Provenance (click for details)</summary>
+        <pre style="font-size:9px; background:var(--bg-tertiary); padding:6px; border-radius:4px; max-height:120px; overflow:auto; margin-top:4px;">${escapeHtml(JSON.stringify(synth.provenance, null, 2))}</pre>
+      </details>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="section">
+      <div class="section-heading">Objective (Human-Readable)</div>
+      <div class="synth-objective" id="synth-objective-view">${objective}</div>
+    </div>
+    <div class="section">
+      <div class="section-heading">Test Steps (Human-Readable)</div>
+      <div id="synth-steps-view">${stepsHtml}</div>
+    </div>
+    <div class="synth-actions">
+      <button onclick="startEditSynthesized()" class="btn btn-secondary">Edit / Revise Output</button>
+      ${provenanceHtml ? '' : ''}
+    </div>
+    ${provenanceHtml}
+  `;
+}
+
+// Post-synthesis editor (better polish): makes objective + steps editable, then apply back to session
+let _editingSynth = null;
+
+function startEditSynthesized() {
+  if (!currentSession || !currentSession.step4) return;
+  _editingSynth = JSON.parse(JSON.stringify(currentSession.step4));
+
+  const objView = document.getElementById('synth-objective-view');
+  const stepsView = document.getElementById('synth-steps-view');
+
+  // Editable objective (simple textarea for HTML content)
+  const objHtml = _editingSynth.objective || '';
+  objView.innerHTML = `<textarea id="edit-objective" class="form-textarea" style="width:100%; height:120px; font-size:11px;">${escapeHtml(objHtml)}</textarea>`;  // kept minimal inline for size; design component used
+
+  // Editable steps as list of inputs
+  const steps = (_editingSynth.testScript && _editingSynth.testScript.steps) || [];
+  let editSteps = '<div class="editable-steps">';
+  steps.forEach((s, idx) => {
+    const desc = escapeHtml(s.description || '');
+    editSteps += `<div class="editable-step"><input data-idx="${idx}" value="${desc}" class="form-input" /></div>`;
+  });
+  editSteps += '</div>';
+  stepsView.innerHTML = editSteps;
+
+  // Replace actions
+  const actions = document.querySelector('.synth-actions');
+  if (actions) {
+    actions.innerHTML = `
+      <button onclick="applySynthesizedEdits()" class="btn btn-primary">Apply Edits</button>
+      <button onclick="cancelSynthesizedEdits()" class="btn btn-secondary">Cancel</button>
+    `;
+  }
+}
+
+function applySynthesizedEdits() {
+  if (!_editingSynth || !currentSession) return;
+  const objTa = document.getElementById('edit-objective');
+  if (objTa) _editingSynth.objective = objTa.value.trim();
+
+  const stepInputs = document.querySelectorAll('#synth-steps-view .editable-step input');
+  if (_editingSynth.testScript && _editingSynth.testScript.steps) {
+    stepInputs.forEach(inp => {
+      const idx = parseInt(inp.getAttribute('data-idx'));
+      if (_editingSynth.testScript.steps[idx]) {
+        _editingSynth.testScript.steps[idx].description = inp.value.trim();
+      }
+    });
+  }
+
+  currentSession.step4 = _editingSynth;
+  _editingSynth = null;
+  renderSynthesized(currentSession.step4);
+  updateUI();
+}
+
+function cancelSynthesizedEdits() {
+  _editingSynth = null;
+  if (currentSession && currentSession.step4) {
+    renderSynthesized(currentSession.step4);
+  }
+}
+
+function renderReviewSummary() {
+  const cont = document.getElementById('review-summary-content');
+  if (!cont || !currentSession) return;
+
+  const s1 = currentSession.step1 || {};
+  const s2 = currentSession.step2 || {};
+  const s3 = currentSession.step3 || {};
+
+  let html = '';
+
+  if ((s1.selections || []).length) {
+    html += `<div><strong>Step 1 (TestLink):</strong> `;
+    (s1.selections || []).slice(0,3).forEach(sel => {
+      html += `<span class="sel-item"><span class="sel-label">${sel.id_or_key}</span> ${escapeHtml((sel.title||'').slice(0,40))}</span>`;
+    });
+    if (s1.confirmed) html += ` <span class="badge badge-success">✓</span>`;
+    html += `</div>`;
+  }
+
+  if ((s2.selections || []).length) {
+    html += `<div><strong>Step 2 (Zephyr):</strong> `;
+    (s2.selections || []).slice(0,3).forEach(sel => {
+      html += `<span class="sel-item"><span class="sel-label">${sel.key || sel.id_or_key}</span> ${escapeHtml((sel.title||'').slice(0,40))}</span>`;
+    });
+    if (s2.confirmed) html += ` <span class="badge badge-success">✓</span>`;
+    html += `</div>`;
+  }
+
+  if ((s3.selections || []).length) {
+    html += `<div><strong>Step 3 (ATPyLib):</strong> `;
+    (s3.selections || []).slice(0,3).forEach(sel => {
+      html += `<span class="sel-item"><span class="sel-label">${sel.id_or_key}</span></span>`;
+    });
+    if (s3.confirmed) html += ` <span class="badge badge-success">✓</span>`;
+    html += `</div>`;
+  }
+
+  if (currentSession.gaps) {
+    html += `<div><strong>Gaps:</strong> ${escapeHtml(currentSession.gaps.slice(0,80))}</div>`;
+  }
+
+  cont.innerHTML = html || '<em>Confirm steps 1-3 for selection previews.</em>';
+}
+
+async function setLLMConfig() {
+  if (!currentKey) return alert('Load a case first');
+  const provider = document.getElementById('llmProvider').value;
+  const credential = document.getElementById('llmCredential').value.trim();
+  const model = document.getElementById('llmModel').value.trim();
+
+  // Determine method from radio
+  const methodRadios = document.querySelectorAll('input[name="llmAuthMethod"]');
+  let auth_method = 'api_key';
+  for (let r of methodRadios) {
+    if (r.checked) { auth_method = r.value; break; }
+  }
+
+  const body = { provider, auth_method };
+  if (auth_method === 'api_key') {
+    if (credential) body.api_key = credential;
+  } else {
+    if (credential) body.token = credential;
+  }
+  if (model) body.model = model;
+
+  const res = await fetch(`/api/wizard/set_llm_config/${currentKey}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.llm_config) {
+    if (currentSession) currentSession.llm_config = data.llm_config;
+    updateLLMStatus(data.llm_config);
+    const methodLabel = auth_method === 'account' ? 'Account' : 'API Key';
+    alert(`Logged in to ${provider} via ${methodLabel}. Credentials stored server-side.`);
+    document.getElementById('llmCredential').value = '';
+  } else {
+    alert('Failed to set LLM config: ' + (data.message || 'unknown'));
+  }
+}
+
+function updateLLMStatus(config) {
+  const statusEl = document.getElementById('llmStatus');
+  const sidebarEl = document.getElementById('llm-status-sidebar');
+
+  const c = config || (currentSession && currentSession.llm_config) || {};
+  const provider = c.provider || 'mock';
+  const hasCred = c.has_key || false;
+
+  let text = '';
+  let color = '';
+
+  if (provider === 'mock' || !hasCred) {
+    text = 'Using MOCK (no key set)';
+    color = '#ffcc00';
+  } else {
+    const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
+    const m = c.auth_method === 'account' ? ' (account)' : ' (key)';
+    text = `Using ${p}${m}`;
+    color = '#5ddc7a';
+  }
+
+  if (statusEl) {
+    statusEl.textContent = text;
+    statusEl.style.color = color;
+  }
+  if (sidebarEl) {
+    sidebarEl.textContent = text;
+    sidebarEl.style.color = color;
+  }
+}
+
+function updateLLMDefaults() {
+  const provider = document.getElementById('llmProvider').value;
+  const modelInput = document.getElementById('llmModel');
+  if (!modelInput.value) {
+    if (provider === 'grok') {
+      modelInput.placeholder = 'grok-beta';
+    } else if (provider === 'claude') {
+      modelInput.placeholder = 'claude-3-5-sonnet-20241022';
+    }
+  }
+  updateAuthMethodUI();
+}
+
+function showLLMConfig() {
+  const card = document.getElementById('llm-config-card');
+  const titleEl = document.querySelector('.page-title');
+  const descEl = document.querySelector('.page-description');
+  if (card) {
+    const isHidden = card.style.display === 'none' || card.style.display === '';
+    card.style.display = isHidden ? 'block' : 'none';
+    if (titleEl && descEl) {
+      if (isHidden) {
+        titleEl.textContent = 'LLM Provider Configuration';
+        descEl.textContent = 'Set up Grok or Claude for synthesis. Close to return to steps.';
+      } else {
+        // Will be reset by goToStep or default
+        titleEl.textContent = 'Objective Drafting';
+        descEl.textContent = 'Review data sources then synthesize with LLM.';
+        goToStep(1); // default back
+      }
+    }
+  }
+}
+
+function updateAuthMethodUI() {
+  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'api_key';
+  const credInput = document.getElementById('llmCredential');
+  const btn = document.getElementById('accountLoginBtn');
+  const instructions = document.getElementById('accountInstructions');
+
+  if (method === 'account') {
+    credInput.placeholder = 'Paste token / key from account';
+    if (btn) {
+      btn.style.display = 'inline-block';
+      btn.textContent = 'Show Instructions';
+    }
+    if (instructions) instructions.style.display = 'none';
+  } else {
+    credInput.placeholder = 'API Key';
+    if (btn) {
+      btn.style.display = 'none';
+      btn.textContent = 'Open Login Page';
+    }
+    if (instructions) instructions.style.display = 'none';
+  }
+}
+
+let pendingLoginUrl = null;
+
+function prepareAccountLogin() {
+  const provider = document.getElementById('llmProvider').value;
+  let url = '';
+  let displayName = '';
+
+  if (provider === 'grok') {
+    url = 'https://grok.x.ai/';
+    displayName = 'Grok';
+  } else if (provider === 'claude') {
+    url = 'https://console.anthropic.com/settings/keys';
+    displayName = 'Claude';
+  }
+
+  if (!url) return;
+
+  pendingLoginUrl = url;
+
+  // Show in-page, non-blocking instructions
+  const textDiv = document.getElementById('accountInstructionsText');
+  const panel = document.getElementById('accountInstructions');
+
+  textDiv.innerHTML = `
+    <strong>Account Login for ${displayName}</strong><br><br>
+    1. When you are ready, click the button below.<br>
+    2. A new tab will open to the login page.<br>
+    3. Log in and go to the API / Keys section.<br>
+    4. Copy your key or token.<br>
+    5. Return here, paste it in the field above.<br>
+    6. Click "Apply / Login".<br><br>
+    <em>You control exactly when the tab opens — no surprise focus or navigation.</em>
+  `;
+
+  const openBtn = document.getElementById('actuallyOpenBtn');
+  if (openBtn) openBtn.textContent = `Open ${displayName} Login Tab Now`;
+
+  if (panel) panel.style.display = 'block';
+
+  // Hide the initial button
+  const firstBtn = document.getElementById('accountLoginBtn');
+  if (firstBtn) firstBtn.style.display = 'none';
+}
+
+function actuallyOpenLoginTab() {
+  if (!pendingLoginUrl) return;
+
+  const newTab = window.open(pendingLoginUrl, '_blank');
+
+  // Try to return focus to this window
+  setTimeout(() => { try { window.focus(); } catch (e) {} }, 80);
+  setTimeout(() => { try { window.focus(); } catch (e) {} }, 220);
+
+  // Hide instructions panel
+  const panel = document.getElementById('accountInstructions');
+  if (panel) panel.style.display = 'none';
+
+  // Reset
+  pendingLoginUrl = null;
+
+  // Restore the prepare button
+  const firstBtn = document.getElementById('accountLoginBtn');
+  if (firstBtn) {
+    firstBtn.style.display = 'inline-block';
+    firstBtn.textContent = 'Show Instructions';
+  }
+}
+
+function restoreLLMUI() {
+  const c = currentSession && currentSession.llm_config;
+  if (!c || !c.provider) return;
+
+  // Set provider
+  const provSel = document.getElementById('llmProvider');
+  if (provSel) provSel.value = c.provider;
+
+  // Set method
+  const method = c.auth_method || 'api_key';
+  const radios = document.querySelectorAll('input[name="llmAuthMethod"]');
+  for (let r of radios) {
+    r.checked = (r.value === method);
+  }
+
+  updateAuthMethodUI();
+  updateLLMStatus(c);
+}
+
+async function confirmStep(step) {
+  if (!currentKey) return alert('Load a case first');
+
+  let body = {};
+  if (step === 1) {
+    const sels = [];
+    document.querySelectorAll('#tl-table .tl-checkbox:checked').forEach(cb => {
+      const id = cb.dataset.id;
+      const justEl = document.querySelector(`#tl-table .tl-just[data-id="${id}"]`);
+      const cand = (window.currentTestLink || []).find(x => x.id === id) || {};
+      sels.push({
+        id_or_key: id,
+        title: cand.title || id,
+        justification: justEl ? justEl.value : ''
+      });
+    });
+    body = { selections: sels };
+  } else if (step === 2) {
+    const sels = [];
+    document.querySelectorAll('#zephyr-table .zephyr-checkbox:checked').forEach(cb => {
+      const k = cb.dataset.key;
+      const justEl = document.querySelector(`#zephyr-table .z-just[data-key="${k}"]`);
+      const ref = (window.currentZephyr || []).find(x => x.key === k) || {};
+      sels.push({
+        id_or_key: k,
+        title: ref.title || k,
+        justification: justEl ? justEl.value : ''
+      });
+    });
+    body = { selections: sels };
+  } else if (step === 3) {
+    const sels = [];
+    document.querySelectorAll('#atp-results input.atp-sel:checked').forEach(cb => {
+      const id = cb.dataset.id;
+      const justEl = document.querySelector(`#atp-results .atp-just[data-id="${id}"]`);
+      const title = 'ATPyLib ' + id;
+      sels.push({ id_or_key: id, title: title, justification: justEl ? justEl.value : 'Selected in Step 3' });
+    });
+    body = { selections: sels, gaps: document.getElementById('gaps').value || '' };
+  }
+
+  const res = await fetch(`/api/wizard/confirm_step/${currentKey}/${step}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  currentSession = data.session;
+  updateUI();
+  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 4.');
+}
+
+async function synthesize() {
+  if (!currentSession) return;
+  const res = await fetch('/api/wizard/synthesize', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({session: currentSession, use_llm: true})
+  });
+  const data = await res.json();
+  currentSession = data.session;
+  renderSynthesized(data.synthesized);
+  updateUI();
+}
+
+async function exportBundle() {
+  if (!currentSession) return;
+  const res = await fetch('/api/wizard/export', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({session: currentSession})
+  });
+  const data = await res.json();
+  // Download files
+  download('traceability.md', data.traceability_md);
+  download(currentKey + '-zephyr_payload.json', JSON.stringify(data.zephyr_payload, null, 2));
+  download(currentKey + '-session.json', JSON.stringify(data.session_json, null, 2));
+  alert('Exported repeatable bundle. Files use templated LLM output for consistency.');
+}
+
+function download(name, content) {
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+  a.download = name;
+  a.click();
+}
+
+// Dynamic case list from server data
+async function initCases() {
+  const sel = document.getElementById('caseSel');
+  // remove initial placeholder option
+  if (sel.options.length > 0 && (sel.options[0].value === '' || sel.options[0].text.includes('Select'))) {
+    sel.remove(0);
+  }
+  // Actual test cases from the project data (candidates.json) - fully linked
+  const actualTestCases = [
+    "AWPTCM-T33234", "AWPTCM-T30649", "AWPTCM-T33233", "AWPTCM-T33235", "AWPTCM-T33236",
+    "AWPTCM-T33237", "AWPTCM-T33241", "AWPTCM-T33242", "AWPTCM-T33243", "AWPTCM-T33246",
+    "AWPTCM-T33247", "AWPTCM-T33248", "AWPTCM-T33249", "AWPTCM-T33250", "AWPTCM-T33261",
+    "AWPTCM-T33263", "AWPTCM-T33265", "AWPTCM-T33266", "AWPTCM-T33267", "AWPTCM-T33268",
+    "AWPTCM-T33270", "AWPTCM-T33274", "AWPTCM-T33275", "AWPTCM-T33276", "AWPTCM-T33277",
+    "AWPTCM-T33278", "AWPTCM-T33279", "AWPTCM-T33280", "AWPTCM-T33281", "AWPTCM-T33283",
+    "AWPTCM-T33285", "AWPTCM-T33300", "AWPTCM-T33314", "AWPTCM-T33315", "AWPTCM-T33317",
+    "AWPTCM-T33323", "AWPTCM-T33351", "AWPTCM-T33369", "AWPTCM-T33370", "AWPTCM-T33371",
+    "AWPTCM-T33392", "AWPTCM-T33404", "AWPTCM-T37859", "AWPTCM-T37860", "AWPTCM-T37861",
+    "AWPTCM-T37865", "AWPTCM-T37869", "AWPTCM-T38767", "AWPTCM-T43849", "AWPTCM-T43851",
+    "AWPTCM-T43853", "AWPTCM-T43854", "AWPTCM-T43855", "AWPTCM-T43858", "AWPTCM-T43859"
+  ];
+
+  // Always populate synchronously first from the local list so dropdown is never empty
+  actualTestCases.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.text = c;
+    sel.appendChild(o);
+  });
+
+  try {
+    const res = await fetch('/api/wizard/cases');
+    if (res.ok) {
+      const d = await res.json();
+      if (d.cases && d.cases.length > 0) {
+        // Clear previous options (keep only the new server list)
+        while (sel.options.length > 0) sel.remove(0);
+        d.cases.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c;
+          o.text = c;
+          sel.appendChild(o);
+        });
+        // re-apply selection for demo after async replace
+        setTimeout(() => {
+          if (sel && sel.selectedIndex <= 0) {
+            for (let i = 0; i < sel.options.length; i++) {
+              const v = sel.options[i].value;
+              if (v && v !== '' && !v.includes('Select')) {
+                sel.selectedIndex = i;
+                break;
+              }
+            }
+          }
+        }, 0);
+      }
+    }
+  } catch (e) {
+    // keep the local list on error
+  }
+}
+
+initCases();
+updateAuthMethodUI();
+goToStep(1);
+updateLLMStatus();
+
+// Demo convenience: pre-select a case that has rich data
+setTimeout(() => {
+  const sel = document.getElementById('caseSel');
+  if (sel && sel.selectedIndex <= 0) {
+    for (let i = 0; i < sel.options.length; i++) {
+      const v = sel.options[i].value;
+      if (v && v !== '' && !v.includes('Select')) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  // Auto-load the top case (AWPTCM-T33234) for instant pre-filled demo with mock
+  if (sel && sel.value === 'AWPTCM-T33234') {
+    setTimeout(() => { loadCase(); }, 100);
+  }
+}, 150);
+
+function goToStep(step) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) el.style.display = (i === step) ? 'block' : 'none';
+  }
+  // highlight sidebar nav items
+  document.querySelectorAll('.sidebar-nav-item').forEach((item) => {
+    const itemStep = parseInt(item.getAttribute('data-step'));
+    item.classList.toggle('active', itemStep === step);
+  });
+  // Hide config card when navigating steps
+  const configCard = document.getElementById('llm-config-card');
+  if (configCard) configCard.style.display = 'none';
+
+  // For demo convenience: kick off ATP search when entering step 3
+  if (step === 3) {
+    const inp = document.getElementById('search-atp');
+    if (inp && !inp.value) {
+      inp.value = 'port';
+      searchATP();
+    }
+  }
+
+  // Update page header for current step
+  const titleEl = document.querySelector('.page-title');
+  const descEl = document.querySelector('.page-description');
+  if (titleEl && descEl) {
+    const titles = {
+      1: 'Step 1: TestLink Review',
+      2: 'Step 2: Zephyr Cross-Ref',
+      3: 'Step 3: ATPyLib + Gaps',
+      4: 'Step 4: Synthesize with LLM'
+    };
+    const descs = {
+      1: 'Review and confirm TestLink + decisions before proceeding.',
+      2: 'Review relevant Zephyr cases.',
+      3: 'Search and select ATPyLib cases. Note gaps.',
+      4: 'Use the configured LLM with templated prompts to generate objectives and steps.'
+    };
+    titleEl.textContent = titles[step] || 'Objective Drafting';
+    descEl.textContent = descs[step] || 'Review data sources then synthesize with LLM.';
+  }
+
+  if (step === 4) {
+    renderReviewSummary();
+  }
+}
+
+async function searchATP() {
+  const q = document.getElementById('search-atp').value || '';
+  const cont = document.getElementById('atp-results');
+
+  // For LLM Mock demo on auto-negotiation case: force include pre-filled ATP selections
+  if (currentKey === 'AWPTCM-T33234') {
+    const demoResults = [
+      {id:"1342.301.12", title:"Command Execution: Speed Bundle speed 100 speed auto shutdown", suite:"Suite 1342"},
+      {id:"1339.1001.8", title:"Automatic master group", suite:"1339_atmf"},
+      {id:"1331.1001.63126", title:"New command to allow ARPs for autoconfigure address 169.254.", suite:"1331_past_issues"},
+      {id:"1351.1001.1", title:"Port auto negotiation basic", suite:"1351"}
+    ];
+    let html = '';
+    demoResults.forEach(r => {
+      const defJust = 'Relevant from search';
+      html += `<div class="compact-flex" style="font-size:10px;">
+        <input type="checkbox" class="atp-sel" data-id="${r.id}">
+        <span class="cell-id">${r.id}</span>
+        <span>${r.title}</span>
+        <span style="color:#666;">(${r.suite})</span>
+        <input type="text" class="form-input atp-just" data-id="${r.id}" value="${defJust}" style="width:70px;">
+      </div>`;
+    });
+    cont.innerHTML = html;
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/wizard/search_atp?q=${encodeURIComponent(q)}`);
+    const d = await res.json();
+    let html = '';
+    (d.results || []).forEach(r => {
+      const defJust = 'Relevant from search';
+      html += `<div class="compact-flex" style="font-size:10px;">
+        <input type="checkbox" class="atp-sel" data-id="${r.id}">
+        <span class="cell-id">${r.id}</span>
+        <span>${r.title}</span>
+        <span style="color:#666;">(${r.suite})</span>
+        <input type="text" class="form-input atp-just" data-id="${r.id}" value="${defJust}" style="width:70px;">
+      </div>`;
+    });
+    cont.innerHTML = html || '<em>No matches (try "port", "arp", "qos", etc.)</em>';
+  } catch (e) {
+    cont.innerHTML = '<em>Search unavailable (using mock data for demo).</em>';
+  }
+}
+
+async function suggestATPWithLLM() {
+  if (!currentKey) {
+    alert("Load a case first");
+    return;
+  }
+  const cont = document.getElementById('atp-results');
+  cont.innerHTML = '<em>Asking LLM to suggest relevant ATP tests based on TestLink + Zephyr selections...</em>';
+
+  try {
+    const res = await fetch(`/api/wizard/suggest_atp/${currentKey}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({})
+    });
+    const d = await res.json();
+
+    // Make sure we have some results to check against
+    if (!cont.innerHTML.includes('input') || cont.querySelectorAll('input.atp-sel').length === 0) {
+      // trigger a search using the query the backend used, or default
+      const q = d.query_used || document.getElementById('search-atp').value || 'port';
+      document.getElementById('search-atp').value = q;
+      await searchATP();
+    }
+
+    const suggestions = d.suggestions || [];
+    let checkedCount = 0;
+    suggestions.forEach(sugg => {
+      const cb = cont.querySelector(`input.atp-sel[data-id="${sugg.id}"]`);
+      const justEl = cont.querySelector(`.atp-just[data-id="${sugg.id}"]`);
+      if (cb) {
+        cb.checked = true;
+        checkedCount++;
+        if (sugg.reason && !cb.title) {
+          cb.title = sugg.reason;
+        }
+        // Improved merge: show reason visibly next to checkbox for LLM suggestions
+        const parent = cb.parentElement;
+        if (parent && !parent.querySelector('.sugg-reason')) {
+          const r = document.createElement('span');
+          r.className = 'sugg-reason';
+          r.style.cssText = 'font-size:9px;color:#0a0;margin-left:3px;';
+          r.textContent = '✓ ' + (sugg.reason || 'suggested');
+          parent.appendChild(r);
+        }
+      }
+      if (justEl && sugg.reason) {
+        justEl.value = sugg.reason;
+      }
+    });
+
+    if (checkedCount > 0) {
+      alert(`LLM pre-selected ${checkedCount} relevant ATP test(s). Please review and adjust before confirming.`);
+    } else {
+      alert("LLM returned suggestions but none matched current results. Try searching first with keywords from your selections.");
+    }
+  } catch (e) {
+    cont.innerHTML = '<em>LLM suggestion failed (check LLM config / MOCK). Falling back to manual search.</em>';
+    // fallback to regular search
+    await searchATP();
+  }
+}
+
+// Light / Dark mode toggle (aligned with design system)
+(function() {
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+
+  function setTheme(theme) {
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+      if (icon) icon.textContent = '☀️';
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+      if (icon) icon.textContent = '🌙';
+    }
+    localStorage.setItem('theme', theme);
+  }
+
+  // Initialize theme
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    setTheme(saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    setTheme('light');
+  } else {
+    setTheme('dark');
+  }
+
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const isLight = root.classList.contains('light');
+      setTheme(isLight ? 'dark' : 'light');
+    });
+  }
+})();
+</script>
+</body>
+</html>

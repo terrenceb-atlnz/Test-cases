@@ -1,0 +1,15 @@
+Using the objective below and the reviewed selections, draft Zephyr-ready testScript steps (action-oriented).
+
+Objective:
+{{ objective }}
+
+Selections and gaps same as above.
+
+Rules (strict for repeatable output):
+- The FIRST step will be injected server-side as a traceability note (built from confirmed TestLink + Zephyr + ATPyLib selections + gaps + art string). DO NOT generate the note yourself.
+- Generate ONLY the subsequent verification steps (2nd onward) that exercise the artefacts in the objective.
+- Use "Verify...", "Set...", "Test with...", "Confirm...", etc.
+- expectedResult usually empty or brief.
+- Output as JSON steps array only: [{"description": "...", "expectedResult": ""}, ...]
+
+Produce the JSON array for steps AFTER the note.
