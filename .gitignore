@@ -44,6 +44,9 @@ findings.md
 
 # Other potentially large but currently tracked data (testlink, all_test_suites) are also included.
 
+# Other Zephyr export files (not the primary source)
+zephyr-scale-tests-export*.xml
+
 # Temporary, backup, and output files
 backups/
 *.bak
