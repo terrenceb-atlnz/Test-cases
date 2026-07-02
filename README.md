@@ -1,5 +1,17 @@
 # Test-cases
 
+**Proprietary and Confidential — All Rights Reserved**
+
+Copyright (c) 2026 terrenceb-atlnz. All rights reserved.
+
+**No license is granted.** This repository and all contents (source code, data files, documentation, and tools) are the exclusive proprietary property of the copyright holder.
+
+You may **not** copy, use, modify, distribute, sublicense, or create derivative works from any part of this work without prior express written permission.
+
+Unauthorized access, use, or distribution is strictly prohibited.
+
+---
+
 Tools, data, and workflows for enriching and mapping **AWPTCM manual test cases** (Zephyr) using historical TestLink cases and enriched ATPyLib automated test suites.
 
 This directory contains the data, tools, and analysis for a project to improve and contextualize manual test cases using historical and automated sources.
@@ -9,15 +21,24 @@ This directory contains the data, tools, and analysis for a project to improve a
 ```bash
 git clone https://github.com/terrenceb-atlnz/Test-cases.git
 cd Test-cases
+
+# Required: fetch the large raw source files (tools depend on them)
+git lfs install
+git lfs pull
 ```
 
-**Requirements:** Python 3.
+**Requirements:** Python 3 + [Git LFS](https://git-lfs.com/).
 
-**Note on data files:** Large raw exports (the original Zephyr XML, full JSONL extracts) are excluded from this repository via `.gitignore` to keep clones fast and respect GitHub file size limits. 
+**Raw/source data:** The large files (Zephyr-Database XML export, full `zephyr_cases.jsonl`, and `index.json`) **are included** in this repository using Git LFS because the tools depend on them directly.
 
-- Use the scripts under `tool/` (e.g. `extract_zephyr_xml.py`) to regenerate working artifacts when you have the source XML.
-- See `data/zephyr_full/README.md` for details on the extracted files and recommended access patterns (slim_index.json is small and very useful).
-- Smaller data files (candidates, decisions, enriched suites, slim indexes, refined-cases) are included.
+- After cloning, run:
+  ```bash
+  git lfs install
+  git lfs pull
+  ```
+  (You must do this to materialize the large files.)
+- See `data/zephyr_full/README.md` for recommended access patterns (prefer `slim_index.json` for most work).
+- The original XML is the immutable source of truth.
 
 ## Project Framing
 
@@ -121,6 +142,8 @@ See [data/suites/ENRICHMENT_STATE.md](data/suites/ENRICHMENT_STATE.md) for detai
 - Root project [AGENTS.md](../AGENTS.md) — Broader context, access patterns, and Terrenceb-dl details.
 - Drafting tool work: See `drafting-tool/PROGRESS.md` (status, backlog, technical debt, handoff), `drafting-tool/SERVER-README.md` (usage + architecture), `drafting-tool/LESSONS_LEARNED.md`. Recent progress: real data for Steps 1-3 + LLM pre-select in Step 3, dynamic cases + pre-fills for T33234 demo, UI compaction for one-page fit, human-readable Step 4 output. Always start with `drafting-tool/PROGRESS.md` + cross-ref root README + `SESSION_STATE.md`.
 
-## License
+## Copyright
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+See the prominent notice at the top of this README and the `COPYRIGHT` file in the root.
+
+All rights reserved. No permissions are granted to use, copy, or distribute this work.

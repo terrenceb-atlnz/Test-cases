@@ -1,3 +1,20 @@
+# Git LFS tracking for large raw source data that the tools depend on.
+# These files exceed GitHub's 100MB limit and must use LFS.
 Zephyr-Database-*.xml filter=lfs diff=lfs merge=lfs -text
 data/zephyr_full/zephyr_cases.jsonl filter=lfs diff=lfs merge=lfs -text
 data/zephyr_full/index.json filter=lfs diff=lfs merge=lfs -text
+# Optional: track other large data files with LFS if they grow
+# data/suites/testlink_awp.json filter=lfs diff=lfs merge=lfs -text
+# data/suites/all_test_suites.json filter=lfs diff=lfs merge=lfs -text
+# data/suites/test_id_description.json filter=lfs diff=lfs merge=lfs -text
+# Text files that should not be converted
+*.md text
+*.py text
+*.json text
+*.html text
+*.css text
+*.txt text
+# Binary / generated that should stay as-is
+*.xml binary
+*.png binary
+*.csv text

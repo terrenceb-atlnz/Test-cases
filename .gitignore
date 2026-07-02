@@ -33,16 +33,16 @@ secrets.md
 secrets.*
 findings.md
 
-# Large/raw source data exports (regenerable via scripts in `tool/`)
-# These are excluded to keep the repository lightweight and pushable.
-Zephyr-Database-*.xml
-zephyr-scale-tests-export*.xml
-data/zephyr_full/zephyr_cases.jsonl
-data/zephyr_full/index.json
+# Note: Large raw source files (Zephyr XML + full extracts) are intentionally
+# included in this repository because tools depend on them.
+# They are tracked using Git LFS (see .gitattributes).
 
-# Uncomment below if you prefer not to track very large JSON corpora in git history
-# data/suites/testlink_awp.json
-# data/suites/all_test_suites.json
+# The following large files use Git LFS:
+#   Zephyr-Database-*.xml
+#   data/zephyr_full/zephyr_cases.jsonl
+#   data/zephyr_full/index.json
+
+# Other potentially large but currently tracked data (testlink, all_test_suites) are also included.
 
 # Temporary, backup, and output files
 backups/
