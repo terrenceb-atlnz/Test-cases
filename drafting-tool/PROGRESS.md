@@ -2,54 +2,45 @@
 
 **Purpose**: This file exists so future Grok sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-03 (by Grok)
-**Current Session Theme**: 
-- Removal of all MOCK/demo fallbacks and hardcodes for real-only usage (CLI subscription modes or API keys required; no silent demo data or pre-fills).
-- Output generation advanced: `/export` now writes drop-in artifacts directly to `refined-cases/<Group>/AWPTCM-Txxxx/` (traceability.md + zephyr_payload.json + session; folders created as needed) using improved group resolution matching existing structure, in addition to client downloads. Validation and server note construction reinforced.
-- Frontend polish: removed multiple inline styles (switched to .hidden class + utility classes for visibility, panels, buttons); enhanced review summary for richer previews (more items, justifications, counts); improved post-synthesis editor with better classes; generalized remaining demo pre-select logic and comments/strings.
-- Cross-references and handoff updates.
-
-MOCK and demo pre-fills fully removed from code. Output persistence addresses key drop-in requirement. Frontend closer to design components.
+**Last Updated**: 2026-07-13 (by Grok)  
+**Current Session Theme**:
+- Verified load_case zrefs fix; relevance-ranked external Zephyr cross-refs (no more first-N slim_index noise).
+- Major UI/UX: dual case dropdowns (Open/partial vs Complete), Search+Suggest on Steps 1–3, table layout fix, stack-overflow fix, workspace LLM persistence.
+- Process change: **no editable Gaps field in Step 3** — gaps are LLM-generated at **synthesis/export** for Traceability.
+- Docs/README cleanup; favicon; GitHub push unblocked via `git lfs migrate` history rewrite.
 
 ---
 
 ## 1. High-Level Status
 
-| Area                        | Status          | Notes |
-|----------------------------|------------------|-------|
-| Architecture Decision      | Complete        | Server-backed (FastAPI) chosen over single-file |
-| Project Structure          | Good            | All new work consolidated under `drafting-tool/` |
-| Core Backend               | State Machine + Persistence + Data/LLM Assist | FastAPI + routers with gating, file-based JSON sessions, suggest_atp endpoint, _build_atp_query + candidate retrieval |
-| LLM Integration            | Subscription CLI modes primary + real-only | Multi-provider via local CLIs for subscriptions (Grok CLI for SuperGrok/X Premium+ and Claude Code CLI for Team) — UI is now *only* the two subscription radios (no provider dropdown, no API Key option visible). Full backend + CLI integration; MOCK/demo fallbacks removed entirely (real credentials or logged-in CLI required). Legacy api_key supported server-side for old. Provenance, suggest_atp.jinja. |
-| Data Integration for Steps 1-3 | Implemented     | Real TestLink candidates from candidates.json, Zephyr refs from zephyr_master/slim (external only), ATP from test_id_desc with LLM pre-select/analysis |
-| Repeatable Outputs         | Advanced (key parts complete) | Jinja templates + structured parsing + server note; human-readable in Step 4; export now persists drop-in to refined-cases/<Group>/ (traceability.md, zephyr_payload.json); validation reinforced |
-| Process Enforcement        | Implemented     | Server-side gates for confirms (selections+flags persisted); synthesis blocked until all 3 |
-| Frontend UI                | Data-driven + Polished | Sidebar+main, dynamic case list (real AWPTCM cases, no T33234 auto/demo), compact tables for 1-3 (external Zephyr only), real data only (no pre-fills), human-readable synth output, LLM suggest, restoration, review summary, reduced inline styles (class-based) |
-| Documentation              | Strong          | PROGRESS/LESSONS/SERVER-README updated; synced with root SESSION_STATE/README |
-| Hosting / nginx            | Ready           | Example config provided |
-| Real LLM Wiring            | Complete        | Grok/Claude via env or per-session config (real-only, no MOCK); CLI headless primary |
-| Persistence                | File-based      | JSON per session (confirms, selections, LLM config+creds, provenance, step4); export also writes to refined-cases |
-| Polish & Completeness      | Advanced        | UI compaction done; output persistence + frontend polish (previews, editor, styles, no demo) progressed; more needed |
+| Area | Status | Notes |
+|------|--------|-------|
+| Architecture Decision | Complete | Server-backed (FastAPI) |
+| Project Structure | Good | All tool work under `drafting-tool/` |
+| Core Backend | Strong | Gates, file sessions, search/suggest for TL/Zephyr/ATP, relevance zrefs, workspace LLM file |
+| LLM Integration | Complete (CLI primary) | Grok CLI + Claude Code CLI in UI; workspace default in `sessions/_workspace_llm.json`; real-only (no MOCK) |
+| Data Integration Steps 1–3 | Implemented | Real TL candidates; external Zephyr ranked; ATP scored; Search/Suggest merge on all three steps |
+| Repeatable Outputs | Advanced | Templates + note construction; export → `refined-cases/`; gaps generated at synth/export |
+| Process Enforcement | Implemented | Server-side confirms 1–3 before synthesize |
+| Frontend UI | Advanced | Dual case lists; toolbars; compact tables (cols-5 / cols-6-*); editor; review summary |
+| Documentation | Strong | PROGRESS / SERVER-README / LESSONS / README updated this session |
+| Hosting / nginx | Ready | Example config |
+| Persistence | File-based | Per-case `sessions/<key>.json` + workspace LLM JSON + refined-cases export |
+| Polish & Completeness | Good | Critical UX bugs fixed; more output edge validation / Process page still open |
 
-**Overall Phase**: Foundation / Early Implementation
+**Overall Phase**: Usable mid-implementation (workflow runnable end-to-end; packaging/tests/Process page still thin)
 
 ---
 
 ## 2. Key Decisions & Rationale (Carry Forward)
 
-- **Server-backed is required** because:
-  - LLM must directly generate Objectives and Steps from user selections.
-  - Data volume will keep growing.
-  - Tool will be hosted (local IP + nginx).
-  - Future extensibility is expected.
-
-- **Repeatability strategy**: 
-  - Prompt templates (Jinja) for consistent inputs to the LLM.
-  - Structured parsing + output templates for consistent artifacts (even if LLM output varies).
-
-- **Process gates must be real**: User must explicitly confirm review of TestLink, Zephyr, and ATPyLib **before** synthesis is allowed. This should be enforced server-side.
-
-- **File organization**: Everything related to this tool (code, docs, plan, examples) should stay under `drafting-tool/`.
+- **Server-backed is required** (LLM synthesis, growing data, nginx host, extensibility).
+- **Repeatability**: Jinja prompt templates + structured parse/output templates + server-built first testScript note.
+- **Process gates must be real** (server-side confirms before synthesis).
+- **All drafting-tool work stays under `drafting-tool/`**.
+- **Gaps are not a Step 3 form field**: user confirms ATP selections only; LLM writes Gaps for Traceability at synthesize/export (`generate_gaps.jinja`).
+- **LLM preference is workspace-scoped**: Apply/Login writes `sessions/_workspace_llm.json`; load_case copies onto cases without active config (switching cases must not reset CLI login).
+- **Complete vs open cases**: Complete = `refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json` exists; Open/partial = all other candidate keys; partials (session progress) listed first in Open dropdown.
 
 ---
 
@@ -57,292 +48,192 @@ MOCK and demo pre-fills fully removed from code. Output persistence addresses ke
 
 ```
 drafting-tool/
-├── PROGRESS.md                      ← You are here (handoff file)
-├── SERVER-README.md                 ← Primary instructions & usage
-├── PLAN-server-backed.md            ← The approved full plan
-├── LESSONS_LEARNED.md               ← Captured insights from this session
-├── README.md                        ← High-level overview
+├── PROGRESS.md
+├── SERVER-README.md
+├── PLAN-server-backed.md
+├── LESSONS_LEARNED.md
+├── README.md
+├── run.sh
 ├── nginx-drafting-server.conf.example
-├── drafting_server/                 ← The actual application
-│   ├── main.py
+├── drafting_server/
+│   ├── main.py                 # + /favicon.ico|svg
 │   ├── data.py
-│   ├── llm.py
+│   ├── llm.py                  # gaps gen, suggest TL/Zephyr/ATP, analyze rank-only
 │   ├── models.py
-│   ├── routers/
-│   │   └── wizard.py
-│   ├── static/
-│   │   └── index.html
-│   ├── templates/
-│   │   ├── prompts/
-│   │   │   ├── generate_objectives.jinja
-│   │   │   └── generate_steps.jinja
-│   │   └── outputs/
-│   │       └── traceability.md.jinja
-│   ├── sessions/                    ← file persistence
-│   └── README.md
-└── (legacy + design files: showcase.html, design-tokens.css, etc.)
+│   ├── routers/wizard.py       # load_case, dual /cases, search_*, suggest_*, export
+│   ├── static/index.html       # wizard UI
+│   ├── static/favicon.svg
+│   ├── templates/prompts/
+│   │   ├── generate_objectives.jinja
+│   │   ├── generate_steps.jinja
+│   │   ├── generate_gaps.jinja
+│   │   ├── analyze_atp_coverage.jinja   # ranked only (no gaps)
+│   │   ├── suggest_atp.jinja
+│   │   ├── suggest_testlink.jinja
+│   │   └── suggest_zephyr.jinja
+│   ├── templates/outputs/traceability.md.jinja
+│   └── sessions/
+│       ├── _workspace_llm.json          # workspace LLM default (not a case)
+│       └── AWPTCM-Txxxx.json
+└── (legacy static + design system files)
 ```
 
 ---
 
 ## 4. What Is Currently Implemented (Working)
 
-- Data loading from the three databases (`data.py`): zephyr_master, candidates (with dict), decisions, slim_index, test_id_desc. Enhanced for review steps.
-- Zephyr Step 2: `load_case` now strictly omits any Zephyr case whose key is in the "current Cases list" (or is the primary key itself). `zrefs` contains *only* external related cases (filtered + on-demand full steps enrichment for those). Primary case's own Zephyr data is still included in traceability notes via server-side `build_traceability_note`.
-- LLM layer with:
-  - Jinja2 prompt templates (generate_objectives, generate_steps, suggest_atp)
-  - Multi-provider support via **local CLI subscription modes** (primary path):
-    - `grok_cli`: local `grok` CLI after `grok login --oauth` (SuperGrok/X Premium+). Uses `--prompt-file`, `--output-format plain`, `--no-memory --no-plan`.
-    - `claude_code`: local `claude` CLI (`claude -p --output-format json`).
-  - Full `check_*_cli()`, `_call_*_cli_headless()`, status endpoints, and integration in `synthesize_*`, `suggest_*`, `analyze_*`.
-  - Real end-to-end testing of Grok subscription path performed (CLI detection, direct calls, full synthesize).
-  - Legacy `api_key` still supported in backend/models for old sessions or direct use; **completely removed from current UI** (no radio, no credential field, no dropdown).
-  - Provider selection is now implicit in the chosen radio (no separate dropdown).
-  - Full prompt/response + provenance capture (auth_method recorded correctly).
-  - Improved parsing for real LLM (preamble stripping). No MOCK.
-  - suggest_relevant_atp for Step 3.
-- Backend with:
-  - Proper step gating/state machine (`routers/wizard.py`): confirm_step stores selections+confirmed flags+timestamps; synthesize enforces all 3 confirms server-side using authoritative session state
-  - File-based persistence (`sessions/<key>.json`): full WizardSession including step states, LLM config (provider/auth_method/creds), step4, provenance
-  - set_llm_config endpoint for login flows (api_key, claude_code, or grok_cli; rejects claude_code for non-Claude and grok_cli for non-Grok providers); new GET /claude_cli_status and GET /grok_cli_status endpoints
-  - load_case returns enriched data (testlink_candidates, zephyr_refs) + restores from disk
-  - /cases endpoint for dynamic list (neutral sort, no T33234 priority)
-  - /search_atp and /suggest_atp/{key} for Step 3 (LLM-assisted pre-selection)
-  - _build_atp_query and _get_atp_candidates helpers
-- Frontend (`static/index.html`):
-  - Restructured to design guidelines: .layout .sidebar (full top, 240px) + .main; .sidebar-logo, .sidebar-section-label, .sidebar-nav-item (with gray SVGs); no outer top header bar
-  - Dynamic case selector populated from real data (AWPTCM-Txxxx; neutral, no auto/demo pre-select)
-  - LLM section in Step 0: **only two radio options** for subscription CLIs — "Grok CLI (SuperGrok / X Premium+ subscription)" (default) and "Claude Code CLI (Team subscription)". No provider dropdown. No "API Key (developer)" option. Credential field removed. "Check ... CLI" buttons + contextual instructions panels. Model input remains. Provider/auth_method derived from selected radio in JS.
-  - Vertical steps nav with active states; dynamic .page-header updates per view
-  - Step content uses .card + .section/.section-heading/.section-description
-  - Buttons use .btn .btn-primary/.btn-secondary
-  - Compact tables (.table-container + .table styles...): real selectable TestLink (1), Zephyr cross-refs (2 — *only external cases*; current Cases list and the primary case itself are omitted), ATP (3) with search + Suggest
-  - Real data only (no pre-fills); review summary with richer previews (items + justifications)
-  - Badges for confirmed states
-  - Form elements use .form-*
-  - Light/dark via .light class + design tokens
-  - Human-readable synthesized output in Step 4
-  - Case selection, step navigation, confirms, synthesize, export
-- Output templating + direct FS persistence (`traceability.md.jinja` + export writes to refined-cases/<Group>/AWPTCM-Txxxx/); human-readable + editable in Step 4; validation implemented
-- Custom scrollbar for sidebar (thin with border effect)
-- nginx example + run instructions documented
-- Session persistence now includes LLM config + full provenance for audit/repeatability
-- Real-only flow (post MOCK removal): load any case → review real data in 1-3 (LLM suggest/analysis) → confirm gates → synthesize (real LLM or error) → human-readable/editable Step 4 → export (downloads + auto-persist to refined-cases/<Group>/)
+### Backend
+- Data load: zephyr_master, candidates, decisions, slim_index, test_id_desc, testlink.
+- **Step 2 zrefs**: relevance scoring over slim_index (keywords, hard anchors, omit current Cases list + primary); batch JSONL enrichment for top hits; returns `score` + `justification`.
+- **load_case NameError (`f` undefined)**: fixed and verified (e.g. T44210 + other keys).
+- LLM: CLI modes `grok_cli` / `claude_code`; Jinja prompts; provenance; no MOCK.
+- **generate_coverage_gaps** at synthesize (+ export if gaps empty).
+- **Workspace LLM**: `_workspace_llm.json` on Apply/Login; applied on load when case has no active config.
+- **GET /api/wizard/cases**: dual lists — `incomplete` (in_progress first, then not_started by folder) + `complete` (refined payload present); counts.
+- Search: `/search_testlink`, `/search_zephyr`, `/search_atp`.
+- Suggest: `/suggest_testlink/{key}`, `/suggest_zephyr/{key}`, `/suggest_atp/{key}`.
+- Export: downloads + write to `refined-cases/<Group>/AWPTCM-Txxxx/`; validation hooks.
+
+### Frontend
+- Step names: **1. TestLink**, **2. Zephyr**, **3. ATPyLib (scored)**, **4. Synthesize**.
+- **Dual case dropdowns**: Open/partial (partials at top) vs Complete; mutual exclusivity; refresh after export.
+- Search + Suggest toolbars on **all three** review steps; client merge preserves checkboxes.
+- Table CSS: explicit `cols-5` / `cols-6-zephyr` / `cols-6-atp` (fixes zero-width description → huge row height).
+- Fixed infinite recursion: `updateAuthMethodUI` ⇄ `updateLLMDefaults`.
+- No Step 3 gaps textarea; gaps only after synth (review summary note).
+- Step 4 human-readable + editor (objective + steps + expected); session debug collapsed.
+- Favicon served (`/favicon.ico`, `/favicon.svg`).
+
+### Repo / ops (this session)
+- Root + drafting-tool README cleaned.
+- Git LFS history migrate for Zephyr XML + jsonl + index (GitHub push unblocked after rewrite).
 
 ---
 
 ## 5. What Is Not Yet Implemented (Priorities)
 
-From the approved plan + implementation gaps:
-
 ### High Priority (Next Session Focus)
-**Critical (start here first thing next session)**:
-- **Bug: NameError: name 'f' is not defined in load_case (routers/wizard.py:241)** when building zrefs for certain cases (e.g. AWPTCM-T44210). Caused 500 Internal Server Error on POST /api/wizard/load_case/AWPTCM-T44210. Full traceback logged in session. Must be verified/fixed first.
+1. **Output generation hardening** — M  
+   - Edge cases: empty selections, thin ATP, re-export after edit.  
+   - Stricter pre-write validation vs real `refined-cases` exemplars.  
+   - Confirm first-step note + Gaps section quality after new gaps-at-synth flow.
 
-1. **Complete output generation** (llm + routers + export)
-   - Full correct `zephyr_payload.json` (incl. proper first traceability note step using selected items)
-   - Validation against expected schema
-   - Consistent use of output templates
+2. **Real CLI smoke on full UI path** — S (0.25–0.5 session)  
+   - Grok + Claude: Load → confirm 1–3 (search/suggest) → synthesize → export → open refined-cases.  
+   - Claude Team previously often only faked CLI; validate live.
 
-2. **Frontend polish + remaining enhancements**
-   - Dynamic case list from server
-   - Richer previews of selections
-   - Better post-synthesis editor
-   - Visual confirmed states + review summary panel (use badges etc.)
-   - Full use of design components (more .btn variants, badges, form polish, no remaining inline where possible)
+3. **Error handling + loading UX** — M  
+   - load_case ATP rank can be slow (LLM); clearer spinners/timeouts.  
+   - Surface synthesis/export errors in-page (not only alert/console).
 
 ### Medium Priority
-- Serve and enhance Process Reference page with full markdown + deep links (S-M)
-- Add server-side indexing for full zephyr_cases.jsonl + suites (M)
-- Create `requirements.txt` + simple setup / Docker (S)
-- Improve error handling, loading states, UX (M)
-- Full design component integration (e.g. more subsections, consistent forms)
+- Process Reference page: full markdown + deep links to wizard steps (S–M).
+- `requirements.txt` / pyproject + simple setup (S).
+- Server-side indexing for full jsonl/suites search quality (M).
+- Optional: refresh case lists after clear-session without full page reload (already partially covered).
 
 ### Lower / Future
-- Authentication / multi-user (L)
-- Advanced LLM features (L)
-- Full test suite + CI (M)
-- One-command setup (S-M)
+- Multi-user auth (L).
+- Advanced LLM (critique loop, few-shot from past refined cases) (L).
+- Automated tests + CI (M).
+- One-command nginx setup (S–M).
+
+**Suggested order for next session**:
+1. Smoke full real-CLI path on 1–2 open cases (verify gaps land in traceability.md).  
+2. Output hardening vs Port/IPv4 exemplars.  
+3. requirements.txt + error UX.  
+4. Process page enhancements.
 
 ---
 
 ## 6. How to Resume Work (For Future Grok Sessions)
 
-1. **Start here**: Read this `PROGRESS.md` first.
-2. Read `SERVER-README.md` for how to run and use the current tool.
-3. Read `PLAN-server-backed.md` if you need the full original design and trade-off reasoning.
-4. Run the server (recommended):
+1. Read this **PROGRESS.md** completely.  
+2. Read **SERVER-README.md** (run + workflow).  
+3. Skim **LESSONS_LEARNED.md** (esp. 2026-07-13).  
+4. Start server from repo root:
    ```bash
    ./drafting-tool/run.sh
+   # → http://localhost:8000/
    ```
-   Or with options:
-   ```bash
-   LLM_API_KEY=sk-... ./drafting-tool/run.sh
-   PORT=9000 ./drafting-tool/run.sh
-   ```
-5. Manual alternative (from project root):
-   ```bash
-   LLM_API_KEY=MOCK PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
-
-**Recommended first actions in a new session**:
-- Read this PROGRESS.md + SERVER-README.md fully.
-- Pick next high-priority (frontend polish: previews, editor, styles, ATP merge; validate real logins).
-- Test current flows with real setup: use `LLM_API_KEY=sk-...` or (preferred) logged-in `grok` / `claude` CLI; load case (real data, no auto/demo), review/confirm 1-3 (use Suggest with LLM), view/edit human-readable in Step 4.
-- Verify compact tables fit on one page, no side scroll.
-- Test Step 2 Zephyr table: it should contain *only* external cross-refs (no AWPTCM cases that have TestLink candidates, and no entry for the case itself).
-- LLM UI: only two radios (Grok CLI subscription default + Claude Code CLI). No dropdown. No API Key option. Use "Check Grok CLI" / "Check Claude CLI" + Apply. Model optional. Export now also saves server-side to refined-cases.
-- If touching auth: both paths shell out to local CLI after its own `grok login --oauth` or `claude /login`. Status endpoints available. Legacy api_key still works server-side for old sessions.
-- Verify export persists to correct refined-cases/<Group>/ (creates folders).
-- Update this PROGRESS.md at end (status, backlog, lessons).
-- Keep SERVER-README + LESSONS_LEARNED current.
-
----
-
-## 9. Technical Debt & Known Issues
-
-### Technical Debt
-- **Bug logged (high priority for next)**: NameError 'f' in load_case zrefs (discovered via 500 on AWPTCM-T44210). Fixed by restoring folder assignment, but must be first task next session to verify with real cases.
-- **Output generation**: Direct persistence to refined-cases added (drop-in); full edge validation and artifact fidelity can be hardened further.
-- **Hardcoded paths / module imports**: Still some assumptions; ensure BASE_DIR consistently (progress made).
-- **No full validation layer**: Outputs templated + validated on export; can be stricter pre-write.
-- **Frontend polish remaining**: Some inline styles linger in dynamic JS (status results); rich previews enhanced, editor improved, review summary added, inline reduced via classes. Continue design component adoption.
-- **LLM parsing improved but**: Regex+JSON fallback + preamble stripping for real LLM; could add more robust Pydantic/instructor for production.
-- **Missing full data loading**: Only lightweight; full zephyr_cases.jsonl + suites not streamed/indexed (search limited).
-- **No automated tests**: Zero for server, templates, API, UI flows.
-- **No requirements.txt / Docker**: Still assumed via --user.
-- **Audit trail**: Provenance now captured in persisted sessions + export; no separate logging yet.
-- **Demo-specific code**: Largely removed (MOCK fallbacks, T33234 pre-fills/auto, demo filters); remaining docstring/comments to clean.
-- **Headless subscription CLI paths (claude_code + grok_cli) should be validated against real logins**: Grok path exercised; full UI + real subscription smoke test recommended. Claude previously via fake.
-- **Grok CLI is agent/build-oriented**: It can prepend "thinking" / project-check text even with flags. Output usable but preamble stripping added.
-- **Headless mode has no deployment guard**: Intended for per-user local hosting; shared instances would pool logins (documented in SERVER-README).
-
-### Known Issues / Limitations (Current)
-- Server requires running from project root for paths/imports (improved with persistence but still).
-- UI elements (esp. dynamic tables from backend) may need class="table" etc. for full styling.
-- LLM config per-session works; real credentials/CLI required (no fallback).
-- No handling for edge "None" selections fully stress-tested.
-- /process page basic (enhanced rendering added; more interactive features pending).
-- Dependencies no requirements.txt/pyproject yet.
-- nginx prefix handling needed if not root.
-- Sidebar fixed positioning requires header height awareness (top:60px + main padding).
-- Tables compact but long titles can still wrap; no truncation yet.
-- Real CLI validation (Grok/Claude logins) recommended for full confidence.
-
----
-
-## 10. Prioritized Backlog with Rough Effort Estimates
-
-Estimates are in "sessions" (assuming a typical Grok coding session of focused work). S = Small, M = Medium, L = Large effort.
-
-### High Priority (Do These First)
-1. **Complete output generation** - M effort (progress this session)
-   - Export now writes drop-in to refined-cases/<Group>/ (traceability.md, zephyr_payload.json; folders auto-created via group matching).
-   - Validation against schema + server note construction done.
-   - Consistent templates used. (Persistence + real-only done; full polish/edge cases may remain.)
-
-2. **Frontend remaining polish + enhancements** - M effort (1-2 sessions; in progress)
-   - Richer previews of selections (review summary enhanced).
-   - Better post-synthesis editor (classes improved).
-   - Visual confirmed states + review summary panel (badges + richer).
-   - Full use of design components; remove remaining inline styles (multiple removed, .hidden + utils added).
-   - Improve ATP search results merging with LLM suggestions (pre-compute on load; further client merge possible).
-
-3. **Generalize demo pre-fills and flows** - S effort (largely complete)
-   - MOCK/demo fallbacks + T33234 hardcodes/pre-fills/auto-load removed from code.
-   - Real data only; neutral flows.
-   - (Clean remaining comments/docs if needed.)
-
-### Medium Priority
-- Serve and enhance Process Reference page with full markdown + deep links to wizard steps (S-M).
-- Add server-side indexing for full zephyr_cases.jsonl and test suites (M).
-- Create `requirements.txt` + simple setup script / Docker (S).
-- Improve error handling, loading states, and UX polish (M).
-- Make human-readable Step 4 output editable before export.
-- **Validate Claude Code headless auth against a real Team-subscription login** (S effort, 0.25 session) - so far only exercised via a scripted fake CLI. Install/log in a real `claude` CLI on a test machine, run Step 3 suggest + Step 4 synthesize, confirm provenance and error messages (e.g. session expiry) look right in practice.
-- **Validate Grok CLI subscription path end-to-end against a real SuperGrok/X Premium+ login** (S effort, 0.25 session) - backend + direct CLI calls fully tested this session; full UI flow (radio + check + apply + synthesize) should be exercised with a real logged-in `grok` CLI.
-- (Completed this session) UI for Grok CLI + removal of provider dropdown + complete removal of visible API Key option.
-
-### Lower / Future
-- Authentication / multi-user (L)
-- Advanced LLM features: critique loop, few-shot from past cases, versioned prompts (L)
-- Full test suite + CI (M)
-- One-command local setup with nginx (S-M)
-
-**Suggested Order for Next Session**:
-1. Frontend remaining polish (previews, editor, design components, remove inlines, ATP merge) — current focus.
-2. Polish human-readable Step 4 + make output editable (if not covered)
-3. Requirements + setup improvements, error handling, full tests.
-4. Validate real CLI logins end-to-end (Grok + Claude on machines with logins).
-5. Serve/enhance Process Reference page (interactive, deep links).
-6. (Lower) advanced LLM, auth, etc.
-
----
-
-## 11. Cross-References to Higher-Level Project Docs
-
-This drafting tool work is part of the larger Test-cases project. All drafting-tool-specific state, backlog, lessons, and handoff notes are consolidated under the `drafting-tool/` directory.
-
-**Higher-level references**:
-- Root `README.md` — Project framing (synced with latest UI simplification, Grok CLI completion, Zephyr Step 2 omission).
-- Root `SESSION_STATE.md` — Overall history (detailed entry appended for this session).
-- `OBJECTIVE_DRAFTING_PROCESS.md` — Source of truth for the repeatable workflow (tool implements it; process itself unchanged).
-- External `AGENTS.md` (referenced from root README) — Consult for local environment details, CLI installation, and `grok login` / `claude /login` commands.
-
-**How this component ties in**:
-- The server tool is the implementation vehicle for synthesis (and the full repeatable workflow) of `OBJECTIVE_DRAFTING_PROCESS.md`.
-- It consumes the same data artifacts.
-- Outputs feed into `refined-cases/`.
-
-**Discovery recommendation for future sessions**:
-- Always start by reading `drafting-tool/PROGRESS.md` + `SERVER-README.md` + `LESSONS_LEARNED.md`.
-- Then root `SESSION_STATE.md` + `README.md`.
-- Re-read `OBJECTIVE_DRAFTING_PROCESS.md` for process rules.
-- Inspect current UI (only two subscription CLI radios, no dropdown/API key) + `llm.py` + `routers/wizard.py` (real-only, no MOCK).
-- Run with real setup (LLM_API_KEY or grok/claude CLI login), verify Step 2 Zephyr omits current cases, exercise the radios + Check CLI buttons + export (persists to refined-cases).
-- Inspect `static/index.html` + `llm.py` + `routers/wizard.py` + `suggest_atp.jinja` for current flows (real data tables for 1-3, LLM suggest/analysis in 3, compact UI, human-readable/editable Step 4, review summary, reduced inlines).
-- Verify tables are compact (fit one page, no side scroll); real flows only (no demo pre-fills).
-
----
-
-## 12. Session Handoff Checklist (Expanded)
-
-When starting a new session:
-- [ ] Read `drafting-tool/PROGRESS.md` (this file) completely.
-- [ ] Read `drafting-tool/SERVER-README.md`.
-- [ ] Skim latest in root `SESSION_STATE.md`.
-- [ ] Re-read root `README.md`, `OBJECTIVE_DRAFTING_PROCESS.md`.
-- [ ] Check `drafting-tool/drafting_server/` (ls, run server with real LLM_API_KEY or CLI login).
-- [ ] Test current real flow: load case (neutral data) → review/confirm 1-3 (LLM suggest) → gates → synthesize (real) → edit Step 4 → export (check downloads + auto-persist to refined-cases/<Group>/AWPTCM-Txxxx/).
-- [ ] Specifically load new cases (e.g. AWPTCM-T44210) to ensure no NameError in zrefs folder population (bug was fixed but verify first).
-- [ ] Verify Step 2 Zephyr shows only external cases (no members of the current Cases list, and no primary case entry).
-- [ ] Test LLM UI: only Grok CLI (default) + Claude Code CLI radios; Check buttons; no dropdown; no API Key visible. Export persists artifacts server-side.
-- [ ] Test flows: gating (confirms block synth), persistence (restart survives), LLM subscription CLI modes (Grok + Claude; real only), provenance, dynamic case list, compact UI, review summary.
-- [ ] Decide next from backlog (frontend polish).
-- [ ] At end: Update `PROGRESS.md`, `SERVER-README.md`, `LESSONS_LEARNED.md`. Append to root `SESSION_STATE.md` if impact.
+5. Apply LLM once (Grok or Claude CLI) — preference persists in `_workspace_llm.json`.  
+6. Use **Open / partial** for unfinished work; **Complete** for refined payloads.  
+7. Do not reintroduce Step 3 gaps editing or MOCK paths.
 
 ---
 
 ## 7. Important Context to Remember
 
-- The **main goal** is not just to make a tool that works — it is to enforce a **repeatable process** and produce **repeatable outputs** using LLM as the synthesis engine, with strong user review gates.
-- The original single-file version is now considered legacy/reference. New development should happen in `drafting_server/`.
-- All documentation the user cares about should live in or be referenced from `drafting-tool/`.
+- Main goals: **repeatable process** + **repeatable outputs** with user review gates and templated LLM.  
+- Legacy single-file tool is reference only.  
+- Gaps belong in Traceability artefact (LLM-authored at completion), not as a mid-wizard free-text gate.
 
 ---
 
-## 8. Session Handoff Checklist (for the AI)
+## 8. Technical Debt & Known Issues
 
-When starting a new session on this project, the AI should:
+### Technical Debt
+- LLM parsing still regex/JSON fallback — could use stricter structured output later.
+- Full zephyr_cases.jsonl not fully indexed for search (keyword scan + slim_index scoring only).
+- No automated tests / requirements.txt.
+- zrefs scoring ~1.5s over 45k slim_index — acceptable but not optimized.
+- load_case still runs ATP LLM ranking (latency); gaps no longer on load (good).
 
-- [ ] Read `drafting-tool/PROGRESS.md` + `SERVER-README.md` + `LESSONS_LEARNED.md`
-- [ ] Check `drafting-tool/drafting_server/` code + run server (real LLM_API_KEY or logged-in grok/claude CLI; no MOCK)
-- [ ] Test flows: gating/persistence, LLM subscription modes (Grok CLI radio default + Claude Code CLI; Check status; no dropdown or API Key visible; real calls), Zephyr Step 2 omission behavior, sidebar nav, design UI (tokens, icons, layout, toggle, reduced inlines), review summary, export (persists to refined-cases)
-- [ ] First: load several new cases (incl. AWPTCM-T44210) to confirm load_case succeeds (zrefs fix)
-- [ ] Decide on next (frontend polish per updated backlog)
-- [ ] At end: update PROGRESS + SERVER-README + LESSONS; append root SESSION_STATE if needed
+### Known Issues / Limitations
+- Shared multi-tenant server pooling one CLI login is unsupported (per-user local host intended).
+- Grok CLI may still emit preamble; stripping helps but is imperfect.
+- GitHub: large sources must stay LFS in **all** history commits (use `git lfs migrate` if reintroducing big files).
+- Process page remains basic.
+- Some older session JSON may still hold stale Step 3 gap text; synth/export overwrites for Traceability.
 
 ---
 
-**This file is the primary handoff document.**  
-Keep it updated after every significant session. Future Grok instances will thank you.
+## 9. Prioritized Backlog with Effort Estimates
+
+| Priority | Item | Effort | Notes |
+|----------|------|--------|-------|
+| High | Output generation hardening | M | Post gaps-at-synth validation |
+| High | Real Grok+Claude E2E UI smoke | S | Provenance + refined-cases check |
+| High | Error/loading UX | M | Especially load_case + synthesize |
+| Medium | Process page + deep links | S–M | |
+| Medium | requirements.txt / setup | S | |
+| Medium | Full data indexing | M | |
+| Low | Tests/CI, multi-user, advanced LLM | M–L | |
+
+**Completed this session (removed from active high backlog)**:
+- load_case NameError verify/fix  
+- Step 2 zrefs relevance  
+- Frontend polish batch (tables, editor, dual cases, search/suggest 1–3)  
+- Workspace LLM persistence  
+- Gaps moved to synth/export  
+- Stack overflow + table layout bugs  
+- Favicon  
+- README cleanup  
+
+---
+
+## 10. Cross-References
+
+- Root `README.md` — project framing; drafting tool summary  
+- Root `SESSION_STATE.md` — broader history (2026-07-13 entry)  
+- `OBJECTIVE_DRAFTING_PROCESS.md` — process source of truth (tool implements it; gaps still part of Traceability, authorship path is tool-side)  
+- External `AGENTS.md` — machine/CLI environment if present  
+
+---
+
+## 11. Session Handoff Checklist
+
+When starting a new session:
+- [ ] Read `drafting-tool/PROGRESS.md` (this file)
+- [ ] Read `drafting-tool/SERVER-README.md`
+- [ ] Skim `drafting-tool/LESSONS_LEARNED.md` (2026-07-13)
+- [ ] Run `./drafting-tool/run.sh`; hard-refresh browser
+- [ ] Confirm dual case dropdowns + partials at top of Open
+- [ ] Apply LLM once; switch cases — status must stick
+- [ ] Load open case → Search/Suggest steps 1–3 → confirms → synthesize → check Gaps in traceability → export
+- [ ] Step 3 has **no** gaps textarea
+- [ ] At end: update PROGRESS + LESSONS + SERVER-README; append root SESSION_STATE if impactful
+
+---
+
+**This file is the primary handoff document.** Keep it updated after every significant session.

@@ -353,6 +353,133 @@ def _score_zephyr_candidate(primary: dict, z: dict, extra_tokens: set) -> Tuple[
     return score, reason
 
 
+def _build_testlink_description(item: dict, title: str = "") -> str:
+    """Full TestLink step body for Step 1 UI — no mid-sentence character truncation.
+
+    Includes all steps with complete action/expected text. Soft-caps only on
+    pathological step counts (first 30) so payloads stay reasonable.
+    """
+    steps = (item or {}).get("steps") or []
+    desc_parts: List[str] = []
+    for s in steps[:30]:
+        action = (s.get("action") or "").strip()
+        expected = (s.get("expected") or "").strip()
+        if action or expected:
+            if action and expected:
+                desc_parts.append(f"Step: {action}\nExpected: {expected}")
+            elif action:
+                desc_parts.append(f"Step: {action}")
+            else:
+                desc_parts.append(f"Expected: {expected}")
+    if desc_parts:
+        return "\n\n".join(desc_parts)
+    # Fallbacks only when no structured steps exist
+    snip = ((item or {}).get("snippet") or "").strip()
+    if snip:
+        return snip
+    return (title or (item or {}).get("title") or "").strip()
+
+
+def _build_zephyr_case_description(
+    slim_meta: dict,
+    full: dict,
+    title_fallback: str = "",
+) -> str:
+    """Full Zephyr case body for Step 2 UI — no mid-field character truncation.
+
+    Soft-caps step count only (first 20) for pathological cases; each field is complete.
+    """
+    desc_parts: List[str] = []
+    t = (
+        (slim_meta or {}).get("title")
+        or (full or {}).get("title")
+        or title_fallback
+        or ""
+    ).strip()
+    full = full or {}
+    slim_meta = slim_meta or {}
+
+    obj = str(full.get("objective") or "").strip()
+    if obj:
+        desc_parts.append("Objective: " + obj)
+    pre = str(full.get("precondition") or "").strip()
+    if pre:
+        desc_parts.append("Precondition: " + pre)
+
+    meta = []
+    if slim_meta.get("status"):
+        meta.append(f"Status: {slim_meta['status']}")
+    if "has_objective" in slim_meta:
+        meta.append(f"Has objective: {slim_meta['has_objective']}")
+    if "num_steps" in slim_meta:
+        meta.append(f"Num steps: {slim_meta['num_steps']}")
+    if slim_meta.get("labels"):
+        meta.append(f"Labels: {', '.join(slim_meta['labels'])}")
+    if meta:
+        desc_parts.append(" | ".join(meta))
+
+    steps_source = full.get("steps", []) or []
+    if steps_source:
+        steps_list = []
+        for i, s in enumerate(steps_source[:20], 1):
+            d = (s.get("description") or "").strip()
+            if d:
+                steps_list.append(f"{i}. {d}")
+        if steps_list:
+            desc_parts.append("Steps:\n" + "\n".join(steps_list))
+
+    if not desc_parts:
+        desc_parts.append(t or "Related Zephyr case")
+    return "\n\n".join(desc_parts)
+
+
+def _enrich_zephyr_rows(
+    rows: List[Dict[str, Any]],
+    data: dict,
+) -> List[Dict[str, Any]]:
+    """Fill description from zephyr_master / batch jsonl for UI rows that only have title."""
+    zm = data.get("zephyr_master", {}) or {}
+    slim_by_key = {
+        z.get("key"): z for z in (data.get("slim_index") or []) if z.get("key")
+    }
+    need = []
+    for r in rows:
+        k = r.get("key") or r.get("id")
+        if not k:
+            continue
+        # Re-enrich when description is missing or is just the title
+        desc = (r.get("description") or "").strip()
+        title = (r.get("title") or "").strip()
+        if not desc or desc == title:
+            if k not in zm:
+                need.append(k)
+    full_map = _get_full_zephyr_cases_batch(need) if need else {}
+    out = []
+    for r in rows:
+        k = r.get("key") or r.get("id")
+        if not k:
+            out.append(r)
+            continue
+        slim = slim_by_key.get(k) or {
+            "key": k,
+            "title": r.get("title"),
+            "folder": r.get("folder"),
+            "status": r.get("status"),
+            "labels": r.get("labels"),
+            "has_objective": r.get("has_objective"),
+            "num_steps": r.get("num_steps"),
+        }
+        full = zm.get(k) or full_map.get(k) or {}
+        desc = _build_zephyr_case_description(slim, full, title_fallback=r.get("title") or "")
+        enriched = {**r, "key": k, "description": desc}
+        if not enriched.get("title"):
+            enriched["title"] = slim.get("title") or full.get("title") or k
+        if not enriched.get("folder"):
+            enriched["folder"] = slim.get("folder") or full.get("folder") or ""
+        out.append(enriched)
+    return out
+
+
 def _select_related_zephyr_refs(
     key: str,
     primary_case: dict,
@@ -363,7 +490,7 @@ def _select_related_zephyr_refs(
     """Pick external Zephyr cross-refs ranked by relevance (not first-N of slim_index).
 
     Omits the loaded key and every key in the current Cases list (candidates with data).
-    Enriches only the top-ranked hits (description / steps) for UI review.
+    Enriches only the top-ranked hits (full description / steps) for UI review.
     """
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
@@ -413,44 +540,15 @@ def _select_related_zephyr_refs(
         rel_key = z["key"]
         f = z.get("folder", "") or ""
         t = z.get("title", "") or ""
-        desc_parts: List[str] = []
         full = zm.get(rel_key) or full_map.get(rel_key) or {}
-        if full.get("objective"):
-            desc_parts.append("Objective: " + str(full["objective"])[:400])
-        if full.get("precondition"):
-            desc_parts.append("Precondition: " + str(full["precondition"])[:300])
-
-        meta = []
-        if z.get("status"):
-            meta.append(f"Status: {z['status']}")
-        if "has_objective" in z:
-            meta.append(f"Has objective: {z['has_objective']}")
-        if "num_steps" in z:
-            meta.append(f"Num steps: {z['num_steps']}")
-        if z.get("labels"):
-            meta.append(f"Labels: {', '.join(z['labels'])}")
-        if meta:
-            desc_parts.append(" | ".join(meta))
-
-        steps_source = full.get("steps", []) or []
-        if steps_source:
-            steps_list = []
-            for i, s in enumerate(steps_source[:6], 1):
-                d = (s.get("description") or "").strip()
-                if d:
-                    steps_list.append(f"{i}. {d[:200]}")
-            if steps_list:
-                desc_parts.append("Steps:\n" + "\n".join(steps_list))
-
-        if not desc_parts:
-            desc_parts.append(t or "Related Zephyr case")
+        description = _build_zephyr_case_description(z, full, title_fallback=t)
 
         zrefs.append({
             "key": rel_key,
             "title": t,
             "folder": f,
             "score": round(sc, 2),
-            "description": "\n\n".join(desc_parts),
+            "description": description,
             "justification": reason or "Related Zephyr case",
         })
     return zrefs
@@ -491,20 +589,14 @@ async def load_case(key: str, data=Depends(get_data)):
     tl_cands = []
     for cand in (cdata or {}).get("candidates", [])[:8]:
         aid = cand.get("id")
-        full = testlink.get(aid, {})
-        steps = full.get("steps", [])
-        if steps:
-            desc_parts = []
-            for s in steps:
-                action = s.get("action", "").strip()
-                expected = s.get("expected", "").strip()
-                if action or expected:
-                    desc_parts.append(f"Step: {action}\nExpected: {expected}")
-            rich_desc = "\n\n".join(desc_parts) if desc_parts else cand.get("snippet", "")
-        else:
-            rich_desc = cand.get("snippet", "") or cand.get("title", "")
+        full = testlink.get(aid, {}) or {}
+        title = cand.get("title") or full.get("title") or aid
+        rich_desc = _build_testlink_description(full, title=title)
+        if not rich_desc:
+            rich_desc = cand.get("snippet", "") or title or ""
         tl_cands.append({
             **cand,
+            "title": title,
             "description": rich_desc,
         })
 
@@ -532,17 +624,19 @@ async def load_case(key: str, data=Depends(get_data)):
     test_id_desc = data.get("test_id_desc", {}) or {}
     for r in ranked:
         rid = r.get("id")
-        # better enrichment: lookup full desc from the main data
-        info = test_id_desc.get(rid, {})
-        title = info.get("description") or rid
+        # Full description from source data; short title for Title col; reason as justification
+        info = test_id_desc.get(rid, {}) or {}
+        full_desc = (info.get("description") or "").strip()
+        short_title, full_desc = _split_atp_title_description(full_desc, rid or "")
         suite = info.get("suite_name", "")
+        reason = r.get("reason", "Relevant ATP coverage")
         atp_candidates.append({
             "id": rid,
-            "title": title,
+            "title": short_title,
             "score": r.get("score", 0.5),
             "suite": suite,
-            "justification": r.get("reason", "Relevant ATP coverage"),
-            "description": r.get("reason", "Relevant ATP coverage"),
+            "justification": reason,
+            "description": full_desc or reason,
             "source": "llm",
         })
 
@@ -552,13 +646,17 @@ async def load_case(key: str, data=Depends(get_data)):
         cid = c.get("id")
         if not cid or cid in seen_ids:
             continue
+        full_desc = (c.get("description") or "").strip()
+        short_title = (c.get("title") or "").strip()
+        if not short_title or short_title == full_desc:
+            short_title, full_desc = _split_atp_title_description(full_desc or c.get("title") or "", cid)
         atp_candidates.append({
             "id": cid,
-            "title": c.get("description") or c.get("title") or cid,
+            "title": short_title or cid,
             "score": c.get("score", 0.55),
             "suite": c.get("suite", ""),
             "justification": "Candidate from keyword search",
-            "description": c.get("description") or c.get("title") or "Candidate from keyword search",
+            "description": full_desc or short_title or "Candidate from keyword search",
             "source": "keyword",
         })
         seen_ids.add(cid)
@@ -758,15 +856,20 @@ async def get_cases(data=Depends(get_data)):
 
 @router.get("/search_atp")
 async def search_atp(q: str = "", data=Depends(get_data)):
-    """ATPyLib keyword search for Step 3 (merged client-side with preloaded candidates)."""
+    """ATPyLib keyword search for Step 3 (merged client-side with preloaded candidates).
+
+    Returns short title + full description (no mid-sentence truncation).
+    """
     cands = _get_atp_candidates(q, data, limit=20)
     return {
         "results": [
             {
                 "id": c.get("id"),
-                "title": (c.get("description") or c.get("title") or "")[:120],
+                "title": c.get("title") or c.get("id"),
+                "description": c.get("description") or "",
                 "suite": c.get("suite", ""),
                 "score": c.get("score", 0.6),
+                "source": "search",
             }
             for c in cands
         ]
@@ -774,7 +877,11 @@ async def search_atp(q: str = "", data=Depends(get_data)):
 
 
 def _search_testlink(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
-    """Keyword search over full TestLink extract (id + title + steps text)."""
+    """Keyword search over full TestLink extract (id + title + steps text).
+
+    Ranking may scan a step prefix for speed; description uses full step text
+    (no [:500] mid-sentence truncation).
+    """
     tl = data.get("testlink", {}) or {}
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
@@ -786,27 +893,21 @@ def _search_testlink(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]
     for tid, item in tl.items():
         title = item.get("title") or ""
         steps = item.get("steps") or []
+        # Ranking blob: enough steps to match keywords without loading huge strings always
         step_blob = " ".join(
-            f"{s.get('action','')} {s.get('expected','')}" for s in steps[:12]
+            f"{s.get('action','')} {s.get('expected','')}" for s in steps[:20]
         )
         text = f"{tid} {title} {step_blob}".lower()
         hit = sum(1 for w in rank_words if w in text)
         if hit <= 0:
             continue
-        # Build short description from steps
-        desc_parts = []
-        for s in steps[:4]:
-            a = (s.get("action") or "").strip()
-            e = (s.get("expected") or "").strip()
-            if a or e:
-                desc_parts.append(f"Step: {a}\nExpected: {e}" if (a or e) else "")
-        rich = "\n\n".join(p for p in desc_parts if p) or title
+        rich = _build_testlink_description(item, title=title)
         scored.append((hit, {
             "id": tid,
             "title": title,
             "score": min(0.95, 0.4 + 0.1 * hit),
-            "description": rich[:500],
-            "snippet": (item.get("snippet") or title or "")[:200],
+            "description": rich,
+            "snippet": title or "",
             "source": "search",
             "justification": f"Matched search ({hit} token hits)",
         }))
@@ -820,7 +921,10 @@ def _search_zephyr_external(
     case_key: str = "",
     limit: int = 20,
 ) -> List[Dict[str, Any]]:
-    """Keyword search over slim_index, omitting current Cases list + primary key."""
+    """Keyword search over slim_index, omitting current Cases list + primary key.
+
+    Returns enriched full descriptions (objective/precondition/steps) for UI.
+    """
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
         if c.get("candidates")
@@ -850,9 +954,13 @@ def _search_zephyr_external(
             "title": title,
             "folder": folder,
             "score": min(0.95, 0.4 + 0.12 * hit),
-            "description": title,
+            "description": title,  # replaced by full enrich below
             "justification": f"Matched search ({hit} token hits)",
             "source": "search",
+            "status": z.get("status"),
+            "has_objective": z.get("has_objective"),
+            "num_steps": z.get("num_steps"),
+            "labels": z.get("labels"),
         }))
     scored.sort(key=lambda x: (-x[0], x[1].get("key") or ""))
     # diversify titles slightly
@@ -866,7 +974,7 @@ def _search_zephyr_external(
         out.append(item)
         if len(out) >= limit:
             break
-    return out
+    return _enrich_zephyr_rows(out, data)
 
 
 @router.get("/search_testlink")
@@ -899,8 +1007,39 @@ def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
     return " ".join(toks[:24]) if toks else raw
 
 
+def _split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple[str, str]:
+    """Split test_id_description text into short title + full body (no mid-sentence truncation).
+
+    Source format is typically:
+      Short title line
+
+      [Log-derived analysis] Longer paragraph...
+    Title = first non-empty line (before analysis marker). Description = full original text.
+    """
+    full = (full_desc or "").strip()
+    if not full:
+        return (fallback_id or "", "")
+    # Prefer text before the analysis marker as title when present
+    for marker in ("\n\n[", "\n["):
+        idx = full.find(marker)
+        if idx > 0:
+            title = full[:idx].strip().split("\n")[0].strip()
+            if title:
+                return (title, full)
+    # Otherwise first non-empty line is the short title
+    for line in full.splitlines():
+        line = line.strip()
+        if line:
+            return (line, full)
+    return (fallback_id or full[:80], full)
+
+
 def _get_atp_candidates(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
-    """Retrieve candidate ATP tests using keyword search ranked by token hits."""
+    """Retrieve candidate ATP tests using keyword search ranked by token hits.
+
+    Returns full descriptions (no [:200] / [:120] truncation) so Step 3 UI can
+    show complete analysis text; title is the short first-line name only.
+    """
     descs = data.get("test_id_desc", {}) or {}
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9.+_-]{1,}", qlow) if len(w) > 2]
@@ -919,10 +1058,11 @@ def _get_atp_candidates(q: str, data: dict, limit: int = 20) -> List[Dict[str, A
         hit = sum(1 for w in rank_words if w in text)
         if hit <= 0 and words:
             continue
+        short_title, full_desc = _split_atp_title_description(desc, tid)
         scored.append((hit, {
             "id": tid,
-            "description": desc[:200],
-            "title": desc[:120],
+            "description": full_desc,
+            "title": short_title,
             "suite": suite,
             "score": min(0.95, 0.45 + 0.1 * hit),
         }))
@@ -977,11 +1117,32 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
         llm_config=llm_cfg
     )
 
+    # Enrich with full source descriptions (not just LLM reason) for Step 3 UI
+    test_id_desc = data.get("test_id_desc", {}) or {}
+    by_id = {c.get("id"): c for c in candidates if c.get("id")}
+    enriched = []
+    for s in suggestions:
+        sid = s.get("id")
+        base = by_id.get(sid, {})
+        info = test_id_desc.get(sid, {}) or {}
+        full_desc = (base.get("description") or info.get("description") or "").strip()
+        short_title, full_desc = _split_atp_title_description(
+            full_desc or base.get("title") or "", sid or ""
+        )
+        enriched.append({
+            **s,
+            "title": short_title or sid,
+            "description": full_desc or s.get("reason") or "",
+            "suite": base.get("suite") or info.get("suite_name") or "",
+            "score": base.get("score", 0.85),
+            "justification": s.get("reason") or "LLM suggestion",
+        })
+
     # Return in a form easy for frontend to apply (pre-check)
     return {
         "query_used": q,
         "num_candidates_considered": len(candidates),
-        "suggestions": suggestions  # list of {id, reason}
+        "suggestions": enriched,  # list of {id, reason, title, description, suite, score}
     }
 
 
@@ -1006,17 +1167,23 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
         str((sess.primary or {}).get("m") or ""),
     ]))
     candidates = _search_testlink(q, data, limit=30)
-    # Also include load-time candidates for this case if present
+    # Also include load-time candidates for this case if present (full TL descriptions)
+    testlink = data.get("testlink", {}) or {}
     cdata = data.get("candidates_dict", {}).get(key) or {}
     seen = {c.get("id") for c in candidates}
     for cand in (cdata.get("candidates") or [])[:12]:
         cid = cand.get("id")
         if cid and cid not in seen:
+            full = testlink.get(cid, {}) or {}
+            title = cand.get("title") or full.get("title") or cid
             candidates.append({
                 "id": cid,
-                "title": cand.get("title") or cid,
-                "description": cand.get("snippet") or cand.get("title") or "",
-                "snippet": cand.get("snippet") or "",
+                "title": title,
+                "description": _build_testlink_description(full, title=title)
+                or cand.get("snippet")
+                or title
+                or "",
+                "snippet": cand.get("snippet") or title or "",
                 "score": cand.get("score") or 0.5,
             })
             seen.add(cid)
@@ -1026,16 +1193,27 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
         llm_config=_session_llm_cfg(sess),
         case_title=case_title,
     )
-    # Enrich suggestions with candidate metadata for the UI merge
+    # Enrich suggestions with full source descriptions for the UI merge
     by_id = {c.get("id"): c for c in candidates if c.get("id")}
     enriched = []
     for s in suggestions:
-        base = by_id.get(s["id"], {})
+        sid = s.get("id")
+        base = by_id.get(sid, {})
+        full = testlink.get(sid, {}) or {}
+        title = base.get("title") or full.get("title") or sid
+        full_desc = (
+            base.get("description")
+            or _build_testlink_description(full, title=title)
+            or base.get("snippet")
+            or s.get("reason")
+            or ""
+        )
         enriched.append({
             **s,
-            "title": base.get("title") or s["id"],
-            "description": base.get("description") or base.get("snippet") or s.get("reason") or "",
+            "title": title,
+            "description": full_desc,
             "score": base.get("score", 0.85),
+            "justification": s.get("reason") or "LLM suggestion",
         })
     return {
         "query_used": q,
@@ -1068,18 +1246,29 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
         case_title=case_title,
     )
     by_id = {c.get("id") or c.get("key"): c for c in candidates}
-    enriched = []
+    # Rebuild rows then re-enrich so LLM-only hits still get full case bodies
+    draft = []
     for s in suggestions:
-        base = by_id.get(s["id"], {})
-        enriched.append({
+        sid = s.get("id")
+        base = by_id.get(sid, {})
+        draft.append({
             **s,
-            "key": s["id"],
-            "title": base.get("title") or s["id"],
+            "key": sid,
+            "id": sid,
+            "title": base.get("title") or sid,
             "folder": base.get("folder") or "",
-            "description": base.get("description") or base.get("title") or s.get("reason") or "",
+            "description": base.get("description") or base.get("title") or "",
             "justification": s.get("reason") or "LLM suggestion",
             "score": base.get("score", 0.85),
+            "source": "llm",
         })
+    enriched = _enrich_zephyr_rows(draft, data)
+    # Preserve LLM justification after enrich
+    just_by = {s.get("id"): s.get("reason") for s in suggestions}
+    for row in enriched:
+        k = row.get("key") or row.get("id")
+        if just_by.get(k):
+            row["justification"] = just_by[k]
     return {
         "query_used": q,
         "num_candidates_considered": len(candidates),

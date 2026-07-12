@@ -40,25 +40,19 @@ This version replaces the original single-file static `index.html` approach.
 
 **Frontend**: Static web UI (vanilla JS + HTML, served by the backend)
 - Restructured per design guidelines (sidebar+main layout from showcase, full tokens, components).
-- Sidebar (full to top, 240px): case selector, LLM status+configure, vertical steps nav with small gray SVG icons (no emojis), custom thin scrollbar with border effect.
-- Main: .page-header (dynamic title/desc per view), LLM config card (toggled; supports key/account with in-page instructions + explicit "Open tab now"), step content using .card + .section/.section-heading/.section-description.
-- Buttons use .btn/.btn-primary/.btn-secondary etc.; tables .table-container/.table; forms .form-*; badges for status.
-- Theme toggle (light/dark via .light class) integrated in sidebar.
-- Multi-step with gates; "Synthesize with LLM" only after confirms; live preview + export.
-- Process Reference page/tab.
-- Title/logo incorporated into sidebar (no persistent top header bar per template).
+- Sidebar (full to top, 240px): LLM status, vertical steps nav (gray SVGs), theme toggle, custom thin scrollbar.
+- Step 0 dual case dropdowns: **Open / partial** (in-progress first) vs **Complete** (has `refined-cases/.../zephyr_payload.json`).
+- Steps: **1. TestLink**, **2. Zephyr**, **3. ATPyLib (scored)**, **4. Synthesize** — each of 1–3 has Search + Suggest with LLM toolbars.
+- Tables use explicit column classes (`cols-5`, `cols-6-zephyr`, `cols-6-atp`) for compact layout.
+- Multi-step with gates; synthesize only after confirms; human-readable Step 4 + editor; export.
+- Process Reference at `/process` (basic). Favicon at `/favicon.ico` / `/favicon.svg`.
 
 **LLM Layer** (core of repeatability):
-- Prompt templates live in `drafting_server/templates/prompts/` (`generate_objectives.jinja`, `generate_steps.jinja`).
-- Templates inject: case data + user selections from the three databases + excerpts from `OBJECTIVE_DRAFTING_PROCESS.md` (principles, rules for artefacts vs. procedures, first-step notes requirement, etc.).
-- LLM response is parsed + normalized using output templates (`drafting_server/templates/outputs/`) so the final `objective` (`<ul><li>...</li></ul>`) and `testScript` always follow the exact documented shape.
-- Supports multiple providers via **local CLI subscription modes** (now the primary/only visible paths in the UI):
-  - Grok via the local `grok` CLI after `grok login --oauth` (SuperGrok / X Premium+ subscription) using `auth_method: "grok_cli"`.
-  - Claude via the local `claude` CLI after its own login (Team subscription) using `auth_method: "claude_code"`.
-- Legacy `api_key` mode still supported server-side for old sessions or power users, but **completely removed from the current UI** (no provider dropdown, no "API Key" radio, no credential field). The UI now consists solely of the two subscription CLI radio choices.
-- Provider is now derived implicitly from the chosen radio (no separate selector).
-- Full prompt + response + provider/model/auth_method details captured as `provenance`.
-- Login flows handled in frontend with in-page radios + "Check ... CLI" status buttons + contextual instructions panels. No tab-opening or token-paste flows remain.
+- Prompt templates in `drafting_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
+- **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable Step 3 field.
+- CLI subscription modes only in UI: `grok_cli` (default) and `claude_code`. Legacy `api_key` server-side only.
+- **Workspace LLM default**: Apply/Login writes `drafting_server/sessions/_workspace_llm.json`; load_case applies it to cases without an active config so switching cases does not reset login.
+- Full provenance (prompts/responses/provider/auth) captured per session.
 
 **Data**:
 - The three databases:
@@ -73,10 +67,10 @@ This version replaces the original single-file static `index.html` approach.
 - Example nginx config provided.
 
 **Repeatability Guarantees**:
-- Process: Backend state machine enforces explicit user confirmation of TestLink/Zephyr/ATPyLib reviews (selections + flags persisted) before synthesis allowed. Gates are server-side.
-- LLM: Multi-provider (Grok/Claude) with templated prompts + structured parsing + full provenance (prompts/responses/provider/auth) captured in session.
-- Outputs: Fixed Jinja + post-processing for consistent shape; persistence of LLM config + provenance supports audit across restarts.
-- UI: In-page LLM login flow (API key or Claude Code headless) + design system components ensure predictable, repeatable user experience.
+- Process: Backend state machine enforces explicit user confirmation of TestLink/Zephyr/ATPyLib **selections** before synthesis. Gates are server-side.
+- LLM: Templated prompts + structured parsing + provenance; gaps for Traceability authored at completion (not mid-wizard free text).
+- Outputs: Fixed Jinja + post-processing; export auto-persists to `refined-cases/<Group>/`.
+- UI: Dual case lists, Search/Suggest on steps 1–3, CLI login radios, design-system components.
 
 ## Directory Structure (inside drafting-tool/)
 
@@ -230,21 +224,16 @@ The process and output formats are identical to what is documented in `OBJECTIVE
 ## LLM Templating & Repeatability
 
 Prompt templates live here:
-- `drafting_server/templates/prompts/generate_objectives.jinja`
-- `drafting_server/templates/prompts/generate_steps.jinja`
-- `drafting_server/templates/prompts/suggest_atp.jinja` (new: LLM pre-selection for Step 3 ATPyLib)
+- `generate_objectives.jinja` / `generate_steps.jinja` — synthesis
+- `generate_gaps.jinja` — Traceability gaps (synthesize/export only)
+- `suggest_testlink.jinja` / `suggest_zephyr.jinja` / `suggest_atp.jinja` — pre-select assists
+- `analyze_atp_coverage.jinja` — Step 3 ranking only (no gaps paragraph)
 
-They always include:
-- The three databases selections you confirmed
-- Excerpts of the process principles ("artefacts, not procedures", first step is notes + traceability, positive/negative/special cases, etc.)
+They inject confirmed selections + process principles ("artefacts, not procedures", first step notes + traceability, positive/negative/special cases, etc.).
 
-After the LLM returns text, `llm.py` runs structured parsing + the output template in `templates/outputs/traceability.md.jinja` (and equivalent logic for the payload) so the final files are consistent and match the documented standard.
+After the LLM returns text, `llm.py` parses/normalizes and export uses `templates/outputs/traceability.md.jinja` so files match the documented standard.
 
-This is how repeatable outputs are achieved even when using stochastic LLMs.
-
-**Note**: MOCK/demo mode has been removed. Real LLM (subscription CLI login or API key) is required for synthesis and suggestions. All flows use real data only.
-
-You can edit the templates to refine style or add more rules without changing code.
+**Note**: MOCK/demo mode has been removed. Real LLM (CLI login preferred) is required. Edit templates to refine style without code changes.
 
 ## Hosting Behind nginx
 
@@ -339,6 +328,23 @@ Cross-reference higher-level project docs every session:
 - Root `SESSION_STATE.md` (broader session history)
 - `OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
 - External `../AGENTS.md` (access patterns and environment details, as referenced from root README)
+
+---
+
+## Session Summary (2026-07-13)
+
+Major usability and process refinements for the live wizard:
+
+- **Verified** load_case zrefs folder fix; **relevance-ranked** external Zephyr cross-refs.
+- **Dual case dropdowns** (Open/partial with in-progress first vs Complete via refined-cases payload).
+- **Search + Suggest with LLM** on Steps 1, 2, and 3 (TestLink / Zephyr / ATP).
+- **Gaps removed from Step 3 UI**; generated by LLM at synthesize/export for Traceability (`generate_gaps.jinja`).
+- **Workspace LLM persistence** (`sessions/_workspace_llm.json`) so case switches do not reset CLI login.
+- Fixed **stack overflow** (auth UI recursion) and **table layout** (6-column width collapse).
+- Favicon; root/drafting-tool README cleanup; handoff docs refreshed.
+- GitHub: history LFS migrate for Zephyr XML/jsonl so push succeeds under 100 MB blob rules.
+
+See `PROGRESS.md` and `LESSONS_LEARNED.md` for backlog and detailed lessons.
 
 ---
 

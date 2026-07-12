@@ -642,10 +642,10 @@ button.secondary:not(.btn):hover {
   word-wrap: break-word;
   overflow-wrap: anywhere;
   font-size: 10px;
-  line-height: 1.3;
+  line-height: 1.35;
   vertical-align: top;
-  /* Cap cell height so one long description cannot blow the layout */
-  max-height: 4.8em;
+  /* Allow full ATP analysis text (~3–6 lines); scroll only if extremely long */
+  max-height: 9.5em;
   overflow: auto;
 }
 
@@ -1237,6 +1237,9 @@ function updateUI() {
   });
 }
 
+// Soft safety only for pathological megabyte fields (real TL/Zephyr bodies are typically < few KB)
+const DESC_SOFT_MAX = 2000;
+
 // Render real selectable tables for steps
 function renderTestLinkTable(cands, existingSelections = []) {
   const cont = document.getElementById('tl-table');
@@ -1244,7 +1247,7 @@ function renderTestLinkTable(cands, existingSelections = []) {
     cont.innerHTML = '<em>No TestLink candidates for this case.</em>';
     return;
   }
-  // Build lookup for saved selections
+  // Build lookup for saved selections (justification is optional note, not a substitute for full body)
   const saved = {};
   existingSelections.forEach(s => { saved[s.id_or_key] = s.justification || ''; });
 
@@ -1252,8 +1255,14 @@ function renderTestLinkTable(cands, existingSelections = []) {
   cands.forEach((c, idx) => {
     const hasSaved = Object.keys(saved).length > 0;
     const isChecked = saved.hasOwnProperty(c.id) || (!hasSaved && idx < 3);
-    const descValue = truncateText(saved[c.id] || (c.description || c.snippet || c.title || ''), 480);
+    // Prefer full source description; only fall back to saved justification if body is empty
+    let descValue = c.description || c.snippet || c.title || '';
+    if ((!descValue || descValue.length < 40) && saved[c.id]) {
+      descValue = saved[c.id];
+    }
+    descValue = truncateText(descValue, DESC_SOFT_MAX);
     const checkedAttr = isChecked ? 'checked' : '';
+    const titleAttr = escapeHtml(descValue).replace(/"/g, '&quot;');
     const escapedDesc = escapeHtml(descValue).replace(/\n/g, '<br>');
     html += `
       <tr>
@@ -1261,7 +1270,7 @@ function renderTestLinkTable(cands, existingSelections = []) {
         <td class="cell-id">${escapeHtml(c.id)}</td>
         <td class="cell-title">${escapeHtml(c.title || '')}</td>
         <td class="cell-score">${c.score ? Number(c.score).toFixed(2) : ''}</td>
-        <td class="cell-description">${escapedDesc}</td>
+        <td class="cell-description" title="${titleAttr}">${escapedDesc}</td>
       </tr>`;
   });
   html += '</tbody></table>';
@@ -1287,15 +1296,22 @@ function renderZephyrTable(refs, existingSelections = []) {
   refs.forEach((r, idx) => {
     const hasSaved = Object.keys(saved).length > 0;
     const isChecked = saved.hasOwnProperty(r.key) || (!hasSaved && idx < 2);
-    const why = r.justification || '';
-    // Prefer short "why" + optional body; avoid duplicating the same text twice
-    const body = saved[r.key] || r.description || r.title || '';
-    const showWhy = why && body !== why;
-    const descValue = truncateText(body || why, 360);
+    const why = (r.justification || saved[r.key] || '').trim();
+    // Full case body (objective / steps) — do not prefer short saved justification over it
+    let body = r.description || '';
+    if (!body || body === r.title) {
+      body = r.description || r.title || why || '';
+    }
+    const showWhy = why && body && body !== why && !body.includes(why.slice(0, Math.min(40, why.length)));
+    const descValue = truncateText(body || why, DESC_SOFT_MAX);
     const checkedAttr = isChecked ? 'checked' : '';
     const score = (r.score !== undefined && r.score !== null) ? Number(r.score).toFixed(1) : '';
     const area = folderLeaf(r.folder);
-    const whyLine = showWhy ? `<div class="justification-note">${escapeHtml(truncateText(why, 120))}</div>` : '';
+    // Full "why" line (no 120-char cut); CSS scroll handles long cells
+    const whyLine = showWhy
+      ? `<div class="justification-note">${escapeHtml(truncateText(why, DESC_SOFT_MAX))}</div>`
+      : '';
+    const titleAttr = escapeHtml((whyLine ? why + '\n' : '') + descValue).replace(/"/g, '&quot;');
     const escapedDesc = escapeHtml(descValue).replace(/\n/g, '<br>');
     html += `
       <tr>
@@ -1304,11 +1320,42 @@ function renderZephyrTable(refs, existingSelections = []) {
         <td class="cell-title">${escapeHtml(r.title || '')}</td>
         <td class="cell-score">${score}</td>
         <td class="cell-folder" title="${escapeHtml(r.folder || '')}">${escapeHtml(area)}</td>
-        <td class="cell-description">${whyLine}${escapedDesc}</td>
+        <td class="cell-description" title="${titleAttr}">${whyLine}${escapedDesc}</td>
       </tr>`;
   });
   html += '</tbody></table>';
   cont.innerHTML = html;
+}
+
+/** Short title = first line / text before [analysis]; body = rest or full description. */
+function splitAtpTitleDescription(title, description, fallbackId) {
+  const full = String(description || title || '').trim();
+  let shortTitle = String(title || '').trim();
+  // If title still contains the analysis blob, split it
+  const br = shortTitle.indexOf('[');
+  if (br > 0) {
+    shortTitle = shortTitle.substring(0, br).trim();
+  }
+  if (!shortTitle || shortTitle === full) {
+    const firstLine = full.split(/\n/)[0] || '';
+    const m = full.match(/^([\s\S]*?)(?:\n\n?\[)/);
+    shortTitle = (m ? m[1] : firstLine).trim().split('\n')[0].trim() || fallbackId || '';
+  }
+  // Prefer full source description for the body; do not re-concat title+desc
+  let body = full;
+  if (shortTitle && body.startsWith(shortTitle)) {
+    body = body.slice(shortTitle.length).replace(/^\s*\n+/, '').trim() || full;
+  }
+  // If description was only a short reason and title held the long text, use title as body source
+  if ((!description || description.length < 40) && title && title.length > (description || '').length) {
+    const fromTitle = String(title).trim();
+    const tbr = fromTitle.indexOf('[');
+    if (tbr > 0) {
+      shortTitle = fromTitle.substring(0, tbr).trim() || shortTitle;
+      body = fromTitle.substring(tbr).trim();
+    }
+  }
+  return { title: shortTitle || fallbackId || '', body: body || full || '' };
 }
 
 function renderATPTable(cands, existingSelections = []) {
@@ -1330,19 +1377,29 @@ function renderATPTable(cands, existingSelections = []) {
   cands.forEach((c, idx) => {
     const hasSaved = Object.keys(saved).length > 0;
     const isChecked = saved.hasOwnProperty(c.id) || (!hasSaved && idx < 3);
-    let titleText = c.title || '';
-    let extraDesc = '';
-    const bracketIdx = titleText.indexOf('[');
-    if (bracketIdx > 0) {
-      extraDesc = titleText.substring(bracketIdx).trim();
-      titleText = titleText.substring(0, bracketIdx).trim();
+    // Prefer full source description; justification is LLM/search reason (not a substitute for body)
+    const sourceDesc = c.description || '';
+    const { title: titleText, body: descBody } = splitAtpTitleDescription(
+      c.title || '',
+      sourceDesc,
+      c.id || ''
+    );
+    // Optional short note if justification differs and is not already in the body
+    const just = (saved[c.id] || c.justification || c.reason || '').trim();
+    let fullDesc = descBody;
+    if (just && just.length > 8 && !fullDesc.includes(just.slice(0, Math.min(40, just.length)))) {
+      // Keep justification out of Description when we already have full analysis text
+      if (!fullDesc || fullDesc.length < 60) {
+        fullDesc = just;
+      }
     }
-    const descValue = saved[c.id] || (c.description || c.justification || c.reason || '');
-    const fullDesc = truncateText(extraDesc ? (extraDesc + (descValue ? ' ' + descValue : '')) : descValue, 400);
+    // Soft safety only for pathological megabyte fields — real ATP texts are ~200–800 chars
+    fullDesc = truncateText(fullDesc, DESC_SOFT_MAX);
     const checkedAttr = isChecked ? 'checked' : '';
     const score = (c.score !== undefined) ? Number(c.score).toFixed(2) : '';
     const suite = c.suite ? `<span class="cell-suite">(${escapeHtml(c.suite)})</span>` : '';
     const src = c.source || (c.justification && c.justification.indexOf('keyword') >= 0 ? 'keyword' : 'llm');
+    const titleAttr = escapeHtml(fullDesc).replace(/"/g, '&quot;');
     const escapedDesc = escapeHtml(fullDesc).replace(/\n/g, '<br>');
     html += `
       <tr>
@@ -1351,7 +1408,7 @@ function renderATPTable(cands, existingSelections = []) {
         <td class="cell-title">${escapeHtml(titleText)}${suite}</td>
         <td class="cell-score">${score}</td>
         <td class="cell-source">${escapeHtml(src)}</td>
-        <td class="cell-description">${escapedDesc}</td>
+        <td class="cell-description" title="${titleAttr}">${escapedDesc}</td>
       </tr>`;
   });
   html += '</tbody></table>';
@@ -2132,21 +2189,27 @@ function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } 
   (incoming || []).forEach(c => {
     if (!c || !c.id) return;
     const prev = byId[c.id];
+    // Prefer longer/full descriptions when merging so search/suggest cannot re-truncate
+    const prevDesc = (prev && prev.description) || '';
+    const nextDesc = c.description || '';
+    const betterDesc = (nextDesc.length >= prevDesc.length ? nextDesc : prevDesc)
+      || c.reason || c.justification || prevDesc || '';
     const next = {
       id: c.id,
-      title: c.title || c.description || (prev && prev.title) || c.id,
-      description: c.description || c.reason || c.justification || (prev && prev.description) || '',
-      justification: c.reason || c.justification || c.description || (prev && prev.justification) || '',
+      title: c.title || (prev && prev.title) || c.id,
+      description: betterDesc,
+      justification: c.justification || c.reason || (prev && prev.justification) || '',
       score: c.score !== undefined ? c.score : (prev ? prev.score : 0.5),
       suite: c.suite || (prev && prev.suite) || '',
       source: c.source || source,
     };
     if (prev && (prev.score || 0) > (next.score || 0) && prev.source === 'llm') {
-      // Keep higher LLM score but refresh reason if empty
+      // Keep higher LLM score but refresh reason/desc if richer
       byId[c.id] = {
         ...prev,
+        title: (next.title && next.title.length < 120) ? next.title : (prev.title || next.title),
         justification: next.justification || prev.justification,
-        description: next.description || prev.description,
+        description: betterDesc,
       };
     } else {
       byId[c.id] = next;
@@ -2180,10 +2243,15 @@ function mergeTestLinkCandidates(incoming, { precheckIds = null, source = 'searc
   (incoming || []).forEach(c => {
     if (!c || !c.id) return;
     const prev = byId[c.id];
+    const prevDesc = (prev && prev.description) || '';
+    const nextDesc = c.description || c.snippet || '';
+    // Prefer longer/full descriptions so search/suggest cannot re-truncate a rich load_case body
+    const betterDesc = (nextDesc.length >= prevDesc.length ? nextDesc : prevDesc)
+      || c.reason || (prev && prev.snippet) || '';
     byId[c.id] = {
       id: c.id,
       title: c.title || (prev && prev.title) || c.id,
-      description: c.description || c.snippet || c.reason || (prev && prev.description) || '',
+      description: betterDesc,
       snippet: c.snippet || (prev && prev.snippet) || '',
       score: c.score !== undefined ? c.score : (prev ? prev.score : 0.6),
       source: c.source || source,
@@ -2218,11 +2286,15 @@ function mergeZephyrCandidates(incoming, { precheckIds = null, source = 'search'
     const k = c && (c.key || c.id);
     if (!k) return;
     const prev = byKey[k];
+    const prevDesc = (prev && prev.description) || '';
+    const nextDesc = c.description || '';
+    const betterDesc = (nextDesc.length >= prevDesc.length ? nextDesc : prevDesc)
+      || c.reason || (prev && prev.title) || '';
     byKey[k] = {
       key: k,
       title: c.title || (prev && prev.title) || k,
       folder: c.folder || (prev && prev.folder) || '',
-      description: c.description || c.reason || (prev && prev.description) || '',
+      description: betterDesc,
       justification: c.justification || c.reason || (prev && prev.justification) || '',
       score: c.score !== undefined ? c.score : (prev ? prev.score : 0.6),
       source: c.source || source,
@@ -2381,11 +2453,12 @@ async function searchATP() {
     const data = await res.json();
     const results = (data.results || []).map(r => ({
       id: r.id,
-      title: r.title,
-      description: r.title || '',
+      title: r.title || r.id,
+      // Full analysis body from API (not the short title)
+      description: r.description || '',
       suite: r.suite || '',
-      score: 0.6,
-      source: 'search',
+      score: r.score !== undefined ? r.score : 0.6,
+      source: r.source || 'search',
       justification: 'Matched search: ' + q,
     }));
     mergeATPCandidates(results, { source: 'search' });
@@ -2415,10 +2488,11 @@ async function suggestATPWithLLM() {
     const suggestions = data.suggestions || [];
     const rows = suggestions.map(s => ({
       id: s.id,
-      title: s.id,
-      description: s.reason || '',
-      justification: s.reason || 'LLM suggestion',
-      score: 0.85,
+      title: s.title || s.id,
+      description: s.description || '',
+      justification: s.justification || s.reason || 'LLM suggestion',
+      suite: s.suite || '',
+      score: s.score !== undefined ? s.score : 0.85,
       source: 'llm',
     }));
     const ids = rows.map(r => r.id).filter(Boolean);

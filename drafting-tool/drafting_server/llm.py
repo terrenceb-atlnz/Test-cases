@@ -416,11 +416,12 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
 
 def build_traceability_note(session: Dict[str, Any]) -> str:
     """Server-side construction of the repeatable first traceability note step.
-    Guarantees consistent first step per OBJECTIVE_DRAFTING_PROCESS (minimal note + links).
-    Matches shapes seen in refined-cases/*/zephyr_payload.json.
-    Produces a concise note that starts with the required "Note: Related ART Tests..." and
-    incorporates Primary + reviewed items for full traceability.
-    This is always injected as step 0 and overrides any LLM-generated note for repeatability.
+
+    Per OBJECTIVE_DRAFTING_PROCESS and good refined-cases exemplars (e.g. T33351/T33369):
+    - Minimal first step: points at Traceability; lists primary TL + ART IDs briefly.
+    - Gaps belong only in traceability.md (never truncated into this step).
+    - No junk: no empty <dl>, no raw Jira/wiki URL dump, no redundant ART string line.
+    Always injected as step 0 (overrides any LLM-generated note) for repeatability.
     """
     key = session.get("key", "unknown")
     primary = session.get("primary") or {}
@@ -428,50 +429,91 @@ def build_traceability_note(session: Dict[str, Any]) -> str:
     tl_sels = session.get("step1", {}).get("selections", []) or []
     z_sels = session.get("step2", {}).get("selections", []) or []
     atp_sels = session.get("step3", {}).get("selections", []) or []
-    gaps = (session.get("gaps") or "").strip()
     art = (session.get("art_string") or "").strip()
 
-    tl_list = ", ".join([s.get("id_or_key") or s.get("key", "") for s in tl_sels if s])
-    z_keys = [s.get("key") or s.get("id_or_key", "") for s in z_sels if s]
-    # Always include the primary case key itself for traceability (even though
-    # Step 2 Zephyr table now omits all current/Cases-list entries and only shows
-    # external cross-refs).
-    if key and key not in z_keys:
-        z_keys = [key] + z_keys
-    z_list = ", ".join(z_keys)
-    atp_list = ", ".join([s.get("id_or_key") or s.get("id", "") for s in atp_sels if s])
+    def _sel_id(s: Dict[str, Any]) -> str:
+        return (s.get("id_or_key") or s.get("id") or s.get("key") or "").strip()
 
-    parts = [f"Note: Related ART Tests linked in Traceability for {key}."]
+    # Primary match id (+ short rationale token if present)
+    primary_id = (primary.get("m") or "").strip()
+    primary_w = (primary.get("w") or "").strip()
 
-    if primary and primary.get("m"):
-        w = (primary.get("w") or "").strip()
-        parts.append(f"Primary: {primary.get('m')} ({w})" if w else f"Primary: {primary.get('m')}")
+    # TestLink IDs — primary first if present in selections, then others
+    tl_ids: List[str] = []
+    for s in tl_sels:
+        i = _sel_id(s)
+        if i and i not in tl_ids:
+            tl_ids.append(i)
+    if primary_id and primary_id not in tl_ids:
+        tl_ids = [primary_id] + tl_ids
 
-    if tl_list:
-        parts.append(f"TestLink: {tl_list}")
+    # External Zephyr cross-ref keys only (do not re-list the case under edit)
+    z_keys: List[str] = []
+    for s in z_sels:
+        i = _sel_id(s)
+        if i and i != key and i not in z_keys:
+            z_keys.append(i)
 
-    if z_list:
-        parts.append(f"Zephyr: {z_list}")
+    # ART ids from selections, else art_string
+    atp_ids: List[str] = []
+    for s in atp_sels:
+        i = _sel_id(s)
+        if i and i not in atp_ids:
+            atp_ids.append(i)
+    if not atp_ids and art:
+        atp_ids = [p.strip() for p in re.split(r"\s*\+\s*|\s*,\s*", art) if p.strip()]
 
-    if atp_list:
-        parts.append(f"ART: {atp_list}")
+    # ART ids only in the note (full titles live in Traceability / selections).
+    # Keeps the first step short and avoids mid-phrase ellipsis on long suite titles.
+    atp_bits: List[str] = list(atp_ids[:10])
 
-    if art:
-        parts.append(f"ART string: {art}")
+    # --- Compose a single concise prose note (exemplar style) ---
+    # Required prefix for validate_zephyr_payload
+    head = "Note: Related ART Tests linked in Traceability."
 
-    if gaps:
-        parts.append(f"Gaps: {gaps[:120]}")
+    body_bits: List[str] = []
+    if primary_id:
+        if primary_w:
+            body_bits.append(f"Primary TestLink {primary_id} ({primary_w})")
+        else:
+            body_bits.append(f"Primary TestLink {primary_id}")
+    if tl_ids:
+        # Related TL ids (omit primary if already stated above)
+        others = [i for i in tl_ids if i != primary_id] if primary_id else list(tl_ids)
+        if others:
+            label = "Related TestLink" if primary_id else "TestLink"
+            body_bits.append(f"{label}: " + ", ".join(others))
 
-    # Zephyr links (first few) + wiki
+    if atp_bits:
+        body_bits.append("ART coverage: " + ", ".join(atp_bits))
+    else:
+        body_bits.append("No direct ART coverage selected; see Gaps Noted in Traceability.")
+
     if z_keys:
-        z_links = " ".join([f"https://jira.atlnz.lc/secure/Tests.jspa#/testCase/{k}" for k in z_keys[:3]])
-        parts.append(z_links)
+        # Short pointer only — full list + links live in traceability.md
+        shown = z_keys[:6]
+        extra = len(z_keys) - len(shown)
+        z_txt = ", ".join(shown) + (f" (+{extra} more)" if extra > 0 else "")
+        body_bits.append(f"Related Zephyr cases linked in Traceability ({z_txt}).")
 
-    parts.append("https://wiki.atlnz.lc/awpwiki/index.php (see related bundles)")
+    # Gaps intentionally omitted here — full text is only in traceability.md
+    # (avoids mid-sentence truncation and keeps the first step minimal).
 
-    # Format to closely match historical refined-cases first-step style (using <br /> and trailing dl)
-    note = "<br />\n".join(parts)
-    note += "<br /><dl><br /></dl><br />"
+    note = head
+    if body_bits:
+        note = head + " " + " ".join(
+            b if b.endswith(".") else (b + ".") for b in body_bits
+        )
+    # Soft length guard for Zephyr UI (keep complete sentences; do not mid-cut words)
+    if len(note) > 900:
+        # Prefer dropping long ART titles, fall back to ids only
+        if atp_ids:
+            short_art = "ART coverage: " + ", ".join(atp_ids[:8]) + "."
+            body2 = [b for b in body_bits if not b.startswith("ART coverage:")]
+            body2.append(short_art.rstrip("."))
+            note = head + " " + " ".join(
+                b if b.endswith(".") else (b + ".") for b in body2
+            )
     return note
 
 

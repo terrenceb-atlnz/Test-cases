@@ -1,0 +1,70 @@
+{
+  "AWPTCM-T33373": {
+    "objective": "<ul>\n<li>Devices roaming to another port on the same authenticator retain authenticated state and communicate successfully without triggering re-authentication, for MAC authentication and Web authentication modes.</li>\n<li>Roaming authentication does not extend to dot1x-authenticated sessions: a supplicant moving ports under dot1x is confirmed to require full re-authentication rather than roaming, distinguishing dot1x from MAC/Web authentication behaviour.</li>\n<li>ARP resolution for a roamed device is correctly re-established on the new port without requiring supplicant re-authentication, with no stale ARP entries left against the original port.</li>\n<li>When the supplicant's attached interface is link-downed rather than roamed, authentication state is cleared and re-authentication is executed on reconnection, rather than being treated as a roam.</li>\n<li>Repeated roaming activity sustained overnight remains stable: authentication and communication continue to succeed on each roam, with no errors and no memory leak observed over the duration.</li>\n<li>Authentication and roaming events (successful roams, denied dot1x roams, link-down triggered re-authentications) are observable and distinguishable in device logs/status output for verification and troubleshooting.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability. Primary TestLink AWP-9616 (Roaming authentication). Related TestLink: AWP-156, AWP-381, AWP-9546. ART coverage: 1340.1001.39052, 1331.1001.30437. Related Zephyr cases linked in Traceability (AWPTCM-T12621, AWPTCM-T12622, AWPTCM-T12624, AWPTCM-T12658, AWPTCM-T12827, AWPTCM-T12954).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up authenticator with two ports available for roaming and a supplicant configured for MAC authentication. Authenticate the supplicant on Port A and confirm authenticated state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Move the MAC-authenticated supplicant's physical connection from Port A to Port B on the same authenticator. Verify the device retains its authenticated state and does not trigger a new authentication attempt.",
+          "expectedResult": "Session shows as roamed/retained, not re-authenticated."
+        },
+        {
+          "description": "Test with traffic (e.g. ping) from the roamed MAC-authenticated device to confirm it communicates successfully on the new port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the roam using a Web-authenticated supplicant: authenticate on Port A, then move to Port B on the same authenticator. Verify authenticated state is retained without re-authentication.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with traffic from the roamed Web-authenticated device to confirm successful communication on the new port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up a dot1x-authenticated supplicant on Port A and confirm authenticated state. Move the supplicant to Port B on the same authenticator.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the dot1x supplicant is denied roaming treatment and is required to fully re-authenticate on the new port, distinguishing this behaviour from MAC/Web authentication roaming.",
+          "expectedResult": "Full 802.1X re-authentication occurs; roam is not permitted."
+        },
+        {
+          "description": "Confirm ARP resolution for the roamed device is correctly re-established on the new port without requiring supplicant re-authentication.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify no stale ARP entry remains against the original port after the roam completes.",
+          "expectedResult": "ARP table shows entry only against the new port."
+        },
+        {
+          "description": "Set the supplicant's attached interface to link-down (rather than physically roaming) and confirm authentication state is cleared as a result.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Reconnect the link and verify full re-authentication is executed on reconnection, confirming this is treated as a re-authentication event rather than a roam.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with sustained repeated roaming activity over an overnight period across MAC and Web authenticated sessions. Verify authentication and communication succeed on each roam throughout the duration.",
+          "expectedResult": "No failed roams or communication drops observed."
+        },
+        {
+          "description": "Verify no errors are logged and no memory leak is observed on the authenticator over the course of the overnight roaming test.",
+          "expectedResult": "Memory utilisation stable; no error log entries."
+        },
+        {
+          "description": "Verify device logs/status output distinctly record successful roam events (MAC/Web), denied dot1x roam attempts, and link-down triggered re-authentications for troubleshooting purposes.",
+          "expectedResult": "Each event type is separately identifiable in logs/status output."
+        }
+      ]
+    }
+  }
+}

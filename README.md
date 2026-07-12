@@ -55,7 +55,7 @@ Authoritative process: **`OBJECTIVE_DRAFTING_PROCESS.md`**.
 | Candidate generation + decisions | ~410 AWPTCM cases; decisions across review batches |
 | Refined case outputs | **~41** cases with `traceability.md` + `zephyr_payload.json` under `refined-cases/<Group>/` |
 | Objective drafting process | Stable, documented, used in production workflow |
-| Server-backed drafting tool | Advanced under `drafting-tool/` (primary way to run the process with LLM synthesis) |
+| Server-backed drafting tool | Advanced under `drafting-tool/` — dual case lists, Search/Suggest on steps 1–3, gaps at synth/export, workspace LLM (see `drafting-tool/PROGRESS.md`) |
 
 **Refined-case groups present** (examples): Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management, Bootloader.
 
@@ -65,10 +65,10 @@ Authoritative process: **`OBJECTIVE_DRAFTING_PROCESS.md`**.
 
 Repeatable steps (see `OBJECTIVE_DRAFTING_PROCESS.md`):
 
-1. **TestLink + decisions** — review candidates, confirm primary/relevant list  
+1. **TestLink** — review candidates, confirm primary/relevant list  
 2. **Zephyr cross-reference** — related external cases (not the current managed Cases list)  
-3. **ATPyLib** — map automation coverage and gaps  
-4. **Synthesize** — objectives + testScript (LLM-assisted in the tool, always user-reviewed)  
+3. **ATPyLib** — select related automation coverage (gaps for Traceability are synthesized later in the tool)  
+4. **Synthesize** — objectives + testScript + Traceability gaps (LLM-assisted; always user-reviewed)  
 5. **Export** — `refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md,zephyr_payload.json}`  
 6. **Upload** — optional push to Zephyr via `tool/upload_refined.py`
 
@@ -82,9 +82,10 @@ Implementation lives entirely under **`drafting-tool/`**:
 ```
 
 - FastAPI backend + wizard UI; server-side confirm gates before synthesis  
-- LLM via **local subscription CLIs** (UI): Grok CLI (SuperGrok / X Premium+) or Claude Code CLI (Team)  
-- Real data for TestLink / relevance-ranked Zephyr / ATPyLib; export downloads **and** auto-persists into `refined-cases/`  
-- MOCK/demo paths removed — real CLI login (or server-side API key for legacy) required  
+- LLM via **local subscription CLIs** (UI): Grok CLI or Claude Code CLI; workspace login persists across cases  
+- Dual case dropdowns (Open/partial vs Complete); Search + Suggest on TestLink, Zephyr, and ATPyLib  
+- Export downloads **and** auto-persists into `refined-cases/`; Gaps for Traceability generated at synthesize/export  
+- MOCK/demo paths removed — real CLI login required
 
 | Doc | Use for |
 |-----|---------|

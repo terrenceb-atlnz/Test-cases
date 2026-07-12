@@ -143,3 +143,50 @@ Higher-level cross-references: Root `SESSION_STATE.md`, root `README.md`, and `O
 - Prioritize real paths early; update docs/handoffs in sync with code (MOCK refs linger in docs).
 - Export persistence + polished summary advance "repeatable outputs" and process enforcement.
 - Continue design component adoption to eliminate remaining inlines.
+
+## New Insights from 2026-07-13 Session — UX Hardening, Gaps Ownership, Case Lists, LFS Push
+
+**load_case zrefs NameError (verified fixed)**:
+- The `f` folder assignment was already restored; verified via direct `load_case` on T44210 and others. No further code change needed beyond verification.
+- Lesson: log “fixed but verify next session” bugs at the top of PROGRESS and actually re-run load on the failing key first.
+
+**Step 2 relevance ranking**:
+- Taking the first N external slim_index entries always returned AWPTCM-T1…T5. Ranking by title/folder/decision tokens + hard anchors (arp, dhcp, mdi, …) produces useful cross-refs.
+- Generic tokens alone (port, ipv4, log) create noise; multi-keyword and hard-anchor requirements matter.
+- Decision field `m` (AWP-####) must not inflate “must match N specific tokens” penalties — prefer rationale `w` for extra tokens.
+- Enrich only top hits with a **batch** jsonl scan; per-key full-file scans are too slow.
+
+**Infinite recursion (RangeError: Maximum call stack size exceeded)**:
+- `updateAuthMethodUI()` called `updateLLMDefaults()` which called `updateAuthMethodUI()` again.
+- Surfaced only after load when `restoreLLMUI` ran (browser stack overflow). Instrument load steps to find mutual recursion quickly.
+- Lesson: placeholder helpers must not call full UI refreshers that call them back.
+
+**Table layout zero-width column**:
+- CSS assumed 5 columns summing to 100%; Zephyr/ATP have 6. Last column got ~0 width under `table-layout: fixed` + `break-all` → one character per line and a huge empty-looking row.
+- Lesson: column width rules must match actual column count (use explicit classes per table shape). Cap description max-height.
+
+**Workspace LLM vs per-case session**:
+- Per-case default `auth_method: api_key` made every new case look “logged out” after Apply on another case.
+- Fix: persist last Apply to `sessions/_workspace_llm.json` and copy onto cases without an active CLI/key config.
+- Clear-session must not wipe workspace LLM preference.
+
+**Gaps ownership**:
+- User does not want an editable gaps box mid-wizard. Gaps are part of the **Traceability artefact** and should be LLM-generated when completing the process (synthesize/export).
+- Step 3 is selections-only; `analyze_atp_coverage` ranks only; `generate_gaps.jinja` runs at completion.
+- Lesson: align UI fields with *when* in the process a human must intervene vs when the tool synthesizes.
+
+**Dual case dropdowns**:
+- Complete = has `refined-cases/**/zephyr_payload.json`. Open = everything else. Partials (session progress) first in Open list.
+- After export, refresh lists so cases can move to Complete.
+
+**Search/Suggest on Steps 1–2**:
+- Same UX pattern as ATP (keyword search + LLM suggest + merge into table) improves discovery without pre-filling claims.
+- Keep omit-rules for Zephyr (no current Cases list members) on search endpoints too.
+
+**GitHub push / LFS**:
+- `.gitattributes` LFS tracking is not enough if **early commits** still store full blobs. GitHub rejects any history object &gt; 100 MB.
+- `git lfs migrate import --include=... --everything` rewrites all commits to pointers; required before first successful push of the Zephyr XML (119 MB).
+- Lesson: after enabling LFS, always verify max blob sizes across *all* history (`git rev-list --objects --all` + sizes), not only HEAD.
+
+**Docs**:
+- Root README had become a session changelog; rewrite to status + how-to, point to drafting-tool PROGRESS for tool detail.
