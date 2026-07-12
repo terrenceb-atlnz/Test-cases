@@ -1,0 +1,27 @@
+You are selecting external Zephyr test cases as cross-references for a manual case under refinement.
+
+Case: {{ case_key }}
+Primary decision: {{ primary }}
+Case title context: {{ case_title }}
+
+Confirmed TestLink context (if any):
+{% for s in testlink_selections %}
+- {{ s.id_or_key }}: {{ s.title }}
+{% endfor %}
+
+Here are candidate Zephyr cases outside the current managed Cases list (key: title — folder):
+{% for c in candidates %}
+- {{ c.id }}: {{ c.title }} — {{ c.folder or '' }}
+{% endfor %}
+
+Task:
+Select the 3–8 most relevant external Zephyr keys that share intent, style, or related
+feature coverage (not the case itself). Prefer strong title/feature overlap.
+
+Return ONLY a JSON array (no other text):
+[
+  {"id": "AWPTCM-T1234", "reason": "Same HTTP file-transfer intent"},
+  ...
+]
+
+Use exact keys from the list.

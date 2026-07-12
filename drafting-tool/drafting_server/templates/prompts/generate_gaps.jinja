@@ -1,0 +1,31 @@
+You are documenting automation coverage gaps for a manual Zephyr test case.
+
+Case: {{ case_key }}
+Primary decision: {{ primary }}
+
+Confirmed TestLink selections (historical artefacts / intent):
+{% for s in testlink_selections %}
+- {{ s.id_or_key }}: {{ s.title }}{% if s.justification %} — {{ s.justification[:160] }}{% endif %}
+{% endfor %}
+
+Confirmed Zephyr cross-references:
+{% for s in zephyr_selections %}
+- {{ s.key or s.id_or_key }}: {{ s.title }}
+{% endfor %}
+
+Confirmed ATPyLib (ART) automated tests selected as related coverage:
+{% for s in atp_selections %}
+- {{ s.id_or_key or s.id }}: {{ s.title or s.description or '' }}
+{% endfor %}
+
+{% if art_string %}
+ART string: {{ art_string }}
+{% endif %}
+
+Write a concise Gaps analysis for the Traceability artefact (one short paragraph, 2–5 sentences):
+- What the selected ART coverage reasonably addresses
+- What important behaviours, edge cases, or observability from TestLink/Zephyr are NOT well covered by automation
+- Do not invent test IDs that are not listed above
+- Platform-agnostic language; no procedural "verify that..." style
+
+Return ONLY the gaps paragraph as plain text (no JSON, no markdown headings, no bullet list unless a short clause list fits naturally).

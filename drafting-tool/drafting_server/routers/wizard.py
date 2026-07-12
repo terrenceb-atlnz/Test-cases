@@ -10,14 +10,27 @@ Per PROGRESS.md (High Priority #1) and SERVER-README.md:
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Body
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
 from pathlib import Path
 import json
+import os
+import re
 
 from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig
 from data import load_all_data
-from llm import synthesize_objectives_and_steps, suggest_relevant_atp, build_traceability_note
+from llm import (
+    synthesize_objectives_and_steps,
+    suggest_relevant_atp,
+    suggest_relevant_testlink,
+    suggest_relevant_zephyr,
+    build_traceability_note,
+    validate_zephyr_payload,
+    analyze_atp_coverage,
+    generate_coverage_gaps,
+    check_claude_cli,
+    check_grok_cli,
+)
 from jinja2 import Environment, FileSystemLoader
 
 router = APIRouter()
@@ -31,6 +44,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SESSIONS_DIR = BASE_DIR / "sessions"
 SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Workspace-level LLM preference (survives switching cases). Not a case session.
+GLOBAL_LLM_PATH = SESSIONS_DIR / "_workspace_llm.json"
+
 # Output templates for repeatable exports (traceability.md etc.)
 OUTPUTS_DIR = BASE_DIR / "templates" / "outputs"
 OUTPUTS_ENV = Environment(loader=FileSystemLoader(str(OUTPUTS_DIR)))
@@ -38,6 +54,59 @@ OUTPUTS_ENV = Environment(loader=FileSystemLoader(str(OUTPUTS_DIR)))
 
 def _session_path(key: str) -> Path:
     return SESSIONS_DIR / f"{key}.json"
+
+
+def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
+    """True when the config can actually drive synthesis (CLI mode or stored key)."""
+    if not cfg:
+        return False
+    am = (getattr(cfg, "auth_method", None) or "").lower()
+    if am in ("claude_code", "grok_cli"):
+        return True
+    if getattr(cfg, "api_key", None) or getattr(cfg, "token", None):
+        return True
+    return False
+
+
+def _load_global_llm() -> Optional[LLMConfig]:
+    """Load last-applied workspace LLM config (shared across all cases)."""
+    if not GLOBAL_LLM_PATH.exists():
+        return None
+    try:
+        raw = json.load(open(GLOBAL_LLM_PATH, encoding="utf-8"))
+        cfg = LLMConfig(**raw)
+        return cfg if _llm_is_active(cfg) else None
+    except Exception as e:
+        print(f"Warning: failed to load workspace LLM config: {e}")
+        return None
+
+
+def _save_global_llm(cfg: LLMConfig) -> None:
+    """Persist workspace LLM preference when the user applies a login/config."""
+    if not cfg or not _llm_is_active(cfg):
+        return
+    try:
+        data = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+        with open(GLOBAL_LLM_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, default=str)
+    except Exception as e:
+        print(f"Warning: failed to save workspace LLM config: {e}")
+
+
+def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
+    """Copy workspace LLM into this case session when the case has no active config.
+
+    Returns True if the session was updated (caller should persist).
+    """
+    if _llm_is_active(getattr(sess, "llm_config", None)):
+        return False
+    global_cfg = _load_global_llm()
+    if not global_cfg:
+        return False
+    # Fresh copy so case sessions do not share the same object instance
+    raw = global_cfg.dict() if hasattr(global_cfg, "dict") else global_cfg.model_dump()
+    sess.llm_config = LLMConfig(**raw)
+    return True
 
 
 def _persist_session(sess: WizardSession) -> None:
@@ -66,6 +135,57 @@ def _load_persisted(key: str) -> Optional[WizardSession]:
     return None
 
 
+def _clear_persisted(key: str) -> None:
+    """Delete the persisted session file for a key."""
+    path = _session_path(key)
+    if path.exists():
+        try:
+            path.unlink()
+            print(f"Cleared persisted session for {key}")
+        except Exception as e:
+            print(f"Warning: failed to delete session file for {key}: {e}")
+
+
+def _get_full_zephyr_case(key: str) -> dict:
+    """On-demand lookup from the full zephyr_cases.jsonl (single key). Prefer _get_full_zephyr_cases_batch."""
+    found = _get_full_zephyr_cases_batch([key])
+    return found.get(key) or {}
+
+
+def _get_full_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
+    """Single-pass lookup of multiple keys from zephyr_cases.jsonl.
+    Avoids re-scanning the large file once per related Step 2 case.
+    """
+    wanted = {k for k in keys if k}
+    if not wanted:
+        return {}
+    path = os.path.join("data", "zephyr_full", "zephyr_cases.jsonl")
+    if not os.path.exists(path):
+        return {}
+    out: Dict[str, dict] = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if len(out) >= len(wanted):
+                    break
+                line = line.strip()
+                if not line:
+                    continue
+                # Fast path: skip parse if key substring cannot match
+                if not any(k in line for k in wanted):
+                    continue
+                try:
+                    case = json.loads(line)
+                    k = case.get("key")
+                    if k in wanted and k not in out:
+                        out[k] = case
+                except (json.JSONDecodeError, TypeError, KeyError):
+                    continue
+    except Exception as e:
+        print(f"Warning: batch zephyr lookup failed: {e}")
+    return out
+
+
 def _mark_updated(sess: WizardSession) -> None:
     sess.updated_at = datetime.utcnow()
 
@@ -81,10 +201,265 @@ def get_data():
     # Would be from app.state in a fuller implementation
     return load_all_data()
 
+
+# --- Step 2 Zephyr relevance scoring -----------------------------------------
+# Omit all "current Cases list" keys (candidates with data). Rank external slim_index
+# entries by title/folder/label keyword overlap so Step 2 is not first-N noise.
+
+_ZREF_GENERIC_TOKENS = frozenset({
+    "port", "ports", "ipv4", "ipv6", "ip", "switch", "switches", "interface",
+    "interfaces", "test", "tests", "feature", "features", "basic", "function",
+    "functionality", "command", "commands", "show", "config", "configuration",
+    "platform", "new", "master", "template", "traffic", "link", "device",
+    "devices", "support", "supported", "behaviour", "behavior", "check",
+    "verify", "confirm", "using", "with", "from", "that", "this", "when",
+    "case", "cases", "area", "manual", "auto", "server", "client", "mode",
+    "type", "level", "status", "info", "data", "table", "entry", "entries",
+    "packet", "packets", "network", "remote", "local", "enabled", "disabled",
+    "enable", "disable", "set", "get", "add", "remove", "for", "via", "and",
+    "the", "full", "half", "fixed", "copper", "fibre", "fiber", "gig", "cross",
+    "straight", "awp", "cr", "proj", "project", "red", "api", "user", "defined",
+    "default", "bridge", "eth", "vlan", "vlans", "tunnel", "queueing", "queuing",
+    "priority", "source", "destination", "address", "static", "lag", "lacp",
+    "interop", "exploratory", "testing", "platform-test", "functional",
+    "field", "info", "error", "message", "generated", "whenever", "address",
+})
+
+# Alone these are too noisy for Step 2 ranking (need a companion specific token).
+_ZREF_WEAK_ALONE = frozenset({
+    "log", "logging", "auth", "qos", "acl", "snmp", "mib", "trap", "vlan",
+    "dhcp", "arp", "bgp", "ospf", "stp", "lacp", "poe",
+})
+
+
+def _normalize_zephyr_text(s: str) -> str:
+    s = s or ""
+    s = re.sub(r"^\(\d+\)\s*", "", s)
+    s = s.replace("_", " ").replace("/", " ").replace("-", " ")
+    return s.lower()
+
+
+def _zephyr_tokens(s: str) -> List[str]:
+    s = _normalize_zephyr_text(s)
+    words = re.findall(r"[a-z0-9][a-z0-9+]{1,}", s)
+    out: List[str] = []
+    for w in words:
+        if len(w) < 3:
+            continue
+        out.append(w)
+        # Normalize MDI variants so MDI / MDIX / MDI-MDIX cluster together
+        if w in ("mdi", "mdix"):
+            out.extend(["mdi", "mdix"])
+    return out
+
+
+def _specific_tokens(toks) -> set:
+    return {t for t in toks if t not in _ZREF_GENERIC_TOKENS}
+
+
+def _score_zephyr_candidate(primary: dict, z: dict, extra_tokens: set) -> Tuple[float, str]:
+    """Return (score, reason_string). Higher is more relevant for Step 2 cross-ref."""
+    p_title = primary.get("title") or ""
+    p_folder = primary.get("folder") or ""
+    p_labels = set(primary.get("labels") or [])
+    z_title = z.get("title") or ""
+    z_folder = z.get("folder") or ""
+    z_labels = set(z.get("labels") or [])
+
+    p_leaf = p_folder.rstrip("/").split("/")[-1] if p_folder else ""
+    p_toks = set(_zephyr_tokens(p_title)) | set(_zephyr_tokens(p_leaf)) | set(extra_tokens or [])
+    z_toks = set(_zephyr_tokens(z_title)) | set(_zephyr_tokens(z_folder))
+    p_spec = _specific_tokens(p_toks)
+    z_spec = _specific_tokens(z_toks)
+
+    score = 0.0
+    reasons: List[str] = []
+
+    inter_spec = p_spec & z_spec
+    if inter_spec:
+        score += 12.0 * len(inter_spec)
+        reasons.append("keywords: " + ", ".join(sorted(inter_spec)[:6]))
+        if len(inter_spec) >= 2:
+            score += 14.0  # multi-keyword feature match (preferred)
+
+    z_blob = _normalize_zephyr_text(z_title) + " " + _normalize_zephyr_text(z_folder)
+    for t in sorted(p_spec, key=len, reverse=True):
+        if len(t) >= 4 and t in z_blob and t not in inter_spec:
+            score += 6.0
+            reasons.append(f"match '{t}'")
+
+    # Prefer same / related folder leaf only when leaf itself is non-generic
+    z_leaf = z_folder.rstrip("/").split("/")[-1] if z_folder else ""
+    p_leaf_spec = _specific_tokens(_zephyr_tokens(p_leaf))
+    if p_leaf and p_leaf == z_leaf and p_leaf_spec:
+        score += 10.0
+        reasons.append(f"same area '{p_leaf}'")
+    elif p_leaf_spec and (p_leaf_spec & set(_zephyr_tokens(z_folder))):
+        score += 4.0
+        reasons.append("related folder")
+
+    lab = p_labels & z_labels
+    if lab:
+        # Shared process labels like Functional are weak; New_Platform_* is stronger
+        strong = {x for x in lab if "platform" in x.lower() or "new_" in x.lower()}
+        if strong:
+            score += 6.0 * len(strong)
+            reasons.append("shared label")
+        elif score > 0:
+            score += 1.0
+
+    # Soft quality boosts only if already relevant
+    if score > 0:
+        if z.get("has_objective"):
+            score += 0.5
+        if (z.get("num_steps") or 0) > 0:
+            score += 0.3
+
+    # Drop pure noise: require at least one specific signal
+    if not inter_spec and score < 10:
+        return 0.0, ""
+
+    # Single weak token (e.g. only "log") is usually noise unless reinforced by
+    # another primary token (including semi-generic area words like ipv6/ipv4/port).
+    area_support = {"ipv4", "ipv6", "port", "switch", "poe", "stp", "vlan"}
+    support_hits = (p_toks & z_toks) & area_support
+    if len(inter_spec) == 1:
+        only = next(iter(inter_spec))
+        if only in _ZREF_WEAK_ALONE and not support_hits and score < 28:
+            return 0.0, ""
+        if support_hits:
+            score += 8.0
+            reasons.append("area: " + ", ".join(sorted(support_hits)[:3]))
+
+    # If the *title/folder* has multiple specific tokens, lightly prefer multi-hits.
+    # (Do not over-penalize — single strong features like "qos" + area still count.)
+    title_spec = _specific_tokens(
+        set(_zephyr_tokens(p_title)) | set(_zephyr_tokens(p_leaf))
+    )
+    if len(title_spec) >= 2 and len(inter_spec) < 2 and score < 24:
+        score *= 0.7
+
+    # Hard anchors: feature nouns that must appear when present on the primary title.
+    # Prevents e.g. ARP Logging matching generic 802.1X "Authentication Log" cases.
+    hard_anchors = title_spec & {
+        "arp", "dhcp", "mdi", "mdix", "bgp", "ospf", "poe", "epsr",
+        "rstp", "mstp", "snmp", "mib", "vrf", "nat", "igmp", "mlag",
+        "vxlan", "probe", "stp",
+    }
+    if hard_anchors and not (hard_anchors & (z_spec | z_toks)):
+        return 0.0, ""
+
+    reason = "; ".join(reasons[:3]) if reasons else "related"
+    return score, reason
+
+
+def _select_related_zephyr_refs(
+    key: str,
+    primary_case: dict,
+    sess: WizardSession,
+    data: dict,
+    limit: int = 8,
+) -> List[Dict[str, Any]]:
+    """Pick external Zephyr cross-refs ranked by relevance (not first-N of slim_index).
+
+    Omits the loaded key and every key in the current Cases list (candidates with data).
+    Enriches only the top-ranked hits (description / steps) for UI review.
+    """
+    current_cases = {
+        c["key"] for c in data.get("candidates", []) or []
+        if c.get("candidates")
+    }
+    zm = data.get("zephyr_master", {}) or {}
+    slim = data.get("slim_index", []) or []
+
+    extra: set = set()
+    # Prefer decision *rationale* (w), not match ids (m) which are AWP-#### noise for scoring
+    if sess and sess.primary:
+        extra |= set(_zephyr_tokens(str(sess.primary.get("w") or "")))
+    dec = (data.get("decisions") or {}).get(key) or {}
+    extra |= set(_zephyr_tokens(str(dec.get("w") or "")))
+    # Drop pure ids / numeric fragments from extras
+    extra = {t for t in extra if not t.isdigit() and not t.startswith("awp")}
+
+    scored: List[tuple] = []
+    for z in slim:
+        rel_key = z.get("key")
+        if not rel_key or rel_key == key or rel_key in current_cases:
+            continue
+        sc, reason = _score_zephyr_candidate(primary_case or {}, z, extra)
+        if sc >= 8.0:
+            scored.append((sc, z, reason))
+
+    scored.sort(key=lambda x: (-x[0], x[1].get("title") or ""))
+
+    # Diversify: skip near-duplicate titles (same stem) so UI shows variety
+    seen_stems: set = set()
+    top: List[tuple] = []
+    for sc, z, reason in scored:
+        stem = re.sub(r"\s+", " ", _normalize_zephyr_text(z.get("title") or ""))[:48]
+        if stem in seen_stems:
+            continue
+        seen_stems.add(stem)
+        top.append((sc, z, reason))
+        if len(top) >= limit:
+            break
+
+    # Single-pass enrich only for top keys missing from zephyr_master
+    need_full = [z["key"] for _, z, _ in top if z["key"] not in zm]
+    full_map = _get_full_zephyr_cases_batch(need_full) if need_full else {}
+
+    zrefs: List[Dict[str, Any]] = []
+    for sc, z, reason in top:
+        rel_key = z["key"]
+        f = z.get("folder", "") or ""
+        t = z.get("title", "") or ""
+        desc_parts: List[str] = []
+        full = zm.get(rel_key) or full_map.get(rel_key) or {}
+        if full.get("objective"):
+            desc_parts.append("Objective: " + str(full["objective"])[:400])
+        if full.get("precondition"):
+            desc_parts.append("Precondition: " + str(full["precondition"])[:300])
+
+        meta = []
+        if z.get("status"):
+            meta.append(f"Status: {z['status']}")
+        if "has_objective" in z:
+            meta.append(f"Has objective: {z['has_objective']}")
+        if "num_steps" in z:
+            meta.append(f"Num steps: {z['num_steps']}")
+        if z.get("labels"):
+            meta.append(f"Labels: {', '.join(z['labels'])}")
+        if meta:
+            desc_parts.append(" | ".join(meta))
+
+        steps_source = full.get("steps", []) or []
+        if steps_source:
+            steps_list = []
+            for i, s in enumerate(steps_source[:6], 1):
+                d = (s.get("description") or "").strip()
+                if d:
+                    steps_list.append(f"{i}. {d[:200]}")
+            if steps_list:
+                desc_parts.append("Steps:\n" + "\n".join(steps_list))
+
+        if not desc_parts:
+            desc_parts.append(t or "Related Zephyr case")
+
+        zrefs.append({
+            "key": rel_key,
+            "title": t,
+            "folder": f,
+            "score": round(sc, 2),
+            "description": "\n\n".join(desc_parts),
+            "justification": reason or "Related Zephyr case",
+        })
+    return zrefs
+
+
 @router.post("/load_case/{key}")
 async def load_case(key: str, data=Depends(get_data)):
     """Load or restore a case. Enriches response with real TestLink candidates + Zephyr refs
-    so that the UI tables can be populated for a full runnable demo.
+    so that the UI tables can be populated from real data.
     """
     # Check in-memory or disk first
     sess = sessions.get(key) or _load_persisted(key)
@@ -100,105 +475,482 @@ async def load_case(key: str, data=Depends(get_data)):
             sess.primary = {"m": primary.get("m"), "c": primary.get("c"), "w": primary.get("w")}
         sessions[key] = sess
 
+    # Carry over workspace LLM preference (last Apply / Login) so switching cases
+    # does not reset provider / CLI mode back to empty defaults.
+    if _apply_workspace_llm_if_needed(sess):
+        _mark_updated(sess)
+
     _persist_session(sess)
 
-    # Real data for UI tables (demo)
+    # Real data for UI tables from loaded case data.
+    zm = data.get("zephyr_master", {}) or {}
+    primary_case = zm.get(key, {}) or {}
+    case_title = primary_case.get("title", "") if key else ""
     cdata = data.get("candidates_dict", {}).get(key)
-    tl_cands = (cdata or {}).get("candidates", [])[:8] if cdata else []
-
-    zrefs = []
-    zm = data.get("zephyr_master", {})
-    if key in zm:
-        z = zm[key]
-        zrefs.append({
-            "key": key,
-            "title": z.get("title", ""),
-            "folder": z.get("folder", ""),
-            "justification": "The case being refined"
+    testlink = data.get("testlink", {})
+    tl_cands = []
+    for cand in (cdata or {}).get("candidates", [])[:8]:
+        aid = cand.get("id")
+        full = testlink.get(aid, {})
+        steps = full.get("steps", [])
+        if steps:
+            desc_parts = []
+            for s in steps:
+                action = s.get("action", "").strip()
+                expected = s.get("expected", "").strip()
+                if action or expected:
+                    desc_parts.append(f"Step: {action}\nExpected: {expected}")
+            rich_desc = "\n\n".join(desc_parts) if desc_parts else cand.get("snippet", "")
+        else:
+            rich_desc = cand.get("snippet", "") or cand.get("title", "")
+        tl_cands.append({
+            **cand,
+            "description": rich_desc,
         })
-    # Add a few related from slim_index (simple demo filter)
-    for z in data.get("slim_index", []):
-        if len(zrefs) >= 5:
-            break
-        f = z.get("folder", "") or ""
-        t = z.get("title", "") or ""
-        if "Port" in f or "MDI" in t or "Auto" in t:
-            zrefs.append({
-                "key": z["key"],
-                "title": t[:80],
-                "folder": f,
-                "justification": "Related Zephyr case (same area/keywords)"
-            })
+
+    # Step 2: relevance-ranked external Zephyr cross-refs only (omit current Cases list + primary)
+    zrefs = _select_related_zephyr_refs(key, primary_case, sess, data, limit=8)
+
+    # === Pre-scored ATP candidates for Step 3 (ranking only; gaps are synthesis/export) ===
+    # Build query from case title + prior selections (same logic used by suggest)
+    atp_query = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
+    atp_cands_raw = _get_atp_candidates(atp_query, data, limit=18)
+
+    # Run LLM ranking using real provider (no Step 3 gaps field).
+    llm_cfg = {}
+    if hasattr(sess, "llm_config"):
+        llm_cfg = sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
+    analysis = analyze_atp_coverage(
+        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        atp_cands_raw,
+        llm_config=llm_cfg
+    )
+
+    # Convert ranked results into the shape expected by the new table renderer (with score)
+    ranked = analysis.get("ranked", [])
+    atp_candidates = []
+    test_id_desc = data.get("test_id_desc", {}) or {}
+    for r in ranked:
+        rid = r.get("id")
+        # better enrichment: lookup full desc from the main data
+        info = test_id_desc.get(rid, {})
+        title = info.get("description") or rid
+        suite = info.get("suite_name", "")
+        atp_candidates.append({
+            "id": rid,
+            "title": title,
+            "score": r.get("score", 0.5),
+            "suite": suite,
+            "justification": r.get("reason", "Relevant ATP coverage"),
+            "description": r.get("reason", "Relevant ATP coverage"),
+            "source": "llm",
+        })
+
+    # Merge LLM ranked with keyword candidates (dedupe by id); keyword fills gaps
+    seen_ids = {c.get("id") for c in atp_candidates}
+    for c in atp_cands_raw:
+        cid = c.get("id")
+        if not cid or cid in seen_ids:
+            continue
+        atp_candidates.append({
+            "id": cid,
+            "title": c.get("description") or c.get("title") or cid,
+            "score": c.get("score", 0.55),
+            "suite": c.get("suite", ""),
+            "justification": "Candidate from keyword search",
+            "description": c.get("description") or c.get("title") or "Candidate from keyword search",
+            "source": "keyword",
+        })
+        seen_ids.add(cid)
+
+    # Filter out non-functional tests for Step 3
+    atp_candidates = [
+        c for c in atp_candidates
+        if "(not a functional test)" not in (c.get("title", "") + c.get("description", "")).lower()
+    ]
+    # Stable sort: higher score first
+    atp_candidates.sort(key=lambda c: (-float(c.get("score") or 0), str(c.get("id") or "")))
 
     return {
         "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         "testlink_candidates": tl_cands,
         "zephyr_refs": zrefs,
+        "atp_candidates": atp_candidates[:12],
+        "case_title": case_title,
         "message": "Case loaded (or restored from persistence). Confirm each of the three database reviews explicitly before synthesis is allowed."
     }
 
 
+def _refined_complete_keys() -> set:
+    """Cases with drop-in refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json are 'complete'."""
+    refined_root = BASE_DIR.parent.parent / "refined-cases"
+    done = set()
+    if not refined_root.exists():
+        return done
+    try:
+        for path in refined_root.rglob("zephyr_payload.json"):
+            parent = path.parent.name
+            if parent.startswith("AWPTCM-"):
+                done.add(parent)
+    except Exception as e:
+        print(f"Warning: scanning refined-cases failed: {e}")
+    return done
+
+
+def _session_progress_map() -> Dict[str, dict]:
+    """Per-case wizard progress from sessions/*.json (confirms + step4)."""
+    out: Dict[str, dict] = {}
+    try:
+        for path in SESSIONS_DIR.glob("AWPTCM-*.json"):
+            try:
+                raw = json.load(open(path, encoding="utf-8"))
+            except Exception:
+                continue
+            key = raw.get("key") or path.stem
+            s1 = bool((raw.get("step1") or {}).get("confirmed"))
+            s2 = bool((raw.get("step2") or {}).get("confirmed"))
+            s3 = bool((raw.get("step3") or {}).get("confirmed"))
+            has_step4 = bool(raw.get("step4"))
+            n_conf = sum([s1, s2, s3])
+            if n_conf or has_step4 or (raw.get("gaps") or "").strip():
+                out[key] = {
+                    "step1": s1,
+                    "step2": s2,
+                    "step3": s3,
+                    "has_step4": has_step4,
+                    "confirms": n_conf,
+                    "status": "in_progress",
+                }
+    except Exception as e:
+        print(f"Warning: scanning sessions failed: {e}")
+    return out
+
+
+def _build_case_groups(keys, zephyr: dict) -> List[dict]:
+    """Group case keys by Zephyr folder leaf for optgroups."""
+    groups: Dict[str, List[str]] = {}
+    for key in keys:
+        folder = zephyr.get(key, {}).get("folder", "") or ""
+        group = folder.rstrip("/").split("/")[-1] if folder else "Other"
+        groups.setdefault(group, []).append(key)
+    for g in groups:
+        groups[g].sort(key=lambda k: (k.split("-T")[-1] if "-T" in k else k))
+    grouped = []
+    for g in sorted(groups.keys()):
+        case_list = groups[g]
+        enriched = []
+        for k in case_list:
+            title = zephyr.get(k, {}).get("title", k)
+            enriched.append({"key": k, "title": title})
+        grouped.append({"label": f"{g} ({len(case_list)})", "cases": enriched})
+    return grouped
+
+
 @router.get("/cases")
 async def get_cases(data=Depends(get_data)):
-    """Return a short list of cases that have candidate data for the demo selector."""
+    """Return cases split into complete vs open/incomplete for dual dropdowns.
+
+    - complete: refined-cases has zephyr_payload.json for the case
+    - incomplete: all other candidate cases
+      - in_progress: has wizard session progress (confirms / step4)
+      - not_started: no session progress yet
+    """
     cands = data.get("candidates", []) or []
-    keys = [c["key"] for c in cands if c.get("candidates")][:100]
-    # Prioritize the demo auto-negotiation case at the top
-    if "AWPTCM-T33234" in keys:
-        keys = ["AWPTCM-T33234"] + [k for k in keys if k != "AWPTCM-T33234"]
-    return {"cases": keys}
+    zephyr = data.get("zephyr_master", {})
+    all_keys = [c["key"] for c in cands if c.get("candidates") and c.get("key")]
+
+    complete_set = _refined_complete_keys()
+    progress = _session_progress_map()
+
+    complete_keys = sorted(
+        [k for k in all_keys if k in complete_set],
+        key=lambda k: (k.split("-T")[-1] if "-T" in k else k),
+    )
+    incomplete_keys = sorted(
+        [k for k in all_keys if k not in complete_set],
+        key=lambda k: (k.split("-T")[-1] if "-T" in k else k),
+    )
+    in_progress_keys = [k for k in incomplete_keys if k in progress]
+    not_started_keys = [k for k in incomplete_keys if k not in progress]
+
+    def enrich(keys):
+        return [
+            {
+                "key": k,
+                "title": zephyr.get(k, {}).get("title", k),
+                "status": "complete" if k in complete_set else (
+                    "in_progress" if k in progress else "not_started"
+                ),
+                "progress": progress.get(k),
+            }
+            for k in keys
+        ]
+
+    # Open/partial dropdown order:
+    #  1) Single top optgroup with ALL in-progress/partial cases (always first)
+    #  2) Not-started cases grouped by folder below
+    incomplete_grouped = []
+    if in_progress_keys:
+        # Sort partials by folder leaf then key so related work stays together within the top block
+        def _partial_sort_key(k: str):
+            folder = zephyr.get(k, {}).get("folder", "") or ""
+            leaf = folder.rstrip("/").split("/")[-1] if folder else "Other"
+            num = k.split("-T")[-1] if "-T" in k else k
+            return (leaf.lower(), num)
+
+        partial_sorted = sorted(in_progress_keys, key=_partial_sort_key)
+        partial_cases = []
+        for k in partial_sorted:
+            title = zephyr.get(k, {}).get("title", k)
+            prog = progress.get(k) or {}
+            # Light progress hint in title for the top partials block
+            conf = prog.get("confirms", 0)
+            hint = f" [{conf}/3 steps]" if conf else ""
+            if prog.get("has_step4") and conf:
+                hint = " [synth done]"
+            elif prog.get("has_step4"):
+                hint = " [has draft]"
+            partial_cases.append({
+                "key": k,
+                "title": f"{title}{hint}" if title else f"{k}{hint}",
+            })
+        incomplete_grouped.append({
+            "label": f"In progress / partial ({len(partial_cases)}) — shown first",
+            "cases": partial_cases,
+            "bucket": "in_progress",
+        })
+    if not_started_keys:
+        for grp in _build_case_groups(not_started_keys, zephyr):
+            incomplete_grouped.append({
+                "label": f"Not started — {grp['label']}",
+                "cases": grp["cases"],
+                "bucket": "not_started",
+            })
+
+    complete_grouped = _build_case_groups(complete_keys, zephyr)
+    for grp in complete_grouped:
+        grp["bucket"] = "complete"
+
+    # Flat incomplete list also puts partials first
+    incomplete_flat_keys = in_progress_keys + not_started_keys
+
+    return {
+        "counts": {
+            "total": len(all_keys),
+            "complete": len(complete_keys),
+            "incomplete": len(incomplete_keys),
+            "in_progress": len(in_progress_keys),
+            "not_started": len(not_started_keys),
+        },
+        "incomplete": {
+            "cases": enrich(incomplete_flat_keys),
+            "grouped": incomplete_grouped,
+        },
+        "complete": {
+            "cases": enrich(complete_keys),
+            "grouped": complete_grouped,
+        },
+        # Backward-compatible flat fields (partials first, then not-started, then complete)
+        "cases": enrich(incomplete_flat_keys + complete_keys),
+        "grouped": incomplete_grouped + complete_grouped,
+    }
 
 
 @router.get("/search_atp")
 async def search_atp(q: str = "", data=Depends(get_data)):
-    """Simple ATPyLib search for Step 3 (demo)."""
-    descs = data.get("test_id_desc", {}) or {}
+    """ATPyLib keyword search for Step 3 (merged client-side with preloaded candidates)."""
+    cands = _get_atp_candidates(q, data, limit=20)
+    return {
+        "results": [
+            {
+                "id": c.get("id"),
+                "title": (c.get("description") or c.get("title") or "")[:120],
+                "suite": c.get("suite", ""),
+                "score": c.get("score", 0.6),
+            }
+            for c in cands
+        ]
+    }
+
+
+def _search_testlink(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
+    """Keyword search over full TestLink extract (id + title + steps text)."""
+    tl = data.get("testlink", {}) or {}
     qlow = (q or "").lower().strip()
-    results = []
-    for tid, info in list(descs.items())[:2000]:
-        text = (tid + " " + (info.get("description") or "") + " " + (info.get("suite_name") or "")).lower()
-        if qlow and qlow not in text:
+    words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
+    if not words:
+        return []
+    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    rank_words = specific or words
+    scored = []
+    for tid, item in tl.items():
+        title = item.get("title") or ""
+        steps = item.get("steps") or []
+        step_blob = " ".join(
+            f"{s.get('action','')} {s.get('expected','')}" for s in steps[:12]
+        )
+        text = f"{tid} {title} {step_blob}".lower()
+        hit = sum(1 for w in rank_words if w in text)
+        if hit <= 0:
             continue
-        results.append({
+        # Build short description from steps
+        desc_parts = []
+        for s in steps[:4]:
+            a = (s.get("action") or "").strip()
+            e = (s.get("expected") or "").strip()
+            if a or e:
+                desc_parts.append(f"Step: {a}\nExpected: {e}" if (a or e) else "")
+        rich = "\n\n".join(p for p in desc_parts if p) or title
+        scored.append((hit, {
             "id": tid,
-            "title": (info.get("description") or tid)[:90],
-            "suite": info.get("suite_name", "")
-        })
-        if len(results) > 15:
+            "title": title,
+            "score": min(0.95, 0.4 + 0.1 * hit),
+            "description": rich[:500],
+            "snippet": (item.get("snippet") or title or "")[:200],
+            "source": "search",
+            "justification": f"Matched search ({hit} token hits)",
+        }))
+    scored.sort(key=lambda x: (-x[0], x[1]["id"]))
+    return [item for _, item in scored[:limit]]
+
+
+def _search_zephyr_external(
+    q: str,
+    data: dict,
+    case_key: str = "",
+    limit: int = 20,
+) -> List[Dict[str, Any]]:
+    """Keyword search over slim_index, omitting current Cases list + primary key."""
+    current_cases = {
+        c["key"] for c in data.get("candidates", []) or []
+        if c.get("candidates")
+    }
+    if case_key:
+        current_cases.add(case_key)
+    qlow = (q or "").lower().strip()
+    words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
+    if not words:
+        return []
+    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    rank_words = specific or words
+    scored = []
+    for z in data.get("slim_index", []) or []:
+        rel_key = z.get("key")
+        if not rel_key or rel_key in current_cases:
+            continue
+        title = z.get("title") or ""
+        folder = z.get("folder") or ""
+        text = f"{rel_key} {title} {folder}".lower()
+        hit = sum(1 for w in rank_words if w in text)
+        if hit <= 0:
+            continue
+        scored.append((hit, {
+            "key": rel_key,
+            "id": rel_key,
+            "title": title,
+            "folder": folder,
+            "score": min(0.95, 0.4 + 0.12 * hit),
+            "description": title,
+            "justification": f"Matched search ({hit} token hits)",
+            "source": "search",
+        }))
+    scored.sort(key=lambda x: (-x[0], x[1].get("key") or ""))
+    # diversify titles slightly
+    seen = set()
+    out = []
+    for _, item in scored:
+        stem = re.sub(r"\s+", " ", (item.get("title") or "").lower())[:40]
+        if stem in seen:
+            continue
+        seen.add(stem)
+        out.append(item)
+        if len(out) >= limit:
             break
-    return {"results": results}
+    return out
 
 
-def _build_atp_query(sess: WizardSession) -> str:
+@router.get("/search_testlink")
+async def search_testlink(q: str = "", data=Depends(get_data)):
+    """TestLink keyword search for Step 1 (merged client-side with load candidates)."""
+    return {"results": _search_testlink(q, data, limit=20)}
+
+
+@router.get("/search_zephyr")
+async def search_zephyr(q: str = "", case_key: str = "", data=Depends(get_data)):
+    """External Zephyr keyword search for Step 2 (omits current Cases list)."""
+    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20)}
+
+
+def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
     """Build a keyword search query from case + previous selections for ATP retrieval."""
-    parts = [sess.key or ""]
+    parts = [sess.key or "", case_title or ""]
     if sess.primary:
         parts.append(str(sess.primary.get("w", "")))
         parts.append(str(sess.primary.get("m", "")))
     for sel in (sess.step1.selections or []):
         parts.append(sel.title or "")
+        parts.append(sel.justification or "")
     for sel in (sess.step2.selections or []):
         parts.append(sel.title or "")
-    return " ".join(parts)
+    # Prefer specific tokens for search quality
+    raw = " ".join(parts)
+    toks = [t for t in _zephyr_tokens(raw) if t not in _ZREF_GENERIC_TOKENS]
+    # Fall back to raw if everything was filtered
+    return " ".join(toks[:24]) if toks else raw
 
 
 def _get_atp_candidates(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
-    """Retrieve candidate ATP tests using simple keyword search (same logic as search_atp)."""
+    """Retrieve candidate ATP tests using keyword search ranked by token hits."""
     descs = data.get("test_id_desc", {}) or {}
     qlow = (q or "").lower().strip()
-    results = []
-    for tid, info in list(descs.items())[:3000]:
-        text = (tid + " " + (info.get("description") or "") + " " + (info.get("suite_name") or "")).lower()
-        if qlow and qlow not in text:
+    words = [w for w in re.findall(r"[a-z0-9][a-z0-9.+_-]{1,}", qlow) if len(w) > 2]
+    # Prefer non-generic words when ranking
+    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    rank_words = specific or words
+    scored = []
+    for tid, info in descs.items():
+        desc = info.get("description") or ""
+        suite = info.get("suite_name") or ""
+        if "(not a functional test)" in desc.lower() or "(not a functional test)" in tid.lower():
             continue
-        results.append({
+        text = (tid + " " + desc + " " + suite).lower()
+        if rank_words and not any(w in text for w in rank_words):
+            continue
+        hit = sum(1 for w in rank_words if w in text)
+        if hit <= 0 and words:
+            continue
+        scored.append((hit, {
             "id": tid,
-            "description": (info.get("description") or tid)[:200],
-            "suite": info.get("suite_name", "")
-        })
-        if len(results) >= limit:
-            break
-    return results
+            "description": desc[:200],
+            "title": desc[:120],
+            "suite": suite,
+            "score": min(0.95, 0.45 + 0.1 * hit),
+        }))
+    scored.sort(key=lambda x: (-x[0], x[1]["id"]))
+    return [item for _, item in scored[:limit]]
+
+
+def _get_refined_group(case_key: str, data: dict) -> str:
+    """Determine the appropriate refined-cases group folder for a case.
+    Uses the last segment of the zephyr folder (e.g. 'Port', 'IPv4').
+    Tries to match an existing refined-cases directory for consistency
+    (e.g. 'Port (7)', 'IPv4 (44)'), otherwise uses the base name and creates if needed.
+    Cross-references PROGRESS.md (output generation to produce drop-in refined-cases artifacts)
+    and SERVER-README.md (drop files into refined-cases/<Group>/...).
+    """
+    zephyr = data.get("zephyr_master", {})
+    folder = zephyr.get(case_key, {}).get("folder", "") or ""
+    base = folder.rstrip("/").split("/")[-1] if folder else "Other"
+
+    refined_root = BASE_DIR.parent.parent / "refined-cases"
+    if refined_root.exists():
+        for d in sorted(refined_root.iterdir()):
+            if d.is_dir():
+                name = d.name
+                # Match if base appears in existing group name (case insensitive)
+                if base.lower() in name.lower() or name.lower().startswith(base.lower()):
+                    return name
+    return base
 
 
 @router.post("/suggest_atp/{key}")
@@ -230,6 +982,108 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
         "query_used": q,
         "num_candidates_considered": len(candidates),
         "suggestions": suggestions  # list of {id, reason}
+    }
+
+
+def _session_llm_cfg(sess: WizardSession) -> dict:
+    if hasattr(sess, "llm_config"):
+        return sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
+    return {}
+
+
+@router.post("/suggest_testlink/{key}")
+async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends(get_data)):
+    """LLM pre-select TestLink cases for Step 1 (user reviews/approves)."""
+    body = body or {}
+    sess = sessions.get(key) or _load_persisted(key)
+    if not sess:
+        raise HTTPException(404, "Session not found. Load the case first.")
+    zm = data.get("zephyr_master", {}) or {}
+    case_title = zm.get(key, {}).get("title", "") or ""
+    q = body.get("q") or " ".join(filter(None, [
+        case_title,
+        str((sess.primary or {}).get("w") or ""),
+        str((sess.primary or {}).get("m") or ""),
+    ]))
+    candidates = _search_testlink(q, data, limit=30)
+    # Also include load-time candidates for this case if present
+    cdata = data.get("candidates_dict", {}).get(key) or {}
+    seen = {c.get("id") for c in candidates}
+    for cand in (cdata.get("candidates") or [])[:12]:
+        cid = cand.get("id")
+        if cid and cid not in seen:
+            candidates.append({
+                "id": cid,
+                "title": cand.get("title") or cid,
+                "description": cand.get("snippet") or cand.get("title") or "",
+                "snippet": cand.get("snippet") or "",
+                "score": cand.get("score") or 0.5,
+            })
+            seen.add(cid)
+    suggestions = suggest_relevant_testlink(
+        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        candidates,
+        llm_config=_session_llm_cfg(sess),
+        case_title=case_title,
+    )
+    # Enrich suggestions with candidate metadata for the UI merge
+    by_id = {c.get("id"): c for c in candidates if c.get("id")}
+    enriched = []
+    for s in suggestions:
+        base = by_id.get(s["id"], {})
+        enriched.append({
+            **s,
+            "title": base.get("title") or s["id"],
+            "description": base.get("description") or base.get("snippet") or s.get("reason") or "",
+            "score": base.get("score", 0.85),
+        })
+    return {
+        "query_used": q,
+        "num_candidates_considered": len(candidates),
+        "suggestions": enriched,
+    }
+
+
+@router.post("/suggest_zephyr/{key}")
+async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(get_data)):
+    """LLM pre-select external Zephyr cross-refs for Step 2."""
+    body = body or {}
+    sess = sessions.get(key) or _load_persisted(key)
+    if not sess:
+        raise HTTPException(404, "Session not found. Load the case first.")
+    zm = data.get("zephyr_master", {}) or {}
+    case_title = zm.get(key, {}).get("title", "") or ""
+    q_parts = [
+        case_title,
+        str((sess.primary or {}).get("w") or ""),
+    ]
+    for sel in (sess.step1.selections or [])[:6]:
+        q_parts.append(sel.title or "")
+    q = body.get("q") or " ".join(filter(None, q_parts))
+    candidates = _search_zephyr_external(q, data, case_key=key, limit=30)
+    suggestions = suggest_relevant_zephyr(
+        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        candidates,
+        llm_config=_session_llm_cfg(sess),
+        case_title=case_title,
+    )
+    by_id = {c.get("id") or c.get("key"): c for c in candidates}
+    enriched = []
+    for s in suggestions:
+        base = by_id.get(s["id"], {})
+        enriched.append({
+            **s,
+            "key": s["id"],
+            "title": base.get("title") or s["id"],
+            "folder": base.get("folder") or "",
+            "description": base.get("description") or base.get("title") or s.get("reason") or "",
+            "justification": s.get("reason") or "LLM suggestion",
+            "score": base.get("score", 0.85),
+        })
+    return {
+        "query_used": q,
+        "num_candidates_considered": len(candidates),
+        "suggestions": enriched,
     }
 
 
@@ -271,9 +1125,14 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
                 pass
         sess.step3.confirmed = True
         sess.step3.confirmed_at = datetime.utcnow()
-        sess.gaps = body.get("gaps", "")
+        # Gaps are LLM-generated at synthesis/export for Traceability — not user-edited in Step 3
         if "art_string" in body:
             sess.art_string = body.get("art_string", "")
+        # Auto-build ART string from confirmed ATP selections when not provided
+        if not sess.art_string and sess.step3.selections:
+            ids = [s.id_or_key for s in sess.step3.selections if s.id_or_key]
+            if ids:
+                sess.art_string = " + ".join(ids[:8])
     else:
         raise HTTPException(400, "Invalid step")
 
@@ -286,28 +1145,73 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     }
 
 
+@router.post("/clear_session/{key}")
+async def clear_session(key: str):
+    """Clear both in-memory and persisted session state for a case.
+    Useful for resetting after a bad confirm or wanting to start fresh.
+
+    Does NOT clear the workspace LLM preference — Apply / Login still applies
+    to the next case you load.
+    """
+    sessions.pop(key, None)
+    _clear_persisted(key)
+    return {
+        "message": f"Session for {key} cleared (workspace LLM preference kept)",
+        "workspace_llm_kept": True,
+    }
+
+
+@router.get("/claude_cli_status")
+async def claude_cli_status():
+    """Report whether the Claude Code CLI is installed on the server machine.
+
+    Used by the headless "claude_code" auth mode. Checks binary presence + version
+    only (spends no tokens). Login state surfaces on first real call.
+    """
+    return check_claude_cli()
+
+
+@router.get("/grok_cli_status")
+async def grok_cli_status():
+    """Report whether the xAI Grok CLI is installed (for SuperGrok/X Premium+ subscription login)."""
+    return check_grok_cli()
+
+
 @router.post("/set_llm_config/{key}")
 async def set_llm_config(key: str, body: dict):
-    """Login-like endpoint. Sets per-session LLM provider and key (Grok or Claude).
-    Similar to VS Code extension login flows: key is stored server-side for the session
-    and used for synthesis instead of (or overriding) environment variables.
-    Never returns the raw key to the client.
+    """Login-like endpoint. Sets per-session LLM provider.
+
+    Supports two styles:
+    - "api_key": classic developer key (from the provider's console)
+    - "claude_code": headless Claude Code CLI mode (Claude only). No credential is
+      collected — calls run through the locally installed `claude` CLI, which the
+      hosting user has logged in with their Claude Team account. Usage bills
+      against that subscription seat, not API credits.
+
+    Legacy "account" configs (old token-paste flow) are still accepted and treated
+    like api_key. Credentials are stored server-side only and never returned.
     """
     sess = sessions.get(key) or _load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Load a case first.")
 
-    provider = (body.get("provider") or "mock").lower().strip()
+    provider = (body.get("provider") or "grok").lower().strip()
     auth_method = (body.get("auth_method") or "api_key").lower().strip()
     api_key = body.get("api_key")
     token = body.get("token")
     base_url = body.get("base_url")
     model = body.get("model")
 
-    if provider not in ("grok", "claude", "openai", "mock"):
-        provider = "mock"
-    if auth_method not in ("api_key", "account"):
+    if provider not in ("grok", "claude", "openai"):
+        provider = "grok"
+    if provider == "mock":
+        raise HTTPException(400, "MOCK provider removed. Use grok, claude or openai with real auth.")
+    if auth_method not in ("api_key", "account", "claude_code", "grok_cli"):
         auth_method = "api_key"
+    if auth_method == "claude_code" and provider != "claude":
+        raise HTTPException(400, "Headless Claude Code mode is only available for the Claude provider.")
+    if auth_method == "grok_cli" and provider != "grok":
+        raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
 
     # Apply to session (credentials stay on server)
     sess.llm_config.provider = provider
@@ -323,25 +1227,38 @@ async def set_llm_config(key: str, body: dict):
         sess.llm_config.model = model
     else:
         # Sensible defaults per provider
-        if provider == "grok":
+        if provider == "grok" and auth_method != "grok_cli":
             sess.llm_config.model = "grok-beta"
-        elif provider == "claude":
+        elif provider == "claude" and auth_method != "claude_code":
             sess.llm_config.model = "claude-3-5-sonnet-20241022"
+        # claude_code / grok_cli: leave model unset so the CLI's own default is used
 
     _mark_updated(sess)
     _persist_session(sess)
+    # Remember as workspace default so future case loads keep this LLM choice
+    _save_global_llm(sess.llm_config)
+
+    # Headless mode readiness comes from the CLI install, not a stored credential
+    cli_status = check_claude_cli() if auth_method == "claude_code" else None
+    grok_cli_status = check_grok_cli() if auth_method == "grok_cli" else None
 
     # Return safe view (no credentials)
     safe_config = {
         "provider": sess.llm_config.provider,
         "auth_method": sess.llm_config.auth_method,
-        "has_key": bool(sess.llm_config.api_key or sess.llm_config.token),
+        "has_key": bool(sess.llm_config.api_key or sess.llm_config.token) or
+                   (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
+                   (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))),
         "model": sess.llm_config.model,
         "base_url": sess.llm_config.base_url,
     }
+    if cli_status is not None:
+        safe_config["claude_cli"] = cli_status
+    if grok_cli_status is not None:
+        safe_config["grok_cli"] = grok_cli_status
 
     return {
-        "message": f"LLM config set for {provider}.",
+        "message": f"LLM config set for {provider} (saved for this case and as workspace default).",
         "llm_config": safe_config,
         "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump()
     }
@@ -372,11 +1289,17 @@ async def synthesize(req: SynthesisRequest):
     # Convert for llm.py (expects dict with step1.selections etc.)
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
 
-    # Pass session's llm_config (from "login") so it can override env/MOCK
+    # Pass session's llm_config (from "login") so it can override env.
     llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
     result = synthesize_objectives_and_steps(session_dict, llm_config=llm_cfg)
 
-    stored.step4 = result
+    # Store clean core data in step4 (keep validation at the synthesized response level only)
+    clean_step4 = {k: v for k, v in result.items() if k not in ("validation", "gaps")}
+    stored.step4 = clean_step4
+    # Gaps for Traceability artefact — produced by LLM at synthesis, not Step 3 UI
+    if result.get("gaps"):
+        stored.gaps = result["gaps"]
+
     # Capture full LLM provenance (exact prompts + responses) into session for audit/repeatability
     if "provenance" in result:
         if not stored.full_session:
@@ -391,13 +1314,16 @@ async def synthesize(req: SynthesisRequest):
     }
 
 @router.post("/export", response_model=ExportResponse)
-async def export(req: SynthesisRequest):
+async def export(req: SynthesisRequest, data=Depends(get_data)):
     """Produce repeatable, templated bundle for the case.
     Uses authoritative server-stored session (after all confirms).
     - Builds proper first traceability note via server-side function (for repeatability).
     - Renders traceability.md.jinja with full context from selections.
     - Assembles exact zephyr_payload.json shape expected by refined-cases + upload_refined.py.
-    Cross-references PROGRESS.md (High Priority: Complete output generation) and SERVER-README (LLM templating + output templates section).
+    - Also writes the main outputs (traceability.md + zephyr_payload.json) directly
+      into refined-cases/<Group>/AWPTCM-Txxxx/ (creating folders if needed).
+    Cross-references PROGRESS.md (High Priority: Complete output generation - "Update export to produce drop-in refined-cases artifacts")
+    and SERVER-README.md (output artifacts drop-in compatible; drop into refined-cases/<Group>/...).
     """
     key = None
     if hasattr(req.session, "key"):
@@ -422,25 +1348,41 @@ async def export(req: SynthesisRequest):
     case_key = key or sess_dict.get("key", "unknown")
     step4 = sess_dict.get("step4", {}) or {}
 
-    # Rebuild the testScript with server-constructed repeatable note as first step
+    # Gaps belong in Traceability and are LLM-generated at completion (synthesis/export),
+    # not collected as a Step 3 form field.
+    llm_cfg = sess_dict.get("llm_config", {}) if isinstance(sess_dict, dict) else {}
+    if not (sess_dict.get("gaps") or "").strip():
+        gaps_out = generate_coverage_gaps(sess_dict, llm_config=llm_cfg)
+        sess_dict["gaps"] = gaps_out.get("gaps") or ""
+        # Persist onto authoritative session when available
+        if stored is not None and hasattr(stored, "gaps"):
+            stored.gaps = sess_dict["gaps"]
+            if isinstance(stored, WizardSession) or hasattr(stored, "llm_config"):
+                try:
+                    _mark_updated(stored)
+                    _persist_session(stored)
+                except Exception:
+                    pass
+
+    # Rebuild the testScript with authoritative server-constructed repeatable note as first step.
+    # This ensures the note always reflects the exact confirmed selections at export time.
+    # Client-side edits to later steps (via Step 4 editor) are respected; only the first note step is forced for repeatability.
     test_script = step4.get("testScript", {"type": "steps", "steps": []}) or {"type": "steps", "steps": []}
     steps = list(test_script.get("steps", []))
     note_desc = build_traceability_note(sess_dict)
     if steps:
-        steps[0]["description"] = note_desc
-        steps[0]["expectedResult"] = steps[0].get("expectedResult", "")
+        steps[0] = {"description": note_desc, "expectedResult": steps[0].get("expectedResult", "") if isinstance(steps[0], dict) else ""}
     else:
         steps = [{"description": note_desc, "expectedResult": ""}]
     test_script["steps"] = steps
 
     objective = step4.get("objective") or "<ul><li>Objective not yet synthesized</li></ul>"
 
-    # Basic validation for repeatable output quality (per backlog)
-    if not objective.strip().startswith("<ul>") or "<li>" not in objective:
-        print("[export] Warning: objective does not look like valid <ul> list")
-    first_step_desc = (test_script.get("steps") or [{}])[0].get("description", "")
-    if "Note:" not in first_step_desc or "Traceability" not in first_step_desc:
-        print("[export] Warning: first test step missing required traceability Note")
+    # Derive art_string for payload if not present (repeatable from selections)
+    if not sess_dict.get("art_string"):
+        atp_ids = [s.get("id_or_key") or s.get("id", "") for s in (sess_dict.get("step3", {}).get("selections") or []) if s]
+        if atp_ids:
+            sess_dict["art_string"] = " + ".join(atp_ids[:6])  # cap for cleanliness
 
     # Exact shape matching real refined-cases examples
     zephyr_payload = {
@@ -449,6 +1391,13 @@ async def export(req: SynthesisRequest):
             "testScript": test_script
         }
     }
+
+    # Run full validation (strengthened for complete output generation)
+    validation = validate_zephyr_payload(zephyr_payload)
+    if not validation.get("valid"):
+        print(f"[export] Validation issues for {case_key}: {validation.get('issues')}")
+    for w in validation.get("warnings", []):
+        print(f"[export] Warning: {w}")
 
     # Rich context for Jinja (handles key vs id_or_key variations from UI data)
     primary = sess_dict.get("primary")
@@ -506,8 +1455,32 @@ async def export(req: SynthesisRequest):
     else:
         session_out = getattr(stored, "model_dump", lambda: stored)()
 
+    # NEW: Write outputs directly to refined-cases for drop-in use.
+    # This fulfills the high-priority output generation task.
+    try:
+        group = _get_refined_group(case_key, data)
+        refined_root = BASE_DIR.parent.parent / "refined-cases"
+        target_dir = refined_root / group / case_key
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        (target_dir / "traceability.md").write_text(traceability_md, encoding="utf-8")
+        (target_dir / "zephyr_payload.json").write_text(
+            json.dumps(zephyr_payload, indent=2), encoding="utf-8"
+        )
+
+        # Also save session for full audit/provenance (optional but useful)
+        (target_dir / f"{case_key}-session.json").write_text(
+            json.dumps(session_out, indent=2, default=str), encoding="utf-8"
+        )
+
+        print(f"[export] Saved drop-in artifacts to {target_dir}")
+    except Exception as e:
+        print(f"[export] Failed to write to refined-cases: {e}")
+
+    # Include validation result so callers (and future UI) know the status of repeatability guarantees
     return ExportResponse(
         traceability_md=traceability_md,
         zephyr_payload=zephyr_payload,
-        session_json=session_out
+        session_json=session_out,
+        validation=validation,
     )

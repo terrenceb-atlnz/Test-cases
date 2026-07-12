@@ -14,136 +14,144 @@ Unauthorized access, use, or distribution is strictly prohibited.
 
 Tools, data, and workflows for enriching and mapping **AWPTCM manual test cases** (Zephyr) using historical TestLink cases and enriched ATPyLib automated test suites.
 
-This directory contains the data, tools, and analysis for a project to improve and contextualize manual test cases using historical and automated sources.
-
 ## Getting Started
 
 ```bash
 git clone https://github.com/terrenceb-atlnz/Test-cases.git
 cd Test-cases
 
-# Required: fetch the large raw source files (tools depend on them)
+# Required: materialize large source files
 git lfs install
 git lfs pull
 ```
 
 **Requirements:** Python 3 + [Git LFS](https://git-lfs.com/).
 
-**Raw/source data:** The large files (Zephyr-Database XML export, full `zephyr_cases.jsonl`, and `index.json`) **are included** in this repository using Git LFS because the tools depend on them directly.
+Large Zephyr sources (`zephyr_cases.jsonl`, full XML export, related indexes) live in the repo via Git LFS. Prefer `data/zephyr_full/slim_index.json` for day-to-day work; see `data/zephyr_full/README.md`. The original Zephyr XML export remains the immutable source of truth.
 
-- After cloning, run:
-  ```bash
-  git lfs install
-  git lfs pull
-  ```
-  (You must do this to materialize the large files.)
-- See `data/zephyr_full/README.md` for recommended access patterns (prefer `slim_index.json` for most work).
-- The original XML is the immutable source of truth.
+## Project Goal
 
-## Project Framing
+Manual cases (`AWPTCM-Txxxx` under New Platform Test (MASTER)) often lack clear **Objectives** (and sometimes preconditions). The project uses two other silos to define what those cases should verify and how they map to automation:
 
-The primary target is the **Manual Test Cases** (`AWPTCM-Txxxx`) in Zephyr (under the "New Platform Test (MASTER)" area in the AWPTCM project). These cases currently lack well-defined **Objectives** (and often preconditions), making it unclear what they are intended to verify.
+| Source | Role |
+|--------|------|
+| **TestLink (historical)** | Detailed human-authored cases (AWP-*) for artefact context and overlap |
+| **ATPyLib (automated)** | Enriched suites describing what automation actually tests *for* |
 
-To address this, two other silos of information are being analyzed:
+Primary outcomes:
 
-- **Historical Test Cases** from TestLink (older, more detailed human-authored tests).
-- **Automated Test Suites** from ATPyLib (current regression automation suites).
+1. **Objectives** — declarative artefact lists (`<ul><li>…</li></ul>`) for each manual case  
+2. **testScript steps** — Zephyr-ready verification steps (first step is usually a traceability note)  
+3. **Traceability** — TestLink / Zephyr / ART mappings and gaps recorded per case  
+4. **Many-to-one suite → case mappings** where automation is more granular than the manual case  
 
-These sources serve two main purposes:
+Authoritative process: **`OBJECTIVE_DRAFTING_PROCESS.md`**.
 
-1. **Identify overlap** between the manual tests and the other sources.
-2. **Provide context** for what the manual test cases *should be testing for*.
+## Current Status
 
-Because the Manual Test Cases lack Objectives, the work involves examining what the TestLink historical cases and the Automated Test Suites are actually testing, then re-defining and synthesizing that information as proper **Objectives** to attach to the relevant Manual Test Cases.
+| Area | Status |
+|------|--------|
+| ATPyLib suite enrichment | Largely complete (~116+ suites, ~10k tests) |
+| Candidate generation + decisions | ~410 AWPTCM cases; decisions across review batches |
+| Refined case outputs | **~41** cases with `traceability.md` + `zephyr_payload.json` under `refined-cases/<Group>/` |
+| Objective drafting process | Stable, documented, used in production workflow |
+| Server-backed drafting tool | Advanced under `drafting-tool/` (primary way to run the process with LLM synthesis) |
 
-### Additional Goal: Mapping Test Suites to Manual Test Cases
+**Refined-case groups present** (examples): Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management, Bootloader.
 
-In addition to defining Objectives, the project aims to **explicitly identify and record mappings** from related Test Suites to Manual Test Cases. This is often a **many-to-one relationship** (multiple detailed Test Suites can map to a single higher-level Manual Test Case).
+**Session history / working notes:** `SESSION_STATE.md` (long-form). Prefer `drafting-tool/PROGRESS.md` when continuing drafting-tool work.
 
-Test Suites are frequently more granular and detailed in their testing than the Manual Test Cases. This leads to a **fuzzy logic relationship**. 
+## Objective Drafting Workflow
 
-The objective of the `.json` enrichment process (specifically the log-derived, intent-focused analysis appended to the `description` field in the enriched suite data) is to **interpret what these Test Suites are testing FOR**. This enriched intent helps resolve the fuzziness and enables accurate mapping and context extraction.
+Repeatable steps (see `OBJECTIVE_DRAFTING_PROCESS.md`):
 
-## Data Sources
+1. **TestLink + decisions** — review candidates, confirm primary/relevant list  
+2. **Zephyr cross-reference** — related external cases (not the current managed Cases list)  
+3. **ATPyLib** — map automation coverage and gaps  
+4. **Synthesize** — objectives + testScript (LLM-assisted in the tool, always user-reviewed)  
+5. **Export** — `refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md,zephyr_payload.json}`  
+6. **Upload** — optional push to Zephyr via `tool/upload_refined.py`
 
-Note: Data is organized across `data/` and `data/suites/`. See the "Getting Started" section above for notes on which large files are committed vs. excluded from the repository.
+### Server-backed drafting tool (recommended)
 
-- **Manual Test Cases** (`data/zephyr_master.json` for raw, `data/candidates.json` for pre-ranked): The ~410 AWPTCM-Txxxx cases (target) that need Objectives and mapping. See `data/suites/zephyr_master.json` copy if present.
-- **Historical TestLink Cases** (`data/suites/testlink_awp.json` and related extraction tools in `tool/`): Older test definitions (AWP ids) used for overlap detection and context. The review/decisions pipeline (batches, decisions) currently operates primarily on this source.
-- **Automated Test Suites** (`data/suites/`): ATPyLib suites (numeric suite ids like 1330+) that have been enriched with log analysis for intent interpretation (`suite_*_enriched.json`, `all_test_suites.json`, `test_id_description.*`, `suite_index.md`). These provide detailed "what is being tested FOR" via the enrichment process. Complementary to TestLink source for Objectives and mappings.
+Implementation lives entirely under **`drafting-tool/`**:
 
-The two sources (TestLink historical + ATPyLib automated) are used together for the project goals.
-
-## Key Artifacts
-
-- `data/suites/` — Enriched automated suites (one JSON per suite), master files, state, and index.
-- `data/decisions/` — Human decisions on matches (many-to-one capable).
-- `data/review/` — Review batches for manual validation of candidates.
-- `data/candidates.json` — Pre-ranked candidate mappings.
-- `data/zephyr_api_updates.json` — (Legacy) In-progress synthesized objectives + Zephyr step-by-step testScript payloads. Current work uses the per-case `refined-cases/.../zephyr_payload.json` files.
-- `tool/` — Scripts for extraction (TestLink, Zephyr), candidate building, review HTML generation, rendering batches, objective drafting support (`draft_stub.py`), and upload (`upload_refined.py`).
-- `OBJECTIVE_DRAFTING_PROCESS.md` — Repeatable Steps 1-3 + generalized templates, worked examples (Port family), and traceability notes. The primary reference for refining/synthesizing Objectives.
-- `ENRICHMENT_QUALITY_ANALYSIS.md`, `VALIDATION_RESULTS.md`, `findings.md` — Analysis and discovery notes.
-- `review.html` — Interactive review sheet.
-
-## Enrichment Focus
-
-The enrichment of automated test case descriptions (via log analysis) is central to interpreting testing intent. This makes the detailed Automated Test Suites usable for:
-- Defining Objectives for thin Manual Test Cases.
-- Establishing fuzzy many-to-one mappings.
-
-## Location and Workflow
-
-Focus is on data transformation, enrichment accuracy, overlap identification, Objective synthesis, and relationship mapping. Writing updates back to Zephyr is the final step.
-
-> **Note:** The primary development environment for this work is an internal machine (terrenceb-dl). This GitHub repository is a published copy of the working tree. Some references to internal paths or AGENTS.md may remain for context.
-
-### Uploading Refined Cases
-Once one or more cases have `refined-cases/<Category>/AWPTCM-Txxxx/zephyr_payload.json` (with objective + testScript), use the uploader:
-
+```bash
+./drafting-tool/run.sh
+# then open http://localhost:8000/
 ```
-cd copilot/Test-cases
-JIRA_KEY=... python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235 AWPTCM-T33323
+
+- FastAPI backend + wizard UI; server-side confirm gates before synthesis  
+- LLM via **local subscription CLIs** (UI): Grok CLI (SuperGrok / X Premium+) or Claude Code CLI (Team)  
+- Real data for TestLink / relevance-ranked Zephyr / ATPyLib; export downloads **and** auto-persists into `refined-cases/`  
+- MOCK/demo paths removed — real CLI login (or server-side API key for legacy) required  
+
+| Doc | Use for |
+|-----|---------|
+| [`drafting-tool/PROGRESS.md`](drafting-tool/PROGRESS.md) | **Start here** — status, backlog, handoff |
+| [`drafting-tool/SERVER-README.md`](drafting-tool/SERVER-README.md) | Run, architecture, LLM modes, nginx |
+| [`drafting-tool/PLAN-server-backed.md`](drafting-tool/PLAN-server-backed.md) | Approved design rationale |
+| [`drafting-tool/LESSONS_LEARNED.md`](drafting-tool/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
+
+### Upload refined cases to Zephyr
+
+```bash
+JIRA_KEY=... python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235
 JIRA_KEY=... python3 tool/upload_refined.py --execute --keys AWPTCM-T33235 --verify
-JIRA_KEY=... python3 tool/upload_refined.py --execute --groups "Port (7)" "QoS (22)"
+JIRA_KEY=... python3 tool/upload_refined.py --execute --groups "Port (7)" "IPv4 (44)"
 ```
 
-See `tool/upload_refined.py --help` and `OBJECTIVE_DRAFTING_PROCESS.md` (Step 4). Always review with `--dry-run` first. The script follows the same JIRA_KEY + Bearer auth as the extract tools.
+Always dry-run first. Auth matches the extract tools (JIRA_KEY + Bearer). Details: `tool/upload_refined.py --help` and Step 4 in `OBJECTIVE_DRAFTING_PROCESS.md`.
 
-## Current Status (High-Level)
+## Repository Layout
 
-- Enrichment of Automated Suites largely complete (116+ suites, ~10k test cases).
-- Candidate generation (from TestLink/AWP source) and review batches produced for the ~410 Manual Test Cases.
-- Decisions recorded across 14 batches (supporting many-to-one).
-- Analysis of enrichment quality and validation against source data performed.
-- **Objective drafting process refined** (see OBJECTIVE_DRAFTING_PROCESS.md): now a clean reusable template with generalized steps. Standardized per-test-case output structure introduced under `refined-cases/<AWPTCM-Txxxx>/` containing `traceability.md` and `zephyr_payload.json`.
-- ~30+ cases fully processed. A server-backed drafting tool implementation in `drafting-tool/` is now significantly advanced (see `drafting-tool/PROGRESS.md` for current status, backlog, and handoff notes; `drafting-tool/SERVER-README.md` for usage; and `drafting-tool/PLAN-server-backed.md` for the approved plan).
-  - Real selectable data + justifications for Step 1 (TestLink) and Step 2 (Zephyr).
-  - LLM-assisted pre-selection ("Suggest with LLM") for Step 3 (ATPyLib) using new prompt + retrieval.
-  - Dynamic real case list with auto pre-filled demo for T33234 (steps 1-3) under MOCK.
-  - Major UI compaction so tables fit on one page (no side scroll).
-  - Human-readable formatted output (objectives + steps) in Step 4.
-- ~30+ cases fully processed through the workflow across groups: Port (~7), IPv4 variants (ARP/DHCP/Static/BGP/VRF ~10+), PoE/LED/Sanity (~5), Switching (~4), Auth/Security (~4), Management (~2), Bootloader (~1).
-- Recent focus (2026-06-29 session): IPv4 areas including T43849 (Local Proxy ARP), T43851 (DHCP ARP Probe), T43853 (120-day lease), T43854 (DNS Relay), T43855 (IPv4 Static), T43858 (BGPv4), T43859 (VRF-Lite traceroute). Includes thin TL cases, platform variation handling ("on some platforms if applicable"), and feature-family + ART cross-ref.
-- Workflow validated on low/null-primary cases, VRF isolation/traceroute, BGP/unicast, long leases, and mixed TL/ART sources. User feedback incorporated for generalization.
-- Ongoing focus on refining data accuracy, Objective synthesis, and capturing many-to-one mappings. Session state saved in SESSION_STATE.md.
+```
+Test-cases/
+├── OBJECTIVE_DRAFTING_PROCESS.md   # Process source of truth
+├── SESSION_STATE.md                # Broader session history
+├── refined-cases/                  # Per-case outputs (drop-in for upload)
+│   └── <Group>/AWPTCM-Txxxx/
+│       ├── traceability.md
+│       └── zephyr_payload.json
+├── drafting-tool/                  # Server-backed Objective Drafting Tool
+├── data/
+│   ├── zephyr_master.json          # ~410 target manual cases
+│   ├── candidates.json             # Pre-ranked TestLink candidates
+│   ├── decisions/                  # Human match decisions
+│   ├── zephyr_full/                # slim_index + zephyr_cases.jsonl (LFS)
+│   └── suites/                     # Enriched ATPyLib + TestLink extracts
+└── tool/                           # Extract, candidates, review, upload scripts
+```
 
-See [data/suites/ENRICHMENT_STATE.md](data/suites/ENRICHMENT_STATE.md) for detailed phase status, [ENRICHMENT_QUALITY_ANALYSIS.md](ENRICHMENT_QUALITY_ANALYSIS.md) for enrichment specifics, and [data/suites/_enrichment_agent_spec.md](data/suites/_enrichment_agent_spec.md) for the enrichment prompt.
+### Key data & tools
 
-## Related Files
+- **`data/zephyr_master.json`** — Manual cases under refinement  
+- **`data/candidates.json`** + **`data/decisions/`** — TestLink match pipeline  
+- **`data/suites/`** — Enriched ATPyLib (`test_id_description.json`, `suite_*_enriched.json`, …) and TestLink extract  
+- **`data/zephyr_full/`** — Full Zephyr DB working format (prefer slim index)  
+- **`tool/`** — Extraction, candidate build, review HTML, `upload_refined.py`, etc.  
+- **`data/zephyr_api_updates.json`** — Legacy aggregate payload; new work uses per-case `refined-cases/` only  
 
-- [resources.md](resources.md) — Links to source systems (TestLink, Zephyr, ART).
-- [findings.md](findings.md) — Phase 1 discovery notes (connectivity, target scope, early blockers).
-- [ENRICHMENT_QUALITY_ANALYSIS.md](ENRICHMENT_QUALITY_ANALYSIS.md) — Analysis of enrichment script quality, schema fixes, and data completeness.
-- [VALIDATION_RESULTS.md](VALIDATION_RESULTS.md) — Post-enrichment validation of automated suites against ART source pages.
-- [data/suites/ENRICHMENT_STATE.md](data/suites/ENRICHMENT_STATE.md) — Detailed phase status, assets, and resume instructions.
-- [data/suites/_enrichment_agent_spec.md](data/suites/_enrichment_agent_spec.md) — The AI agent prompt/spec used for log enrichment.
-- `secrets.md` — API keys (JIRA, TestLink) — gitignored in some contexts.
-- Root project [AGENTS.md](../AGENTS.md) — Broader context, access patterns, and Terrenceb-dl details.
-- Drafting tool work: See `drafting-tool/PROGRESS.md` (status, backlog, technical debt, handoff), `drafting-tool/SERVER-README.md` (usage + architecture), `drafting-tool/LESSONS_LEARNED.md`. Recent progress: real data for Steps 1-3 + LLM pre-select in Step 3, dynamic cases + pre-fills for T33234 demo, UI compaction for one-page fit, human-readable Step 4 output. Always start with `drafting-tool/PROGRESS.md` + cross-ref root README + `SESSION_STATE.md`.
+## Related Documentation
+
+| File | Description |
+|------|-------------|
+| [OBJECTIVE_DRAFTING_PROCESS.md](OBJECTIVE_DRAFTING_PROCESS.md) | Repeatable drafting process + output shapes |
+| [SESSION_STATE.md](SESSION_STATE.md) | Chronological work history |
+| [resources.md](resources.md) | Links to TestLink, Zephyr, ART |
+| [findings.md](findings.md) | Early discovery notes |
+| [ENRICHMENT_QUALITY_ANALYSIS.md](ENRICHMENT_QUALITY_ANALYSIS.md) | Enrichment quality / schema |
+| [VALIDATION_RESULTS.md](VALIDATION_RESULTS.md) | Suite validation vs ART |
+| [data/suites/ENRICHMENT_STATE.md](data/suites/ENRICHMENT_STATE.md) | Enrichment phase resume notes |
+| [data/suites/_enrichment_agent_spec.md](data/suites/_enrichment_agent_spec.md) | Log-enrichment agent spec |
+| External [AGENTS.md](../AGENTS.md) | Environment, access patterns, CLI install (if present) |
+
+`secrets.md` (API keys) is local/gitignored where configured — do not commit credentials.
+
+> **Note:** Primary development is on an internal machine; this GitHub tree is a published copy. Some internal paths may appear in older notes.
 
 ## Copyright
 
-See the prominent notice at the top of this README and the `COPYRIGHT` file in the root.
+See the notice at the top of this file and the `COPYRIGHT` file in the repository root.
 
 All rights reserved. No permissions are granted to use, copy, or distribute this work.

@@ -18,11 +18,13 @@ Relevant Zephyr exemplars reviewed:
 - {{ s.key }}: {{ s.title }}
 {% endfor %}
 
-ATPyLib coverage + gaps:
+ATPyLib coverage (selected ART):
 {% for s in atp_selections %}
-- {{ s }}
+- {{ s.id_or_key or s.id or s }}: {{ s.title or s.description or '' }}
 {% endfor %}
-Gaps noted: {{ gaps }}
+{% if gaps %}
+Automation gaps (for Traceability context; do not restate as procedural steps): {{ gaps }}
+{% endif %}
 
 Process principles excerpt: {{ process_principles }}
 

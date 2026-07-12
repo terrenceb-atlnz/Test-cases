@@ -1,0 +1,114 @@
+{
+  "key": "AWPTCM-T43865",
+  "primary": {
+    "m": "AWP-11233",
+    "c": "high",
+    "w": "Exact: PIM-SSM functionality"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-02 23:45:29.595574",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-11233",
+        "title": "PIM-SSM functionality",
+        "justification": "PIM-SMM is entered entries dynamically | step1: Multicast traffic is forwarded and status on multicast table is correct when group was joined: >Check Multicast Table (s => Multicast routing table updates accordingly"
+      },
+      {
+        "id_or_key": "AWP-11230",
+        "title": "PIM-SSM with static mroute",
+        "justification": "Verify PIM-SSM works properly with static mroute | step1: Configure the static mroute at the last hope router (DUT4). >Send multicast stream >Send IGMP Joined => static mroute works with PIM-SSM, IGMP host joined the correct source and reci"
+      },
+      {
+        "id_or_key": "AWP-3466",
+        "title": "CLI to check sh ip pim mroute",
+        "justification": "Command line test | step1: 1. Setup PIM-DM / SM network. 2. Server sends multicast traffic 3. Client joins the multicast group 4. Execute the comma => Command should be accepted in CLI and display PIM-DM/PIM-SM multicast routing ta"
+      }
+    ]
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-02 23:45:31.102281",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T43865",
+        "title": "(42) IPv4_MulticastRouting - PIM-SSM",
+        "justification": "PIM-SMM is entered entries dynamically Multicast traffic is forwarded and status on multicast table is correct when group was joined:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check IGMP Host Joined the correct multicast source | Multicast traffic was stopped and prune correctly when group was left and multicast table updated correctly:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when all IGMP Host leave the group | The state when port interface does down/up:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when no more IGMP Host connected"
+      },
+      {
+        "id_or_key": "AWPTCM-T1552",
+        "title": "ATMF Minor Clients  License - Autorecovery blocked when no license",
+        "justification": "ATMF Minor Clients  License - Autorecovery blocked when no license"
+      }
+    ]
+  },
+  "step3": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-02 23:45:32.663879",
+    "none_selected": false,
+    "selections": []
+  },
+  "step4": {
+    "objective": "<ul>\n<li>The port with no pluggable defaults to automatic MDI/MDIX polarity handling.</li>\n<li>Inserting a supported pluggable resolves polarity and establishes link.</li>\n<li>A port configured for Auto speed and duplex establishes a link with a compliant partner.</li>\n<li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability for AWPTCM-T43865.<br />\nPrimary: AWP-11233 (Exact: PIM-SSM functionality)<br />\nTestLink: AWP-11233, AWP-11230, AWP-3466<br />\nZephyr: AWPTCM-T43865, AWPTCM-T1552<br />\nGaps: ATP coverage was analyzed against reviewed TestLink and Zephyr selections. Gaps were noted in edge cases, error conditio<br />\nhttps://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T43865 https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T1552<br />\nhttps://wiki.atlnz.lc/awpwiki/index.php (see related bundles)<dl><br /></dl><br />",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify default behavior with no pluggable (auto polarity and reporting).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Insert supported pluggable and confirm polarity resolution + link establishment.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test straight and crossover cables in Auto mode; verify link and status.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify port reports negotiated speed/duplex/polarity accurately.",
+          "expectedResult": ""
+        }
+      ]
+    },
+    "provenance": {
+      "objective_prompt": "You are an expert test case objective writer following these strict principles from the OBJECTIVE_DRAFTING_PROCESS:\n\n- Objectives are declarative lists of artefacts: \"what should be true\" (end states), not \"verify\" or instructions.\n- Always cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Number of bullets flexible (typically 4-10).\n- Use the provided selections from TestLink, Zephyr cross-refs, and ATPyLib as evidence.\n\nCase: AWPTCM-T43865\nPrimary decision: {'m': 'AWP-11233', 'c': 'high', 'w': 'Exact: PIM-SSM functionality'}\n\nTop TestLink selections:\n\n- AWP-11233: PIM-SSM functionality (justification: PIM-SMM is entered entries dynamically | step1: Multicast traffic is forwarded and status on multicast table is correct when group was joined: >Check Multicast Table (s => Multicast routing table updates accordingly)\n\n- AWP-11230: PIM-SSM with static mroute (justification: Verify PIM-SSM works properly with static mroute | step1: Configure the static mroute at the last hope router (DUT4). >Send multicast stream >Send IGMP Joined => static mroute works with PIM-SSM, IGMP host joined the correct source and reci)\n\n- AWP-3466: CLI to check sh ip pim mroute (justification: Command line test | step1: 1. Setup PIM-DM / SM network. 2. Server sends multicast traffic 3. Client joins the multicast group 4. Execute the comma => Command should be accepted in CLI and display PIM-DM/PIM-SM multicast routing ta)\n\n\nRelevant Zephyr exemplars reviewed:\n\n- : (42) IPv4_MulticastRouting - PIM-SSM\n\n- : ATMF Minor Clients  License - Autorecovery blocked when no license\n\n\nATPyLib coverage + gaps:\n\nGaps noted: ATP coverage was analyzed against reviewed TestLink and Zephyr selections. Gaps were noted in edge cases, error conditions, and platform-specific reporting that are primarily validated via manual steps.\n\nProcess principles excerpt: Objectives are declarative artefacts (what should be true). Use <ul><li>. First testScript step is notes + traceability. Cover positive/negative/special cases.\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>The port with no pluggable defaults to automatic MDI/MDIX polarity handling.</li>\n<li>Inserting a supported pluggable resolves polarity and establishes link.</li>\n<li>A port configured for Auto speed and duplex establishes a link with a compliant partner.</li>\n<li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li>\n</ul>",
+      "steps_prompt": "Using the objective below and the reviewed selections, draft Zephyr-ready testScript steps (action-oriented).\n\nObjective:\n<ul>\n<li>The port with no pluggable defaults to automatic MDI/MDIX polarity handling.</li>\n<li>Inserting a supported pluggable resolves polarity and establishes link.</li>\n<li>A port configured for Auto speed and duplex establishes a link with a compliant partner.</li>\n<li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li>\n</ul>\n\nSelections and gaps same as above.\n\nRules (strict for repeatable output):\n- The FIRST step will be injected server-side as a traceability note (built from confirmed TestLink + Zephyr + ATPyLib selections + gaps + art string). DO NOT generate the note yourself.\n- Generate ONLY the subsequent verification steps (2nd onward) that exercise the artefacts in the objective.\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\", etc.\n- expectedResult usually empty or brief.\n- Output as JSON steps array only: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]\n\nProduce the JSON array for steps AFTER the note.",
+      "steps_response": "[{\"description\": \"Verify default behavior with no pluggable (auto polarity and reporting).\", \"expectedResult\": \"\"}, {\"description\": \"Insert supported pluggable and confirm polarity resolution + link establishment.\", \"expectedResult\": \"\"}, {\"description\": \"Test straight and crossover cables in Auto mode; verify link and status.\", \"expectedResult\": \"\"}, {\"description\": \"Verify port reports negotiated speed/duplex/polarity accurately.\", \"expectedResult\": \"\"}]",
+      "provider": "MOCK",
+      "auth_method": "api_key",
+      "model": "default",
+      "error": false
+    }
+  },
+  "gaps": "ATP coverage was analyzed against reviewed TestLink and Zephyr selections. Gaps were noted in edge cases, error conditions, and platform-specific reporting that are primarily validated via manual steps.",
+  "art_string": "",
+  "full_session": {
+    "llm": {
+      "objective_prompt": "You are an expert test case objective writer following these strict principles from the OBJECTIVE_DRAFTING_PROCESS:\n\n- Objectives are declarative lists of artefacts: \"what should be true\" (end states), not \"verify\" or instructions.\n- Always cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Number of bullets flexible (typically 4-10).\n- Use the provided selections from TestLink, Zephyr cross-refs, and ATPyLib as evidence.\n\nCase: AWPTCM-T43865\nPrimary decision: {'m': 'AWP-11233', 'c': 'high', 'w': 'Exact: PIM-SSM functionality'}\n\nTop TestLink selections:\n\n- AWP-11233: PIM-SSM functionality (justification: PIM-SMM is entered entries dynamically | step1: Multicast traffic is forwarded and status on multicast table is correct when group was joined: >Check Multicast Table (s => Multicast routing table updates accordingly)\n\n- AWP-11230: PIM-SSM with static mroute (justification: Verify PIM-SSM works properly with static mroute | step1: Configure the static mroute at the last hope router (DUT4). >Send multicast stream >Send IGMP Joined => static mroute works with PIM-SSM, IGMP host joined the correct source and reci)\n\n- AWP-3466: CLI to check sh ip pim mroute (justification: Command line test | step1: 1. Setup PIM-DM / SM network. 2. Server sends multicast traffic 3. Client joins the multicast group 4. Execute the comma => Command should be accepted in CLI and display PIM-DM/PIM-SM multicast routing ta)\n\n\nRelevant Zephyr exemplars reviewed:\n\n- : (42) IPv4_MulticastRouting - PIM-SSM\n\n- : ATMF Minor Clients  License - Autorecovery blocked when no license\n\n\nATPyLib coverage + gaps:\n\nGaps noted: ATP coverage was analyzed against reviewed TestLink and Zephyr selections. Gaps were noted in edge cases, error conditions, and platform-specific reporting that are primarily validated via manual steps.\n\nProcess principles excerpt: Objectives are declarative artefacts (what should be true). Use <ul><li>. First testScript step is notes + traceability. Cover positive/negative/special cases.\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>The port with no pluggable defaults to automatic MDI/MDIX polarity handling.</li>\n<li>Inserting a supported pluggable resolves polarity and establishes link.</li>\n<li>A port configured for Auto speed and duplex establishes a link with a compliant partner.</li>\n<li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li>\n</ul>",
+      "steps_prompt": "Using the objective below and the reviewed selections, draft Zephyr-ready testScript steps (action-oriented).\n\nObjective:\n<ul>\n<li>The port with no pluggable defaults to automatic MDI/MDIX polarity handling.</li>\n<li>Inserting a supported pluggable resolves polarity and establishes link.</li>\n<li>A port configured for Auto speed and duplex establishes a link with a compliant partner.</li>\n<li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li>\n</ul>\n\nSelections and gaps same as above.\n\nRules (strict for repeatable output):\n- The FIRST step will be injected server-side as a traceability note (built from confirmed TestLink + Zephyr + ATPyLib selections + gaps + art string). DO NOT generate the note yourself.\n- Generate ONLY the subsequent verification steps (2nd onward) that exercise the artefacts in the objective.\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\", etc.\n- expectedResult usually empty or brief.\n- Output as JSON steps array only: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]\n\nProduce the JSON array for steps AFTER the note.",
+      "steps_response": "[{\"description\": \"Verify default behavior with no pluggable (auto polarity and reporting).\", \"expectedResult\": \"\"}, {\"description\": \"Insert supported pluggable and confirm polarity resolution + link establishment.\", \"expectedResult\": \"\"}, {\"description\": \"Test straight and crossover cables in Auto mode; verify link and status.\", \"expectedResult\": \"\"}, {\"description\": \"Verify port reports negotiated speed/duplex/polarity accurately.\", \"expectedResult\": \"\"}]",
+      "provider": "MOCK",
+      "auth_method": "api_key",
+      "model": "default",
+      "error": false
+    }
+  },
+  "updated_at": "2026-07-02 23:46:31.174195",
+  "llm_config": {
+    "provider": "mock",
+    "auth_method": "api_key",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  }
+}

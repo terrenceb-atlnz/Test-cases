@@ -1,9 +1,9 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T33389",
   "primary": {
-    "m": "AWP-23992",
+    "m": "AWP-20431",
     "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "w": "Generic watchdog test (SW)"
   },
   "step1": {
     "confirmed": false,
@@ -27,10 +27,10 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-12 20:36:16.483738",
   "llm_config": {
-    "provider": "mock",
-    "auth_method": "api_key",
+    "provider": "claude",
+    "auth_method": "claude_code",
     "api_key": null,
     "token": null,
     "base_url": null,

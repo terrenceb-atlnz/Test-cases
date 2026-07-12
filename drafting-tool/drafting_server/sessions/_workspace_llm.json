@@ -1,0 +1,8 @@
+{
+  "provider": "claude",
+  "auth_method": "claude_code",
+  "api_key": null,
+  "token": null,
+  "base_url": null,
+  "model": null
+}

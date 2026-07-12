@@ -108,10 +108,10 @@
       "error": false
     }
   },
-  "updated_at": "2026-07-01 22:56:23.668602",
+  "updated_at": "2026-07-12 20:12:46.952033",
   "llm_config": {
-    "provider": "mock",
-    "auth_method": "api_key",
+    "provider": "grok",
+    "auth_method": "grok_cli",
     "api_key": null,
     "token": null,
     "base_url": null,

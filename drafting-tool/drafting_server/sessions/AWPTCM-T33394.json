@@ -1,13 +1,13 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T33394",
   "primary": {
-    "m": "AWP-23992",
-    "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "m": "AWP-2450",
+    "c": "med",
+    "w": "File copy using http"
   },
   "step1": {
-    "confirmed": false,
-    "confirmed_at": null,
+    "confirmed": true,
+    "confirmed_at": "2026-07-12 20:19:42.887627",
     "none_selected": false,
     "selections": []
   },
@@ -27,10 +27,10 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-12 20:36:46.009630",
   "llm_config": {
-    "provider": "mock",
-    "auth_method": "api_key",
+    "provider": "claude",
+    "auth_method": "claude_code",
     "api_key": null,
     "token": null,
     "base_url": null,

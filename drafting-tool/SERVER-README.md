@@ -52,9 +52,13 @@ This version replaces the original single-file static `index.html` approach.
 - Prompt templates live in `drafting_server/templates/prompts/` (`generate_objectives.jinja`, `generate_steps.jinja`).
 - Templates inject: case data + user selections from the three databases + excerpts from `OBJECTIVE_DRAFTING_PROCESS.md` (principles, rules for artefacts vs. procedures, first-step notes requirement, etc.).
 - LLM response is parsed + normalized using output templates (`drafting_server/templates/outputs/`) so the final `objective` (`<ul><li>...</li></ul>`) and `testScript` always follow the exact documented shape.
-- Supports multiple providers (Grok via OpenAI-compatible; Claude native) with per-session config: `provider`, `auth_method` ("api_key" or "account"), credentials.
-- Full prompt + response + provider/model details captured as `provenance` in the persisted session for audit/repeatability.
-- Login flows (API key direct or account via instructions + explicit open) handled in frontend with in-page panel (no popup focus race).
+- Supports multiple providers via **local CLI subscription modes** (now the primary/only visible paths in the UI):
+  - Grok via the local `grok` CLI after `grok login --oauth` (SuperGrok / X Premium+ subscription) using `auth_method: "grok_cli"`.
+  - Claude via the local `claude` CLI after its own login (Team subscription) using `auth_method: "claude_code"`.
+- Legacy `api_key` mode still supported server-side for old sessions or power users, but **completely removed from the current UI** (no provider dropdown, no "API Key" radio, no credential field). The UI now consists solely of the two subscription CLI radio choices.
+- Provider is now derived implicitly from the chosen radio (no separate selector).
+- Full prompt + response + provider/model/auth_method details captured as `provenance`.
+- Login flows handled in frontend with in-page radios + "Check ... CLI" status buttons + contextual instructions panels. No tab-opening or token-paste flows remain.
 
 **Data**:
 - The three databases:
@@ -72,7 +76,7 @@ This version replaces the original single-file static `index.html` approach.
 - Process: Backend state machine enforces explicit user confirmation of TestLink/Zephyr/ATPyLib reviews (selections + flags persisted) before synthesis allowed. Gates are server-side.
 - LLM: Multi-provider (Grok/Claude) with templated prompts + structured parsing + full provenance (prompts/responses/provider/auth) captured in session.
 - Outputs: Fixed Jinja + post-processing for consistent shape; persistence of LLM config + provenance supports audit across restarts.
-- UI: In-page account login flow + design system components ensure predictable, repeatable user experience.
+- UI: In-page LLM login flow (API key or Claude Code headless) + design system components ensure predictable, repeatable user experience.
 
 ## Directory Structure (inside drafting-tool/)
 
@@ -117,30 +121,75 @@ python3 -m pip install --user fastapi uvicorn jinja2 requests
 
 ## Running the Server
 
-From the project root (recommended):
+The easiest way is to use the included helper script from the project root:
 
 ```bash
-# Recommended invocation
-python -m uvicorn drafting_tool.drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+# With a real API key
+LLM_API_KEY=sk-... ./drafting-tool/run.sh
+
+# Different port
+PORT=9000 ./drafting-tool/run.sh
+
+# Extra uvicorn options (e.g. debug logging)
+./drafting-tool/run.sh --log-level debug
+```
+
+The script automatically:
+- Uses `python3`
+- Sets the correct `PYTHONPATH` for the `drafting-tool/` layout
+- (No MOCK default; real LLM required)
+
+### Manual equivalent
+
+```bash
+LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Alternative (cd into the server dir):
 
 ```bash
 cd drafting-tool/drafting_server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+LLM_API_KEY=sk-... PYTHONPATH=. python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 **Environment variables for LLM**:
 
 ```bash
-export LLM_API_KEY=MOCK                    # Use built-in mock for testing (recommended for first run)
-# or
 export LLM_API_KEY=sk-...
 export LLM_BASE_URL=https://api.openai.com/v1   # or your Grok/Claude-compatible endpoint
 ```
 
-When `LLM_API_KEY=MOCK`, the system uses a deterministic mock response so you can test the full flow and templating without an external call.
+Real LLM (API key or local CLI login) is required. MOCK/demo mode has been removed.
+
+### Claude Team Subscription (Headless Mode)
+
+If your users have **Claude Team subscriptions** (not developer API keys), the tool can call Claude through the **Claude Code CLI** in headless print mode instead of the HTTP API. Auth lives entirely with the CLI's own login; the server never sees or stores a key or token.
+
+**Intended deployment**: each user hosts the tool locally (or the server runs as their own user), so calls bill against *their own* Team seat. Do **not** run one shared server instance under a single login for many users — that pools everyone's usage through one subscription seat.
+
+Per-machine setup:
+
+1. Install Claude Code on the machine running this server (see anthropic.com/claude-code).
+2. In a terminal, run `claude` and log in (`/login`) with your Claude Team account.
+3. In the tool UI (Step 0 → LLM Provider Login): select **Claude (Anthropic)** → **Claude Code CLI (Team subscription)** → "Check CLI Status" → "Apply / Login".
+4. Leave Model blank to use the CLI's default (or pass e.g. `sonnet`).
+
+Notes / limitations:
+
+- Server-side check: `GET /api/wizard/claude_cli_status` reports whether the CLI binary is found (login state surfaces on the first real call — a login error message is returned in the synthesis output if the CLI isn't logged in).
+- Team seats have rolling session-based usage limits shared with the user's interactive Claude Code use. The tool's calls are minimal (Step 3 assist + Step 4 synthesis), but an exhausted window surfaces as a CLI error until it resets.
+- Latency is higher than a direct HTTP call (CLI process startup per request) — acceptable for the tool's occasional synthesis calls.
+- Old "account" / token-paste flows were removed from the UI long ago. Current UI only exposes the two subscription CLI radios. Legacy `api_key` and old `account` values are mapped gracefully on restore but not presented to new users.
+
+### Grok CLI Subscription Mode (SuperGrok / X Premium+)
+
+`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. 
+
+- `GET /api/wizard/grok_cli_status` reports availability.
+- In the UI (Step 0): select the **Grok CLI (SuperGrok / X Premium+ subscription)** radio, use the "Check Grok CLI" button, then "Apply / Login". Model optional (CLI default used if blank).
+- Prompt passed safely via temp file; output captured cleanly.
+- Fully integrated into synthesis and ATP paths. Real calls were tested on a machine with an active subscription login.
+- Usage counts against the subscription (no separate API billing).
 
 ## Accessing the Tool
 
@@ -151,29 +200,30 @@ When `LLM_API_KEY=MOCK`, the system uses a deterministic mock response so you ca
 
 ## Typical Workflow (Repeatable Process)
 
-1. Open the UI and select an AWPTCM case (dropdown now populated with real project cases; T33234 prioritized for demo).
-2. **Step 1 – TestLink + Decisions**  
-   Review candidates and primary (real data from candidates.json). Make selections + justifications (checkboxes + editable fields). Click **"Mark TestLink List Reviewed + Confirmed"**.
-3. **Step 2 – Zephyr Cross-Reference**  
-   Review relevant Zephyr cases (real refs from zephyr_master + slim_index). Confirm.
-4. **Step 3 – ATPyLib + Gaps**  
-   Search and select ART cases (real data from test_id_desc). Use **"Suggest with LLM (pre-select)"** button for LLM-assisted pre-selection based on prior steps. Note gaps. Confirm.
-   - On MOCK + demo case (T33234), steps 1-3 are auto pre-filled with realistic selections.
-5. Only after all three confirms are done → **Step 4 – Synthesize (LLM)** becomes active.
-6. Click **"Synthesize with LLM (templated prompt)"**.
-   - Backend builds a rich prompt from templates + your selections + process principles.
-   - LLM is called.
-   - Response is parsed + normalized using output templates.
-   - You get a clean, declarative objective + readable test steps list (human-readable format; provenance available in details).
-7. Review the result (raw JSON view no longer default).
-8. Click **Export Repeatable Bundle**.
-   - Produces:
-     - `traceability.md` (templated, includes all your reviewed items + links)
+1. Open the UI and select an AWPTCM case (dropdown populated with real project cases; neutral selection).
+2. In Step 0 LLM section: choose the desired subscription CLI radio (Grok CLI is default). Optionally check status for the selected CLI. Apply. (No provider dropdown or API Key path is shown; real login/key required.)
+3. **Step 1 – TestLink**  
+   Review primary + candidates. Use **Search TestLink** / **Suggest with LLM** to expand or re-rank, then confirm selections.
+4. **Step 2 – Zephyr**  
+   Review relevance-ranked external Zephyr cases (current Cases list omitted). Use **Search Zephyr** / **Suggest with LLM** as needed, then confirm.
+5. **Step 3 – ATPyLib (scored)**  
+   Search and select ART cases (pre-scored via LLM). Use **Search ATP** / **Suggest with LLM** if needed. Confirm selections only — **no gaps form** in this step.
+6. Only after all three confirms are done → **Step 4 – Synthesize (LLM)** becomes active.
+7. Click **"Synthesize with LLM (templated prompt)"**.
+   - Backend builds templated prompts from your selections + process principles.
+   - LLM generates: **Gaps analysis** (for Traceability), objectives, and verification steps.
+   - First testScript step is always the server-built traceability note.
+   - Response is parsed + normalized for a repeatable shape.
+8. Review the result; use the editor as needed.
+9. Click **Export Repeatable Bundle**.
+   - Produces (for download):
+     - `traceability.md` (templated; **Gaps Noted** from LLM at synthesis/export)
      - `AWPTCM-Txxxx-zephyr_payload.json` (exact Zephyr Scale shape)
-     - Session JSON (full provenance, including the exact prompt sent to the LLM)
-9. Drop the files into the correct `refined-cases/<Group>/AWPTCM-Txxxx/` directory (same layout as before).
+     - Session JSON (full provenance, including prompts sent to the LLM)
+   - Also auto-persists core artifacts server-side to `refined-cases/<Group>/AWPTCM-Txxxx/`.
+10. Use the persisted or dropped files in the correct `refined-cases/<Group>/AWPTCM-Txxxx/` directory.
 
-Tables are now compact to fit on one page with no side-scroll.
+Tables are compact to fit on one page with no side-scroll. Step 2 Zephyr cross-refs contain only external cases (current Cases list entries, including the primary, are omitted).
 
 The process and output formats are identical to what is documented in `OBJECTIVE_DRAFTING_PROCESS.md`.
 
@@ -192,7 +242,7 @@ After the LLM returns text, `llm.py` runs structured parsing + the output templa
 
 This is how repeatable outputs are achieved even when using stochastic LLMs.
 
-**Note on MOCK mode (demo)**: Provides rich pre-filled selections for T33234 across steps 1-3 and deterministic synthesis for quick end-to-end testing.
+**Note**: MOCK/demo mode has been removed. Real LLM (subscription CLI login or API key) is required for synthesis and suggestions. All flows use real data only.
 
 You can edit the templates to refine style or add more rules without changing code.
 
@@ -259,17 +309,21 @@ The plan explicitly chose server-backed because:
 ## Quick Reference Commands
 
 ```bash
-# Start server (project root)
-python -m uvicorn drafting_tool.drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+# Start server (easiest)
+./drafting-tool/run.sh
 
-# With mock LLM
-LLM_API_KEY=MOCK python -m uvicorn ...
+# With real key or different port
+LLM_API_KEY=sk-... ./drafting-tool/run.sh
+PORT=9000 ./drafting-tool/run.sh
 
-# Test a synthesis directly (Python)
+# Manual start (project root)
+LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Test synthesis directly (Python)
 cd drafting-tool/drafting_server
-PYTHONPATH=. python -c '
+PYTHONPATH=. python3 -c '
 from llm import synthesize_objectives_and_steps
-sess = {"key":"AWPTCM-T33234", "step1":{"selections":[...]},"step2":{...},"step3":{...},"gaps":"..."}
+sess = {"key":"AWPTCM-Txxxx", "step1":{"selections":[...]},"step2":{...},"step3":{...},"gaps":"..."}
 print(synthesize_objectives_and_steps(sess))
 '
 ```
@@ -288,22 +342,24 @@ Cross-reference higher-level project docs every session:
 
 ---
 
-## Session Summary (2026-07-02)
+## Session Summary (2026-07-03)
 
-This session completed data-driven review for Steps 1-3 with LLM support and made the tool demo-ready:
+This session replaced a non-functional Claude auth flow and added real subscription-based auth options:
 
-- Real selectable data + UI for TestLink (Step 1) and Zephyr (Step 2).
-- LLM "Suggest with LLM (pre-select)" for Step 3 (new prompt + backend).
-- Dynamic cases + auto pre-filled demo selections for T33234 (all steps 1-3) when using MOCK.
-- Compact tables (reduced padding, narrow inputs) so everything fits on one page with no side-scroll.
-- Human-readable formatted output in Step 4 (Objective as list + clean steps; removed "Action:"; provenance details).
+- Removed the "Subscription Account" login (it pasted a claude.ai "session token" as an `x-api-key`, which cannot authenticate `api.anthropic.com` — no such token exists for third-party use).
+- Added **Claude Code headless CLI mode** (`auth_method: "claude_code"`): calls the locally installed + logged-in `claude` CLI (`claude -p --output-format json`) so Claude Team subscription seats work with no key/token stored server-side. Full frontend UI (Step 0 radio, "Check CLI Status" button, setup instructions).
+- Added the equivalent **Grok CLI mode** (`auth_method: "grok_cli"`) on the backend (SuperGrok/X Premium+ via `grok login --oauth`) — no frontend UI yet.
+- Fixed a bug where `suggest_relevant_atp`/`analyze_atp_coverage` would silently fall back under headless auth modes (which have no stored credential by design).
+- Tested end-to-end with real CLI paths where possible.
 
-All changes stay under `drafting-tool/`. Test primarily with `LLM_API_KEY=MOCK` for instant rich pre-fills.
+This session: MOCK/demo removed (real-only); export now auto-persists to refined-cases; frontend polish (styles, summary, editor, generalization).
+
+All changes stay under `drafting-tool/`. Use real LLM setup (CLI preferred).
 
 See updated `PROGRESS.md` and `LESSONS_LEARNED.md`.
 
 
-## Session State & Lessons Learned (2026-07-01, extended session)
+## Session State & Lessons Learned (2026-07-01, extended session; see later entries for MOCK removal + polish)
 
 **Current State Saved:**
 - Gating + file-based persistence implemented (routers, models with LLMConfig, sessions/*.json)

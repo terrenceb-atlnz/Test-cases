@@ -765,5 +765,51 @@ Future drafting sessions must cross-reference:
 
 **Cross-refs:** Updated `drafting-tool/PROGRESS.md`, `LESSONS_LEARNED.md`, `SERVER-README.md`; appended to this file and root README.md. Tested primarily via MOCK for instant pre-filled experience.
 
+## 2026-07-03 Session — Drafting Tool: Real Claude/Grok Subscription Auth (Headless CLI), Removed Fictional Login Flow
+
+**Accomplishments:**
+- Determined the existing "Subscription Account" Claude login was non-functional: it sent a pasted claude.ai "session token" as an `x-api-key` to `api.anthropic.com`, but no such token exists for third-party use — that endpoint only accepts a real developer API key.
+- Implemented a working alternative for the stated deployment (locally hosted, multiple users each with their own Claude Team subscription, minimal LLM calls per step): **headless Claude Code CLI mode** (`auth_method: "claude_code"`). The server shells out to a locally installed + logged-in `claude` CLI (`claude -p --output-format json`), so each user's own subscription seat is used with no key/token stored server-side. Includes CLI presence/version check (`check_claude_cli`, `GET /api/wizard/claude_cli_status`), full frontend UI (Step 0 radio, "Check CLI Status" button, accurate setup instructions), and a fixed bug where Step 3 LLM helpers would silently fall back to MOCK under headless auth (which has no stored credential by design).
+- The equivalent **Grok CLI headless mode** (`auth_method: "grok_cli"`, SuperGrok/X Premium+ subscriptions via `grok login --oauth`) was added to the backend (`llm.py`/`wizard.py`/`models.py`), mirroring the Claude Code pattern; its frontend UI is not yet built.
+- Tested end-to-end using a scripted fake `claude` CLI binary (no real subscription needed): CLI status check, config set/validation (including rejecting `claude_code` for non-Claude providers), the full confirm-gate → synthesize flow through the headless path, and error handling (CLI not found, not logged in, timeout). Not yet validated against a real Claude Code login.
+- No output-generation work this session — `zephyr_payload.json` completion remains the top priority in `drafting-tool/PROGRESS.md`.
+
+**Key Lessons:**
+- Verify a proposed third-party auth mechanism is technically real (i.e., the receiving API actually documents that credential type as valid) before building UI/instructions around it.
+- Claude Code's own subscription login (`claude /login`) is a distinct credential from Anthropic Developer Platform API-key/OAuth auth — conflating them is how the fictional flow got built in the first place.
+- Headless CLI auth is appropriate specifically because of the deployment model here (each user runs the tool locally under their own login) — it would not be appropriate for a shared multi-tenant backend.
+
+**Later in same session (Grok continuation):**
+- Strengthened Zephyr Step 2 omission: `current_cases` set (from candidates) is now used to exclude *all* members of the current Cases list from the Step 2 Zephyr `zrefs` (including the primary case itself). The table now returns only external cross-referenced Zephyr cases. Primary Zephyr data still appears in server-generated traceability notes.
+- Completed and tested full **Grok CLI subscription integration** (`grok_cli`): `check_grok_cli()`, `_call_grok_cli_headless()` (using `--prompt-file`, clean stdout parsing), status endpoint, wiring through synthesize/ATP/analyze. Direct CLI tests + full Python `synthesize_objectives_and_steps(..., grok_cli)` succeeded on a machine with active subscription login (`grok login --oauth`).
+- Final UI simplification (user request): removed the provider `<select>` dropdown entirely. Removed the "API Key (developer)" radio and credential input from the visible UI. The interface now consists *only* of two radio buttons for the subscription CLI modes (Grok CLI default + Claude Code CLI). All JS (setLLMConfig, restore, update*, clear, init) updated to derive provider+auth_method from the radio and hide credential paths. Description and instructions refreshed.
+- Updated `drafting-tool/PROGRESS.md`, `LESSONS_LEARNED.md`, `SERVER-README.md` with the new state. Detailed handoff notes preserved under `drafting-tool/`.
+
+**Key additional lessons:**
+- When the user says "omit any test cases included in our current Cases list" from a review step, apply the rule literally (and also evaluate whether the primary belongs in that table).
+- Local CLIs (`grok`, `claude`) after their native OAuth login (`grok login`, `claude /login`) are the canonical way to use subscription quotas from code without developer API keys.
+- Once radios fully represent the desired modes, eliminate the redundant provider dropdown and unsupported paths (API key) to reduce confusion.
+
+**Cross-refs:** All drafting-tool state/docs consolidated under `drafting-tool/`. Updated `drafting-tool/PROGRESS.md`, `LESSONS_LEARNED.md`, `SERVER-README.md`; appended here. See `drafting-tool/PROGRESS.md` for current status, backlog (frontend polish + critical load_case bug logged), and handoff. Root `README.md` and `OBJECTIVE_DRAFTING_PROCESS.md` cross-referenced where relevant. External `AGENTS.md` noted for environment/CLI install context.
+
+**Bug logged (high priority for next session start)**: NameError: name 'f' is not defined in load_case (wizard.py) for zrefs["folder"] when loading new cases like AWPTCM-T44210 (500 error). Fixed in this session by restoring variable, but must be verified first next session with additional cases. See PROGRESS.md and LESSONS_LEARNED.md.
+
+## 2026-07-03 Session — Drafting Tool: MOCK/Demo Removal + Output Persistence to refined-cases + Frontend Polish
+
+**Accomplishments:**
+- Full removal of MOCK/demo fallbacks and T33234 hardcodes from code (llm.py, routers/wizard.py, static/index.html, run.sh, main.py). Tool is now real-only (requires LLM_API_KEY or local CLI login; errors cleanly otherwise). Pre-computed LLM analysis replaces demo data.
+- Output generation: export endpoint enhanced to auto-persist traceability.md + zephyr_payload.json (drop-in format) + session to `refined-cases/<Group>/AWPTCM-Txxxx/` (creates dirs via group resolution that matches existing folders like "Port (7)"). Client downloads retained. Builds on prior note/validation work.
+- Frontend polish (high-prio #2): removed numerous inline styles (replaced with .hidden, utility classes like .instructions-panel, .btn-compact-*; updated JS for class toggles); enhanced renderReviewSummary (richer previews with more selections, justifications, counts + badges); improved post-synth editor (better form classes); neutralized last demo pre-select logic and cleaned comments/strings (pre-filled → pre-computed).
+- Process page (main.py) basic rendering present; real flows enforced.
+- Cross-refs and updates to PROGRESS, LESSONS, SERVER-README, root README/SESSION_STATE.
+
+**State:**
+- MOCK/demo fully excised from implementation (docs updated where user-facing).
+- Output persistence addresses "drop-in refined-cases artifacts".
+- UI more maintainable, less demo-tied, review/editing improved.
+- See `drafting-tool/PROGRESS.md` for refreshed status (output advanced, polish in progress), updated backlog/hand off (real-only tests, no MOCK).
+
+**Cross-refs:** All under `drafting-tool/`. Appended here and to root README. AGENTS.md for CLI login details.
+
 
 

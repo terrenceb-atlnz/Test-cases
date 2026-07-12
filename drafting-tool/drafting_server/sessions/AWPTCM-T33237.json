@@ -1,9 +1,9 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T33237",
   "primary": {
-    "m": "AWP-23992",
-    "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "m": "AWP-21596",
+    "c": "med",
+    "w": "Active fiber-monitoring core test"
   },
   "step1": {
     "confirmed": false,
@@ -27,7 +27,7 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-02 23:09:57.287802",
   "llm_config": {
     "provider": "mock",
     "auth_method": "api_key",

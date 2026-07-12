@@ -1,40 +1,40 @@
 {
-  "key": "AWPTCM-T30649",
+  "key": "AWPTCM-T33249",
   "primary": {
-    "m": "AWP-13791",
+    "m": "AWP-4397",
     "c": "med",
-    "w": "DHCPv6 server address-range config"
+    "w": "ARP Log: Functionality"
   },
   "step1": {
     "confirmed": true,
-    "confirmed_at": "2026-07-02 21:57:06.048330",
+    "confirmed_at": "2026-07-02 19:57:23.395941",
     "none_selected": false,
     "selections": [
       {
-        "id_or_key": "AWP-24090",
-        "title": "Config DHCPv6 dns-server to use interface with no assigned IPv6 address",
+        "id_or_key": "AWP-9337",
+        "title": "Logging",
         "justification": "Related TestLink case"
       },
       {
-        "id_or_key": "AWP-24084",
-        "title": "DHCPv6 Client Does not install default route",
+        "id_or_key": "AWP-9864",
+        "title": "ARP Security - logging enabled/disabled/thrash",
         "justification": "Related TestLink case"
       },
       {
-        "id_or_key": "AWP-24091",
-        "title": "Check IPV6 DNS information is stored on device.",
+        "id_or_key": "AWP-5519",
+        "title": "Logging",
         "justification": "Related TestLink case"
       }
     ]
   },
   "step2": {
     "confirmed": true,
-    "confirmed_at": "2026-07-02 21:57:07.531791",
+    "confirmed_at": "2026-07-02 19:57:25.924037",
     "none_selected": false,
     "selections": [
       {
-        "id_or_key": "AWPTCM-T30649",
-        "title": "(65) IPv6_DNSandDHCPRelated - DHCPv6 Server",
+        "id_or_key": "AWPTCM-T33249",
+        "title": "(21) IPv4_ARP - ARP Logging",
         "justification": "The case being refined"
       },
       {
@@ -54,7 +54,7 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:15:13.732093",
+  "updated_at": "2026-07-12 19:59:52.321752",
   "llm_config": {
     "provider": "mock",
     "auth_method": "api_key",

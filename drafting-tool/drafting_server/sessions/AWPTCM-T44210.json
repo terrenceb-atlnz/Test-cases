@@ -1,9 +1,9 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T44210",
   "primary": {
-    "m": "AWP-23992",
-    "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "m": "AWP-10099",
+    "c": "med",
+    "w": "IPv6 QoS field"
   },
   "step1": {
     "confirmed": false,
@@ -27,9 +27,9 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-12 20:12:57.868230",
   "llm_config": {
-    "provider": "mock",
+    "provider": "grok",
     "auth_method": "api_key",
     "api_key": null,
     "token": null,

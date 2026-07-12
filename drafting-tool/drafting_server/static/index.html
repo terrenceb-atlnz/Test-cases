@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>Objective Drafting Tool — Server-Backed</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
@@ -163,6 +165,8 @@ body {
   flex: 1;
   margin-left: 240px;
   padding: 8px;
+  overflow-y: auto;
+  max-height: 100vh;
 }
 
 .sidebar-logo {
@@ -346,6 +350,21 @@ body {
   color: var(--text-primary);
 }
 
+.btn-danger {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
+  border-radius: 20px; /* pill shape for distinction */
+  font-weight: 500;
+}
+.btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+}
+.btn-danger:active {
+  background: #a71d2a;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -474,18 +493,27 @@ button.secondary:not(.btn):hover {
 .table-container {
   border: 1px solid var(--border-default);
   border-radius: 4px;
-  overflow: hidden;
   max-width: 100%;
+  width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+  /* Keep multi-row tables compact on screen; scroll inside if tall */
+  max-height: min(55vh, 420px);
+  overflow-y: auto;
 }
 
 .table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 11px;
 }
 
 .table thead {
   background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table th {
@@ -497,6 +525,7 @@ button.secondary:not(.btn):hover {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border-default);
+  background: var(--bg-secondary);
 }
 
 .table th.sortable {
@@ -508,24 +537,68 @@ button.secondary:not(.btn):hover {
   color: var(--text-primary);
 }
 
+/*
+  Column widths MUST sum to ~100% for the actual column count.
+  Bug: previous rules assumed 5 columns (checkbox+id+title+score+desc=100%).
+  Zephyr/ATP tables have 6 columns, so the last "Why/Description" column got ~0
+  width under table-layout:fixed. Combined with overflow-wrap:break-all that made
+  the description stack one character per line → huge empty-looking row height.
+*/
+/* 5-col tables: TestLink (checkbox, id, title, score, description) */
+.table.cols-5 th:nth-child(1),
+.table.cols-5 td:nth-child(1) { width: 4%; }
+.table.cols-5 th:nth-child(2),
+.table.cols-5 td:nth-child(2) { width: 12%; }
+.table.cols-5 th:nth-child(3),
+.table.cols-5 td:nth-child(3) { width: 22%; }
+.table.cols-5 th:nth-child(4),
+.table.cols-5 td:nth-child(4) { width: 8%; }
+.table.cols-5 th:nth-child(5),
+.table.cols-5 td:nth-child(5) { width: 54%; }
+
+/* 6-col: Zephyr (checkbox, key, title, score, area, why/desc) */
+.table.cols-6-zephyr th:nth-child(1),
+.table.cols-6-zephyr td:nth-child(1) { width: 3%; }
+.table.cols-6-zephyr th:nth-child(2),
+.table.cols-6-zephyr td:nth-child(2) { width: 12%; }
+.table.cols-6-zephyr th:nth-child(3),
+.table.cols-6-zephyr td:nth-child(3) { width: 22%; }
+.table.cols-6-zephyr th:nth-child(4),
+.table.cols-6-zephyr td:nth-child(4) { width: 7%; }
+.table.cols-6-zephyr th:nth-child(5),
+.table.cols-6-zephyr td:nth-child(5) { width: 14%; }
+.table.cols-6-zephyr th:nth-child(6),
+.table.cols-6-zephyr td:nth-child(6) { width: 42%; }
+
+/* 6-col: ATP (checkbox, id, title, score, src, description) */
+.table.cols-6-atp th:nth-child(1),
+.table.cols-6-atp td:nth-child(1) { width: 3%; }
+.table.cols-6-atp th:nth-child(2),
+.table.cols-6-atp td:nth-child(2) { width: 12%; }
+.table.cols-6-atp th:nth-child(3),
+.table.cols-6-atp td:nth-child(3) { width: 24%; }
+.table.cols-6-atp th:nth-child(4),
+.table.cols-6-atp td:nth-child(4) { width: 7%; }
+.table.cols-6-atp th:nth-child(5),
+.table.cols-6-atp td:nth-child(5) { width: 7%; }
+.table.cols-6-atp th:nth-child(6),
+.table.cols-6-atp td:nth-child(6) { width: 47%; }
+
 .table td {
   padding: 2px 6px;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
-  vertical-align: middle;
-  line-height: 1.1;
+  vertical-align: top;
+  line-height: 1.25;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .table .form-input {
   height: 18px;
   padding: 0 3px;
   font-size: 10px;
-}
-.table .form-input.just-input {
-  width: 100px;
-}
-.table .form-input.z-just {
-  width: 90px;
 }
 
 .table tbody tr {
@@ -537,11 +610,6 @@ button.secondary:not(.btn):hover {
   background: var(--bg-hover);
 }
 
-.table-container {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
 .table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -550,13 +618,35 @@ button.secondary:not(.btn):hover {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-secondary);
+  padding-left: 2px;
+  padding-right: 2px;
 }
 .table .cell-folder {
   font-size: 10px;
-  max-width: 120px;
+  max-width: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.table td.cell-title {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  vertical-align: top;
+}
+
+.table td.cell-description {
+  /* Newlines already converted to <br> in JS — do NOT use pre-line (extra blank space) */
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+  line-height: 1.3;
+  vertical-align: top;
+  /* Cap cell height so one long description cannot blow the layout */
+  max-height: 4.8em;
+  overflow: auto;
 }
 
 .synth-objective {
@@ -672,44 +762,116 @@ h2 {
   font-size: 10px;
   color: var(--text-secondary);
 }
+.review-summary .sel-group { margin-bottom: 4px; }
+.review-summary .gaps-text { font-size: 10px; color: var(--text-secondary); }
+.editor-textarea { width:100%; height:120px; font-size:11px; font-family:var(--font-mono, monospace); }
+.editor-textarea-sm { width:100%; height:48px; font-size:11px; }
+.step-expected { margin-top:2px; color:var(--text-secondary); font-size:11px; }
+.provenance-details { margin-top:12px; }
+.provenance-summary { cursor:pointer; font-size:11px; color:var(--text-tertiary); }
+.provenance-pre { font-size:9px; background:var(--bg-tertiary); padding:6px; border-radius:4px; max-height:120px; overflow:auto; margin-top:4px; }
+.instructions-panel { margin-top:12px; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:6px; font-size:13px; line-height:1.5; }
+.status-result { margin-top:8px; font-size:12px; }
+.status-ok { color:#5ddc7a; }
+.status-err { color:#ff6b6b; }
+.status-warn { color:#f59e0b; }
+.status-muted { color:var(--text-secondary); }
+.btn-compact-small { font-size:12px; padding:2px 8px; height:26px; white-space:nowrap; }
+.form-input-small { width:160px; }
+.form-input-search { flex:1; min-width:140px; font-size:12px; height:28px; }
+.hidden { display: none !important; }
+.form-textarea-small { width:100%; height:60px; margin-top:8px; }
+.session-pre { background:var(--bg-tertiary); padding:8px; font-size:11px; max-height:160px; overflow:auto; margin:0; }
+.session-debug { margin-top: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; }
+.session-debug-summary { cursor: pointer; font-size: 11px; color: var(--text-tertiary); user-select: none; }
+.session-debug[open] .session-debug-summary { margin-bottom: 6px; color: var(--text-secondary); }
+.llm-status-inline { color:var(--text-secondary); font-size:12px; }
+.llm-status-ok { color:#5ddc7a !important; }
+.llm-status-warn { color:#f59e0b !important; }
 .nav-badge {
   margin-left: 4px;
   font-size: 9px !important;
   padding: 0 3px !important;
 }
-
-.editable-area {
-  border: 1px dashed var(--border-default);
-  padding: 6px;
-  background: var(--bg-primary);
-  border-radius: 4px;
-  min-height: 60px;
+.step-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.step-heading-row .section-heading { margin: 0; }
+.cell-suite { color:var(--text-secondary); font-size:10px; margin-left:4px; }
+.cell-folder {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.cell-score { font-family: var(--font-mono, monospace); font-size: 10px; }
+.cell-source { font-size: 9px; color: var(--text-tertiary); }
+.justification-note { font-size: 10px; color: var(--text-secondary); font-style: italic; }
+.review-empty { color: var(--text-tertiary); font-size: 11px; }
+.review-count { font-size: 10px; color: var(--text-secondary); margin-left: 4px; }
+.loading-banner {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
   font-size: 12px;
+  color: var(--text-secondary);
 }
-.editable-steps {
-  list-style: decimal;
-  margin: 0;
-  padding-left: 20px;
-}
-.editable-step {
-  margin-bottom: 4px;
+.atp-toolbar {
   display: flex;
   gap: 6px;
-  align-items: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
-.editable-step input {
-  flex: 1;
+.editable-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.editable-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 6px;
+  align-items: start;
+  padding: 6px;
+  border: 1px dashed var(--border-default);
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+.editable-step-num {
   font-size: 11px;
-  height: 20px;
+  color: var(--text-secondary);
+  padding-top: 4px;
+  font-family: var(--font-mono, monospace);
 }
-
+.editable-step-fields { display: flex; flex-direction: column; gap: 4px; }
+.editable-step .form-input { font-size: 11px; height: 24px; }
+.editor-toolbar { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 .synth-actions {
   margin-top: 8px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }
-
-/* Reduce more inline reliance */
+.synth-objective {
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+}
+.synth-steps { margin: 0; padding-left: 18px; font-size: 12px; }
+.synth-steps li { margin-bottom: 6px; }
 .compact-flex {
   display: flex;
   gap: 8px;
@@ -717,6 +879,29 @@ h2 {
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
+.full-width { width: 100%; }
+.mb-1 { margin-bottom: 4px; }
+.mb-2 { margin-bottom: 8px; }
+.mt-2 { margin-top: 8px; }
+.icon-inline { margin-right: 4px; vertical-align: middle; }
+.icon-inline-sm { margin-right: 4px; vertical-align: -1px; }
+.llm-status { font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
+.btn-compact { font-size:12px; height:auto; padding:6px 10px; flex:1; }
+.btn-small { font-size:11px; min-width: 90px; border-radius: 999px; flex:0 0 auto; padding:4px 10px; }
+.form-select.mb-1 { width:100%; font-size:13px; }
+.case-select-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 6px 0 2px;
+}
+.case-select-label .case-count {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+.radio-group { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.radio-label { font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -728,38 +913,28 @@ h2 {
     </div>
 
     <!-- Theme toggle inside sidebar (no top header bar) -->
-    <button id="theme-toggle" title="Toggle light/dark mode" class="btn btn-ghost compact-flex" style="width:100%; margin-bottom:16px; font-size:12px; height:auto; padding:6px 10px;">
+    <button id="theme-toggle" title="Toggle light/dark mode" class="btn btn-ghost compact-flex full-width mb-2">
       <span>Theme</span>
       <span id="theme-icon">🌙</span>
     </button>
 
-    <!-- Case controls -->
+    <!-- LLM Status (always visible) -->
     <div class="sidebar-section-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-      Case
-    </div>
-    <select id="caseSel" class="form-select" style="width:100%; margin-bottom:8px; font-size:13px;">
-      <option value="">Select Test Case</option>
-    </select>
-    <div class="compact-flex" style="margin-bottom:12px;">
-      <button onclick="loadCase()" class="btn btn-primary" style="flex:1; font-size:12px; height:auto; padding:6px 10px;">Load</button>
-      <button onclick="exportBundle()" class="btn btn-secondary" style="flex:1; font-size:12px; height:auto; padding:6px 10px;">Export</button>
-    </div>
-
-    <!-- LLM Status -->
-    <div class="sidebar-section-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
       LLM
     </div>
-    <div id="llm-status-sidebar" class="llm-status" style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">Not configured</div>
-    <button onclick="showLLMConfig()" class="btn btn-secondary" style="width:100%; margin-bottom:12px; font-size:12px; height:auto; padding:6px 10px;">Configure</button>
+    <div id="llm-status-sidebar" class="llm-status">Not configured</div>
 
     <!-- Steps navigation -->
     <div class="sidebar-section-label">Steps</div>
     <div class="sidebar-steps">
-      <div onclick="goToStep(1)" class="sidebar-nav-item active" data-step="1">
+      <div onclick="goToStep(0)" class="sidebar-nav-item active" data-step="0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M9 9h6v6H9z"/></svg>
+        0. Cases + LLM
+      </div>
+      <div onclick="goToStep(1)" class="sidebar-nav-item" data-step="1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-        1. TestLink + Decisions
+        1. TestLink
       </div>
       <div onclick="goToStep(2)" class="sidebar-nav-item" data-step="2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -767,7 +942,7 @@ h2 {
       </div>
       <div onclick="goToStep(3)" class="sidebar-nav-item" data-step="3">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        3. ATPyLib + Gaps
+        3. ATPyLib (scored)
       </div>
       <div onclick="goToStep(4)" class="sidebar-nav-item" data-step="4">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
@@ -780,211 +955,270 @@ h2 {
   <div class="main">
     <div class="page-header">
       <div>
-        <div class="page-title">Objective Drafting</div>
+        <div class="page-title"></div>
         <div class="page-description">Review data sources then synthesize with LLM.</div>
       </div>
     </div>
 
-    <!-- LLM Config Card (shown on demand) -->
-    <div id="llm-config-card" class="card" style="display:none;">
+    <!-- Step 0: Cases + LLM -->
+    <div id="step-0" class="card">
       <div class="section">
-        <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Configure Grok or Claude. Supports API key or account login.</div>
+        <div class="section-heading">Cases + LLM Configuration</div>
+        <div class="section-description">Select a test case and configure the LLM provider.</div>
 
-        <div class="form-group" style="margin-bottom:8px;">
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <select id="llmProvider" onchange="updateLLMDefaults()" class="form-select" style="width: auto;">
-              <option value="grok">Grok (xAI)</option>
-              <option value="claude">Claude (Anthropic)</option>
-            </select>
+        <!-- Case selectors: incomplete vs complete -->
+        <div class="mt-2">
+          <div class="sidebar-section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Cases
+          </div>
+          <label class="case-select-label" for="caseSelOpen" id="caseSelOpenLabel">Open / partial</label>
+          <select id="caseSelOpen" class="form-select mb-1 case-select" data-bucket="incomplete">
+            <option value="">Select open or partial case…</option>
+          </select>
+          <label class="case-select-label" for="caseSelDone" id="caseSelDoneLabel">Complete</label>
+          <select id="caseSelDone" class="form-select mb-1 case-select" data-bucket="complete">
+            <option value="">Select completed case…</option>
+          </select>
+          <!-- Hidden legacy id kept for any leftover references; synced to active selection -->
+          <select id="caseSel" class="hidden" aria-hidden="true" tabindex="-1">
+            <option value=""></option>
+          </select>
+          <div class="compact-flex mb-2">
+            <button onclick="loadCase()" class="btn btn-primary btn-compact">Load</button>
+            <button onclick="exportBundle()" class="btn btn-secondary btn-compact">Export</button>
+            <button onclick="clearCurrentSession()" class="btn btn-danger btn-compact btn-small" title="Clear case session (workspace LLM kept)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Clear All
+            </button>
           </div>
         </div>
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <label style="font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-            <input type="radio" name="llmAuthMethod" value="api_key" checked onchange="updateAuthMethodUI()"> API Key
-          </label>
-          <label style="font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap;">
-            <input type="radio" name="llmAuthMethod" value="account" onchange="updateAuthMethodUI()"> Account Login
-          </label>
-          <button id="accountLoginBtn" onclick="prepareAccountLogin()" class="btn btn-secondary" style="font-size:12px; padding:2px 8px; height:26px; white-space:nowrap;">Show Instructions</button>
+        <!-- LLM Configuration (moved from old card) -->
+        <div class="section-heading">LLM Provider Login</div>
+        <div class="section-description">Use your locally logged-in subscription (Grok CLI for SuperGrok/X Premium+ or Claude Code CLI for Team). No developer API keys. The radio buttons select the provider and mode.</div>
 
-          <input id="llmCredential" type="password" placeholder="API Key or Token" class="form-input" style="width:260px;">
-          <input id="llmModel" placeholder="Model (optional)" class="form-input" style="width:160px;">
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="llmAuthMethod" value="grok_cli" checked onchange="updateAuthMethodUI()"> Grok CLI (SuperGrok / X Premium+ subscription)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="llmAuthMethod" value="claude_code" onchange="updateAuthMethodUI()"> Claude Code CLI (Team subscription)
+          </label>
+          <button id="grokCliStatusBtn" onclick="checkGrokCLIStatus()" class="btn btn-secondary btn-compact-small">Check Grok CLI</button>
+          <button id="cliStatusBtn" onclick="checkClaudeCLIStatus()" class="btn btn-secondary btn-compact-small">Check Claude CLI</button>
+
+          <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
           <button onclick="setLLMConfig()" class="btn btn-primary">Apply / Login</button>
-          <span id="llmStatus" style="color:var(--text-secondary); font-size:12px;"></span>
+          <span id="llmStatus" class="llm-status-inline"></span>
         </div>
 
-        <div id="accountInstructions" style="display:none; margin-top:12px; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:6px; font-size:13px; line-height:1.5;">
-          <div id="accountInstructionsText" style="margin-bottom:8px;"></div>
-          <button id="actuallyOpenBtn" onclick="actuallyOpenLoginTab()" class="btn btn-primary">Open Login Tab Now</button>
+        <div id="claudeCodeInstructions" class="instructions-panel hidden">
+          <strong>Claude Code CLI — Headless Mode (Team Subscription)</strong><br><br>
+          Synthesis calls run through the Claude Code CLI installed on the machine hosting this tool, using its own login. No API key or token is entered or stored here.<br><br>
+          1. Install Claude Code on the machine running this server (see anthropic.com/claude-code).<br>
+          2. In a terminal, run <code>claude</code> and log in (<code>/login</code>) with your Claude Team account.<br>
+          3. Click <strong>"Check Claude CLI"</strong> to verify the CLI is found.<br>
+          4. Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.<br><br>
+          <em>Usage counts against your own Team seat's limits (shared with your interactive Claude Code use). If a call fails with a login error, re-run <code>claude</code> in a terminal and log in again.</em>
+          <div id="cliStatusResult" class="status-result"></div>
+        </div>
+
+        <div id="grokCliInstructions" class="instructions-panel">
+          <strong>Grok CLI — Headless Mode (SuperGrok / X Premium+ Subscription)</strong><br><br>
+          Synthesis calls run through the local <code>grok</code> CLI using its OAuth login. No xAI API key is entered here.<br><br>
+          1. Ensure the <code>grok</code> CLI is installed (commonly at ~/.grok/bin/grok).<br>
+          2. In a terminal run <code>grok login --oauth</code> (or <code>grok login</code>) and complete the browser OAuth with your subscription account.<br>
+          3. Click <strong>"Check Grok CLI"</strong> to verify.<br>
+          4. Select the option and click <strong>"Apply / Login"</strong>. Leave Model blank for CLI default.<br><br>
+          <em>Usage counts against your SuperGrok / X Premium+ subscription.</em>
+          <div id="grokCliStatusResult" class="status-result"></div>
         </div>
       </div>
     </div>
 
+    <!-- LLM Config Card is now permanently hosted inside Step 0 -->
+    <div id="llm-config-card" class="card hidden"></div>
+
     <!-- Step Contents -->
+    <div id="load-status" class="loading-banner hidden">Loading case data…</div>
+
     <div id="step-1" class="card">
       <div class="section">
-        <div class="section-heading">Step 1: TestLink Review</div>
-        <div class="section-description">Review and confirm TestLink + decisions before proceeding.</div>
+        <div class="step-heading-row">
+          <div class="section-heading">Step 1: TestLink</div>
+          <span id="step1-badge" class="badge hidden">Confirmed</span>
+        </div>
+        <div class="section-description">Review primary decision and TestLink candidates. Search or ask the LLM to suggest, then confirm selections.</div>
         <div id="primary"></div>
+        <div class="atp-toolbar">
+          <input id="tlSearchQ" type="text" class="form-input form-input-search" placeholder="Search TestLink keywords…" />
+          <button type="button" onclick="searchTestLink()" class="btn btn-secondary btn-compact-small">Search TestLink</button>
+          <button type="button" onclick="suggestTestLinkWithLLM()" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+        </div>
         <div id="tl-table" class="table-container"><em>Select a case above and click Load to see actual TestLink candidates here.</em></div>
         <button onclick="confirmStep(1)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
       </div>
     </div>
 
-    <div id="step-2" class="card" style="display:none;">
+    <div id="step-2" class="card hidden">
       <div class="section">
-        <div class="section-heading">Step 2: Zephyr Cross-Ref</div>
-        <div class="section-description">Review relevant Zephyr cases.</div>
+        <div class="step-heading-row">
+          <div class="section-heading">Step 2: Zephyr</div>
+          <span id="step2-badge" class="badge hidden">Confirmed</span>
+        </div>
+        <div class="section-description">Review relevance-ranked external Zephyr cases (current Cases list omitted). Search or suggest more, then confirm.</div>
+        <div class="atp-toolbar">
+          <input id="zephyrSearchQ" type="text" class="form-input form-input-search" placeholder="Search Zephyr keywords…" />
+          <button type="button" onclick="searchZephyr()" class="btn btn-secondary btn-compact-small">Search Zephyr</button>
+          <button type="button" onclick="suggestZephyrWithLLM()" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+        </div>
         <div id="zephyr-table" class="table-container"><em>Select a case above and click Load to see actual Zephyr cross-refs here.</em></div>
         <button onclick="confirmStep(2)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
       </div>
     </div>
 
-    <div id="step-3" class="card" style="display:none;">
+    <div id="step-3" class="card hidden">
       <div class="section">
-        <div class="section-heading">Step 3: ATPyLib + Gaps</div>
-        <div class="section-description">Search and select ATPyLib cases. Note gaps. Use LLM to pre-select relevant ones for approval.</div>
-        <div class="compact-flex">
-          <input id="search-atp" placeholder="search" oninput="searchATP()" class="form-input" style="width:200px;">
-          <button onclick="suggestATPWithLLM()" class="btn btn-secondary" style="font-size:12px; height:28px;">Suggest with LLM (pre-select)</button>
+        <div class="step-heading-row">
+          <div class="section-heading">Step 3: ATPyLib (scored)</div>
+          <span id="step3-badge" class="badge hidden">Confirmed</span>
         </div>
-        <div id="atp-results"></div>
-        <textarea id="gaps" placeholder="Gaps..." class="form-textarea" style="width:100%; height:60px; margin-top:8px;"></textarea>
+        <div class="section-description">Review scored ATPyLib candidates (LLM + keyword). Optionally search or re-suggest, then select relevant tests. Coverage gaps are generated by the LLM at synthesis/export for Traceability — not edited here.</div>
+        <div class="atp-toolbar">
+          <input id="atpSearchQ" type="text" class="form-input form-input-search" placeholder="Search ATP keywords…" />
+          <button type="button" onclick="searchATP()" class="btn btn-secondary btn-compact-small">Search ATP</button>
+          <button type="button" onclick="suggestATPWithLLM()" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+        </div>
+        <div id="atp-table" class="table-container"><em>ATPyLib candidates will appear here after loading a case.</em></div>
         <button onclick="confirmStep(3)" class="btn btn-primary">Mark Reviewed + Confirmed</button>
       </div>
     </div>
 
-    <div id="step-4" class="card" style="display:none;">
+    <div id="step-4" class="card hidden">
       <div class="section">
         <div class="section-heading">Step 4: Synthesize Objectives &amp; Steps (LLM)</div>
         <div class="section-description">Use the configured LLM with templated prompts to generate objectives and steps. Review prior selections below.</div>
 
         <!-- Review Summary for richer preview of selections from steps 1-3 -->
         <div id="review-summary" class="review-summary">
-          <h4>Review Summary (from confirmed steps)</h4>
+          <h4>Review Summary (from steps 1–3)</h4>
           <div id="review-summary-content"><em>Load and confirm steps 1-3 to see selection previews here.</em></div>
         </div>
 
-        <button onclick="synthesize()" class="btn btn-primary">Synthesize with LLM (templated prompt)</button>
+        <div class="synth-actions mb-2">
+          <button onclick="synthesize()" class="btn btn-primary">Synthesize with LLM (templated prompt)</button>
+          <button onclick="exportBundle()" class="btn btn-secondary">Export Repeatable Bundle</button>
+        </div>
         <div id="synth-result"></div>
-        <button onclick="exportBundle()" class="btn btn-secondary">Export Repeatable Bundle</button>
       </div>
     </div>
 
-    <pre id="session-view" style="background:var(--pre-bg); padding:8px; font-size:11px; max-height:200px; overflow:auto;"></pre>
+    <details id="session-debug" class="session-debug">
+      <summary class="session-debug-summary">Session debug JSON</summary>
+      <pre id="session-view" class="session-pre"></pre>
+    </details>
   </div>
 </div>
 
 <script>
 let currentSession = null;
 let currentKey = null;
+let currentStep = 0;
 
 async function loadCase() {
-  const sel = document.getElementById('caseSel').value;
-  if (!sel) return;
+  const sel = getActiveCaseKey();
+  if (!sel) {
+    alert('Select a case from Open / partial or Complete first.');
+    return;
+  }
   currentKey = sel;
-  const res = await fetch(`/api/wizard/load_case/${sel}`, {method: 'POST'});
-  const data = await res.json();
-  currentSession = data.session;
-
-  // For LLM Mock demo: pre-fill selections for AWPTCM-T33234 (Auto-negotiation) in steps 1-3
-  if (currentKey === 'AWPTCM-T33234') {
-    if (!currentSession.step1 || !currentSession.step1.selections || currentSession.step1.selections.length === 0) {
-      currentSession.step1 = {
-        selections: [
-          { "id_or_key": "AWP-12285", "title": "Auto_Fixed Copper_Straight / Auto / Full / MDI-MDIX", "justification": "Primary match - covers default polarity handling" },
-          { "id_or_key": "AWP-12283", "title": "1G_Fixed Copper_Cross / 1000 / Auto/ MDI", "justification": "Relevant - related auto and MDI behavior" }
-        ],
-        confirmed: false
-      };
+  syncHiddenCaseSel(sel);
+  const loadBanner = document.getElementById('load-status');
+  if (loadBanner) {
+    loadBanner.classList.remove('hidden');
+    loadBanner.textContent = `Loading ${sel}… (data + related Zephyr + ATP)`;
+  }
+  try {
+    const res = await fetch(`/api/wizard/load_case/${sel}`, {method: 'POST'});
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`load_case failed (${res.status}): ${errText.slice(0, 200)}`);
     }
-    if (!currentSession.step2 || !currentSession.step2.selections || currentSession.step2.selections.length === 0) {
-      currentSession.step2 = {
-        selections: [
-          { "id_or_key": "AWPTCM-T33234", "title": "Port Auto MDI/MDI-X", "justification": "The case being refined" },
-          { "id_or_key": "AWPTCM-T13148", "title": "No Pluggins - SFP Copper/Fiber-Auto-MDIX", "justification": "Related Zephyr case for auto MDIX" }
-        ],
-        confirmed: false
-      };
+    const data = await res.json();
+    currentSession = data.session;
+    if (data.case_title) {
+      window.currentCaseTitle = data.case_title;
     }
-    if (!currentSession.step3 || !currentSession.step3.selections || currentSession.step3.selections.length === 0) {
-      currentSession.step3 = {
-        selections: [
-          { "id_or_key": "1342.301.12", "title": "Command Execution: Speed Bundle speed 100 speed auto shutdown", "justification": "Covers speed auto negotiation" },
-          { "id_or_key": "1339.1001.8", "title": "Automatic master group", "justification": "Auto configuration aspects" },
-          { "id_or_key": "1331.1001.63126", "title": "New command to allow ARPs for autoconfigure address 169.254.", "justification": "Auto address and ARP related" }
-        ],
-        confirmed: false
-      };
+    updatePageHeader();
+
+    // Hook up real data tables, restoring any previously confirmed selections from session
+    const step1Sels = (currentSession.step1 && currentSession.step1.selections) || [];
+    const step2Sels = (currentSession.step2 && currentSession.step2.selections) || [];
+    const step3Sels = (currentSession.step3 && currentSession.step3.selections) || [];
+
+    if (data.testlink_candidates) {
+      window.currentTestLink = data.testlink_candidates;
+      renderTestLinkTable(data.testlink_candidates, step1Sels);
     }
-  }
+    if (data.zephyr_refs) {
+      window.currentZephyr = data.zephyr_refs;
+      renderZephyrTable(data.zephyr_refs, step2Sels);
+    }
+    if (data.atp_candidates) {
+      window.currentATP = data.atp_candidates;
+      renderATPTable(data.atp_candidates, step3Sels);
+    }
+    updateUI();
+    // Session may include workspace LLM carried over from last Apply / Login
+    restoreLLMUI();
+    updateLLMStatus(normalizeLLMConfig(currentSession && currentSession.llm_config));
 
-  // Hook up real data for demo tables, restoring any previously confirmed selections
-  const step1Sels = (currentSession.step1 && currentSession.step1.selections) || [];
-  const step2Sels = (currentSession.step2 && currentSession.step2.selections) || [];
+    // Handle Step 3 restoration (now uses pre-loaded scored table)
+    if (step3Sels.length > 0) {
+      setTimeout(() => {
+        step3Sels.forEach(s => {
+          const cb = document.querySelector(`#atp-table input.atp-checkbox[data-id="${s.id_or_key}"]`);
+          if (cb) cb.checked = true;
+        });
+      }, 300);
+    }
 
-  if (data.testlink_candidates) {
-    window.currentTestLink = data.testlink_candidates;
-    renderTestLinkTable(data.testlink_candidates, step1Sels);
+    // Render human-readable synthesized output if step 4 data exists (e.g. after reload)
+    if (currentSession && currentSession.step4) {
+      renderSynthesized(currentSession.step4);
+    }
+    renderReviewSummary();
+  } catch (e) {
+    alert('Failed to load case: ' + e);
+  } finally {
+    if (loadBanner) loadBanner.classList.add('hidden');
   }
-  if (data.zephyr_refs) {
-    window.currentZephyr = data.zephyr_refs;
-    renderZephyrTable(data.zephyr_refs, step2Sels);
-  }
-
-  updateUI();
-  updateLLMStatus();
-  restoreLLMUI();
-
-  // Handle Step 3 restoration or LLM suggestion on load for completeness
-  const step3Sels = (currentSession.step3 && currentSession.step3.selections) || [];
-  if (step3Sels.length > 0) {
-    const q = currentKey || (step3Sels[0] && step3Sels[0].title) || 'port';
-    document.getElementById('search-atp').value = q;
-    setTimeout(async () => {
-      await searchATP();
-      step3Sels.forEach(s => {
-        const cb = document.querySelector(`#atp-results input.atp-sel[data-id="${s.id_or_key}"]`);
-        const justEl = document.querySelector(`#atp-results .atp-just[data-id="${s.id_or_key}"]`);
-        if (cb) cb.checked = true;
-        if (justEl) justEl.value = s.justification || 'Previously selected';
-      });
-    }, 400);
-  } else if (currentKey) {
-    // For new cases, auto-populate a search so LLM suggest has results to work with
-    const q = currentKey.includes('Port') || currentKey.includes('T332') ? 'port auto' : 'arp dhcp';
-    document.getElementById('search-atp').value = q;
-    setTimeout(async () => {
-      await searchATP();
-    }, 500);
-  }
-
-  // Render human-readable synthesized output if step 4 data exists (e.g. after reload)
-  if (currentSession && currentSession.step4) {
-    renderSynthesized(currentSession.step4);
-  }
-  renderReviewSummary();
 }
 
 function updateUI() {
   document.getElementById('session-view').textContent = JSON.stringify(currentSession, null, 2);
   if (currentSession && currentSession.primary) {
-    document.getElementById('primary').innerHTML = `<b>Primary:</b> ${currentSession.primary.m || 'None'}`;
+    const p = currentSession.primary;
+    const conf = p.c ? ` <span class="badge">${escapeHtml(String(p.c))}</span>` : '';
+    const why = p.w ? ` <span class="justification-note">— ${escapeHtml(String(p.w))}</span>` : '';
+    document.getElementById('primary').innerHTML = `<b>Primary:</b> <span class="sel-label">${escapeHtml(p.m || 'None')}</span>${conf}${why}`;
   }
-  // Light visual for gating state using badges
   const s = currentSession || {};
-  const c1 = s.step1 && s.step1.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
-  const c2 = s.step2 && s.step2.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
-  const c3 = s.step3 && s.step3.confirmed ? ' <span class="badge badge-success">Confirmed</span>' : '';
-  // Append status hints to headers if present (non-destructive for skeleton)
   updateLLMStatus();
-
-  // Richer preview summary + visual confirms
   renderReviewSummary();
 
-  // Visual confirm badges on nav items
+  // Confirmed badges on step headings + sidebar nav
+  [1, 2, 3].forEach(step => {
+    const conf = !!(s['step' + step] && s['step' + step].confirmed);
+    const badge = document.getElementById('step' + step + '-badge');
+    if (badge) {
+      badge.classList.toggle('hidden', !conf);
+      badge.className = conf ? 'badge badge-success' : 'badge hidden';
+      badge.textContent = conf ? '✓ Confirmed' : '';
+    }
+  });
+
   document.querySelectorAll('.sidebar-nav-item').forEach(item => {
     const step = parseInt(item.getAttribute('data-step'));
     let conf = false;
@@ -1003,7 +1237,7 @@ function updateUI() {
   });
 }
 
-// Render real selectable tables for full demo flow
+// Render real selectable tables for steps
 function renderTestLinkTable(cands, existingSelections = []) {
   const cont = document.getElementById('tl-table');
   if (!cands || cands.length === 0) {
@@ -1014,51 +1248,121 @@ function renderTestLinkTable(cands, existingSelections = []) {
   const saved = {};
   existingSelections.forEach(s => { saved[s.id_or_key] = s.justification || ''; });
 
-  let html = '<table class="table"><thead><tr><th></th><th>ID</th><th>Title</th><th>Score</th><th>Justification (edit)</th></tr></thead><tbody>';
+  let html = '<table class="table cols-5"><thead><tr><th></th><th>ID</th><th>Title</th><th>Score</th><th>Description</th></tr></thead><tbody>';
   cands.forEach((c, idx) => {
     const hasSaved = Object.keys(saved).length > 0;
     const isChecked = saved.hasOwnProperty(c.id) || (!hasSaved && idx < 3);
-    const justValue = saved[c.id] || ((c.title || '').toLowerCase().includes('auto') ? 'Primary/relevant match from candidates' : 'Related TestLink case');
+    const descValue = truncateText(saved[c.id] || (c.description || c.snippet || c.title || ''), 480);
     const checkedAttr = isChecked ? 'checked' : '';
+    const escapedDesc = escapeHtml(descValue).replace(/\n/g, '<br>');
     html += `
       <tr>
-        <td><input type="checkbox" class="tl-checkbox" data-id="${c.id}" ${checkedAttr}></td>
-        <td class="cell-id">${c.id}</td>
-        <td>${c.title || ''}</td>
-        <td>${c.score ? Number(c.score).toFixed(2) : ''}</td>
-        <td><input type="text" class="form-input tl-just just-input" data-id="${c.id}" value="${justValue}"></td>
+        <td><input type="checkbox" class="tl-checkbox" data-id="${escapeHtml(c.id)}" ${checkedAttr}></td>
+        <td class="cell-id">${escapeHtml(c.id)}</td>
+        <td class="cell-title">${escapeHtml(c.title || '')}</td>
+        <td class="cell-score">${c.score ? Number(c.score).toFixed(2) : ''}</td>
+        <td class="cell-description">${escapedDesc}</td>
       </tr>`;
   });
   html += '</tbody></table>';
   cont.innerHTML = html;
 }
 
+function folderLeaf(folder) {
+  if (!folder) return '';
+  const parts = String(folder).replace(/\/+$/, '').split('/');
+  return parts[parts.length - 1] || folder;
+}
+
 function renderZephyrTable(refs, existingSelections = []) {
   const cont = document.getElementById('zephyr-table');
   if (!refs || refs.length === 0) {
-    cont.innerHTML = '<em>No Zephyr references loaded.</em>';
+    cont.innerHTML = '<em>No relevant external Zephyr cross-refs found for this case.</em>';
+    return;
+  }
+  const saved = {};
+  existingSelections.forEach(s => { saved[s.id_or_key || s.key] = s.justification || ''; });
+
+  let html = '<table class="table cols-6-zephyr"><thead><tr><th></th><th>Key</th><th>Title</th><th>Score</th><th>Area</th><th>Why / Description</th></tr></thead><tbody>';
+  refs.forEach((r, idx) => {
+    const hasSaved = Object.keys(saved).length > 0;
+    const isChecked = saved.hasOwnProperty(r.key) || (!hasSaved && idx < 2);
+    const why = r.justification || '';
+    // Prefer short "why" + optional body; avoid duplicating the same text twice
+    const body = saved[r.key] || r.description || r.title || '';
+    const showWhy = why && body !== why;
+    const descValue = truncateText(body || why, 360);
+    const checkedAttr = isChecked ? 'checked' : '';
+    const score = (r.score !== undefined && r.score !== null) ? Number(r.score).toFixed(1) : '';
+    const area = folderLeaf(r.folder);
+    const whyLine = showWhy ? `<div class="justification-note">${escapeHtml(truncateText(why, 120))}</div>` : '';
+    const escapedDesc = escapeHtml(descValue).replace(/\n/g, '<br>');
+    html += `
+      <tr>
+        <td><input type="checkbox" class="zephyr-checkbox" data-key="${escapeHtml(r.key)}" ${checkedAttr}></td>
+        <td class="cell-id">${escapeHtml(r.key)}</td>
+        <td class="cell-title">${escapeHtml(r.title || '')}</td>
+        <td class="cell-score">${score}</td>
+        <td class="cell-folder" title="${escapeHtml(r.folder || '')}">${escapeHtml(area)}</td>
+        <td class="cell-description">${whyLine}${escapedDesc}</td>
+      </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+function renderATPTable(cands, existingSelections = []) {
+  const cont = document.getElementById('atp-table');
+  if (!cands || cands.length === 0) {
+    cont.innerHTML = '<em>No ATPyLib candidates loaded for this case.</em>';
     return;
   }
   const saved = {};
   existingSelections.forEach(s => { saved[s.id_or_key] = s.justification || ''; });
 
-  let html = '<table class="table"><thead><tr><th></th><th>Key</th><th>Title</th><th>Folder</th><th>Justification (edit)</th></tr></thead><tbody>';
-  refs.forEach((r, idx) => {
+  // Filter out non-functional tests for Step 3
+  cands = cands.filter(c => {
+    const t = ((c.title || '') + (c.description || '') + (c.id || '')).toLowerCase();
+    return !t.includes('(not a functional test)');
+  });
+
+  let html = '<table class="table cols-6-atp"><thead><tr><th></th><th>ID</th><th>Title</th><th>Score</th><th>Src</th><th>Description</th></tr></thead><tbody>';
+  cands.forEach((c, idx) => {
     const hasSaved = Object.keys(saved).length > 0;
-    const isChecked = saved.hasOwnProperty(r.key) || (!hasSaved && idx < 2);
-    const justValue = saved[r.key] || (r.justification || 'Related in area');
+    const isChecked = saved.hasOwnProperty(c.id) || (!hasSaved && idx < 3);
+    let titleText = c.title || '';
+    let extraDesc = '';
+    const bracketIdx = titleText.indexOf('[');
+    if (bracketIdx > 0) {
+      extraDesc = titleText.substring(bracketIdx).trim();
+      titleText = titleText.substring(0, bracketIdx).trim();
+    }
+    const descValue = saved[c.id] || (c.description || c.justification || c.reason || '');
+    const fullDesc = truncateText(extraDesc ? (extraDesc + (descValue ? ' ' + descValue : '')) : descValue, 400);
     const checkedAttr = isChecked ? 'checked' : '';
+    const score = (c.score !== undefined) ? Number(c.score).toFixed(2) : '';
+    const suite = c.suite ? `<span class="cell-suite">(${escapeHtml(c.suite)})</span>` : '';
+    const src = c.source || (c.justification && c.justification.indexOf('keyword') >= 0 ? 'keyword' : 'llm');
+    const escapedDesc = escapeHtml(fullDesc).replace(/\n/g, '<br>');
     html += `
       <tr>
-        <td><input type="checkbox" class="zephyr-checkbox" data-key="${r.key}" ${checkedAttr}></td>
-        <td class="cell-id">${r.key}</td>
-        <td>${r.title || ''}</td>
-        <td class="cell-folder">${r.folder || ''}</td>
-        <td><input type="text" class="form-input z-just" data-key="${r.key}" value="${justValue}"></td>
+        <td><input type="checkbox" class="atp-checkbox" data-id="${escapeHtml(c.id)}" ${checkedAttr}></td>
+        <td class="cell-id">${escapeHtml(c.id)}</td>
+        <td class="cell-title">${escapeHtml(titleText)}${suite}</td>
+        <td class="cell-score">${score}</td>
+        <td class="cell-source">${escapeHtml(src)}</td>
+        <td class="cell-description">${escapedDesc}</td>
       </tr>`;
   });
   html += '</tbody></table>';
   cont.innerHTML = html;
+}
+
+function truncateText(str, maxLen) {
+  if (str == null) return '';
+  const s = String(str);
+  if (s.length <= maxLen) return s;
+  return s.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '…';
 }
 
 function escapeHtml(str) {
@@ -1071,19 +1375,19 @@ function escapeHtml(str) {
 function renderSynthesized(synth) {
   const container = document.getElementById('synth-result');
   if (!synth) {
-    container.innerHTML = '<em>No synthesized output yet. Click the button above to generate.</em>';
+    container.innerHTML = '<em class="review-empty">No synthesized output yet. Click Synthesize above to generate.</em>';
     return;
   }
 
   const objective = synth.objective || '<ul><li>No objective generated</li></ul>';
   const steps = (synth.testScript && synth.testScript.steps) || [];
 
-  let stepsHtml = '<p><em>No test steps generated.</em></p>';
+  let stepsHtml = '<p class="review-empty">No test steps generated.</p>';
   if (steps.length > 0) {
     stepsHtml = '<ol class="synth-steps">';
     steps.forEach((s) => {
       const desc = escapeHtml(s.description || '');
-      const exp = s.expectedResult ? `<div style="margin-top:2px; color:var(--text-secondary);"><em>Expected:</em> ${escapeHtml(s.expectedResult)}</div>` : '';
+      const exp = s.expectedResult ? `<div class="step-expected"><em>Expected:</em> ${escapeHtml(s.expectedResult)}</div>` : '';
       stepsHtml += `<li><div>${desc}</div>${exp}</li>`;
     });
     stepsHtml += '</ol>';
@@ -1092,9 +1396,9 @@ function renderSynthesized(synth) {
   let provenanceHtml = '';
   if (synth.provenance) {
     provenanceHtml = `
-      <details style="margin-top:12px;">
-        <summary style="cursor:pointer; font-size:11px; color:var(--text-tertiary);">LLM Provenance (click for details)</summary>
-        <pre style="font-size:9px; background:var(--bg-tertiary); padding:6px; border-radius:4px; max-height:120px; overflow:auto; margin-top:4px;">${escapeHtml(JSON.stringify(synth.provenance, null, 2))}</pre>
+      <details class="provenance-details">
+        <summary class="provenance-summary">LLM Provenance (click for details)</summary>
+        <pre class="provenance-pre">${escapeHtml(JSON.stringify(synth.provenance, null, 2))}</pre>
       </details>
     `;
   }
@@ -1108,46 +1412,76 @@ function renderSynthesized(synth) {
       <div class="section-heading">Test Steps (Human-Readable)</div>
       <div id="synth-steps-view">${stepsHtml}</div>
     </div>
-    <div class="synth-actions">
-      <button onclick="startEditSynthesized()" class="btn btn-secondary">Edit / Revise Output</button>
-      ${provenanceHtml ? '' : ''}
+    <div class="synth-actions" id="synth-edit-actions">
+      <button type="button" onclick="startEditSynthesized()" class="btn btn-secondary">Edit / Revise Output</button>
     </div>
     ${provenanceHtml}
   `;
 }
 
-// Post-synthesis editor (better polish): makes objective + steps editable, then apply back to session
+// Post-synthesis editor: objective HTML + step description/expected editable
 let _editingSynth = null;
 
 function startEditSynthesized() {
   if (!currentSession || !currentSession.step4) return;
   _editingSynth = JSON.parse(JSON.stringify(currentSession.step4));
+  if (!_editingSynth.testScript) _editingSynth.testScript = { type: 'steps', steps: [] };
+  if (!_editingSynth.testScript.steps) _editingSynth.testScript.steps = [];
 
   const objView = document.getElementById('synth-objective-view');
   const stepsView = document.getElementById('synth-steps-view');
 
-  // Editable objective (simple textarea for HTML content)
   const objHtml = _editingSynth.objective || '';
-  objView.innerHTML = `<textarea id="edit-objective" class="form-textarea" style="width:100%; height:120px; font-size:11px;">${escapeHtml(objHtml)}</textarea>`;  // kept minimal inline for size; design component used
+  objView.innerHTML = `<textarea id="edit-objective" class="form-textarea full-width editor-textarea" spellcheck="false">${escapeHtml(objHtml)}</textarea>
+    <div class="justification-note mt-2">Edit the objective HTML (<code>&lt;ul&gt;&lt;li&gt;…</code> artefacts). Keep declarative language.</div>`;
 
-  // Editable steps as list of inputs
+  renderEditStepsList();
+
+  const actions = document.getElementById('synth-edit-actions') || document.querySelector('#synth-result .synth-actions');
+  if (actions) {
+    actions.innerHTML = `
+      <button type="button" onclick="applySynthesizedEdits()" class="btn btn-primary">Apply Edits</button>
+      <button type="button" onclick="cancelSynthesizedEdits()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="addSynthesizedStep()" class="btn btn-ghost btn-compact-small">+ Add step</button>
+    `;
+  }
+}
+
+function renderEditStepsList() {
+  const stepsView = document.getElementById('synth-steps-view');
+  if (!stepsView || !_editingSynth) return;
   const steps = (_editingSynth.testScript && _editingSynth.testScript.steps) || [];
   let editSteps = '<div class="editable-steps">';
   steps.forEach((s, idx) => {
     const desc = escapeHtml(s.description || '');
-    editSteps += `<div class="editable-step"><input data-idx="${idx}" value="${desc}" class="form-input" /></div>`;
+    const exp = escapeHtml(s.expectedResult || '');
+    editSteps += `
+      <div class="editable-step" data-idx="${idx}">
+        <div class="editable-step-num">${idx + 1}.</div>
+        <div class="editable-step-fields">
+          <input data-field="description" data-idx="${idx}" value="${desc}" class="form-input" placeholder="Step description" />
+          <input data-field="expectedResult" data-idx="${idx}" value="${exp}" class="form-input" placeholder="Expected result (optional)" />
+          <div class="editor-toolbar">
+            <button type="button" class="btn btn-ghost btn-compact-small" onclick="removeSynthesizedStep(${idx})">Remove</button>
+          </div>
+        </div>
+      </div>`;
   });
   editSteps += '</div>';
   stepsView.innerHTML = editSteps;
+}
 
-  // Replace actions
-  const actions = document.querySelector('.synth-actions');
-  if (actions) {
-    actions.innerHTML = `
-      <button onclick="applySynthesizedEdits()" class="btn btn-primary">Apply Edits</button>
-      <button onclick="cancelSynthesizedEdits()" class="btn btn-secondary">Cancel</button>
-    `;
-  }
+function addSynthesizedStep() {
+  if (!_editingSynth) return;
+  if (!_editingSynth.testScript) _editingSynth.testScript = { type: 'steps', steps: [] };
+  _editingSynth.testScript.steps.push({ description: '', expectedResult: '' });
+  renderEditStepsList();
+}
+
+function removeSynthesizedStep(idx) {
+  if (!_editingSynth || !_editingSynth.testScript) return;
+  _editingSynth.testScript.steps.splice(idx, 1);
+  renderEditStepsList();
 }
 
 function applySynthesizedEdits() {
@@ -1155,12 +1489,12 @@ function applySynthesizedEdits() {
   const objTa = document.getElementById('edit-objective');
   if (objTa) _editingSynth.objective = objTa.value.trim();
 
-  const stepInputs = document.querySelectorAll('#synth-steps-view .editable-step input');
   if (_editingSynth.testScript && _editingSynth.testScript.steps) {
-    stepInputs.forEach(inp => {
-      const idx = parseInt(inp.getAttribute('data-idx'));
+    document.querySelectorAll('#synth-steps-view .editable-step input').forEach(inp => {
+      const idx = parseInt(inp.getAttribute('data-idx'), 10);
+      const field = inp.getAttribute('data-field') || 'description';
       if (_editingSynth.testScript.steps[idx]) {
-        _editingSynth.testScript.steps[idx].description = inp.value.trim();
+        _editingSynth.testScript.steps[idx][field] = inp.value.trim();
       }
     });
   }
@@ -1180,70 +1514,79 @@ function cancelSynthesizedEdits() {
 
 function renderReviewSummary() {
   const cont = document.getElementById('review-summary-content');
-  if (!cont || !currentSession) return;
+  if (!cont) return;
+  if (!currentSession) {
+    cont.innerHTML = '<em class="review-empty">Load a case and confirm steps 1–3 to see selection previews.</em>';
+    return;
+  }
 
   const s1 = currentSession.step1 || {};
   const s2 = currentSession.step2 || {};
   const s3 = currentSession.step3 || {};
 
+  function renderStepGroup(label, sels, confirmed, idKey) {
+    const list = sels || [];
+    const confBadge = confirmed
+      ? ' <span class="badge badge-success">✓ Confirmed</span>'
+      : ' <span class="badge">Pending</span>';
+    const count = `<span class="review-count">(${list.length} selected)</span>`;
+    if (!list.length) {
+      return `<div class="sel-group"><strong>${label}:</strong>${confBadge}${count} <span class="review-empty">— none yet</span></div>`;
+    }
+    let html = `<div class="sel-group"><strong>${label}:</strong>${confBadge}${count}`;
+    list.forEach((sel, i) => {
+      if (i >= 5) return;
+      const id = sel[idKey] || sel.id_or_key || sel.key || '';
+      const title = sel.title ? ` ${escapeHtml(sel.title)}` : '';
+      let just = sel.justification || '';
+      if (just.length > 80) just = just.slice(0, 77) + '…';
+      const justHtml = just ? ` <span class="justification-note">(${escapeHtml(just)})</span>` : '';
+      html += `<div class="sel-item"><span class="sel-label">${escapeHtml(id)}</span>${title}${justHtml}</div>`;
+    });
+    if (list.length > 5) {
+      html += `<div class="review-empty">+${list.length - 5} more</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
   let html = '';
+  html += renderStepGroup('Step 1 (TestLink)', s1.selections, s1.confirmed, 'id_or_key');
+  html += renderStepGroup('Step 2 (Zephyr)', s2.selections, s2.confirmed, 'id_or_key');
+  html += renderStepGroup('Step 3 (ATPyLib)', s3.selections, s3.confirmed, 'id_or_key');
 
-  if ((s1.selections || []).length) {
-    html += `<div><strong>Step 1 (TestLink):</strong> `;
-    (s1.selections || []).slice(0,3).forEach(sel => {
-      html += `<span class="sel-item"><span class="sel-label">${sel.id_or_key}</span> ${escapeHtml((sel.title||'').slice(0,40))}</span>`;
-    });
-    if (s1.confirmed) html += ` <span class="badge badge-success">✓</span>`;
-    html += `</div>`;
+  // Gaps are LLM-generated at synthesis/export for Traceability (read-only preview if present)
+  const gaps = currentSession.gaps || '';
+  if (gaps) {
+    const short = gaps.length > 220 ? gaps.slice(0, 217) + '…' : gaps;
+    html += `<div class="sel-group"><strong>Gaps</strong> <span class="review-count">(from synthesis/export)</span>: <span class="gaps-text">${escapeHtml(short)}</span></div>`;
   }
 
-  if ((s2.selections || []).length) {
-    html += `<div><strong>Step 2 (Zephyr):</strong> `;
-    (s2.selections || []).slice(0,3).forEach(sel => {
-      html += `<span class="sel-item"><span class="sel-label">${sel.key || sel.id_or_key}</span> ${escapeHtml((sel.title||'').slice(0,40))}</span>`;
-    });
-    if (s2.confirmed) html += ` <span class="badge badge-success">✓</span>`;
-    html += `</div>`;
-  }
-
-  if ((s3.selections || []).length) {
-    html += `<div><strong>Step 3 (ATPyLib):</strong> `;
-    (s3.selections || []).slice(0,3).forEach(sel => {
-      html += `<span class="sel-item"><span class="sel-label">${sel.id_or_key}</span></span>`;
-    });
-    if (s3.confirmed) html += ` <span class="badge badge-success">✓</span>`;
-    html += `</div>`;
-  }
-
-  if (currentSession.gaps) {
-    html += `<div><strong>Gaps:</strong> ${escapeHtml(currentSession.gaps.slice(0,80))}</div>`;
-  }
-
-  cont.innerHTML = html || '<em>Confirm steps 1-3 for selection previews.</em>';
+  cont.innerHTML = html;
 }
 
 async function setLLMConfig() {
-  if (!currentKey) return alert('Load a case first');
-  const provider = document.getElementById('llmProvider').value;
-  const credential = document.getElementById('llmCredential').value.trim();
+  let key = currentKey || getActiveCaseKey();
+  if (!key) {
+    alert('Select and load a case first, then Apply / Login.');
+    return;
+  }
   const model = document.getElementById('llmModel').value.trim();
 
-  // Determine method from radio
+  // Determine method from radio (the radios now directly select the subscription provider+mode)
   const methodRadios = document.querySelectorAll('input[name="llmAuthMethod"]');
-  let auth_method = 'api_key';
+  let auth_method = 'grok_cli';
   for (let r of methodRadios) {
     if (r.checked) { auth_method = r.value; break; }
   }
 
+  let provider = (auth_method === 'claude_code') ? 'claude' : 'grok';
+
   const body = { provider, auth_method };
-  if (auth_method === 'api_key') {
-    if (credential) body.api_key = credential;
-  } else {
-    if (credential) body.token = credential;
-  }
+  // CLI subscription modes require no credential here
   if (model) body.model = model;
 
-  const res = await fetch(`/api/wizard/set_llm_config/${currentKey}`, {
+  const res = await fetch(`/api/wizard/set_llm_config/${key}`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(body)
@@ -1251,188 +1594,202 @@ async function setLLMConfig() {
   const data = await res.json();
   if (data.llm_config) {
     if (currentSession) currentSession.llm_config = data.llm_config;
+    // Remember client-side too (survives until hard refresh; server also stores workspace default)
+    window.lastLLMConfig = data.llm_config;
+    try { localStorage.setItem('draftingLLMConfig', JSON.stringify({
+      provider: data.llm_config.provider,
+      auth_method: data.llm_config.auth_method,
+      model: data.llm_config.model || null
+    })); } catch (_) {}
     updateLLMStatus(data.llm_config);
-    const methodLabel = auth_method === 'account' ? 'Account' : 'API Key';
-    alert(`Logged in to ${provider} via ${methodLabel}. Credentials stored server-side.`);
-    document.getElementById('llmCredential').value = '';
+    if (auth_method === 'claude_code') {
+      const cli = data.llm_config.claude_cli || {};
+      if (cli.available) {
+        alert(`Claude Code headless mode enabled (CLI: ${cli.version || 'found'}). Calls will use the CLI's own Team login.`);
+      } else {
+        alert('Claude Code mode set, but the CLI was NOT found on the server machine.\n\n' + (cli.hint || 'Install Claude Code and log in, then re-apply.'));
+      }
+    } else if (auth_method === 'grok_cli') {
+      const cli = data.llm_config.grok_cli || {};
+      if (cli.available) {
+        alert(`Grok CLI subscription mode enabled (CLI: ${cli.version || 'found'}). Calls use your local 'grok login' SuperGrok/X Premium+ session.`);
+      } else {
+        alert('Grok CLI mode set, but the CLI was NOT found.\n\n' + (cli.hint || 'Install grok CLI and run grok login --oauth, then re-apply.'));
+      }
+    }
+    // No credential field anymore for subscription modes
   } else {
-    alert('Failed to set LLM config: ' + (data.message || 'unknown'));
+    alert('Failed to set LLM config: ' + (data.detail || data.message || 'unknown'));
   }
+}
+
+async function checkClaudeCLIStatus() {
+  const resultDiv = document.getElementById('cliStatusResult');
+  if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking…</em>';
+  try {
+    const res = await fetch('/api/wizard/claude_cli_status');
+    const s = await res.json();
+    if (resultDiv) {
+      if (s.available) {
+        resultDiv.innerHTML = `<span class="status-ok">&#10003; Claude Code CLI found</span> — ${escapeHtml(s.version || '')} <span class="status-muted">(${escapeHtml(s.path || '')})</span><br><span class="status-muted">Note: login state is verified on first real call.</span>`;
+      } else {
+        resultDiv.innerHTML = `<span class="status-err">&#10007; Not found.</span> ${escapeHtml(s.hint || '')}`;
+      }
+    }
+  } catch (e) {
+    if (resultDiv) resultDiv.innerHTML = `<span class="status-err">Status check failed: ${escapeHtml(String(e))}</span>`;
+  }
+}
+
+async function checkGrokCLIStatus() {
+  const resultDiv = document.getElementById('grokCliStatusResult');
+  if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking Grok CLI…</em>';
+  try {
+    const res = await fetch('/api/wizard/grok_cli_status');
+    const s = await res.json();
+    if (resultDiv) {
+      if (s.available) {
+        resultDiv.innerHTML = `<span class="status-ok">&#10003; Grok CLI found</span> — ${escapeHtml(s.version || '')} <span class="status-muted">(${escapeHtml(s.path || '')})</span><br><span class="status-muted">Note: login state verified on first call. Make sure you ran 'grok login' with your subscription.</span>`;
+      } else {
+        resultDiv.innerHTML = `<span class="status-err">&#10007; Not found.</span> ${escapeHtml(s.hint || '')}`;
+      }
+    }
+  } catch (e) {
+    if (resultDiv) resultDiv.innerHTML = `<span class="status-err">Status check failed: ${escapeHtml(String(e))}</span>`;
+  }
+}
+
+function normalizeLLMConfig(config) {
+  // Normalize server/session llm_config for status display.
+  const c = Object.assign({}, config || {});
+  const am = (c.auth_method || '').toLowerCase();
+  // Session dict does not include has_key; treat CLI modes as configured
+  if (c.has_key === undefined) {
+    c.has_key = !!(c.api_key || c.token) || am === 'claude_code' || am === 'grok_cli';
+  }
+  return c;
 }
 
 function updateLLMStatus(config) {
   const statusEl = document.getElementById('llmStatus');
   const sidebarEl = document.getElementById('llm-status-sidebar');
 
-  const c = config || (currentSession && currentSession.llm_config) || {};
-  const provider = c.provider || 'mock';
-  const hasCred = c.has_key || false;
+  let c = config || (currentSession && currentSession.llm_config) || window.lastLLMConfig || {};
+  c = normalizeLLMConfig(c);
+  const provider = c.provider || '';
+  const am = (c.auth_method || '').toLowerCase();
+  const cliMode = (am === 'claude_code' || am === 'grok_cli');
+  const hasCred = !!(c.has_key || c.api_key || c.token || cliMode);
 
   let text = '';
-  let color = '';
+  let ok = false;
 
-  if (provider === 'mock' || !hasCred) {
-    text = 'Using MOCK (no key set)';
-    color = '#ffcc00';
+  if (!provider || !hasCred) {
+    text = 'No credential (use CLI login or set key)';
+    ok = false;
   } else {
     const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
-    const m = c.auth_method === 'account' ? ' (account)' : ' (key)';
+    let m = ' (API key)';
+    if (am === 'claude_code') m = ' (Claude Code CLI)';
+    else if (am === 'grok_cli') m = ' (Grok CLI subscription)';
     text = `Using ${p}${m}`;
-    color = '#5ddc7a';
+    ok = true;
   }
 
-  if (statusEl) {
-    statusEl.textContent = text;
-    statusEl.style.color = color;
-  }
-  if (sidebarEl) {
-    sidebarEl.textContent = text;
-    sidebarEl.style.color = color;
-  }
+  [statusEl, sidebarEl].forEach(el => {
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('llm-status-ok', 'llm-status-warn');
+    el.classList.add(ok ? 'llm-status-ok' : 'llm-status-warn');
+  });
 }
 
 function updateLLMDefaults() {
-  const provider = document.getElementById('llmProvider').value;
+  // Adjust model placeholder from the selected subscription radio only.
+  // IMPORTANT: do not call updateAuthMethodUI() here — that used to recurse forever
+  // (updateAuthMethodUI → updateLLMDefaults → updateAuthMethodUI → …) and crash Load
+  // with "RangeError: Maximum call stack size exceeded".
   const modelInput = document.getElementById('llmModel');
-  if (!modelInput.value) {
-    if (provider === 'grok') {
-      modelInput.placeholder = 'grok-beta';
-    } else if (provider === 'claude') {
-      modelInput.placeholder = 'claude-3-5-sonnet-20241022';
-    }
+  if (!modelInput || modelInput.value) return;
+
+  const checked = document.querySelector('input[name="llmAuthMethod"]:checked');
+  if (checked && checked.value === 'claude_code') {
+    modelInput.placeholder = '(Claude CLI default)';
+  } else {
+    modelInput.placeholder = '(Grok CLI default)';
   }
-  updateAuthMethodUI();
 }
 
+// showLLMConfig is deprecated - LLM config now lives permanently in Step 0
 function showLLMConfig() {
-  const card = document.getElementById('llm-config-card');
-  const titleEl = document.querySelector('.page-title');
-  const descEl = document.querySelector('.page-description');
-  if (card) {
-    const isHidden = card.style.display === 'none' || card.style.display === '';
-    card.style.display = isHidden ? 'block' : 'none';
-    if (titleEl && descEl) {
-      if (isHidden) {
-        titleEl.textContent = 'LLM Provider Configuration';
-        descEl.textContent = 'Set up Grok or Claude for synthesis. Close to return to steps.';
-      } else {
-        // Will be reset by goToStep or default
-        titleEl.textContent = 'Objective Drafting';
-        descEl.textContent = 'Review data sources then synthesize with LLM.';
-        goToStep(1); // default back
-      }
-    }
-  }
+  // No-op: users should navigate to Step 0
+  goToStep(0);
 }
 
 function updateAuthMethodUI() {
-  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'api_key';
+  // Radios now directly choose the subscription CLI mode (no dropdown, no API key)
+  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'grok_cli';
   const credInput = document.getElementById('llmCredential');
-  const btn = document.getElementById('accountLoginBtn');
-  const instructions = document.getElementById('accountInstructions');
+  const cliBtn = document.getElementById('cliStatusBtn');
+  const grokBtn = document.getElementById('grokCliStatusBtn');
+  const claudeInstr = document.getElementById('claudeCodeInstructions');
+  const grokInstr = document.getElementById('grokCliInstructions');
 
-  if (method === 'account') {
-    credInput.placeholder = 'Paste token / key from account';
-    if (btn) {
-      btn.style.display = 'inline-block';
-      btn.textContent = 'Show Instructions';
-    }
-    if (instructions) instructions.style.display = 'none';
+  // Credential input is not shown/used for CLI subscription modes
+  if (credInput) {
+    credInput.classList.add('hidden');
+    credInput.disabled = true;
+  }
+
+  if (method === 'claude_code') {
+    if (cliBtn) cliBtn.classList.remove('hidden');
+    if (claudeInstr) claudeInstr.classList.remove('hidden');
+    if (grokBtn) grokBtn.classList.add('hidden');
+    if (grokInstr) grokInstr.classList.add('hidden');
   } else {
-    credInput.placeholder = 'API Key';
-    if (btn) {
-      btn.style.display = 'none';
-      btn.textContent = 'Open Login Page';
-    }
-    if (instructions) instructions.style.display = 'none';
-  }
-}
-
-let pendingLoginUrl = null;
-
-function prepareAccountLogin() {
-  const provider = document.getElementById('llmProvider').value;
-  let url = '';
-  let displayName = '';
-
-  if (provider === 'grok') {
-    url = 'https://grok.x.ai/';
-    displayName = 'Grok';
-  } else if (provider === 'claude') {
-    url = 'https://console.anthropic.com/settings/keys';
-    displayName = 'Claude';
+    // grok_cli
+    if (grokBtn) grokBtn.classList.remove('hidden');
+    if (grokInstr) grokInstr.classList.remove('hidden');
+    if (cliBtn) cliBtn.classList.add('hidden');
+    if (claudeInstr) claudeInstr.classList.add('hidden');
   }
 
-  if (!url) return;
-
-  pendingLoginUrl = url;
-
-  // Show in-page, non-blocking instructions
-  const textDiv = document.getElementById('accountInstructionsText');
-  const panel = document.getElementById('accountInstructions');
-
-  textDiv.innerHTML = `
-    <strong>Account Login for ${displayName}</strong><br><br>
-    1. When you are ready, click the button below.<br>
-    2. A new tab will open to the login page.<br>
-    3. Log in and go to the API / Keys section.<br>
-    4. Copy your key or token.<br>
-    5. Return here, paste it in the field above.<br>
-    6. Click "Apply / Login".<br><br>
-    <em>You control exactly when the tab opens — no surprise focus or navigation.</em>
-  `;
-
-  const openBtn = document.getElementById('actuallyOpenBtn');
-  if (openBtn) openBtn.textContent = `Open ${displayName} Login Tab Now`;
-
-  if (panel) panel.style.display = 'block';
-
-  // Hide the initial button
-  const firstBtn = document.getElementById('accountLoginBtn');
-  if (firstBtn) firstBtn.style.display = 'none';
-}
-
-function actuallyOpenLoginTab() {
-  if (!pendingLoginUrl) return;
-
-  const newTab = window.open(pendingLoginUrl, '_blank');
-
-  // Try to return focus to this window
-  setTimeout(() => { try { window.focus(); } catch (e) {} }, 80);
-  setTimeout(() => { try { window.focus(); } catch (e) {} }, 220);
-
-  // Hide instructions panel
-  const panel = document.getElementById('accountInstructions');
-  if (panel) panel.style.display = 'none';
-
-  // Reset
-  pendingLoginUrl = null;
-
-  // Restore the prepare button
-  const firstBtn = document.getElementById('accountLoginBtn');
-  if (firstBtn) {
-    firstBtn.style.display = 'inline-block';
-    firstBtn.textContent = 'Show Instructions';
-  }
+  // Placeholder only (no reverse call into this function)
+  updateLLMDefaults();
 }
 
 function restoreLLMUI() {
-  const c = currentSession && currentSession.llm_config;
+  // Prefer active session config; fall back to last applied / localStorage
+  let c = currentSession && currentSession.llm_config;
+  const am = c && (c.auth_method || '').toLowerCase();
+  const sessionActive = c && (am === 'claude_code' || am === 'grok_cli' || c.api_key || c.token || c.has_key);
+  if (!sessionActive) {
+    c = window.lastLLMConfig || null;
+    if (!c) {
+      try {
+        const raw = localStorage.getItem('draftingLLMConfig');
+        if (raw) c = JSON.parse(raw);
+      } catch (_) {}
+    }
+  }
   if (!c || !c.provider) return;
 
-  // Set provider
-  const provSel = document.getElementById('llmProvider');
-  if (provSel) provSel.value = c.provider;
-
-  // Set method
-  const method = c.auth_method || 'api_key';
+  // Set method from saved config (no provider dropdown; radios embody the choice)
+  let method = c.auth_method || 'grok_cli';
+  if (method === 'account' || method === 'api_key') method = 'grok_cli';  // legacy mappings
   const radios = document.querySelectorAll('input[name="llmAuthMethod"]');
   for (let r of radios) {
     r.checked = (r.value === method);
   }
 
+  // Keep model field in sync when present
+  const modelInput = document.getElementById('llmModel');
+  if (modelInput && c.model && !modelInput.value) {
+    modelInput.value = c.model;
+  }
+
   updateAuthMethodUI();
-  updateLLMStatus(c);
+  updateLLMStatus(normalizeLLMConfig(c));
 }
 
 async function confirmStep(step) {
@@ -1443,12 +1800,11 @@ async function confirmStep(step) {
     const sels = [];
     document.querySelectorAll('#tl-table .tl-checkbox:checked').forEach(cb => {
       const id = cb.dataset.id;
-      const justEl = document.querySelector(`#tl-table .tl-just[data-id="${id}"]`);
       const cand = (window.currentTestLink || []).find(x => x.id === id) || {};
       sels.push({
         id_or_key: id,
         title: cand.title || id,
-        justification: justEl ? justEl.value : ''
+        justification: cand.description || cand.snippet || cand.title || ''
       });
     });
     body = { selections: sels };
@@ -1456,24 +1812,27 @@ async function confirmStep(step) {
     const sels = [];
     document.querySelectorAll('#zephyr-table .zephyr-checkbox:checked').forEach(cb => {
       const k = cb.dataset.key;
-      const justEl = document.querySelector(`#zephyr-table .z-just[data-key="${k}"]`);
       const ref = (window.currentZephyr || []).find(x => x.key === k) || {};
       sels.push({
         id_or_key: k,
         title: ref.title || k,
-        justification: justEl ? justEl.value : ''
+        justification: ref.description || ref.title || ''
       });
     });
     body = { selections: sels };
   } else if (step === 3) {
     const sels = [];
-    document.querySelectorAll('#atp-results input.atp-sel:checked').forEach(cb => {
+    document.querySelectorAll('#atp-table input.atp-checkbox:checked').forEach(cb => {
       const id = cb.dataset.id;
-      const justEl = document.querySelector(`#atp-results .atp-just[data-id="${id}"]`);
-      const title = 'ATPyLib ' + id;
-      sels.push({ id_or_key: id, title: title, justification: justEl ? justEl.value : 'Selected in Step 3' });
+      const atp = (window.currentATP || []).find(x => x.id === id) || {};
+      const title = atp.title || ('ATPyLib ' + id);
+      sels.push({ 
+        id_or_key: id, 
+        title: title, 
+        justification: atp.description || atp.justification || atp.reason || '' 
+      });
     });
-    body = { selections: sels, gaps: document.getElementById('gaps').value || '' };
+    body = { selections: sels };
   }
 
   const res = await fetch(`/api/wizard/confirm_step/${currentKey}/${step}`, {
@@ -1496,7 +1855,14 @@ async function synthesize() {
   });
   const data = await res.json();
   currentSession = data.session;
-  renderSynthesized(data.synthesized);
+  const synth = data.synthesized || {};
+  renderSynthesized(synth);
+  // Surface validation result for output-generation completeness (in console + optional alert for dev)
+  if (synth.validation) {
+    if (!synth.validation.valid) {
+      console.warn('Synthesis validation issues (output generation):', synth.validation.issues);
+    }
+  }
   updateUI();
 }
 
@@ -1512,7 +1878,17 @@ async function exportBundle() {
   download('traceability.md', data.traceability_md);
   download(currentKey + '-zephyr_payload.json', JSON.stringify(data.zephyr_payload, null, 2));
   download(currentKey + '-session.json', JSON.stringify(data.session_json, null, 2));
-  alert('Exported repeatable bundle. Files use templated LLM output for consistency.');
+  const v = data.validation || {};
+  if (v.valid === false) {
+    console.warn('Export validation issues:', v.issues);
+  }
+  alert('Exported repeatable bundle.\n\n' +
+        '• Files downloaded for immediate use.\n' +
+        '• Main outputs (traceability.md + zephyr_payload.json) also saved server-side to refined-cases/<Group>/' + (currentKey || 'case') + '/ (folders created if needed).\n' +
+        'Files use templated LLM output + server-constructed traceability note for consistency.' +
+        (v.valid === false ? '\n(See console for validation notes)' : ''));
+  // Case may have moved into Complete — refresh dual dropdowns
+  try { await refreshCaseSelects(currentKey); } catch (_) {}
 }
 
 function download(name, content) {
@@ -1522,245 +1898,533 @@ function download(name, content) {
   a.click();
 }
 
-// Dynamic case list from server data
-async function initCases() {
-  const sel = document.getElementById('caseSel');
-  // remove initial placeholder option
-  if (sel.options.length > 0 && (sel.options[0].value === '' || sel.options[0].text.includes('Select'))) {
-    sel.remove(0);
-  }
-  // Actual test cases from the project data (candidates.json) - fully linked
-  const actualTestCases = [
-    "AWPTCM-T33234", "AWPTCM-T30649", "AWPTCM-T33233", "AWPTCM-T33235", "AWPTCM-T33236",
-    "AWPTCM-T33237", "AWPTCM-T33241", "AWPTCM-T33242", "AWPTCM-T33243", "AWPTCM-T33246",
-    "AWPTCM-T33247", "AWPTCM-T33248", "AWPTCM-T33249", "AWPTCM-T33250", "AWPTCM-T33261",
-    "AWPTCM-T33263", "AWPTCM-T33265", "AWPTCM-T33266", "AWPTCM-T33267", "AWPTCM-T33268",
-    "AWPTCM-T33270", "AWPTCM-T33274", "AWPTCM-T33275", "AWPTCM-T33276", "AWPTCM-T33277",
-    "AWPTCM-T33278", "AWPTCM-T33279", "AWPTCM-T33280", "AWPTCM-T33281", "AWPTCM-T33283",
-    "AWPTCM-T33285", "AWPTCM-T33300", "AWPTCM-T33314", "AWPTCM-T33315", "AWPTCM-T33317",
-    "AWPTCM-T33323", "AWPTCM-T33351", "AWPTCM-T33369", "AWPTCM-T33370", "AWPTCM-T33371",
-    "AWPTCM-T33392", "AWPTCM-T33404", "AWPTCM-T37859", "AWPTCM-T37860", "AWPTCM-T37861",
-    "AWPTCM-T37865", "AWPTCM-T37869", "AWPTCM-T38767", "AWPTCM-T43849", "AWPTCM-T43851",
-    "AWPTCM-T43853", "AWPTCM-T43854", "AWPTCM-T43855", "AWPTCM-T43858", "AWPTCM-T43859"
-  ];
+async function clearCurrentSession() {
+  if (!currentKey) currentKey = getActiveCaseKey();
+  if (!currentKey) return alert('No case selected');
 
-  // Always populate synchronously first from the local list so dropdown is never empty
-  actualTestCases.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c;
-    o.text = c;
-    sel.appendChild(o);
+  if (!confirm(`Clear case session for ${currentKey}?\nSelections / confirms / synthesis for this case will be reset.\nYour workspace LLM preference (CLI login) is kept.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/wizard/clear_session/${currentKey}`, { method: 'POST' });
+    if (res.ok) {
+      alert('Case session cleared. Workspace LLM preference is kept.');
+      // Reset case state only (LLM preference is workspace-scoped)
+      currentSession = null;
+
+      // Clear rendered tables/content for the steps
+      const tables = ['tl-table', 'zephyr-table', 'atp-table'];
+      tables.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<em>Select and Load a case to see data.</em>';
+      });
+      const synth = document.getElementById('synth-result');
+      if (synth) synth.innerHTML = '';
+
+      // Re-load case; server re-applies workspace LLM default
+      await loadCase();
+    } else {
+      alert('Failed to clear session.');
+    }
+  } catch (e) {
+    alert('Error clearing session: ' + e);
+  }
+}
+
+function fillCaseSelect(sel, grouped, placeholder) {
+  if (!sel) return;
+  while (sel.options.length > 0) sel.remove(0);
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.text = placeholder || 'Select case…';
+  sel.appendChild(ph);
+  (grouped || []).forEach(grp => {
+    const cases = grp.cases || [];
+    if (!cases.length) return;
+    const og = document.createElement('optgroup');
+    og.label = grp.label || 'Cases';
+    cases.forEach(c => {
+      const o = document.createElement('option');
+      const key = c.key || c;
+      const title = c.title || '';
+      o.value = key;
+      o.text = title ? `${key} — ${title}` : key;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
   });
+}
+
+function syncHiddenCaseSel(key) {
+  const hidden = document.getElementById('caseSel');
+  if (!hidden) return;
+  while (hidden.options.length > 0) hidden.remove(0);
+  const o = document.createElement('option');
+  o.value = key || '';
+  o.text = key || '';
+  o.selected = true;
+  hidden.appendChild(o);
+}
+
+function onCaseSelectChange(sourceSel) {
+  const openSel = document.getElementById('caseSelOpen');
+  const doneSel = document.getElementById('caseSelDone');
+  const key = sourceSel.value || null;
+
+  // Mutual exclusivity: selecting in one clears the other
+  if (sourceSel === openSel && doneSel) doneSel.value = '';
+  if (sourceSel === doneSel && openSel) openSel.value = '';
+
+  currentKey = key;
+  const selectedOpt = sourceSel.options[sourceSel.selectedIndex];
+  if (selectedOpt && selectedOpt.text.includes(' — ')) {
+    window.currentCaseTitle = selectedOpt.text.split(' — ').slice(1).join(' — ');
+  } else {
+    window.currentCaseTitle = null;
+  }
+  syncHiddenCaseSel(key);
+  updatePageHeader();
+}
+
+function getActiveCaseKey() {
+  const openSel = document.getElementById('caseSelOpen');
+  const doneSel = document.getElementById('caseSelDone');
+  const hidden = document.getElementById('caseSel');
+  if (openSel && openSel.value) return openSel.value;
+  if (doneSel && doneSel.value) return doneSel.value;
+  if (hidden && hidden.value) return hidden.value;
+  return currentKey || null;
+}
+
+let _caseSelectListenersBound = false;
+
+// Dynamic case lists: open/partial vs complete (from refined-cases + sessions)
+async function refreshCaseSelects(preserveKey) {
+  const openSel = document.getElementById('caseSelOpen');
+  const doneSel = document.getElementById('caseSelDone');
+  const keep = preserveKey || getActiveCaseKey();
 
   try {
     const res = await fetch('/api/wizard/cases');
     if (res.ok) {
       const d = await res.json();
-      if (d.cases && d.cases.length > 0) {
-        // Clear previous options (keep only the new server list)
-        while (sel.options.length > 0) sel.remove(0);
-        d.cases.forEach(c => {
-          const o = document.createElement('option');
-          o.value = c;
-          o.text = c;
-          sel.appendChild(o);
-        });
-        // re-apply selection for demo after async replace
-        setTimeout(() => {
-          if (sel && sel.selectedIndex <= 0) {
-            for (let i = 0; i < sel.options.length; i++) {
-              const v = sel.options[i].value;
-              if (v && v !== '' && !v.includes('Select')) {
-                sel.selectedIndex = i;
-                break;
-              }
-            }
-          }
-        }, 0);
+      const counts = d.counts || {};
+      const openLabel = document.getElementById('caseSelOpenLabel');
+      const doneLabel = document.getElementById('caseSelDoneLabel');
+      if (openLabel) {
+        const n = counts.incomplete != null ? counts.incomplete : '—';
+        const ip = counts.in_progress != null ? counts.in_progress : '?';
+        openLabel.innerHTML = `Open / partial <span class="case-count">(${n}; ${ip} in progress)</span>`;
+      }
+      if (doneLabel) {
+        doneLabel.innerHTML = `Complete <span class="case-count">(${counts.complete != null ? counts.complete : '—'})</span>`;
+      }
+
+      const openGrouped = (d.incomplete && d.incomplete.grouped) || d.grouped || [];
+      const doneGrouped = (d.complete && d.complete.grouped) || [];
+      fillCaseSelect(openSel, openGrouped, 'Select open or partial case…');
+      fillCaseSelect(doneSel, doneGrouped, 'Select completed case…');
+
+      // Restore selection into the correct dropdown
+      if (keep) {
+        const inOpen = openSel && Array.from(openSel.options).some(o => o.value === keep);
+        const inDone = doneSel && Array.from(doneSel.options).some(o => o.value === keep);
+        if (inDone && doneSel) {
+          doneSel.value = keep;
+          if (openSel) openSel.value = '';
+          onCaseSelectChange(doneSel);
+        } else if (inOpen && openSel) {
+          openSel.value = keep;
+          if (doneSel) doneSel.value = '';
+          onCaseSelectChange(openSel);
+        }
       }
     }
   } catch (e) {
-    // keep the local list on error
+    if (openSel && openSel.options.length === 0) {
+      const o = document.createElement('option');
+      o.value = '';
+      o.text = 'Select case (offline)';
+      openSel.appendChild(o);
+    }
   }
+}
+
+async function initCases() {
+  const openSel = document.getElementById('caseSelOpen');
+  const doneSel = document.getElementById('caseSelDone');
+  if (!_caseSelectListenersBound) {
+    if (openSel) openSel.addEventListener('change', () => onCaseSelectChange(openSel));
+    if (doneSel) doneSel.addEventListener('change', () => onCaseSelectChange(doneSel));
+    _caseSelectListenersBound = true;
+  }
+  await refreshCaseSelects();
 }
 
 initCases();
 updateAuthMethodUI();
-goToStep(1);
+goToStep(0);  // Start on Cases + LLM
 updateLLMStatus();
 
-// Demo convenience: pre-select a case that has rich data
+// Prefer first open/partial case if none chosen (no demo auto-load of a specific key)
 setTimeout(() => {
-  const sel = document.getElementById('caseSel');
-  if (sel && sel.selectedIndex <= 0) {
-    for (let i = 0; i < sel.options.length; i++) {
-      const v = sel.options[i].value;
-      if (v && v !== '' && !v.includes('Select')) {
-        sel.selectedIndex = i;
+  const openSel = document.getElementById('caseSelOpen');
+  if (openSel && !openSel.value) {
+    for (let i = 0; i < openSel.options.length; i++) {
+      const v = openSel.options[i].value;
+      if (v && v !== '') {
+        openSel.selectedIndex = i;
+        onCaseSelectChange(openSel);
         break;
       }
     }
   }
-  // Auto-load the top case (AWPTCM-T33234) for instant pre-filled demo with mock
-  if (sel && sel.value === 'AWPTCM-T33234') {
-    setTimeout(() => { loadCase(); }, 100);
-  }
-}, 150);
+  updatePageHeader();
+}, 200);
 
 function goToStep(step) {
-  for (let i = 1; i <= 4; i++) {
+  currentStep = step;
+  for (let i = 0; i <= 4; i++) {
     const el = document.getElementById('step-' + i);
-    if (el) el.style.display = (i === step) ? 'block' : 'none';
+    if (el) el.classList.toggle('hidden', i !== step);
   }
   // highlight sidebar nav items
   document.querySelectorAll('.sidebar-nav-item').forEach((item) => {
     const itemStep = parseInt(item.getAttribute('data-step'));
     item.classList.toggle('active', itemStep === step);
   });
-  // Hide config card when navigating steps
-  const configCard = document.getElementById('llm-config-card');
-  if (configCard) configCard.style.display = 'none';
 
-  // For demo convenience: kick off ATP search when entering step 3
-  if (step === 3) {
-    const inp = document.getElementById('search-atp');
-    if (inp && !inp.value) {
-      inp.value = 'port';
-      searchATP();
-    }
-  }
-
-  // Update page header for current step
-  const titleEl = document.querySelector('.page-title');
-  const descEl = document.querySelector('.page-description');
-  if (titleEl && descEl) {
-    const titles = {
-      1: 'Step 1: TestLink Review',
-      2: 'Step 2: Zephyr Cross-Ref',
-      3: 'Step 3: ATPyLib + Gaps',
-      4: 'Step 4: Synthesize with LLM'
-    };
-    const descs = {
-      1: 'Review and confirm TestLink + decisions before proceeding.',
-      2: 'Review relevant Zephyr cases.',
-      3: 'Search and select ATPyLib cases. Note gaps.',
-      4: 'Use the configured LLM with templated prompts to generate objectives and steps.'
-    };
-    titleEl.textContent = titles[step] || 'Objective Drafting';
-    descEl.textContent = descs[step] || 'Review data sources then synthesize with LLM.';
-  }
+  updatePageHeader();
 
   if (step === 4) {
     renderReviewSummary();
   }
 }
 
-async function searchATP() {
-  const q = document.getElementById('search-atp').value || '';
-  const cont = document.getElementById('atp-results');
+function updatePageHeader() {
+  const titleEl = document.querySelector('.page-title');
+  const descEl = document.querySelector('.page-description');
+  if (!titleEl || !descEl) return;
 
-  // For LLM Mock demo on auto-negotiation case: force include pre-filled ATP selections
-  if (currentKey === 'AWPTCM-T33234') {
-    const demoResults = [
-      {id:"1342.301.12", title:"Command Execution: Speed Bundle speed 100 speed auto shutdown", suite:"Suite 1342"},
-      {id:"1339.1001.8", title:"Automatic master group", suite:"1339_atmf"},
-      {id:"1331.1001.63126", title:"New command to allow ARPs for autoconfigure address 169.254.", suite:"1331_past_issues"},
-      {id:"1351.1001.1", title:"Port auto negotiation basic", suite:"1351"}
-    ];
-    let html = '';
-    demoResults.forEach(r => {
-      const defJust = 'Relevant from search';
-      html += `<div class="compact-flex" style="font-size:10px;">
-        <input type="checkbox" class="atp-sel" data-id="${r.id}">
-        <span class="cell-id">${r.id}</span>
-        <span>${r.title}</span>
-        <span style="color:#666;">(${r.suite})</span>
-        <input type="text" class="form-input atp-just" data-id="${r.id}" value="${defJust}" style="width:70px;">
-      </div>`;
+  const stepDescs = {
+    0: 'Select case and configure LLM provider.',
+    1: 'Review TestLink candidates; search or suggest, then confirm.',
+    2: 'Review external Zephyr cross-refs; search or suggest, then confirm.',
+    3: 'Review scored ATPyLib candidates and confirm selections.',
+    4: 'Synthesize objectives, steps, and Traceability gaps with the LLM.'
+  };
+
+  if (currentKey) {
+    const t = window.currentCaseTitle || '';
+    titleEl.textContent = t ? `${currentKey} — ${t}` : currentKey;
+  } else {
+    titleEl.textContent = '';
+  }
+  descEl.textContent = stepDescs[currentStep] || 'Review data sources then synthesize with LLM.';
+}
+
+/** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason). */
+function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+  const existing = window.currentATP || [];
+  const byId = {};
+  existing.forEach(c => { if (c && c.id) byId[c.id] = { ...c }; });
+  (incoming || []).forEach(c => {
+    if (!c || !c.id) return;
+    const prev = byId[c.id];
+    const next = {
+      id: c.id,
+      title: c.title || c.description || (prev && prev.title) || c.id,
+      description: c.description || c.reason || c.justification || (prev && prev.description) || '',
+      justification: c.reason || c.justification || c.description || (prev && prev.justification) || '',
+      score: c.score !== undefined ? c.score : (prev ? prev.score : 0.5),
+      suite: c.suite || (prev && prev.suite) || '',
+      source: c.source || source,
+    };
+    if (prev && (prev.score || 0) > (next.score || 0) && prev.source === 'llm') {
+      // Keep higher LLM score but refresh reason if empty
+      byId[c.id] = {
+        ...prev,
+        justification: next.justification || prev.justification,
+        description: next.description || prev.description,
+      };
+    } else {
+      byId[c.id] = next;
+    }
+  });
+  const merged = Object.values(byId);
+  merged.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+  window.currentATP = merged;
+
+  const step3Sels = (currentSession && currentSession.step3 && currentSession.step3.selections) || [];
+  // Preserve current checkbox state + optional precheck
+  const checked = new Set();
+  document.querySelectorAll('#atp-table input.atp-checkbox:checked').forEach(cb => checked.add(cb.dataset.id));
+  if (precheckIds) precheckIds.forEach(id => checked.add(id));
+  const fakeSels = Array.from(checked).map(id => ({ id_or_key: id }));
+  const baseSels = fakeSels.length ? fakeSels : step3Sels;
+  renderATPTable(merged, baseSels);
+  // ensure prechecked
+  if (precheckIds) {
+    precheckIds.forEach(id => {
+      const cb = document.querySelector(`#atp-table input.atp-checkbox[data-id="${id}"]`);
+      if (cb) cb.checked = true;
     });
-    cont.innerHTML = html;
+  }
+}
+
+function mergeTestLinkCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+  const existing = window.currentTestLink || [];
+  const byId = {};
+  existing.forEach(c => { if (c && c.id) byId[c.id] = { ...c }; });
+  (incoming || []).forEach(c => {
+    if (!c || !c.id) return;
+    const prev = byId[c.id];
+    byId[c.id] = {
+      id: c.id,
+      title: c.title || (prev && prev.title) || c.id,
+      description: c.description || c.snippet || c.reason || (prev && prev.description) || '',
+      snippet: c.snippet || (prev && prev.snippet) || '',
+      score: c.score !== undefined ? c.score : (prev ? prev.score : 0.6),
+      source: c.source || source,
+      justification: c.justification || c.reason || (prev && prev.justification) || '',
+    };
+  });
+  const merged = Object.values(byId);
+  merged.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+  window.currentTestLink = merged;
+  const step1Sels = (currentSession && currentSession.step1 && currentSession.step1.selections) || [];
+  const checked = new Set();
+  document.querySelectorAll('#tl-table input.tl-checkbox:checked').forEach(cb => checked.add(cb.dataset.id));
+  if (precheckIds) precheckIds.forEach(id => checked.add(id));
+  const fakeSels = Array.from(checked).map(id => ({ id_or_key: id }));
+  renderTestLinkTable(merged, fakeSels.length ? fakeSels : step1Sels);
+  if (precheckIds) {
+    precheckIds.forEach(id => {
+      const cb = document.querySelector(`#tl-table input.tl-checkbox[data-id="${id}"]`);
+      if (cb) cb.checked = true;
+    });
+  }
+}
+
+function mergeZephyrCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+  const existing = window.currentZephyr || [];
+  const byKey = {};
+  existing.forEach(c => {
+    const k = c && (c.key || c.id);
+    if (k) byKey[k] = { ...c, key: k };
+  });
+  (incoming || []).forEach(c => {
+    const k = c && (c.key || c.id);
+    if (!k) return;
+    const prev = byKey[k];
+    byKey[k] = {
+      key: k,
+      title: c.title || (prev && prev.title) || k,
+      folder: c.folder || (prev && prev.folder) || '',
+      description: c.description || c.reason || (prev && prev.description) || '',
+      justification: c.justification || c.reason || (prev && prev.justification) || '',
+      score: c.score !== undefined ? c.score : (prev ? prev.score : 0.6),
+      source: c.source || source,
+    };
+  });
+  const merged = Object.values(byKey);
+  merged.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+  window.currentZephyr = merged;
+  const step2Sels = (currentSession && currentSession.step2 && currentSession.step2.selections) || [];
+  const checked = new Set();
+  document.querySelectorAll('#zephyr-table input.zephyr-checkbox:checked').forEach(cb => checked.add(cb.dataset.key));
+  if (precheckIds) precheckIds.forEach(id => checked.add(id));
+  const fakeSels = Array.from(checked).map(id => ({ id_or_key: id, key: id }));
+  renderZephyrTable(merged, fakeSels.length ? fakeSels : step2Sels);
+  if (precheckIds) {
+    precheckIds.forEach(id => {
+      const cb = document.querySelector(`#zephyr-table input.zephyr-checkbox[data-key="${id}"]`);
+      if (cb) cb.checked = true;
+    });
+  }
+}
+
+async function searchTestLink() {
+  const qEl = document.getElementById('tlSearchQ');
+  const q = (qEl && qEl.value || '').trim();
+  if (!q) {
+    alert('Enter TestLink search keywords first.');
     return;
   }
-
   try {
-    const res = await fetch(`/api/wizard/search_atp?q=${encodeURIComponent(q)}`);
-    const d = await res.json();
-    let html = '';
-    (d.results || []).forEach(r => {
-      const defJust = 'Relevant from search';
-      html += `<div class="compact-flex" style="font-size:10px;">
-        <input type="checkbox" class="atp-sel" data-id="${r.id}">
-        <span class="cell-id">${r.id}</span>
-        <span>${r.title}</span>
-        <span style="color:#666;">(${r.suite})</span>
-        <input type="text" class="form-input atp-just" data-id="${r.id}" value="${defJust}" style="width:70px;">
-      </div>`;
-    });
-    cont.innerHTML = html || '<em>No matches (try "port", "arp", "qos", etc.)</em>';
+    const res = await fetch('/api/wizard/search_testlink?q=' + encodeURIComponent(q));
+    if (!res.ok) throw new Error('search failed ' + res.status);
+    const data = await res.json();
+    const results = (data.results || []).map(r => ({
+      id: r.id,
+      title: r.title,
+      description: r.description || r.snippet || r.title || '',
+      snippet: r.snippet || '',
+      score: r.score != null ? r.score : 0.6,
+      source: 'search',
+      justification: r.justification || ('Matched search: ' + q),
+    }));
+    mergeTestLinkCandidates(results, { source: 'search' });
   } catch (e) {
-    cont.innerHTML = '<em>Search unavailable (using mock data for demo).</em>';
+    alert('TestLink search failed: ' + e);
+  }
+}
+
+async function suggestTestLinkWithLLM() {
+  if (!currentKey) {
+    alert('Load a case first.');
+    return;
+  }
+  const qEl = document.getElementById('tlSearchQ');
+  const q = (qEl && qEl.value || '').trim();
+  try {
+    const res = await fetch('/api/wizard/suggest_testlink/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(q ? { q } : {}),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 200) || ('status ' + res.status));
+    }
+    const data = await res.json();
+    const suggestions = data.suggestions || [];
+    const rows = suggestions.map(s => ({
+      id: s.id,
+      title: s.title || s.id,
+      description: s.description || s.reason || '',
+      justification: s.reason || 'LLM suggestion',
+      score: s.score != null ? s.score : 0.85,
+      source: 'llm',
+    }));
+    const ids = rows.map(r => r.id).filter(Boolean);
+    mergeTestLinkCandidates(rows, { precheckIds: ids, source: 'llm' });
+  } catch (e) {
+    alert('Suggest TestLink with LLM failed: ' + e);
+  }
+}
+
+async function searchZephyr() {
+  const qEl = document.getElementById('zephyrSearchQ');
+  const q = (qEl && qEl.value || '').trim();
+  if (!q) {
+    alert('Enter Zephyr search keywords first.');
+    return;
+  }
+  try {
+    let url = '/api/wizard/search_zephyr?q=' + encodeURIComponent(q);
+    if (currentKey) url += '&case_key=' + encodeURIComponent(currentKey);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('search failed ' + res.status);
+    const data = await res.json();
+    const results = (data.results || []).map(r => ({
+      key: r.key || r.id,
+      title: r.title,
+      folder: r.folder || '',
+      description: r.description || r.title || '',
+      justification: r.justification || ('Matched search: ' + q),
+      score: r.score != null ? r.score : 0.6,
+      source: 'search',
+    }));
+    mergeZephyrCandidates(results, { source: 'search' });
+  } catch (e) {
+    alert('Zephyr search failed: ' + e);
+  }
+}
+
+async function suggestZephyrWithLLM() {
+  if (!currentKey) {
+    alert('Load a case first.');
+    return;
+  }
+  const qEl = document.getElementById('zephyrSearchQ');
+  const q = (qEl && qEl.value || '').trim();
+  try {
+    const res = await fetch('/api/wizard/suggest_zephyr/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(q ? { q } : {}),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 200) || ('status ' + res.status));
+    }
+    const data = await res.json();
+    const suggestions = data.suggestions || [];
+    const rows = suggestions.map(s => ({
+      key: s.key || s.id,
+      title: s.title || s.id,
+      folder: s.folder || '',
+      description: s.description || s.reason || '',
+      justification: s.reason || s.justification || 'LLM suggestion',
+      score: s.score != null ? s.score : 0.85,
+      source: 'llm',
+    }));
+    const ids = rows.map(r => r.key).filter(Boolean);
+    mergeZephyrCandidates(rows, { precheckIds: ids, source: 'llm' });
+  } catch (e) {
+    alert('Suggest Zephyr with LLM failed: ' + e);
+  }
+}
+
+async function searchATP() {
+  const qEl = document.getElementById('atpSearchQ');
+  const q = (qEl && qEl.value || '').trim();
+  if (!q) {
+    alert('Enter ATP search keywords first.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/wizard/search_atp?q=' + encodeURIComponent(q));
+    if (!res.ok) throw new Error('search failed ' + res.status);
+    const data = await res.json();
+    const results = (data.results || []).map(r => ({
+      id: r.id,
+      title: r.title,
+      description: r.title || '',
+      suite: r.suite || '',
+      score: 0.6,
+      source: 'search',
+      justification: 'Matched search: ' + q,
+    }));
+    mergeATPCandidates(results, { source: 'search' });
+  } catch (e) {
+    alert('ATP search failed: ' + e);
   }
 }
 
 async function suggestATPWithLLM() {
   if (!currentKey) {
-    alert("Load a case first");
+    alert('Load a case first.');
     return;
   }
-  const cont = document.getElementById('atp-results');
-  cont.innerHTML = '<em>Asking LLM to suggest relevant ATP tests based on TestLink + Zephyr selections...</em>';
-
+  const qEl = document.getElementById('atpSearchQ');
+  const q = (qEl && qEl.value || '').trim();
   try {
-    const res = await fetch(`/api/wizard/suggest_atp/${currentKey}`, {
+    const res = await fetch('/api/wizard/suggest_atp/' + encodeURIComponent(currentKey), {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(q ? { q } : {}),
     });
-    const d = await res.json();
-
-    // Make sure we have some results to check against
-    if (!cont.innerHTML.includes('input') || cont.querySelectorAll('input.atp-sel').length === 0) {
-      // trigger a search using the query the backend used, or default
-      const q = d.query_used || document.getElementById('search-atp').value || 'port';
-      document.getElementById('search-atp').value = q;
-      await searchATP();
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 200) || ('status ' + res.status));
     }
-
-    const suggestions = d.suggestions || [];
-    let checkedCount = 0;
-    suggestions.forEach(sugg => {
-      const cb = cont.querySelector(`input.atp-sel[data-id="${sugg.id}"]`);
-      const justEl = cont.querySelector(`.atp-just[data-id="${sugg.id}"]`);
-      if (cb) {
-        cb.checked = true;
-        checkedCount++;
-        if (sugg.reason && !cb.title) {
-          cb.title = sugg.reason;
-        }
-        // Improved merge: show reason visibly next to checkbox for LLM suggestions
-        const parent = cb.parentElement;
-        if (parent && !parent.querySelector('.sugg-reason')) {
-          const r = document.createElement('span');
-          r.className = 'sugg-reason';
-          r.style.cssText = 'font-size:9px;color:#0a0;margin-left:3px;';
-          r.textContent = '✓ ' + (sugg.reason || 'suggested');
-          parent.appendChild(r);
-        }
-      }
-      if (justEl && sugg.reason) {
-        justEl.value = sugg.reason;
-      }
-    });
-
-    if (checkedCount > 0) {
-      alert(`LLM pre-selected ${checkedCount} relevant ATP test(s). Please review and adjust before confirming.`);
-    } else {
-      alert("LLM returned suggestions but none matched current results. Try searching first with keywords from your selections.");
-    }
+    const data = await res.json();
+    const suggestions = data.suggestions || [];
+    const rows = suggestions.map(s => ({
+      id: s.id,
+      title: s.id,
+      description: s.reason || '',
+      justification: s.reason || 'LLM suggestion',
+      score: 0.85,
+      source: 'llm',
+    }));
+    const ids = rows.map(r => r.id).filter(Boolean);
+    mergeATPCandidates(rows, { precheckIds: ids, source: 'llm' });
   } catch (e) {
-    cont.innerHTML = '<em>LLM suggestion failed (check LLM config / MOCK). Falling back to manual search.</em>';
-    // fallback to regular search
-    await searchATP();
+    alert('Suggest with LLM failed: ' + e);
   }
 }
 

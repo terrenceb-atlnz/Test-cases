@@ -45,11 +45,16 @@ def load_all_data() -> Dict[str, Any]:
     # ATPyLib data for search
     data["test_id_desc"] = load_json_safe("data/suites/test_id_description.json") or {}
 
+    # Full TestLink data for rich descriptions in Step 1
+    tl_raw = load_json_safe("data/suites/testlink_awp.json") or []
+    data["testlink"] = {item.get("id"): item for item in tl_raw if item.get("id")}
+
     print(f"  zephyr_master: {len(data['zephyr_master'])}")
     print(f"  candidates: {len(data['candidates'])}")
     print(f"  decisions: {len(data['decisions'])} entries")
     print(f"  slim_index: {len(data['slim_index'])}")
     print(f"  test_id_desc: {len(data['test_id_desc'])}")
+    print(f"  testlink: {len(data['testlink'])}")
 
     return data
 

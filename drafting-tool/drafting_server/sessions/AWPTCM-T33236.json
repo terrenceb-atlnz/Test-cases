@@ -1,9 +1,9 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T33236",
   "primary": {
-    "m": "AWP-23992",
-    "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "m": "AWP-22510",
+    "c": "med",
+    "w": "Half/Full duplex configuration"
   },
   "step1": {
     "confirmed": false,
@@ -27,7 +27,7 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-02 22:49:22.832689",
   "llm_config": {
     "provider": "mock",
     "auth_method": "api_key",

@@ -1,9 +1,9 @@
 {
-  "key": "AWPTCM-T33233",
+  "key": "AWPTCM-T44453",
   "primary": {
-    "m": "AWP-23992",
-    "c": "low",
-    "w": "Auto/Auto negotiation; Zephyr says covered by auto-test"
+    "m": null,
+    "c": "high",
+    "w": "ART limits spreadsheet task - no TL equivalent"
   },
   "step1": {
     "confirmed": false,
@@ -27,10 +27,10 @@
   "gaps": "",
   "art_string": "",
   "full_session": {},
-  "updated_at": "2026-07-02 22:29:22.398213",
+  "updated_at": "2026-07-03 03:13:37.983356",
   "llm_config": {
-    "provider": "mock",
-    "auth_method": "api_key",
+    "provider": "grok",
+    "auth_method": "grok_cli",
     "api_key": null,
     "token": null,
     "base_url": null,

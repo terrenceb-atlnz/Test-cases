@@ -8,21 +8,34 @@ FastAPI backend for:
 - LLM-driven synthesis of Objectives and Steps (using templated prompts)
 - Producing repeatable standardized outputs (traceability.md + zephyr_payload.json)
 
-Run with (from project root):
-  python -m uvicorn drafting_tool.drafting_server.main:app --host 0.0.0.0 --port 8000
+Run with the helper script (recommended):
 
-Or cd into drafting-tool/drafting_server and adjust.
+  ./drafting-tool/run.sh
+
+  # Examples
+  LLM_API_KEY=sk-... ./drafting-tool/run.sh
+  PORT=9000 ./drafting-tool/run.sh
+
+Or manually from the project root:
+  LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+
+Or cd into the server directory:
+  cd drafting-tool/drafting_server
+  LLM_API_KEY=sk-... PYTHONPATH=. python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 Behind nginx (copy nginx.conf.example to appropriate location).
+
+Note: MOCK/demo removed. Use real credentials or local CLI logins (grok login --oauth / claude /login).
 
 This replaces the old single-file static approach.
 """
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse, Response
 import uvicorn
 import os
 import sys
+import re
 
 # Ensure we can import sibling modules when run from project root
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +61,17 @@ async def startup_event():
 
 app.include_router(wizard_router, prefix="/api/wizard")
 
+
+@app.get("/favicon.ico")
+@app.get("/favicon.svg")
+async def favicon():
+    """Browsers always request /favicon.ico; serve a small SVG to avoid 404 noise."""
+    path = os.path.join(static_dir, "favicon.svg")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="image/svg+xml")
+    return Response(status_code=204)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Main wizard UI (migrated from v1)."""
@@ -57,20 +81,66 @@ async def root():
 
 @app.get("/process", response_class=HTMLResponse)
 async def process_page():
-    """The OBJECTIVE_DRAFTING_PROCESS as a web-based page."""
-    # For now serve a simple page; in full render the md with sections + wizard links
-    return HTMLResponse("""
-    <h1>OBJECTIVE_DRAFTING_PROCESS</h1>
-    <p>This is the live web-based reference for the repeatable process.</p>
-    <ul>
-      <li>Step 1: Review TestLink + Decisions (user confirm pause)</li>
-      <li>Step 2: Zephyr Cross-Reference</li>
-      <li>Step 3: ATPyLib + Gaps</li>
-      <li><strong>Synthesis of Objectives & Steps happens LAST using LLM + templates</strong></li>
-    </ul>
-    <p><a href="/">Back to Wizard</a></p>
-    <pre>Full content of OBJECTIVE_DRAFTING_PROCESS.md would be rendered here with interactive links.</pre>
-    """)
+    """The OBJECTIVE_DRAFTING_PROCESS as a web-based page.
+    Basic server-rendered version with headings and step anchors for deep links.
+    Cross-references PLAN-server-backed.md (function 1) and PROGRESS.md (process reference priority).
+    """
+    process_path = os.path.join(BASE_DIR, "..", "..", "OBJECTIVE_DRAFTING_PROCESS.md")
+    content = "# OBJECTIVE_DRAFTING_PROCESS\n\nFull markdown content could not be loaded."
+    if os.path.exists(process_path):
+        try:
+            with open(process_path, encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            pass
+
+    # Simple markdown-to-HTML for headings, lists, links (no extra deps)
+    html = content
+    html = re.sub(r'^# (.*)$', r'<h1>\1</h1>', html, flags=re.MULTILINE)
+    html = re.sub(r'^## (.*)$', r'<h2 id="\1">\1</h2>', html, flags=re.MULTILINE)
+    html = re.sub(r'^### (.*)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
+    html = re.sub(r'^- (.*)$', r'<li>\1</li>', html, flags=re.MULTILINE)
+    html = re.sub(r'(<li>.*</li>\n?)+', lambda m: '<ul>' + m.group(0) + '</ul>', html)
+    html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', html)
+    html = html.replace('\n\n', '<p></p>').replace('\n', '<br />')
+
+    # Add wizard deep link anchors and note
+    html = html.replace('Step 1', '<a href="/#step-1">Step 1</a>')
+    html = html.replace('Step 2', '<a href="/#step-2">Step 2</a>')
+    html = html.replace('Step 3', '<a href="/#step-3">Step 3</a>')
+    html = html.replace('Step 4', '<a href="/#step-4">Step 4 (Synthesis)</a>')
+
+    page = f"""
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>OBJECTIVE_DRAFTING_PROCESS - Drafting Tool</title>
+      <style>
+        body {{ font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 1rem; line-height: 1.5; }}
+        h1, h2, h3 {{ color: #1f2937; }}
+        ul {{ margin-left: 1.5rem; }}
+        pre, code {{ background: #f3f4f6; padding: 0.2rem 0.4rem; }}
+        .nav {{ margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }}
+      </style>
+    </head>
+    <body>
+      <div class="nav">
+        <a href="/">← Back to Wizard</a> |
+        <a href="#Step 1">Step 1</a> |
+        <a href="#Step 2">Step 2</a> |
+        <a href="#Step 3">Step 3</a> |
+        <a href="#Step 4">Step 4 (Synthesis)</a>
+      </div>
+      <div>{html}</div>
+      <p style="margin-top:2rem; font-size:0.9em; color:#6b7280;">
+        This is a server-rendered reference. Use the wizard for the repeatable gated workflow with LLM synthesis.
+        See <a href="https://wiki.atlnz.lc/awpwiki/index.php">wiki</a> for full context.
+      </p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(page)
 
 @app.get("/health")
 async def health():
