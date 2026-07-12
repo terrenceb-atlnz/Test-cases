@@ -1,14 +1,36 @@
-Using the objective below and the reviewed selections, draft Zephyr-ready testScript steps (action-oriented).
+You are drafting Zephyr-ready verification steps for a manual test case.
+The **objective below is finalized** (user-reviewed after Objective Synthesis). Derive steps from it.
 
-Objective:
+## Finalized objective (authoritative)
 {{ objective }}
 
-Selections same as objective generation (gaps are for Traceability only).
+## Case context
+Case: {{ case_key }}
+Primary decision: {{ primary }}
 
-Rules (strict for repeatable output):
-- The FIRST step will be injected server-side as a traceability note (built from confirmed TestLink + Zephyr + ATPyLib selections + gaps + art string). DO NOT generate the note yourself.
-- Generate ONLY the subsequent verification steps (2nd onward) that exercise the artefacts in the objective.
-- Use "Verify...", "Set...", "Test with...", "Confirm...", etc.
+Top TestLink selections:
+{% for s in testlink_selections %}
+- {{ s.id_or_key }}: {{ s.title }} (justification: {{ s.justification }})
+{% endfor %}
+
+Relevant Zephyr exemplars reviewed:
+{% for s in zephyr_selections %}
+- {{ s.key or s.id_or_key }}: {{ s.title }}
+{% endfor %}
+
+ATPyLib coverage (selected ART):
+{% for s in atp_selections %}
+- {{ s.id_or_key or s.id or s }}: {{ s.title or s.description or '' }}
+{% endfor %}
+{% if gaps %}
+Automation gaps (Traceability context only — do not turn gaps into over-claiming first steps): {{ gaps }}
+{% endif %}
+
+## Rules (strict for repeatable output)
+- The FIRST step will be injected server-side as a traceability note. DO NOT generate the note yourself.
+- Generate ONLY the subsequent verification steps that exercise the artefacts in the **finalized objective**.
+- Prefer one or a few steps per major objective bullet (positive / negative / special / reporting as applicable).
+- Use "Verify...", "Set...", "Test with...", "Confirm...", etc. Keep language platform-agnostic.
 - expectedResult usually empty or brief.
 - Output as JSON steps array only: [{"description": "...", "expectedResult": ""}, ...]
 

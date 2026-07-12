@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-4286 (VRF Lite Traceroute). Top relevant: AWP-10990 (VRF_Lite and Stack Management Vlan), AWP-11451 (VRF-Lite - Unicast Traffic), AWP-4144 (VRF Lite Telnet command). ART: 1330.7001.1 (VRF-lite IPv4_unicast power_cycle), 1346.1013.1 (VRF-Lite isolation).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

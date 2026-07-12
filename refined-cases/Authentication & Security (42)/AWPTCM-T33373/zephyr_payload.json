@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary TestLink AWP-9616 (Roaming authentication). Related TestLink: AWP-156, AWP-381, AWP-9546. ART coverage: 1340.1001.39052, 1331.1001.30437. Related Zephyr cases linked in Traceability (AWPTCM-T12621, AWPTCM-T12622, AWPTCM-T12624, AWPTCM-T12658, AWPTCM-T12827, AWPTCM-T12954).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

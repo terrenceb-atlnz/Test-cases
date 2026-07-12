@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-3596 (ARP Probe enable/disable). Top relevant: AWP-3594 (Probe using ARP), AWP-3550 (CLI for ARP Probe), AWP-3595 (number of probe packets), AWP-3738 (wireless client). ART: 1331/1357/1399 (DHCP server/lease behavior) + 1351 (ARP related).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

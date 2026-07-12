@@ -21,6 +21,8 @@ from models import WizardSession, SynthesisRequest, ExportResponse, Selection, L
 from data import load_all_data
 from llm import (
     synthesize_objectives_and_steps,
+    synthesize_objectives,
+    synthesize_steps,
     suggest_relevant_atp,
     suggest_relevant_testlink,
     suggest_relevant_zephyr,
@@ -191,10 +193,63 @@ def _mark_updated(sess: WizardSession) -> None:
 
 
 def _can_synthesize(sess: WizardSession) -> bool:
-    """Central repeatable-process gate. Must confirm all three reviews first.
-    Enforced in synthesize and returned to clients.
-    """
+    """Gate for objective synthesis (Step 4). Must confirm all three DB reviews first."""
     return bool(sess.step1.confirmed and sess.step2.confirmed and sess.step3.confirmed)
+
+
+def _session_objective(sess: WizardSession) -> str:
+    """Finalized objective HTML from Step 4 (or legacy combined step4)."""
+    s4 = sess.step4 or {}
+    if isinstance(s4, dict):
+        return (s4.get("objective") or "").strip()
+    return ""
+
+
+def _session_has_objective(sess: WizardSession) -> bool:
+    return bool(_session_objective(sess))
+
+
+def _session_objectives_confirmed(sess: WizardSession) -> bool:
+    s4 = sess.step4 or {}
+    if not isinstance(s4, dict):
+        return False
+    return bool(s4.get("confirmed")) and _session_has_objective(sess)
+
+
+def _session_test_script(sess: WizardSession) -> Dict[str, Any]:
+    """testScript from Step 5, with legacy fallback to step4.testScript."""
+    s5 = sess.step5 or {}
+    if isinstance(s5, dict) and s5.get("testScript"):
+        return s5.get("testScript") or {"type": "steps", "steps": []}
+    s4 = sess.step4 or {}
+    if isinstance(s4, dict) and s4.get("testScript"):
+        return s4.get("testScript") or {"type": "steps", "steps": []}
+    return {"type": "steps", "steps": []}
+
+
+def _can_synthesize_steps(sess: WizardSession) -> bool:
+    """Gate for Step 5: reviews confirmed + finalized objective present.
+
+    Prefer objectives marked confirmed (user applied Step 4); allow unconfirmed
+    objective if present so re-runs after synthesize_objectives still work when
+    the user proceeds without an extra click (UI still prompts to confirm).
+    """
+    if not _can_synthesize(sess):
+        return False
+    return _session_has_objective(sess)
+
+
+def _migrate_legacy_step4_to_step5(sess: WizardSession) -> bool:
+    """If old session has testScript only under step4, copy to step5 (non-destructive)."""
+    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
+    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
+    if s4.get("testScript") and not (s5 or {}).get("testScript"):
+        sess.step5 = {
+            **(s5 or {}),
+            "testScript": s4.get("testScript"),
+        }
+        return True
+    return False
 
 
 def get_data():
@@ -563,6 +618,8 @@ async def load_case(key: str, data=Depends(get_data)):
     sess = sessions.get(key) or _load_persisted(key)
     if sess:
         sessions[key] = sess
+        if _migrate_legacy_step4_to_step5(sess):
+            _mark_updated(sess)
     else:
         if key not in data.get("zephyr_master", {}):
             raise HTTPException(404, "Case not found")
@@ -696,7 +753,7 @@ def _refined_complete_keys() -> set:
 
 
 def _session_progress_map() -> Dict[str, dict]:
-    """Per-case wizard progress from sessions/*.json (confirms + step4)."""
+    """Per-case wizard progress from sessions/*.json (confirms + step4/5)."""
     out: Dict[str, dict] = {}
     try:
         for path in SESSIONS_DIR.glob("AWPTCM-*.json"):
@@ -708,14 +765,24 @@ def _session_progress_map() -> Dict[str, dict]:
             s1 = bool((raw.get("step1") or {}).get("confirmed"))
             s2 = bool((raw.get("step2") or {}).get("confirmed"))
             s3 = bool((raw.get("step3") or {}).get("confirmed"))
-            has_step4 = bool(raw.get("step4"))
+            s4 = raw.get("step4") or {}
+            s5 = raw.get("step5") or {}
+            has_obj = bool(isinstance(s4, dict) and (s4.get("objective") or "").strip())
+            has_steps = bool(
+                (isinstance(s5, dict) and (s5.get("testScript") or {}).get("steps"))
+                or (isinstance(s4, dict) and (s4.get("testScript") or {}).get("steps"))
+            )
+            has_step4 = bool(s4) or has_obj
             n_conf = sum([s1, s2, s3])
-            if n_conf or has_step4 or (raw.get("gaps") or "").strip():
+            if n_conf or has_step4 or has_steps or (raw.get("gaps") or "").strip():
                 out[key] = {
                     "step1": s1,
                     "step2": s2,
                     "step3": s3,
                     "has_step4": has_step4,
+                    "has_objective": has_obj,
+                    "objectives_confirmed": bool(isinstance(s4, dict) and s4.get("confirmed")),
+                    "has_step5": has_steps,
                     "confirms": n_conf,
                     "status": "in_progress",
                 }
@@ -1452,44 +1519,262 @@ async def set_llm_config(key: str, body: dict):
         "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump()
     }
 
-@router.post("/synthesize")
-async def synthesize(req: SynthesisRequest):
-    """Synthesis only succeeds when the server-side gate passes.
-    Uses the authoritative persisted/in-memory session state (not just client copy).
-    This directly implements 'Prevent synthesis until steps 1-3 are explicitly confirmed'.
-    """
+def _session_key_from_req(req: SynthesisRequest) -> str:
     key = None
     if hasattr(req.session, "key"):
         key = req.session.key
     elif isinstance(req.session, dict):
         key = req.session.get("key")
-
     if not key:
         raise HTTPException(400, "Session key is required")
+    return key
 
-    # Authoritative server state (restored from disk if necessary)
+
+def _authoritative_session(key: str) -> WizardSession:
     stored = sessions.get(key) or _load_persisted(key)
     if not stored:
         raise HTTPException(404, "Session not found. Load the case and confirm all three steps first.")
+    sessions[key] = stored
+    if _migrate_legacy_step4_to_step5(stored):
+        _persist_session(stored)
+    return stored
 
+
+@router.post("/synthesize_objectives")
+async def synthesize_objectives_endpoint(req: SynthesisRequest):
+    """Step 4: generate Traceability gaps + objective HTML only (no test steps).
+
+    Gate: steps 1–3 must be confirmed. User reviews/edits objective, then confirms
+    before Step 5 (synthesize_steps).
+    """
+    key = _session_key_from_req(req)
+    stored = _authoritative_session(key)
     if not _can_synthesize(stored):
-        raise HTTPException(400, "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first. This gate is enforced server-side per the repeatable process.")
+        raise HTTPException(
+            400,
+            "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first.",
+        )
 
-    # Convert for llm.py (expects dict with step1.selections etc.)
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
-
-    # Pass session's llm_config (from "login") so it can override env.
     llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
-    result = synthesize_objectives_and_steps(session_dict, llm_config=llm_cfg)
+    result = synthesize_objectives(session_dict, llm_config=llm_cfg)
 
-    # Store clean core data in step4 (keep validation at the synthesized response level only)
-    clean_step4 = {k: v for k, v in result.items() if k not in ("validation", "gaps")}
-    stored.step4 = clean_step4
-    # Gaps for Traceability artefact — produced by LLM at synthesis, not Step 3 UI
+    # Store objective phase only; clear prior "confirmed" so user re-reviews after re-synth
+    prev4 = stored.step4 if isinstance(stored.step4, dict) else {}
+    stored.step4 = {
+        "objective": result.get("objective"),
+        "provenance": result.get("provenance"),
+        "confirmed": False,
+        "confirmed_at": None,
+        # Preserve legacy testScript only if still present (prefer step5)
+        **({"testScript": prev4["testScript"]} if prev4.get("testScript") and not (stored.step5 or {}).get("testScript") else {}),
+    }
     if result.get("gaps"):
         stored.gaps = result["gaps"]
 
-    # Capture full LLM provenance (exact prompts + responses) into session for audit/repeatability
+    if not stored.full_session:
+        stored.full_session = {}
+    stored.full_session["llm_objectives"] = result.get("provenance") or {}
+    # Keep merged audit trail
+    prev_llm = stored.full_session.get("llm") or {}
+    stored.full_session["llm"] = {**prev_llm, **(result.get("provenance") or {})}
+
+    _mark_updated(stored)
+    _persist_session(stored)
+    return {
+        "phase": "objectives",
+        "synthesized": result,
+        "can_synthesize_steps": _can_synthesize_steps(stored),
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+    }
+
+
+@router.post("/save_objective/{key}")
+async def save_objective(key: str, body: dict = Body(default={})):
+    """Persist edited objective HTML from Step 4 (before or as part of confirm)."""
+    body = body or {}
+    stored = sessions.get(key) or _load_persisted(key)
+    if not stored:
+        raise HTTPException(404, "Session not found.")
+    sessions[key] = stored
+    objective = (body.get("objective") or "").strip()
+    if not objective:
+        raise HTTPException(400, "objective HTML is required")
+    s4 = dict(stored.step4 or {})
+    s4["objective"] = objective
+    # Edits invalidate prior confirm until re-confirmed
+    if body.get("confirm"):
+        s4["confirmed"] = True
+        s4["confirmed_at"] = datetime.utcnow().isoformat()
+    else:
+        # Keep prior confirmed only if body explicitly keeps it; default re-open review
+        if "confirm" in body and not body.get("confirm"):
+            s4["confirmed"] = False
+            s4["confirmed_at"] = None
+    stored.step4 = s4
+    _mark_updated(stored)
+    _persist_session(stored)
+    return {
+        "message": "Objective saved" + (" and confirmed" if s4.get("confirmed") else ""),
+        "can_synthesize_steps": _can_synthesize_steps(stored),
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+    }
+
+
+@router.post("/confirm_objectives/{key}")
+async def confirm_objectives(key: str, body: dict = Body(default={})):
+    """Mark Step 4 objective as finalized (optional body.objective overwrites)."""
+    body = body or {}
+    stored = sessions.get(key) or _load_persisted(key)
+    if not stored:
+        raise HTTPException(404, "Session not found.")
+    sessions[key] = stored
+    s4 = dict(stored.step4 or {})
+    if body.get("objective"):
+        s4["objective"] = (body.get("objective") or "").strip()
+    if not (s4.get("objective") or "").strip():
+        raise HTTPException(400, "No objective to confirm. Run Objective Synthesis first.")
+    s4["confirmed"] = True
+    s4["confirmed_at"] = datetime.utcnow().isoformat()
+    stored.step4 = s4
+    _mark_updated(stored)
+    _persist_session(stored)
+    return {
+        "message": "Objectives confirmed — proceed to Step 5 (Test Step Synthesis).",
+        "can_synthesize_steps": True,
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+    }
+
+
+@router.post("/save_steps/{key}")
+async def save_steps(key: str, body: dict = Body(default={})):
+    """Persist edited testScript steps from Step 5 editor."""
+    body = body or {}
+    stored = sessions.get(key) or _load_persisted(key)
+    if not stored:
+        raise HTTPException(404, "Session not found.")
+    sessions[key] = stored
+    ts = body.get("testScript") or {}
+    steps = ts.get("steps") if isinstance(ts, dict) else None
+    if steps is None and isinstance(body.get("steps"), list):
+        steps = body.get("steps")
+    if not isinstance(steps, list):
+        raise HTTPException(400, "testScript.steps array is required")
+    test_script = {"type": "steps", "steps": steps}
+    s5 = dict(stored.step5 or {})
+    s5["testScript"] = test_script
+    stored.step5 = s5
+    # Mirror onto step4 for legacy consumers / combined view
+    s4 = dict(stored.step4 or {})
+    s4["testScript"] = test_script
+    stored.step4 = s4
+    _mark_updated(stored)
+    _persist_session(stored)
+    return {
+        "message": "Steps saved",
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+    }
+
+
+@router.post("/synthesize_steps")
+async def synthesize_steps_endpoint(req: SynthesisRequest):
+    """Step 5: generate verification steps from finalized Step 4 objective.
+
+    Gate: steps 1–3 confirmed and an objective present on the session.
+    Uses the server-stored objective (after user edit/confirm), not a stale client draft.
+    """
+    key = _session_key_from_req(req)
+    stored = _authoritative_session(key)
+    if not _can_synthesize(stored):
+        raise HTTPException(
+            400,
+            "Must complete and confirm reviews of all three databases first.",
+        )
+    if not _session_has_objective(stored):
+        raise HTTPException(
+            400,
+            "No objective on session. Complete Step 4 (Objective Synthesis) first.",
+        )
+
+    # If client sent a newer objective (edited but not yet saved), accept and persist
+    client_obj = ""
+    if hasattr(req.session, "step4") and isinstance(req.session.step4, dict):
+        client_obj = (req.session.step4.get("objective") or "").strip()
+    elif isinstance(req.session, dict):
+        client_obj = ((req.session.get("step4") or {}).get("objective") or "").strip()
+    if client_obj and client_obj != _session_objective(stored):
+        s4 = dict(stored.step4 or {})
+        s4["objective"] = client_obj
+        stored.step4 = s4
+
+    session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+    llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
+    try:
+        result = synthesize_steps(
+            session_dict,
+            llm_config=llm_cfg,
+            objective=_session_objective(stored),
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    stored.step5 = {
+        "testScript": result.get("testScript"),
+        "provenance": result.get("provenance"),
+    }
+    # Keep a combined view on step4 for older clients (objective + steps mirror)
+    s4 = dict(stored.step4 or {})
+    s4["objective"] = result.get("objective") or s4.get("objective")
+    s4["testScript"] = result.get("testScript")
+    stored.step4 = s4
+
+    if not stored.full_session:
+        stored.full_session = {}
+    stored.full_session["llm_steps"] = result.get("provenance") or {}
+    prev_llm = stored.full_session.get("llm") or {}
+    stored.full_session["llm"] = {**prev_llm, **(result.get("provenance") or {})}
+
+    _mark_updated(stored)
+    _persist_session(stored)
+    return {
+        "phase": "steps",
+        "synthesized": result,
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+    }
+
+
+@router.post("/synthesize")
+async def synthesize(req: SynthesisRequest):
+    """Legacy combined synthesis (objectives + steps). Prefer split endpoints.
+
+    Still gated on steps 1–3. Stores results in both step4 and step5 for the new UI.
+    """
+    key = _session_key_from_req(req)
+    stored = _authoritative_session(key)
+    if not _can_synthesize(stored):
+        raise HTTPException(
+            400,
+            "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first. This gate is enforced server-side per the repeatable process.",
+        )
+
+    session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+    llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
+    result = synthesize_objectives_and_steps(session_dict, llm_config=llm_cfg)
+
+    stored.step4 = {
+        "objective": result.get("objective"),
+        "testScript": result.get("testScript"),
+        "provenance": result.get("provenance"),
+        "confirmed": True,
+        "confirmed_at": datetime.utcnow().isoformat(),
+    }
+    stored.step5 = {
+        "testScript": result.get("testScript"),
+        "provenance": result.get("provenance"),
+    }
+    if result.get("gaps"):
+        stored.gaps = result["gaps"]
+
     if "provenance" in result:
         if not stored.full_session:
             stored.full_session = {}
@@ -1498,8 +1783,9 @@ async def synthesize(req: SynthesisRequest):
     _persist_session(stored)
 
     return {
+        "phase": "combined",
         "synthesized": result,
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
     }
 
 @router.post("/export", response_model=ExportResponse)
@@ -1536,8 +1822,9 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
 
     case_key = key or sess_dict.get("key", "unknown")
     step4 = sess_dict.get("step4", {}) or {}
+    step5 = sess_dict.get("step5", {}) or {}
 
-    # Gaps belong in Traceability and are LLM-generated at completion (synthesis/export),
+    # Gaps belong in Traceability and are LLM-generated at objective synthesis/export,
     # not collected as a Step 3 form field.
     llm_cfg = sess_dict.get("llm_config", {}) if isinstance(sess_dict, dict) else {}
     if not (sess_dict.get("gaps") or "").strip():
@@ -1554,18 +1841,22 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
                     pass
 
     # Rebuild the testScript with authoritative server-constructed repeatable note as first step.
-    # This ensures the note always reflects the exact confirmed selections at export time.
-    # Client-side edits to later steps (via Step 4 editor) are respected; only the first note step is forced for repeatability.
-    test_script = step4.get("testScript", {"type": "steps", "steps": []}) or {"type": "steps", "steps": []}
+    # Prefer Step 5 testScript; fall back to legacy step4.testScript.
+    # Client edits to later steps are respected; only the first note step is forced.
+    test_script = (
+        (step5.get("testScript") if isinstance(step5, dict) else None)
+        or (step4.get("testScript") if isinstance(step4, dict) else None)
+        or {"type": "steps", "steps": []}
+    )
     steps = list(test_script.get("steps", []))
     note_desc = build_traceability_note(sess_dict)
     if steps:
         steps[0] = {"description": note_desc, "expectedResult": steps[0].get("expectedResult", "") if isinstance(steps[0], dict) else ""}
     else:
         steps = [{"description": note_desc, "expectedResult": ""}]
-    test_script["steps"] = steps
+    test_script = {"type": "steps", "steps": steps}
 
-    objective = step4.get("objective") or "<ul><li>Objective not yet synthesized</li></ul>"
+    objective = (step4.get("objective") if isinstance(step4, dict) else None) or "<ul><li>Objective not yet synthesized</li></ul>"
 
     # Derive art_string for payload if not present (repeatable from selections)
     if not sess_dict.get("art_string"):
@@ -1644,27 +1935,36 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     else:
         session_out = getattr(stored, "model_dump", lambda: stored)()
 
-    # NEW: Write outputs directly to refined-cases for drop-in use.
-    # This fulfills the high-priority output generation task.
+    # Primary destination: write drop-in artefacts under refined-cases/ (server path).
+    # Browser downloads are intentional only if the client asks; default UX is server-side only.
+    saved_to = None
+    saved_files: List[str] = []
+    export_message = ""
     try:
         group = _get_refined_group(case_key, data)
         refined_root = BASE_DIR.parent.parent / "refined-cases"
         target_dir = refined_root / group / case_key
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        (target_dir / "traceability.md").write_text(traceability_md, encoding="utf-8")
-        (target_dir / "zephyr_payload.json").write_text(
-            json.dumps(zephyr_payload, indent=2), encoding="utf-8"
-        )
+        files_written = [
+            ("traceability.md", traceability_md),
+            ("zephyr_payload.json", json.dumps(zephyr_payload, indent=2)),
+            (f"{case_key}-session.json", json.dumps(session_out, indent=2, default=str)),
+        ]
+        for name, content in files_written:
+            (target_dir / name).write_text(content, encoding="utf-8")
+            saved_files.append(name)
 
-        # Also save session for full audit/provenance (optional but useful)
-        (target_dir / f"{case_key}-session.json").write_text(
-            json.dumps(session_out, indent=2, default=str), encoding="utf-8"
-        )
-
-        print(f"[export] Saved drop-in artifacts to {target_dir}")
+        # Prefer repo-relative path for display (portable across machines)
+        try:
+            saved_to = str(target_dir.relative_to(BASE_DIR.parent.parent))
+        except ValueError:
+            saved_to = str(target_dir)
+        export_message = f"Saved drop-in bundle to {saved_to}/"
+        print(f"[export] {export_message}")
     except Exception as e:
-        print(f"[export] Failed to write to refined-cases: {e}")
+        export_message = f"Failed to write to refined-cases: {e}"
+        print(f"[export] {export_message}")
 
     # Include validation result so callers (and future UI) know the status of repeatability guarantees
     return ExportResponse(
@@ -1672,4 +1972,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         zephyr_payload=zephyr_payload,
         session_json=session_out,
         validation=validation,
+        saved_to=saved_to,
+        saved_files=saved_files or None,
+        message=export_message or None,
     )

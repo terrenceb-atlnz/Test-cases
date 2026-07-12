@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink CoS remarking family (AWP-20430 primary using remark new-cos, AWP-21845 CPU queue safety, AWP-9067/9068 cos-queue maps, AWP-9073/9075 default cos on switchport/LAG, AWP-9108 class set cos). ART coverage from 1344 (QoS premark/modify COS on trunk switchports, executed case 1344.4101.30).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

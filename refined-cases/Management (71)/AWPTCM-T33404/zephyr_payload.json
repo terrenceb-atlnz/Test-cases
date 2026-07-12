@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: Zephyr intent to run ART 1337_cli_walk (no strong TL primary, m=null high due to automation). Relevant TL CLI context: AWP-1133 (NTP CLI help), AWP-4508 (PoE CLI error messages), AWP-8202 (device mgmt show commands), AWP-5477 (TFTP CLI), AWP-4500 (PoE CLI help). ART coverage: 1337 full cli_walk (1337.1.1 SHOW walk, 1337.1.2 CLEAR, 1337.1.3 NO + robustness soak).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

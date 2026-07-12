@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-24184 (Check IPv4 static routes supported). Top relevant: AWP-7681 (IPv4 Static Routes - Unicast Traffic), AWP-25826 (ECMP for IPv4), AWP-20439 (Field Issue IPv4 multicast static). ART: 1330.4001.1 (static routes power_cycle), 1330.4001.7 (rolling_reboot) + related routing (1335/1355 for IPv4 static/ECMP).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

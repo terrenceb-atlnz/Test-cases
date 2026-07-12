@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink policed-dscp map family (AWP-9126 primary map config/show/restart, AWP-9127 no revert, AWP-9129/9130 single-rate policing remark on switchport/LAG + twin-rate variants). ART coverage from 1344 (QoS class-map + policer tests on trunk/switchport and static channel/LAG, policer counters).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink BPDU Forwarding family (AWP-9399, AWP-9400, AWP-9401, AWP-9407, AWP-9409 + platform variants). ART coverage from 1346 (BPDU transmission under RSTP), 2031/2032/2021 (IxANVL RSTP/STP/MSTP BPDU packet and state machine handling).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

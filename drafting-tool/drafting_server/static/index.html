@@ -946,7 +946,11 @@ h2 {
       </div>
       <div onclick="goToStep(4)" class="sidebar-nav-item" data-step="4">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
-        4. Synthesize (LLM)
+        4. Objectives (LLM)
+      </div>
+      <div onclick="goToStep(5)" class="sidebar-nav-item" data-step="5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        5. Test Steps (LLM)
       </div>
     </div>
   </div>
@@ -1097,8 +1101,14 @@ h2 {
 
     <div id="step-4" class="card hidden">
       <div class="section">
-        <div class="section-heading">Step 4: Synthesize Objectives &amp; Steps (LLM)</div>
-        <div class="section-description">Use the configured LLM with templated prompts to generate objectives and steps. Review prior selections below.</div>
+        <div class="section-heading step-heading-row">
+          <span>Step 4: Objective Synthesis (LLM)</span>
+          <span id="step4-badge" class="badge hidden"></span>
+        </div>
+        <div class="section-description">
+          Generate declarative objective artefacts from the confirmed review summary (TestLink / Zephyr / ATPyLib).
+          Review and edit, then <strong>confirm</strong> before synthesizing test steps in Step 5.
+        </div>
 
         <!-- Review Summary for richer preview of selections from steps 1-3 -->
         <div id="review-summary" class="review-summary">
@@ -1107,10 +1117,34 @@ h2 {
         </div>
 
         <div class="synth-actions mb-2">
-          <button onclick="synthesize()" class="btn btn-primary">Synthesize with LLM (templated prompt)</button>
-          <button onclick="exportBundle()" class="btn btn-secondary">Export Repeatable Bundle</button>
+          <button type="button" onclick="synthesizeObjectives()" class="btn btn-primary">Synthesize Objectives (LLM)</button>
+          <button type="button" onclick="confirmObjectives()" class="btn btn-secondary">Confirm Objectives → Step 5</button>
         </div>
-        <div id="synth-result"></div>
+        <div id="objective-result"></div>
+      </div>
+    </div>
+
+    <div id="step-5" class="card hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">
+          <span>Step 5: Test Step Synthesis (LLM)</span>
+          <span id="step5-badge" class="badge hidden"></span>
+        </div>
+        <div class="section-description">
+          Generate verification steps from the <strong>finalized objective</strong> (Step 4) plus review context.
+          The first step is always the server-built traceability note. Export the repeatable bundle when ready.
+        </div>
+
+        <div id="finalized-objective-preview" class="review-summary mb-2">
+          <h4>Finalized objective (from Step 4)</h4>
+          <div id="finalized-objective-content"><em>Confirm an objective in Step 4 first.</em></div>
+        </div>
+
+        <div class="synth-actions mb-2">
+          <button type="button" onclick="synthesizeSteps()" class="btn btn-primary">Synthesize Test Steps (LLM)</button>
+          <button type="button" onclick="exportBundle()" class="btn btn-secondary">Export Repeatable Bundle</button>
+        </div>
+        <div id="steps-result"></div>
       </div>
     </div>
 
@@ -1184,10 +1218,9 @@ async function loadCase() {
       }, 300);
     }
 
-    // Render human-readable synthesized output if step 4 data exists (e.g. after reload)
-    if (currentSession && currentSession.step4) {
-      renderSynthesized(currentSession.step4);
-    }
+    // Restore synthesis views after reload
+    renderObjectiveResult();
+    renderStepsResult();
     renderReviewSummary();
   } catch (e) {
     alert('Failed to load case: ' + e);
@@ -1218,6 +1251,35 @@ function updateUI() {
       badge.textContent = conf ? '✓ Confirmed' : '';
     }
   });
+  // Step 4 objectives / Step 5 steps badges
+  const hasObj = !!(s.step4 && (s.step4.objective || '').trim());
+  const objConf = !!(s.step4 && s.step4.confirmed && hasObj);
+  const badge4 = document.getElementById('step4-badge');
+  if (badge4) {
+    if (objConf) {
+      badge4.className = 'badge badge-success';
+      badge4.textContent = '✓ Confirmed';
+      badge4.classList.remove('hidden');
+    } else if (hasObj) {
+      badge4.className = 'badge';
+      badge4.textContent = 'Draft';
+      badge4.classList.remove('hidden');
+    } else {
+      badge4.classList.add('hidden');
+    }
+  }
+  const steps = getSessionTestScript(s);
+  const hasSteps = !!(steps && steps.steps && steps.steps.length);
+  const badge5 = document.getElementById('step5-badge');
+  if (badge5) {
+    if (hasSteps) {
+      badge5.className = 'badge badge-success';
+      badge5.textContent = '✓ Ready';
+      badge5.classList.remove('hidden');
+    } else {
+      badge5.classList.add('hidden');
+    }
+  }
 
   document.querySelectorAll('.sidebar-nav-item').forEach(item => {
     const step = parseInt(item.getAttribute('data-step'));
@@ -1225,6 +1287,8 @@ function updateUI() {
     if (step === 1) conf = !!(s.step1 && s.step1.confirmed);
     if (step === 2) conf = !!(s.step2 && s.step2.confirmed);
     if (step === 3) conf = !!(s.step3 && s.step3.confirmed);
+    if (step === 4) conf = objConf;
+    if (step === 5) conf = hasSteps;
     let b = item.querySelector('.nav-badge');
     if (conf && !b) {
       b = document.createElement('span');
@@ -1235,6 +1299,9 @@ function updateUI() {
       b.remove();
     }
   });
+
+  renderObjectiveResult();
+  renderStepsResult();
 }
 
 // Soft safety only for pathological megabyte fields (real TL/Zephyr bodies are typically < few KB)
@@ -1429,76 +1496,189 @@ function escapeHtml(str) {
   });
 }
 
-function renderSynthesized(synth) {
-  const container = document.getElementById('synth-result');
-  if (!synth) {
-    container.innerHTML = '<em class="review-empty">No synthesized output yet. Click Synthesize above to generate.</em>';
+/** Resolve testScript from step5 (preferred) or legacy step4. */
+function getSessionTestScript(sess) {
+  const s = sess || currentSession || {};
+  if (s.step5 && s.step5.testScript) return s.step5.testScript;
+  if (s.step4 && s.step4.testScript) return s.step4.testScript;
+  return { type: 'steps', steps: [] };
+}
+
+function getSessionObjective(sess) {
+  const s = sess || currentSession || {};
+  return ((s.step4 && s.step4.objective) || '').trim();
+}
+
+function renderObjectiveResult() {
+  const container = document.getElementById('objective-result');
+  if (!container) return;
+  const obj = getSessionObjective();
+  if (!obj) {
+    container.innerHTML = '<em class="review-empty">No objective yet. Confirm steps 1–3, then click Synthesize Objectives.</em>';
     return;
   }
-
-  const objective = synth.objective || '<ul><li>No objective generated</li></ul>';
-  const steps = (synth.testScript && synth.testScript.steps) || [];
-
-  let stepsHtml = '<p class="review-empty">No test steps generated.</p>';
-  if (steps.length > 0) {
-    stepsHtml = '<ol class="synth-steps">';
-    steps.forEach((s) => {
-      const desc = escapeHtml(s.description || '');
-      const exp = s.expectedResult ? `<div class="step-expected"><em>Expected:</em> ${escapeHtml(s.expectedResult)}</div>` : '';
-      stepsHtml += `<li><div>${desc}</div>${exp}</li>`;
-    });
-    stepsHtml += '</ol>';
-  }
-
+  const conf = !!(currentSession && currentSession.step4 && currentSession.step4.confirmed);
+  const prov = (currentSession && currentSession.step4 && currentSession.step4.provenance) || null;
   let provenanceHtml = '';
-  if (synth.provenance) {
+  if (prov) {
     provenanceHtml = `
       <details class="provenance-details">
-        <summary class="provenance-summary">LLM Provenance (click for details)</summary>
-        <pre class="provenance-pre">${escapeHtml(JSON.stringify(synth.provenance, null, 2))}</pre>
-      </details>
-    `;
+        <summary class="provenance-summary">LLM Provenance — objectives (click for details)</summary>
+        <pre class="provenance-pre">${escapeHtml(JSON.stringify(prov, null, 2))}</pre>
+      </details>`;
   }
-
   container.innerHTML = `
     <div class="section">
-      <div class="section-heading">Objective (Human-Readable)</div>
-      <div class="synth-objective" id="synth-objective-view">${objective}</div>
+      <div class="section-heading">Objective (Human-Readable)
+        ${conf ? '<span class="badge badge-success">✓ Confirmed</span>' : '<span class="badge">Draft — confirm when ready</span>'}
+      </div>
+      <div class="synth-objective" id="synth-objective-view">${obj}</div>
     </div>
+    <div class="synth-actions" id="objective-edit-actions">
+      <button type="button" onclick="startEditObjective()" class="btn btn-secondary">Edit Objective</button>
+    </div>
+    ${provenanceHtml}
+  `;
+  // Keep Step 5 preview in sync
+  const prev = document.getElementById('finalized-objective-content');
+  if (prev) prev.innerHTML = obj;
+}
+
+function renderStepsResult() {
+  const container = document.getElementById('steps-result');
+  if (!container) return;
+  const ts = getSessionTestScript();
+  const steps = (ts && ts.steps) || [];
+  if (!steps.length) {
+    container.innerHTML = '<em class="review-empty">No test steps yet. Confirm objectives in Step 4, then Synthesize Test Steps.</em>';
+    return;
+  }
+  let stepsHtml = '<ol class="synth-steps">';
+  steps.forEach((s) => {
+    const desc = escapeHtml(s.description || '');
+    const exp = s.expectedResult ? `<div class="step-expected"><em>Expected:</em> ${escapeHtml(s.expectedResult)}</div>` : '';
+    stepsHtml += `<li><div>${desc}</div>${exp}</li>`;
+  });
+  stepsHtml += '</ol>';
+  const prov = (currentSession && currentSession.step5 && currentSession.step5.provenance)
+    || (currentSession && currentSession.step4 && currentSession.step4.provenance)
+    || null;
+  let provenanceHtml = '';
+  if (prov && (prov.steps_prompt || prov.phase === 'steps' || prov.phase === 'combined')) {
+    provenanceHtml = `
+      <details class="provenance-details">
+        <summary class="provenance-summary">LLM Provenance — steps (click for details)</summary>
+        <pre class="provenance-pre">${escapeHtml(JSON.stringify(prov, null, 2))}</pre>
+      </details>`;
+  }
+  container.innerHTML = `
     <div class="section">
       <div class="section-heading">Test Steps (Human-Readable)</div>
       <div id="synth-steps-view">${stepsHtml}</div>
     </div>
-    <div class="synth-actions" id="synth-edit-actions">
-      <button type="button" onclick="startEditSynthesized()" class="btn btn-secondary">Edit / Revise Output</button>
+    <div class="synth-actions" id="steps-edit-actions">
+      <button type="button" onclick="startEditSteps()" class="btn btn-secondary">Edit / Revise Steps</button>
     </div>
     ${provenanceHtml}
   `;
+  const prev = document.getElementById('finalized-objective-content');
+  if (prev) {
+    const obj = getSessionObjective();
+    prev.innerHTML = obj || '<em class="review-empty">No objective on session.</em>';
+  }
 }
 
-// Post-synthesis editor: objective HTML + step description/expected editable
-let _editingSynth = null;
+// --- Step 4 objective editor ---
+let _editingObjective = false;
 
-function startEditSynthesized() {
-  if (!currentSession || !currentSession.step4) return;
-  _editingSynth = JSON.parse(JSON.stringify(currentSession.step4));
-  if (!_editingSynth.testScript) _editingSynth.testScript = { type: 'steps', steps: [] };
-  if (!_editingSynth.testScript.steps) _editingSynth.testScript.steps = [];
-
+function startEditObjective() {
+  if (!currentSession) return;
+  _editingObjective = true;
   const objView = document.getElementById('synth-objective-view');
-  const stepsView = document.getElementById('synth-steps-view');
-
-  const objHtml = _editingSynth.objective || '';
+  if (!objView) return;
+  const objHtml = getSessionObjective();
   objView.innerHTML = `<textarea id="edit-objective" class="form-textarea full-width editor-textarea" spellcheck="false">${escapeHtml(objHtml)}</textarea>
     <div class="justification-note mt-2">Edit the objective HTML (<code>&lt;ul&gt;&lt;li&gt;…</code> artefacts). Keep declarative language.</div>`;
-
-  renderEditStepsList();
-
-  const actions = document.getElementById('synth-edit-actions') || document.querySelector('#synth-result .synth-actions');
+  const actions = document.getElementById('objective-edit-actions');
   if (actions) {
     actions.innerHTML = `
-      <button type="button" onclick="applySynthesizedEdits()" class="btn btn-primary">Apply Edits</button>
-      <button type="button" onclick="cancelSynthesizedEdits()" class="btn btn-secondary">Cancel</button>
+      <button type="button" onclick="applyObjectiveEdits(false)" class="btn btn-primary">Save Draft</button>
+      <button type="button" onclick="applyObjectiveEdits(true)" class="btn btn-primary">Save &amp; Confirm → Step 5</button>
+      <button type="button" onclick="cancelObjectiveEdits()" class="btn btn-secondary">Cancel</button>
+    `;
+  }
+}
+
+async function applyObjectiveEdits(alsoConfirm) {
+  if (!currentSession || !currentKey) return;
+  const objTa = document.getElementById('edit-objective');
+  const objective = objTa ? objTa.value.trim() : getSessionObjective();
+  if (!objective) {
+    alert('Objective cannot be empty.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/wizard/save_objective/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ objective, confirm: !!alsoConfirm }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    currentSession = data.session;
+    _editingObjective = false;
+    renderObjectiveResult();
+    updateUI();
+    if (alsoConfirm) {
+      goToStep(5);
+    }
+  } catch (e) {
+    alert('Save objective failed: ' + e);
+  }
+}
+
+function cancelObjectiveEdits() {
+  _editingObjective = false;
+  renderObjectiveResult();
+}
+
+async function confirmObjectives() {
+  if (!currentKey) return alert('Load a case first.');
+  // Capture any in-progress textarea
+  const objTa = document.getElementById('edit-objective');
+  const body = {};
+  if (objTa) body.objective = objTa.value.trim();
+  try {
+    const res = await fetch('/api/wizard/confirm_objectives/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    currentSession = data.session;
+    _editingObjective = false;
+    updateUI();
+    goToStep(5);
+  } catch (e) {
+    alert('Confirm objectives failed: ' + e);
+  }
+}
+
+// --- Step 5 steps editor ---
+let _editingSteps = null;
+
+function startEditSteps() {
+  if (!currentSession) return;
+  const ts = getSessionTestScript();
+  _editingSteps = JSON.parse(JSON.stringify(ts || { type: 'steps', steps: [] }));
+  if (!_editingSteps.steps) _editingSteps.steps = [];
+  renderEditStepsList();
+  const actions = document.getElementById('steps-edit-actions');
+  if (actions) {
+    actions.innerHTML = `
+      <button type="button" onclick="applyStepEdits()" class="btn btn-primary">Apply Step Edits</button>
+      <button type="button" onclick="cancelStepEdits()" class="btn btn-secondary">Cancel</button>
       <button type="button" onclick="addSynthesizedStep()" class="btn btn-ghost btn-compact-small">+ Add step</button>
     `;
   }
@@ -1506,8 +1686,8 @@ function startEditSynthesized() {
 
 function renderEditStepsList() {
   const stepsView = document.getElementById('synth-steps-view');
-  if (!stepsView || !_editingSynth) return;
-  const steps = (_editingSynth.testScript && _editingSynth.testScript.steps) || [];
+  if (!stepsView || !_editingSteps) return;
+  const steps = _editingSteps.steps || [];
   let editSteps = '<div class="editable-steps">';
   steps.forEach((s, idx) => {
     const desc = escapeHtml(s.description || '');
@@ -1529,44 +1709,47 @@ function renderEditStepsList() {
 }
 
 function addSynthesizedStep() {
-  if (!_editingSynth) return;
-  if (!_editingSynth.testScript) _editingSynth.testScript = { type: 'steps', steps: [] };
-  _editingSynth.testScript.steps.push({ description: '', expectedResult: '' });
+  if (!_editingSteps) return;
+  if (!_editingSteps.steps) _editingSteps.steps = [];
+  _editingSteps.steps.push({ description: '', expectedResult: '' });
   renderEditStepsList();
 }
 
 function removeSynthesizedStep(idx) {
-  if (!_editingSynth || !_editingSynth.testScript) return;
-  _editingSynth.testScript.steps.splice(idx, 1);
+  if (!_editingSteps) return;
+  _editingSteps.steps.splice(idx, 1);
   renderEditStepsList();
 }
 
-function applySynthesizedEdits() {
-  if (!_editingSynth || !currentSession) return;
-  const objTa = document.getElementById('edit-objective');
-  if (objTa) _editingSynth.objective = objTa.value.trim();
-
-  if (_editingSynth.testScript && _editingSynth.testScript.steps) {
-    document.querySelectorAll('#synth-steps-view .editable-step input').forEach(inp => {
-      const idx = parseInt(inp.getAttribute('data-idx'), 10);
-      const field = inp.getAttribute('data-field') || 'description';
-      if (_editingSynth.testScript.steps[idx]) {
-        _editingSynth.testScript.steps[idx][field] = inp.value.trim();
-      }
+async function applyStepEdits() {
+  if (!_editingSteps || !currentSession || !currentKey) return;
+  document.querySelectorAll('#synth-steps-view .editable-step input').forEach(inp => {
+    const idx = parseInt(inp.getAttribute('data-idx'), 10);
+    const field = inp.getAttribute('data-field') || 'description';
+    if (_editingSteps.steps[idx]) {
+      _editingSteps.steps[idx][field] = inp.value.trim();
+    }
+  });
+  try {
+    const res = await fetch('/api/wizard/save_steps/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ testScript: { type: 'steps', steps: _editingSteps.steps } }),
     });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    currentSession = data.session;
+    _editingSteps = null;
+    renderStepsResult();
+    updateUI();
+  } catch (e) {
+    alert('Save steps failed: ' + e);
   }
-
-  currentSession.step4 = _editingSynth;
-  _editingSynth = null;
-  renderSynthesized(currentSession.step4);
-  updateUI();
 }
 
-function cancelSynthesizedEdits() {
-  _editingSynth = null;
-  if (currentSession && currentSession.step4) {
-    renderSynthesized(currentSession.step4);
-  }
+function cancelStepEdits() {
+  _editingSteps = null;
+  renderStepsResult();
 }
 
 function renderReviewSummary() {
@@ -1612,11 +1795,17 @@ function renderReviewSummary() {
   html += renderStepGroup('Step 2 (Zephyr)', s2.selections, s2.confirmed, 'id_or_key');
   html += renderStepGroup('Step 3 (ATPyLib)', s3.selections, s3.confirmed, 'id_or_key');
 
-  // Gaps are LLM-generated at synthesis/export for Traceability (read-only preview if present)
-  const gaps = currentSession.gaps || '';
-  if (gaps) {
-    const short = gaps.length > 220 ? gaps.slice(0, 217) + '…' : gaps;
-    html += `<div class="sel-group"><strong>Gaps</strong> <span class="review-count">(from synthesis/export)</span>: <span class="gaps-text">${escapeHtml(short)}</span></div>`;
+  // Gaps stay in traceability.md only — not shown in the wizard Step 4 UI.
+
+  const obj = getSessionObjective(currentSession);
+  if (obj) {
+    const conf = !!(currentSession.step4 && currentSession.step4.confirmed);
+    const confBadge = conf
+      ? ' <span class="badge badge-success">✓ Confirmed</span>'
+      : ' <span class="badge">Draft</span>';
+    const shortObj = obj.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const preview = shortObj.length > 160 ? shortObj.slice(0, 157) + '…' : shortObj;
+    html += `<div class="sel-group"><strong>Step 4 (Objective)</strong>${confBadge}: <span class="justification-note">${escapeHtml(preview)}</span></div>`;
   }
 
   cont.innerHTML = html;
@@ -1900,59 +2089,109 @@ async function confirmStep(step) {
   const data = await res.json();
   currentSession = data.session;
   updateUI();
-  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 4.');
+  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 4 (Objective Synthesis).');
 }
 
-async function synthesize() {
-  if (!currentSession) return;
-  const res = await fetch('/api/wizard/synthesize', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({session: currentSession, use_llm: true})
-  });
-  const data = await res.json();
-  currentSession = data.session;
-  const synth = data.synthesized || {};
-  renderSynthesized(synth);
-  // Surface validation result for output-generation completeness (in console + optional alert for dev)
-  if (synth.validation) {
-    if (!synth.validation.valid) {
-      console.warn('Synthesis validation issues (output generation):', synth.validation.issues);
+async function synthesizeObjectives() {
+  if (!currentSession) return alert('Load a case and confirm steps 1–3 first.');
+  const btnNote = 'Synthesizing objectives (LLM)…';
+  try {
+    const res = await fetch('/api/wizard/synthesize_objectives', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session: currentSession, use_llm: true }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 300) || ('status ' + res.status));
     }
+    const data = await res.json();
+    currentSession = data.session;
+    renderObjectiveResult();
+    updateUI();
+    goToStep(4);
+  } catch (e) {
+    alert('Objective synthesis failed: ' + e);
   }
-  updateUI();
+}
+
+async function synthesizeSteps() {
+  if (!currentSession) return alert('Load a case first.');
+  if (!getSessionObjective()) {
+    alert('No objective yet. Complete Step 4 (Objective Synthesis) and confirm first.');
+    goToStep(4);
+    return;
+  }
+  try {
+    const res = await fetch('/api/wizard/synthesize_steps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session: currentSession, use_llm: true }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 300) || ('status ' + res.status));
+    }
+    const data = await res.json();
+    currentSession = data.session;
+    const synth = data.synthesized || {};
+    if (synth.validation && synth.validation.valid === false) {
+      console.warn('Steps validation issues:', synth.validation.issues);
+    }
+    renderStepsResult();
+    updateUI();
+    goToStep(5);
+  } catch (e) {
+    alert('Test step synthesis failed: ' + e);
+  }
+}
+
+/** @deprecated Use synthesizeObjectives / synthesizeSteps */
+async function synthesize() {
+  return synthesizeObjectives();
 }
 
 async function exportBundle() {
   if (!currentSession) return;
-  const res = await fetch('/api/wizard/export', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({session: currentSession})
-  });
-  const data = await res.json();
-  // Download files
-  download('traceability.md', data.traceability_md);
-  download(currentKey + '-zephyr_payload.json', JSON.stringify(data.zephyr_payload, null, 2));
-  download(currentKey + '-session.json', JSON.stringify(data.session_json, null, 2));
-  const v = data.validation || {};
-  if (v.valid === false) {
-    console.warn('Export validation issues:', v.issues);
-  }
-  alert('Exported repeatable bundle.\n\n' +
-        '• Files downloaded for immediate use.\n' +
-        '• Main outputs (traceability.md + zephyr_payload.json) also saved server-side to refined-cases/<Group>/' + (currentKey || 'case') + '/ (folders created if needed).\n' +
-        'Files use templated LLM output + server-constructed traceability note for consistency.' +
-        (v.valid === false ? '\n(See console for validation notes)' : ''));
-  // Case may have moved into Complete — refresh dual dropdowns
-  try { await refreshCaseSelects(currentKey); } catch (_) {}
-}
+  try {
+    const res = await fetch('/api/wizard/export', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session: currentSession})
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t.slice(0, 300) || ('status ' + res.status));
+    }
+    const data = await res.json();
+    const v = data.validation || {};
+    if (v.valid === false) {
+      console.warn('Export validation issues:', v.issues);
+    }
 
-function download(name, content) {
-  const a = document.createElement('a');
-  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-  a.download = name;
-  a.click();
+    // Primary behaviour: server writes drop-in artefacts under refined-cases/.
+    // No browser Downloads prompts (those were leftover convenience, not the intended path).
+    const savedTo = data.saved_to || ('refined-cases/<Group>/' + (currentKey || 'case'));
+    const files = (data.saved_files && data.saved_files.length)
+      ? data.saved_files.join(', ')
+      : 'traceability.md, zephyr_payload.json, ' + (currentKey || 'case') + '-session.json';
+    let msg = 'Export complete — saved on the server (not browser Downloads).\n\n'
+      + 'Path:\n  ' + savedTo + '/\n\n'
+      + 'Files:\n  ' + files + '\n\n'
+      + 'These are drop-in for the refined-cases layout and upload tooling.';
+    if (data.message && !data.saved_to) {
+      msg = data.message;
+    }
+    if (v.valid === false) {
+      msg += '\n\nValidation reported issues (see browser console).';
+    }
+    alert(msg);
+
+    // Case may have moved into Complete — refresh dual dropdowns
+    try { await refreshCaseSelects(currentKey); } catch (_) {}
+  } catch (e) {
+    alert('Export failed: ' + e);
+  }
 }
 
 async function clearCurrentSession() {
@@ -1976,7 +2215,11 @@ async function clearCurrentSession() {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '<em>Select and Load a case to see data.</em>';
       });
-      const synth = document.getElementById('synth-result');
+      const synth = document.getElementById('objective-result');
+      if (synth) synth.innerHTML = '';
+      const stepsEl = document.getElementById('steps-result');
+      if (stepsEl) stepsEl.innerHTML = '';
+      const _legacySynth = document.getElementById('synth-result');
       if (synth) synth.innerHTML = '';
 
       // Re-load case; server re-applies workspace LLM default
@@ -2142,7 +2385,7 @@ setTimeout(() => {
 
 function goToStep(step) {
   currentStep = step;
-  for (let i = 0; i <= 4; i++) {
+  for (let i = 0; i <= 5; i++) {
     const el = document.getElementById('step-' + i);
     if (el) el.classList.toggle('hidden', i !== step);
   }
@@ -2156,6 +2399,10 @@ function goToStep(step) {
 
   if (step === 4) {
     renderReviewSummary();
+    renderObjectiveResult();
+  }
+  if (step === 5) {
+    renderStepsResult();
   }
 }
 
@@ -2169,7 +2416,8 @@ function updatePageHeader() {
     1: 'Review TestLink candidates; search or suggest, then confirm.',
     2: 'Review external Zephyr cross-refs; search or suggest, then confirm.',
     3: 'Review scored ATPyLib candidates and confirm selections.',
-    4: 'Synthesize objectives, steps, and Traceability gaps with the LLM.'
+    4: 'Synthesize and confirm objective artefacts from the review summary.',
+    5: 'Synthesize test steps from the finalized objective, then export.'
   };
 
   if (currentKey) {

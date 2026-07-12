@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-24553 (HANP-POE no power loss on warm restart). Top relevant: AWP-24560 (soft restart no power loss), AWP-24554 (CLI HANP show commands), AWP-24552 (per-port disable), AWP-24551 (global enable). ART: 1358.1001.10 (HANP after PoE restore), 1358.1001.7 (HANP behaviour, some runs unsupported), 1358.1001.56299 (PoE restore), general 1358 PoE status/delivery/priorities/persistence over reboot.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

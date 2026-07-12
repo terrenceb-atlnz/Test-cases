@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-4357 (Local Proxy ARP functionality). Top relevant: AWP-4356 (command), AWP-4358 (off by default), AWP-4355 (standard proxy ARP), AWP-4370/4371 (LAGs). ART: 6201.1008.1 (Proxy ARP behavior), 6201.1008.2 (static IP), 6201.1031.1 (unlearned ARP) + 1351 (gratuitous ARP).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

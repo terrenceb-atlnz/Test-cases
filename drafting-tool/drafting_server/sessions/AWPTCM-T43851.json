@@ -72,7 +72,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability for AWPTCM-T43851.<br />\nPrimary: AWP-3596 (Exact: DHCP server ARP probe enable/disable)<br />\nTestLink: AWP-3596, AWP-3594, AWP-3550<br />\nZephyr: AWPTCM-T43851, AWPTCM-T1552<br />\nART: 1331.1001.27201, 1331.1001.29055, 1331.1001.29340<br />\nGaps: ATP coverage was analyzed against reviewed TestLink and Zephyr selections. Gaps were noted in edge cases, error conditio<br />\nhttps://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T43851 https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T1552<br />\nhttps://wiki.atlnz.lc/awpwiki/index.php (see related bundles)<dl><br /></dl><br />",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

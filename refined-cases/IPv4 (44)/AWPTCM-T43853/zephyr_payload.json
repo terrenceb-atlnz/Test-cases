@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-3578 (DHCP server 120 day lease). Top relevant: AWP-3579 (client obtain 120 day), AWP-9771 (snooping lease deleted log), AWP-15615 (lease renewal). ART: 1331.1001.54492 (infinite lease crash), 1357/1399 (DHCP server lease/binding), 1333 (snooping lease entries).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

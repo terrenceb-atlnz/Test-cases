@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink Enhanced Recovery family (AWP-145, AWP-4076, AWP-4077, AWP-4078, AWP-4083, AWP-4084, AWP-4086 and related multi-domain cases). ART coverage from 1334.3001.6-10 (Link Forward Request / Permission Link Forward protocol on master and transit) + 1340 (CR41421 timing).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

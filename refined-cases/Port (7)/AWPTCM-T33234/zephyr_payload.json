@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/5000_mdi_mdix<br />https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T37856<br />Note: the automated test covers multiple test cases.<br /><br />Note: Related ART Tests linked in Traceability<dl><br /></dl><br />",
+          "description": "The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/5000_mdi_mdix<br />https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T37856<br />Note: the automated test covers multiple test cases.<br /><br />Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

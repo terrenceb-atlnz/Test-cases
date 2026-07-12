@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-11637 (System LED - fan stop). Top relevant: AWP-10432 (fan stop), AWP-11638 (faulty XEM 4 flashes), AWP-11640 (concurrent faults sequences), AWP-17692 (system failure LED). ART: 1358/5700 platform environment monitoring (fan/temp status, system health). LED details may vary on some platforms if applicable.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

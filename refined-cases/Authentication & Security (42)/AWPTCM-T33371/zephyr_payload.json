@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink two-step 802.1x/WEB family (AWP-14784 primary + AWP-14773 enable, AWP-14774 show, AWP-14776/14779 802.1x logs, AWP-14880 max for 802/WEB, AWP-15819 RADIUS 2-step). ART coverage: 1348.1001.20 (802.1x auth), 1348.1001.11 (config), 1348.3001.* (web auth success/fail/guest-vlan), 6201.1033.* (two-step variants + web fail checks).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

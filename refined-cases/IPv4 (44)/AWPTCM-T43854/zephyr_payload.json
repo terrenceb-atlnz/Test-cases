@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-3360 (DNS Relay enable/disable). Top relevant: AWP-3359 (name resolver support), AWP-3194 (show commands), AWP-3197 (debug), AWP-3365 (source interface). ART: 1346.1001.87/1346.1010.9 (DNS forwarding config/CLI output) + related DNS suites (13xx/20xx).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

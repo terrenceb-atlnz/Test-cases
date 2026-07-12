@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: No related ART tests. Primary coverage from TestLink AWP-28975 (Create Trigger using Linkmon Probe) + AWP-27508 (Historic data for probes). Related cases linked in Traceability.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

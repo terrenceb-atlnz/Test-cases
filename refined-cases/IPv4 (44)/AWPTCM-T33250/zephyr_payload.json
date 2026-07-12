@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink NLB/arp-mac-disparity family (AWP-20263, AWP-21286–21288, AWP-21298, AWP-21239, AWP-21248, AWP-21299, AWP-21302) and ART 1355 + 1351.1001.12/13.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

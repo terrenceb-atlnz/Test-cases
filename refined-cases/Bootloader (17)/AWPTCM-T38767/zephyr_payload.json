@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary: AWP-2719 (Bootloader menu option 7 restore factory). Top relevant: AWP-2722 (tftp settings reset), AWP-2723 (release boot file reset), AWP-2720 (developer mode cleared), AWP-2721 (console speed reset). ART: 5700.1002.7 (bootloader version), 5700.1003.5 (ROM checksum) + related platform bootloader tests.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

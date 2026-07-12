@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink two-step family (AWP-14782 primary 1st MAC/2nd 802.1x + AWP-14773 enable, AWP-14774 show, AWP-14776/14779 logs, AWP-14879 max supplicants, AWP-14882 repeat, AWP-6858 simultaneous). ART coverage: 6201.1033.1-5 (two-step MAC list allow/deny, MAC RADIUS, list+RADIUS, fail checks) + 1348 port auth MAC+dot1x coexistence.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

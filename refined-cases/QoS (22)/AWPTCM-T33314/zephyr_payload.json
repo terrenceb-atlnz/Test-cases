@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink QoS class set DSCP family (AWP-9109 primary on switchport, AWP-9113 on static LAG, AWP-9088 DSCP specify). ART coverage from 1344 (QoS DSCP premark on physical ports and static channels/LAGs, including bandwidth class variants).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

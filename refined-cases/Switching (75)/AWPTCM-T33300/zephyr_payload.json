@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink MAC Thrashing family (AWP-18040 primary, AWP-18059, AWP-26054 G.8032 interop, AWP-7460 CLI show, AWP-7470/1 LAG info, AWP-13785 combo tests). ART coverage from 1346.1001.95 (MAC thrashing link-down detection + action + logging) and nearby loop protection cases.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

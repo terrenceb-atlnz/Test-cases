@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink EPSR MIB family (AWP-3991, AWP-1498, AWP-10347, AWP-4009, AWP-4010, AWP-1310, AWP-25021 and related). ART coverage from 5704 (AT-EPSRv2 MIB) and 1334 (EPSR trap behavior).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

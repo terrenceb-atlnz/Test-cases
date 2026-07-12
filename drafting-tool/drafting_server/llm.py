@@ -414,107 +414,20 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
     }
 
 
-def build_traceability_note(session: Dict[str, Any]) -> str:
-    """Server-side construction of the repeatable first traceability note step.
+# Canonical first testScript step. Full TL/Zephyr/ART mappings live only in
+# traceability.md — they do not belong in the Zephyr payload note.
+MINIMAL_TRACEABILITY_NOTE = "Note: Related ART Tests linked in Traceability."
 
-    Per OBJECTIVE_DRAFTING_PROCESS and good refined-cases exemplars (e.g. T33351/T33369):
-    - Minimal first step: points at Traceability; lists primary TL + ART IDs briefly.
-    - Gaps belong only in traceability.md (never truncated into this step).
-    - No junk: no empty <dl>, no raw Jira/wiki URL dump, no redundant ART string line.
-    Always injected as step 0 (overrides any LLM-generated note) for repeatability.
+
+def build_traceability_note(session: Dict[str, Any] = None) -> str:
+    """Server-side first testScript step: minimal Traceability pointer only.
+
+    Intentionally does NOT list Primary TestLink, related TL, ART IDs, Zephyr keys,
+    Gaps, or URLs — that detail is in the Traceability artefact, not this step.
+    Always injected as step 0 for repeatability (export + synthesize_steps).
     """
-    key = session.get("key", "unknown")
-    primary = session.get("primary") or {}
-
-    tl_sels = session.get("step1", {}).get("selections", []) or []
-    z_sels = session.get("step2", {}).get("selections", []) or []
-    atp_sels = session.get("step3", {}).get("selections", []) or []
-    art = (session.get("art_string") or "").strip()
-
-    def _sel_id(s: Dict[str, Any]) -> str:
-        return (s.get("id_or_key") or s.get("id") or s.get("key") or "").strip()
-
-    # Primary match id (+ short rationale token if present)
-    primary_id = (primary.get("m") or "").strip()
-    primary_w = (primary.get("w") or "").strip()
-
-    # TestLink IDs — primary first if present in selections, then others
-    tl_ids: List[str] = []
-    for s in tl_sels:
-        i = _sel_id(s)
-        if i and i not in tl_ids:
-            tl_ids.append(i)
-    if primary_id and primary_id not in tl_ids:
-        tl_ids = [primary_id] + tl_ids
-
-    # External Zephyr cross-ref keys only (do not re-list the case under edit)
-    z_keys: List[str] = []
-    for s in z_sels:
-        i = _sel_id(s)
-        if i and i != key and i not in z_keys:
-            z_keys.append(i)
-
-    # ART ids from selections, else art_string
-    atp_ids: List[str] = []
-    for s in atp_sels:
-        i = _sel_id(s)
-        if i and i not in atp_ids:
-            atp_ids.append(i)
-    if not atp_ids and art:
-        atp_ids = [p.strip() for p in re.split(r"\s*\+\s*|\s*,\s*", art) if p.strip()]
-
-    # ART ids only in the note (full titles live in Traceability / selections).
-    # Keeps the first step short and avoids mid-phrase ellipsis on long suite titles.
-    atp_bits: List[str] = list(atp_ids[:10])
-
-    # --- Compose a single concise prose note (exemplar style) ---
-    # Required prefix for validate_zephyr_payload
-    head = "Note: Related ART Tests linked in Traceability."
-
-    body_bits: List[str] = []
-    if primary_id:
-        if primary_w:
-            body_bits.append(f"Primary TestLink {primary_id} ({primary_w})")
-        else:
-            body_bits.append(f"Primary TestLink {primary_id}")
-    if tl_ids:
-        # Related TL ids (omit primary if already stated above)
-        others = [i for i in tl_ids if i != primary_id] if primary_id else list(tl_ids)
-        if others:
-            label = "Related TestLink" if primary_id else "TestLink"
-            body_bits.append(f"{label}: " + ", ".join(others))
-
-    if atp_bits:
-        body_bits.append("ART coverage: " + ", ".join(atp_bits))
-    else:
-        body_bits.append("No direct ART coverage selected; see Gaps Noted in Traceability.")
-
-    if z_keys:
-        # Short pointer only — full list + links live in traceability.md
-        shown = z_keys[:6]
-        extra = len(z_keys) - len(shown)
-        z_txt = ", ".join(shown) + (f" (+{extra} more)" if extra > 0 else "")
-        body_bits.append(f"Related Zephyr cases linked in Traceability ({z_txt}).")
-
-    # Gaps intentionally omitted here — full text is only in traceability.md
-    # (avoids mid-sentence truncation and keeps the first step minimal).
-
-    note = head
-    if body_bits:
-        note = head + " " + " ".join(
-            b if b.endswith(".") else (b + ".") for b in body_bits
-        )
-    # Soft length guard for Zephyr UI (keep complete sentences; do not mid-cut words)
-    if len(note) > 900:
-        # Prefer dropping long ART titles, fall back to ids only
-        if atp_ids:
-            short_art = "ART coverage: " + ", ".join(atp_ids[:8]) + "."
-            body2 = [b for b in body_bits if not b.startswith("ART coverage:")]
-            body2.append(short_art.rstrip("."))
-            note = head + " " + " ".join(
-                b if b.endswith(".") else (b + ".") for b in body2
-            )
-    return note
+    # session accepted for API compatibility; unused by design
+    return MINIMAL_TRACEABILITY_NOTE
 
 
 def validate_zephyr_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -643,95 +556,194 @@ def generate_coverage_gaps(session: Dict[str, Any], llm_config: Optional[Dict] =
         }
 
 
-def synthesize_objectives_and_steps(session: Dict[str, Any], llm_config: Optional[Dict] = None) -> Dict[str, Any]:
-    """Main entry: build prompt from template, call LLM, parse to repeatable output.
-
-    llm_config can come from the session "login" (set_llm_config endpoint) and
-    takes precedence over environment variables.
-
-    Supports Grok (OpenAI compat) and Claude (Anthropic native). Real credentials or CLI required.
-
-    Gaps analysis is generated here (not edited in Step 3) for Traceability + the note step.
-    """
-    # Resolve effective config (session login > env). No mock default.
+def _resolve_llm_runtime(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+    """Resolve provider/auth/credential/model from session login or env (no MOCK)."""
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
     auth_method = (cfg.get("auth_method") or "api_key").lower()
-    # Support api_key or token (from Subscription Account / session login flow)
     credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
     base_url = cfg.get("base_url") or os.environ.get("LLM_BASE_URL")
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
+    return {
+        "cfg": cfg,
+        "provider": provider,
+        "auth_method": auth_method,
+        "credential": credential,
+        "base_url": base_url,
+        "model": model,
+    }
 
-    # Gaps for Traceability — generated at process completion, not a Step 3 form field
-    gaps_result = generate_coverage_gaps(session, llm_config=cfg)
-    gaps_text = gaps_result.get("gaps") or ""
-    # Mutate working session copy so note + prompts see the same gaps
-    session = {**session, "gaps": gaps_text}
 
-    # Build context for template (selections, case, process principles excerpt)
-    context = {
+def _synthesis_context(session: Dict[str, Any], gaps_text: str = "") -> Dict[str, Any]:
+    """Shared template context from confirmed review selections + gaps."""
+    return {
         "case_key": session.get("key"),
         "primary": session.get("primary"),
-        "testlink_selections": session.get("step1", {}).get("selections", []),
-        "zephyr_selections": session.get("step2", {}).get("selections", []),
-        "atp_selections": session.get("step3", {}).get("selections", []),
-        "gaps": gaps_text,
+        "testlink_selections": session.get("step1", {}).get("selections", []) or [],
+        "zephyr_selections": session.get("step2", {}).get("selections", []) or [],
+        "atp_selections": session.get("step3", {}).get("selections", []) or [],
+        "gaps": gaps_text or session.get("gaps") or "",
         "art_string": session.get("art_string", ""),
-        "process_principles": "Objectives are declarative artefacts (what should be true). Use <ul><li>. First testScript step is notes + traceability. Cover positive/negative/special cases.",
+        "process_principles": (
+            "Objectives are declarative artefacts (what should be true). Use <ul><li>. "
+            "First testScript step is notes + traceability. Cover positive/negative/special cases."
+        ),
     }
 
-    # Step 1: generate objective
+
+def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+    """Wizard Step 4: gaps (Traceability) + objective HTML only.
+
+    Does not generate testScript steps — that is Step 5 after the user finalizes objectives.
+    """
+    rt = _resolve_llm_runtime(llm_config)
+    gaps_result = generate_coverage_gaps(session, llm_config=rt["cfg"])
+    gaps_text = gaps_result.get("gaps") or ""
+    session = {**session, "gaps": gaps_text}
+    context = _synthesis_context(session, gaps_text)
+
     objective_prompt = render_prompt("generate_objectives.jinja", context)
-    obj_meta = _call_llm_with_meta(objective_prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method)
+    obj_meta = _call_llm_with_meta(
+        objective_prompt,
+        provider=rt["provider"],
+        api_key=rt["credential"],
+        base_url=rt["base_url"],
+        model=rt["model"],
+        auth_method=rt["auth_method"],
+    )
     obj_llm = obj_meta.get("content", "")
     structured = parse_llm_to_structured(obj_llm, context.get("case_key", "unknown"))
-
-    # Step 2: generate steps (LLM focuses on verification steps after the note)
-    steps_prompt = render_prompt("generate_steps.jinja", {**context, "objective": structured["objective"]})
-    steps_meta = _call_llm_with_meta(steps_prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method)
-    steps_llm = steps_meta.get("content", "")
-    steps_struct = parse_llm_to_structured(steps_llm, context.get("case_key", "unknown"))
-
-    # Always build server-side repeatable note and place it first.
-    # This guarantees the traceability note uses confirmed selections (repeatable output).
-    note_desc = build_traceability_note(session)
-    note_step = {
-        "description": note_desc,
-        "expectedResult": ""
-    }
-    llm_steps = steps_struct.get("testScript", {}).get("steps", [])
-    # Drop any generic note the LLM may have produced; use our constructed one
-    if llm_steps and ("Note:" in llm_steps[0].get("description", "") or "Traceability" in llm_steps[0].get("description", "")):
-        llm_steps = llm_steps[1:]
-    final_steps = [note_step] + llm_steps
 
     provenance = {
         "gaps_prompt": (gaps_result.get("provenance") or {}).get("gaps_prompt"),
         "gaps_response": (gaps_result.get("provenance") or {}).get("gaps_response"),
         "objective_prompt": objective_prompt,
         "objective_response": obj_llm,
-        "steps_prompt": steps_prompt,
-        "steps_response": steps_llm,
         "provider": obj_meta.get("provider", "unknown"),
         "auth_method": obj_meta.get("auth_method", "api_key"),
         "model": obj_meta.get("model", "default"),
-        "error": obj_meta.get("error", False) or steps_meta.get("error", False) or (gaps_result.get("provenance") or {}).get("error", False),
+        "error": obj_meta.get("error", False) or (gaps_result.get("provenance") or {}).get("error", False),
+        "phase": "objectives",
     }
 
-    core = {
+    return {
         "objective": structured["objective"],
-        "testScript": {"type": "steps", "steps": final_steps},
         "gaps": gaps_text,
         "provenance": provenance,
     }
 
-    # Attach lightweight validation (used by export and for audit)
-    validation = validate_zephyr_payload({session.get("key", "unknown"): core})
 
-    return {
-        **core,
-        "validation": validation,
+def synthesize_steps(
+    session: Dict[str, Any],
+    llm_config: Optional[Dict] = None,
+    objective: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Wizard Step 5: verification steps from finalized objective + review context.
+
+    Prefers the provided objective (finalized Step 4), else session.step4.objective.
+    Always injects the server-built first traceability note.
+    """
+    rt = _resolve_llm_runtime(llm_config)
+    # Finalized objective: explicit arg > step4.objective > empty
+    step4 = session.get("step4") or {}
+    obj = (objective or step4.get("objective") or "").strip()
+    if not obj:
+        raise ValueError(
+            "No finalized objective available. Complete Step 4 (Objective Synthesis) first."
+        )
+
+    gaps_text = (session.get("gaps") or "").strip()
+    # Working copy so note builder sees objective-related art/gaps
+    session = {**session, "gaps": gaps_text}
+    # Keep step4.objective in sync for note/export helpers that read it
+    session = {
+        **session,
+        "step4": {**(step4 if isinstance(step4, dict) else {}), "objective": obj},
     }
+    context = _synthesis_context(session, gaps_text)
+    context["objective"] = obj
+
+    steps_prompt = render_prompt("generate_steps.jinja", context)
+    steps_meta = _call_llm_with_meta(
+        steps_prompt,
+        provider=rt["provider"],
+        api_key=rt["credential"],
+        base_url=rt["base_url"],
+        model=rt["model"],
+        auth_method=rt["auth_method"],
+    )
+    steps_llm = steps_meta.get("content", "")
+    steps_struct = parse_llm_to_structured(steps_llm, context.get("case_key", "unknown"))
+
+    note_desc = build_traceability_note(session)
+    note_step = {"description": note_desc, "expectedResult": ""}
+    llm_steps = steps_struct.get("testScript", {}).get("steps", []) or []
+    if llm_steps and (
+        "Note:" in llm_steps[0].get("description", "")
+        or "Traceability" in llm_steps[0].get("description", "")
+    ):
+        llm_steps = llm_steps[1:]
+    final_steps = [note_step] + llm_steps
+
+    provenance = {
+        "steps_prompt": steps_prompt,
+        "steps_response": steps_llm,
+        "objective_used": obj,
+        "provider": steps_meta.get("provider", "unknown"),
+        "auth_method": steps_meta.get("auth_method", "api_key"),
+        "model": steps_meta.get("model", "default"),
+        "error": steps_meta.get("error", False),
+        "phase": "steps",
+    }
+
+    core = {
+        "objective": obj,
+        "testScript": {"type": "steps", "steps": final_steps},
+        "provenance": provenance,
+    }
+    validation = validate_zephyr_payload({session.get("key", "unknown"): {
+        "objective": obj,
+        "testScript": core["testScript"],
+    }})
+    return {**core, "validation": validation}
+
+
+def synthesize_objectives_and_steps(session: Dict[str, Any], llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+    """Legacy combined path: Step 4 then Step 5 in one call (kept for compatibility).
+
+    Prefer synthesize_objectives + synthesize_steps for the split wizard UX.
+    """
+    obj_out = synthesize_objectives(session, llm_config=llm_config)
+    session_with_obj = {
+        **session,
+        "gaps": obj_out.get("gaps") or session.get("gaps") or "",
+        "step4": {
+            **(session.get("step4") or {}),
+            "objective": obj_out.get("objective"),
+            "provenance": obj_out.get("provenance"),
+        },
+    }
+    steps_out = synthesize_steps(
+        session_with_obj,
+        llm_config=llm_config,
+        objective=obj_out.get("objective"),
+    )
+    # Merge provenance for audit
+    provenance = {
+        **(obj_out.get("provenance") or {}),
+        **(steps_out.get("provenance") or {}),
+        "phase": "combined",
+    }
+    core = {
+        "objective": obj_out.get("objective"),
+        "testScript": steps_out.get("testScript"),
+        "gaps": obj_out.get("gaps") or "",
+        "provenance": provenance,
+    }
+    validation = steps_out.get("validation") or validate_zephyr_payload(
+        {session.get("key", "unknown"): core}
+    )
+    return {**core, "validation": validation}
 
 
 def _parse_suggest_id_list(content: str, id_patterns: Optional[List[str]] = None) -> List[Dict[str, str]]:

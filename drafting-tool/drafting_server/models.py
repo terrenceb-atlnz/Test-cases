@@ -43,8 +43,14 @@ class WizardSession(BaseModel):
     step1: StepState = StepState()  # TestLink + Decisions
     step2: StepState = StepState()  # Zephyr Cross-Ref
     step3: StepState = StepState()  # ATPyLib (scored) — user confirms selections only
-    step4: Dict[str, Any] = {}        # Drafted objective + steps (after LLM or manual)
-    gaps: str = ""  # LLM-generated at synthesis/export for Traceability (not Step 3 UI)
+    # Step 4: Objective synthesis (LLM) — user reviews/edits, then confirms before steps
+    # Shape: {objective, provenance?, confirmed?, confirmed_at?}
+    step4: Dict[str, Any] = {}
+    # Step 5: Test-step synthesis (LLM) — uses finalized step4.objective + selections
+    # Shape: {testScript: {type, steps}, provenance?}
+    # Legacy sessions may still hold testScript under step4; export/UI resolve both.
+    step5: Dict[str, Any] = {}
+    gaps: str = ""  # LLM-generated at objective synthesis/export for Traceability (not Step 3 UI)
     art_string: str = ""
     full_session: Dict[str, Any] = {}  # For provenance
     updated_at: Optional[datetime] = None  # For tracking / persistence order
@@ -59,3 +65,7 @@ class ExportResponse(BaseModel):
     zephyr_payload: Dict[str, Any]
     session_json: Dict[str, Any]
     validation: Optional[Dict[str, Any]] = None  # Added for complete repeatable output validation (priority #1)
+    # Primary destination: drop-in refined-cases path written by the server (not browser Downloads)
+    saved_to: Optional[str] = None
+    saved_files: Optional[List[str]] = None
+    message: Optional[str] = None

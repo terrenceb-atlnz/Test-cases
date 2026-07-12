@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink DPMAP family (AWP-20971 primary dynamic change, AWP-20974 while traffic running, AWP-21187 LAG, AWP-21053 VCS, AWP-20975 HW limit). ART coverage from 1331 (policy re-attach, storm QoS attach, large QoS on LAG/VCS no crash) + 1344 (class-map + policy with policer).",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {

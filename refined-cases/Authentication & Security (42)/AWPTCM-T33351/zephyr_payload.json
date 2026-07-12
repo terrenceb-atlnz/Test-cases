@@ -5,7 +5,7 @@
       "type": "steps",
       "steps": [
         {
-          "description": "Note: Related ART Tests linked in Traceability. Primary coverage from TestLink single-host combination family (AWP-6809 primary + AWP-6807/6808/6810/6811, AWP-6800 port control single-host, AWP-6805 EAP-Logoff single, AWP-6825 parallel WEB). ART coverage: 1348.1001.20 (basic dot1x auth success), 1348.1001.33 + 1341.6001.5090 (dynamic VLAN assignment), 1348.1001.11 (config), 1341.1001.4975 (max clients), 1348.1001.27/28 (RADIUS groups), plus related CR cases.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {
