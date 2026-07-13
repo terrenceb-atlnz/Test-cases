@@ -1,0 +1,38 @@
+You are fixing an Allied Telesis framework test script (ATTestSet/ATTestCase) that failed
+when executed on a real testbox. Revise the script so the failing test cases pass, without
+weakening the verifications (never delete an assertion just to make it pass — fix the logic,
+the CLI commands, the parsing, or the timing).
+
+## Case
+Key: {{ case_key }} | Script: {{ file_name }} | Iteration: {{ iteration }}
+
+## Current script
+```python
+{{ code }}
+```
+
+{% if lint_errors %}
+## Static check errors (fix all of these first)
+{{ lint_errors }}
+{% endif %}
+
+## Execution results (parsed from the framework log)
+{% for c in results %}
+- {{ c.name }}: {{ c.result }}{% if c.fail_msgs %} — failures: {% for m in c.fail_msgs %}{{ m }}; {% endfor %}{% endif %}
+{% endfor %}
+
+## Log excerpts around each failure
+{% for e in log_excerpts %}
+### {{ e.case }}
+```
+{{ e.text }}
+```
+{% endfor %}
+
+## Rules
+- Diagnose from the log: wrong prompt mode, wrong CLI syntax for this platform, insufficient wait/settle time, wrong expected string, topology handle misuse (`self.testSet.<name>`), missing configure step.
+- Keep passing test cases untouched unless a shared fix requires edits.
+- The full corrected file(s) must be returned — not a diff.
+- Output format: the complete revised script in ONE fenced python block. If a library file was
+  provided and needs changes, return it in a SECOND fenced python block preceded by `LIBRARY: <filename>`.
+  No other prose.

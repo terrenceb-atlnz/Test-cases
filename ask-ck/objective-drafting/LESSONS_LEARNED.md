@@ -1,4 +1,6 @@
-# Lessons Learned — Drafting Tool Server-Backed Session
+# Lessons Learned — Ask CK / Objective Drafting (Server-Backed)
+
+> Entries are chronological; paths in older entries reflect the pre-2026-07-13 layout (`drafting-tool/drafting_server/` → now `ask-ck/CK-main/CK_server/`; root `data/`+`refined-cases/` → now `ask-ck/objective-drafting/`).
 
 **Date:** 2026-07-01 (end of extended session)
 
@@ -84,11 +86,11 @@
 - When adding a new LLM auth mode, audit every place that currently falls back to MOCK "if no credential" — the condition usually needs to become mode-aware.
 - Use a throwaway case key (not the flagship demo case) when testing changes that exercise the full confirm→synthesize flow, to avoid dirtying demo session state.
 
-This file serves as persistent memory for the drafting tool project.
+This file serves as persistent memory for the Ask CK / objective drafting project.
 
-See also `PROGRESS.md` (in this directory) for current implementation status, backlog, and handoff notes for future sessions.
+See also `PROGRESS.md` (in this directory) for current implementation status, backlog, and handoff notes for future sessions. Operational docs: `../CK-main/SERVER-README.md`.
 
-Higher-level cross-references: Root `SESSION_STATE.md`, root `README.md`, and `OBJECTIVE_DRAFTING_PROCESS.md`. The external `AGENTS.md` (referenced from root) provides broader context.
+Higher-level cross-references: Root `SESSION_STATE.md`, root `README.md`, and `OBJECTIVE_DRAFTING_PROCESS.md` (this directory). The external `AGENTS.md` (referenced from root) provides broader context.
 
 ## New Insights from 2026-07-03 Session — Zephyr Step 2 Omission + Full Grok Subscription CLI + UI Simplification
 
@@ -190,3 +192,35 @@ Higher-level cross-references: Root `SESSION_STATE.md`, root `README.md`, and `O
 
 **Docs**:
 - Root README had become a session changelog; rewrite to status + how-to, point to drafting-tool PROGRESS for tool detail.
+
+## New Insights from 2026-07-13 Session (later) — Repo Restructure + Ask CK Multi-Tool Facelift
+
+**Context**: The tool was renamed **Ask CK** and generalized from single-use to a multi-tool workbench. The user restructured the repo mid-session (`drafting-tool/` → `ask-ck/CK-main/` with `drafting_server/` → `CK_server/`; root `data/` + `refined-cases/` + process docs → `ask-ck/objective-drafting/`; per-tool dirs `pytest-create/`, `test-composer/`, `zephyr-tool/` pre-staged). See `ask-ck/ck-facelift/PLAN-facelift.md` for the executed plan.
+
+**Restructure / repathing**:
+- Moving a served app breaks silently in three kinds of places: CWD-relative data loads (`BASE = "."` in data.py), `__file__`-relative escapes (`BASE_DIR.parent.parent / "refined-cases"` in wizard.py, `../../OBJECTIVE_DRAFTING_PROCESS.md` in main.py), and launcher scripts (run.sh `PYTHONPATH`/module target).
+- Lesson: centralize filesystem anchors in one module (`CK_server/paths.py`) derived from `__file__`, so future moves are a one-file fix and the working directory never matters.
+- Lesson: when directories move mid-session, re-verify paths with `ls`/`git status` before every phase — two exploration passes in the same session saw two different layouts.
+- Boot-verify with real data counts (410 cases: 368 open / 42 complete) rather than just `/health` — an app can boot "ok" while silently loading zero data.
+
+**Display renumbering vs load-bearing identifiers**:
+- Sidebar labels were renumbered 1–6, but the internal scheme is untouched: `data-step` 0–5, panel ids `step-0..5`, badge ids `#step1-badge..#step5-badge`, session keys `step1..step5`, and `confirm_step/{key}/{1|2|3}` (backend 400s anything else).
+- Lesson: renumber **strings only, individually** — never bulk-replace "Step N" in a file where the same numbers appear in ids, session keys, and API paths.
+
+**Relocating a DOM chunk wholesale**:
+- The LLM login block moved from Step 0 to a new Configure panel with **zero JS changes** because every access was by `getElementById`/`name` (no positional traversal) and the chunk stayed in the static DOM (bootstrap calls `updateAuthMethodUI`/`updateLLMStatus` before any user interaction).
+- Lesson: id-addressed DOM + static markup makes UI restructures cheap; audit for positional coupling before moving, and keep relocated panels in the initial DOM (not lazily injected).
+
+**Multi-tool navigation pattern**:
+- One generic `goToPanel(panelId)` (toggles `.tool-panel` cards; section-aware active state via `data-panel` or `'step-' + data-step`) + a thin `goToStep()` wrapper preserved all 8 existing numeric callers.
+- Page header became a `PANEL_META` registry keyed by panel id (tool panels get static titles; Generator keeps `KEY — Title`).
+- Badge loop scoped to `#nav-generator .sidebar-nav-item[data-step]` — previously new nav items were badge-free only by `parseInt(undefined) → NaN` luck.
+- Lesson (new-tool recipe): card div + `PANEL_META` entry + sidebar item + router module; invariant: card id === `data-panel` === registry key.
+
+**Independent selection state per tool**:
+- PyTest Creator's Cases step reuses `fillCaseSelect` + the single `/api/wizard/cases` fetch (via a shared `handleCasePairChange` helper) but stores selection in its own `ptCase` global — it must never touch `currentKey`, `#caseSel`, or the page header, or it would silently retarget the Generator's load/confirm/export.
+- Lesson: when a second tool reuses a data source, parameterize the existing machinery (don't fork it) and keep selection state strictly per-tool.
+
+**Cleanup while you're there**: `showLLMConfig()` no-op, empty `#llm-config-card`, and the phantom `#llmCredential` handling were removed as part of the relocation — restructures are the right moment to delete vestigial code you must read anyway.
+
+**Docs after a restructure**: every doc layer (root README, PROGRESS, SERVER-README, BoS/EoS prompts, per-dir READMEs) carried stale paths; historical entries (SESSION_STATE, old session summaries, PLAN-server-backed) keep their original paths with a banner note instead of rewriting history.

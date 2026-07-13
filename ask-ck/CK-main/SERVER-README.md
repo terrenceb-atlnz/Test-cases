@@ -1,10 +1,12 @@
-# SERVER-README.md — Objective Drafting Tool (Server-Backed)
+# SERVER-README.md — Ask CK (Server-Backed Test Tooling Workbench)
 
-This document contains **all instructions for use, setup, configuration, architecture, and details** for the server-backed edition of the Objective Drafting Tool.
+This document contains **all instructions for use, setup, configuration, architecture, and details** for **Ask CK** — the server-backed workbench whose first (and mature) tool is the **Objective/Test Case Generator** (formerly "Objective Drafting Tool").
+
+> **Layout note (2026-07-13):** the repo was restructured. Server code: `ask-ck/CK-main/CK_server/` (was `drafting-tool/drafting_server/`). Generator data, process docs, and `refined-cases/`: `ask-ck/objective-drafting/`. Filesystem anchors live in `CK_server/paths.py`. Historical session summaries at the bottom of this file keep their original (pre-move) paths.
 
 ## Overview and Goals
 
-The server-backed drafting tool fulfills the two main functions:
+The server-backed workbench fulfills the two main functions:
 
 1. **Present the OBJECTIVE_DRAFTING_PROCESS as a web-based page**  
    Interactive reference with deep links into the wizard steps, principles, checklist, and examples.
@@ -21,45 +23,49 @@ The server-backed drafting tool fulfills the two main functions:
 - Server-hosted (local IP, typically behind nginx).
 - Never offline.
 - Data will only grow — server handles indexing and loading.
-- Future extensibility is expected (tool can be complex to build).
+- Future extensibility is expected — Ask CK now hosts multiple tools in one sidebar.
 
 This version replaces the original single-file static `index.html` approach.
 
-**Project state reference**: ~41 cases already processed using the overall workflow. The server version uses the same data sources and output formats (`refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
+**Project state reference**: ~42 cases already processed using the overall workflow. The server version uses the same data sources and output formats (`ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
 
 ## Architecture
 
-**Backend**: FastAPI (Python)
+**Backend**: FastAPI (Python) — `CK_server/`
 - Persistent process (run with uvicorn).
-- Loads and manages all data on the server side.
+- Loads and manages all data on the server side (paths anchored in `CK_server/paths.py`).
 - Enforces the repeatable process state machine.
 - Direct LLM calls using templated prompts.
 - Post-processing of LLM output using templates/parsers for guaranteed repeatable structure.
-- REST API consumed by the frontend.
+- REST API consumed by the frontend: `/api/wizard` (Generator) + stub routers `/api/zephyr-tool`, `/api/test-composer`, `/api/pytest-create`.
 - Serves the process documentation as interactive web pages.
 
-**Frontend**: Static web UI (vanilla JS + HTML, served by the backend)
-- Restructured per design guidelines (sidebar+main layout from showcase, full tokens, components).
-- Sidebar (full to top, 240px): LLM status, vertical steps nav (gray SVGs), theme toggle, custom thin scrollbar.
-- Step 0 dual case dropdowns: **Open / partial** (in-progress first) vs **Complete** (has `refined-cases/.../zephyr_payload.json`).
-- Steps: **1. TestLink**, **2. Zephyr**, **3. ATPyLib (scored)**, **4. Synthesize** — each of 1–3 has Search + Suggest with LLM toolbars.
+**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `CK_server/static/index.html`
+- **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
+  - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
+  - **Zephyr Templating Tool** — 1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD (placeholder panels)
+  - **Test Composer** — 1. TBD (placeholder panel)
+  - **PyTest Creator** — 1. Cases (Complete cases only — those with refined payloads; selection independent of the Generator) / 2. Creator (placeholder; backend stub returns 501)
+  - **Objective/Test Case Generator** — **1. Cases**, **2. TestLink**, **3. Zephyr**, **4. ATPyLib (scored)**, **5. Objectives (LLM)**, **6. Test Steps (LLM)**
+- Navigation: `goToPanel(panelId)` shows exactly one `.tool-panel` card; `goToStep()` wraps it for the Generator. **Visible step numbers (1–6) are display-only** — the internal scheme (`data-step` 0–5, panel ids `step-0..5`, session keys `step1..step5`, `confirm_step` domain ids 1–3) is unchanged and load-bearing.
+- Generator Cases panel: dual dropdowns — **Open / partial** (in-progress first) vs **Complete** (has `refined-cases/.../zephyr_payload.json`). Review steps 2–4 each have Search + Suggest with LLM toolbars.
 - Tables use explicit column classes (`cols-5`, `cols-6-zephyr`, `cols-6-atp`) for compact layout.
-- Multi-step with gates; synthesize only after confirms; human-readable Step 4 + editor; export.
+- Multi-step with gates; synthesize only after confirms; human-readable objective/steps + editors; post-synthesis teal **Export Repeatable Bundle** button.
 - Process Reference at `/process` (basic). Favicon at `/favicon.ico` / `/favicon.svg`.
 
 **LLM Layer** (core of repeatability):
-- Prompt templates in `drafting_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
-- **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable Step 3 field.
+- Prompt templates in `CK_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
+- **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable review-step field.
 - CLI subscription modes only in UI: `grok_cli` (default) and `claude_code`. Legacy `api_key` server-side only.
-- **Workspace LLM default**: Apply/Login writes `drafting_server/sessions/_workspace_llm.json`; load_case applies it to cases without an active config so switching cases does not reset login.
+- **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) writes `CK_server/sessions/_workspace_llm.json`; load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session.
 - Full provenance (prompts/responses/provider/auth) captured per session.
 
 **Data**:
-- The three databases:
+- The three databases (under `ask-ck/objective-drafting/data/`):
   - TestLink historical + candidates/decisions
   - Zephyr (slim_index + zephyr_cases.jsonl)
   - Enriched ATPyLib (test_id_description + suite files)
-- Loaded on server startup (or lazily). Server-side indexes enable fast search and cross-referencing.
+- Loaded on server startup. Server-side indexes enable fast search and cross-referencing.
 
 **Hosting**:
 - Intended to run behind nginx on a local IP.
@@ -69,39 +75,43 @@ This version replaces the original single-file static `index.html` approach.
 **Repeatability Guarantees**:
 - Process: Backend state machine enforces explicit user confirmation of TestLink/Zephyr/ATPyLib **selections** before synthesis. Gates are server-side.
 - LLM: Templated prompts + structured parsing + provenance; gaps for Traceability authored at completion (not mid-wizard free text).
-- Outputs: Fixed Jinja + post-processing; export auto-persists to `refined-cases/<Group>/`.
-- UI: Dual case lists, Search/Suggest on steps 1–3, CLI login radios, design-system components.
+- Outputs: Fixed Jinja + post-processing; export auto-persists to `objective-drafting/refined-cases/<Group>/`.
+- UI: Dual case lists, Search/Suggest on the review steps, CLI login radios, design-system components.
 
-## Directory Structure (inside drafting-tool/)
+## Directory Structure
 
 ```
-drafting-tool/
-├── SERVER-README.md                 ← This file (all instructions)
-├── PLAN-server-backed.md            ← Full approved plan copy
-├── README.md                        ← Original (points here)
-├── nginx-drafting-server.conf.example
-├── drafting_server/                 ← The actual server application
-│   ├── main.py                      ← FastAPI entry point
-│   ├── data.py                      ← Data loading (three DBs + indices)
-│   ├── llm.py                       ← Prompt templating + LLM call + parser
-│   ├── models.py                    ← Pydantic models
-│   ├── routers/
-│   │   └── wizard.py                ← API endpoints for the step workflow
-│   ├── static/
-│   │   └── index.html               ← Frontend UI (wizard + process links)
-│   ├── templates/
-│   │   ├── prompts/
-│   │   │   ├── generate_objectives.jinja
-│   │   │   └── generate_steps.jinja
-│   │   └── outputs/
-│   │       └── traceability.md.jinja
-│   ├── nginx.conf.example
-│   └── README.md                    ← Shorter version (see SERVER-README.md for full details)
-├── ... (original static files for reference)
-└── data/ ...                        ← Existing project data (used by server)
+ask-ck/
+├── CK-main/
+│   ├── SERVER-README.md             ← This file (all instructions)
+│   ├── run.sh                       ← Start script (PYTHONPATH=CK-main, CK_server.main:app)
+│   ├── nginx-drafting-server.conf.example
+│   ├── (design assets + legacy single-file index.html, reference only)
+│   └── CK_server/                   ← The actual server application
+│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers
+│       ├── paths.py                 ← Filesystem anchors (DATA_DIR / REFINED_DIR / PROCESS_MD)
+│       ├── data.py                  ← Data loading (three DBs + indices)
+│       ├── llm.py                   ← Prompt templating + LLM call + parser
+│       ├── models.py                ← Pydantic models
+│       ├── routers/
+│       │   ├── wizard.py            ← Generator API (/api/wizard)
+│       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
+│       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
+│       │   └── pytest_create.py     ← PyTest Creator stub (/api/pytest-create)
+│       ├── static/index.html        ← Ask CK frontend (all tools + process links)
+│       ├── templates/
+│       │   ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, analyze_atp_coverage
+│       │   └── outputs/traceability.md.jinja
+│       └── sessions/                ← _workspace_llm.json + per-case AWPTCM-*.json
+├── objective-drafting/              ← Generator data + docs + outputs
+│   ├── PROGRESS.md / LESSONS_LEARNED.md / PLAN-server-backed.md / OBJECTIVE_DRAFTING_PROCESS.md
+│   ├── data/ ...
+│   └── refined-cases/<Group>/AWPTCM-Txxxx/
+├── ck-facelift/PLAN-facelift.md     ← 2026-07-13 facelift plan (as executed)
+├── pytest-create/  test-composer/  zephyr-tool/   ← future per-tool assets
 ```
 
-All new server code and related files live under `drafting-tool/drafting_server/`.
+All new server code lives under `ask-ck/CK-main/CK_server/`.
 
 ## Installation / Dependencies
 
@@ -119,31 +129,31 @@ The easiest way is to use the included helper script from the project root:
 
 ```bash
 # With a real API key
-LLM_API_KEY=sk-... ./drafting-tool/run.sh
+LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
 
 # Different port
-PORT=9000 ./drafting-tool/run.sh
+PORT=9000 ./ask-ck/CK-main/run.sh
 
 # Extra uvicorn options (e.g. debug logging)
-./drafting-tool/run.sh --log-level debug
+./ask-ck/CK-main/run.sh --log-level debug
 ```
 
 The script automatically:
 - Uses `python3`
-- Sets the correct `PYTHONPATH` for the `drafting-tool/` layout
+- Sets the correct `PYTHONPATH` for the `CK-main/CK_server` layout (data paths are absolute via `paths.py`, so working directory does not matter)
 - (No MOCK default; real LLM required)
 
 ### Manual equivalent
 
 ```bash
-LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Alternative (cd into the server dir):
 
 ```bash
-cd drafting-tool/drafting_server
-LLM_API_KEY=sk-... PYTHONPATH=. python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+cd ask-ck/CK-main/CK_server
+LLM_API_KEY=sk-... PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000
 ```
 
 **Environment variables for LLM**:
@@ -165,13 +175,13 @@ Per-machine setup:
 
 1. Install Claude Code on the machine running this server (see anthropic.com/claude-code).
 2. In a terminal, run `claude` and log in (`/login`) with your Claude Team account.
-3. In the tool UI (Step 0 → LLM Provider Login): select **Claude (Anthropic)** → **Claude Code CLI (Team subscription)** → "Check CLI Status" → "Apply / Login".
+3. In the tool UI (sidebar **LLM → Configure**): select **Claude Code CLI (Team subscription)** → "Check Claude CLI" → "Apply / Login".
 4. Leave Model blank to use the CLI's default (or pass e.g. `sonnet`).
 
 Notes / limitations:
 
 - Server-side check: `GET /api/wizard/claude_cli_status` reports whether the CLI binary is found (login state surfaces on the first real call — a login error message is returned in the synthesis output if the CLI isn't logged in).
-- Team seats have rolling session-based usage limits shared with the user's interactive Claude Code use. The tool's calls are minimal (Step 3 assist + Step 4 synthesis), but an exhausted window surfaces as a CLI error until it resets.
+- Team seats have rolling session-based usage limits shared with the user's interactive Claude Code use. The tool's calls are minimal, but an exhausted window surfaces as a CLI error until it resets.
 - Latency is higher than a direct HTTP call (CLI process startup per request) — acceptable for the tool's occasional synthesis calls.
 - Old "account" / token-paste flows were removed from the UI long ago. Current UI only exposes the two subscription CLI radios. Legacy `api_key` and old `account` values are mapped gracefully on restore but not presented to new users.
 
@@ -180,54 +190,51 @@ Notes / limitations:
 `auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. 
 
 - `GET /api/wizard/grok_cli_status` reports availability.
-- In the UI (Step 0): select the **Grok CLI (SuperGrok / X Premium+ subscription)** radio, use the "Check Grok CLI" button, then "Apply / Login". Model optional (CLI default used if blank).
+- In the UI (sidebar **LLM → Configure**): select the **Grok CLI (SuperGrok / X Premium+ subscription)** radio, use the "Check Grok CLI" button, then "Apply / Login". Model optional (CLI default used if blank).
 - Prompt passed safely via temp file; output captured cleanly.
 - Fully integrated into synthesis and ATP paths. Real calls were tested on a machine with an active subscription login.
 - Usage counts against the subscription (no separate API billing).
 
 ## Accessing the Tool
 
-- Main wizard UI: `http://your-local-ip:8000/`
+- Main Ask CK UI: `http://your-local-ip:8000/`
 - Process as web-based page: `http://your-local-ip:8000/process`
 - Interactive API docs (Swagger): `http://your-local-ip:8000/docs`
 - Health: `http://your-local-ip:8000/health`
+- Tool stubs: `GET /api/zephyr-tool/status`, `GET /api/test-composer/status`, `GET /api/pytest-create/status` (and `POST /api/pytest-create/generate/{key}` → 501 until implemented)
 
-## Typical Workflow (Repeatable Process)
+## Typical Workflow (Repeatable Process — Generator)
 
-1. Open the UI and select an AWPTCM case (dropdown populated with real project cases; neutral selection).
-2. In Step 0 LLM section: choose the desired subscription CLI radio (Grok CLI is default). Optionally check status for the selected CLI. Apply. (No provider dropdown or API Key path is shown; real login/key required.)
-3. **Step 1 – TestLink**  
+UI step numbers below are the visible 1–6 Generator labels.
+
+1. **Step 1 – Cases**: select an AWPTCM case (dual dropdowns populated with real project cases) and click **Load**.
+2. Sidebar **LLM → Configure**: choose the desired subscription CLI radio (Grok CLI is default). Optionally check status for the selected CLI. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
+3. **Step 2 – TestLink**  
    Review primary + candidates. Use **Search TestLink** / **Suggest with LLM** to expand or re-rank, then confirm selections.
-4. **Step 2 – Zephyr**  
+4. **Step 3 – Zephyr**  
    Review relevance-ranked external Zephyr cases (current Cases list omitted). Use **Search Zephyr** / **Suggest with LLM** as needed, then confirm.
-5. **Step 3 – ATPyLib (scored)**  
+5. **Step 4 – ATPyLib (scored)**  
    Search and select ART cases (pre-scored via LLM). Use **Search ATP** / **Suggest with LLM** if needed. Confirm selections only — **no gaps form** in this step.
-6. Only after all three confirms are done → **Step 4 – Synthesize (LLM)** becomes active.
-7. Click **"Synthesize with LLM (templated prompt)"**.
+6. Only after all three confirms are done → **Step 5 – Objectives (LLM)** becomes active. Click **Synthesize Objectives (LLM)**.
    - Backend builds templated prompts from your selections + process principles.
-   - LLM generates: **Gaps analysis** (for Traceability), objectives, and verification steps.
-   - First testScript step is always the server-built traceability note.
-   - Response is parsed + normalized for a repeatable shape.
-8. Review the result; use the editor as needed.
-9. Click **Export Repeatable Bundle**.
-   - Produces (for download):
-     - `traceability.md` (templated; **Gaps Noted** from LLM at synthesis/export)
-     - `AWPTCM-Txxxx-zephyr_payload.json` (exact Zephyr Scale shape)
-     - Session JSON (full provenance, including prompts sent to the LLM)
-   - Also auto-persists core artifacts server-side to `refined-cases/<Group>/AWPTCM-Txxxx/`.
-10. Use the persisted or dropped files in the correct `refined-cases/<Group>/AWPTCM-Txxxx/` directory.
+   - LLM generates: **Gaps analysis** (for Traceability) and objectives.
+   - Review/edit, then **Confirm Objectives → Step 6**.
+7. **Step 6 – Test Steps (LLM)**: **Synthesize Test Steps** (first testScript step is always the server-built traceability note); edit/revise as needed.
+8. Click the teal **Export Repeatable Bundle** (appears after steps exist).
+   - Produces: `traceability.md` (templated; **Gaps Noted** from LLM at synthesis/export), `AWPTCM-Txxxx-zephyr_payload.json` (exact Zephyr Scale shape), and session JSON (full provenance).
+   - Auto-persists server-side to `ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/`.
 
-Tables are compact to fit on one page with no side-scroll. Step 2 Zephyr cross-refs contain only external cases (current Cases list entries, including the primary, are omitted).
+Tables are compact to fit on one page with no side-scroll. The Zephyr review contains only external cases (current Cases list entries, including the primary, are omitted).
 
-The process and output formats are identical to what is documented in `OBJECTIVE_DRAFTING_PROCESS.md`.
+The process and output formats are identical to what is documented in `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`.
 
 ## LLM Templating & Repeatability
 
-Prompt templates live here:
+Prompt templates live in `CK_server/templates/prompts/`:
 - `generate_objectives.jinja` / `generate_steps.jinja` — synthesis
 - `generate_gaps.jinja` — Traceability gaps (synthesize/export only)
 - `suggest_testlink.jinja` / `suggest_zephyr.jinja` / `suggest_atp.jinja` — pre-select assists
-- `analyze_atp_coverage.jinja` — Step 3 ranking only (no gaps paragraph)
+- `analyze_atp_coverage.jinja` — ATP ranking only (no gaps paragraph)
 
 They inject confirmed selections + process principles ("artefacts, not procedures", first step notes + traceability, positive/negative/special cases, etc.).
 
@@ -240,14 +247,14 @@ After the LLM returns text, `llm.py` parses/normalizes and export uses `template
 Copy the example:
 
 ```bash
-cp drafting-tool/nginx-drafting-server.conf.example /etc/nginx/sites-available/drafting-tool
+cp ask-ck/CK-main/nginx-drafting-server.conf.example /etc/nginx/sites-available/ask-ck
 # edit and enable, then nginx -t && systemctl reload nginx
 ```
 
 Typical snippet (adjust path as needed):
 
 ```
-location /drafting-tool/ {
+location /ask-ck/ {
     proxy_pass http://127.0.0.1:8000/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -258,7 +265,7 @@ Access via your local IP / hostname that nginx serves.
 
 ## Data Sources Used
 
-The server reads from the existing project `data/` directory (same as the original workflow):
+The server reads from `ask-ck/objective-drafting/data/` (anchored via `CK_server/paths.py`):
 - `data/zephyr_master.json`
 - `data/candidates.json`
 - `data/decisions/*.json`
@@ -268,48 +275,112 @@ The server reads from the existing project `data/` directory (same as the origin
 
 Data is loaded on the server, so large files and growth are no longer a browser problem.
 
+The **PyTest Creator** additionally reads `ask-ck/pytest-create/data/` (built out-of-band, see below):
+- `scripts_index.json` / `scripts_slim_index.json` — index of the three script databases
+- `framework_surface.json` — the `framework` library vocabulary
+- `scripts_index.meta.json` — build info + enrichment coverage
+
+## PyTest Creator (2026-07-14)
+
+Turns a **Complete** case (one with a refined `zephyr_payload.json`) into a runnable
+Allied Telesis framework test script. Full plan + progress tracker:
+`ask-ck/pytest-create/PLAN-pytest-creator.md`.
+
+**Gated flow (sidebar steps, each with an explicit Confirm):**
+1. **Cases** — pick a Complete case, Load Case & Continue.
+2. **Sequence** — LLM extracts a prescriptive sequence of automatable steps from the
+   refined payload (traceability note skipped); edit rows, Save, Confirm.
+3. **Script Search** — mechanical scoring over the script index (top-40) + LLM
+   coverage verdicts (full/partial); free-text search box for manual digging;
+   tick selections, Confirm. `view` shows real source.
+4. **Fit Decision** — LLM recommends reuse / extend / new against the selected
+   scripts' actual TestSet/TestCase source; override the decision if needed, Confirm.
+5. **Fragments** — LLM proposes symbols; the server resolves them to real code by
+   indexed line ranges (invented symbols are dropped); untick unwanted, Confirm.
+6. **Generate** — LLM composes the script (fragments + style exemplar + framework
+   surface). Edit the proposed **Group / Script name** (`generated/<Group>/<Name>.py`),
+   review/edit code, **Lint** (py_compile + structure + framework-import checks),
+   **Save to generated/**, Confirm.
+7. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
+   the `.setup`, **Check Connection**, **Run on Testbox**. The script + setup go over
+   SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
+   comes back and is parsed into per-TestCase PASS/FAIL.
+8. **Validate** — Final Validation = run done + every case PASS + zero failures +
+   exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
+   archived), which un-confirms steps 6-7 so the revision is re-reviewed and re-run.
+   On all-PASS, Confirm step 8; promotion into `testsuites_art/` stays manual.
+
+**Testboxes** (sidebar) — stored connection profiles (`tb_number` + IP minimum) kept
+in the gitignored `secrets.testboxes.json` (0600). Passwords are write-only; the API
+returns `has_password` only. Passwordless sudo on the box is required (probed by check).
+
+**Building the script index** (needed once, re-run when script repos change):
+```bash
+cd tool
+./build_script_index.py --mechanical-only   # AST pass over testsuites_art / svt_scripts / test_scripts (+ framework surface)
+./enrich_script_index.py --limit 100        # resumable LLM tagging/summaries (uses the workspace CLI login)
+./build_script_index.py                     # rebuild with enrichment merged
+```
+Outputs land in `ask-ck/pytest-create/data/`; the server loads them at startup and
+`GET /api/pytest-create/status` reports counts + enrichment %.
+
+**Generated artifacts:** `ask-ck/pytest-create/generated/<Group>/<Name>.py`, with
+per-test provenance, sequence, iteration history, and run logs under
+`generated/.meta/<Group>/<Name>/`.
+
+**Session persistence:** `CK_server/sessions/pt-<KEY>.json` (separate from wizard
+sessions). Confirming step N invalidates all later confirmations. Runs interrupted
+by a server restart are marked `stale` on the next load_case.
+
 ## Migration from Original Single-File Tool
 
-- The original `drafting-tool/index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.
-- Old static files remain in `drafting-tool/` for reference.
-- The new server version adds LLM synthesis, backend enforcement of the process, and templated repeatability.
-- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `upload_refined.py`.
+- The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.
+- Old static files remain in `CK-main/` for reference.
+- The server version adds LLM synthesis, backend enforcement of the process, templated repeatability — and (2026-07-13) the Ask CK multi-tool shell.
+- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `tool/upload_refined.py`.
+
+## Adding a New Tool (Ask CK pattern)
+
+1. **Frontend** (`CK_server/static/index.html`): add a `.card.tool-panel` div with a unique panel id, a `PANEL_META` entry (title/desc), and a sidebar nav item with `data-panel="<panel-id>"` + `onclick="goToPanel('<panel-id>')"`.
+2. **Backend**: add `CK_server/routers/<tool>.py` (plain `APIRouter`), then `include_router(..., prefix="/api/<tool>")` in `main.py`.
+3. **Assets/data**: use the matching `ask-ck/<tool>/` directory (mirrors how `objective-drafting/` backs the Generator).
+4. Do not touch the Generator's numeric step scheme (`data-step`, `step-N` ids, `stepN` session keys, `confirm_step` 1–3).
 
 ## Development Notes
 
-- Most logic is in `drafting_server/`.
+- Most logic is in `CK_server/`.
 - To iterate on prompts: edit the `.jinja` files and restart (or use `--reload`).
 - To iterate on the UI: edit `static/index.html` (no rebuild step).
-- The wizard still supports manual editing of objectives/steps after LLM synthesis (or you can bypass LLM entirely).
-- Session state is currently in-memory (easy to extend with SQLite or file persistence for restarts).
+- The wizard still supports manual editing of objectives/steps after LLM synthesis.
+- Session state is file-persisted under `CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.
 
 ## Relation to the Approved Plan
 
-See `drafting-tool/PLAN-server-backed.md` for the complete approved plan that this implementation follows.
+See `ask-ck/objective-drafting/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `ask-ck/ck-facelift/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
 
 The plan explicitly chose server-backed because:
 - LLM is required for creation.
 - Data will grow.
 - Repeatable outputs via templating.
 - Hosted behind nginx.
-- Future extension is planned.
+- Future extension is planned (now realized as Ask CK).
 
 ## Quick Reference Commands
 
 ```bash
 # Start server (easiest)
-./drafting-tool/run.sh
+./ask-ck/CK-main/run.sh
 
 # With real key or different port
-LLM_API_KEY=sk-... ./drafting-tool/run.sh
-PORT=9000 ./drafting-tool/run.sh
+LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
+PORT=9000 ./ask-ck/CK-main/run.sh
 
 # Manual start (project root)
-LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000 --reload
 
 # Test synthesis directly (Python)
-cd drafting-tool/drafting_server
+cd ask-ck/CK-main/CK_server
 PYTHONPATH=. python3 -c '
 from llm import synthesize_objectives_and_steps
 sess = {"key":"AWPTCM-Txxxx", "step1":{"selections":[...]},"step2":{...},"step3":{...},"gaps":"..."}
@@ -317,17 +388,34 @@ print(synthesize_objectives_and_steps(sess))
 '
 ```
 
-For the full approved plan, usage philosophy, and trade-off history, read `PLAN-server-backed.md` in this directory.
+For the full approved plan, usage philosophy, and trade-off history, read `ask-ck/objective-drafting/PLAN-server-backed.md`.
 
 This SERVER-README.md is the single source of operational instructions.
 
-**For future sessions**: Start with `PROGRESS.md` in this directory. It contains current status, completed work, open tasks, technical debt, prioritized backlog with effort estimates, and a handoff checklist.
+**For future sessions**: Start with `ask-ck/objective-drafting/PROGRESS.md`. It contains current status, completed work, open tasks, technical debt, prioritized backlog with effort estimates, and a handoff checklist.
 
 Cross-reference higher-level project docs every session:
 - Root `README.md` (overall project framing, status, and links to AGENTS.md)
 - Root `SESSION_STATE.md` (broader session history)
-- `OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
-- External `../AGENTS.md` (access patterns and environment details, as referenced from root README)
+- `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
+- External `AGENTS.md` (access patterns and environment details, as referenced from root README)
+
+---
+
+## Session Summary (2026-07-13, later session — Ask CK facelift)
+
+Repo restructure support + multi-tool facelift (see `ask-ck/ck-facelift/PLAN-facelift.md`):
+
+- **Repathing** after the `drafting-tool/` → `ask-ck/` restructure: new `CK_server/paths.py` anchors (DATA_DIR / REFINED_DIR / PROCESS_MD); fixed `data.py` (was CWD-relative), `wizard.py` refined-cases roots, `main.py` process page path, and `run.sh` (now `CK_server.main:app`). Boot-verified with full data (410 cases).
+- **Ask CK rename**: page title, sidebar logo, FastAPI title.
+- **Multi-tool sidebar**: LLM (+ **Configure** main-area panel — the relocated LLM Provider Login, all element ids preserved), Zephyr Templating Tool (4 stub steps), Test Composer (1 stub), PyTest Creator (Cases wired / Creator stub), Objective/Test Case Generator (visible steps renumbered 1–6, display-only).
+- **Navigation**: `goToPanel(panelId)` primitive + `goToStep()` wrapper + `PANEL_META` page-header registry; ✓ nav-badges scoped to the Generator section.
+- **PyTest Creator Cases**: independent dropdown fed by the same `/api/wizard/cases` fetch (later restricted to **Complete cases only**); selection isolated from the Generator (`ptCase` global).
+- **Backend stubs**: `routers/zephyr_tool.py`, `test_composer.py`, `pytest_create.py` with `/status` endpoints (+ pytest `generate/{key}` → 501).
+- Dead code removed: `showLLMConfig()`, `#llm-config-card`, phantom `#llmCredential` handling.
+- Docs repathed across the repo (root README, PROGRESS, this file, LESSONS, BoS/EoS prompts, READMEs, SESSION_STATE entry).
+
+See `PROGRESS.md` for the updated backlog (manual browser smoke of the facelift is the top item).
 
 ---
 
@@ -342,7 +430,7 @@ Major usability and process refinements for the live wizard:
 - **Workspace LLM persistence** (`sessions/_workspace_llm.json`) so case switches do not reset CLI login.
 - Fixed **stack overflow** (auth UI recursion) and **table layout** (6-column width collapse).
 - Favicon; root/drafting-tool README cleanup; handoff docs refreshed.
-- GitHub: history LFS migrate for Zephyr XML/jsonl so push succeeds under 100 MB blob rules.
+- GitHub: history LFS migrate for Zephyr XML/jsonl so push succeeds under 100 MB blob rules.
 
 See `PROGRESS.md` and `LESSONS_LEARNED.md` for backlog and detailed lessons.
 

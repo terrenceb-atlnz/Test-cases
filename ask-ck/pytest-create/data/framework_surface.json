@@ -1,0 +1,8937 @@
+{
+ "ATDrivers.ATAES": {
+  "classes": {
+   "AES": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Appends string to the log file."
+     },
+     {
+      "name": "setChamber",
+      "args": [
+       "tempToSet"
+      ],
+      "doc": "Set the temperature of the Heat Chamber to the specified temperature. It does not wait for the chamber to act on these settings before returning."
+     },
+     {
+      "name": "readFromChamber",
+      "args": [],
+      "doc": "Read the current temperature of the Heat Chamber."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATATMF": {
+  "classes": {
+   "AtmfNetwork": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_area",
+      "args": [
+       "area"
+      ],
+      "doc": "Add an AtmfArea to the AtmfNetwork"
+     },
+     {
+      "name": "add_controller",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch or stack object to the AtmfNetwork as an ATMF Controller."
+     },
+     {
+      "name": "add_master",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch or stack object to the AtmfNetwork as an ATMF Master."
+     },
+     {
+      "name": "add_node",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch, stack or other object to the AtmfNetwork as an ATMF Node."
+     },
+     {
+      "name": "add_guest_node",
+      "args": [
+       "member"
+      ],
+      "doc": "Adds an object to the AtmfNetwork as an ATMF Node."
+     },
+     {
+      "name": "add_property",
+      "args": [
+       "property",
+       "value"
+      ],
+      "doc": "Add a property to the AtmfNetwork's properties dictionary"
+     },
+     {
+      "name": "all_areas",
+      "args": [],
+      "doc": "Returns a dictionary of all areas in the ATMF network"
+     },
+     {
+      "name": "all_members",
+      "args": [
+       "excludeGuestNodes"
+      ],
+      "doc": "Returns a set containing all controllers, masters, nodes and guest nodes of the ATMF network."
+     },
+     {
+      "name": "all_controllers",
+      "args": [],
+      "doc": "Returns a set containing all controllers of the ATMF network."
+     },
+     {
+      "name": "all_masters",
+      "args": [],
+      "doc": "Returns a set containing all masters of the ATMF network."
+     },
+     {
+      "name": "all_nodes",
+      "args": [],
+      "doc": "Returns a set containing all nodes of the ATMF network."
+     },
+     {
+      "name": "all_guest_nodes",
+      "args": [],
+      "doc": "Returns a set containing all guest nodes of the ATMF network."
+     },
+     {
+      "name": "all_properties",
+      "args": [],
+      "doc": "Returns a dictionary of all unsupported properties of the ATMF network"
+     },
+     {
+      "name": "get_area_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get the AtmfNetwork's AtmfArea object with name matching name"
+     },
+     {
+      "name": "get_controller_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get the AtmfNetwork's ATMF Controller switch or stack object with name matching name"
+     },
+     {
+      "name": "get_master_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get the AtmfNetwork's ATMF Master switch or stack object with name matching name"
+     },
+     {
+      "name": "get_node_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get the AtmfNetwork's ATMF Node switch or stack object with name matching name"
+     },
+     {
+      "name": "get_guest_node_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get the AtmfNetwork's ATMF Guest Node object with name matching name"
+     },
+     {
+      "name": "get_member_area",
+      "args": [
+       "member"
+      ],
+      "doc": "Get a list of AtmfArea objects that an ATMF Member belongs to"
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Write string to self.logFileName."
+     }
+    ]
+   },
+   "AtmfArea": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_controller",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch or stack object to the AtmfArea as an ATMF Controller."
+     },
+     {
+      "name": "add_master",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch or stack object to the AtmfArea as an ATMF Master."
+     },
+     {
+      "name": "add_node",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch, stack or other object to the AtmfArea as an ATMF Node."
+     },
+     {
+      "name": "add_guest_node",
+      "args": [
+       "member"
+      ],
+      "doc": "Add a switch, stack or other object to the AtmfArea as an ATMF Guest Node."
+     },
+     {
+      "name": "all_members",
+      "args": [
+       "excludeGuestNodes"
+      ],
+      "doc": "Returns a set containing all  controllers, masters, nodes and guest nodes of the ATMF area."
+     },
+     {
+      "name": "all_controllers",
+      "args": [],
+      "doc": "Returns a set containing all controllers of the ATMF area."
+     },
+     {
+      "name": "all_masters",
+      "args": [],
+      "doc": "Returns a set containing all masters of the ATMF area."
+     },
+     {
+      "name": "all_nodes",
+      "args": [],
+      "doc": "Returns a set containing all nodes of the ATMF area."
+     },
+     {
+      "name": "all_guest_nodes",
+      "args": [],
+      "doc": "Returns a set containing all guest nodes of the ATMF area."
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Write string to self.logFileName."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATApi": {
+  "classes": {
+   "ATApiException": {
+    "bases": [
+     "Exception"
+    ],
+    "methods": []
+   },
+   "ApiClass": {
+    "bases": [
+     "object"
+    ],
+    "methods": [
+     {
+      "name": "set_auth_method",
+      "args": [
+       "auth_method",
+       "cert",
+       "username",
+       "password"
+      ],
+      "doc": "Set the authentication method to be used for API calls"
+     },
+     {
+      "name": "log",
+      "args": [
+       "message"
+      ],
+      "doc": "Log messages"
+     },
+     {
+      "name": "close",
+      "args": [],
+      "doc": "Close API connections and terminate API session object cleanly"
+     },
+     {
+      "name": "get",
+      "args": [
+       "path"
+      ],
+      "doc": "Get information from the API."
+     },
+     {
+      "name": "post",
+      "args": [
+       "path",
+       "data",
+       "json"
+      ],
+      "doc": "Update information for a resource in the API"
+     },
+     {
+      "name": "put",
+      "args": [
+       "path",
+       "data"
+      ],
+      "doc": "Add a resource at the path to the API"
+     },
+     {
+      "name": "delete",
+      "args": [
+       "path"
+      ],
+      "doc": "Remove the specified resource from the API"
+     },
+     {
+      "name": "put_file",
+      "args": [
+       "remote_path",
+       "local_filename",
+       "remote_filename",
+       "overwrite",
+       "read_after"
+      ],
+      "doc": "Upload a file to the server to the location specified, using the API."
+     },
+     {
+      "name": "monitor_resource_for_value",
+      "args": [
+       "path",
+       "resource_name",
+       "wanted_value",
+       "timeout"
+      ],
+      "doc": "Monitor an API resource for a value.  Return True if found within timeout period"
+     },
+     {
+      "name": "post_and_monitor_for_value",
+      "args": [
+       "path",
+       "json",
+       "resource_name",
+       "wanted_value",
+       "read_delay",
+       "timeout"
+      ],
+      "doc": "Post json info and then monitor the API for a change in a resource under that path"
+     },
+     {
+      "name": "get_hostname",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_as_text",
+      "args": [
+       "path"
+      ],
+      "doc": "Use this method to get the request content as plain text rather than the dictionary response from normal get method"
+     },
+     {
+      "name": "save_api_schema_to_file",
+      "args": [
+       "filename"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "ApiCertClass": {
+    "bases": [
+     "ApiClass"
+    ],
+    "methods": [
+     {
+      "name": "get_private_key",
+      "args": [
+       "key_filename",
+       "passphrase"
+      ],
+      "doc": "Get the private key"
+     },
+     {
+      "name": "generate_key",
+      "args": [
+       "key_type",
+       "bits",
+       "key_filename",
+       "passphrase"
+      ],
+      "doc": "Generate a private key to be used to encrypt/decrypt certs"
+     },
+     {
+      "name": "generate_csr",
+      "args": [
+       "write_file"
+      ],
+      "doc": "Generate a Certificate signing request object"
+     },
+     {
+      "name": "get_atmf_trustpoint",
+      "args": [],
+      "doc": "Get the name of the ATMF trustpoint if it is configured"
+     },
+     {
+      "name": "get_trustpoint_signed_cert",
+      "args": [],
+      "doc": "Generate a CSR and send it to AMF master|controller to sign and then save"
+     },
+     {
+      "name": "print_certificate",
+      "args": [],
+      "doc": "Read the cert file from disk and print it in human readable format"
+     },
+     {
+      "name": "set_signed_cert_filename",
+      "args": [
+       "filename"
+      ],
+      "doc": "Set the filename of the signed certificate file"
+     },
+     {
+      "name": "get_signed_cert_filename",
+      "args": [],
+      "doc": "Get the filename of the current signed certificate the object is using"
+     },
+     {
+      "name": "set_private_key_filename",
+      "args": [
+       "filename"
+      ],
+      "doc": "Set the filename of private key file"
+     },
+     {
+      "name": "get_private_key_filename",
+      "args": [],
+      "doc": "Get the filename of the current private key the object is using"
+     },
+     {
+      "name": "set_trustpoint_name",
+      "args": [
+       "trustpoint"
+      ],
+      "doc": "Set the name of the trustpoint that is being used"
+     },
+     {
+      "name": "get_trustpoint_name",
+      "args": [],
+      "doc": "Get the name of the current trustpoint the object is using"
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATApiProxy": {
+  "classes": {
+   "MyAdapter": {
+    "bases": [
+     "HTTPAdapter"
+    ],
+    "methods": [
+     {
+      "name": "init_poolmanager",
+      "args": [
+       "connections",
+       "maxsize"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "MyPoolManager": {
+    "bases": [
+     "PoolManager"
+    ],
+    "methods": []
+   },
+   "MyHTTPSConnectionPool": {
+    "bases": [
+     "HTTPSConnectionPool"
+    ],
+    "methods": []
+   },
+   "MyHTTPSConnection": {
+    "bases": [
+     "HTTPSConnection"
+    ],
+    "methods": [
+     {
+      "name": "connect",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "ATApiProxyClass": {
+    "bases": [
+     "ATApi.ApiClass"
+    ],
+    "methods": []
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATBootLoader": {
+  "classes": {
+   "AWP_TFTP_Bootloader_Settings": {
+    "bases": [],
+    "methods": []
+   },
+   "TurnSwiOn": {
+    "bases": [
+     "Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "enter_bootrom_with_retry",
+    "args": [
+     "self",
+     "swi",
+     "maxAttempts"
+    ],
+    "doc": "Enter the boot menu on a switch, with retry in case the <ctrl-B> prompt was missed"
+   },
+   {
+    "name": "enter_diagnostics_menu_with_retry",
+    "args": [
+     "self",
+     "swi",
+     "maxAttempts"
+    ],
+    "doc": "Enter the diagnostics menu on a switch, with retry in case the <ctrl-B> prompt was missed"
+   },
+   {
+    "name": "enter_uboot_with_retry",
+    "args": [
+     "self",
+     "swi",
+     "maxAttempts"
+    ],
+    "doc": "Enter uboot on a switch, with retry in case the <ctrl-B> prompt was missed"
+   },
+   {
+    "name": "enter_bootrom",
+    "args": [
+     "self",
+     "swi",
+     "firstAttempt",
+     "previousResponses",
+     "usePowerCycleIfAvailable"
+    ],
+    "doc": "Enter the boot menu on a switch."
+   },
+   {
+    "name": "enter_diagnostics_menu",
+    "args": [
+     "self",
+     "swi",
+     "firstAttempt",
+     "previousResponses",
+     "usePowerCycleIfAvailable"
+    ],
+    "doc": "Enter the diagnostics menu on a switch."
+   },
+   {
+    "name": "enter_uboot",
+    "args": [
+     "self",
+     "swi",
+     "firstAttempt",
+     "previousResponses",
+     "usePowerCycleIfAvailable"
+    ],
+    "doc": "Enter u-boot on a switch"
+   },
+   {
+    "name": "erase_flash",
+    "args": [
+     "self",
+     "swi",
+     "retries",
+     "waitForBootup"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "set_skip_startup_script",
+    "args": [
+     "self",
+     "swi",
+     "retries"
+    ],
+    "doc": "Set a switch or stack to skip the startup script."
+   },
+   {
+    "name": "set_swi_boot_from_cli",
+    "args": [
+     "self",
+     "swi",
+     "copyCurrentSoftware"
+    ],
+    "doc": "Set the device to boot from cli (Boot from default)"
+   },
+   {
+    "name": "set_swi_boot_from_media",
+    "args": [
+     "self",
+     "swi",
+     "media",
+     "filename"
+    ],
+    "doc": "Set the device to boot from media"
+   },
+   {
+    "name": "set_swi_boot_from_tftp",
+    "args": [
+     "self",
+     "swi",
+     "postLogin",
+     "settingsDict"
+    ],
+    "doc": "Set the device to boot from tftp"
+   },
+   {
+    "name": "set_swi_boot_from_tftp_with_output",
+    "args": [
+     "self",
+     "swi",
+     "postLogin",
+     "settingsDict"
+    ],
+    "doc": "Set the device to boot from tftp"
+   },
+   {
+    "name": "install_swi_bootloader",
+    "args": [
+     "self",
+     "swi",
+     "bootloader",
+     "checkSum",
+     "postLogin"
+    ],
+    "doc": "Install the device bootloader"
+   },
+   {
+    "name": "perform_one_off_boot_from_alternate_source",
+    "args": [
+     "self",
+     "swi",
+     "fileName",
+     "source",
+     "tftpSettings"
+    ],
+    "doc": "Enter bootrom and boot the device from alternative source"
+   },
+   {
+    "name": "perform_one_off_boot_from_alternate_source_with_output",
+    "args": [
+     "self",
+     "swi",
+     "fileName",
+     "source",
+     "tftpSettings"
+    ],
+    "doc": "Enter bootrom and boot the device from alternative source"
+   }
+  ]
+ },
+ "ATDrivers.ATContainer": {
+  "classes": {
+   "RetCode": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "ContainerState": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "ACS": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "is_reachable_from_tb",
+      "args": [
+       "tb",
+       "retryCount"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log_failed",
+      "args": [
+       "message"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "api_init",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "upgrade_to_iso",
+      "args": [
+       "iso_filename",
+       "path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "save_config",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "set_boot_iso",
+      "args": [
+       "iso_filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "reboot",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_boot_iso",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_files_in_flash",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "upload_file_to_flash",
+      "args": [
+       "filename",
+       "path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "delete_file_in_flash",
+      "args": [
+       "filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "update_compute_nodes",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_compute_nodes",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "create_container",
+      "args": [
+       "container_name",
+       "container_image_name",
+       "container_image_version",
+       "compute_node_to_run_on",
+       "allocated_size_MB"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "delete_container",
+      "args": [
+       "container_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_container_instance_info",
+      "args": [
+       "container_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_container_info",
+      "args": [
+       "container_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_container_state",
+      "args": [
+       "compute_node",
+       "container_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "start_container",
+      "args": [
+       "container_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "stop_container",
+      "args": [
+       "container_name"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATContherm": {
+  "classes": {
+   "Contherm": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Appends string to the log file."
+     },
+     {
+      "name": "readFromChamber",
+      "args": [],
+      "doc": "Description"
+     },
+     {
+      "name": "setChamber",
+      "args": [
+       "fltTempToSet",
+       "intHumidity",
+       "strTime"
+      ],
+      "doc": "This function sets the Contherm chamber to a temperature and humidity.  It does not wait for the chamber to act on these settings before returning."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATEvent": {
+  "classes": {
+   "ATEvent": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "send_event",
+      "args": [
+       "message",
+       "log",
+       "testSuite",
+       "testSet",
+       "testCase",
+       "priority",
+       "setup"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_tb_num",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATHub": {
+  "classes": {
+   "Hub": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add",
+      "args": [
+       "member"
+      ],
+      "doc": "Adds an object to self."
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Write string to self.logFileFullPath."
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised port links on the hub."
+     },
+     {
+      "name": "all_members",
+      "args": [],
+      "doc": "Returns a set containing all objects connected to the hub."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATIxia": {
+  "classes": {
+   "Ixia": {
+    "bases": [
+     "object"
+    ],
+    "methods": [
+     {
+      "name": "clean_up",
+      "args": [],
+      "doc": "Disconnect from the Ixia Chassis and TCL servers"
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Appends string to the log file."
+     },
+     {
+      "name": "initPort",
+      "args": [
+       "key",
+       "cardNum",
+       "portNum",
+       "hub"
+      ],
+      "doc": "Creates an object of the IxiaPort Class."
+     },
+     {
+      "name": "get_all_ports",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised ports on the ixia."
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised port links on the ixia."
+     },
+     {
+      "name": "importStr",
+      "args": [
+       "ixiaPort",
+       "fileName"
+      ],
+      "doc": "Import packets streams from a file to an Ixia port."
+     },
+     {
+      "name": "setPortList",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Set Ixia portList."
+     },
+     {
+      "name": "startTx",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Start transmission from the specified Ixia port(s)."
+     },
+     {
+      "name": "stopTx",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Stop transmission from the specified Ixia port(s)."
+     },
+     {
+      "name": "startCapture",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Simultaneously start capture on the specified Ixia port(s)."
+     },
+     {
+      "name": "stopCapture",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Simultaneiously stop capture on all specified Ixia ports."
+     },
+     {
+      "name": "clearStats",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Clear statistical data on the specified IxiaPort."
+     },
+     {
+      "name": "getRxPktRate",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the current Rx rate (frames per second) from the port."
+     },
+     {
+      "name": "getTxPktRate",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the current Tx rate (frames per second) from the port."
+     },
+     {
+      "name": "getRxBitRate",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the current Rx rate (bits per second) from the port."
+     },
+     {
+      "name": "getTxBitRate",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the current Tx rate (bits per second) from the port."
+     },
+     {
+      "name": "getRxPkts",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the total number of packets received on the port."
+     },
+     {
+      "name": "getTxPkts",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the total number of packets transmitted from the port."
+     },
+     {
+      "name": "getRxBits",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the total number of bits received on the port."
+     },
+     {
+      "name": "getTxBits",
+      "args": [
+       "ixiaPort"
+      ],
+      "doc": "Get the total number of bits transmitted from the port."
+     },
+     {
+      "name": "setupArpOnPort",
+      "args": [
+       "ixiaPort",
+       "strIpGateway",
+       "strIpAddress",
+       "strMACAddress",
+       "blnClearIPEntries"
+      ],
+      "doc": "Setup ARP in the protocol server for port"
+     },
+     {
+      "name": "sendArp",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Send an ARP from the specified Ixia port(s)."
+     }
+    ]
+   },
+   "IxiaPort": {
+    "bases": [
+     "object"
+    ],
+    "methods": [
+     {
+      "name": "startTx",
+      "args": [],
+      "doc": "Start transmission from this port."
+     },
+     {
+      "name": "stopTx",
+      "args": [],
+      "doc": "Stop transmission from this port."
+     },
+     {
+      "name": "clearStats",
+      "args": [],
+      "doc": "Clear statistical data on this port."
+     },
+     {
+      "name": "getTxPkts",
+      "args": [],
+      "doc": "Get the total number of packets transmitted from the port."
+     },
+     {
+      "name": "getRxPkts",
+      "args": [],
+      "doc": "Get the total number of packets received on the port."
+     },
+     {
+      "name": "getTxBits",
+      "args": [],
+      "doc": "Get the total number of bits transmitted from the port."
+     },
+     {
+      "name": "getRxBits",
+      "args": [],
+      "doc": "Get the total number of bits received on the port."
+     },
+     {
+      "name": "importStr",
+      "args": [
+       "filename"
+      ],
+      "doc": "Import packets streams from a file to an Ixia port."
+     },
+     {
+      "name": "getRxPktRate",
+      "args": [],
+      "doc": "Get the current Rx rate (frames per second) from the port."
+     },
+     {
+      "name": "getTxPktRate",
+      "args": [],
+      "doc": "Get the current Tx rate (frames per second) from the port."
+     },
+     {
+      "name": "getRxBitRate",
+      "args": [],
+      "doc": "Get the current Rx rate (bits per second) from the port."
+     },
+     {
+      "name": "getTxBitRate",
+      "args": [],
+      "doc": "Get the current Tx rate (bits per second) from the port."
+     },
+     {
+      "name": "setupArpOnPort",
+      "args": [
+       "strIpGateway",
+       "strIpAddress",
+       "strMACAddress",
+       "blnClearIPEntries"
+      ],
+      "doc": "Setup ARP in the protocol server for port"
+     },
+     {
+      "name": "sendArp",
+      "args": [],
+      "doc": "Send an ARP from this Ixia port."
+     }
+    ]
+   },
+   "PoeIxia": {
+    "bases": [
+     "Ixia"
+    ],
+    "methods": [
+     {
+      "name": "poeSetDefault",
+      "args": [
+       "ixiaPortList"
+      ],
+      "doc": "Set a list of PoE ports to default settings."
+     },
+     {
+      "name": "poeSetClass",
+      "args": [
+       "ixiaPortList",
+       "poeClass"
+      ],
+      "doc": "Set Class on IXIA PoE ports"
+     },
+     {
+      "name": "poeSetClassSig",
+      "args": [
+       "ixiaPortList",
+       "poeClassSig"
+      ],
+      "doc": "Set classification  signature value on IXIA PoE ports."
+     },
+     {
+      "name": "poeSetClassSigEnable",
+      "args": [
+       "ixiaPortList",
+       "state"
+      ],
+      "doc": "Enable or disable Classification Signature."
+     },
+     {
+      "name": "posSetCurrent",
+      "args": [
+       "ixiaPortList",
+       "poeCurrent"
+      ],
+      "doc": "Set a PoE port to represent a powered device drawing a particular current"
+     },
+     {
+      "name": "poeSetPower",
+      "args": [
+       "ixiaPortList",
+       "poePower"
+      ],
+      "doc": "Set a PoE port to represent a powered device drawing a particular Power"
+     },
+     {
+      "name": "poeSetRsig",
+      "args": [
+       "ixiaPortList",
+       "poeRsig"
+      ],
+      "doc": "Set detection resistance on an IXIA PoE port"
+     },
+     {
+      "name": "poeSetCsig",
+      "args": [
+       "ixiaPortList",
+       "poeCsig"
+      ],
+      "doc": "Set Ixia PoE port detection capacitance"
+     },
+     {
+      "name": "poeSetCsigAdd10uF",
+      "args": [
+       "ixiaPortList",
+       "enable"
+      ],
+      "doc": "Adds 10uF to the Ixia PoE port detection capacitance."
+     },
+     {
+      "name": "poeGetCurrent",
+      "args": [
+       "port"
+      ],
+      "doc": "Read the Current being drawn"
+     },
+     {
+      "name": "poeGetPower",
+      "args": [
+       "port"
+      ],
+      "doc": "Read the Power being drawn for this port"
+     },
+     {
+      "name": "poeGetStatus",
+      "args": [
+       "port"
+      ],
+      "doc": "Read the status of the PoE port (defined in IEEE 802.3af)"
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATPeripheral": {
+  "classes": {
+   "Peripheral": {
+    "bases": [
+     "object"
+    ],
+    "methods": [
+     {
+      "name": "set_power",
+      "args": [
+       "power"
+      ],
+      "doc": "Assign a Power object (ATPower.Power or ATPower.PowerGroup) to self."
+     },
+     {
+      "name": "on",
+      "args": [],
+      "doc": "User-accessible wrapper for internal power on methods"
+     },
+     {
+      "name": "off",
+      "args": [],
+      "doc": "User-accessible wrapper for internal power off methods"
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "Storage": {
+    "bases": [
+     "Peripheral"
+    ],
+    "methods": []
+   },
+   "Modem": {
+    "bases": [
+     "Peripheral"
+    ],
+    "methods": [
+     {
+      "name": "getModemType",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "get_peripheral_by_type",
+    "args": [
+     "peripheralType",
+     "peripheralName",
+     "peripheralProperties"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATDrivers.ATPiWave": {
+  "classes": {
+   "PiWave": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "setup_logging",
+      "args": [],
+      "doc": "Initializes Logging Function"
+     },
+     {
+      "name": "essid",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essid",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidSecurity",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essidSecurity",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidRadiusUser",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essid_radius_user",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidPassword",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essidPassword",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "set_console",
+      "args": [
+       "tty"
+      ],
+      "doc": "To use different console TTY while having more than 1 console to the PiWave."
+     },
+     {
+      "name": "initialization",
+      "args": [],
+      "doc": "Set up PiWave Environment."
+     },
+     {
+      "name": "connect",
+      "args": [
+       "dhcp"
+      ],
+      "doc": "Create Virtual Interface, Connect Virtual Interface To WiFi and Link To Docker Container."
+     },
+     {
+      "name": "disconnect",
+      "args": [],
+      "doc": "Disconnect the PiWave from the currently connected access point"
+     },
+     {
+      "name": "get_ip",
+      "args": [],
+      "doc": "Get IP Address fron the docker container"
+     },
+     {
+      "name": "get_hostname",
+      "args": [],
+      "doc": "Returns the hostname set on the RaspberryPi for identification purposes."
+     },
+     {
+      "name": "set_powersave_mode",
+      "args": [
+       "mode"
+      ],
+      "doc": "Sets the power save mode of the PiWave."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATPower": {
+  "classes": {
+   "BasePower": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Writes string to self.logFileName."
+     },
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "SentryPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "VmPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeout",
+       "maxRetry"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeout",
+       "maxRetry"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_on",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "PduPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "ApcPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "RaritanPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "Pdu800Power": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "RemoPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "IPPower9258": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "EnlogicPower": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn on the Power Socket."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Turn off the Power Socket."
+     },
+     {
+      "name": "is_on",
+      "args": [
+       "timeOut",
+       "maxRetry"
+      ],
+      "doc": "Check the status of the Power Socket."
+     }
+    ]
+   },
+   "PowerGroup": {
+    "bases": [
+     "BasePower"
+    ],
+    "methods": [
+     {
+      "name": "add",
+      "args": [
+       "power",
+       "ensureSorted",
+       "ensureUnique"
+      ],
+      "doc": "Add a ATPower.BasePower object to self."
+     },
+     {
+      "name": "on",
+      "args": [
+       "timeout",
+       "maxRetry"
+      ],
+      "doc": "Turn on all power sockets in the PowerGroup."
+     },
+     {
+      "name": "off",
+      "args": [
+       "timeout",
+       "maxRetry"
+      ],
+      "doc": "Turn off all power sockets in the PowerGroup."
+     },
+     {
+      "name": "is_on",
+      "args": [],
+      "doc": "Check the status of the PowerGroup."
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "get_power_by_type",
+    "args": [
+     "power_type"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATDrivers.ATSwitch": {
+  "classes": {
+   "Switch": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "bootsFromFlash",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "cmd_in_mode",
+      "args": [
+       "command",
+       "mode",
+       "timeOut",
+       "maxWait",
+       "interval",
+       "log",
+       "debug",
+       "retry"
+      ],
+      "doc": "Send a command via the console, only changing the mode if required"
+     },
+     {
+      "name": "cmd",
+      "args": [
+       "command",
+       "timeOut",
+       "maxWait",
+       "interval",
+       "log",
+       "debug",
+       "retry"
+      ],
+      "doc": "Send a command via the console. This method automatically appends the"
+     },
+     {
+      "name": "mode",
+      "args": [
+       "prompt",
+       "stackID",
+       "debug",
+       "log",
+       "timeOut",
+       "retry"
+      ],
+      "doc": "Sets the prompt on the CLI. Any existing output on the console before"
+     },
+     {
+      "name": "send",
+      "args": [
+       "string",
+       "waitTime",
+       "strList",
+       "interval",
+       "log",
+       "debug",
+       "retry"
+      ],
+      "doc": "Write a string to the console. Does not automatically append a newline"
+     },
+     {
+      "name": "read",
+      "args": [
+       "timeOut",
+       "untilStrList",
+       "interval",
+       "retry"
+      ],
+      "doc": "Start a thread to monitor the console. Thread is stopped when timeOut is"
+     },
+     {
+      "name": "start_atmfapps",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the ATMF Application Proxy Service on the switch"
+     },
+     {
+      "name": "stop_atmfapps",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the ATMF Application Proxy Service on the switch"
+     },
+     {
+      "name": "start_cfm",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the ONM service for CFM on the switch"
+     },
+     {
+      "name": "stop_cfm",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the ONM service for CFM on the switch"
+     },
+     {
+      "name": "start_g8032",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the ONM service for G.8032 on the switch"
+     },
+     {
+      "name": "stop_g8032",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the ONM service for G.8032 on the switch"
+     },
+     {
+      "name": "start_epsr",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the EPSR service on the switch"
+     },
+     {
+      "name": "stop_epsr",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the EPSR service on the switch"
+     },
+     {
+      "name": "start_netconf",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the netconf service on the switch"
+     },
+     {
+      "name": "stop_netconf",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the netconf service on the switch"
+     },
+     {
+      "name": "start_onm",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the ONM service (for CFM and G.8032) on the switch"
+     },
+     {
+      "name": "stop_onm",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the ONM service (for CFM and G.8032) on the switch"
+     },
+     {
+      "name": "start_openflow",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the Openflow service on the switch"
+     },
+     {
+      "name": "stop_openflow",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the OOpenflowNM service on the switch"
+     },
+     {
+      "name": "start_ospf",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the OSPF service on the switch"
+     },
+     {
+      "name": "stop_ospf",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the OSPF service on the switch"
+     },
+     {
+      "name": "start_ospf6",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the OSPFv6 service on the switch"
+     },
+     {
+      "name": "stop_ospf6",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the OSPFv6 service on the switch"
+     },
+     {
+      "name": "start_pdm",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the PDM service for PIM-dense-mode on the switch"
+     },
+     {
+      "name": "stop_pdm",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the PDM service for PIM-dense-mode on the switch"
+     },
+     {
+      "name": "start_pim",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the PIM service on the switch"
+     },
+     {
+      "name": "stop_pim",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the PIM service on the switch"
+     },
+     {
+      "name": "start_pim6",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the PIM6 service on the switch"
+     },
+     {
+      "name": "stop_pim6",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the PIM6 service on the switch"
+     },
+     {
+      "name": "start_rip",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the RIP service on the switch"
+     },
+     {
+      "name": "stop_rip",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the RIP service on the switch"
+     },
+     {
+      "name": "start_ripng",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the RIPNG service on the switch"
+     },
+     {
+      "name": "stop_ripng",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the RIPNG service on the switch"
+     },
+     {
+      "name": "start_vrrp",
+      "args": [
+       "writeConfig"
+      ],
+      "doc": "Start the VRRP service on the switch"
+     },
+     {
+      "name": "stop_vrrp",
+      "args": [
+       "writeConfigAndReboot"
+      ],
+      "doc": "Stop the VRRP service on the switch"
+     },
+     {
+      "name": "get_all_ports",
+      "args": [
+       "admin",
+       "protocol",
+       "log",
+       "includeStackPorts",
+       "includeResiliencyLinks",
+       "includeManagementLinks",
+       "includeNoSwitchportLinks"
+      ],
+      "doc": "Returns a list of switch port names (e.g. ['port1.0.1','port1.0.2']) of all"
+     },
+     {
+      "name": "get_all_eth_ports",
+      "args": [
+       "admin",
+       "protocol",
+       "includeManagementLinks",
+       "includeSubInterfaces",
+       "includeNoSwitchportLinks",
+       "log"
+      ],
+      "doc": "Returns a list of eth port names (e.g. ['eth1', 'eth2']) of all"
+     },
+     {
+      "name": "get_port_ifrange_list",
+      "args": [
+       "stackIdList",
+       "includeStackPorts",
+       "includeResiliencyLinks",
+       "includeManagementLinks",
+       "includeNoSwitchportLinks",
+       "maxPortsPerIfRange"
+      ],
+      "doc": "Get a list of IFRANGE strings for all ports on the switch, in a format for use in the 'interface IFRANGE' command"
+     },
+     {
+      "name": "get_management_port",
+      "args": [],
+      "doc": "Return the management port for the switch"
+     },
+     {
+      "name": "testset_config",
+      "args": [
+       "ts",
+       "confFileName"
+      ],
+      "doc": "Save running config to file and set the boot config, called by ATTestSet._TestSetConfigThread"
+     },
+     {
+      "name": "save_config",
+      "args": [
+       "testCase",
+       "fileName",
+       "message"
+      ],
+      "doc": "Save the current config to file, called by ATTestCase._SaveConfigsThread"
+     },
+     {
+      "name": "get_default_virtual_chassis_id",
+      "args": [],
+      "doc": "Determine what virtual chassis ID to use when the switch is a member of a stack"
+     },
+     {
+      "name": "generate_default_config",
+      "args": [
+       "ts",
+       "devName"
+      ],
+      "doc": "Generate default config, called by ATTestSet._DefaultConfigThread"
+     },
+     {
+      "name": "set_hostname",
+      "args": [
+       "hostName"
+      ],
+      "doc": "Find out stack members if device is a stack controller, and tell them to update hostnames"
+     },
+     {
+      "name": "set_breakout_ports",
+      "args": [
+       "breakoutPortDict"
+      ],
+      "doc": "Sets the list of resiliency ports."
+     },
+     {
+      "name": "get_breakout_ports",
+      "args": [],
+      "doc": "Returns the list of resiliency ports."
+     },
+     {
+      "name": "add_no_switchport",
+      "args": [
+       "port"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "set_no_switchport_ports",
+      "args": [
+       "noSwitchPortList"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_no_switchports",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_switch_family",
+      "args": [
+       "refresh"
+      ],
+      "doc": "Determine what family the switch and any other stack peers belong to,"
+     },
+     {
+      "name": "get_system_info_dict",
+      "args": [],
+      "doc": "Get show system information from the switch without updating stored system information"
+     },
+     {
+      "name": "get_build_type",
+      "args": [
+       "software"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "has_usb_media",
+      "args": [
+       "current"
+      ],
+      "doc": "Determine if the switch has USB media installed."
+     },
+     {
+      "name": "has_sd_card",
+      "args": [
+       "current"
+      ],
+      "doc": "Determine if the switch has an SD Card installed."
+     },
+     {
+      "name": "has_external_media",
+      "args": [
+       "current"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_sys_info",
+      "args": [
+       "doLogging"
+      ],
+      "doc": "Grabs information about self from the output of \"sh sys\". This method"
+     },
+     {
+      "name": "get_current_build_name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_current_build_name_prefix",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_current_build_name_suffix",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_default_tftp_boot_file_name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_board_region",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_japan_region",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_global_region",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "has_real_time_clock",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_architecture",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_prototype",
+      "args": [],
+      "doc": "Return True if the switch, or any member of the switch's stack,"
+     },
+     {
+      "name": "get_clock_time_zone",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_license_status",
+      "args": [
+       "log"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_current_licenses",
+      "args": [
+       "excludeBaseLicense",
+       "log"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "software_starts_with",
+      "args": [
+       "platforms"
+      ],
+      "doc": "Parameters:"
+     },
+     {
+      "name": "reboot",
+      "args": [
+       "confFile",
+       "stackId",
+       "timeOut",
+       "debug"
+      ],
+      "doc": "Reboots the switch after setting the configuration. If confFile is None,"
+     },
+     {
+      "name": "init_port",
+      "args": [
+       "dictKey",
+       "portName",
+       "resiliency",
+       "hub",
+       "temporary",
+       "noSwitchPort"
+      ],
+      "doc": "Initialise a SwitchPort object and store it as self.portDict[dictKey]."
+     },
+     {
+      "name": "log",
+      "args": [
+       "string",
+       "debug"
+      ],
+      "doc": "Writes the string to self.logFileFullPath."
+     },
+     {
+      "name": "has_power",
+      "args": [],
+      "doc": "Returns True if self is attached to a power socket, False otherwise."
+     },
+     {
+      "name": "has_silicon_profile",
+      "args": [
+       "profile"
+      ],
+      "doc": "Returns True if self has the requested silicon profile, False otherwise."
+     },
+     {
+      "name": "get_power",
+      "args": [],
+      "doc": "Returns the Power object if self is attached to a power socket, and None"
+     },
+     {
+      "name": "get_stack",
+      "args": [],
+      "doc": "Returns the stack object if self belongs to a stack, and None otherwise."
+     },
+     {
+      "name": "is_management_port_configured",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_management_ip",
+      "args": [],
+      "doc": "Returns the ip address of the management vlan  ex 192.168.1.1"
+     },
+     {
+      "name": "get_management_subnet_prefix",
+      "args": [],
+      "doc": "Returns the ip address prefix for management vlan"
+     },
+     {
+      "name": "get_management_vlan",
+      "args": [],
+      "doc": "Returns the management vlan, ex vlan999"
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised port links on the switch."
+     },
+     {
+      "name": "is_broadcom",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_marvell",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_virtual_machine",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_license_not_supported",
+      "args": [],
+      "doc": "Returns"
+     },
+     {
+      "name": "set_power",
+      "args": [
+       "power"
+      ],
+      "doc": "Assign a Power object to self."
+     },
+     {
+      "name": "on",
+      "args": [
+       "confirm"
+      ],
+      "doc": "Turns on the switch. Assumes that a valid Power object is attached to self."
+     },
+     {
+      "name": "off",
+      "args": [
+       "confirm"
+      ],
+      "doc": "Turns off the switch."
+     },
+     {
+      "name": "is_on",
+      "args": [],
+      "doc": "Determine if any power-connections to the switch are ON"
+     },
+     {
+      "name": "report_power_port_status",
+      "args": [
+       "logOwner"
+      ],
+      "doc": "Log the state of all the switch's remotely-controlled power ports"
+     },
+     {
+      "name": "is_responsive",
+      "args": [
+       "waitTime",
+       "strList"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "not_responsive",
+      "args": [
+       "waitTime",
+       "resultQueue"
+      ],
+      "doc": "Wait up to waitTime seconds for the console to become unresponsive"
+     },
+     {
+      "name": "get_exception_on_exit_state",
+      "args": [
+       "full"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "exception_on_exit",
+      "args": [],
+      "doc": "Register that an exception should be thrown rather than a sys.exit() call"
+     },
+     {
+      "name": "no_exception_on_exit",
+      "args": [],
+      "doc": "De-register setting the swi to throw an exception rather than a sys.exit() call"
+     },
+     {
+      "name": "sync_time",
+      "args": [],
+      "doc": "Set the time on the switch to that of the PC."
+     },
+     {
+      "name": "wait_for_ready",
+      "args": [
+       "timeOut",
+       "readyOnly",
+       "logOwner"
+      ],
+      "doc": "Wait for login, or if self is a member of a chassis or stack, wait"
+     },
+     {
+      "name": "wait_for_time_sync",
+      "args": [
+       "tb",
+       "logOwner",
+       "timeLimit",
+       "allowdDifference"
+      ],
+      "doc": "Wait up to timeLimit seconds for the switch's time to be synchronized"
+     },
+     {
+      "name": "name_is",
+      "args": [
+       "name"
+      ],
+      "doc": "Does this switch have this name?"
+     },
+     {
+      "name": "monitor_reboot_for_failure",
+      "args": [
+       "testSet",
+       "bootConfig",
+       "attemptRecoverFromFlashBootFailure",
+       "raiseIfFlashBootFailure",
+       "waitTime",
+       "outputQueue"
+      ],
+      "doc": "Monitor the rebooting device for bootup complete"
+     },
+     {
+      "name": "get_flash_total_used_free",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_flash_info",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "check_wifi_show_cmd_support",
+      "args": [
+       "required_command",
+       "char_invalid"
+      ],
+      "doc": "Will return True or False depending on if required_command is invalid or not."
+     }
+    ]
+   },
+   "Stack": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "bootsFromFlash",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "add",
+      "args": [
+       "member"
+      ],
+      "doc": "Adds a switch object to self."
+     },
+     {
+      "name": "set_reslinks",
+      "args": [
+       "reslinkList"
+      ],
+      "doc": "Sets the list of resiliency ports."
+     },
+     {
+      "name": "get_reslinks",
+      "args": [],
+      "doc": "Returns the list of resiliency ports."
+     },
+     {
+      "name": "get_management_ports",
+      "args": [],
+      "doc": "Returns a list of initialised management ports from all stack members"
+     },
+     {
+      "name": "set_configured_stackports",
+      "args": [
+       "stackportList"
+      ],
+      "doc": "Sets the list of stack ports."
+     },
+     {
+      "name": "get_configured_stackports",
+      "args": [],
+      "doc": "Returns the list of stack ports."
+     },
+     {
+      "name": "update_breakout_ports",
+      "args": [
+       "breakoutPortDict"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_breakout_ports",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "update_no_switchport_ports",
+      "args": [
+       "noSwitchportList"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_no_switchports",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "all_members",
+      "args": [],
+      "doc": "Returns a set containing all the Switch objects that are members of the stack."
+     },
+     {
+      "name": "mode",
+      "args": [
+       "prompt",
+       "debug",
+       "log",
+       "timeOut"
+      ],
+      "doc": "Sets the prompt on the CLI for all members."
+     },
+     {
+      "name": "monitor_reboot_for_failure",
+      "args": [
+       "testSet",
+       "bootConfig",
+       "attemptRecoverFromFlashBootFailure",
+       "raiseIfFlashBootFailure",
+       "waitTime",
+       "checkStackFormed"
+      ],
+      "doc": "Monitor the rebooting stack for bootup complete"
+     },
+     {
+      "name": "recover_disabled_stack",
+      "args": [
+       "testSet",
+       "setup"
+      ],
+      "doc": "Regenerates and sets default.cfg for each member of the stack and"
+     },
+     {
+      "name": "get_port",
+      "args": [
+       "portName"
+      ],
+      "doc": "Returns the SwitchPort object that has the portName by searching through"
+     },
+     {
+      "name": "get_port_range",
+      "args": [
+       "controlSwi",
+       "stackId",
+       "includeStackPorts",
+       "includeResiliencyLinks",
+       "includeManagementLinks",
+       "includeNoSwitchportLinks",
+       "splitByStackId",
+       "log"
+      ],
+      "doc": "Returns a list of port names (e.g. ['port1.0.1',port1.0.2']) of all ports"
+     },
+     {
+      "name": "get_port_ifrange_list",
+      "args": [
+       "controlSwi",
+       "stackIdList",
+       "includeStackPorts",
+       "includeResiliencyLinks",
+       "includeManagementLinks",
+       "includeNoSwitchportLinks",
+       "maxPortsPerIfRange",
+       "splitByStackId"
+      ],
+      "doc": "Get a list of IFRANGE strings for all ports in the stack in a format for use in the 'interface IFRANGE' command"
+     },
+     {
+      "name": "set_stack_member_ids",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": "Determines the stack ID of each stack member and assigns it to the stackID parameter"
+     },
+     {
+      "name": "get_stack_port_map",
+      "args": [],
+      "doc": "Creates a map of which stack members' stackports connect to which other members in the stack"
+     },
+     {
+      "name": "get_masters",
+      "args": [
+       "recurse"
+      ],
+      "doc": "Returns the list of master stack members in self. Stack may be broken"
+     },
+     {
+      "name": "get_member_ids",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": "Returns the list of member IDs. Member IDs may not always be consecutive."
+     },
+     {
+      "name": "get_master_id",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": "Returns the master member ID."
+     },
+     {
+      "name": "get_member_priorities",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": "Get the stack priority of all members"
+     },
+     {
+      "name": "has_usb_media",
+      "args": [
+       "controlSwi",
+       "current"
+      ],
+      "doc": "Determine if any member of the stack has"
+     },
+     {
+      "name": "has_sd_card",
+      "args": [
+       "controlSwi",
+       "current"
+      ],
+      "doc": "Determine if any member of the stack has an SD card installed."
+     },
+     {
+      "name": "has_external_media",
+      "args": [
+       "controlSwi",
+       "current"
+      ],
+      "doc": "Determine if any member of the stack has external"
+     },
+     {
+      "name": "external_media_in_master",
+      "args": [
+       "rebootIfNeeded",
+       "logOwner",
+       "controlSwi"
+      ],
+      "doc": "Determine whether the stack has external media installed and optionally reset stack priorities"
+     },
+     {
+      "name": "get_control_swi",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "wait_for_stack_ready",
+      "args": [
+       "timeOut",
+       "readyOnly",
+       "logOwner",
+       "controlSwi",
+       "ignoreStackSize"
+      ],
+      "doc": "Wait until stack has properly formed. By default returns True as soon as"
+     },
+     {
+      "name": "wait_for_chassis_ready",
+      "args": [
+       "timeOut",
+       "onlineOnly",
+       "logOwner",
+       "controlSwi"
+      ],
+      "doc": "Wait until chassis has properly formed. By default returns True as soon as"
+     },
+     {
+      "name": "read",
+      "args": [
+       "untilStrList",
+       "waitTime",
+       "interval",
+       "members",
+       "returnOnAny"
+      ],
+      "doc": "Monitors the console of all stack members. Returns when waitTime is reached"
+     },
+     {
+      "name": "log",
+      "args": [
+       "string",
+       "debug"
+      ],
+      "doc": "Write string to self.logFileFullPath."
+     },
+     {
+      "name": "has_power",
+      "args": [],
+      "doc": "Returns True if all stack members have connections to power sockets, and"
+     },
+     {
+      "name": "get_power",
+      "args": [],
+      "doc": "Returns a PowerGroup object that is a group of all Power objects that"
+     },
+     {
+      "name": "report_power_port_status",
+      "args": [
+       "logOwner"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "software_starts_with",
+      "args": [
+       "platforms"
+      ],
+      "doc": "Parameters:"
+     },
+     {
+      "name": "on",
+      "args": [
+       "members",
+       "confirm"
+      ],
+      "doc": "Power on members of the stack. Power on all members by default."
+     },
+     {
+      "name": "off",
+      "args": [
+       "members",
+       "confirm"
+      ],
+      "doc": "Power off members of the stack. Power off all members by default."
+     },
+     {
+      "name": "get_stack_size",
+      "args": [
+       "current",
+       "controlSwi"
+      ],
+      "doc": "Returns the number of stack members. If current is True, returns the"
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [
+       "members"
+      ],
+      "doc": "Returns a dictionary of all initialised port links in the stack."
+     },
+     {
+      "name": "get_board_region",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_japan_region",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_global_region",
+      "args": [
+       "controlSwi"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_broadcom",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_marvell",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_virtual_machine",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "add_switch_family",
+      "args": [
+       "family"
+      ],
+      "doc": "Add a switch family (e.g. x530L) to the stack's set of switch families."
+     },
+     {
+      "name": "get_switch_family",
+      "args": [],
+      "doc": "Get a list of all switch families known to be members of the stack"
+     },
+     {
+      "name": "get_exception_on_exit_state",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "name_is",
+      "args": [
+       "name"
+      ],
+      "doc": "Does this stack have this name?"
+     },
+     {
+      "name": "reportPowerPortStatus",
+      "args": [
+       "logOwner"
+      ],
+      "doc": "DEPRECATED - use report_power_port_status() instead"
+     }
+    ]
+   },
+   "SwitchPort": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "set_mac_addr",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_mac_addr",
+      "args": [
+       "cisco"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_up",
+      "args": [],
+      "doc": "Returns True if both Link and state of self is UP, and False otherwise."
+     },
+     {
+      "name": "up",
+      "args": [],
+      "doc": "Enables the port. If the port is a dot1q interface, the parent port"
+     }
+    ]
+   },
+   "AWP_Daemons": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "WifiConfigManager": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "save_wifi_config",
+      "args": [
+       "received_config"
+      ],
+      "doc": "Converts the raw string output of the command into a JSON dictionary."
+     },
+     {
+      "name": "compare_wifi_configs",
+      "args": [
+       "cfg_default_json",
+       "cfg_teardown_json"
+      ],
+      "doc": "Compares two wifi config outputs with DeepDiff between TestSet and TestCase"
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "merge_port_lists_for_ifrange",
+    "args": [
+     "allPortsList",
+     "targetPortsList",
+     "maxPortsPerIfRange"
+    ],
+    "doc": "Create a list of IFRANGE strings from two lists of ports"
+   }
+  ]
+ },
+ "ATDrivers.ATTestBox": {
+  "classes": {
+   "TestBox": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "create_log_file",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_version",
+      "args": [],
+      "doc": "Get the testbox version, i.e. TBv3 or TBv4"
+     },
+     {
+      "name": "cmd",
+      "args": [
+       "string",
+       "wait",
+       "log",
+       "stdout",
+       "stderr"
+      ],
+      "doc": "Issues a shell command on self. A new line character is automatically"
+     },
+     {
+      "name": "init_eth",
+      "args": [
+       "dictKey",
+       "ethNum",
+       "portType",
+       "hub",
+       "temporary"
+      ],
+      "doc": "Initialises an ATTestBox.Eth object. The Eth object is stored as"
+     },
+     {
+      "name": "start_tcpdump",
+      "args": [
+       "iface",
+       "fileName",
+       "optionStr"
+      ],
+      "doc": "Starts a tcpdump subprocess."
+     },
+     {
+      "name": "stop_tcpdump",
+      "args": [
+       "subProc",
+       "delay"
+      ],
+      "doc": "Stops the tcpdump subprocess passed in as subProc."
+     },
+     {
+      "name": "enable_ipv6",
+      "args": [
+       "logOwner"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "disable_ipv6",
+      "args": [
+       "logOwner"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised eth ports links on the tb."
+     },
+     {
+      "name": "start_routing_protocols",
+      "args": [],
+      "doc": "Start the FRR service if not already running"
+     },
+     {
+      "name": "stop_routing_protocols",
+      "args": [],
+      "doc": "Stop the FRR service"
+     },
+     {
+      "name": "get_running_frr_version",
+      "args": [],
+      "doc": "Get the version of FRR that is currently running on the testbox"
+     },
+     {
+      "name": "check_frr_version",
+      "args": [
+       "compareVersion"
+      ],
+      "doc": "Get the FRR version, or determine if the FRR version"
+     },
+     {
+      "name": "reset_usb_ethernet_adapters",
+      "args": [],
+      "doc": "Attempt to reset any connected USB-eth adapters."
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Writes string to self.logFileName."
+     }
+    ]
+   },
+   "Eth": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "parse_output_by_regex",
+      "args": [
+       "pattern",
+       "string"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "update_ipv4_address_prefix",
+      "args": [
+       "prefix"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "update_ipv6_address_prefix",
+      "args": [
+       "prefix"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "up",
+      "args": [],
+      "doc": "Bring up self."
+     },
+     {
+      "name": "down",
+      "args": [],
+      "doc": "Bring down self."
+     },
+     {
+      "name": "is_up",
+      "args": [],
+      "doc": "Returns True if self is up and running, and False otherwise."
+     },
+     {
+      "name": "get_ipv4_addr",
+      "args": [
+       "offset"
+      ],
+      "doc": "Returns an IPv4 address that is in the same subnet as self, specified by"
+     },
+     {
+      "name": "get_ipv6_addr",
+      "args": [
+       "offset",
+       "addrType"
+      ],
+      "doc": "Returns an IPv6 address that is in the same subnet as self, specified by"
+     },
+     {
+      "name": "speed",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATTrex": {
+  "classes": {
+   "Trex": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "setup_traffic_stream",
+      "args": [
+       "max_bandwidth",
+       "min_dst_ip",
+       "max_dst_ip",
+       "min_src_ip",
+       "max_src_ip",
+       "pkt_size"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "add_stream_to_port",
+      "args": [
+       "port_num",
+       "stream"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "start_traffic",
+      "args": [
+       "duration"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_stats",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "calculate_packet_loss_percent",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_link_speed_gbps",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "binary_search_throughput_test",
+      "args": [
+       "pkt_type",
+       "pkt_size",
+       "target_send_seconds",
+       "packet_loss_threshold_percent",
+       "num_trials"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATVeriCheapWave": {
+  "classes": {
+   "VeriCheapWave": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "setup_logging",
+      "args": [],
+      "doc": "Initializes Logging Function"
+     },
+     {
+      "name": "confirm_ip_match",
+      "args": [],
+      "doc": "Confirm ip address supplied in test case for veryCheapip value is the same as the device"
+     },
+     {
+      "name": "stationIndex",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "stationIndex",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essid",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essid",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidSecurity",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essidSecurity",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidRadiusUser",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essidRadiusUser",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "essidPassword",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "essidPassword",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "dockerSubnet",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "dockerSubnet",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "dockerIpRange",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "dockerIpRange",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "dockerGateway",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "dockerGateway",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "stationMacAddressTemplate",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "stationMacAddressTemplate",
+      "args": [
+       "value"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "set_hostip",
+      "args": [
+       "hostIp",
+       "hostSubnet",
+       "hostGateway"
+      ],
+      "doc": "Configurate Static IP Address to the VeriCheapWave PC."
+     },
+     {
+      "name": "set_console",
+      "args": [
+       "tty"
+      ],
+      "doc": "To use different console TTY while having more than 1 console to the VeriCheapWave."
+     },
+     {
+      "name": "initialization",
+      "args": [],
+      "doc": "initialization VeriCheapWave Enviroment."
+     },
+     {
+      "name": "update_docker_image",
+      "args": [],
+      "doc": "Update Docker Image When there is change on Docker File."
+     },
+     {
+      "name": "connect",
+      "args": [
+       "dhcp"
+      ],
+      "doc": "Create Virtual Interface, Connect Virtual Interface To WiFi and Link To Docker Container."
+     },
+     {
+      "name": "get_container_ip",
+      "args": [],
+      "doc": "Get IP Address fron the docker container"
+     },
+     {
+      "name": "send_docker_command",
+      "args": [
+       "singleContainer",
+       "containerName",
+       "detach",
+       "cmdInput"
+      ],
+      "doc": "Send Command To Docker Container"
+     },
+     {
+      "name": "check_beacon",
+      "args": [
+       "essid"
+      ],
+      "doc": "=== TEMPORARY SOLUTION === iwlist output cannot capture via cmd function."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATVmManager": {
+  "classes": {
+   "VmManager": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "is_domain_installed",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_vm_running",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "install_vm",
+      "args": [
+       "iso_path",
+       "disk_path",
+       "timeout_secs",
+       "wait_for_install_secs",
+       "size_in_gigs"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "search_replace_in_file",
+      "args": [
+       "find_str",
+       "replace_with_str",
+       "filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "create_default_network",
+      "args": [
+       "xml_storage_path",
+       "ip_addr_subnet"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "attach_cdrom_to_vm",
+      "args": [
+       "iso_path",
+       "xml_storage_path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "remove_vm",
+      "args": [
+       "disk_path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "power_on",
+      "args": [
+       "timeout_secs"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "shutdown",
+      "args": [
+       "timeout_secs"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "boot",
+      "args": [
+       "wait_for_boot_secs"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "reboot",
+      "args": [
+       "timeout_secs"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_cdrom_dev",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_serial_dev",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "setup_persistent_serial_link",
+      "args": [
+       "name"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATWireless": {
+  "classes": {
+   "Wireless": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_build_type",
+      "args": [
+       "software"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_system_info_dict",
+      "args": [],
+      "doc": "Get show system information from the switch without updating stored system information"
+     },
+     {
+      "name": "get_sys_info",
+      "args": [
+       "doLogging"
+      ],
+      "doc": "Grabs information about self from the output of \"sh sys\". This method"
+     },
+     {
+      "name": "testset_config",
+      "args": [
+       "ts",
+       "confFileName"
+      ],
+      "doc": "Save running config to file and set the boot config, called by ATTestSet._TestSetConfigThread"
+     },
+     {
+      "name": "generate_default_config",
+      "args": [
+       "ts",
+       "devName"
+      ],
+      "doc": "Generate default config, called by ATTestSet._DefaultConfigThread"
+     },
+     {
+      "name": "reboot",
+      "args": [
+       "confFile",
+       "stackId",
+       "timeOut",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_license_status",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "reset_factory",
+      "args": [
+       "timeOut"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "save_config",
+      "args": [
+       "testCase",
+       "fileName",
+       "message"
+      ],
+      "doc": "Save the current running config to file, called by ATTestCase._SaveConfigsThread"
+     },
+     {
+      "name": "get_country_code",
+      "args": [],
+      "doc": "Get the country code and save to self.countryCode"
+     },
+     {
+      "name": "set_country_code",
+      "args": [
+       "countryCode",
+       "reboot"
+      ],
+      "doc": "Set the country code and apply the setting to device"
+     },
+     {
+      "name": "update_firmware",
+      "args": [
+       "tb",
+       "tbPort",
+       "firmware"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "cmd",
+      "args": [
+       "command",
+       "timeOut",
+       "maxWait",
+       "interval",
+       "log",
+       "debug",
+       "retry"
+      ],
+      "doc": "Send a command via the console. This method automatically appends the"
+     },
+     {
+      "name": "login",
+      "args": [
+       "prompt",
+       "debug",
+       "log",
+       "timeOut"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "mode",
+      "args": [
+       "prompt",
+       "debug",
+       "log",
+       "timeOut",
+       "retry"
+      ],
+      "doc": "Sets the prompt on the CLI. Any existing output on the console before"
+     },
+     {
+      "name": "send",
+      "args": [
+       "string",
+       "waitTime",
+       "strList",
+       "interval",
+       "log",
+       "debug",
+       "retry"
+      ],
+      "doc": "Write a string to the console. Does not automatically append a newline"
+     },
+     {
+      "name": "read",
+      "args": [
+       "timeOut",
+       "untilStrList",
+       "interval",
+       "retry"
+      ],
+      "doc": "Start a thread to monitor the console. Thread is stopped when timeOut is"
+     },
+     {
+      "name": "init_port",
+      "args": [
+       "dictKey",
+       "portName",
+       "hub",
+       "temporary"
+      ],
+      "doc": "Initialise a devicePort object and store it as self.portDict[dictKey]."
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Writes the string to self.logFileFullPath."
+     },
+     {
+      "name": "has_power",
+      "args": [],
+      "doc": "Returns True if self is attached to a power socket, False otherwise."
+     },
+     {
+      "name": "get_power",
+      "args": [],
+      "doc": "Returns the Power object if self is attached to a power socket, and None"
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [],
+      "doc": "Returns a dictionary of all initialised port links on the device."
+     },
+     {
+      "name": "set_power",
+      "args": [
+       "power"
+      ],
+      "doc": "Assign a Power object to self."
+     },
+     {
+      "name": "on",
+      "args": [
+       "confirm"
+      ],
+      "doc": "Turns on the device. Assumes that a valid Power object is attached to self."
+     },
+     {
+      "name": "off",
+      "args": [
+       "confirm"
+      ],
+      "doc": "Turns off the device."
+     },
+     {
+      "name": "is_on",
+      "args": [],
+      "doc": "Determine if any power-connections to the device are ON"
+     },
+     {
+      "name": "report_power_port_status",
+      "args": [
+       "logOwner"
+      ],
+      "doc": "Log the state of all the device's remotely-controlled power ports"
+     },
+     {
+      "name": "is_responsive",
+      "args": [
+       "waitTime",
+       "strList"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "not_responsive",
+      "args": [
+       "waitTime",
+       "resultQueue"
+      ],
+      "doc": "Wait up to waitTime seconds for the console to become unresponsive"
+     },
+     {
+      "name": "get_exception_on_exit_state",
+      "args": [
+       "full"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "exception_on_exit",
+      "args": [],
+      "doc": "Register that an exception should be thrown rather than a sys.exit() call"
+     },
+     {
+      "name": "no_exception_on_exit",
+      "args": [],
+      "doc": "De-register setting the swi to throw an exception rather than a sys.exit() call"
+     },
+     {
+      "name": "name_is",
+      "args": [
+       "name"
+      ],
+      "doc": "Does this device have this name?"
+     },
+     {
+      "name": "get_stack",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "WirelessPort": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "set_mac_addr",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_mac_addr",
+      "args": [
+       "cisco"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_up",
+      "args": [],
+      "doc": "Returns True if both Link and state of self is UP, and False otherwise."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATWirelessCapture": {
+  "classes": {
+   "WirelessCapture": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "setup_logging",
+      "args": [],
+      "doc": "Initializes Logging Function"
+     },
+     {
+      "name": "initialise",
+      "args": [],
+      "doc": "Initialises the wireless capture device for wireless capture."
+     },
+     {
+      "name": "set_capture_channels",
+      "args": [
+       "radio1_channel",
+       "radio2_channel"
+      ],
+      "doc": "Sets the wireless capture channel for the 2.4GHz and 5GHz radios without having to reinitialise."
+     },
+     {
+      "name": "set_console",
+      "args": [
+       "tty"
+      ],
+      "doc": "To use different console TTY while having more than 1 console to the wireless capture router."
+     },
+     {
+      "name": "start_wireless_capture",
+      "args": [
+       "radio",
+       "testCase",
+       "duration",
+       "nonBlocking"
+      ],
+      "doc": "Starts a wireless capture on the wireless capture device for a set duration of time."
+     },
+     {
+      "name": "download_wireless_capture",
+      "args": [
+       "radio",
+       "destination",
+       "username",
+       "password",
+       "retry"
+      ],
+      "doc": "Downloads the wireless capture from the wireless capture device. The download is performed using SSH"
+     },
+     {
+      "name": "reboot",
+      "args": [],
+      "doc": "Reboots the wireless capture device."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.ATWirelessPacketAnalyser": {
+  "classes": {
+   "PacketAnalyser": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "setup_logging",
+      "args": [],
+      "doc": "Initializes Logging Function"
+     },
+     {
+      "name": "check_dtim_count_and_period",
+      "args": [
+       "captureFile",
+       "networkSSID",
+       "dtimPeriod",
+       "packetsToCheck"
+      ],
+      "doc": "Checks the DTIM count and period of the capture file over a range of specified network SSIDs."
+     },
+     {
+      "name": "check_pvb",
+      "args": [
+       "captureFile",
+       "networkSSID"
+      ],
+      "doc": "Checks the PVB over a range of beacons in the specified capture file."
+     },
+     {
+      "name": "check_ipv6_router_advertisement",
+      "args": [
+       "captureFile"
+      ],
+      "doc": "Checks the IPv6 Router Advertisement packets in the capture file over a range of specified network SSIDs."
+     },
+     {
+      "name": "check_beacon_operation",
+      "args": [
+       "captureFile",
+       "ssid",
+       "beaconInterval"
+      ],
+      "doc": "Checks the beacon interval and sequence of specified network SSIDs within a capture file."
+     },
+     {
+      "name": "find_vap_beacons",
+      "args": [
+       "captureFile",
+       "networkSSIDs"
+      ],
+      "doc": "Checks the capture file for the specified network SSIDs and returns true when all are found."
+     },
+     {
+      "name": "check_ipv6_neighbor_advertisement",
+      "args": [
+       "captureFile"
+      ],
+      "doc": "Checks the IPv6 Neighbor Advertisement packets in the capture file over a range of specified network SSIDs."
+     },
+     {
+      "name": "check_for_csa",
+      "args": [
+       "captureFile",
+       "networkSSID"
+      ],
+      "doc": "Checks the capture file for the specified network SSID and returns true when it is found."
+     },
+     {
+      "name": "check_no_beacon_during_cac",
+      "args": [
+       "captureFile",
+       "networkSSID",
+       "timeCacStarted",
+       "timeCacCompleted"
+      ],
+      "doc": "Checks the capture file for the specified network SSID and returns true when it is found."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.AWPConsoleCore": {
+  "classes": {
+   "IpProtocols": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "AWPConsoleCore": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "get_next_password",
+      "args": [],
+      "doc": "Get the first or next password in the password list"
+     },
+     {
+      "name": "is_connected_to_vm",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_active_when_off",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "reconnect_serial",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "close_connection",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "send",
+      "args": [
+       "string",
+       "waitTime",
+       "interval",
+       "strList",
+       "log",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "cmd",
+      "args": [
+       "command",
+       "timeOut",
+       "maxWait",
+       "interval",
+       "log",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "mode",
+      "args": [
+       "prompt",
+       "stackID",
+       "debug",
+       "log",
+       "timeOut"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "read",
+      "args": [
+       "timeOut",
+       "untilStrList",
+       "interval"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "Read": {
+    "bases": [
+     "Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "has_finished",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "is_keyword_found",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "SerialSplitter": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "log",
+      "args": [
+       "string"
+      ],
+      "doc": "Log a message with timestamp"
+     },
+     {
+      "name": "start",
+      "args": [],
+      "doc": "Start the splitter threads"
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": "Signal threads to stop"
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATDrivers.__init__": {
+  "classes": {},
+  "functions": []
+ },
+ "ATExceptionThread": {
+  "classes": {
+   "ExceptionThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": "This method should be overriden."
+     },
+     {
+      "name": "run",
+      "args": [],
+      "doc": "This method should NOT be overriden."
+     },
+     {
+      "name": "wait_for_exc_info",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "join_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATLibrary.ATARP": {
+  "classes": {
+   "ARP_Responder": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "send_arps",
+      "args": [
+       "destIp"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "send_gratuitous_arps",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "send_opportunistic_nd_arps",
+      "args": [
+       "destIp",
+       "destMac"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "start",
+      "args": [],
+      "doc": "Start the ARP Listener running"
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": "Stop the ARP listener running"
+     }
+    ]
+   },
+   "_ARP_Listener": {
+    "bases": [
+     "multiprocessing.Process"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "terminate",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "send_gratuitous_arps",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "send_arps",
+      "args": [
+       "destIp"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "send_opportunistic_nd_arps",
+      "args": [
+       "destIp",
+       "destMac"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "generate_chaddr",
+    "args": [
+     "mac"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "generate_random_mac_address",
+    "args": [
+     "leadingOctetList",
+     "knownMacList"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATLibrary.ATDB": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "get_mysql_database",
+    "args": [
+     "repository",
+     "name"
+    ],
+    "doc": "Get a connection to a MySQL database"
+   },
+   {
+    "name": "get_domain",
+    "args": [
+     "repository",
+     "name"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "encrypt_domain",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "encrypt_database_credentials",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "encrypt_data",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "get_env_data",
+    "args": [
+     "repository",
+     "name"
+    ],
+    "doc": "Retrieve json data from an encrypted environment file"
+   },
+   {
+    "name": "reencrypt_env_file",
+    "args": [
+     "repository",
+     "name"
+    ],
+    "doc": "Re-encrypt an already encrypted environment file,"
+   },
+   {
+    "name": "encrypt_env_file",
+    "args": [
+     "repository",
+     "name",
+     "autogenKey"
+    ],
+    "doc": "Encrypts an environment file for the given repository."
+   }
+  ]
+ },
+ "ATLibrary.ATDHCP": {
+  "classes": {
+   "DHCP_v4_Server": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "get_free_addresses",
+      "args": [],
+      "doc": "Get all the IPv4 addresses currently available"
+     },
+     {
+      "name": "get_leased_addresses",
+      "args": [
+       "clientMacAddress"
+      ],
+      "doc": "Get all the IPv4 addresses currently being leased"
+     },
+     {
+      "name": "start",
+      "args": [],
+      "doc": "Start the DHCP server running"
+     },
+     {
+      "name": "stop",
+      "args": [
+       "testId"
+      ],
+      "doc": "Stop the DHCP server running"
+     }
+    ]
+   },
+   "_DHCP_v4_Server": {
+    "bases": [
+     "multiprocessing.Process"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "terminate",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "DHCP_v6_Listener": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "get_dhcpv6_solicit_client_macs",
+      "args": [
+       "clientMacAddress"
+      ],
+      "doc": "Get a list of mac addresses from which DHCPv6 Solicit requests have been received"
+     },
+     {
+      "name": "dhcpv6_solicit_pkts_received",
+      "args": [],
+      "doc": "Determine whether there have been any DHCPv6 Solicit packets received"
+     },
+     {
+      "name": "start",
+      "args": [],
+      "doc": "Start the DHCP v6 listener running"
+     },
+     {
+      "name": "stop",
+      "args": [
+       "testId"
+      ],
+      "doc": "Stop the DHCP v6 listener"
+     }
+    ]
+   },
+   "_DHCP_v6_Listener": {
+    "bases": [
+     "multiprocessing.Process"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "DHCP_v4_Client": {
+    "bases": [
+     "object"
+    ],
+    "methods": [
+     {
+      "name": "get_address",
+      "args": [
+       "timeout"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "_DHCP_v4_Client_Listener": {
+    "bases": [
+     "multiprocessing.Process"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "sort_ip_list",
+    "args": [
+     "ipList"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "generate_chaddr",
+    "args": [
+     "mac"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATLibrary.ATDNS": {
+  "classes": {
+   "BIND9Manager": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "start",
+      "args": [
+       "hostname",
+       "nameServerIps",
+       "mailIp",
+       "wwwIp",
+       "sites"
+      ],
+      "doc": "Starts the BIND9 service with the given configuration."
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": "Stops the BIND9 service and restores the original configuration."
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATLibrary.ATJira": {
+  "classes": {
+   "JiraIssueInfo": {
+    "bases": [],
+    "methods": []
+   },
+   "JiraConnection": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "connect",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "close",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_issue_information",
+      "args": [
+       "issueNumber",
+       "jiraProject"
+      ],
+      "doc": "Get important information for an issue"
+     },
+     {
+      "name": "get_issue_status",
+      "args": [
+       "issueNumber",
+       "jiraProject"
+      ],
+      "doc": "Get the status of a Jira issue, e.g. 'Analysing'"
+     },
+     {
+      "name": "get_issue_summary",
+      "args": [
+       "issueNumber",
+       "jiraProject"
+      ],
+      "doc": "Get the summary of a Jira issue"
+     },
+     {
+      "name": "get_issue_resolution",
+      "args": [
+       "issueNumber",
+       "jiraProject"
+      ],
+      "doc": "Get the resolution of a Jira issue, e.g. 'Fixed' or 'Duplicate'"
+     },
+     {
+      "name": "get_issue_mitigation",
+      "args": [
+       "issueNumber",
+       "jiraProject"
+      ],
+      "doc": "Get the mitigation of a Jira issue, e.g. 'Caveat' or 'Must Fix'"
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "is_closed",
+    "args": [
+     "issueNumber",
+     "jiraProject"
+    ],
+    "doc": "Returns True if issue is in Closed state. Be wary that not"
+   },
+   {
+    "name": "is_fixed",
+    "args": [
+     "issueNumber",
+     "jiraProject"
+    ],
+    "doc": "Returns True if issue is in Resolved, Closed or Done state and"
+   },
+   {
+    "name": "log_issue",
+    "args": [
+     "testCase",
+     "issueNumber",
+     "jiraProject",
+     "failureMessage"
+    ],
+    "doc": "Log a failure as an open or regressed issue. If the issue is"
+   },
+   {
+    "name": "known_issue",
+    "args": [
+     "testCase",
+     "issueNumber",
+     "jiraProject",
+     "failureMessage"
+    ],
+    "doc": "Log a failure as a known or regressed issue. If the issue is"
+   },
+   {
+    "name": "get_issue_information",
+    "args": [
+     "issueNumber",
+     "jiraProject"
+    ],
+    "doc": "Retrieve information from Jira for a specific issue"
+   }
+  ]
+ },
+ "ATLibrary.ATLimits": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "get_max_vlans",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of VLAN interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ufo_vlans",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of UFO Private VLANs supported by the device"
+   },
+   {
+    "name": "get_max_vlan_classifier_rules",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of vlan classifier rules per port, supported by the device"
+   },
+   {
+    "name": "get_max_vlan_classifier_rules_per_port",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of vlan classifier rules per port, supported by the device"
+   },
+   {
+    "name": "get_max_vlan_classifier_groups",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of vlan classifier groups supported by the device"
+   },
+   {
+    "name": "get_max_vlan_translations",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of vlan translations supported by the device"
+   },
+   {
+    "name": "get_max_jumbo_frame_size",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum jumbo-frame size support by the device"
+   },
+   {
+    "name": "get_max_mstp_instances",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of MSTP Instances supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_recommended_ipv4_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of IPv4 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_static_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 static routes supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_host_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 host entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_multihomed_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of secondary IPv4 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_acl_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 ACL entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_mc_star_g_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 multicast (*,G) entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_mc_s_g_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 multicast (S,G) entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_recommended_ipv6_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of IPv6 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_static_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 static routes supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_neighbours",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 neighbours supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_acl_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 ACL entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_mc_star_g_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 multicast (*,G) entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_mc_s_g_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 multicast (S,G) entries supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_over_ipv4_tunnels",
+    "args": [
+     "dut"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_max_l2tp_v2_tunnels",
+    "args": [
+     "dut"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_max_l2tp_v3_tunnels",
+    "args": [
+     "dut"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_max_ipsec_tunnels",
+    "args": [
+     "dut"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_max_ecmp_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of ECMP routes supported by the device"
+   },
+   {
+    "name": "get_max_is_is_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IS-IS routes supported by the device"
+   },
+   {
+    "name": "get_max_dhcp_client_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP client interfaces supported"
+   },
+   {
+    "name": "get_max_dhcp_pools",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP pools supported by the device"
+   },
+   {
+    "name": "get_max_dhcp_ranges",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP ranges supported by the device"
+   },
+   {
+    "name": "get_max_dhcp_clients",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP clients supported by the device"
+   },
+   {
+    "name": "get_max_dhcp_relay_server_addresses",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP relay server addresses supported by the device"
+   },
+   {
+    "name": "get_max_dhcp_relay_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of DHCP relay interfaces supported by the device"
+   },
+   {
+    "name": "get_max_mld_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of MLD interfaces supported by the device"
+   },
+   {
+    "name": "get_max_rip_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of RIP interfaces supported by the device"
+   },
+   {
+    "name": "get_max_rip_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of RIP routes supported by the device"
+   },
+   {
+    "name": "get_max_ripng_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of RIPNG interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ripng_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of RIPng routes supported by the device"
+   },
+   {
+    "name": "get_max_ospf_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OSPF interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ospf_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OSPF routes supported by the device"
+   },
+   {
+    "name": "get_max_ospfv3_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OSPFv3 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_ospfv3_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OSPFv3 routes supported by the device"
+   },
+   {
+    "name": "get_max_ospf_virtual_links",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OSPF virtual links supported by the device"
+   },
+   {
+    "name": "get_max_bgp_peers",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of BGP Peers supported by the device"
+   },
+   {
+    "name": "get_max_bgp_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of BGP routes supported by the device"
+   },
+   {
+    "name": "get_max_bgp_plus_routes",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of BGP4+ routes supported by the device"
+   },
+   {
+    "name": "get_max_igmp_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IGMP Interfaces supported by the device"
+   },
+   {
+    "name": "get_max_pim_dense_mode_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of PIM dense mode interfaces supported by the device"
+   },
+   {
+    "name": "get_max_pim_sparse_mode_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of PIM sparse mode interfaces supported by the device"
+   },
+   {
+    "name": "get_max_pim6_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of PIM6 interfaces supported by the device"
+   },
+   {
+    "name": "get_max_vrf_instance",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of VRF instances supported by the device"
+   },
+   {
+    "name": "get_max_vrrp_v2_instance",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of VRRP v2 instances supported by the device"
+   },
+   {
+    "name": "get_max_vrrp_v3_instance",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of VRRP v3 instances supported by the device"
+   },
+   {
+    "name": "get_max_cfm_maintenance_domains",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of CFM maintenance domains supported by the device"
+   },
+   {
+    "name": "get_max_cfm_maintenance_associations",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of CFM maintenance associations supported by the device"
+   },
+   {
+    "name": "get_max_cfm_maintenance_end_points",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of CFM maintenance end points supported by the device"
+   },
+   {
+    "name": "get_max_epsr_domains",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of EPSR Domains supported by the device"
+   },
+   {
+    "name": "get_max_epsr_data_vlans_per_domain",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of Data VLANs per EPSR Domain supported by the device"
+   },
+   {
+    "name": "get_max_g8032_erp_instances",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of G.8032 ERP instances supported by the device"
+   },
+   {
+    "name": "get_max_mrp_rings",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of MRP Rings supported by the device"
+   },
+   {
+    "name": "get_max_recommended_mrp_rings",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of MRP Rings supported by the device"
+   },
+   {
+    "name": "get_max_qos_class_maps",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of QOS class maps supported by the device"
+   },
+   {
+    "name": "get_max_qos_policy_maps",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of QOS policy maps supported by the device"
+   },
+   {
+    "name": "get_max_qos_class_maps_per_policy_map",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of QOS class maps per policy map supported by the device"
+   },
+   {
+    "name": "get_max_qos_pbr_nexthops",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of QOS PBR next hops supported by the device"
+   },
+   {
+    "name": "get_max_traffic_control_classes_per_policy",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of traffic control classes supported by the device per policy"
+   },
+   {
+    "name": "get_max_traffic_control_rules",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of traffic control rules supported by the device"
+   },
+   {
+    "name": "get_max_dot1x_supplicants",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of dot1x supplicants supported by the device"
+   },
+   {
+    "name": "get_max_mac_auth_supplicants",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of mac-auth supplicants supported by the device"
+   },
+   {
+    "name": "get_max_mac_entries",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of mac entries supported by the device"
+   },
+   {
+    "name": "get_max_web_auth_supplicants",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of web-auth supplicants supported by the device"
+   },
+   {
+    "name": "get_max_triggers",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of triggers supported by the device"
+   },
+   {
+    "name": "get_max_ping_polls",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of ping polls supported by the device"
+   },
+   {
+    "name": "get_max_local_radius_users",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of local radius server users supported by the device"
+   },
+   {
+    "name": "get_max_local_radius_nas",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of local RADIUS NAS supported by the device"
+   },
+   {
+    "name": "get_max_radius_proxy_nas",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of RADIUS PROXY NAS supported by the device"
+   },
+   {
+    "name": "get_max_vlan_based_q_in_q_mappings",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of VLAN-based QinQ mappings supported by the device"
+   },
+   {
+    "name": "get_max_msdp_peer",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of MSDP peers by the device"
+   },
+   {
+    "name": "get_max_recommended_msdp_peer",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of MSDP peers by the device"
+   },
+   {
+    "name": "get_max_dynamic_arp",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported dynamic ARP entries"
+   },
+   {
+    "name": "get_max_dynamic_vlan",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported number of dynamic VLANs"
+   },
+   {
+    "name": "get_max_vxlan_vni",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported number of VxLAN VNIs"
+   },
+   {
+    "name": "get_max_vxlan_vtep",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported number of VxLAN VTEPs"
+   },
+   {
+    "name": "get_max_atmf_virtual_links",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of ATMF virtual links supported by the device"
+   },
+   {
+    "name": "get_max_recommended_atmf_virtual_links",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of ATMF virtual links supported by the device"
+   },
+   {
+    "name": "get_max_atmf_areas",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of ATMF areas supported by the device"
+   },
+   {
+    "name": "get_max_atmf_application_proxy_blocked_ip",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of ATMF application proxy blocked IPs supported by the device"
+   },
+   {
+    "name": "get_max_lldp_neighbours",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported LLDP neighbours"
+   },
+   {
+    "name": "get_max_lag_channels",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported LAG channels"
+   },
+   {
+    "name": "get_max_lag_channels_static",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported static LAG channels"
+   },
+   {
+    "name": "get_max_lag_channels_lacp",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum supported LACP LAG channels"
+   },
+   {
+    "name": "get_max_ports_per_aggregator",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum recommended number of ports allowed per LAG channel"
+   },
+   {
+    "name": "get_max_mirrored_ports",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of mirrored ports supported by the device"
+   },
+   {
+    "name": "get_max_recommended_mirrored_ports",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the recommended maximum number of mirrored ports supported by the device"
+   },
+   {
+    "name": "get_max_mirror_ports",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of mirror ports supported by the device"
+   },
+   {
+    "name": "get_max_syslog_servers",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of syslog servers supported by the device"
+   },
+   {
+    "name": "get_max_firewall_rules",
+    "args": [
+     "dut"
+    ],
+    "doc": "max supported firewall rules, AWP-18157"
+   },
+   {
+    "name": "get_max_ipv4_firewall_rules",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 firewall rules supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_firewall_rules",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 firewall rules supported by the device"
+   },
+   {
+    "name": "get_max_ipv4_firewall_sessions",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv4 firewall sessions supported by the device"
+   },
+   {
+    "name": "get_max_ipv6_firewall_sessions",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of IPv6 firewall sessions supported by the device"
+   },
+   {
+    "name": "get_max_bridge_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "max supported interfaces on a bridge group, AWP-18403"
+   },
+   {
+    "name": "get_max_bridge_groups",
+    "args": [
+     "dut"
+    ],
+    "doc": "max supported bridge groups, AWP-18494"
+   },
+   {
+    "name": "get_max_pppoe_interfaces",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of PPPoE interfaces (client sessions) supported by the device"
+   },
+   {
+    "name": "get_max_open_vpn_sessions",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the maximum number of OpenVPN sessions (client sessions) supported by the device"
+   },
+   {
+    "name": "get_expected_file_system_release_file_and_gui_file_support_count",
+    "args": [
+     "dut"
+    ],
+    "doc": "Get the minimum number of release and gui files the device is"
+   }
+  ]
+ },
+ "ATLibrary.ATMemory": {
+  "classes": {
+   "MemoryData": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "record_memory_data_point_for_all_processes",
+      "args": [
+       "dataPointId"
+      ],
+      "doc": "Read the output of 'show memory' and store the size and virtual values"
+     },
+     {
+      "name": "get_processes_with_increasing_memory_size",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Get all processes with increasing memory 'size'"
+     },
+     {
+      "name": "get_processes_with_increasing_memory_virtual",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Get all processes with increasing 'virt' memory"
+     },
+     {
+      "name": "get_processes_with_increasing_memory",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Get all processes with increasing memory 'size' or 'virt' memory"
+     },
+     {
+      "name": "get_processes_with_non_linear_increased_memory_size",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Find processes whose memory 'size' consumption increased non-linearly"
+     },
+     {
+      "name": "get_processes_with_non_linear_increased_memory_virtual",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Find processes whose 'virt' memory consumption increased non-linearly"
+     },
+     {
+      "name": "get_processes_with_non_linear_increasing_memory",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId",
+       "threshold"
+      ],
+      "doc": "Get all processes with non-linear increasing memory 'size' or 'virt' memory"
+     },
+     {
+      "name": "get_tabular_memory_size_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get a tab-spaced string listing memory 'size' data for a process"
+     },
+     {
+      "name": "get_tabular_memory_virtual_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get a tab-spaced string listing 'virt' memory data for a process"
+     },
+     {
+      "name": "get_tabular_memory_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId",
+       "size",
+       "virtual"
+      ],
+      "doc": "Get a tab-spaced string listing memory data for a process"
+     },
+     {
+      "name": "get_memory_size_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get the memory 'size' values recorded for a specific process"
+     },
+     {
+      "name": "get_memory_virtual_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get the 'virt' memory values recorded for a specific process"
+     },
+     {
+      "name": "get_memory_data_for_process",
+      "args": [
+       "processName",
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get the memory 'size' and the 'virt' memory values recorded for a specific process"
+     },
+     {
+      "name": "export_csv_memory_size_data_for_processes",
+      "args": [
+       "processNameList",
+       "fileName",
+       "fromDataPointId",
+       "toDataPointId",
+       "separatorChar",
+       "combineStackMembers"
+      ],
+      "doc": "Export memory size data to a CSV file"
+     },
+     {
+      "name": "export_csv_memory_virtual_data_for_processes",
+      "args": [
+       "processNameList",
+       "fileName",
+       "fromDataPointId",
+       "toDataPointId",
+       "separatorChar",
+       "combineStackMembers"
+      ],
+      "doc": "Export virtual memory data to a CSV file"
+     },
+     {
+      "name": "get_all_process_names",
+      "args": [],
+      "doc": "Get a sorted list of all process names recorded by this instance"
+     },
+     {
+      "name": "get_all_member_ids",
+      "args": [],
+      "doc": "Get a sorted list of all stack member IDs recorded by this instance"
+     },
+     {
+      "name": "get_data_point_ids",
+      "args": [
+       "fromDataPointId",
+       "toDataPointId"
+      ],
+      "doc": "Get the list of data point IDs in the order they were recorded"
+     }
+    ]
+   },
+   "MemoryDataSnapshot": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_data_point",
+      "args": [
+       "stackId",
+       "processName",
+       "size",
+       "virtual"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_data_point_for_process",
+      "args": [
+       "stackId",
+       "processName"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_size_data_point_for_process",
+      "args": [
+       "stackId",
+       "processName"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_virtual_data_point_for_process",
+      "args": [
+       "stackId",
+       "processName"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_member_ids",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_processes",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "ProcesMemoryDataPoints": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_data_point",
+      "args": [
+       "dataPoint"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_data_points",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_memory_size_trend_line_slope",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_memory_virtual_trend_line_slope",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_member_id",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_memory_size_list",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_memory_virtual_list",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "ProcessMemorySnapshot": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_size",
+      "args": [
+       "size"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "add_virtual",
+      "args": [
+       "virtual"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_size",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_virtual",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_member_id",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "best_fit_slope",
+    "args": [
+     "xs",
+     "ys",
+     "decimalPlaces"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATLibrary.ATMulticast": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "mc_mac",
+    "args": [
+     "mcAddr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "mc_client_join",
+    "args": [
+     "interface",
+     "mcAddr",
+     "protocol",
+     "sources"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "mc_client_leave",
+    "args": [
+     "interface",
+     "mcAddr",
+     "protocol",
+     "sources"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATLibrary.ATPortScan": {
+  "classes": {
+   "_PortScanner": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "run_port_scan_on_devices",
+    "args": [
+     "self",
+     "dutList",
+     "tb",
+     "preScanDelay",
+     "scanArgs",
+     "knownPorts",
+     "targetPortList",
+     "allPorts",
+     "splitPorts",
+     "aggressive",
+     "monitorConsole",
+     "checkLogs",
+     "returnOnFailure",
+     "okayLogErrorPatterns"
+    ],
+    "doc": "Run an nmap port scan on multiple AW+ devices simultaneously. This is intended to be a simple option"
+   },
+   {
+    "name": "run_port_scan_on_device",
+    "args": [
+     "self",
+     "dut",
+     "tb",
+     "preScanDelay",
+     "scanArgs",
+     "ipv4AddressList",
+     "ipv6AddressList",
+     "knownPorts",
+     "targetPortList",
+     "allPorts",
+     "splitPorts",
+     "aggressive",
+     "monitorConsole",
+     "checkLogs",
+     "resultQueue",
+     "returnOnFailure",
+     "okayLogErrorPatterns"
+    ],
+    "doc": "Run an nmap port scan on a device. This is intended to be a simple option"
+   },
+   {
+    "name": "get_open_ports",
+    "args": [
+     "dut",
+     "combine"
+    ],
+    "doc": "Get the open ports from switch by executing 'netstat -an' on the shell."
+   },
+   {
+    "name": "get_unix_sockets",
+    "args": [
+     "swi"
+    ],
+    "doc": "Get the open unix sockets from the switch by executing 'netstat -xna' on the shell."
+   }
+  ]
+ },
+ "ATLibrary.ATPostfix": {
+  "classes": {
+   "PostfixManager": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "start",
+      "args": [
+       "users",
+       "TLS",
+       "encryption",
+       "portToAdd",
+       "smtpsWrapperMode"
+      ],
+      "doc": "Start the Postfix service with the given users and configuration."
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": "Stop the Postfix service and restore it to its original state."
+     }
+    ]
+   },
+   "PostfixUser": {
+    "bases": [],
+    "methods": []
+   }
+  },
+  "functions": []
+ },
+ "ATLibrary.ATRadius": {
+  "classes": {
+   "RadiusManager": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_users",
+      "args": [
+       "userDataList"
+      ],
+      "doc": "Add a user or users for RADIUS configuration"
+     },
+     {
+      "name": "clear_users",
+      "args": [],
+      "doc": "Clear the custom users from this instance"
+     },
+     {
+      "name": "generate_default_testbox_radius_configuration_file",
+      "args": [
+       "overwrite"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "radius_configuration_file_exists",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "start",
+      "args": [
+       "testCase",
+       "overwriteRadiusConfiguration"
+      ],
+      "doc": "Write the custom users to the freeradius configuration and restart the freeradius server"
+     },
+     {
+      "name": "stop",
+      "args": [
+       "clearUsers",
+       "restartDefaultRadius"
+      ],
+      "doc": "Restore the freeradius configuration file to default and restart the freeradius server"
+     },
+     {
+      "name": "signal_handler",
+      "args": [
+       "sig",
+       "frame"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "is_freeradius_running",
+      "args": [
+       "procname"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "RadiusUser": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_attribute",
+      "args": [
+       "attribute",
+       "value",
+       "plusEqual"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATLibrary.ATSecurity": {
+  "classes": {
+   "ListenEAP": {
+    "bases": [
+     "Thread"
+    ],
+    "methods": [
+     {
+      "name": "packet_filter",
+      "args": [
+       "pkt"
+      ],
+      "doc": "Filter function to be used for sniffing packets."
+     },
+     {
+      "name": "run",
+      "args": [],
+      "doc": "Starts the sniffing process on the specified Ethernet interface and stores captured packets into pkt_list attribute."
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "dot1x_authenticate",
+    "args": [
+     "srcEth",
+     "supMac",
+     "user",
+     "password",
+     "maxAttempts",
+     "timeout"
+    ],
+    "doc": "Perform 802.1X authentication using EAPOL and EAP packets."
+   }
+  ]
+ },
+ "ATLibrary.ATTools": {
+  "classes": {
+   "ReleaseFileName": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "has_known_suffix",
+      "args": [
+       "filePart"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "openSSHClient": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "connect",
+      "args": [
+       "sftp"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "exec_command",
+      "args": [
+       "command"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "sendall",
+      "args": [
+       "command",
+       "expected",
+       "timeout"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "scpSend",
+      "args": [
+       "filename",
+       "destination"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "scpGet",
+      "args": [
+       "filename",
+       "destination"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "sftpPut",
+      "args": [
+       "filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "sftpGet",
+      "args": [
+       "filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "close",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "create_file_and_upload_to_device",
+    "args": [
+     "self",
+     "swi",
+     "fileContentList",
+     "fileName"
+    ],
+    "doc": "Use the testbox to create a file then upload it to the DUT via zmodem."
+   },
+   {
+    "name": "console_capture_start",
+    "args": [
+     "dutList"
+    ],
+    "doc": "This function starts a read thread for each device in the"
+   },
+   {
+    "name": "console_capture_stop",
+    "args": [
+     "dutList",
+     "writeToSwiLog",
+     "includeHeaderAndFooter"
+    ],
+    "doc": "This function stops the read thread running on each device"
+   },
+   {
+    "name": "check_and_wait_for_core_files",
+    "args": [
+     "swi",
+     "checkPeriod",
+     "checkStackSize",
+     "logOwner",
+     "expectedCorefiles"
+    ],
+    "doc": "Attempt to detect and wait for crashing processes. Command mode will"
+   },
+   {
+    "name": "check_and_wait_for_core_files_on_devices",
+    "args": [
+     "devices",
+     "checkPeriod",
+     "checkStackSize",
+     "logOwner"
+    ],
+    "doc": "Attempt to detect and wait for crashing processes on multiple devices simultaneously"
+   },
+   {
+    "name": "check_and_wait_for_audit_inconsistencies",
+    "args": [
+     "swi",
+     "checkPeriod",
+     "logOwner",
+     "failIfFound",
+     "showTechSupportIfFound"
+    ],
+    "doc": "Attempt to detect audit inconsistencies."
+   },
+   {
+    "name": "check_and_wait_for_audit_inconsistencies_on_devices",
+    "args": [
+     "devices",
+     "checkPeriod",
+     "logOwner",
+     "failIfFound",
+     "showTechSupportIfFound"
+    ],
+    "doc": "Attempt to detect audit inconsistencies on multiple devices simultaneously"
+   },
+   {
+    "name": "enable_all_switch_ports",
+    "args": [
+     "swi",
+     "logOwner",
+     "stackIdList",
+     "includeStackPorts",
+     "includeResiliencyLinks",
+     "includeManagementLinks",
+     "allowMultiplePortRanges"
+    ],
+    "doc": "Enable all switch ports on a switch or stack, optionally excluding stacking ports, resiliency link ports and management ports"
+   },
+   {
+    "name": "disable_all_switch_ports",
+    "args": [
+     "swi",
+     "logOwner",
+     "stackIdList",
+     "includeStackPorts",
+     "includeResiliencyLinks",
+     "includeManagementLinks",
+     "allowMultiplePortRanges"
+    ],
+    "doc": "Disable all switch ports on a switch or stack, optionally excluding stacking ports, resiliency link ports and management ports"
+   },
+   {
+    "name": "excecute_commands_on_all_switch_ports",
+    "args": [
+     "swi",
+     "cmdList",
+     "logOwner",
+     "stackIdList",
+     "includeStackPorts",
+     "includeResiliencyLinks",
+     "includeManagementLinks",
+     "allowMultiplePortRanges"
+    ],
+    "doc": "Execute one or more commands on all switch ports, optionally excluding stack ports and resiliency links"
+   },
+   {
+    "name": "wait_for_stable_interface_state",
+    "args": [
+     "swi",
+     "logOwner",
+     "stableTime",
+     "timeOut"
+    ],
+    "doc": "Check and wait for all interfaces to be in a stable state for a specified period of time"
+   },
+   {
+    "name": "download_file_from_tftp",
+    "args": [
+     "self",
+     "swi",
+     "swiPort",
+     "tbEth",
+     "vid",
+     "remoteFileName",
+     "localFileName",
+     "setAsSystemBoot",
+     "setSystemBootBackup"
+    ],
+    "doc": "TFTP copy a file from the TestBox to the switch. It is expected there either"
+   },
+   {
+    "name": "get_rel_file_size",
+    "args": [
+     "self",
+     "dut"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "check_channel_group_diagnostics",
+    "args": [
+     "self",
+     "dutList",
+     "timeOut",
+     "verbose",
+     "checkRemoteDiff"
+    ],
+    "doc": "Check for errors and mismatches in 'show diagnostic channel-group' output"
+   },
+   {
+    "name": "copy_build",
+    "args": [
+     "buildName",
+     "retryTimeOut",
+     "retryDelay",
+     "log",
+     "logFileName"
+    ],
+    "doc": "Copy a build from the remote TFTP server to local TFTP server using copyBuild.py, with retry on failure."
+   },
+   {
+    "name": "guess_tftpboot_release_file_names",
+    "args": [
+     "tftpDir"
+    ],
+    "doc": "Make an educated guess what the TFTP boot name of"
+   },
+   {
+    "name": "get_release_file_name_prefix_alternatives",
+    "args": [
+     "self",
+     "swi"
+    ],
+    "doc": "Determine other build name prefixes files on a device may have"
+   },
+   {
+    "name": "get_release_file_name_prefix",
+    "args": [
+     "self",
+     "swi",
+     "interactive"
+    ],
+    "doc": "Determine the filename prefix of the build for a device, e.g. 'AR4050S', 'SBx908NG'"
+   },
+   {
+    "name": "get_all_previous_release_file_names",
+    "args": [
+     "self",
+     "swi",
+     "releaseCandidate",
+     "tftpPath",
+     "specialCustomerBuild"
+    ],
+    "doc": "Ge all release file names for a switch"
+   },
+   {
+    "name": "get_previous_release_file_name",
+    "args": [
+     "self",
+     "swi",
+     "releaseCandidate",
+     "tftpPath",
+     "specialCustomerBuild",
+     "fallbackToReleaseCandidate"
+    ],
+    "doc": "Get the most recent release file name for a switch"
+   },
+   {
+    "name": "watch_consoles_for_bootup",
+    "args": [
+     "devices",
+     "logOwner",
+     "waitTime",
+     "watchForLoginPrompt",
+     "watchForTFTPfailure"
+    ],
+    "doc": "Watch the console of one or more devices and return when all have completed bootup."
+   },
+   {
+    "name": "logged_wait",
+    "args": [
+     "log",
+     "period",
+     "msg",
+     "haltOn"
+    ],
+    "doc": "Wait a specified period whilst periodically logging"
+   }
+  ]
+ },
+ "ATLibrary.__init__": {
+  "classes": {},
+  "functions": []
+ },
+ "ATLibrary.set_temporary_env_vars": {
+  "classes": {},
+  "functions": []
+ },
+ "ATLibrary.testbox.ATTbPortLib": {
+  "classes": {
+   "Sniff_traffic_thread": {
+    "bases": [
+     "Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "stop",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "isPktReceived",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "isPktFragmented",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "send_single_eth_frame_to_dut",
+    "args": [
+     "send_eth_port",
+     "TestCase",
+     "mac_addr",
+     "use_mac_addr_for_dst",
+     "verbose"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "check_tb_traffic_reaches_wire",
+    "args": [
+     "send_eth_port",
+     "timeout_secs"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "test_ping",
+    "args": [
+     "tb",
+     "dstIP",
+     "numTry"
+    ],
+    "doc": "Ping dstIP from tb."
+   }
+  ]
+ },
+ "ATLibrary.testbox.__init__": {
+  "classes": {},
+  "functions": []
+ },
+ "ATPackets": {
+  "classes": {
+   "lldp_basic": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "payload"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_basic_phone": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   },
+   "lldp_cap_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "payload"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_net_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_loc_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_power_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_hw_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_fw_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_sw_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_sn_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_man_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_model_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_asset_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_uuid_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_end_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_mac_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_base_cap_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "lldp_lacp_tlv": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "guess_payload_class",
+      "args": [
+       "packet"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "EPSR": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "post_build",
+      "args": [
+       "p",
+       "pay"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "ICMPv6MCAddressRecord": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   },
+   "ICMPv6MLReportv2": {
+    "bases": [
+     "_ICMPv6"
+    ],
+    "methods": []
+   },
+   "ICMPv6MLQueryv2": {
+    "bases": [
+     "_ICMPv6"
+    ],
+    "methods": []
+   },
+   "LACP": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   },
+   "Sflow": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   },
+   "IGMP": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "post_build",
+      "args": [
+       "p",
+       "pay"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "IGMPv3GroupRecord": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   },
+   "IGMPv3Report": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": [
+     {
+      "name": "post_build",
+      "args": [
+       "p",
+       "pay"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "LDF": {
+    "bases": [
+     "Packet"
+    ],
+    "methods": []
+   }
+  },
+  "functions": [
+   {
+    "name": "guess_tlv_payload",
+    "args": [
+     "payload"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATTagFilter": {
+  "classes": {
+   "ComparisonOp": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "DeviceMatchMode": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "TagFilter": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "matches",
+      "args": [
+       "tag"
+      ],
+      "doc": "Check if tag matches this filter."
+     }
+    ]
+   },
+   "TagMatcher": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "require_all",
+      "args": [],
+      "doc": "Require ALL of these filters to match (AND logic)."
+     },
+     {
+      "name": "require_any",
+      "args": [],
+      "doc": "Require ANY of these filters to match (OR logic)."
+     },
+     {
+      "name": "exclude_any",
+      "args": [],
+      "doc": "Exclude if ANY of these filters match (NOT logic)."
+     },
+     {
+      "name": "matches",
+      "args": [
+       "tags"
+      ],
+      "doc": "Check if tags match all criteria."
+     },
+     {
+      "name": "filter_tests",
+      "args": [
+       "test_tags"
+      ],
+      "doc": "Filter tests by their configuration tags."
+     },
+     {
+      "name": "filter_devices",
+      "args": [
+       "device_tags"
+      ],
+      "doc": "DEPRECATED: Use filter_tests() instead."
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "tag_exists",
+    "args": [
+     "pattern"
+    ],
+    "doc": "Create filter that checks if tag exists."
+   },
+   {
+    "name": "tag_count_gt",
+    "args": [
+     "pattern",
+     "value"
+    ],
+    "doc": "Create filter for count greater than value."
+   },
+   {
+    "name": "tag_count_gte",
+    "args": [
+     "pattern",
+     "value"
+    ],
+    "doc": "Create filter for count greater than or equal to value."
+   },
+   {
+    "name": "tag_count_lt",
+    "args": [
+     "pattern",
+     "value"
+    ],
+    "doc": "Create filter for count less than value."
+   },
+   {
+    "name": "tag_count_lte",
+    "args": [
+     "pattern",
+     "value"
+    ],
+    "doc": "Create filter for count less than or equal to value."
+   },
+   {
+    "name": "tag_count_eq",
+    "args": [
+     "pattern",
+     "value"
+    ],
+    "doc": "Create filter for count equal to value."
+   }
+  ]
+ },
+ "ATTestCase": {
+  "classes": {
+   "TestCase": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "get_default_config_output",
+      "args": [
+       "cfg_default_wifi_json"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "set_testSet",
+      "args": [
+       "testSet"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log",
+      "args": [
+       "string",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "passed",
+      "args": [
+       "reason"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "failed",
+      "args": [
+       "reason",
+       "forceAbort"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "has_failed_for_reason",
+      "args": [
+       "reasons",
+       "exclusive",
+       "regex"
+      ],
+      "doc": "Confirms whether this TestCase has failed for a specific reason"
+     },
+     {
+      "name": "has_failed",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "set_excludes",
+      "args": [],
+      "doc": "This is executed by testSet.__post_init() because it requires"
+     },
+     {
+      "name": "init",
+      "args": [],
+      "doc": "User defined method to perform any required preprocessing for the TestCase."
+     },
+     {
+      "name": "configure",
+      "args": [],
+      "doc": "User defined method to configure devices for this test case."
+     },
+     {
+      "name": "check_running_configs",
+      "args": [
+       "timeOut",
+       "failureDescription"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "main",
+      "args": [],
+      "doc": "Main method for the Test Case."
+     },
+     {
+      "name": "tear_down",
+      "args": [],
+      "doc": "User defined method for deconfiguring all TestCase specific configurations."
+     },
+     {
+      "name": "compare_config_files",
+      "args": [
+       "swi",
+       "lhFileName",
+       "rhFileName"
+      ],
+      "doc": "Compare two configuration files and report missmatches."
+     },
+     {
+      "name": "check_exceptions",
+      "args": [],
+      "doc": "Check if any exceptions have occurred."
+     },
+     {
+      "name": "run",
+      "args": [
+       "quitOnFail"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "_PowerCycleThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_CheckRunningConfigsThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_SaveConfigsThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_PreRunThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_PostTearDownThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_ParseExceptionLogThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_ClearExceptionLogThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_WaitForStackReadyThread": {
+    "bases": [
+     "threading.Thread"
+    ],
+    "methods": [
+     {
+      "name": "run",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "PatternSearch": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "runSearch",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "parseResults",
+      "args": [
+       "output"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "search",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "KernelPanicSearch": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "getKernelPanicDict",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "isSame",
+      "args": [
+       "resultA",
+       "resultB"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "diff",
+      "args": [
+       "resultA",
+       "resultB"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "getSwitchConsoleLogFiles",
+    "args": [
+     "pattern",
+     "extension"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "ATTestSet": {
+  "classes": {
+   "TestSet": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_testCase",
+      "args": [
+       "testCase"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "remove_testCase",
+      "args": [
+       "testCase"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "create_log_file",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "log",
+      "args": [
+       "string",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "send_email",
+      "args": [
+       "recipient",
+       "subject",
+       "body"
+      ],
+      "doc": "send_email() sends an email to a recipient with a given subject."
+     },
+     {
+      "name": "wait_for_threads_join",
+      "args": [
+       "threadList"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "wait_for_exception_threads_join",
+      "args": [
+       "threadList",
+       "exitOnError"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init",
+      "args": [
+       "setup"
+      ],
+      "doc": "init() is overwritten by the user to define all devices that will be used by the TestSet."
+     },
+     {
+      "name": "generate_default_cfg",
+      "args": [
+       "setup",
+       "swi",
+       "reboot",
+       "wait"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "update_feature_licenses",
+      "args": [
+       "setup",
+       "featureList",
+       "swiList"
+      ],
+      "doc": "Public method to add required feature licenses and remove unwanted feature licenses"
+     },
+     {
+      "name": "configure",
+      "args": [],
+      "doc": "configure() is overwritten by the user to configure the devices for the TestSet."
+     },
+     {
+      "name": "execute_in_parallel",
+      "args": [
+       "CMDS"
+      ],
+      "doc": "If user has populated CMDS with configuration commands,"
+     },
+     {
+      "name": "device_is_running_version_or_later",
+      "args": [
+       "dev",
+       "versions",
+       "alwaysMatchNonRelease"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "verify_includes_excludes_list",
+      "args": [
+       "platformsPatternList",
+       "section",
+       "dev"
+      ],
+      "doc": "Verify a regular-expression pattern representing a platform family or switch property is recognized"
+     },
+     {
+      "name": "verify_family_name",
+      "args": [
+       "platformsPatternList"
+      ],
+      "doc": "Verify a regular-expression pattern representing a platform family is recognized"
+     },
+     {
+      "name": "tear_down",
+      "args": [],
+      "doc": "tear_down() can be overwritten by the user to undo any configuration after the TestSet completes."
+     },
+     {
+      "name": "wait_for_all_ports_running",
+      "args": [
+       "msg"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "run",
+      "args": [
+       "args"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "_MonitorPowerCycleInitThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_ClearExceptionLogThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_UpdateFeatureLicenseThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_SetFeatureLicenseThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_DefaultConfigThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_EnableInitialisedPorts": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "configure_management_vlan",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "configure_management_port",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_ExecuteCommandsThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_TestSetConfigThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_GetTestSetConfig": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "_GetDeviceSysInfoThread": {
+    "bases": [
+     "ExceptionThread"
+    ],
+    "methods": [
+     {
+      "name": "run_with_exception",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_0": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "ATTestTag": {
+  "classes": {
+   "TestTag": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "initial_config",
+      "args": [
+       "config_dict"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "generate_tags",
+      "args": [
+       "device_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "setup_logging",
+      "args": [
+       "log_file_path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log_summary",
+      "args": [
+       "device_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log_metadata",
+      "args": [
+       "device_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "log_tags",
+      "args": [
+       "device_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "close_log",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "log_all",
+      "args": [
+       "device_name",
+       "log_file_path"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "export_to_json",
+      "args": [
+       "filename"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "import_from_json",
+      "args": [
+       "json_data",
+       "filename"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "ConfigParser": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "parse_config",
+      "args": [
+       "config_dict"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "expand_interface_range",
+      "args": [
+       "interface_range"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "FeatureAnalyzer": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "analyze_configuration",
+      "args": [
+       "cleaned_config",
+       "parser"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "TagOrchestrator": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "add_static_tag",
+      "args": [
+       "tag_name",
+       "description"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "generate_tags",
+      "args": [
+       "metadata",
+       "device_name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_tag_summary",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "Setup": {
+  "classes": {
+   "SetupFileType": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "LoadSetup": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "log",
+      "args": [
+       "string",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "exit",
+      "args": [
+       "testSetNum",
+       "log"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "load_yaml",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "load",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "record_dot1q_ports",
+      "args": [
+       "dev1",
+       "port1",
+       "dev2",
+       "port2"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "config_dot1q_ports",
+      "args": [
+       "tb",
+       "eth"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "clear_dot1q_ports",
+      "args": [
+       "tb"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_tb",
+      "args": [
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_stk",
+      "args": [
+       "stkName",
+       "debug",
+       "powerOn"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_swi",
+      "args": [
+       "swiName",
+       "debug",
+       "powerOn"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_wireless",
+      "args": [
+       "wirelessName",
+       "debug",
+       "powerOn"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_peripheral",
+      "args": [
+       "peripheralName"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_temporary_testbox_portlink",
+      "args": [
+       "dev1",
+       "dev2",
+       "logIndent"
+      ],
+      "doc": "Get a link between the testbox and a switch or stack. The returned link"
+     },
+     {
+      "name": "init_portlink",
+      "args": [
+       "dev1",
+       "dev2",
+       "type1",
+       "type2",
+       "hub",
+       "dot1q",
+       "log",
+       "logIndent"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_configured_stackport",
+      "args": [
+       "stk"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_swi_management_vlan_params",
+      "args": [
+       "swi",
+       "managementPort",
+       "vlan",
+       "vlanIp",
+       "vlanSubnetPrefix",
+       "managementPortInfoDict"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_management_port",
+      "args": [
+       "dev1",
+       "dev2"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_reslink",
+      "args": [
+       "stk"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_ixia",
+      "args": [
+       "ixiaName",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_hub",
+      "args": [
+       "hubName",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_heatchamber",
+      "args": [
+       "name",
+       "debug"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_atmf",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "init_atmf_area",
+      "args": [
+       "name"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_ix_port_tx_pkt_rate",
+      "args": [
+       "ixport"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_ix_port_rx_pkt_rate",
+      "args": [
+       "ixport"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_ix_port_tx_bit_rate",
+      "args": [
+       "ixport"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_ix_port_rx_bit_rate",
+      "args": [
+       "ixport"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "init_all_devices",
+      "args": [
+       "exclude_links",
+       "exclude_hub_links",
+       "exclude_managment_ports",
+       "powerOn",
+       "debug"
+      ],
+      "doc": "Initialise all members of the setup and initialise all port links between members."
+     },
+     {
+      "name": "select_control_swi",
+      "args": [
+       "swiList"
+      ],
+      "doc": "Get the switch with the lowest numbered TTY, or IP address"
+     },
+     {
+      "name": "get_devDict",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "get_all_switches",
+      "args": [],
+      "doc": "Get a list of all Switch objects in the setup."
+     },
+     {
+      "name": "get_all_wirelessDevices",
+      "args": [],
+      "doc": "Get a list of all wireless objects in the setup."
+     },
+     {
+      "name": "get_switch_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get a previously initialized Switch object by its name"
+     },
+     {
+      "name": "get_all_stacks",
+      "args": [],
+      "doc": "Get a list of all Stack objects in the setup."
+     },
+     {
+      "name": "get_stack_by_name",
+      "args": [
+       "name"
+      ],
+      "doc": "Get a previously initialized Stack object by its name"
+     },
+     {
+      "name": "get_all_ixias",
+      "args": [],
+      "doc": "Get a list of all Ixia objects in the setup."
+     },
+     {
+      "name": "get_all_testboxes",
+      "args": [],
+      "doc": "Get a list of all TestBox objects in the setup."
+     },
+     {
+      "name": "get_testbox",
+      "args": [],
+      "doc": "Get the previously initialized TestBox object. This function acknowledges that"
+     },
+     {
+      "name": "get_port_link",
+      "args": [
+       "dev1",
+       "dev2",
+       "type1",
+       "type2",
+       "hub"
+      ],
+      "doc": "Get a link connecting two devices, where the connected interfaces meet specific criteria."
+     },
+     {
+      "name": "get_all_port_links",
+      "args": [
+       "dev1",
+       "dev2",
+       "type1",
+       "type2",
+       "hub",
+       "includeAllStackMemberLinks"
+      ],
+      "doc": "Get a list of ports linking two devices, where all returned links match specific criteria"
+     },
+     {
+      "name": "get_all_hubs",
+      "args": [],
+      "doc": "Get a list of all Hub objects in the setup."
+     },
+     {
+      "name": "get_all_atmf",
+      "args": [],
+      "doc": "Get a list of all ATMF network objects in the setup."
+     },
+     {
+      "name": "get_all_atmf_areas",
+      "args": [],
+      "doc": "Get a list of all ATMF Area objects in the setup."
+     },
+     {
+      "name": "get_all_peripherals",
+      "args": [],
+      "doc": "Get a list of all Peripheral objects in the setup."
+     },
+     {
+      "name": "get_all_misc",
+      "args": [],
+      "doc": "Get a dictionary of all miscellaneous items in the setup"
+     },
+     {
+      "name": "get_all_email",
+      "args": [],
+      "doc": "Get a dictionary of all email addresses defined in the setup"
+     },
+     {
+      "name": "get_all_databases",
+      "args": [],
+      "doc": "Get a dictionary of all databases defined for the setup"
+     },
+     {
+      "name": "get_database_by_name",
+      "args": [
+       "dbName"
+      ],
+      "doc": "Get the database connection information for a specific database by its setup name"
+     },
+     {
+      "name": "get_feature_map_file_location",
+      "args": [],
+      "doc": "Get the path to the feature map file if specified in the setup"
+     },
+     {
+      "name": "show_setup",
+      "args": [
+       "logMethod"
+      ],
+      "doc": "Display all initialised devices and the links between them."
+     },
+     {
+      "name": "show_devDict",
+      "args": [
+       "logMethod"
+      ],
+      "doc": ""
+     }
+    ]
+   },
+   "LoadConfig": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "load",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "has_test_suite",
+      "args": [
+       "testSuite"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "check_test_option",
+      "args": [
+       "testSuite",
+       "option",
+       "default"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "get_test_option",
+      "args": [
+       "testSuite",
+       "option"
+      ],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "get_default_run_root_dir",
+    "args": [],
+    "doc": "Get the default run root directory"
+   },
+   {
+    "name": "get_default_credentials_dir",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "find_in_path",
+    "args": [
+     "path",
+     "name"
+    ],
+    "doc": "Search UP a directory structure for a specific file or directory"
+   },
+   {
+    "name": "get_default_tools_dir",
+    "args": [
+     "runRootDir",
+     "fallBackRootDir"
+    ],
+    "doc": "Find the 'tools' directory in the run root directory path"
+   },
+   {
+    "name": "get_default_config_dir",
+    "args": [
+     "runRootDir",
+     "fallBackRootDir"
+    ],
+    "doc": "Find the 'configs' directory in the run root directory path"
+   },
+   {
+    "name": "get_default_testbox_dir",
+    "args": [
+     "runRootDir",
+     "hostName",
+     "fallBackRootDir"
+    ],
+    "doc": "Find the testbox's default directory in the run root directory path"
+   },
+   {
+    "name": "get_default_setup_file",
+    "args": [
+     "configDir",
+     "hostName"
+    ],
+    "doc": "Find the default .setup file for the testbox in the configuration file directory"
+   },
+   {
+    "name": "get_default_config_file",
+    "args": [
+     "configDir",
+     "hostName"
+    ],
+    "doc": "Find the default .cfg file for the testbox in the configuration file directory"
+   },
+   {
+    "name": "get_setups_file",
+    "args": [
+     "runRootDir",
+     "fallBackRootDir"
+    ],
+    "doc": "Find the default setups.cfg file for the testbox in the run root directory path"
+   },
+   {
+    "name": "generate_dot1q_ipv6_subnets",
+    "args": [
+     "address",
+     "mask",
+     "amounts",
+     "log"
+    ],
+    "doc": "Splits the address's address-space into smaller subnets, leaving"
+   },
+   {
+    "name": "generate_dot1q_ipv4_subnets",
+    "args": [
+     "address",
+     "mask",
+     "amounts",
+     "log"
+    ],
+    "doc": "Splits the address's address-space into smaller subnets, leaving"
+   }
+  ]
+ },
+ "__init__": {
+  "classes": {},
+  "functions": []
+ },
+ "config_gen": {
+  "classes": {
+   "ConfigParameters": {
+    "bases": [],
+    "methods": []
+   }
+  },
+  "functions": [
+   {
+    "name": "makeDefaultConfig",
+    "args": [
+     "conf_file_name"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "copyBuild": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "shell",
+    "args": [
+     "cmdStr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "log",
+    "args": [
+     "logStr",
+     "logFileName",
+     "toStderr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "generate_checksum",
+    "args": [
+     "file_path"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_published_checksum",
+    "args": [
+     "file_path"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "hash_source_file",
+    "args": [
+     "file_path",
+     "log_filename"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "hash_downloaded_file",
+    "args": [
+     "file_path"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "file_exists",
+    "args": [
+     "path",
+     "filename"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_actual_file_name",
+    "args": [
+     "path",
+     "filename",
+     "logFileName"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "download_and_checksum",
+    "args": [
+     "path",
+     "buildName",
+     "downloadName",
+     "logFileName"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "resolve_remote_tftp_source",
+    "args": [
+     "logFileName"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "find_build_name",
+    "args": [
+     "buildName",
+     "logFileName"
+    ],
+    "doc": "Returns:  actualBuildName - actual file name buildName links to"
+   },
+   {
+    "name": "main",
+    "args": [
+     "buildName",
+     "logFileName",
+     "stdout",
+     "releaseType"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "runAll": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "get_log_file_creation_time",
+    "args": [
+     "filePath",
+     "timeStampFormat"
+    ],
+    "doc": "Read the content of a log file and return the first logged timestamp."
+   },
+   {
+    "name": "generateUniqKey",
+    "args": [
+     "testbox_num"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "execute_sh_cmd",
+    "args": [
+     "cmdStr",
+     "log_stdout",
+     "log_stderr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "set_serial_console_for_iso",
+    "args": [
+     "isoFile"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_latest_mainline_version_for_platform",
+    "args": [
+     "platform",
+     "suffix"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_suffix_for_platform",
+    "args": [
+     "platform"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "download_build",
+    "args": [
+     "buildname",
+     "allowFallback",
+     "exitOnFail"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_test_options",
+    "args": [
+     "testConfig",
+     "testSuite",
+     "testSuiteDir",
+     "setupFile",
+     "includePowerOff"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "log",
+    "args": [
+     "logStr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "kill_python",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "download_mibs",
+    "args": [
+     "buildName"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_testsuites_from_db",
+    "args": [
+     "testbox_num",
+     "day_of_week",
+     "setup"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_config_from_db",
+    "args": [
+     "testbox_num",
+     "day_of_week",
+     "setup"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "main",
+    "args": [
+     "args",
+     "unknown"
+    ],
+    "doc": ""
+   }
+  ]
+ },
+ "runTestSuite": {
+  "classes": {
+   "PostRun": {
+    "bases": [
+     "ATTestSet.TestSet"
+    ],
+    "methods": [
+     {
+      "name": "init",
+      "args": [
+       "setup"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "configure",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_1": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_3": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_4": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "get_unique_dut_name",
+      "args": [
+       "dut"
+      ],
+      "doc": ""
+     },
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_40": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestCase_5": {
+    "bases": [
+     "ATTestCase.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "main",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": [
+   {
+    "name": "log",
+    "args": [
+     "logStr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "execute_sh_cmd",
+    "args": [
+     "cmdStr",
+     "stdout",
+     "stderr",
+     "logFunc"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "log_if_delay",
+    "args": [
+     "msgString",
+     "oldTimeStamp",
+     "logger",
+     "maxSecs"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "str2bool",
+    "args": [
+     "v"
+    ],
+    "doc": "Reference: https://stackoverflow.com/a/43357954"
+   }
+  ]
+ },
+ "test_ATSwitch": {
+  "classes": {
+   "TestSwitchGetDefaultVirtualChassisId": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": "Set up test fixtures before each test method."
+     },
+     {
+      "name": "test_no_stack_simple_name",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is not in a stack with simple name."
+     },
+     {
+      "name": "test_no_stack_with_tty_number",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is not in a stack but has tty number."
+     },
+     {
+      "name": "test_no_stack_underscore_single_char",
+      "args": [],
+      "doc": "Test chassis ID with underscore separator and single character."
+     },
+     {
+      "name": "test_no_stack_hyphen_single_char",
+      "args": [],
+      "doc": "Test chassis ID with hyphen separator and single character."
+     },
+     {
+      "name": "test_no_stack_underscore_multiple_chars",
+      "args": [],
+      "doc": "Test chassis ID with underscore and multiple characters (should use tty)."
+     },
+     {
+      "name": "test_stack_simple_name",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is in a stack with simple name."
+     },
+     {
+      "name": "test_stack_underscore_single_char",
+      "args": [],
+      "doc": "Test chassis ID generation when stack has underscore and single character."
+     },
+     {
+      "name": "test_stack_hyphen_single_char",
+      "args": [],
+      "doc": "Test chassis ID generation when stack has hyphen and single character."
+     },
+     {
+      "name": "test_stack_multiple_chars_with_members",
+      "args": [],
+      "doc": "Test chassis ID when stack has multiple chars and members with tty."
+     },
+     {
+      "name": "test_stack_multiple_chars_no_valid_tty",
+      "args": [],
+      "doc": "Test chassis ID when stack has multiple chars but no valid tty numbers."
+     },
+     {
+      "name": "test_edge_case_empty_stack_name",
+      "args": [],
+      "doc": "Test edge case where stack name is empty."
+     },
+     {
+      "name": "test_edge_case_stack_name_only_separator",
+      "args": [],
+      "doc": "Test edge case where stack name is only separator character."
+     },
+     {
+      "name": "test_capital_letters_in_name",
+      "args": [],
+      "doc": "Test chassis ID with capital letters in name."
+     },
+     {
+      "name": "test_numbers_in_single_char_position",
+      "args": [],
+      "doc": "Test chassis ID with numbers in single character position."
+     }
+    ]
+   },
+   "TestSwitchGetDefaultVirtualChassisIdIntegrationStacked": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": "Set up test fixtures."
+     },
+     {
+      "name": "test_realistic_stack_scenario",
+      "args": [],
+      "doc": "Test a realistic stack scenario with multiple members."
+     }
+    ]
+   },
+   "TestSwitchGetDefaultVirtualChassisIdIntegrationStandalone": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": "Set up test fixtures."
+     },
+     {
+      "name": "test_realistic_single_switch_scenario",
+      "args": [],
+      "doc": "Test a realistic single switch scenario."
+     }
+    ]
+   },
+   "TestSwitchInternalMethods": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_tty_and_number_none",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_tty_and_number_string",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_tty_and_number_intstr",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_baud_rate_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_baud_rate_custom",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_protocol_and_port_with_ip",
+      "args": [],
+      "doc": "Test __resolve_protocol_and_port with various ip, protocol, and port combinations"
+     },
+     {
+      "name": "test_resolve_protocol_and_port_edge_cases",
+      "args": [],
+      "doc": "Test edge cases for __resolve_protocol_and_port"
+     },
+     {
+      "name": "test_resolve_protocol_and_port_no_ip_scenarios",
+      "args": [],
+      "doc": "Test scenarios where no IP is provided"
+     },
+     {
+      "name": "test_resolve_name_and_mapped_name_with_name",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_name_and_mapped_name_no_name_tty",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_name_and_mapped_name_no_name_ip",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_username_and_password_defaults",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_username_and_password_list",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_resolve_username_and_password_str",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_name_property_and_boots_from_flash",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestSwitchServiceMethods": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_cfm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_cfm_with_write",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_cfm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_cfm_with_reboot",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_g8032_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_g8032_with_write",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_g8032_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_g8032_with_reboot",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_epsr_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_epsr_with_write",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_epsr_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_epsr_with_reboot",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_onm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_onm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_ospf_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_ospf_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_ospf6_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_ospf6_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_pdm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_pdm_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_pim_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_pim_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_pim6_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_pim6_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_rip_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_rip_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_ripng_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_ripng_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_start_vrrp_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_stop_vrrp_default",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestSwitchPortMethods": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_all_ports_default_excludes_stack",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_all_ports_include_stack",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_all_ports_filters_admin_and_protocol",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestSwitchEthPortAndMgmt": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_all_eth_ports_default",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_all_eth_ports_include_subinterfaces",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_management_port",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   },
+   "TestSwitchIfrangeMethods": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_port_ifrange_list_delegates_to_stack",
+      "args": [],
+      "doc": ""
+     },
+     {
+      "name": "test_get_port_ifrange_list_no_stack",
+      "args": [],
+      "doc": ""
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "test_ATSwitch_isolated": {
+  "classes": {
+   "IpProtocols": {
+    "bases": [
+     "Enum"
+    ],
+    "methods": []
+   },
+   "MockSwitch": {
+    "bases": [],
+    "methods": [
+     {
+      "name": "get_stack",
+      "args": [],
+      "doc": "Mock get_stack method."
+     },
+     {
+      "name": "set_stack",
+      "args": [
+       "stack"
+      ],
+      "doc": "Helper method to set the stack for testing."
+     },
+     {
+      "name": "get_default_virtual_chassis_id",
+      "args": [],
+      "doc": "Determine what virtual chassis ID to use when the switch is a member of a stack"
+     }
+    ]
+   },
+   "TestGetDefaultVirtualChassisId": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": "Set up test fixtures before each test method."
+     },
+     {
+      "name": "test_no_stack_simple_name",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is not in a stack with simple name."
+     },
+     {
+      "name": "test_no_stack_with_tty_number",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is not in a stack but has tty number."
+     },
+     {
+      "name": "test_no_stack_underscore_single_char",
+      "args": [],
+      "doc": "Test chassis ID with underscore separator and single character."
+     },
+     {
+      "name": "test_no_stack_hyphen_single_char",
+      "args": [],
+      "doc": "Test chassis ID with hyphen separator and single character."
+     },
+     {
+      "name": "test_no_stack_underscore_multiple_chars",
+      "args": [],
+      "doc": "Test chassis ID with underscore and multiple characters (should use tty)."
+     },
+     {
+      "name": "test_stack_simple_name",
+      "args": [],
+      "doc": "Test chassis ID generation when switch is in a stack with simple name."
+     },
+     {
+      "name": "test_stack_underscore_single_char",
+      "args": [],
+      "doc": "Test chassis ID generation when stack has underscore and single character."
+     },
+     {
+      "name": "test_stack_hyphen_single_char",
+      "args": [],
+      "doc": "Test chassis ID generation when stack has hyphen and single character."
+     },
+     {
+      "name": "test_stack_multiple_chars_with_members",
+      "args": [],
+      "doc": "Test chassis ID when stack has multiple chars and members with tty."
+     },
+     {
+      "name": "test_stack_multiple_chars_no_valid_tty",
+      "args": [],
+      "doc": "Test chassis ID when stack has multiple chars but no valid tty numbers."
+     },
+     {
+      "name": "test_edge_case_empty_stack_name",
+      "args": [],
+      "doc": "Test edge case where stack name is empty."
+     },
+     {
+      "name": "test_edge_case_stack_name_only_separator",
+      "args": [],
+      "doc": "Test edge case where stack name is only separator character."
+     },
+     {
+      "name": "test_capital_letters_in_name",
+      "args": [],
+      "doc": "Test chassis ID with capital letters in name."
+     },
+     {
+      "name": "test_numbers_in_single_char_position",
+      "args": [],
+      "doc": "Test chassis ID with numbers in single character position."
+     },
+     {
+      "name": "test_realistic_stack_scenario",
+      "args": [],
+      "doc": "Test a realistic stack scenario with multiple members."
+     },
+     {
+      "name": "test_realistic_single_switch_scenario",
+      "args": [],
+      "doc": "Test a realistic single switch scenario."
+     },
+     {
+      "name": "test_single_switch_with_single_char_after_separator",
+      "args": [],
+      "doc": "Test single switch where the character after separator is truly single."
+     },
+     {
+      "name": "test_bug_fix_min_tty_with_positive_numbers",
+      "args": [],
+      "doc": "Test that min() works correctly with positive tty numbers."
+     }
+    ]
+   },
+   "TestResolveProtocolAndPort": {
+    "bases": [
+     "unittest.TestCase"
+    ],
+    "methods": [
+     {
+      "name": "setUp",
+      "args": [],
+      "doc": "Set up test fixtures before each test method."
+     },
+     {
+      "name": "test_resolve_protocol_and_port_with_ip",
+      "args": [],
+      "doc": "Test __resolve_protocol_and_port with various ip, protocol, and port combinations"
+     },
+     {
+      "name": "test_resolve_protocol_and_port_edge_cases",
+      "args": [],
+      "doc": "Test edge cases for __resolve_protocol_and_port"
+     },
+     {
+      "name": "test_resolve_protocol_and_port_no_ip_scenarios",
+      "args": [],
+      "doc": "Test scenarios where no IP is provided"
+     }
+    ]
+   }
+  },
+  "functions": []
+ },
+ "test_LUS_resources": {
+  "classes": {},
+  "functions": [
+   {
+    "name": "execute_sh_cmd",
+    "args": [
+     "cmdStr"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "update_server_address",
+    "args": [],
+    "doc": ""
+   },
+   {
+    "name": "get_rc_num",
+    "args": [
+     "build"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "get_latest_rc",
+    "args": [
+     "platform",
+     "release",
+     "rel_files"
+    ],
+    "doc": ""
+   },
+   {
+    "name": "main",
+    "args": [],
+    "doc": ""
+   }
+  ]
+ }
+}

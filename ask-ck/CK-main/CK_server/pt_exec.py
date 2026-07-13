@@ -1,0 +1,330 @@
+"""PyTest Creator execution engine.
+
+Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-creator.md §2):
+- Testbox profiles: named SSH/testbox records stored in the gitignored
+  secrets.testboxes.json (same discovery convention as tool/upload_refined.py).
+- parse_framework_log(): pure parser for the ATTestSet/ATTestCase log format —
+  unit-testable offline.
+- run_script_on_testbox(): paramiko SSH+SFTP round trip, driven from a
+  threading.Thread so runs survive the HTTP request and are pollable.
+"""
+
+import json
+import re
+import threading
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+# ---------------------------------------------------------------------------
+# Testbox profiles (secrets file)
+# ---------------------------------------------------------------------------
+
+# Test-cases repo root: CK_server -> CK-main -> ask-ck -> Test-cases
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+SECRETS_TESTBOXES = _REPO_ROOT / "secrets.testboxes.json"
+
+PROFILE_REQUIRED = ("tb_number", "host")
+PROFILE_DEFAULTS = {
+    "port": 22,
+    "user": "st-art",
+    "auth": "key",             # "key" | "password"
+    "key_path": "~/.ssh/id_rsa",
+    "password": None,
+    "framework_path": "/home/st-art/framework",
+    "remote_workdir": "/home/st-art/pytest-create",
+    "setups": {},               # name -> remote path of a .setup file
+    "sudo": "passwordless",
+    "timeout_s": 1800,
+}
+
+
+def load_profiles() -> Dict[str, dict]:
+    if not SECRETS_TESTBOXES.exists():
+        return {}
+    try:
+        raw = json.load(open(SECRETS_TESTBOXES, encoding="utf-8"))
+        return raw.get("profiles", {})
+    except Exception as e:
+        print(f"Warning: failed to read {SECRETS_TESTBOXES}: {e}")
+        return {}
+
+
+def save_profiles(profiles: Dict[str, dict]) -> None:
+    SECRETS_TESTBOXES.write_text(
+        json.dumps({"profiles": profiles}, indent=2), encoding="utf-8")
+    try:
+        SECRETS_TESTBOXES.chmod(0o600)  # credentials: owner-only
+    except OSError:
+        pass
+
+
+def redact_profile(p: dict) -> dict:
+    """Profile as safe to return from the API (never the password itself)."""
+    out = {k: v for k, v in p.items() if k != "password"}
+    out["has_password"] = bool(p.get("password"))
+    return out
+
+
+def normalize_profile(body: dict) -> dict:
+    """Merge submitted fields over defaults; keep only known keys."""
+    prof = dict(PROFILE_DEFAULTS)
+    for k in list(PROFILE_DEFAULTS) + list(PROFILE_REQUIRED):
+        if k in body and body[k] is not None:
+            prof[k] = body[k]
+    missing = [k for k in PROFILE_REQUIRED if not prof.get(k)]
+    if missing:
+        raise ValueError(f"profile missing required fields: {', '.join(missing)}")
+    return prof
+
+
+# ---------------------------------------------------------------------------
+# Framework log parsing (pure, offline-testable)
+# ---------------------------------------------------------------------------
+
+_TS_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}:\s?")
+_CASE_START = re.compile(r"^>> test-(.+?)\s*$")
+_CASE_END = re.compile(
+    r"^<< test-(.+?):\s*(PASS|FAIL|ERROR|UNSUPPORTED)\s*"
+    r"\(numPassed:\s*(\d+)\s*numFailed:\s*(\d+)\)")
+_PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
+_FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
+
+
+def parse_framework_log(text: str) -> Dict[str, Any]:
+    """Parse an ATTestSet log into per-case results.
+
+    Returns {cases: [{name, result, pass_msgs, fail_msgs, log_lines: [start, end]}],
+             numPassed, numFailed, unparsed_fails}
+    log_lines are 0-based indexes into the stripped-line list, used to pull
+    excerpts for the LLM fix prompt.
+    """
+    lines = text.splitlines()
+    cases: List[dict] = []
+    current: Optional[dict] = None
+    unparsed_fails = 0
+
+    for i, raw in enumerate(lines):
+        line = _TS_PREFIX.sub("", raw).rstrip()
+        m = _CASE_START.match(line)
+        if m:
+            if current is not None:  # previous case never closed (crash/abort)
+                current["result"] = current.get("result") or "ERROR"
+                current["log_lines"][1] = i - 1
+                cases.append(current)
+            current = {"name": m.group(1), "result": None,
+                       "pass_msgs": [], "fail_msgs": [], "log_lines": [i, None]}
+            continue
+        m = _CASE_END.match(line)
+        if m:
+            if current is None or m.group(1) != current["name"]:
+                # footer without matching header — record standalone
+                current = current or {"name": m.group(1), "result": None,
+                                      "pass_msgs": [], "fail_msgs": [], "log_lines": [i, None]}
+            current["result"] = m.group(2)
+            current["numPassed"] = int(m.group(3))
+            current["numFailed"] = int(m.group(4))
+            current["log_lines"][1] = i
+            cases.append(current)
+            current = None
+            continue
+        m = _PASS_LINE.match(line)
+        if m:
+            if current is not None:
+                current["pass_msgs"].append(m.group(1))
+            continue
+        m = _FAIL_LINE.match(line)
+        if m:
+            if current is not None:
+                current["fail_msgs"].append(m.group(1))
+            else:
+                unparsed_fails += 1
+
+    if current is not None:  # log ended mid-case
+        current["result"] = current.get("result") or "ERROR"
+        current["log_lines"][1] = len(lines) - 1
+        cases.append(current)
+
+    return {
+        "cases": [{k: v for k, v in c.items()} for c in cases],
+        "numPassed": sum(c.get("numPassed", len(c["pass_msgs"])) for c in cases),
+        "numFailed": sum(c.get("numFailed", len(c["fail_msgs"])) for c in cases),
+        "unparsed_fails": unparsed_fails,
+    }
+
+
+def failure_excerpts(text: str, parsed: Dict[str, Any], context: int = 15,
+                     max_chars: int = 4000) -> List[dict]:
+    """Bounded log excerpt per failing case, for the fix prompt."""
+    lines = text.splitlines()
+    out = []
+    for c in parsed.get("cases", []):
+        if c.get("result") in ("PASS", None):
+            continue
+        start, end = c.get("log_lines", [0, 0])
+        end = end if end is not None else min(start + 80, len(lines) - 1)
+        lo = max(0, start)
+        hi = min(len(lines), end + context + 1)
+        excerpt = "\n".join(lines[lo:hi])
+        if len(excerpt) > max_chars:
+            excerpt = excerpt[:max_chars // 2] + "\n... [truncated] ...\n" + excerpt[-max_chars // 2:]
+        out.append({"case": c["name"], "text": excerpt})
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Remote execution
+# ---------------------------------------------------------------------------
+
+def _connect(profile: dict):
+    import paramiko
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    kwargs = {
+        "hostname": profile["host"],
+        "port": int(profile.get("port", 22)),
+        "username": profile.get("user", "st-art"),
+        "timeout": 20,
+    }
+    if profile.get("auth") == "password" and profile.get("password"):
+        kwargs["password"] = profile["password"]
+        kwargs["allow_agent"] = False
+        kwargs["look_for_keys"] = False
+    else:
+        key_path = str(Path(profile.get("key_path") or "~/.ssh/id_rsa").expanduser())
+        kwargs["key_filename"] = key_path
+    client.connect(**kwargs)
+    return client
+
+
+def check_profile(profile: dict) -> Dict[str, Any]:
+    """SSH connect + framework presence + passwordless sudo probe."""
+    result = {"ok": False, "ssh": False, "framework": False, "sudo": False, "detail": ""}
+    try:
+        client = _connect(profile)
+    except Exception as e:
+        result["detail"] = f"SSH connection failed: {e}"
+        return result
+    result["ssh"] = True
+    try:
+        fw = profile.get("framework_path", "/home/st-art/framework")
+        _, out, _ = client.exec_command(f"test -d {fw} && echo yes || echo no", timeout=15)
+        result["framework"] = out.read().decode().strip() == "yes"
+        _, out, _ = client.exec_command("sudo -n true && echo yes || echo no", timeout=15)
+        result["sudo"] = "yes" in out.read().decode()
+        _, out, _ = client.exec_command("hostname && python3 --version", timeout=15)
+        result["detail"] = out.read().decode().strip()
+        result["ok"] = result["ssh"] and result["framework"] and result["sudo"]
+        if not result["framework"]:
+            result["detail"] += f" | framework not found at {fw}"
+        if not result["sudo"]:
+            result["detail"] += " | passwordless sudo unavailable (required to run tests)"
+    finally:
+        client.close()
+    return result
+
+
+class RunManager:
+    """One background run at a time per case key; state persisted via callback."""
+
+    def __init__(self):
+        self._threads: Dict[str, threading.Thread] = {}
+        self._lock = threading.Lock()
+
+    def is_running(self, key: str) -> bool:
+        t = self._threads.get(key)
+        return bool(t and t.is_alive())
+
+    def start(self, key: str, run: dict, profile: dict, files: Dict[str, str],
+              setup_remote: str, local_run_dir: Path, on_update) -> None:
+        """Launch the run thread. `files` = {filename: code}. `on_update(run)` persists."""
+        with self._lock:
+            if self.is_running(key):
+                raise RuntimeError("a run is already active for this case")
+            t = threading.Thread(
+                target=self._run, name=f"pt-run-{key}",
+                args=(run, profile, files, setup_remote, local_run_dir, on_update),
+                daemon=True)
+            self._threads[key] = t
+            t.start()
+
+    def _run(self, run: dict, profile: dict, files: Dict[str, str],
+             setup_remote: str, local_run_dir: Path, on_update) -> None:
+        test_name = run["test_file"]
+        workdir = f"{profile.get('remote_workdir', '/home/st-art/pytest-create')}/{run['case_key']}/{run['run_id']}"
+        timeout_s = int(profile.get("timeout_s", 1800))
+        try:
+            run["status"] = "connecting"
+            on_update(run)
+            client = _connect(profile)
+        except Exception as e:
+            run.update({"status": "error", "error": f"SSH connect failed: {e}",
+                        "finished_at": datetime.utcnow().isoformat()})
+            on_update(run)
+            return
+
+        try:
+            run["status"] = "uploading"
+            on_update(run)
+            client.exec_command(f"mkdir -p {workdir}")[1].channel.recv_exit_status()
+            sftp = client.open_sftp()
+            for fname, code in files.items():
+                with sftp.open(f"{workdir}/{fname}", "w") as f:
+                    f.write(code)
+            sftp.close()
+
+            # framework resolves via the box's symlink; PYTHONPATH covers boxes
+            # where the symlink lives elsewhere (profile framework_path parent).
+            fw_parent = str(Path(profile.get("framework_path", "/home/st-art/framework")).parent)
+            cmd = (f"cd {workdir} && ln -sfn {profile.get('framework_path')} framework && "
+                   f"sudo -n PYTHONPATH={fw_parent} python3 ./{test_name} -s {setup_remote} -v")
+            run["status"] = "running"
+            run["command"] = cmd
+            on_update(run)
+
+            _, out, err = client.exec_command(cmd, timeout=timeout_s, get_pty=True)
+            deadline = time.time() + timeout_s
+            chunks = []
+            while not out.channel.exit_status_ready():
+                if time.time() > deadline:
+                    raise TimeoutError(f"run exceeded {timeout_s}s")
+                while out.channel.recv_ready():
+                    chunks.append(out.channel.recv(65536).decode(errors="replace"))
+                time.sleep(2)
+            while out.channel.recv_ready():
+                chunks.append(out.channel.recv(65536).decode(errors="replace"))
+            exit_code = out.channel.recv_exit_status()
+            stdout_text = "".join(chunks)
+
+            # Retrieve the framework log (named after the script basename)
+            local_run_dir.mkdir(parents=True, exist_ok=True)
+            (local_run_dir / "stdout.txt").write_text(stdout_text, encoding="utf-8")
+            log_name = Path(test_name).with_suffix(".log").name
+            log_text = ""
+            sftp = client.open_sftp()
+            try:
+                remote_logs = [f for f in sftp.listdir(workdir) if f.endswith(".log")]
+                preferred = log_name if log_name in remote_logs else (remote_logs[0] if remote_logs else None)
+                if preferred:
+                    local_log = local_run_dir / preferred
+                    sftp.get(f"{workdir}/{preferred}", str(local_log))
+                    log_text = local_log.read_text(encoding="utf-8", errors="replace")
+                    run["log_file"] = str(local_log)
+            finally:
+                sftp.close()
+
+            run["exit_code"] = exit_code
+            run["parsed"] = parse_framework_log(log_text or stdout_text)
+            run["status"] = "done"
+            run["finished_at"] = datetime.utcnow().isoformat()
+            on_update(run)
+        except Exception as e:
+            run.update({"status": "error", "error": str(e),
+                        "finished_at": datetime.utcnow().isoformat()})
+            on_update(run)
+        finally:
+            client.close()
+
+
+run_manager = RunManager()

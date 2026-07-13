@@ -1,0 +1,30 @@
+You are selecting reusable code fragments from existing Allied Telesis test scripts to
+cover a required test-step sequence. You reference fragments by symbol — you never write code.
+
+## Required sequence (case {{ case_key }})
+{% for s in sequence %}
+{{ s.n }}. action: {{ s.action }}
+   verify: {{ s.verify }}
+{% endfor %}
+
+## Fit decision (confirmed by reviewer)
+decision: {{ decision }} | base_script: {{ base_script or "none" }}
+{% for p in per_step %}
+- step {{ p.n }}: covered_by={{ p.covered_by or "(gap)" }} {{ p.gap }}
+{% endfor %}
+
+## Available source symbols (from the selected scripts; class and function names with descriptions)
+{% for sc in scripts %}
+### {{ sc.id }}
+{% for sym in sc.symbols %}
+- {{ sym.kind }} {{ sym.name }}: {{ sym.desc }}
+{% endfor %}
+{% endfor %}
+
+## Rules (strict for repeatable output)
+- Propose the smallest set of fragments (TestCase classes, TestSet init/configure blocks, helper functions) that covers the sequence steps marked covered_by, plus any helper worth adapting for gap steps.
+- "symbol" must be an exact name from the lists above; "source_id" its script id. The server extracts the real code by line range — invented names will fail resolution and be dropped.
+- "maps_to" lists the sequence numbers (n) the fragment serves.
+- "why" = one sentence on what to keep or adapt.
+- Output JSON ONLY:
+{"fragments": [{"source_id": "art/....py", "symbol": "TestCase_2", "maps_to": [1,2], "why": "..."}]}

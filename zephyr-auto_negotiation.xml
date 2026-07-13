@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project>
+    <projectId>15310</projectId>
+    <projectKey>AWPTCM</projectKey>
+    <modelVersion>1.0</modelVersion>
+    <jiraVersion>9.4.3</jiraVersion>
+    <exportDate>2026-07-13 02:18:49 UTC</exportDate>
+    <folders>
+        <folder fullPath="New Platform Test (MASTER)" index="251"/>
+        <folder fullPath="New Platform Test (MASTER)/New Platform Template" index="2"/>
+        <folder fullPath="New Platform Test (MASTER)/New Platform Template/Port" index="0"/>
+    </folders>
+    <testCases>
+        <testCase id="152882" key="AWPTCM-T33233">
+            <attachments/>
+            <confluencePageLinks/>
+            <createdBy>Terrence Beach</createdBy>
+            <createdOn>2026-06-25 12:15:47 UTC</createdOn>
+            <customFields/>
+            <folder><![CDATA[New Platform Test (MASTER)/New Platform Template/Port]]></folder>
+            <issues/>
+            <labels>
+                <label><![CDATA[New_Platform_Port]]></label>
+            </labels>
+            <name><![CDATA[Port - Auto Negotiation]]></name>
+            <objective><![CDATA[<ul><li>A port with no pluggable present defaults to automatic speed and duplex negotiation.</li><li>Inserting a supported pluggable results in successful autonegotiation and link establishment.</li><li>A port configured for Auto speed and duplex establishes a link with a compliant link partner.</li><li>Link establishment succeeds when one side is set to Auto and the partner is forced to a supported speed or duplex.</li><li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li><li>Link status is correctly reported as up once autonegotiation completes.</li><li>Automatic speed and duplex negotiation produces a working link across all supported configurations with a compliant partner.</li></ul>]]></objective>
+            <precondition><![CDATA[]]></precondition>
+            <priority><![CDATA[Normal]]></priority>
+            <status><![CDATA[Draft]]></status>
+            <parameters/>
+            <testScript type="steps">
+                <steps>
+                    <step index="0">
+                        <customFields/>
+                        <description><![CDATA[The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/5000_mdi_mdix<br />Note the automated test covers multiple test cases.<br />also see https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T37856<br /><br />Note: Related ART Tests linked in Traceability]]></description>
+                        <expectedResult><![CDATA[]]></expectedResult>
+                    </step>
+                    <step index="1">
+                        <customFields/>
+                        <description><![CDATA[Verify default behavior and autonegotiation with no pluggable present (Auto as default for speed and duplex). Insert a supported pluggable and confirm autonegotiation occurs and link is established.]]></description>
+                    </step>
+                    <step index="2">
+                        <customFields/>
+                        <description><![CDATA[Set the port to Auto for speed and duplex. With link partner also on Auto, confirm link is established and port reports as Auto while showing the negotiated speed/duplex.]]></description>
+                    </step>
+                    <step index="3">
+                        <customFields/>
+                        <description><![CDATA[Vary link partner configurations across supported speeds and duplex modes (one side Auto, both sides Auto, partner forced to supported rates). Confirm successful link establishment in each case.]]></description>
+                    </step>
+                    <step index="4">
+                        <customFields/>
+                        <description><![CDATA[Test with incompatible partner speed/duplex settings. Confirm link does not establish (or is correctly reported as down).]]></description>
+                    </step>
+                    <step index="5">
+                        <customFields/>
+                        <description><![CDATA[Hot-insert and hot-remove supported pluggables while the port is set to Auto. Confirm link negotiation occurs cleanly on insertion and link status updates correctly on removal. Speak to the SVT team to get an arrangement of pluggables for testing.]]></description>
+                    </step>
+                    <step index="6">
+                        <customFields/>
+                        <description><![CDATA[Where the platform and media support it, test with EcoMode enabled and disabled on Auto-negotiated links. Confirm EcoMode behavior and that link remains stable.]]></description>
+                    </step>
+                </steps>
+            </testScript>
+            <updatedBy>Terrence Beach</updatedBy>
+            <updatedOn>2026-06-30 08:44:05 UTC</updatedOn>
+        </testCase>
+    </testCases>
+</project>

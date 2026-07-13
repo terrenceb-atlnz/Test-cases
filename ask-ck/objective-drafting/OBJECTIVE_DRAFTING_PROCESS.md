@@ -394,7 +394,7 @@ Add / populate this section:
 
 Do **not** continue to Step 4 (ATPyLib) until the Zephyr cross-reference findings have been reviewed and incorporated (or explicitly scoped out).
 
-**Tool support note**: The server-backed drafting tool (`drafting-tool/`) provides real candidate data for Steps 1-2 and LLM-assisted pre-selection for Step 3 (via retrieval + `suggest_atp` prompt), with user confirmation required. See `drafting-tool/SERVER-README.md`.
+**Tool support note**: The server-backed Ask CK workbench (`ask-ck/CK-main/` — Objective/Test Case Generator) provides real candidate data for Steps 1-2 and LLM-assisted pre-selection for Step 3 (via retrieval + `suggest_atp` prompt), with user confirmation required. See `ask-ck/CK-main/SERVER-README.md`.
 
 ---
 
@@ -508,7 +508,7 @@ See the main `Test-cases/README.md` and reference exports such as `zephyr-scale-
 - For non-Port areas, drop pluggable/LPI references and substitute feature-appropriate conditions (e.g. restart, failover, scale, unsupported options).
 - During drafting, if you discover a better primary match or additional coverage, update the corresponding `data/decisions/dec_XX.json` entry (and note confidence).
 
-**Tool assistance**: The `drafting-tool/` server app now surfaces real candidates for Steps 1-2 and provides LLM pre-selection assistance for Step 3 ATPyLib (user still confirms). Step 4 synthesis includes human-readable display. See `drafting-tool/SERVER-README.md`.
+**Tool assistance**: The Ask CK server app (`ask-ck/CK-main/`) now surfaces real candidates for Steps 1-2 and provides LLM pre-selection assistance for Step 3 ATPyLib (user still confirms). Step 4 synthesis includes human-readable display. See `ask-ck/CK-main/SERVER-README.md`. (In the Ask CK UI these process steps appear as Generator steps 2-6.)
 
 **Mini skeleton for a non-Port area (example: basic IPv4 ICMP echo)**
 

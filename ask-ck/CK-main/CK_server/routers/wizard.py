@@ -34,6 +34,7 @@ from llm import (
     check_grok_cli,
 )
 from jinja2 import Environment, FileSystemLoader
+from paths import REFINED_DIR, ASKCK_ROOT
 
 router = APIRouter()
 
@@ -738,7 +739,7 @@ async def load_case(key: str, data=Depends(get_data)):
 
 def _refined_complete_keys() -> set:
     """Cases with drop-in refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json are 'complete'."""
-    refined_root = BASE_DIR.parent.parent / "refined-cases"
+    refined_root = REFINED_DIR
     done = set()
     if not refined_root.exists():
         return done
@@ -1149,7 +1150,7 @@ def _get_refined_group(case_key: str, data: dict) -> str:
     folder = zephyr.get(case_key, {}).get("folder", "") or ""
     base = folder.rstrip("/").split("/")[-1] if folder else "Other"
 
-    refined_root = BASE_DIR.parent.parent / "refined-cases"
+    refined_root = REFINED_DIR
     if refined_root.exists():
         for d in sorted(refined_root.iterdir()):
             if d.is_dir():
@@ -1433,9 +1434,16 @@ async def grok_cli_status():
     return check_grok_cli()
 
 
+@router.post("/set_llm_config")
 @router.post("/set_llm_config/{key}")
-async def set_llm_config(key: str, body: dict):
-    """Login-like endpoint. Sets per-session LLM provider.
+async def set_llm_config(body: dict, key: Optional[str] = None):
+    """Login-like endpoint. Sets the workspace LLM provider (and, when a case
+    key is supplied, that case's session config too).
+
+    The case key is OPTIONAL: applying an LLM config no longer requires a loaded
+    case. Without a key, the choice is saved as the workspace default
+    (sessions/_workspace_llm.json) and load_case copies it onto any case that has
+    no active config.
 
     Supports two styles:
     - "api_key": classic developer key (from the provider's console)
@@ -1447,9 +1455,11 @@ async def set_llm_config(key: str, body: dict):
     Legacy "account" configs (old token-paste flow) are still accepted and treated
     like api_key. Credentials are stored server-side only and never returned.
     """
-    sess = sessions.get(key) or _load_persisted(key)
-    if not sess:
-        raise HTTPException(404, "Session not found. Load a case first.")
+    sess = None
+    if key:
+        # Best-effort: attach to the case session when it exists, but an unknown
+        # key must not block the workspace-level apply.
+        sess = sessions.get(key) or _load_persisted(key)
 
     provider = (body.get("provider") or "grok").lower().strip()
     auth_method = (body.get("auth_method") or "api_key").lower().strip()
@@ -1469,30 +1479,33 @@ async def set_llm_config(key: str, body: dict):
     if auth_method == "grok_cli" and provider != "grok":
         raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
 
-    # Apply to session (credentials stay on server)
-    sess.llm_config.provider = provider
-    sess.llm_config.auth_method = auth_method
+    # Build the config (credentials stay on server)
+    cfg = LLMConfig(provider=provider, auth_method=auth_method)
     if api_key:
-        sess.llm_config.api_key = api_key
+        cfg.api_key = api_key
     if token:
-        sess.llm_config.token = token
+        cfg.token = token
     if base_url:
-        sess.llm_config.base_url = base_url
+        cfg.base_url = base_url
 
     if model:
-        sess.llm_config.model = model
+        cfg.model = model
     else:
         # Sensible defaults per provider
         if provider == "grok" and auth_method != "grok_cli":
-            sess.llm_config.model = "grok-beta"
+            cfg.model = "grok-beta"
         elif provider == "claude" and auth_method != "claude_code":
-            sess.llm_config.model = "claude-3-5-sonnet-20241022"
+            cfg.model = "claude-3-5-sonnet-20241022"
         # claude_code / grok_cli: leave model unset so the CLI's own default is used
 
-    _mark_updated(sess)
-    _persist_session(sess)
     # Remember as workspace default so future case loads keep this LLM choice
-    _save_global_llm(sess.llm_config)
+    _save_global_llm(cfg)
+
+    # Also apply to the case session when one is loaded/known
+    if sess:
+        sess.llm_config = cfg
+        _mark_updated(sess)
+        _persist_session(sess)
 
     # Headless mode readiness comes from the CLI install, not a stored credential
     cli_status = check_claude_cli() if auth_method == "claude_code" else None
@@ -1500,24 +1513,27 @@ async def set_llm_config(key: str, body: dict):
 
     # Return safe view (no credentials)
     safe_config = {
-        "provider": sess.llm_config.provider,
-        "auth_method": sess.llm_config.auth_method,
-        "has_key": bool(sess.llm_config.api_key or sess.llm_config.token) or
+        "provider": cfg.provider,
+        "auth_method": cfg.auth_method,
+        "has_key": bool(cfg.api_key or cfg.token) or
                    (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
                    (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))),
-        "model": sess.llm_config.model,
-        "base_url": sess.llm_config.base_url,
+        "model": cfg.model,
+        "base_url": cfg.base_url,
     }
     if cli_status is not None:
         safe_config["claude_cli"] = cli_status
     if grok_cli_status is not None:
         safe_config["grok_cli"] = grok_cli_status
 
-    return {
-        "message": f"LLM config set for {provider} (saved for this case and as workspace default).",
+    scope = "this case and the workspace default" if sess else "the workspace default"
+    result = {
+        "message": f"LLM config set for {provider} (saved for {scope}).",
         "llm_config": safe_config,
-        "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump()
     }
+    if sess:
+        result["session"] = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
+    return result
 
 def _session_key_from_req(req: SynthesisRequest) -> str:
     key = None
@@ -1942,7 +1958,10 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     export_message = ""
     try:
         group = _get_refined_group(case_key, data)
-        refined_root = BASE_DIR.parent.parent / "refined-cases"
+        # Post-restructure (2026-07-13) refined-cases live under
+        # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor
+        # from paths.py, matching _get_refined_group and _refined_complete_keys.
+        refined_root = REFINED_DIR
         target_dir = refined_root / group / case_key
         target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1955,9 +1974,10 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             (target_dir / name).write_text(content, encoding="utf-8")
             saved_files.append(name)
 
-        # Prefer repo-relative path for display (portable across machines)
+        # Prefer repo-relative path for display (portable across machines).
+        # ASKCK_ROOT.parent is the Test-cases repo root.
         try:
-            saved_to = str(target_dir.relative_to(BASE_DIR.parent.parent))
+            saved_to = str(target_dir.relative_to(ASKCK_ROOT.parent))
         except ValueError:
             saved_to = str(target_dir)
         export_message = f"Saved drop-in bundle to {saved_to}/"

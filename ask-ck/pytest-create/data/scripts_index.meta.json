@@ -1,0 +1,39 @@
+{
+ "built_at": "2026-07-14T08:08:44",
+ "roots": {
+  "art": "/media/terrenceb/mnt/testbox_home/testsuites_art",
+  "svt": "/media/terrenceb/mnt/testbox_home/svt_scripts",
+  "legacy": "/media/terrenceb/mnt/testbox_home/test_scripts"
+ },
+ "excludes": [
+  "1371_trex_traffic_tests",
+  "trex_libs",
+  "Python-3.9.19",
+  "__pycache__",
+  ".git",
+  "ixnetwork_restpy_git",
+  "node_modules"
+ ],
+ "counts": {
+  "art": {
+   "test": 188,
+   "library": 51,
+   "tool": 0
+  },
+  "svt": {
+   "test": 22,
+   "library": 17,
+   "tool": 38
+  },
+  "legacy": {
+   "test": 284,
+   "library": 66,
+   "tool": 333
+  }
+ },
+ "total_files": 999,
+ "parse_errors": 120,
+ "enriched": 0,
+ "enrichment_pct": 0.0,
+ "framework_modules": 55
+}

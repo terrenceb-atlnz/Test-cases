@@ -1,5 +1,7 @@
 # Session State — Objective Drafting Workflow (2026-06-25 / 2026-06-26)
 
+> **Path note (2026-07-13):** entries before the "Repo Restructure + Ask CK" entry use the pre-restructure layout. Mapping: `drafting-tool/` → `ask-ck/CK-main/` (server code `drafting_server/` → `CK_server/`); root `data/` and `refined-cases/` and the process docs → `ask-ck/objective-drafting/`. Historical entries are kept verbatim.
+
 ## Summary
 This session focused on refining and standardizing the Objective drafting process for AWPTCM manual test cases.
 
@@ -832,3 +834,51 @@ Future drafting sessions must cross-reference:
 ---
 
 
+
+## 2026-07-13 Session (later) — Repo Restructure + "Ask CK" Multi-Tool Facelift
+
+**Focus:** Convert the single-use drafting tool into the **Ask CK** multi-tool workbench: repo restructure support (repathing), UI facelift, new-tool scaffolding, docs repathed repo-wide.
+
+**Restructure (user-initiated, mid-session):**
+- `drafting-tool/` → `ask-ck/CK-main/`; `drafting_server/` → `CK_server/`.
+- Root `data/`, `refined-cases/`, and process docs (PROGRESS, LESSONS_LEARNED, PLAN-server-backed, OBJECTIVE_DRAFTING_PROCESS) → `ask-ck/objective-drafting/`.
+- Per-tool asset dirs pre-staged: `ask-ck/pytest-create/`, `ask-ck/test-composer/`, `ask-ck/zephyr-tool/`.
+
+**Accomplishments:**
+- **Repathing:** new `CK_server/paths.py` (DATA_DIR / REFINED_DIR / PROCESS_MD anchors); fixed `data.py` (was CWD-relative), both `refined-cases` roots in `wizard.py`, `/process` path in `main.py`, and `run.sh` (`PYTHONPATH=CK-main`, `CK_server.main:app`). Boot-verified with full data: 410 cases (368 open / 42 complete / 3 in progress).
+- **Facelift** (plan: `ask-ck/ck-facelift/PLAN-facelift.md`): renamed to **Ask CK** (tab title, sidebar logo, FastAPI title). Sidebar sections (always expanded, top→bottom): **LLM** (status + **Configure** main-area panel — the relocated LLM Provider Login, element ids preserved, zero LLM-JS changes), **Zephyr Templating Tool** (1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD), **Test Composer** (1. TBD), **PyTest Creator** (1. Cases / 2. Creator), **Objective/Test Case Generator** (visible steps renumbered **1–6**, display-only — internal `data-step`/session-key/`confirm_step` scheme untouched).
+- **Navigation:** generic `goToPanel(panelId)` + `goToStep()` wrapper + `PANEL_META` page-header registry; ✓ nav-badges scoped to the Generator; dead code removed (`showLLMConfig`, `#llm-config-card`, phantom `#llmCredential`).
+- **PyTest Creator Cases wired:** independent dropdown pair fed by the same `/api/wizard/cases` fetch (shared `handleCasePairChange`); selection isolated in `ptCase` (never touches the Generator's `currentKey`).
+- **Backend stubs:** `routers/zephyr_tool.py`, `test_composer.py`, `pytest_create.py` → `/api/zephyr-tool|test-composer|pytest-create/status` (+ pytest `generate/{key}` → 501).
+- **Docs repathed:** root `README.md`, `PROGRESS.md`, `SERVER-README.md`, `LESSONS_LEARNED.md`, BoS/EoS prompts, `objective-drafting/README.md`, `CK_server/README.md`, `OBJECTIVE_DRAFTING_PROCESS.md` tool notes; historical docs (this file's earlier entries, PLAN-server-backed.md) keep original paths with banner notes.
+
+**State:** Generator fully functional at new paths (automated verification: boot + data counts, stub endpoints, served UI, JS syntax). Next: manual browser smoke of the facelift, output hardening, real-CLI E2E, first real step of a new tool. `tool/` scripts not yet verified against new paths.
+
+**Primary handoff:** start at `ask-ck/objective-drafting/PROGRESS.md`. Run with `./ask-ck/CK-main/run.sh`.
+
+---
+
+
+## 2026-07-14 Session — PyTest Creator (test cases → runnable framework scripts)
+
+**Focus:** Build out the **PyTest Creator** (previously a 501 stub) into a full 8-step gated tool that turns a Complete refined case into a runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test script, executes it on a real testbox, and iterates via an LLM fix loop until Final Validation. Plan + living tracker: `ask-ck/pytest-create/PLAN-pytest-creator.md`.
+
+**Flow (each step has an explicit server-side Confirm gate; confirming step N invalidates later steps):**
+1. Cases → 2. Sequence (LLM extracts prescriptive automatable steps from the refined payload; traceability note skipped) → 3. Script Search (mechanical index scoring + LLM coverage verdicts) → 4. Fit Decision (reuse/extend/new) → 5. Fragments (LLM proposes symbols; server resolves to real source by indexed line range; invented symbols dropped) → 6. Generate (composite script + editable `generated/<Group>/<Name>.py` naming + offline lint) → 7. Run (SSH/SFTP to a stored testbox, `sudo python3 <script> -s <setup> -v`, parse framework log) → 8. Validate (all cases PASS + zero fails + exit 0 → human confirm; failures loop via LLM fix, previous iteration archived).
+
+**Key decisions (user):** hybrid index (mechanical AST + resumable LLM enrichment); the tool executes on a real testbox chosen from a stored dropdown (tb_number + IP minimum, "Add new testbox…" inline); function-based output names under the refined-case group structure (`generated/Port/MDIX_test.py`), editable at creation; `framework` treated as a whole library (drivers, ATLibrary helpers, ATPackets), not just the two base classes.
+
+**Accomplishments:**
+- **Script index** — new `tool/build_script_index.py`: AST scan of `testsuites_art` / `svt_scripts` / `test_scripts` (999 files; 120 py2-vintage regex fallbacks) capturing per-TestCase desc/ref/method (incl. `+=` accumulation), class line ranges, topology, imports; plus a `--framework` pass → `framework_surface.json` (55 modules from `DeviceSkrips/framework`). Outputs to `ask-ck/pytest-create/data/`. `tool/enrich_script_index.py` adds a resumable (sha1-keyed) LLM tagging/summary pass.
+- **Backend** — `CK_server`: `paths.py`/`data.py` load the index at startup (graceful when absent); `models.py` `PtSession`; `llm.py` gained a `timeout` param threaded through the CLI callers + generic `run_prompt`/`extract_json_block`; new `pt_exec.py` (testbox profiles in gitignored `secrets.testboxes.json` @0600 with write-only/redacted passwords, `parse_framework_log()`, threaded paramiko SSH runner with per-stage persisted status + stale-marking on restart); full rewrite of `routers/pytest_create.py` (~25 endpoints across status/session/confirm/sequence/search/fit/fragments/generate/lint/profiles/run/fix/validate).
+- **Prompts** — 7 templates: `pt_extract_sequence`, `pt_match_scripts`, `pt_assess_fit`, `pt_gather_fragments`, `pt_generate_script`, `pt_fix_script`, `enrich_script_index`.
+- **Frontend** (`static/index.html`) — PyTest Creator sidebar expanded to 8 steps + a Testboxes panel; each panel follows the Run-LLM → review/edit → Confirm skeleton; ✓ badges driven by `data-pt-step` / `updatePtBadges()` (separate from the Generator's `data-step`, per the facelift scoping rule). Run panel has the testbox dropdown (`name — tb<NN> (IP)` + "➕ Add new testbox…"), poll + PASS/FAIL chips + raw log tail.
+- **Docs** — `SERVER-README.md` PyTest Creator section; root `README.md` status row + workflow section + repo-layout note; tracker checklist/log kept current in `ask-ck/pytest-create/PLAN-pytest-creator.md`.
+
+**Verified without hardware:** server boots and loads the index (999 files, 55 modules); `load_case` snapshots the refined payload and skips the traceability step; mechanical search returns `legacy/5000_mdi_mdix/*` as top hits for AWPTCM-T33234; confirm gates 409 out-of-order actions; `parse_framework_log()` unit tests pass (PASS/FAIL/crash-mid-case); profile CRUD redacts+chmods and is gitignored; all new Python + the page JS syntax-check clean; served page contains all panels.
+
+**State / next:** Code complete across Phases A–D. Remaining (needs credentials/hardware): run `tool/enrich_script_index.py` with a logged-in CLI then rebuild; first real-LLM walkthrough of steps 2–6 (suggested case AWPTCM-T33234); first real-testbox SSH run; decide gitignore/LFS for the regenerable `ask-ck/pytest-create/data/` index (~2.6 MB, currently untracked).
+
+**Primary handoff for PyTest Creator work:** start at `ask-ck/pytest-create/PLAN-pytest-creator.md`. Run with `./ask-ck/CK-main/run.sh`.
+
+---

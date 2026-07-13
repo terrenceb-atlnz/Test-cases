@@ -43,9 +43,13 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from data import load_all_data
+from paths import PROCESS_MD
 from routers.wizard import router as wizard_router
+from routers.zephyr_tool import router as zephyr_tool_router
+from routers.test_composer import router as test_composer_router
+from routers.pytest_create import router as pytest_create_router
 
-app = FastAPI(title="Objective Drafting Tool (Server-Backed)")
+app = FastAPI(title="Ask CK (Server-Backed)")
 
 # Serve the migrated frontend using absolute path relative to this file
 static_dir = os.path.join(BASE_DIR, "static")
@@ -60,6 +64,9 @@ async def startup_event():
     print("Data ready.")
 
 app.include_router(wizard_router, prefix="/api/wizard")
+app.include_router(zephyr_tool_router, prefix="/api/zephyr-tool")
+app.include_router(test_composer_router, prefix="/api/test-composer")
+app.include_router(pytest_create_router, prefix="/api/pytest-create")
 
 
 @app.get("/favicon.ico")
@@ -85,7 +92,7 @@ async def process_page():
     Basic server-rendered version with headings and step anchors for deep links.
     Cross-references PLAN-server-backed.md (function 1) and PROGRESS.md (process reference priority).
     """
-    process_path = os.path.join(BASE_DIR, "..", "..", "OBJECTIVE_DRAFTING_PROCESS.md")
+    process_path = str(PROCESS_MD)
     content = "# OBJECTIVE_DRAFTING_PROCESS\n\nFull markdown content could not be loaded."
     if os.path.exists(process_path):
         try:

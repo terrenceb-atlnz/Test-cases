@@ -98,7 +98,7 @@ def check_grok_cli() -> Dict[str, Any]:
     return {"available": True, "path": path, "version": version, "hint": None}
 
 
-def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any]) -> Dict[str, Any]:
+def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180) -> Dict[str, Any]:
     """Call the locally logged-in Grok CLI in single-turn headless mode.
 
     Auth model: the hosting user has run `grok login --oauth` (SuperGrok or
@@ -128,7 +128,7 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any]) -> Di
         if model and model not in ("", "default"):
             cmd += ["--model", model]
 
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
             raise RuntimeError(detail)
@@ -143,7 +143,7 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any]) -> Di
         return meta
 
     except subprocess.TimeoutExpired:
-        err_msg = "ERROR: LLM call failed (grok via grok_cli): CLI call timed out after 180s"
+        err_msg = f"ERROR: LLM call failed (grok via grok_cli): CLI call timed out after {timeout}s"
         print(err_msg)
         meta.update({"content": err_msg, "raw_response": {"error": "timeout"}, "error": True})
         return meta
@@ -160,7 +160,7 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any]) -> Di
                 pass
 
 
-def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any]) -> Dict[str, Any]:
+def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180) -> Dict[str, Any]:
     """Call the locally logged-in Claude Code CLI in headless print mode.
 
     Auth model: each user hosts this tool locally and has logged the CLI in with
@@ -183,7 +183,7 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any]) ->
 
     try:
         # Prompt via stdin: templated prompts can exceed argv limits.
-        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=180)
+        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout)
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
             raise RuntimeError(detail)
@@ -210,7 +210,7 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any]) ->
         return meta
 
     except subprocess.TimeoutExpired:
-        err_msg = "ERROR: LLM call failed (claude via claude_code): CLI call timed out after 180s"
+        err_msg = f"ERROR: LLM call failed (claude via claude_code): CLI call timed out after {timeout}s"
         print(err_msg)
         meta.update({"content": err_msg, "raw_response": {"error": "timeout"}, "error": True})
         return meta
@@ -221,7 +221,7 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any]) ->
         return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key") -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180) -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
     Supports multiple login styles (chosen in the UI):
@@ -266,9 +266,9 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
 
     # Headless CLI modes (subscription accounts) need no credential here.
     if provider == "claude" and auth_method == "claude_code":
-        return _call_claude_code_headless(prompt, model, meta)
+        return _call_claude_code_headless(prompt, model, meta, timeout=timeout)
     if provider == "grok" and auth_method == "grok_cli":
-        return _call_grok_cli_headless(prompt, model, meta)
+        return _call_grok_cli_headless(prompt, model, meta, timeout=timeout)
 
     credential = api_key
     if not credential:
@@ -944,3 +944,58 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
         "ranked": [{"id": c.get("id"), "score": 0.7, "reason": "Selected via fallback keyword matching"} for c in top],
     }
 
+
+
+def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional[Dict] = None,
+               timeout: int = 180) -> Dict[str, Any]:
+    """Generic templated LLM call (used by the PyTest Creator + index enrichment).
+
+    Renders templates/prompts/<template_name> with `context`, resolves the
+    provider/auth from the session or env like every wizard call, and returns
+    the raw meta dict from _call_llm_with_meta (content, provider, error, ...).
+    Long generation prompts may pass a larger timeout than the 180s default.
+    """
+    rt = _resolve_llm_runtime(llm_config)
+    prompt = render_prompt(template_name, context)
+    meta = _call_llm_with_meta(
+        prompt,
+        provider=rt["provider"],
+        api_key=rt["credential"],
+        base_url=rt["base_url"],
+        model=rt["model"],
+        auth_method=rt["auth_method"],
+        timeout=timeout,
+    )
+    meta["template"] = template_name
+    return meta
+
+
+def extract_json_block(content: str) -> Any:
+    """Best-effort extraction of the first JSON object/array from LLM output.
+
+    Handles ```json fences and leading prose. Returns None when nothing parses.
+    """
+    if not content:
+        return None
+    fenced = re.search(r"```(?:json)?\s*(.+?)```", content, re.DOTALL)
+    if fenced:
+        try:
+            return json.loads(fenced.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+    for opener, closer in (("[", "]"), ("{", "}")):
+        start = content.find(opener)
+        if start == -1:
+            continue
+        depth = 0
+        for i in range(start, len(content)):
+            if content[i] == opener:
+                depth += 1
+            elif content[i] == closer:
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(content[start:i + 1])
+                    except json.JSONDecodeError:
+                        break
+    return None

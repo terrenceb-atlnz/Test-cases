@@ -1,0 +1,22 @@
+You are enriching an index of Allied Telesis network-switch test scripts for search.
+For each record below, produce a one-sentence summary, feature tags, and covered actions.
+
+## Records (mechanical extraction: path, imports, test-case descriptions, helper names)
+{% for r in records %}
+### {{ r.id }}
+kind: {{ r.kind }} | suite dir: {{ r.suite_dir }} | parse_error: {{ r.parse_error }}
+imports: {{ r.imports | join(", ") }}
+{% if r.docstring %}docstring: {{ r.docstring }}{% endif %}
+{% if r.test_cases %}test cases:
+{% for tc in r.test_cases[:15] %}- {{ tc.class }}: {{ tc.desc }}{% if tc.method %} | method: {{ tc.method[:200] }}{% endif %}
+{% endfor %}{% endif %}
+{% if r.helpers %}helpers: {% for h in r.helpers[:20] %}{{ h.name }}{% if h.doc %} ({{ h.doc }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{% endfor %}
+
+## Rules (strict for repeatable output)
+- "summary": one sentence, <= 30 words, stating what the script tests or provides.
+- "feature_tags": 2-6 lowercase tags from networking-feature vocabulary (e.g. "vlan", "poe", "lldp", "acl", "qos", "ospf", "stacking", "reboot", "sfp", "mdix", "igmp", "port-mirroring", "auth", "dhcp-snooping", "epsr", "traffic-generation"). Use the suite dir and descriptions as evidence; do not guess beyond them.
+- "covered_actions": 2-8 short imperative phrases of concrete things the code does ("configure vlan", "send lldp packet", "parse show power-inline", "power-cycle dut", "measure throughput").
+- Every input id MUST appear exactly once in the output.
+- Output JSON ONLY:
+{"enriched": [{"id": "...", "summary": "...", "feature_tags": ["..."], "covered_actions": ["..."]}]}

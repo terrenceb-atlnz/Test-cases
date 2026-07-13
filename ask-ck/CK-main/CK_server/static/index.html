@@ -2,7 +2,7 @@
 <html class="dark">
 <head>
 <meta charset="utf-8">
-<title>Objective Drafting Tool — Server-Backed</title>
+<title>Ask CK — Test Tooling Workbench</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -177,11 +177,60 @@ body {
   margin-bottom: 24px;
 }
 
+.sidebar-logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
 .sidebar-logo-text {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
+
+/* Main splash page */
+.splash { max-width: 820px; margin: 0 auto; }
+.splash-hero { text-align: center; padding: 8px 0 20px; }
+.splash-hero img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-default);
+  margin-bottom: 12px;
+}
+.splash-hero h1 { font-size: 24px; font-weight: 600; color: var(--text-primary); margin: 0 0 6px; }
+.splash-hero p { font-size: 14px; color: var(--text-secondary); margin: 0 auto; max-width: 620px; line-height: 1.6; }
+.splash-section {
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+.splash-section > summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.splash-section > summary::-webkit-details-marker { display: none; }
+.splash-section > summary::after { content: '▸'; color: var(--text-tertiary); transition: transform 150ms; }
+.splash-section[open] > summary::after { transform: rotate(90deg); }
+.splash-section > summary:hover { background: var(--bg-hover); }
+.splash-body { padding: 4px 18px 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.splash-body ol { margin: 6px 0 6px 18px; padding: 0; }
+.splash-body li { margin-bottom: 5px; }
+.splash-body .tbd { font-style: italic; color: var(--text-tertiary); }
+.splash-tag { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .sidebar-section-label {
   font-size: 11px;
@@ -246,6 +295,16 @@ body {
   align-items: flex-start;
   justify-content: space-between;
 }
+
+.page-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.page-eyebrow:empty { display: none; }
 
 .page-title {
   font-size: 20px;
@@ -384,6 +443,40 @@ body {
 }
 .btn-export:focus-visible {
   box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px rgba(13, 148, 136, 0.55);
+}
+
+/* Placeholder panels for tools under construction */
+.placeholder-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  margin-top: 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.placeholder-panel svg {
+  width: 28px;
+  height: 28px;
+  color: var(--text-tertiary);
+}
+.placeholder-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.placeholder-text {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  max-width: 420px;
+}
+.placeholder-status {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 .btn:disabled {
@@ -799,7 +892,7 @@ h2 {
 .status-muted { color:var(--text-secondary); }
 .btn-compact-small { font-size:12px; padding:2px 8px; height:26px; white-space:nowrap; }
 .form-input-small { width:160px; }
-.form-input-search { flex:1; min-width:140px; font-size:12px; height:28px; }
+.form-input-search { flex:0 1 auto; width:260px; max-width:100%; min-width:140px; font-size:12px; height:28px; }
 .hidden { display: none !important; }
 .form-textarea-small { width:100%; height:60px; margin-top:8px; }
 .session-pre { background:var(--bg-tertiary); padding:8px; font-size:11px; max-height:160px; overflow:auto; margin:0; }
@@ -907,9 +1000,9 @@ h2 {
 .icon-inline { margin-right: 4px; vertical-align: middle; }
 .icon-inline-sm { margin-right: 4px; vertical-align: -1px; }
 .llm-status { font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
-.btn-compact { font-size:12px; height:auto; padding:6px 10px; flex:1; }
+.btn-compact { font-size:12px; height:auto; padding:6px 10px; flex:0 0 auto; }
 .btn-small { font-size:11px; min-width: 90px; border-radius: 999px; flex:0 0 auto; padding:4px 10px; }
-.form-select.mb-1 { width:100%; font-size:13px; }
+.form-select.mb-1 { width:auto; max-width:480px; min-width:240px; font-size:13px; }
 .case-select-label {
   display: block;
   font-size: 11px;
@@ -929,8 +1022,9 @@ h2 {
 <div class="layout">
   <!-- Sidebar from design guidelines: extends full to top, no separate header above it -->
   <div class="sidebar">
-    <div class="sidebar-logo">
-      <span class="sidebar-logo-text">Objective Drafting Tool</span>
+    <div class="sidebar-logo" onclick="goToPanel('panel-main')" title="Ask CK — home" style="cursor:pointer;">
+      <img src="/static/ckc.jpg" alt="CK" class="sidebar-logo-img" />
+      <span class="sidebar-logo-text">Ask CK</span>
     </div>
 
     <!-- Theme toggle inside sidebar (no top header bar) -->
@@ -939,39 +1033,125 @@ h2 {
       <span id="theme-icon">🌙</span>
     </button>
 
+    <!-- Help -->
+    <div class="sidebar-section-label">Help</div>
+    <div class="sidebar-steps">
+      <div onclick="goToPanel('panel-main')" class="sidebar-nav-item" data-panel="panel-main">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Main
+      </div>
+    </div>
+
     <!-- LLM Status (always visible) -->
     <div class="sidebar-section-label">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
       LLM
     </div>
     <div id="llm-status-sidebar" class="llm-status">Not configured</div>
-
-    <!-- Steps navigation -->
-    <div class="sidebar-section-label">Steps</div>
     <div class="sidebar-steps">
+      <div onclick="goToPanel('panel-llm-config')" class="sidebar-nav-item" data-panel="panel-llm-config">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Configure
+      </div>
+    </div>
+
+    <!-- Zephyr Templating Tool -->
+    <div class="sidebar-section-label">Zephyr Templating Tool</div>
+    <div class="sidebar-steps">
+      <div onclick="goToPanel('panel-zt-info')" class="sidebar-nav-item" data-panel="panel-zt-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        1. Info
+      </div>
+      <div onclick="goToPanel('panel-zt-plan')" class="sidebar-nav-item" data-panel="panel-zt-plan">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        2. Test Plan / Cycle / Cases
+      </div>
+      <div onclick="goToPanel('panel-zt-link')" class="sidebar-nav-item" data-panel="panel-zt-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        3. Link Test Scripts
+      </div>
+      <div onclick="goToPanel('panel-zt-tbd')" class="sidebar-nav-item" data-panel="panel-zt-tbd">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        4. TBD
+      </div>
+    </div>
+
+    <!-- Test Composer -->
+    <div class="sidebar-section-label">Test Composer</div>
+    <div class="sidebar-steps">
+      <div onclick="goToPanel('panel-tc-tbd')" class="sidebar-nav-item" data-panel="panel-tc-tbd">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        1. TBD
+      </div>
+    </div>
+
+    <!-- PyTest Creator (data-pt-step drives its ✓ badges via updatePtBadges — separate from the Generator's data-step scheme) -->
+    <div class="sidebar-section-label">PyTest Creator</div>
+    <div class="sidebar-steps" id="nav-pt">
+      <div onclick="goToPanel('panel-pt-cases')" class="sidebar-nav-item" data-panel="panel-pt-cases">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        1. Cases
+      </div>
+      <div onclick="goToPanel('panel-pt-seq')" class="sidebar-nav-item" data-panel="panel-pt-seq" data-pt-step="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        2. Sequence
+      </div>
+      <div onclick="goToPanel('panel-pt-search')" class="sidebar-nav-item" data-panel="panel-pt-search" data-pt-step="3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        3. Script Search
+      </div>
+      <div onclick="goToPanel('panel-pt-fit')" class="sidebar-nav-item" data-panel="panel-pt-fit" data-pt-step="4">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        4. Fit Decision
+      </div>
+      <div onclick="goToPanel('panel-pt-frag')" class="sidebar-nav-item" data-panel="panel-pt-frag" data-pt-step="5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        5. Fragments
+      </div>
+      <div onclick="goToPanel('panel-pt-gen')" class="sidebar-nav-item" data-panel="panel-pt-gen" data-pt-step="6">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        6. Generate
+      </div>
+      <div onclick="goToPanel('panel-pt-run')" class="sidebar-nav-item" data-panel="panel-pt-run" data-pt-step="7">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        7. Run
+      </div>
+      <div onclick="goToPanel('panel-pt-validate')" class="sidebar-nav-item" data-panel="panel-pt-validate" data-pt-step="8">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        8. Validate
+      </div>
+      <div onclick="goToPanel('panel-pt-testbox')" class="sidebar-nav-item" data-panel="panel-pt-testbox">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+        Testboxes
+      </div>
+    </div>
+
+    <!-- Objective/Test Case Generator (existing wizard; data-step drives badges + confirm linkage — labels are display-only) -->
+    <div class="sidebar-section-label">Objective/Test Case Generator</div>
+    <div class="sidebar-steps" id="nav-generator">
       <div onclick="goToStep(0)" class="sidebar-nav-item active" data-step="0">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M9 9h6v6H9z"/></svg>
-        0. Cases + LLM
+        1. Cases
       </div>
       <div onclick="goToStep(1)" class="sidebar-nav-item" data-step="1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-        1. TestLink
+        2. TestLink
       </div>
       <div onclick="goToStep(2)" class="sidebar-nav-item" data-step="2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-        2. Zephyr
+        3. Zephyr
       </div>
       <div onclick="goToStep(3)" class="sidebar-nav-item" data-step="3">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        3. ATPyLib (scored)
+        4. ATPyLib (scored)
       </div>
       <div onclick="goToStep(4)" class="sidebar-nav-item" data-step="4">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
-        4. Objectives (LLM)
+        5. Objectives (LLM)
       </div>
       <div onclick="goToStep(5)" class="sidebar-nav-item" data-step="5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-        5. Test Steps (LLM)
+        6. Test Steps (LLM)
       </div>
     </div>
   </div>
@@ -980,16 +1160,81 @@ h2 {
   <div class="main">
     <div class="page-header">
       <div>
+        <div class="page-eyebrow"></div>
         <div class="page-title"></div>
         <div class="page-description">Review data sources then synthesize with LLM.</div>
       </div>
     </div>
 
-    <!-- Step 0: Cases + LLM -->
-    <div id="step-0" class="card">
+    <!-- Main splash / Help home -->
+    <div id="panel-main" class="card tool-panel hidden">
+      <div class="splash">
+        <div class="splash-hero">
+          <img src="/static/ckc.jpg" alt="CK" />
+          <h1>Welcome to Ask CK</h1>
+          <p>Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case
+          program. It brings the tools for enriching manual test cases, mapping them to
+          automation, and turning them into runnable scripts into one place. Pick a tool from
+          the sidebar, or read the step-by-step guides below. Most tools use an LLM via a local
+          subscription CLI — set that up first under <b>LLM → Configure</b>.</p>
+        </div>
+
+        <div class="splash-tag" style="margin:14px 0 8px;">Tool guides (inverse order of the sidebar list)</div>
+
+        <details class="splash-section" open>
+          <summary>Objective / Test Case Generator</summary>
+          <div class="splash-body">
+            The original Ask CK tool. Turns a sparse AWPTCM manual case into a refined case with
+            declarative objectives, Zephyr-ready test steps, and traceability — with a review gate
+            at every step.
+            <ol>
+              <li><b>1. Cases</b> — pick a case from the Open/partial or Complete dropdown and Load it.</li>
+              <li><b>2. TestLink</b> — review the primary decision and candidate historical cases; Search or Suggest with the LLM, then Confirm your selections.</li>
+              <li><b>3. Zephyr</b> — review related external Zephyr cross-references; Confirm.</li>
+              <li><b>4. ATPyLib (scored)</b> — review the scored automation-coverage candidates and Confirm which ART suites apply.</li>
+              <li><b>5. Objectives (LLM)</b> — synthesize the declarative objective artefacts from the confirmed reviews; edit, then Confirm.</li>
+              <li><b>6. Test Steps (LLM)</b> — synthesize the Zephyr test steps from the finalized objective, then <b>Export the Repeatable Bundle</b> — this writes <code>traceability.md</code> + <code>zephyr_payload.json</code> into <code>refined-cases/&lt;Group&gt;/</code>. A case becomes "Complete" once this exists.</li>
+            </ol>
+          </div>
+        </details>
+
+        <details class="splash-section">
+          <summary>PyTest Creator</summary>
+          <div class="splash-body">
+            Turns a <b>Complete</b> case (one exported by the Generator above) into a runnable
+            Allied Telesis <code>framework</code> (ATTestSet/ATTestCase) test script, then runs it on
+            real hardware and iterates until it passes. Each step has a Confirm gate.
+            <ol>
+              <li><b>1. Cases</b> — pick a Complete case and Load it (use <b>↻ Refresh list</b> after exporting new cases in the Generator).</li>
+              <li><b>2. Sequence</b> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
+              <li><b>3. Script Search</b> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
+              <li><b>4. Fit Decision</b> — decide whether the sequence fits an existing script (reuse / extend) or needs a new one; Confirm.</li>
+              <li><b>5. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
+              <li><b>6. Generate</b> — the LLM composes the script from fragments + gaps; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
+              <li><b>7. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
+              <li><b>8. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
+            </ol>
+            <div style="margin-top:6px;">First-time setup: build the script index with <code>tool/build_script_index.py</code>, and add a testbox under the <b>Testboxes</b> sidebar item.</div>
+          </div>
+        </details>
+
+        <details class="splash-section">
+          <summary>Test Composer</summary>
+          <div class="splash-body"><span class="tbd">TBD — scaffolded, not yet implemented.</span></div>
+        </details>
+
+        <details class="splash-section">
+          <summary>Zephyr Templating Tool</summary>
+          <div class="splash-body"><span class="tbd">TBD — scaffolded, not yet implemented.</span></div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Generator step 0: Cases -->
+    <div id="step-0" class="card tool-panel">
       <div class="section">
-        <div class="section-heading">Cases + LLM Configuration</div>
-        <div class="section-description">Select a test case and configure the LLM provider.</div>
+        <div class="section-heading">Cases</div>
+        <div class="section-description">Select a test case to work on, then Load it. Export or clear its session from here too.</div>
 
         <!-- Case selectors: incomplete vs complete -->
         <div class="mt-2">
@@ -1019,9 +1264,14 @@ h2 {
           </div>
         </div>
 
-        <!-- LLM Configuration (moved from old card) -->
+      </div>
+    </div>
+
+    <!-- LLM Provider Login (relocated from old Step 0; opened via sidebar LLM → Configure) -->
+    <div id="panel-llm-config" class="card tool-panel hidden">
+      <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use your locally logged-in subscription (Grok CLI for SuperGrok/X Premium+ or Claude Code CLI for Team). No developer API keys. The radio buttons select the provider and mode.</div>
+        <div class="section-description">Use your locally logged-in subscription (Grok CLI for SuperGrok/X Premium+ or Claude Code CLI for Team). No developer API keys. The radio buttons select the provider and mode. Apply / Login saves the workspace default (no case required); it is applied to cases as they load, and also stored on the currently selected case if there is one.</div>
 
         <div class="radio-group">
           <label class="radio-label">
@@ -1062,16 +1312,13 @@ h2 {
       </div>
     </div>
 
-    <!-- LLM Config Card is now permanently hosted inside Step 0 -->
-    <div id="llm-config-card" class="card hidden"></div>
-
     <!-- Step Contents -->
     <div id="load-status" class="loading-banner hidden">Loading case data…</div>
 
-    <div id="step-1" class="card">
+    <div id="step-1" class="card tool-panel">
       <div class="section">
         <div class="step-heading-row">
-          <div class="section-heading">Step 1: TestLink</div>
+          <div class="section-heading">Step 2: TestLink</div>
           <span id="step1-badge" class="badge hidden">Confirmed</span>
         </div>
         <div class="section-description">Review primary decision and TestLink candidates. Search or ask the LLM to suggest, then confirm selections.</div>
@@ -1086,10 +1333,10 @@ h2 {
       </div>
     </div>
 
-    <div id="step-2" class="card hidden">
+    <div id="step-2" class="card tool-panel hidden">
       <div class="section">
         <div class="step-heading-row">
-          <div class="section-heading">Step 2: Zephyr</div>
+          <div class="section-heading">Step 3: Zephyr</div>
           <span id="step2-badge" class="badge hidden">Confirmed</span>
         </div>
         <div class="section-description">Review relevance-ranked external Zephyr cases (current Cases list omitted). Search or suggest more, then confirm.</div>
@@ -1103,10 +1350,10 @@ h2 {
       </div>
     </div>
 
-    <div id="step-3" class="card hidden">
+    <div id="step-3" class="card tool-panel hidden">
       <div class="section">
         <div class="step-heading-row">
-          <div class="section-heading">Step 3: ATPyLib (scored)</div>
+          <div class="section-heading">Step 4: ATPyLib (scored)</div>
           <span id="step3-badge" class="badge hidden">Confirmed</span>
         </div>
         <div class="section-description">Review scored ATPyLib candidates (LLM + keyword). Optionally search or re-suggest, then select relevant tests. Coverage gaps are generated by the LLM at synthesis/export for Traceability — not edited here.</div>
@@ -1120,45 +1367,45 @@ h2 {
       </div>
     </div>
 
-    <div id="step-4" class="card hidden">
+    <div id="step-4" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">
-          <span>Step 4: Objective Synthesis (LLM)</span>
+          <span>Step 5: Objective Synthesis (LLM)</span>
           <span id="step4-badge" class="badge hidden"></span>
         </div>
         <div class="section-description">
           Generate declarative objective artefacts from the confirmed review summary (TestLink / Zephyr / ATPyLib).
-          Review and edit, then <strong>confirm</strong> before synthesizing test steps in Step 5.
+          Review and edit, then <strong>confirm</strong> before synthesizing test steps in Step 6.
         </div>
 
-        <!-- Review Summary for richer preview of selections from steps 1-3 -->
+        <!-- Review Summary for richer preview of selections from the review steps -->
         <div id="review-summary" class="review-summary">
-          <h4>Review Summary (from steps 1–3)</h4>
-          <div id="review-summary-content"><em>Load and confirm steps 1-3 to see selection previews here.</em></div>
+          <h4>Review Summary (from steps 2–4)</h4>
+          <div id="review-summary-content"><em>Load and confirm steps 2-4 to see selection previews here.</em></div>
         </div>
 
         <div class="synth-actions mb-2">
           <button type="button" onclick="synthesizeObjectives()" class="btn btn-primary">Synthesize Objectives (LLM)</button>
-          <button type="button" onclick="confirmObjectives()" class="btn btn-secondary">Confirm Objectives → Step 5</button>
+          <button type="button" onclick="confirmObjectives()" class="btn btn-secondary">Confirm Objectives → Step 6</button>
         </div>
         <div id="objective-result"></div>
       </div>
     </div>
 
-    <div id="step-5" class="card hidden">
+    <div id="step-5" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">
-          <span>Step 5: Test Step Synthesis (LLM)</span>
+          <span>Step 6: Test Step Synthesis (LLM)</span>
           <span id="step5-badge" class="badge hidden"></span>
         </div>
         <div class="section-description">
-          Generate verification steps from the <strong>finalized objective</strong> (Step 4) plus review context.
+          Generate verification steps from the <strong>finalized objective</strong> (Step 5) plus review context.
           The first step is always the server-built traceability note. Export the repeatable bundle when ready.
         </div>
 
         <div id="finalized-objective-preview" class="review-summary mb-2">
-          <h4>Finalized objective (from Step 4)</h4>
-          <div id="finalized-objective-content"><em>Confirm an objective in Step 4 first.</em></div>
+          <h4>Finalized objective (from Step 5)</h4>
+          <div id="finalized-objective-content"><em>Confirm an objective in Step 5 first.</em></div>
         </div>
 
         <div class="synth-actions mb-2">
@@ -1166,6 +1413,262 @@ h2 {
           <button type="button" onclick="startEditSteps()" class="btn btn-secondary" id="edit-steps-btn">Edit / Revise Steps</button>
         </div>
         <div id="steps-result"></div>
+      </div>
+    </div>
+
+    <!-- Zephyr Templating Tool (stubs) -->
+    <div id="panel-zt-info" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">Zephyr Templating Tool — Info</div>
+        <div class="section-description">Collect release/version metadata and templating inputs that drive Zephyr plan, cycle, and case creation.</div>
+        <div class="placeholder-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div class="placeholder-title">Under construction</div>
+          <div class="placeholder-text">This step will gather the template info needed to create Zephyr artefacts.</div>
+          <div class="placeholder-status" id="zt-info-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-zt-plan" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">Zephyr Templating Tool — Test Plan / Cycle / Cases</div>
+        <div class="section-description">Create templated Zephyr test plans, cycles, and cases from the Info step.</div>
+        <div class="placeholder-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <div class="placeholder-title">Under construction</div>
+          <div class="placeholder-text">Plan / cycle / case templating will be implemented here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-zt-link" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">Zephyr Templating Tool — Link Test Scripts</div>
+        <div class="section-description">Link generated Zephyr cases to their test scripts.</div>
+        <div class="placeholder-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <div class="placeholder-title">Under construction</div>
+          <div class="placeholder-text">Test-script linking will be implemented here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-zt-tbd" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">Zephyr Templating Tool — TBD</div>
+        <div class="section-description">Reserved for a future step.</div>
+        <div class="placeholder-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <div class="placeholder-title">Under construction</div>
+          <div class="placeholder-text">Scope to be defined.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Composer (stub) -->
+    <div id="panel-tc-tbd" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">Test Composer — TBD</div>
+        <div class="section-description">Compose tests from building blocks. Scope to be defined.</div>
+        <div class="placeholder-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          <div class="placeholder-title">Under construction</div>
+          <div class="placeholder-text">The Test Composer's first step is not yet designed.</div>
+          <div class="placeholder-status" id="tc-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Cases (selection independent of the Generator's loaded case) -->
+    <div id="panel-pt-cases" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">PyTest Creator — Cases</div>
+        <div class="section-description">Pick the completed case to generate pytest code for (only cases with a refined <code>zephyr_payload.json</code> are listed). Selection here is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator.</div>
+        <div class="mt-2">
+          <div class="compact-flex mb-1">
+            <label class="case-select-label" for="ptCaseSelDone" id="ptCaseSelDoneLabel">Complete</label>
+            <button onclick="ptRefreshCases()" class="btn btn-compact" id="pt-refresh-btn" title="Re-scan refined-cases for newly completed cases">↻ Refresh list</button>
+          </div>
+          <select id="ptCaseSelDone" class="form-select mb-1 case-select" data-bucket="complete">
+            <option value="">Select completed case…</option>
+          </select>
+          <div class="compact-flex mb-2">
+            <button onclick="ptLoadCase()" class="btn btn-primary btn-compact">Load Case &amp; Continue</button>
+            <span id="pt-selected-summary" class="justification-note"></span>
+          </div>
+          <div id="pt-load-status" class="justification-note"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 2 — Sequence -->
+    <div id="panel-pt-seq" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 2. Sequence <span id="pt-badge-2" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Identify the prescriptive sequence of automatable test steps from the refined case, review/edit, then confirm.</div>
+        <div id="pt-seq-case" class="mt-2 mb-2"></div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptExtractSequence()" class="btn btn-primary btn-compact" id="pt-seq-extract-btn">Extract Sequence (LLM)</button>
+          <button onclick="ptSaveSequence()" class="btn btn-compact">Save Edits</button>
+          <button onclick="ptConfirm(2)" class="btn btn-compact">Confirm Step 2</button>
+        </div>
+        <div id="pt-seq-status" class="justification-note mb-2"></div>
+        <div id="pt-seq-list"></div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 3 — Script Search -->
+    <div id="panel-pt-search" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 3. Script Search <span id="pt-badge-3" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Check the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence. Tick the ones to carry forward, add guidance, then confirm.</div>
+        <div class="compact-flex mb-2">
+          <input id="pt-search-q" type="text" class="form-input form-input-search" placeholder="Free search of the script index…" onkeydown="if(event.key==='Enter')ptManualSearch()">
+          <button onclick="ptManualSearch()" class="btn btn-compact">Search</button>
+          <button onclick="ptSuggestScripts()" class="btn btn-primary btn-compact" id="pt-suggest-btn">Suggest from Sequence (LLM)</button>
+        </div>
+        <textarea id="pt-user-inputs" class="form-textarea-small form-input" placeholder="Additional guidance for matching (topology constraints, platforms, must-use libraries…)"></textarea>
+        <div id="pt-search-status" class="justification-note mb-2"></div>
+        <div id="pt-match-list" class="mt-2"></div>
+        <div class="compact-flex mt-2">
+          <button onclick="ptSaveMatches()" class="btn btn-compact">Save Selections</button>
+          <button onclick="ptConfirm(3)" class="btn btn-compact">Confirm Step 3</button>
+        </div>
+        <div id="pt-source-view" class="mt-2"></div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 4 — Fit Decision -->
+    <div id="panel-pt-fit" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 4. Fit Decision <span id="pt-badge-4" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Would the sequence fit cleanly into a selected script (reuse/extend), or is a new script needed?</div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptAssessFit()" class="btn btn-primary btn-compact" id="pt-fit-btn">Assess Fit (LLM)</button>
+          <label class="justification-note">Decision:</label>
+          <select id="pt-fit-decision" class="form-select" style="width:auto" onchange="ptFitEdited()">
+            <option value="">—</option><option value="reuse">reuse</option>
+            <option value="extend">extend</option><option value="new">new</option>
+          </select>
+          <button onclick="ptSaveFit()" class="btn btn-compact">Save</button>
+          <button onclick="ptConfirm(4)" class="btn btn-compact">Confirm Step 4</button>
+        </div>
+        <div id="pt-fit-status" class="justification-note mb-2"></div>
+        <div id="pt-fit-result"></div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 5 — Fragments -->
+    <div id="panel-pt-frag" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 5. Fragments <span id="pt-badge-5" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Re-use real code from the selected scripts: the LLM proposes symbols; the server resolves them to actual source. Untick anything not worth carrying, then confirm.</div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptGatherFragments()" class="btn btn-primary btn-compact" id="pt-frag-btn">Gather Fragments (LLM)</button>
+          <button onclick="ptSaveFragments()" class="btn btn-compact">Save Kept Fragments</button>
+          <button onclick="ptConfirm(5)" class="btn btn-compact">Confirm Step 5</button>
+        </div>
+        <div id="pt-frag-status" class="justification-note mb-2"></div>
+        <div id="pt-frag-list"></div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 6 — Generate -->
+    <div id="panel-pt-gen" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 6. Generate <span id="pt-badge-6" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Generate the composite framework script (reused fragments + LLM for the gaps). Adjust the output naming, review/edit the code, lint, save, then confirm.</div>
+        <div class="compact-flex mb-2">
+          <label class="justification-note">Group:</label>
+          <input id="pt-gen-group" class="form-input form-input-small" placeholder="Port">
+          <label class="justification-note">Script name:</label>
+          <input id="pt-gen-name" class="form-input form-input-small" placeholder="MDIX_test">
+          <span id="pt-gen-path" class="justification-note"></span>
+        </div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptGenerateScript()" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM)</button>
+          <button onclick="ptLintScript()" class="btn btn-compact">Lint</button>
+          <button onclick="ptSaveScript()" class="btn btn-compact">Save to generated/</button>
+          <button onclick="ptConfirm(6)" class="btn btn-compact">Confirm Step 6</button>
+        </div>
+        <div id="pt-gen-status" class="justification-note mb-2"></div>
+        <div id="pt-lint-result" class="mb-2"></div>
+        <textarea id="pt-gen-code" class="form-input editor-textarea" style="height:420px" spellcheck="false" placeholder="Generated script appears here…"></textarea>
+        <div id="pt-gen-lib-wrap" class="hidden">
+          <div class="justification-note mt-2">Companion library: <span id="pt-gen-lib-name"></span></div>
+          <textarea id="pt-gen-lib-code" class="form-input editor-textarea" style="height:180px" spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 7 — Run -->
+    <div id="panel-pt-run" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 7. Run <span id="pt-badge-7" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Execute the confirmed script on a testbox. Pick a stored testbox (or add a new one), choose the .setup, run, and watch the parsed results.</div>
+        <div class="compact-flex mb-2">
+          <label class="justification-note">Testbox:</label>
+          <select id="pt-run-profile" class="form-select" style="width:auto" onchange="ptProfileSelected(this)"></select>
+          <button onclick="ptCheckProfile()" class="btn btn-compact">Check Connection</button>
+          <label class="justification-note">Setup:</label>
+          <select id="pt-run-setup" class="form-select" style="width:auto"></select>
+          <input id="pt-run-setup-path" class="form-input form-input-small" placeholder="…or remote .setup path">
+        </div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptRun()" class="btn btn-primary btn-compact" id="pt-run-btn">Run on Testbox</button>
+          <button onclick="ptConfirm(7)" class="btn btn-compact">Confirm Step 7</button>
+          <span id="pt-run-status" class="justification-note"></span>
+        </div>
+        <div id="pt-run-results" class="mb-2"></div>
+        <details><summary class="justification-note">Raw log tail</summary><pre id="pt-run-log" class="session-pre"></pre></details>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Step 8 — Validate -->
+    <div id="panel-pt-validate" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading step-heading-row">PyTest Creator — 8. Validate <span id="pt-badge-8" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Final Validation: latest run finished, every TestCase PASS, zero failures. On failures, loop back with an LLM fix; on all-PASS, confirm to close out.</div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptValidate()" class="btn btn-primary btn-compact">Run Final Validation</button>
+          <button onclick="ptFixScript()" class="btn btn-compact" id="pt-fix-btn">Fix with LLM (from failures)</button>
+          <button onclick="ptConfirm(8)" class="btn btn-compact">Confirm Step 8 (close out)</button>
+        </div>
+        <div id="pt-validate-status" class="justification-note mb-2"></div>
+        <div id="pt-validate-result"></div>
+      </div>
+    </div>
+
+    <!-- PyTest Creator: Testboxes (profiles) -->
+    <div id="panel-pt-testbox" class="card tool-panel hidden">
+      <div class="section">
+        <div class="section-heading">PyTest Creator — Testboxes</div>
+        <div class="section-description">Stored testbox connections (kept in the gitignored secrets.testboxes.json; passwords are write-only). These populate the Run panel's dropdown.</div>
+        <div id="pt-tb-list" class="mb-2"></div>
+        <div class="section-heading mt-2" style="font-size:12px">Add / edit testbox</div>
+        <div class="compact-flex mb-1">
+          <input id="pt-tb-name" class="form-input form-input-small" placeholder="Name (e.g. lab-box-3)">
+          <input id="pt-tb-number" class="form-input form-input-small" placeholder="tb number (e.g. tb105)">
+          <input id="pt-tb-host" class="form-input form-input-small" placeholder="IP address">
+          <input id="pt-tb-user" class="form-input form-input-small" placeholder="user (st-art)">
+        </div>
+        <div class="compact-flex mb-1">
+          <select id="pt-tb-auth" class="form-select" style="width:auto">
+            <option value="key">SSH key</option><option value="password">Password</option>
+          </select>
+          <input id="pt-tb-keypath" class="form-input form-input-small" placeholder="~/.ssh/id_rsa">
+          <input id="pt-tb-password" type="password" class="form-input form-input-small" placeholder="password (write-only)">
+        </div>
+        <div class="compact-flex mb-1">
+          <input id="pt-tb-framework" class="form-input" style="width:220px" placeholder="/home/st-art/framework">
+          <input id="pt-tb-workdir" class="form-input" style="width:220px" placeholder="/home/st-art/pytest-create">
+          <input id="pt-tb-setup" class="form-input" style="width:220px" placeholder="default .setup remote path">
+        </div>
+        <div class="compact-flex mb-2">
+          <button onclick="ptSaveProfile()" class="btn btn-primary btn-compact">Save Testbox</button>
+          <span id="pt-tb-status" class="justification-note"></span>
+        </div>
       </div>
     </div>
 
@@ -1180,6 +1683,9 @@ h2 {
 let currentSession = null;
 let currentKey = null;
 let currentStep = 0;
+let currentPanel = 'step-0';
+// PyTest Creator selection — deliberately separate from currentKey (the Generator's loaded case)
+let ptCase = { key: null, title: null };
 
 async function loadCase() {
   const sel = getActiveCaseKey();
@@ -1302,7 +1808,8 @@ function updateUI() {
     }
   }
 
-  document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+  // Scoped to the Generator section: ✓ nav-badges must never attach to other tools' items
+  document.querySelectorAll('#nav-generator .sidebar-nav-item[data-step]').forEach(item => {
     const step = parseInt(item.getAttribute('data-step'));
     let conf = false;
     if (step === 1) conf = !!(s.step1 && s.step1.confirmed);
@@ -1535,7 +2042,7 @@ function renderObjectiveResult() {
   if (!container) return;
   const obj = getSessionObjective();
   if (!obj) {
-    container.innerHTML = '<em class="review-empty">No objective yet. Confirm steps 1–3, then click Synthesize Objectives.</em>';
+    container.innerHTML = '<em class="review-empty">No objective yet. Confirm steps 2–4, then click Synthesize Objectives.</em>';
     return;
   }
   const conf = !!(currentSession && currentSession.step4 && currentSession.step4.confirmed);
@@ -1571,7 +2078,7 @@ function renderStepsResult() {
   const ts = getSessionTestScript();
   const steps = (ts && ts.steps) || [];
   if (!steps.length) {
-    container.innerHTML = '<em class="review-empty">No test steps yet. Confirm objectives in Step 4, then Synthesize Test Steps.</em>';
+    container.innerHTML = '<em class="review-empty">No test steps yet. Confirm objectives in Step 5, then Synthesize Test Steps.</em>';
     return;
   }
   let stepsHtml = '<ol class="synth-steps">';
@@ -1625,7 +2132,7 @@ function startEditObjective() {
   if (actions) {
     actions.innerHTML = `
       <button type="button" onclick="applyObjectiveEdits(false)" class="btn btn-primary">Save Draft</button>
-      <button type="button" onclick="applyObjectiveEdits(true)" class="btn btn-primary">Save &amp; Confirm → Step 5</button>
+      <button type="button" onclick="applyObjectiveEdits(true)" class="btn btn-primary">Save &amp; Confirm → Step 6</button>
       <button type="button" onclick="cancelObjectiveEdits()" class="btn btn-secondary">Cancel</button>
     `;
   }
@@ -1783,7 +2290,7 @@ function renderReviewSummary() {
   const cont = document.getElementById('review-summary-content');
   if (!cont) return;
   if (!currentSession) {
-    cont.innerHTML = '<em class="review-empty">Load a case and confirm steps 1–3 to see selection previews.</em>';
+    cont.innerHTML = '<em class="review-empty">Load a case and confirm steps 2–4 to see selection previews.</em>';
     return;
   }
 
@@ -1818,9 +2325,9 @@ function renderReviewSummary() {
   }
 
   let html = '';
-  html += renderStepGroup('Step 1 (TestLink)', s1.selections, s1.confirmed, 'id_or_key');
-  html += renderStepGroup('Step 2 (Zephyr)', s2.selections, s2.confirmed, 'id_or_key');
-  html += renderStepGroup('Step 3 (ATPyLib)', s3.selections, s3.confirmed, 'id_or_key');
+  html += renderStepGroup('Step 2 (TestLink)', s1.selections, s1.confirmed, 'id_or_key');
+  html += renderStepGroup('Step 3 (Zephyr)', s2.selections, s2.confirmed, 'id_or_key');
+  html += renderStepGroup('Step 4 (ATPyLib)', s3.selections, s3.confirmed, 'id_or_key');
 
   // Gaps stay in traceability.md only — not shown in the wizard Step 4 UI.
 
@@ -1832,18 +2339,16 @@ function renderReviewSummary() {
       : ' <span class="badge">Draft</span>';
     const shortObj = obj.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const preview = shortObj.length > 160 ? shortObj.slice(0, 157) + '…' : shortObj;
-    html += `<div class="sel-group"><strong>Step 4 (Objective)</strong>${confBadge}: <span class="justification-note">${escapeHtml(preview)}</span></div>`;
+    html += `<div class="sel-group"><strong>Step 5 (Objective)</strong>${confBadge}: <span class="justification-note">${escapeHtml(preview)}</span></div>`;
   }
 
   cont.innerHTML = html;
 }
 
 async function setLLMConfig() {
-  let key = currentKey || getActiveCaseKey();
-  if (!key) {
-    alert('Select and load a case first, then Apply / Login.');
-    return;
-  }
+  // Case is optional: without one the config is saved as the workspace default
+  // (and copied onto cases as they load); with one it is also stored on that session.
+  const key = currentKey || getActiveCaseKey();
   const model = document.getElementById('llmModel').value.trim();
 
   // Determine method from radio (the radios now directly select the subscription provider+mode)
@@ -1859,7 +2364,10 @@ async function setLLMConfig() {
   // CLI subscription modes require no credential here
   if (model) body.model = model;
 
-  const res = await fetch(`/api/wizard/set_llm_config/${key}`, {
+  const url = key
+    ? `/api/wizard/set_llm_config/${encodeURIComponent(key)}`
+    : '/api/wizard/set_llm_config';
+  const res = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(body)
@@ -1993,26 +2501,13 @@ function updateLLMDefaults() {
   }
 }
 
-// showLLMConfig is deprecated - LLM config now lives permanently in Step 0
-function showLLMConfig() {
-  // No-op: users should navigate to Step 0
-  goToStep(0);
-}
-
 function updateAuthMethodUI() {
   // Radios now directly choose the subscription CLI mode (no dropdown, no API key)
   const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'grok_cli';
-  const credInput = document.getElementById('llmCredential');
   const cliBtn = document.getElementById('cliStatusBtn');
   const grokBtn = document.getElementById('grokCliStatusBtn');
   const claudeInstr = document.getElementById('claudeCodeInstructions');
   const grokInstr = document.getElementById('grokCliInstructions');
-
-  // Credential input is not shown/used for CLI subscription modes
-  if (credInput) {
-    credInput.classList.add('hidden');
-    credInput.disabled = true;
-  }
 
   if (method === 'claude_code') {
     if (cliBtn) cliBtn.classList.remove('hidden');
@@ -2116,11 +2611,11 @@ async function confirmStep(step) {
   const data = await res.json();
   currentSession = data.session;
   updateUI();
-  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 4 (Objective Synthesis).');
+  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 5 (Objective Synthesis).');
 }
 
 async function synthesizeObjectives() {
-  if (!currentSession) return alert('Load a case and confirm steps 1–3 first.');
+  if (!currentSession) return alert('Load a case and confirm steps 2–4 first.');
   const btnNote = 'Synthesizing objectives (LLM)…';
   try {
     const res = await fetch('/api/wizard/synthesize_objectives', {
@@ -2145,7 +2640,7 @@ async function synthesizeObjectives() {
 async function synthesizeSteps() {
   if (!currentSession) return alert('Load a case first.');
   if (!getSessionObjective()) {
-    alert('No objective yet. Complete Step 4 (Objective Synthesis) and confirm first.');
+    alert('No objective yet. Complete Step 5 (Objective Synthesis) and confirm first.');
     goToStep(4);
     return;
   }
@@ -2294,24 +2789,40 @@ function syncHiddenCaseSel(key) {
   hidden.appendChild(o);
 }
 
-function onCaseSelectChange(sourceSel) {
-  const openSel = document.getElementById('caseSelOpen');
-  const doneSel = document.getElementById('caseSelDone');
+function handleCasePairChange(openSel, doneSel, sourceSel, onSelect) {
   const key = sourceSel.value || null;
 
   // Mutual exclusivity: selecting in one clears the other
   if (sourceSel === openSel && doneSel) doneSel.value = '';
   if (sourceSel === doneSel && openSel) openSel.value = '';
 
-  currentKey = key;
   const selectedOpt = sourceSel.options[sourceSel.selectedIndex];
+  let title = null;
   if (selectedOpt && selectedOpt.text.includes(' — ')) {
-    window.currentCaseTitle = selectedOpt.text.split(' — ').slice(1).join(' — ');
-  } else {
-    window.currentCaseTitle = null;
+    title = selectedOpt.text.split(' — ').slice(1).join(' — ');
   }
-  syncHiddenCaseSel(key);
-  updatePageHeader();
+  onSelect(key, title);
+}
+
+function onCaseSelectChange(sourceSel) {
+  const openSel = document.getElementById('caseSelOpen');
+  const doneSel = document.getElementById('caseSelDone');
+  handleCasePairChange(openSel, doneSel, sourceSel, (key, title) => {
+    currentKey = key;
+    window.currentCaseTitle = title;
+    syncHiddenCaseSel(key);
+    updatePageHeader();
+  });
+}
+
+function onPtCaseSelectChange(sourceSel) {
+  // PyTest Creator: single Complete-cases dropdown. Must never touch currentKey /
+  // #caseSel / the page header — those belong to the Generator's loaded case.
+  handleCasePairChange(null, null, sourceSel, (key, title) => {
+    ptCase = { key: key, title: title };
+    const s = document.getElementById('pt-selected-summary');
+    if (s) s.textContent = key ? `Selected: ${key}` : '';
+  });
 }
 
 function getActiveCaseKey() {
@@ -2353,6 +2864,21 @@ async function refreshCaseSelects(preserveKey) {
       fillCaseSelect(openSel, openGrouped, 'Select open or partial case…');
       fillCaseSelect(doneSel, doneGrouped, 'Select completed case…');
 
+      // PyTest Creator: Complete cases only (independent selection state)
+      const ptDoneSel = document.getElementById('ptCaseSelDone');
+      fillCaseSelect(ptDoneSel, doneGrouped, 'Select completed case…');
+      const ptDoneLabel = document.getElementById('ptCaseSelDoneLabel');
+      if (ptDoneLabel && doneLabel) ptDoneLabel.innerHTML = doneLabel.innerHTML;
+      if (ptCase.key) {
+        if (ptDoneSel && Array.from(ptDoneSel.options).some(o => o.value === ptCase.key)) {
+          ptDoneSel.value = ptCase.key;
+        } else {
+          ptCase = { key: null, title: null };
+          const s = document.getElementById('pt-selected-summary');
+          if (s) s.textContent = '';
+        }
+      }
+
       // Restore selection into the correct dropdown
       if (keep) {
         const inOpen = openSel && Array.from(openSel.options).some(o => o.value === keep);
@@ -2381,9 +2907,11 @@ async function refreshCaseSelects(preserveKey) {
 async function initCases() {
   const openSel = document.getElementById('caseSelOpen');
   const doneSel = document.getElementById('caseSelDone');
+  const ptDoneSel = document.getElementById('ptCaseSelDone');
   if (!_caseSelectListenersBound) {
     if (openSel) openSel.addEventListener('change', () => onCaseSelectChange(openSel));
     if (doneSel) doneSel.addEventListener('change', () => onCaseSelectChange(doneSel));
+    if (ptDoneSel) ptDoneSel.addEventListener('change', () => onPtCaseSelectChange(ptDoneSel));
     _caseSelectListenersBound = true;
   }
   await refreshCaseSelects();
@@ -2391,8 +2919,11 @@ async function initCases() {
 
 initCases();
 updateAuthMethodUI();
-goToStep(0);  // Start on Cases + LLM
+currentStep = 0;              // Generator defaults to step 0 when first opened
+goToPanel('panel-main');     // Landing view = Main splash / Help home
 updateLLMStatus();
+loadToolStatus('zephyr-tool', 'zt-info-status');
+loadToolStatus('test-composer', 'tc-status');
 
 // Prefer first open/partial case if none chosen (no demo auto-load of a specific key)
 setTimeout(() => {
@@ -2410,19 +2941,40 @@ setTimeout(() => {
   updatePageHeader();
 }, 200);
 
-function goToStep(step) {
-  currentStep = step;
-  for (let i = 0; i <= 5; i++) {
-    const el = document.getElementById('step-' + i);
-    if (el) el.classList.toggle('hidden', i !== step);
-  }
-  // highlight sidebar nav items
+function goToPanel(panelId) {
+  currentPanel = panelId;
+  // Exactly one .tool-panel card visible at a time
+  document.querySelectorAll('.tool-panel').forEach((el) => {
+    el.classList.toggle('hidden', el.id !== panelId);
+  });
+  // Exactly one sidebar item active across ALL tool sections. Generator items
+  // are addressed via their numeric data-step ('step-N'); other tools via data-panel.
   document.querySelectorAll('.sidebar-nav-item').forEach((item) => {
-    const itemStep = parseInt(item.getAttribute('data-step'));
-    item.classList.toggle('active', itemStep === step);
+    const target = item.dataset.panel || (item.dataset.step !== undefined ? 'step-' + item.dataset.step : null);
+    item.classList.toggle('active', target === panelId);
   });
 
   updatePageHeader();
+
+  const ptRenderers = {
+    'panel-pt-seq': renderPtSeqPanel,
+    'panel-pt-search': renderPtSearchPanel,
+    'panel-pt-fit': renderPtFitPanel,
+    'panel-pt-frag': renderPtFragPanel,
+    'panel-pt-gen': renderPtGenPanel,
+    'panel-pt-run': renderPtRunPanel,
+    'panel-pt-validate': renderPtValidatePanel,
+    'panel-pt-testbox': renderPtTestboxPanel,
+  };
+  if (ptRenderers[panelId]) ptRenderers[panelId]();
+}
+
+function goToStep(step) {
+  // Generator navigation. The numeric step scheme (data-step / step-N ids /
+  // session keys step1..step5 / confirm_step 1-3) is load-bearing — sidebar
+  // labels renumbered 1-6 are display-only and do NOT shift these values.
+  currentStep = step;
+  goToPanel('step-' + step);
 
   if (step === 4) {
     renderReviewSummary();
@@ -2438,22 +2990,744 @@ function updatePageHeader() {
   const descEl = document.querySelector('.page-description');
   if (!titleEl || !descEl) return;
 
-  const stepDescs = {
-    0: 'Select case and configure LLM provider.',
-    1: 'Review TestLink candidates; search or suggest, then confirm.',
-    2: 'Review external Zephyr cross-refs; search or suggest, then confirm.',
-    3: 'Review scored ATPyLib candidates and confirm selections.',
-    4: 'Synthesize and confirm objective artefacts from the review summary.',
-    5: 'Synthesize test steps from the finalized objective, then export.'
+  // The Main splash carries its own hero header; hide the page header there.
+  const headerEl = document.querySelector('.page-header');
+  if (headerEl) headerEl.classList.toggle('hidden', currentPanel === 'panel-main');
+
+  // Keyed by panel id. Generator panels (step-N) show the loaded case as the
+  // title; tool panels carry a static title override.
+  const PANEL_META = {
+    'step-0': { desc: 'Select a test case to work on.' },
+    'step-1': { desc: 'Review TestLink candidates; search or suggest, then confirm.' },
+    'step-2': { desc: 'Review external Zephyr cross-refs; search or suggest, then confirm.' },
+    'step-3': { desc: 'Review scored ATPyLib candidates and confirm selections.' },
+    'step-4': { desc: 'Synthesize and confirm objective artefacts from the review summary.' },
+    'step-5': { desc: 'Synthesize test steps from the finalized objective, then export.' },
+    'panel-main': { title: 'Ask CK', desc: 'Home — welcome and step-by-step guides for each tool.' },
+    'panel-llm-config': { title: 'LLM Provider Login', desc: 'Log in to an LLM provider via a local subscription CLI.' },
+    'panel-zt-info': { title: 'Zephyr Templating Tool', desc: 'Step 1: Info — under construction.' },
+    'panel-zt-plan': { title: 'Zephyr Templating Tool', desc: 'Step 2: Test Plan / Cycle / Cases — under construction.' },
+    'panel-zt-link': { title: 'Zephyr Templating Tool', desc: 'Step 3: Link Test Scripts — under construction.' },
+    'panel-zt-tbd': { title: 'Zephyr Templating Tool', desc: 'Step 4: TBD — under construction.' },
+    'panel-tc-tbd': { title: 'Test Composer', desc: 'Step 1: TBD — under construction.' },
+    'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select a completed case to turn into a framework test script.' },
+    'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },
+    'panel-pt-search': { title: 'PyTest Creator', desc: 'Step 3: search the script databases for full/partial coverage, then confirm.' },
+    'panel-pt-fit': { title: 'PyTest Creator', desc: 'Step 4: decide reuse / extend / new, then confirm.' },
+    'panel-pt-frag': { title: 'PyTest Creator', desc: 'Step 5: gather reusable code fragments, then confirm.' },
+    'panel-pt-gen': { title: 'PyTest Creator', desc: 'Step 6: generate, name, lint and save the composite script, then confirm.' },
+    'panel-pt-run': { title: 'PyTest Creator', desc: 'Step 7: execute on a stored testbox and review the parsed log.' },
+    'panel-pt-validate': { title: 'PyTest Creator', desc: 'Step 8: final validation loop — fix with LLM until all cases PASS.' },
+    'panel-pt-testbox': { title: 'PyTest Creator', desc: 'Manage stored testbox connections for the Run step.' }
   };
 
+  const eyebrowEl = document.querySelector('.page-eyebrow');
+  const meta = PANEL_META[currentPanel] || {};
+  if (meta.title) {
+    if (eyebrowEl) eyebrowEl.textContent = '';
+    titleEl.textContent = meta.title;
+    descEl.textContent = meta.desc || '';
+    return;
+  }
+  // Generator panels (step-N): static tool eyebrow above the dynamic case title.
+  if (eyebrowEl) eyebrowEl.textContent = 'Objective / Test Case Generator';
   if (currentKey) {
     const t = window.currentCaseTitle || '';
     titleEl.textContent = t ? `${currentKey} — ${t}` : currentKey;
   } else {
-    titleEl.textContent = '';
+    titleEl.textContent = 'No case loaded';
   }
-  descEl.textContent = stepDescs[currentStep] || 'Review data sources then synthesize with LLM.';
+  descEl.textContent = meta.desc || 'Review data sources then synthesize with LLM.';
+}
+
+// ============================================================================
+// PyTest Creator (see ask-ck/pytest-create/PLAN-pytest-creator.md)
+// Session state lives server-side (sessions/pt-{key}.json); this module renders
+// it and drives the gated flow. ptSession mirrors the server PtSession.
+// ============================================================================
+let ptSession = null;          // server session for ptCase.key
+let ptCaseInfo = null;         // {title, group_display, objective, steps} from load_case
+let ptRunPoll = null;          // setInterval handle while a run is active
+
+const PT_API = '/api/pytest-create';
+
+async function ptApi(path, opts = {}, statusEl = null) {
+  if (statusEl) statusEl.textContent = 'Working…';
+  try {
+    const r = await fetch(PT_API + path, Object.assign({
+      headers: { 'Content-Type': 'application/json' },
+    }, opts));
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const msg = d.detail || `HTTP ${r.status}`;
+      if (statusEl) statusEl.textContent = '⚠ ' + msg;
+      else alert('PyTest Creator: ' + msg);
+      return null;
+    }
+    if (statusEl) statusEl.textContent = '';
+    return d;
+  } catch (e) {
+    if (statusEl) statusEl.textContent = '⚠ ' + e;
+    else alert('PyTest Creator: ' + e);
+    return null;
+  }
+}
+
+function ptStatusEl(id) { return document.getElementById(id); }
+
+function ptRequireCase() {
+  if (!ptCase.key || !ptSession) {
+    alert('Load a case first (PyTest Creator → 1. Cases).');
+    goToPanel('panel-pt-cases');
+    return false;
+  }
+  return true;
+}
+
+async function ptRefreshCases() {
+  const st = ptStatusEl('pt-load-status');
+  const btn = document.getElementById('pt-refresh-btn');
+  if (btn) btn.disabled = true;
+  if (st) st.textContent = 'Refreshing…';
+  const before = ptCase.key;
+  // refreshCaseSelects re-fetches /api/wizard/cases (which re-scans refined-cases)
+  // and re-fills the PyTest Creator dropdown, preserving the current selection.
+  await refreshCaseSelects(before);
+  const sel = document.getElementById('ptCaseSelDone');
+  // options include the placeholder, so count real cases
+  const n = sel ? Array.from(sel.options).filter(o => o.value).length : 0;
+  if (st) st.textContent = `Complete-case list refreshed — ${n} case(s). `
+    + 'A case appears here only once it has a refined zephyr_payload.json (export it in the Objective/Test Case Generator first).';
+  if (btn) btn.disabled = false;
+}
+
+async function ptLoadCase() {
+  if (!ptCase.key) { alert('Select a completed case first.'); return; }
+  const st = ptStatusEl('pt-load-status');
+  const d = await ptApi(`/load_case/${ptCase.key}`, { method: 'POST' }, st);
+  if (!d) return;
+  ptSession = d.session;
+  ptCaseInfo = { title: d.case_title, group_display: d.group_display,
+                 objective: d.objective, steps: d.steps };
+  updatePtBadges();
+  goToPanel('panel-pt-seq');
+}
+
+async function ptRefreshSession() {
+  if (!ptCase.key) return;
+  const d = await ptApi(`/session/${ptCase.key}`);
+  if (d) { ptSession = d.session; updatePtBadges(); }
+}
+
+function updatePtBadges() {
+  const s = ptSession || {};
+  document.querySelectorAll('#nav-pt .sidebar-nav-item[data-pt-step]').forEach(item => {
+    const n = item.getAttribute('data-pt-step');
+    const step = s['step' + n] || {};
+    const conf = n === '8' ? !!(step.confirmed && step.validated) : !!step.confirmed;
+    let b = item.querySelector('.nav-badge');
+    if (conf && !b) {
+      b = document.createElement('span');
+      b.className = 'nav-badge badge badge-success';
+      b.textContent = '✓';
+      item.appendChild(b);
+    } else if (!conf && b) b.remove();
+  });
+  for (let n = 2; n <= 8; n++) {
+    const el = document.getElementById('pt-badge-' + n);
+    if (el) el.classList.toggle('hidden', !((s['step' + n] || {}).confirmed));
+  }
+}
+
+async function ptConfirm(step) {
+  if (!ptRequireCase()) return;
+  const d = await ptApi(`/confirm_step/${ptCase.key}/${step}`, { method: 'POST', body: '{}' });
+  if (d) { ptSession = d.session; updatePtBadges(); }
+}
+
+// --- Step 2: Sequence -------------------------------------------------------
+
+function renderPtSeqPanel() {
+  const caseEl = document.getElementById('pt-seq-case');
+  if (!ptCase.key || !ptSession) {
+    caseEl.innerHTML = '<em class="review-empty">No case loaded — go to </em>'
+      + '<a href="#" onclick="goToPanel(\'panel-pt-cases\'); return false;">1. Cases</a>.';
+    document.getElementById('pt-seq-list').innerHTML = '';
+    return;
+  }
+  caseEl.innerHTML = `<b>Case:</b> <span class="sel-label">${escapeHtml(ptCase.key)}</span>`
+    + (ptCaseInfo && ptCaseInfo.title ? ` — ${escapeHtml(ptCaseInfo.title)}` : '')
+    + (ptCaseInfo && ptCaseInfo.steps ? ` <span class="justification-note">(${ptCaseInfo.steps.length} refined steps)</span>` : '');
+  ptRenderSequence(((ptSession.step2 || {}).sequence) || []);
+  const notes = (ptSession.step2 || {}).notes;
+  if (notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + notes;
+  updatePtBadges();
+}
+
+function ptRenderSequence(seq) {
+  const el = document.getElementById('pt-seq-list');
+  if (!seq.length) {
+    el.innerHTML = '<em class="review-empty">No sequence yet — run Extract Sequence (LLM).</em>';
+    return;
+  }
+  let html = '<table class="table"><thead><tr><th style="width:24px">#</th><th>Action</th><th>Verify</th><th style="width:30px"></th></tr></thead><tbody>';
+  seq.forEach((s, i) => {
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td><textarea class="form-input pt-seq-action" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.action || '')}</textarea></td>
+      <td><textarea class="form-input pt-seq-verify" data-i="${i}" style="width:100%;height:44px;font-size:11px">${escapeHtml(s.verify || '')}</textarea></td>
+      <td><button class="btn btn-compact" onclick="ptRemoveSeqRow(${i})">✕</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table><button class="btn btn-compact mt-2" onclick="ptAddSeqRow()">+ Add step</button>';
+  el.innerHTML = html;
+}
+
+function ptCollectSequence() {
+  const actions = Array.from(document.querySelectorAll('.pt-seq-action'));
+  const verifies = Array.from(document.querySelectorAll('.pt-seq-verify'));
+  return actions.map((a, i) => ({
+    n: i + 1, action: a.value.trim(), verify: (verifies[i] || {}).value ? verifies[i].value.trim() : '',
+  })).filter(s => s.action);
+}
+
+function ptAddSeqRow() {
+  const seq = ptCollectSequence();
+  seq.push({ n: seq.length + 1, action: '', verify: '' });
+  ptRenderSequence(seq);
+}
+
+function ptRemoveSeqRow(i) {
+  const seq = ptCollectSequence();
+  seq.splice(i, 1);
+  ptRenderSequence(seq);
+}
+
+async function ptExtractSequence() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-seq-extract-btn');
+  btn.disabled = true;
+  const d = await ptApi(`/extract_sequence/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-seq-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  ptRenderSequence(d.sequence || []);
+  if (d.notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + d.notes;
+}
+
+async function ptSaveSequence() {
+  if (!ptRequireCase()) return;
+  const seq = ptCollectSequence();
+  if (!seq.length) { alert('Sequence is empty.'); return; }
+  const d = await ptApi(`/save_sequence/${ptCase.key}`, {
+    method: 'POST', body: JSON.stringify({ sequence: seq }),
+  }, ptStatusEl('pt-seq-status'));
+  if (d) { await ptRefreshSession(); ptStatusEl('pt-seq-status').textContent = 'Saved.'; }
+}
+
+// --- Step 3: Script Search --------------------------------------------------
+
+function renderPtSearchPanel() {
+  if (!ptSession) { document.getElementById('pt-match-list').innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
+  const st3 = ptSession.step3 || {};
+  document.getElementById('pt-user-inputs').value = st3.user_inputs || '';
+  ptRenderMatches(st3.matches || [], st3.selections || []);
+  updatePtBadges();
+}
+
+function ptRenderMatches(matches, selections) {
+  const el = document.getElementById('pt-match-list');
+  if (!matches.length) {
+    el.innerHTML = '<em class="review-empty">No matches yet — run Suggest from Sequence (LLM) or a free search.</em>';
+    return;
+  }
+  const selSet = new Set(selections || []);
+  let html = '<table class="table"><thead><tr><th style="width:20px"></th><th>Script</th><th style="width:60px">Coverage</th><th style="width:46px">Score</th><th>Why</th><th style="width:44px"></th></tr></thead><tbody>';
+  matches.forEach(m => {
+    const cov = m.coverage || '?';
+    const covClass = cov === 'full' ? 'badge-success' : '';
+    html += `<tr>
+      <td><input type="checkbox" class="pt-match-sel" value="${escapeHtml(m.id)}" ${selSet.has(m.id) ? 'checked' : ''}></td>
+      <td class="cell-id">${escapeHtml(m.id)}<div class="justification-note">${escapeHtml(m.title || '')}</div></td>
+      <td><span class="badge ${covClass}">${escapeHtml(cov)}</span>${m.covers_steps && m.covers_steps.length ? `<div class="justification-note">steps ${m.covers_steps.join(',')}</div>` : ''}</td>
+      <td>${m.score != null ? m.score : ''}</td>
+      <td class="justification-note">${escapeHtml(m.reason || '')}</td>
+      <td><button class="btn btn-compact" onclick="ptViewSource('${escapeHtml(m.id)}')">view</button></td>
+    </tr>`;
+  });
+  el.innerHTML = html + '</tbody></table>';
+}
+
+async function ptManualSearch() {
+  const q = document.getElementById('pt-search-q').value.trim();
+  if (!q) return;
+  const d = await ptApi(`/search_scripts?q=${encodeURIComponent(q)}&limit=25`, {}, ptStatusEl('pt-search-status'));
+  if (!d) return;
+  const cur = ((ptSession || {}).step3 || {}).selections || [];
+  ptRenderMatches(d.results.map(r => ({ ...r, coverage: r.coverage || '?' })), cur);
+  ptStatusEl('pt-search-status').textContent = `${d.results.length} index hits for "${q}" (free search — not persisted until you Save Selections).`;
+}
+
+async function ptSuggestScripts() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-suggest-btn');
+  btn.disabled = true;
+  const d = await ptApi(`/suggest_scripts/${ptCase.key}`, {
+    method: 'POST',
+    body: JSON.stringify({ user_inputs: document.getElementById('pt-user-inputs').value }),
+  }, ptStatusEl('pt-search-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  ptRenderMatches(d.matches || [], ((ptSession || {}).step3 || {}).selections || []);
+  ptStatusEl('pt-search-status').textContent =
+    `${(d.matches || []).length} candidates (from ${d.mechanical_considered} mechanically scored). Tick the ones to carry into steps 4-5.`;
+}
+
+async function ptSaveMatches() {
+  if (!ptRequireCase()) return;
+  const sels = Array.from(document.querySelectorAll('.pt-match-sel:checked')).map(c => c.value);
+  const d = await ptApi(`/save_matches/${ptCase.key}`, {
+    method: 'POST',
+    body: JSON.stringify({ selections: sels, user_inputs: document.getElementById('pt-user-inputs').value }),
+  }, ptStatusEl('pt-search-status'));
+  if (d) { await ptRefreshSession(); ptStatusEl('pt-search-status').textContent = `Saved ${sels.length} selection(s).`; }
+}
+
+async function ptViewSource(id) {
+  const d = await ptApi(`/script_source?id=${encodeURIComponent(id)}&start=1&end=120`);
+  if (!d) return;
+  document.getElementById('pt-source-view').innerHTML =
+    `<div class="justification-note">${escapeHtml(id)} (lines 1-120)</div><pre class="session-pre" style="max-height:300px;overflow:auto">${escapeHtml(d.source)}</pre>`;
+}
+
+// --- Step 4: Fit Decision ----------------------------------------------------
+
+function renderPtFitPanel() {
+  const el = document.getElementById('pt-fit-result');
+  if (!ptSession) { el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
+  const s4 = ptSession.step4 || {};
+  document.getElementById('pt-fit-decision').value = s4.decision || '';
+  if (!s4.decision) { el.innerHTML = '<em class="review-empty">No assessment yet — run Assess Fit (LLM).</em>'; updatePtBadges(); return; }
+  let html = `<div class="mb-2"><b>Decision:</b> <span class="badge">${escapeHtml(s4.decision)}</span>`
+    + (s4.base_script ? ` base: <span class="cell-id">${escapeHtml(s4.base_script)}</span>` : '')
+    + `</div><div class="justification-note mb-2">${escapeHtml(s4.rationale || '')}</div>`;
+  const per = s4.per_step || [];
+  if (per.length) {
+    html += '<table class="table"><thead><tr><th style="width:24px">#</th><th>Covered by</th><th>Gap</th></tr></thead><tbody>';
+    per.forEach(p => {
+      html += `<tr><td>${p.n}</td><td class="cell-id">${escapeHtml(p.covered_by || '—')}</td><td class="justification-note">${escapeHtml(p.gap || '')}</td></tr>`;
+    });
+    html += '</tbody></table>';
+  }
+  el.innerHTML = html;
+  updatePtBadges();
+}
+
+function ptFitEdited() { /* decision select edited; persisted on Save */ }
+
+async function ptAssessFit() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-fit-btn');
+  btn.disabled = true;
+  const d = await ptApi(`/assess_fit/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-fit-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  renderPtFitPanel();
+}
+
+async function ptSaveFit() {
+  if (!ptRequireCase()) return;
+  const dec = document.getElementById('pt-fit-decision').value;
+  if (!dec) { alert('Pick a decision first.'); return; }
+  const s4 = ptSession.step4 || {};
+  const d = await ptApi(`/save_fit/${ptCase.key}`, {
+    method: 'POST',
+    body: JSON.stringify({ decision: dec, base_script: s4.base_script || null }),
+  }, ptStatusEl('pt-fit-status'));
+  if (d) { await ptRefreshSession(); renderPtFitPanel(); ptStatusEl('pt-fit-status').textContent = 'Saved.'; }
+}
+
+// --- Step 5: Fragments --------------------------------------------------------
+
+function renderPtFragPanel() {
+  const el = document.getElementById('pt-frag-list');
+  if (!ptSession) { el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
+  const frags = (ptSession.step5 || {}).fragments || [];
+  if (!frags.length) {
+    el.innerHTML = '<em class="review-empty">No fragments yet — run Gather Fragments (LLM). (A "new script from scratch" plan may legitimately keep this empty — Save then Confirm.)</em>';
+    updatePtBadges();
+    return;
+  }
+  let html = '';
+  frags.forEach((f, i) => {
+    html += `<div class="mb-2" style="border:1px solid var(--border-subtle);border-radius:4px;padding:6px">
+      <label><input type="checkbox" class="pt-frag-keep" data-i="${i}" checked>
+        <b>${escapeHtml(f.symbol)}</b> <span class="cell-id">from ${escapeHtml(f.source_id)}</span>
+        <span class="justification-note">serves steps ${(f.maps_to || []).join(', ')}</span></label>
+      <div class="justification-note">${escapeHtml(f.why || '')}</div>
+      <details><summary class="justification-note">code (${(f.code || '').split('\n').length} lines)</summary>
+        <pre class="session-pre" style="max-height:240px;overflow:auto">${escapeHtml(f.code || '')}</pre></details>
+    </div>`;
+  });
+  el.innerHTML = html;
+  updatePtBadges();
+}
+
+async function ptGatherFragments() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-frag-btn');
+  btn.disabled = true;
+  const d = await ptApi(`/gather_fragments/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-frag-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  renderPtFragPanel();
+  if (d.dropped) ptStatusEl('pt-frag-status').textContent = `${d.dropped} proposed fragment(s) failed symbol resolution and were dropped.`;
+}
+
+async function ptSaveFragments() {
+  if (!ptRequireCase()) return;
+  const frags = (ptSession.step5 || {}).fragments || [];
+  const keep = Array.from(document.querySelectorAll('.pt-frag-keep:checked'))
+    .map(c => frags[parseInt(c.dataset.i)])
+    .filter(Boolean)
+    .map(f => ({ source_id: f.source_id, symbol: f.symbol }));
+  const d = await ptApi(`/save_fragments/${ptCase.key}`, {
+    method: 'POST', body: JSON.stringify({ keep }),
+  }, ptStatusEl('pt-frag-status'));
+  if (d) { await ptRefreshSession(); renderPtFragPanel(); ptStatusEl('pt-frag-status').textContent = `Kept ${keep.length} fragment(s).`; }
+}
+
+// --- Step 6: Generate ---------------------------------------------------------
+
+function ptUpdateGenPath() {
+  const g = document.getElementById('pt-gen-group').value.trim() || '<Group>';
+  const n = document.getElementById('pt-gen-name').value.trim() || '<Name>';
+  document.getElementById('pt-gen-path').textContent = `→ generated/${g}/${n}.py`;
+}
+
+function renderPtGenPanel() {
+  if (!ptSession) { ptStatusEl('pt-gen-status').textContent = 'Load a case first.'; return; }
+  const s6 = ptSession.step6 || {};
+  const naming = s6.naming || {};
+  const groupEl = document.getElementById('pt-gen-group');
+  const nameEl = document.getElementById('pt-gen-name');
+  groupEl.value = naming.group || (ptCaseInfo ? ptCaseInfo.group_display : '');
+  nameEl.value = naming.name || '';
+  groupEl.oninput = ptUpdateGenPath;
+  nameEl.oninput = ptUpdateGenPath;
+  ptUpdateGenPath();
+  const files = s6.files || {};
+  document.getElementById('pt-gen-code').value = (files.test || {}).code || '';
+  const lib = files.library;
+  document.getElementById('pt-gen-lib-wrap').classList.toggle('hidden', !lib);
+  if (lib) {
+    document.getElementById('pt-gen-lib-name').textContent = lib.name || '';
+    document.getElementById('pt-gen-lib-code').value = lib.code || '';
+  }
+  ptRenderLint(s6.lint);
+  if (s6.iterations) ptStatusEl('pt-gen-status').textContent = `Iteration ${s6.iterations}.`;
+  updatePtBadges();
+}
+
+function ptRenderLint(lint) {
+  const el = document.getElementById('pt-lint-result');
+  if (!lint) { el.innerHTML = ''; return; }
+  const err = (lint.errors || []).map(e => `<div>✗ ${escapeHtml(e)}</div>`).join('');
+  const warn = (lint.warnings || []).map(w => `<div>△ ${escapeHtml(w)}</div>`).join('');
+  el.innerHTML = `<span class="badge ${lint.ok ? 'badge-success' : ''}">${lint.ok ? 'lint OK' : 'lint failed'}</span>`
+    + `<div class="justification-note">${err}${warn}</div>`;
+}
+
+async function ptGenerateScript() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-gen-btn');
+  btn.disabled = true;
+  ptStatusEl('pt-gen-status').textContent = 'Generating (this can take a few minutes)…';
+  const d = await ptApi(`/generate_script/${ptCase.key}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      group: document.getElementById('pt-gen-group').value.trim(),
+      name: document.getElementById('pt-gen-name').value.trim(),
+    }),
+  }, ptStatusEl('pt-gen-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  renderPtGenPanel();
+}
+
+async function ptLintScript() {
+  if (!ptRequireCase()) return;
+  // push current edits into the session first so lint sees them
+  await ptPushCodeEdits(false);
+  const d = await ptApi(`/lint_script/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-gen-status'));
+  if (d) ptRenderLint(d);
+}
+
+async function ptPushCodeEdits(writeFiles) {
+  const body = {
+    group: document.getElementById('pt-gen-group').value.trim(),
+    name: document.getElementById('pt-gen-name').value.trim(),
+    code: document.getElementById('pt-gen-code').value,
+  };
+  const libWrap = document.getElementById('pt-gen-lib-wrap');
+  if (!libWrap.classList.contains('hidden')) {
+    body.library_code = document.getElementById('pt-gen-lib-code').value;
+  }
+  if (!writeFiles) {
+    // save_script both persists edits and writes files; for lint-only we still
+    // use it (files on disk mirror the session) — acceptable per plan.
+  }
+  return await ptApi(`/save_script/${ptCase.key}`, {
+    method: 'POST', body: JSON.stringify(body),
+  }, ptStatusEl('pt-gen-status'));
+}
+
+async function ptSaveScript() {
+  if (!ptRequireCase()) return;
+  const d = await ptPushCodeEdits(true);
+  if (!d) return;
+  await ptRefreshSession();
+  ptRenderLint(d.lint);
+  ptStatusEl('pt-gen-status').textContent = 'Saved: ' + (d.written || []).join(', ');
+}
+
+// --- Step 7: Run ---------------------------------------------------------------
+
+let ptProfiles = {};
+
+async function ptLoadProfiles() {
+  const d = await ptApi('/profiles');
+  ptProfiles = (d && d.profiles) || {};
+  return ptProfiles;
+}
+
+function ptProfileLabel(name, p) {
+  return `${name} — ${p.tb_number || '?'} (${p.host || '?'})`;
+}
+
+async function renderPtRunPanel() {
+  await ptLoadProfiles();
+  const sel = document.getElementById('pt-run-profile');
+  const cur = ((ptSession || {}).step7 || {}).profile;
+  sel.innerHTML = '<option value="">Select testbox…</option>'
+    + Object.entries(ptProfiles).map(([n, p]) =>
+      `<option value="${escapeHtml(n)}" ${n === cur ? 'selected' : ''}>${escapeHtml(ptProfileLabel(n, p))}</option>`).join('')
+    + '<option value="__add__">➕ Add new testbox…</option>';
+  ptProfileSelected(sel);
+  ptRenderRuns();
+  updatePtBadges();
+}
+
+function ptProfileSelected(sel) {
+  if (sel.value === '__add__') {
+    sel.value = '';
+    goToPanel('panel-pt-testbox');
+    return;
+  }
+  const p = ptProfiles[sel.value];
+  const setupSel = document.getElementById('pt-run-setup');
+  setupSel.innerHTML = '';
+  if (p && p.setups && Object.keys(p.setups).length) {
+    setupSel.innerHTML = Object.entries(p.setups).map(([n, path]) =>
+      `<option value="${escapeHtml(n)}">${escapeHtml(n)} (${escapeHtml(path)})</option>`).join('');
+  } else {
+    setupSel.innerHTML = '<option value="">— none stored —</option>';
+  }
+}
+
+async function ptCheckProfile() {
+  const name = document.getElementById('pt-run-profile').value;
+  if (!name) { alert('Select a testbox first.'); return; }
+  const st = ptStatusEl('pt-run-status');
+  st.textContent = 'Checking…';
+  const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
+  if (d) st.textContent = (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || JSON.stringify(d));
+}
+
+function ptRenderRuns() {
+  const runs = ((ptSession || {}).step7 || {}).runs || [];
+  const el = document.getElementById('pt-run-results');
+  if (!runs.length) { el.innerHTML = '<em class="review-empty">No runs yet.</em>'; return; }
+  const last = runs[runs.length - 1];
+  let html = `<div class="mb-1"><b>Run ${escapeHtml(last.run_id)}</b> on ${escapeHtml(last.profile || '')} — `
+    + `<span class="badge ${last.status === 'done' ? 'badge-success' : ''}">${escapeHtml(last.status)}</span>`
+    + (last.error ? ` <span class="justification-note">⚠ ${escapeHtml(last.error)}</span>` : '') + '</div>';
+  const parsed = last.parsed || {};
+  if ((parsed.cases || []).length) {
+    html += '<table class="table"><thead><tr><th>TestCase</th><th style="width:80px">Result</th><th>Failures</th></tr></thead><tbody>';
+    parsed.cases.forEach(c => {
+      html += `<tr><td class="cell-id">${escapeHtml(c.name)}</td>
+        <td><span class="badge ${c.result === 'PASS' ? 'badge-success' : ''}">${escapeHtml(c.result || '?')}</span></td>
+        <td class="justification-note">${(c.fail_msgs || []).map(escapeHtml).join('; ')}</td></tr>`;
+    });
+    html += `</tbody></table><div class="justification-note">numPassed ${parsed.numPassed || 0} · numFailed ${parsed.numFailed || 0}</div>`;
+  }
+  if (runs.length > 1) html += `<div class="justification-note mt-1">${runs.length - 1} earlier run(s) in session history.</div>`;
+  el.innerHTML = html;
+}
+
+async function ptRun() {
+  if (!ptRequireCase()) return;
+  const profile = document.getElementById('pt-run-profile').value;
+  if (!profile) { alert('Select a testbox.'); return; }
+  const setupName = document.getElementById('pt-run-setup').value;
+  const setupPath = document.getElementById('pt-run-setup-path').value.trim();
+  const d = await ptApi(`/run/${ptCase.key}`, {
+    method: 'POST',
+    body: JSON.stringify({ profile, setup: setupPath || setupName }),
+  }, ptStatusEl('pt-run-status'));
+  if (!d) return;
+  ptStatusEl('pt-run-status').textContent = `Run ${d.run_id} queued…`;
+  if (ptRunPoll) clearInterval(ptRunPoll);
+  ptRunPoll = setInterval(() => ptPollRun(d.run_id), 4000);
+}
+
+async function ptPollRun(runId) {
+  const d = await ptApi(`/run_status/${ptCase.key}/${runId}?tail=60`);
+  if (!d) { clearInterval(ptRunPoll); ptRunPoll = null; return; }
+  await ptRefreshSession();
+  ptRenderRuns();
+  document.getElementById('pt-run-log').textContent = d.log_tail || '';
+  ptStatusEl('pt-run-status').textContent = `Run ${runId}: ${d.run.status}`;
+  if (['done', 'error', 'stale'].includes(d.run.status)) {
+    clearInterval(ptRunPoll);
+    ptRunPoll = null;
+  }
+}
+
+// --- Step 8: Validate ------------------------------------------------------------
+
+function renderPtValidatePanel() {
+  const el = document.getElementById('pt-validate-result');
+  if (!ptSession) { el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
+  const s8 = ptSession.step8 || {};
+  if (!s8.checks) { el.innerHTML = '<em class="review-empty">Run Final Validation after a testbox run.</em>'; updatePtBadges(); return; }
+  ptRenderValidation({ validated: s8.validated, checks: s8.checks, promotion: null });
+  updatePtBadges();
+}
+
+function ptRenderValidation(d) {
+  const el = document.getElementById('pt-validate-result');
+  const rows = Object.entries(d.checks || {}).map(([k, v]) =>
+    `<tr><td>${escapeHtml(k)}</td><td>${v ? '✓' : '✗'}</td></tr>`).join('');
+  el.innerHTML = `<div class="mb-2"><span class="badge ${d.validated ? 'badge-success' : ''}">`
+    + `${d.validated ? 'VALIDATED — all checks pass' : 'Not validated yet'}</span></div>`
+    + `<table class="table" style="max-width:420px"><tbody>${rows}</tbody></table>`
+    + (d.promotion ? `<div class="justification-note mt-2">${escapeHtml(d.promotion)}</div>` : '');
+}
+
+async function ptValidate() {
+  if (!ptRequireCase()) return;
+  const d = await ptApi(`/validate/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-validate-status'));
+  if (!d) return;
+  await ptRefreshSession();
+  ptRenderValidation(d);
+}
+
+async function ptFixScript() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-fix-btn');
+  btn.disabled = true;
+  ptStatusEl('pt-validate-status').textContent = 'Asking LLM for a fix (this can take a few minutes)…';
+  const d = await ptApi(`/fix_script/${ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-validate-status'));
+  btn.disabled = false;
+  if (!d) return;
+  await ptRefreshSession();
+  ptStatusEl('pt-validate-status').textContent =
+    `Revised (iteration ${d.iterations}); previous code archived. Review in 6. Generate, then re-run.`;
+  goToPanel('panel-pt-gen');
+}
+
+// --- Testboxes (profiles CRUD) -----------------------------------------------------
+
+async function renderPtTestboxPanel() {
+  await ptLoadProfiles();
+  const el = document.getElementById('pt-tb-list');
+  const names = Object.keys(ptProfiles);
+  if (!names.length) { el.innerHTML = '<em class="review-empty">No testboxes stored yet — add one below.</em>'; return; }
+  let html = '<table class="table"><thead><tr><th>Name</th><th>tb</th><th>IP</th><th>User</th><th>Auth</th><th style="width:150px"></th></tr></thead><tbody>';
+  names.forEach(n => {
+    const p = ptProfiles[n];
+    html += `<tr><td><b>${escapeHtml(n)}</b></td><td>${escapeHtml(p.tb_number || '')}</td>
+      <td class="cell-id">${escapeHtml(p.host || '')}</td><td>${escapeHtml(p.user || '')}</td>
+      <td>${escapeHtml(p.auth || '')}${p.has_password ? ' (pw set)' : ''}</td>
+      <td>
+        <button class="btn btn-compact" onclick="ptEditProfile('${escapeHtml(n)}')">edit</button>
+        <button class="btn btn-compact" onclick="ptCheckProfileNamed('${escapeHtml(n)}')">check</button>
+        <button class="btn btn-compact" onclick="ptDeleteProfile('${escapeHtml(n)}')">✕</button>
+      </td></tr>`;
+  });
+  el.innerHTML = html + '</tbody></table>';
+}
+
+function ptEditProfile(name) {
+  const p = ptProfiles[name];
+  if (!p) return;
+  document.getElementById('pt-tb-name').value = name;
+  document.getElementById('pt-tb-number').value = p.tb_number || '';
+  document.getElementById('pt-tb-host').value = p.host || '';
+  document.getElementById('pt-tb-user').value = p.user || '';
+  document.getElementById('pt-tb-auth').value = p.auth || 'key';
+  document.getElementById('pt-tb-keypath').value = p.key_path || '';
+  document.getElementById('pt-tb-password').value = '';
+  document.getElementById('pt-tb-framework').value = p.framework_path || '';
+  document.getElementById('pt-tb-workdir').value = p.remote_workdir || '';
+  const setups = p.setups || {};
+  document.getElementById('pt-tb-setup').value = setups.default || Object.values(setups)[0] || '';
+}
+
+async function ptSaveProfile() {
+  const name = document.getElementById('pt-tb-name').value.trim();
+  const body = {
+    name,
+    tb_number: document.getElementById('pt-tb-number').value.trim(),
+    host: document.getElementById('pt-tb-host').value.trim(),
+    user: document.getElementById('pt-tb-user').value.trim() || 'st-art',
+    auth: document.getElementById('pt-tb-auth').value,
+    key_path: document.getElementById('pt-tb-keypath').value.trim() || '~/.ssh/id_rsa',
+    framework_path: document.getElementById('pt-tb-framework').value.trim() || '/home/st-art/framework',
+    remote_workdir: document.getElementById('pt-tb-workdir').value.trim() || '/home/st-art/pytest-create',
+  };
+  const pw = document.getElementById('pt-tb-password').value;
+  if (pw) body.password = pw;
+  const setupPath = document.getElementById('pt-tb-setup').value.trim();
+  if (setupPath) body.setups = { default: setupPath };
+  const d = await ptApi('/profiles', { method: 'POST', body: JSON.stringify(body) }, ptStatusEl('pt-tb-status'));
+  if (d) {
+    document.getElementById('pt-tb-password').value = '';
+    ptStatusEl('pt-tb-status').textContent = `Saved "${d.saved}".`;
+    renderPtTestboxPanel();
+  }
+}
+
+async function ptDeleteProfile(name) {
+  if (!confirm(`Delete testbox "${name}"?`)) return;
+  const d = await ptApi(`/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' }, ptStatusEl('pt-tb-status'));
+  if (d) renderPtTestboxPanel();
+}
+
+async function ptCheckProfileNamed(name) {
+  const st = ptStatusEl('pt-tb-status');
+  st.textContent = `Checking ${name}…`;
+  const d = await ptApi(`/profiles/${encodeURIComponent(name)}/check`, { method: 'POST' }, st);
+  if (d) st.textContent = `${name}: ` + (d.ok ? '✓ ready — ' : '✗ not ready — ') + (d.detail || '');
+}
+
+// Fetch a stub tool router's /status message into a placeholder status element
+async function loadToolStatus(apiName, elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  try {
+    const r = await fetch(`/api/${apiName}/status`);
+    if (r.ok) {
+      const d = await r.json();
+      el.textContent = d.message || d.status || '';
+    }
+  } catch (_) { /* leave placeholder text when offline */ }
 }
 
 /** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason). */

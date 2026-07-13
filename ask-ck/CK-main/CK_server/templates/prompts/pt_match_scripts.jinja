@@ -1,0 +1,34 @@
+You are judging which existing Allied Telesis test scripts cover a required test-step sequence.
+For each candidate script decide whether it does ALL, SOME, or NONE of what the sequence needs.
+
+## Required sequence (case {{ case_key }})
+{% for s in sequence %}
+{{ s.n }}. action: {{ s.action }}
+   verify: {{ s.verify }}
+{% endfor %}
+
+{% if user_inputs %}
+## Additional reviewer guidance
+{{ user_inputs }}
+{% endif %}
+
+## Candidate scripts (mechanically pre-ranked; id, database, title, tags, per-case descriptions)
+{% for c in candidates %}
+- id: {{ c.id }}
+  db: {{ c.db }} | suite: {{ c.suite_dir }} | cases: {{ c.n_cases }}
+  title: {{ c.title }}
+  {% if c.summary %}summary: {{ c.summary }}{% endif %}
+  {% if c.feature_tags %}tags: {{ c.feature_tags | join(", ") }}{% endif %}
+  {% if c.case_descs %}case descriptions:
+  {% for d in c.case_descs %}  * {{ d }}
+  {% endfor %}{% endif %}
+{% endfor %}
+
+## Rules (strict for repeatable output)
+- coverage "full" = the script already tests essentially every sequence entry.
+- coverage "partial" = the script tests some entries or contains directly reusable mechanics (same feature, same CLI area, same traffic pattern).
+- coverage "none" = superficially similar only; exclude these from the output.
+- "covers_steps" lists the sequence numbers (n) the script addresses.
+- Rank output by usefulness. At most 10 entries.
+- Output JSON ONLY:
+{"matches": [{"id": "art/....py", "coverage": "full|partial", "covers_steps": [1,2], "reason": "one sentence"}]}

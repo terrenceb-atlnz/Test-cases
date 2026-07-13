@@ -1,5 +1,7 @@
 # Plan: Server-Backed Objective Drafting Tool (Restarted Iteration)
 
+> **Historical document (path note, 2026-07-13)**: this plan predates the repo restructure and the Ask CK rename. Paths herein map as follows: `drafting-tool/` → `ask-ck/CK-main/`; `drafting_server/` (or `server/`) → `ask-ck/CK-main/CK_server/`; root `data/` and `refined-cases/` → `ask-ck/objective-drafting/`. The implementation it describes is live — see `../CK-main/SERVER-README.md` and `PROGRESS.md` for current state, and `../ck-facelift/PLAN-facelift.md` for the multi-tool facelift.
+
 **Restart Note**: This iteration of the plan has been restarted per user direction. We are migrating away from the single-file static approach to a **server-backed architecture**. 
 
 Key user feedback driving this:

@@ -1,0 +1,36 @@
+You are deciding whether a required test-step sequence fits cleanly into an existing
+Allied Telesis test script, or whether a new script is needed.
+
+## Required sequence (case {{ case_key }})
+{% for s in sequence %}
+{{ s.n }}. action: {{ s.action }}
+   verify: {{ s.verify }}
+{% endfor %}
+
+## Selected scripts (reviewer-confirmed, with real source excerpts)
+{% for sc in scripts %}
+### {{ sc.id }} ({{ sc.coverage }} coverage per earlier review)
+TestSet topology/init and configure:
+```python
+{{ sc.testset_src }}
+```
+Test cases (class, description, method):
+{% for tc in sc.cases %}
+- {{ tc.class }}: {{ tc.desc }}
+{% endfor %}
+{% if sc.case_src %}Representative test case source:
+```python
+{{ sc.case_src }}
+```
+{% endif %}
+{% endfor %}
+
+## Rules (strict for repeatable output)
+- decision "reuse": one selected script already implements the sequence; running/parametrizing it (possibly with minor edits) is enough. Set base_script to its id.
+- decision "extend": one selected script is the right chassis (same topology + configure) and new TestCase classes should be added to a copy of it. Set base_script to its id.
+- decision "new": no script is a clean chassis; a new script should be composed, reusing fragments. base_script = null.
+- per_step maps every sequence n to what covers it: an existing "script_id:TestCase_x" or "" when it needs new code (fill "gap" with what is missing).
+- Consider topology compatibility (devices/ports the TestSet inits) — a perfect TestCase in an incompatible topology is "extend"/"new", not "reuse".
+- Output JSON ONLY:
+{"decision": "reuse|extend|new", "base_script": "id-or-null", "rationale": "2-3 sentences",
+ "per_step": [{"n": 1, "covered_by": "art/x.py:TestCase_2", "gap": ""}]}

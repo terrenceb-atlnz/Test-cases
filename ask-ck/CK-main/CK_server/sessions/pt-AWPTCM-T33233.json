@@ -1,0 +1,59 @@
+{
+  "key": "AWPTCM-T33233",
+  "group": "Port (7)",
+  "payload": {
+    "AWPTCM-T33233": {
+      "objective": "<ul><li>A port with no pluggable present defaults to automatic speed and duplex negotiation.</li><li>Inserting a supported pluggable results in successful autonegotiation and link establishment.</li><li>A port configured for Auto speed and duplex establishes a link with a compliant link partner.</li><li>Link establishment succeeds when one side is set to Auto and the partner is forced to a supported speed or duplex.</li><li>The port accurately reports Auto mode together with the negotiated speed and duplex values.</li><li>Link status is correctly reported as up once autonegotiation completes.</li><li>Automatic speed and duplex negotiation produces a working link across all supported configurations with a compliant partner.</li></ul>",
+      "testScript": {
+        "type": "steps",
+        "steps": [
+          {
+            "description": "Note: Related ART Tests linked in Traceability.",
+            "expectedResult": ""
+          },
+          {
+            "description": "Verify default behavior and autonegotiation with no pluggable present (Auto as default for speed and duplex). Insert a supported pluggable and confirm autonegotiation occurs and link is established.",
+            "expectedResult": ""
+          },
+          {
+            "description": "Set the port to Auto for speed and duplex. With link partner also on Auto, confirm link is established and port reports as Auto while showing the negotiated speed/duplex.",
+            "expectedResult": ""
+          },
+          {
+            "description": "Vary link partner configurations across supported speeds and duplex modes (one side Auto, both sides Auto, partner forced to supported rates). Confirm successful link establishment in each case.",
+            "expectedResult": ""
+          },
+          {
+            "description": "Test with incompatible partner speed/duplex settings. Confirm link does not establish (or is correctly reported as down).",
+            "expectedResult": ""
+          },
+          {
+            "description": "Hot-insert and hot-remove supported pluggables while the port is set to Auto. Confirm link negotiation occurs cleanly on insertion and link status updates correctly on removal. Speak to the SVT team to get an arrangement of pluggables for testing.",
+            "expectedResult": ""
+          },
+          {
+            "description": "Where the platform and media support it, test with EcoMode enabled and disabled on Auto-negotiated links. Confirm EcoMode behavior and that link remains stable.",
+            "expectedResult": ""
+          }
+        ]
+      }
+    }
+  },
+  "traceability": "# Traceability & Supporting Data for AWPTCM-T33233 ()\n\n## Primary Decision\n\n- **AWP-23992** \u2013 Auto/Auto negotiation; Zephyr says covered by auto-test\n  - Decision confidence: low\n  - Rationale: Auto/Auto negotiation; Zephyr says covered by auto-test\n\n\n## Top Relevant TestLink Cases\n\n(No TestLink selections)\n\n\n## Zephyr Cross-References (Step 2)\n**Relevant Zephyr Scale cases identified**\n\nThese cases were reviewed from the full Zephyr database (via `data/zephyr_full/`) for objective style, step structure, and related behaviour.\n\n\n\n## ATPyLib Cases (Step 3)\n\n\n\n## Gaps Noted\nNo specific automated tests were confirmed as related coverage for this case, so while Zephyr flags it as covered by an auto-test, that claim is not currently substantiated by any identified automation artefact. Auto/Auto link negotiation is the kind of behaviour that automated checks can reasonably confirm at the level of a link reaching an established state with the expected negotiated speed and duplex. Even assuming such coverage exists, the less well-covered areas are typically the negotiation transients and edge conditions \u2014 renegotiation after link flaps, mismatched or forced peer settings, and behaviour across cable or media changes \u2014 along with the observability that a manual tester relies on, such as advertised-capability exchange, negotiation status reporting, and log or counter evidence that the outcome was genuinely auto-negotiated rather than defaulted. Until a concrete automated test is identified, this should be treated as an unverified coverage gap rather than confirmed automation.\n\n## Tangential Cases Reviewed\n(See selections for full list.)\n\n## ART Test Cases String\n\n\n**Status**: TestLink list completed. ATPyLib reviewed. Full artefacts and steps drafted in zephyr_payload.json. Traceability finalized.",
+  "step2": {},
+  "step3": {},
+  "step4": {},
+  "step5": {},
+  "step6": {},
+  "step7": {},
+  "step8": {},
+  "llm_config": {
+    "provider": "claude",
+    "auth_method": "claude_code",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  },
+  "updated_at": "2026-07-13 20:54:58.290112"
+}

@@ -56,6 +56,36 @@ class WizardSession(BaseModel):
     updated_at: Optional[datetime] = None  # For tracking / persistence order
     llm_config: LLMConfig = LLMConfig()  # Session-scoped login (Grok / Claude)
 
+class PtSession(BaseModel):
+    """PyTest Creator per-case session (see ask-ck/pytest-create/PLAN-pytest-creator.md).
+
+    Steps 2-8 are free-form dicts each carrying confirmed/confirmed_at, mirroring
+    the wizard's step4/step5 shape. Persisted as sessions/pt-{key}.json.
+      step2: {sequence: [{n, action, verify, zephyr_step_idx}], provenance, confirmed}
+      step3: {matches: [{id, score, coverage, reason}], selections: [id...],
+              user_inputs: str, confirmed}
+      step4: {decision: reuse|extend|new, base_script, per_step: [...], confirmed}
+      step5: {fragments: [{source_id, symbol, loc, code, maps_to, why}], confirmed}
+      step6: {naming: {group, name}, files: {test: {name, code}, library}, iterations,
+              provenance, confirmed}
+      step7: {profile, setup, runs: [{run_id, status, log_file, parsed, ...}], confirmed}
+      step8: {validated, validated_at, run_id}
+    """
+    key: str  # AWPTCM-Txxxx
+    group: str = ""              # refined-cases group dir (e.g. "Port (7)")
+    payload: Dict[str, Any] = {}  # snapshot of zephyr_payload.json content
+    traceability: str = ""        # snapshot of traceability.md
+    step2: Dict[str, Any] = {}
+    step3: Dict[str, Any] = {}
+    step4: Dict[str, Any] = {}
+    step5: Dict[str, Any] = {}
+    step6: Dict[str, Any] = {}
+    step7: Dict[str, Any] = {}
+    step8: Dict[str, Any] = {}
+    llm_config: LLMConfig = LLMConfig()
+    updated_at: Optional[datetime] = None
+
+
 class SynthesisRequest(BaseModel):
     session: WizardSession
     use_llm: bool = True

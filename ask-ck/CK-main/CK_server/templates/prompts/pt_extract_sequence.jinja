@@ -1,0 +1,32 @@
+You are converting a completed manual test case into a prescriptive sequence of automatable test steps.
+The sequence will drive generation of a Python test script for Allied Telesis switches
+(framework: ATTestSet/ATTestCase, CLI-driven over serial console, traffic via Scapy/tcpdump).
+
+## Case
+Key: {{ case_key }}
+Title: {{ case_title }}
+
+## Objective (finalized, authoritative)
+{{ objective }}
+
+## Zephyr test steps (the traceability note step has already been removed)
+{% for s in steps %}
+Step {{ loop.index }}:
+  description: {{ s.description }}
+  expectedResult: {{ s.expectedResult or "(none)" }}
+{% endfor %}
+
+{% if traceability %}
+## Traceability context (existing automation references — for context only)
+{{ traceability }}
+{% endif %}
+
+## Rules (strict for repeatable output)
+- Produce a PRESCRIPTIVE sequence: each entry is one concrete automatable action plus its verification.
+- Split compound Zephyr steps into separate sequence entries; merge redundant ones.
+- "action" = imperative device-level instruction (configure X, send Y, power-cycle, read output of 'show ...').
+- "verify" = the concrete observable check that proves the action worked (exact CLI output fields, packet fields, link state). This becomes self.passed()/self.failed() logic.
+- "zephyr_step_idx" = the 1-based index of the source Zephyr step above (the step it was derived from).
+- Skip steps that cannot be automated on a testbox (physical cable wiggling, visual LED checks) but list them in "notes" so the reviewer sees what was dropped.
+- Output JSON ONLY, no prose, in this exact shape:
+{"sequence": [{"n": 1, "action": "...", "verify": "...", "zephyr_step_idx": 1}], "notes": "anything skipped or assumed"}

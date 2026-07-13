@@ -1,13 +1,32 @@
-# PROGRESS.md — Drafting Tool (Server-Backed)
+# PROGRESS.md — Ask CK Workbench (Server-Backed)
 
-**Purpose**: This file exists so future Grok sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
+**Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-13 (by Grok)  
-**Current Session Theme**:
-- Verified load_case zrefs fix; relevance-ranked external Zephyr cross-refs (no more first-N slim_index noise).
-- Major UI/UX: dual case dropdowns (Open/partial vs Complete), Search+Suggest on Steps 1–3, table layout fix, stack-overflow fix, workspace LLM persistence.
-- Process change: **no editable Gaps field in Step 3** — gaps are LLM-generated at **synthesis/export** for Traceability.
-- Docs/README cleanup; favicon; GitHub push unblocked via `git lfs migrate` history rewrite.
+**Last Updated**: 2026-07-14 (by Claude)
+
+## Latest session (2026-07-14) — PyTest Creator built + UI polish
+
+- **PyTest Creator fully implemented** (was a 501 stub). 8-step gated flow turning a Complete refined case into a runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test script, executed on a real testbox, iterated via an LLM fix loop to Final Validation. Plan + living tracker: **`ask-ck/pytest-create/PLAN-pytest-creator.md`** (start there for PyTest Creator work).
+  - Sidebar steps: 1. Cases / 2. Sequence / 3. Script Search / 4. Fit Decision / 5. Fragments / 6. Generate / 7. Run / 8. Validate, plus a **Testboxes** panel.
+  - New files: `tool/build_script_index.py` + `tool/enrich_script_index.py` (script index: 999 files across testsuites_art/svt_scripts/test_scripts + 55-module `framework_surface.json`; outputs to `ask-ck/pytest-create/data/`); `CK_server/pt_exec.py` (testbox profiles in gitignored `secrets.testboxes.json`, framework-log parser, threaded paramiko SSH runner); full rewrite of `routers/pytest_create.py`; 7 prompt templates (`pt_*.jinja`, `enrich_script_index.jinja`); `models.py` `PtSession`; `llm.py` `run_prompt`/`extract_json_block` + `timeout` param.
+  - Robustness fix: LLM replies that come back as a bare JSON array (instead of the wrapped object) are now tolerated across sequence/matches/fragments parsing.
+- **Export path fix**: the Generator's *Export Repeatable Bundle* wrote to the pre-restructure `ask-ck/refined-cases/` (didn't exist). Now uses the `REFINED_DIR` anchor → `ask-ck/objective-drafting/refined-cases/`. Verified by exporting T33233 (complete count 42 → 43).
+- **UI**: new **Help → Main** splash page (default landing) with the CK photo, welcome blurb, and collapsible per-tool guides in inverse-sidebar order (Generator open, PyTest Creator, then Test Composer / Zephyr as TBD); CK photo added to the sidebar "Ask CK" logo line; buttons/dropdowns/search bars no longer stretch full-width; Generator panels gained an "Objective / Test Case Generator" eyebrow header above the dynamic case title.
+- **Docs**: root `README.md` (hero CK image + per-tool guides matching Main), `SERVER-README.md` (PyTest Creator section), `SESSION_STATE.md`, and this file updated. `ckc.jpg` copied into `CK_server/static/` so it serves at `/static/ckc.jpg`.
+
+**Remaining for PyTest Creator** (needs credentials/hardware): run `tool/enrich_script_index.py` with a logged-in CLI then rebuild; first real-LLM walkthrough (suggested case AWPTCM-T33234); first real-testbox SSH run; gitignore/LFS decision for the regenerable `ask-ck/pytest-create/data/`.
+
+---
+
+**Prior session theme (2026-07-13)**:
+- **Repo restructure**: `drafting-tool/` → `ask-ck/CK-main/` (server code in `CK_server/`, was `drafting_server/`); root `data/`, `refined-cases/`, and process docs → `ask-ck/objective-drafting/`; per-tool dirs pre-staged (`ask-ck/pytest-create/`, `test-composer/`, `zephyr-tool/`).
+- **Repathing**: new `CK_server/paths.py` single source of truth (DATA_DIR, REFINED_DIR, PROCESS_MD); `data.py`, `wizard.py`, `main.py`, `run.sh` fixed for the new layout. Boot-verified (410 cases: 368 open / 42 complete / 3 in progress).
+- **Ask CK multi-tool facelift** (see `ask-ck/ck-facelift/PLAN-facelift.md`): app renamed **Ask CK**; sidebar sections (top→bottom) LLM (+ **Configure** panel), **Zephyr Templating Tool** (4 stub steps), **Test Composer** (1 stub step), **PyTest Creator** (Cases wired + Creator stub), **Objective/Test Case Generator** (the full wizard, visible steps renumbered **1–6**, display-only).
+- LLM login UI moved out of old Step 0 into a main-area **Configure** panel (all element ids preserved; `showLLMConfig`/`#llmCredential`/`#llm-config-card` dead code removed).
+- New navigation: `goToPanel(panelId)` primitive + `goToStep()` wrapper; `PANEL_META` page-header registry; ✓ nav-badges scoped to `#nav-generator`.
+- Backend stubs: `routers/zephyr_tool.py`, `routers/test_composer.py`, `routers/pytest_create.py` (`/api/zephyr-tool|test-composer|pytest-create/status`; pytest `generate/{key}` → 501).
+
+**Prior session (2026-07-13, Grok)**: load_case zrefs verify; relevance-ranked external Zephyr; dual case dropdowns; Search+Suggest Steps; table/stack-overflow fixes; workspace LLM persistence; gaps moved to synth/export; favicon; `git lfs migrate`.
 
 ---
 
@@ -15,67 +34,73 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Architecture Decision | Complete | Server-backed (FastAPI) |
-| Project Structure | Good | All tool work under `drafting-tool/` |
+| Architecture Decision | Complete | Server-backed (FastAPI), multi-tool workbench (Ask CK) |
+| Project Structure | Restructured 2026-07-13 | All work under `ask-ck/`; anchors in `CK_server/paths.py` |
 | Core Backend | Strong | Gates, file sessions, search/suggest for TL/Zephyr/ATP, relevance zrefs, workspace LLM file |
-| LLM Integration | Complete (CLI primary) | Grok CLI + Claude Code CLI in UI; workspace default in `sessions/_workspace_llm.json`; real-only (no MOCK) |
-| Data Integration Steps 1–3 | Implemented | Real TL candidates; external Zephyr ranked; ATP scored; Search/Suggest merge on all three steps |
-| Repeatable Outputs | Advanced | Templates + note construction; export → `refined-cases/`; gaps generated at synth/export |
-| Process Enforcement | Implemented | Server-side confirms 1–3 before synthesize |
-| Frontend UI | Advanced | Dual case lists; toolbars; compact tables (cols-5 / cols-6-*); editor; review summary |
-| Documentation | Strong | PROGRESS / SERVER-README / LESSONS / README updated this session |
-| Hosting / nginx | Ready | Example config |
-| Persistence | File-based | Per-case `sessions/<key>.json` + workspace LLM JSON + refined-cases export |
-| Polish & Completeness | Good | Critical UX bugs fixed; more output edge validation / Process page still open |
+| LLM Integration | Complete (CLI primary) | Grok CLI + Claude Code CLI via sidebar Configure panel; workspace default in `sessions/_workspace_llm.json`; real-only (no MOCK) |
+| Data Integration (Generator steps 2–4) | Implemented | Real TL candidates; external Zephyr ranked; ATP scored; Search/Suggest merge on all three |
+| Repeatable Outputs | Advanced | Templates + note construction; export → `objective-drafting/refined-cases/`; gaps generated at synth/export |
+| Process Enforcement | Implemented | Server-side confirms (domain steps 1–3) before synthesize |
+| Frontend UI | Advanced (multi-tool) | Ask CK sidebar: Help→Main splash + tool sections; Generator + PyTest Creator full; Test Composer/Zephyr stubs; `goToPanel` navigation |
+| PyTest Creator | **Complete (2026-07-14)** | 8-step gated flow (Cases→Validate) + Testboxes; script index + framework-surface; SSH execution; LLM fix loop. Tracker: `ask-ck/pytest-create/PLAN-pytest-creator.md`. Pending: enrichment run, real-LLM/testbox shakeout |
+| Test Composer / Zephyr Templating | Scaffolded (TBD) | Placeholder panels + router stubs only |
+| Documentation | Updated 2026-07-13 | PROGRESS / SERVER-README / LESSONS / READMEs / BoS-EoS prompts repathed |
+| Hosting / nginx | Ready | Example config (paths may need the CK-main update) |
+| Persistence | File-based | Per-case `CK_server/sessions/<key>.json` + workspace LLM JSON + refined-cases export |
+| Polish & Completeness | Good | Facelift verified (boot + endpoints + served UI); manual E2E smoke still recommended |
 
-**Overall Phase**: Usable mid-implementation (workflow runnable end-to-end; packaging/tests/Process page still thin)
+**Overall Phase**: Usable. Generator and PyTest Creator both runnable end-to-end (PyTest Creator awaiting first real-LLM/testbox shakeout); Test Composer and Zephyr Templating remain scaffolds awaiting design/implementation.
 
 ---
 
 ## 2. Key Decisions & Rationale (Carry Forward)
 
+- **Ask CK is the umbrella**: one server (`CK_server`), one UI (`static/index.html`), multiple sidebar tools. Future tool = card div + `PANEL_META` entry + sidebar item + router module (+ `include_router` in `main.py`).
+- **Numeric step scheme is load-bearing and display-decoupled**: `data-step` 0–5, panel ids `step-0..step-5`, badge ids `#step1-badge..#step5-badge`, session keys `step1..step5`, and `confirm_step/{key}/{1|2|3}` are UNCHANGED. Sidebar labels 1–6 are display-only. Never bulk-replace "Step N".
+- **Paths live in `CK_server/paths.py`** — anchor all data/output/doc references there, never CWD-relative.
 - **Server-backed is required** (LLM synthesis, growing data, nginx host, extensibility).
 - **Repeatability**: Jinja prompt templates + structured parse/output templates + server-built first testScript note.
 - **Process gates must be real** (server-side confirms before synthesis).
-- **All drafting-tool work stays under `drafting-tool/`**.
-- **Gaps are not a Step 3 form field**: user confirms ATP selections only; LLM writes Gaps for Traceability at synthesize/export (`generate_gaps.jinja`).
-- **LLM preference is workspace-scoped**: Apply/Login writes `sessions/_workspace_llm.json`; load_case copies onto cases without active config (switching cases must not reset CLI login).
-- **Complete vs open cases**: Complete = `refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json` exists; Open/partial = all other candidate keys; partials (session progress) listed first in Open dropdown.
+- **All Ask CK work stays under `ask-ck/`**.
+- **Gaps are not a review-step form field**: user confirms ATP selections only; LLM writes Gaps for Traceability at synthesize/export (`generate_gaps.jinja`).
+- **LLM preference is workspace-scoped**: Apply/Login (Configure panel) writes `sessions/_workspace_llm.json`; load_case copies onto cases without active config. `set_llm_config` no longer requires a case — keyless `POST /api/wizard/set_llm_config` saves the workspace default; with a key it also stores onto that case's session.
+- **PyTest Creator selection is isolated**: `ptCase` global + `#ptCaseSelOpen/#ptCaseSelDone`; must never touch `currentKey` / `#caseSel` / page header.
+- **Complete vs open cases**: Complete = `refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json` exists; partials (session progress) listed first in Open dropdown.
 
 ---
 
-## 3. Current File Structure (drafting-tool/)
+## 3. Current File Structure
 
 ```
-drafting-tool/
-├── PROGRESS.md
-├── SERVER-README.md
-├── PLAN-server-backed.md
-├── LESSONS_LEARNED.md
-├── README.md
-├── run.sh
-├── nginx-drafting-server.conf.example
-├── drafting_server/
-│   ├── main.py                 # + /favicon.ico|svg
-│   ├── data.py
-│   ├── llm.py                  # gaps gen, suggest TL/Zephyr/ATP, analyze rank-only
-│   ├── models.py
-│   ├── routers/wizard.py       # load_case, dual /cases, search_*, suggest_*, export
-│   ├── static/index.html       # wizard UI
-│   ├── static/favicon.svg
-│   ├── templates/prompts/
-│   │   ├── generate_objectives.jinja
-│   │   ├── generate_steps.jinja
-│   │   ├── generate_gaps.jinja
-│   │   ├── analyze_atp_coverage.jinja   # ranked only (no gaps)
-│   │   ├── suggest_atp.jinja
-│   │   ├── suggest_testlink.jinja
-│   │   └── suggest_zephyr.jinja
-│   ├── templates/outputs/traceability.md.jinja
-│   └── sessions/
-│       ├── _workspace_llm.json          # workspace LLM default (not a case)
-│       └── AWPTCM-Txxxx.json
-└── (legacy static + design system files)
+ask-ck/
+├── ck-facelift/PLAN-facelift.md    # 2026-07-13 facelift plan (as executed)
+├── CK-main/
+│   ├── SERVER-README.md            # Operational manual
+│   ├── run.sh                      # PYTHONPATH=CK-main, uvicorn CK_server.main:app
+│   ├── nginx-drafting-server.conf.example
+│   ├── (design assets + legacy single-file index.html)
+│   └── CK_server/
+│       ├── main.py                 # Ask CK title; favicon; /process; 4 routers
+│       ├── paths.py                # DATA_DIR / REFINED_DIR / PROCESS_MD anchors
+│       ├── data.py                 # loads from objective-drafting/data/
+│       ├── llm.py                  # gaps gen, suggest TL/Zephyr/ATP, analyze rank-only
+│       ├── models.py
+│       ├── routers/
+│       │   ├── wizard.py           # Generator API (/api/wizard)
+│       │   ├── zephyr_tool.py      # stub (/api/zephyr-tool)
+│       │   ├── test_composer.py    # stub (/api/test-composer)
+│       │   └── pytest_create.py    # stub (/api/pytest-create; generate → 501)
+│       ├── static/index.html       # Ask CK multi-tool UI
+│       ├── static/favicon.svg
+│       ├── templates/prompts/      # generate_objectives/steps/gaps, suggest_*, analyze_atp_coverage
+│       ├── templates/outputs/traceability.md.jinja
+│       └── sessions/               # _workspace_llm.json + AWPTCM-Txxxx.json
+├── objective-drafting/             # THIS DIR: PROGRESS, LESSONS, PLAN, PROCESS, README
+│   ├── data/                       # zephyr_master, candidates, decisions, suites, zephyr_full (LFS)
+│   └── refined-cases/<Group>/AWPTCM-Txxxx/
+├── pytest-create/                  # (empty) future PyTest Creator assets
+├── test-composer/                  # (empty) future Test Composer assets
+└── zephyr-tool/                    # (empty) future Zephyr Templating Tool assets
 ```
 
 ---
@@ -83,89 +108,75 @@ drafting-tool/
 ## 4. What Is Currently Implemented (Working)
 
 ### Backend
-- Data load: zephyr_master, candidates, decisions, slim_index, test_id_desc, testlink.
+- Data load anchored via `paths.py`: zephyr_master, candidates, decisions, slim_index, test_id_desc, testlink (boot-verified counts).
 - **Step 2 zrefs**: relevance scoring over slim_index (keywords, hard anchors, omit current Cases list + primary); batch JSONL enrichment for top hits; returns `score` + `justification`.
-- **load_case NameError (`f` undefined)**: fixed and verified (e.g. T44210 + other keys).
 - LLM: CLI modes `grok_cli` / `claude_code`; Jinja prompts; provenance; no MOCK.
 - **generate_coverage_gaps** at synthesize (+ export if gaps empty).
 - **Workspace LLM**: `_workspace_llm.json` on Apply/Login; applied on load when case has no active config.
-- **GET /api/wizard/cases**: dual lists — `incomplete` (in_progress first, then not_started by folder) + `complete` (refined payload present); counts.
-- Search: `/search_testlink`, `/search_zephyr`, `/search_atp`.
-- Suggest: `/suggest_testlink/{key}`, `/suggest_zephyr/{key}`, `/suggest_atp/{key}`.
-- Export: downloads + write to `refined-cases/<Group>/AWPTCM-Txxxx/`; validation hooks.
+- **GET /api/wizard/cases**: dual lists + counts; search + suggest endpoints for TL/Zephyr/ATP.
+- Export: writes to `objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/`; validation hooks.
+- **Tool stubs**: `/api/zephyr-tool/status`, `/api/test-composer/status`, `/api/pytest-create/status` + `POST /api/pytest-create/generate/{key}` → 501.
 
-### Frontend
-- Step names: **1. TestLink**, **2. Zephyr**, **3. ATPyLib (scored)**, **4. Synthesize**.
-- **Dual case dropdowns**: Open/partial (partials at top) vs Complete; mutual exclusivity; refresh after export.
-- Search + Suggest toolbars on **all three** review steps; client merge preserves checkboxes.
-- Table CSS: explicit `cols-5` / `cols-6-zephyr` / `cols-6-atp` (fixes zero-width description → huge row height).
-- Fixed infinite recursion: `updateAuthMethodUI` ⇄ `updateLLMDefaults`.
-- No Step 3 gaps textarea; gaps only after synth (review summary note).
-- Step 4 human-readable + editor (objective + steps + expected); session debug collapsed.
-- Favicon served (`/favicon.ico`, `/favicon.svg`).
-
-### Repo / ops (this session)
-- Root + drafting-tool README cleaned.
-- Git LFS history migrate for Zephyr XML + jsonl + index (GitHub push unblocked after rewrite).
+### Frontend (Ask CK UI)
+- **Sidebar** (always expanded): LLM status + **Configure**; Zephyr Templating Tool (1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD); Test Composer (1. TBD); PyTest Creator (1. Cases / 2. Creator); **Objective/Test Case Generator** (1. Cases … 6. Test Steps (LLM)).
+- **Navigation**: `goToPanel(panelId)` toggles `.tool-panel` cards + section-aware active state; `goToStep()` wrapper keeps all wizard flows; `PANEL_META` drives page header (tool panels get static titles; Generator shows `KEY — Title`).
+- **LLM Configure panel**: relocated login chunk (radios, Check Grok/Claude CLI, model, Apply/Login, instructions) — ids preserved; `updateLLMStatus` still dual-writes inline + sidebar status.
+- **PyTest Creator Cases**: **Complete cases only** (`#ptCaseSelDone`), fed by the same `/api/wizard/cases` fetch inside `refreshCaseSelects`; `handleCasePairChange` shared helper; selection isolated in `ptCase`; Creator panel shows selected case.
+- Placeholder panels (dashed `.placeholder-panel`, theme-aware) — zt-info and tc panels fetch stub `/status` messages.
+- ✓ nav-badges scoped to `#nav-generator`; heading badges + confirm/synthesis flows unchanged.
+- Prior batch retained: dual case dropdowns, Search+Suggest toolbars, cols-5/cols-6 tables, editors, review summary, post-synth teal **Export Repeatable Bundle** + **Edit / Revise Steps** guard, favicon.
 
 ---
 
 ## 5. What Is Not Yet Implemented (Priorities)
 
 ### High Priority (Next Session Focus)
-1. **Output generation hardening** — M  
-   - Edge cases: empty selections, thin ATP, re-export after edit.  
-   - Stricter pre-write validation vs real `refined-cases` exemplars.  
-   - Confirm first-step note + Gaps section quality after new gaps-at-synth flow.
-
-2. **Real CLI smoke on full UI path** — S (0.25–0.5 session)  
-   - Grok + Claude: Load → confirm 1–3 (search/suggest) → synthesize → export → open refined-cases.  
-   - Claude Team previously often only faked CLI; validate live.
-
-3. **Error handling + loading UX** — M  
-   - load_case ATP rank can be slow (LLM); clearer spinners/timeouts.  
-   - Surface synthesis/export errors in-page (not only alert/console).
+1. **Manual E2E smoke on the facelift** — S  
+   - Browser pass: Generator Load → confirm 2/3/4 → synthesize 5/6 → export; Apply/Login from Configure panel; PyTest Cases isolation; theme toggle on new panels. (Automated checks passed: boot, endpoints, served HTML, JS syntax.)
+2. **Output generation hardening** — M  
+   - Edge cases: empty selections, thin ATP, re-export after edit; stricter pre-write validation vs real `refined-cases` exemplars; confirm first-step note + Gaps quality.
+3. **Real CLI smoke on full UI path** — S (0.25–0.5 session)  
+   - Grok + Claude live synthesis; Claude Team previously often only faked CLI.
+4. **Error handling + loading UX** — M  
+   - load_case ATP rank can be slow (LLM); clearer spinners/timeouts; surface synthesis/export errors in-page.
 
 ### Medium Priority
-- Process Reference page: full markdown + deep links to wizard steps (S–M).
+- **Design first real step of a new tool** (likely PyTest Creator → Creator, or Zephyr Templating → Info) (M).
+- `tool/` scripts (e.g. `upload_refined.py`, extract/build scripts) — verify/repath for `ask-ck/objective-drafting/` layout (S).
+- Process Reference page: full markdown + deep links; its hardcoded "Step 1..4" anchor text now drifts from the 1–6 sidebar labels (S–M).
 - `requirements.txt` / pyproject + simple setup (S).
 - Server-side indexing for full jsonl/suites search quality (M).
-- Optional: refresh case lists after clear-session without full page reload (already partially covered).
 
 ### Lower / Future
+- Hash routing / deep links (refresh currently lands on Generator Cases) (S–M).
 - Multi-user auth (L).
 - Advanced LLM (critique loop, few-shot from past refined cases) (L).
 - Automated tests + CI (M).
 - One-command nginx setup (S–M).
 
-**Suggested order for next session**:
-1. Smoke full real-CLI path on 1–2 open cases (verify gaps land in traceability.md).  
-2. Output hardening vs Port/IPv4 exemplars.  
-3. requirements.txt + error UX.  
-4. Process page enhancements.
-
 ---
 
-## 6. How to Resume Work (For Future Grok Sessions)
+## 6. How to Resume Work (For Future Sessions)
 
 1. Read this **PROGRESS.md** completely.  
-2. Read **SERVER-README.md** (run + workflow).  
-3. Skim **LESSONS_LEARNED.md** (esp. 2026-07-13).  
+2. Read **`ask-ck/CK-main/SERVER-README.md`** (run + workflow).  
+3. Skim **LESSONS_LEARNED.md** (esp. 2026-07-13 entries).  
 4. Start server from repo root:
    ```bash
-   ./drafting-tool/run.sh
+   ./ask-ck/CK-main/run.sh
    # → http://localhost:8000/
    ```
-5. Apply LLM once (Grok or Claude CLI) — preference persists in `_workspace_llm.json`.  
+5. Apply LLM once (sidebar **LLM → Configure**) — preference persists in `_workspace_llm.json`.  
 6. Use **Open / partial** for unfinished work; **Complete** for refined payloads.  
-7. Do not reintroduce Step 3 gaps editing or MOCK paths.
+7. Do not reintroduce review-step gaps editing or MOCK paths; do not renumber the internal step scheme.
 
 ---
 
 ## 7. Important Context to Remember
 
 - Main goals: **repeatable process** + **repeatable outputs** with user review gates and templated LLM.  
-- Legacy single-file tool is reference only.  
+- Ask CK is becoming multi-use: Generator is the mature tool; PyTest Creator / Test Composer / Zephyr Templating Tool are scaffolds with matching `ask-ck/<tool>/` dirs for future assets.  
+- Legacy single-file tool (`CK-main/index.html`) is reference only.  
 - Gaps belong in Traceability artefact (LLM-authored at completion), not as a mid-wizard free-text gate.
 
 ---
@@ -178,12 +189,13 @@ drafting-tool/
 - No automated tests / requirements.txt.
 - zrefs scoring ~1.5s over 45k slim_index — acceptable but not optimized.
 - load_case still runs ATP LLM ranking (latency); gaps no longer on load (good).
+- `tool/` scripts not yet verified against the 2026-07-13 restructure paths.
 
 ### Known Issues / Limitations
 - Shared multi-tenant server pooling one CLI login is unsupported (per-user local host intended).
 - Grok CLI may still emit preamble; stripping helps but is imperfect.
-- GitHub: large sources must stay LFS in **all** history commits (use `git lfs migrate` if reintroducing big files).
-- Process page remains basic.
+- GitHub: large sources must stay LFS in **all** history commits (use `git lfs migrate` if reintroducing big files). The `ask-ck/` tree is currently **untracked** — first commit after restructure should confirm LFS patterns still match the moved `data/zephyr_full/` files.
+- `/process` page anchor text ("Step 1..4") predates the 1–6 sidebar renumber; links were never live (no hash routing).
 - Some older session JSON may still hold stale Step 3 gap text; synth/export overwrites for Traceability.
 
 ---
@@ -192,31 +204,33 @@ drafting-tool/
 
 | Priority | Item | Effort | Notes |
 |----------|------|--------|-------|
+| High | Manual E2E smoke of facelift (browser) | S | Generator flow + Configure panel + PyTest isolation |
 | High | Output generation hardening | M | Post gaps-at-synth validation |
 | High | Real Grok+Claude E2E UI smoke | S | Provenance + refined-cases check |
 | High | Error/loading UX | M | Especially load_case + synthesize |
-| Medium | Process page + deep links | S–M | |
+| Medium | First real new-tool step (design + build) | M | PyTest Creator or Zephyr Templating |
+| Medium | Repath/verify `tool/` scripts | S | upload_refined.py etc. |
+| Medium | Process page + deep links | S–M | Fix step-label drift |
 | Medium | requirements.txt / setup | S | |
 | Medium | Full data indexing | M | |
-| Low | Tests/CI, multi-user, advanced LLM | M–L | |
+| Low | Hash routing, tests/CI, multi-user, advanced LLM | M–L | |
 
-**Completed this session (removed from active high backlog)**:
-- load_case NameError verify/fix  
-- Step 2 zrefs relevance  
-- Frontend polish batch (tables, editor, dual cases, search/suggest 1–3)  
-- Workspace LLM persistence  
-- Gaps moved to synth/export  
-- Stack overflow + table layout bugs  
-- Favicon  
-- README cleanup  
+**Completed this session (2026-07-13, Claude)**:
+- Repo restructure support: `paths.py` + repath of data.py / wizard.py / main.py / run.sh (boot-verified)  
+- Ask CK facelift: rename, sidebar multi-tool sections, 1–6 display renumber, `goToPanel`/`PANEL_META` navigation  
+- LLM Configure panel relocation + dead-code cleanup (`showLLMConfig`, `#llmCredential`, `#llm-config-card`)  
+- New tool scaffolds: 7 placeholder panels + 3 router stubs; PyTest Creator Cases wired (isolated selection)  
+- Nav-badge scoping to Generator  
+- Docs repathed: root README, this file, SERVER-README, LESSONS, READMEs, BoS/EoS prompts, SESSION_STATE entry
 
 ---
 
 ## 10. Cross-References
 
-- Root `README.md` — project framing; drafting tool summary  
-- Root `SESSION_STATE.md` — broader history (2026-07-13 entry)  
-- `OBJECTIVE_DRAFTING_PROCESS.md` — process source of truth (tool implements it; gaps still part of Traceability, authorship path is tool-side)  
+- Root `README.md` — project framing; Ask CK summary  
+- Root `SESSION_STATE.md` — broader history (2026-07-13 entries)  
+- `OBJECTIVE_DRAFTING_PROCESS.md` (this directory) — process source of truth  
+- `ask-ck/ck-facelift/PLAN-facelift.md` — facelift plan as executed  
 - External `AGENTS.md` — machine/CLI environment if present  
 
 ---
@@ -224,14 +238,15 @@ drafting-tool/
 ## 11. Session Handoff Checklist
 
 When starting a new session:
-- [ ] Read `drafting-tool/PROGRESS.md` (this file)
-- [ ] Read `drafting-tool/SERVER-README.md`
-- [ ] Skim `drafting-tool/LESSONS_LEARNED.md` (2026-07-13)
-- [ ] Run `./drafting-tool/run.sh`; hard-refresh browser
-- [ ] Confirm dual case dropdowns + partials at top of Open
-- [ ] Apply LLM once; switch cases — status must stick
-- [ ] Load open case → Search/Suggest steps 1–3 → confirms → synthesize → check Gaps in traceability → export
-- [ ] Step 3 has **no** gaps textarea
+- [ ] Read `ask-ck/objective-drafting/PROGRESS.md` (this file)
+- [ ] Read `ask-ck/CK-main/SERVER-README.md`
+- [ ] Skim `ask-ck/objective-drafting/LESSONS_LEARNED.md` (2026-07-13)
+- [ ] Run `./ask-ck/CK-main/run.sh`; hard-refresh browser
+- [ ] Confirm Ask CK sidebar: LLM Configure + 4 tool sections; Generator "1. Cases" active
+- [ ] Apply LLM once (Configure panel); switch cases — status must stick
+- [ ] Load open case → Search/Suggest steps 2–4 → confirms → synthesize (5/6) → check Gaps in traceability → export
+- [ ] PyTest Creator case selection does NOT change the Generator's loaded case
+- [ ] Review steps have **no** gaps textarea
 - [ ] At end: update PROGRESS + LESSONS + SERVER-README; append root SESSION_STATE if impactful
 
 ---

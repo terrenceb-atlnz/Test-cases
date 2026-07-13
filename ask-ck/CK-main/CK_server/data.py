@@ -13,7 +13,10 @@ import json
 import os
 from typing import Dict, List, Any
 
-BASE = "."
+from paths import OBJECTIVE_DRAFTING_ROOT, PT_DATA_DIR
+
+# All "data/..." paths below resolve inside ask-ck/objective-drafting/
+BASE = str(OBJECTIVE_DRAFTING_ROOT)
 
 def load_json_safe(path: str) -> Any:
     full = os.path.join(BASE, path)
@@ -22,6 +25,15 @@ def load_json_safe(path: str) -> Any:
             return json.load(open(full, encoding="utf-8"))
         except Exception as e:
             print(f"Warning loading {path}: {e}")
+    return None
+
+def load_json_abs(full: str) -> Any:
+    """Like load_json_safe but takes an absolute path (for non-drafting silos)."""
+    if os.path.exists(full):
+        try:
+            return json.load(open(full, encoding="utf-8"))
+        except Exception as e:
+            print(f"Warning loading {full}: {e}")
     return None
 
 def load_all_data() -> Dict[str, Any]:
@@ -49,12 +61,23 @@ def load_all_data() -> Dict[str, Any]:
     tl_raw = load_json_safe("data/suites/testlink_awp.json") or []
     data["testlink"] = {item.get("id"): item for item in tl_raw if item.get("id")}
 
+    # PyTest Creator: script-database index (built out-of-band by
+    # tool/build_script_index.py — degrade gracefully when absent)
+    data["scripts_index"] = load_json_abs(str(PT_DATA_DIR / "scripts_index.json")) or []
+    data["scripts_slim"] = load_json_abs(str(PT_DATA_DIR / "scripts_slim_index.json")) or []
+    data["scripts_index_by_id"] = {r["id"]: r for r in data["scripts_index"]}
+    data["framework_surface"] = load_json_abs(str(PT_DATA_DIR / "framework_surface.json")) or {}
+    data["scripts_index_meta"] = load_json_abs(str(PT_DATA_DIR / "scripts_index.meta.json")) or {}
+
     print(f"  zephyr_master: {len(data['zephyr_master'])}")
     print(f"  candidates: {len(data['candidates'])}")
     print(f"  decisions: {len(data['decisions'])} entries")
     print(f"  slim_index: {len(data['slim_index'])}")
     print(f"  test_id_desc: {len(data['test_id_desc'])}")
     print(f"  testlink: {len(data['testlink'])}")
+    print(f"  scripts_index: {len(data['scripts_index'])} files "
+          f"(enriched {data['scripts_index_meta'].get('enrichment_pct', 0)}%), "
+          f"framework_surface: {len(data['framework_surface'])} modules")
 
     return data
 
