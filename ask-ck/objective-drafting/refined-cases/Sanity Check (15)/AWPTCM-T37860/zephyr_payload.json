@@ -1,0 +1,30 @@
+{
+  "AWPTCM-T37860": {
+    "objective": "<ul><li>A port with a connected PoE PD operating normally (drawing power within budget) indicates the connection with a steady green LED (nominal POE LED behavior; actual color/pattern per device spec).</li><li>A port with no connection shows no LED illumination.</li><li>A non-PoE connection on a PoE-capable port does not activate the PoE LED (L2 traffic may be carried but no PoE LED change).</li><li>These nominal states contrast with fault indications (e.g., flashing or steady orange for over-draw faults per device spec and related cases).</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect a PoE PD to the port and verify normal operation draws power and the port shows the expected steady green LED (or per device spec for nominal POE indication).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the PD (no connection) and verify no LED is illuminated on the port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect a non-PoE device and verify L2 traffic passes but no PoE LED is activated.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Cross-check with fault scenarios (e.g., over-draw) to confirm distinction in LED behavior per device spec.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

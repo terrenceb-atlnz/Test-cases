@@ -1,0 +1,22 @@
+{
+  "AWPTCM-T37869": {
+    "objective": "<ul><li>Stopping a unit fan (e.g. XEM or PSU fan) causes the System LED to indicate a fault by flashing red at 1 flash per period (on some platforms if applicable).</li><li>Fault LED patterns distinguish fan stop (1 flash red) from other environment faults such as faulty XEM (4 flashes) or temperature alarms (on some platforms if applicable).</li><li>Concurrent faults (XEM, temp, fan) cause the fault LED to light in specific sequences of flashes (on some platforms if applicable).</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Cause a unit fan to stop (e.g. XEM fan or PSU fan). Verify the System LED flashes red at 1 flash per period (or equivalent fault indication on some platforms if applicable).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify distinction from other faults (e.g. 4 flashes for faulty XEM, sequences for concurrent XEM/temp/fan alarms).",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

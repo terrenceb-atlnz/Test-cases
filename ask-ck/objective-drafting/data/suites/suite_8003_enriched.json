@@ -1,0 +1,1108 @@
+{
+  "8003.1.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.1.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Reboot and make sure all cards online, and record how long it takes\n\n[Inferred behavior \u2014 no execution history for this case] Reboot and make sure all cards online, and record how long it takes",
+    "reference": "Continuous Test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.1.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Setup NTP server to ensure that the time on DUT is in sync with TestBox to have consistent timestamps to help debugging\n\n[Inferred behavior \u2014 no execution history for this case] Setup NTP server to ensure that the time on DUT is in sync with TestBox to have consistent timestamps to help debugging",
+    "reference": "Continuous Test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.2.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Startup log messages on all cards have the correct time\n\n[Inferred behavior \u2014 no execution history for this case] Startup log messages on all cards have the correct time",
+    "reference": "Story 199",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.2.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Active CFC and all cards times are in sync after boot\n\n[Inferred behavior \u2014 no execution history for this case] Active CFC and all cards times are in sync after boot",
+    "reference": "Story 199",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.7.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card A\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card A",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card B\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card B",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.3": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card C\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card C",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.4": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card A\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card A",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.5": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card B\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card B",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.6": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card C\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card C",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.7": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card D\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Within a card: Card D",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.7.8": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card C\n\n[Inferred behavior \u2014 no execution history for this case] Check that the testbox can successfully send L3 traffic through the switch with it being routed between VLANs.Across 2 cards, with ingress on card C",
+    "reference": "Story 7",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.11.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check show tech-support command is successful\n\n[Inferred behavior \u2014 no execution history for this case] Check show tech-support command is successful",
+    "reference": "Story",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.18.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "DUT ARP response rate\n\n[Inferred behavior \u2014 no execution history for this case] DUT ARP response rate",
+    "reference": "Story 123",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Throughput within instance.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Throughput within instance.",
+    "reference": "Story 97",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Throughput across instance.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Throughput across instance.",
+    "reference": "Story 97",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.3": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Sequence verify within instance.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Sequence verify within instance.",
+    "reference": "Story 129",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.4": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Sequence verify across instances.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Sequence verify across instances.",
+    "reference": "Story 129",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.5": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Pattern verify within instance.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Pattern verify within instance.",
+    "reference": "Story 129",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.20.6": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "IPv4 Pattern verify across instances.\n\n[Inferred behavior \u2014 no execution history for this case] IPv4 Pattern verify across instances.",
+    "reference": "Story 129",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 20,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.21.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.21.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Evaluate L2 learning rate for 8/128k MAC addresses\n\n[Inferred behavior \u2014 no execution history for this case] Evaluate L2 learning rate for 8/128k MAC addresses",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.32.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that show card output includes some expected strings\n\n[Inferred behavior \u2014 no execution history for this case] Check that show card output includes some expected strings",
+    "reference": "Story 32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.32.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that show system output includes some expected strings\n\n[Inferred behavior \u2014 no execution history for this case] Check that show system output includes some expected strings",
+    "reference": "Story 32",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card A\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card B\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.3": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card C\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card C",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.4": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card D\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card D",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.5": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card E\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card E",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.6": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Within a card: Card F\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Within a card: Card F",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.7": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in A, out B\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in A, out B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.8": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in B, out C\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in B, out C",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.9": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in C, out A\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in C, out A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.10": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in C, out D\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in C, out D",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.11": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in D, out A\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in D, out A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.12": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in D, out B\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in D, out B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.13": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in A, out E (XS8)\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in A, out E (XS8)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.14": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in E (base board), out F (Q2)\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in E (base board), out F (Q2)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.15": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in F (base board), out C\n\n[Inferred behavior \u2014 no execution history for this case] Check that L2 BC flooding only occurs within a VLAN. Across 2 cards: in F (base board), out C",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.16": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card A\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.17": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card B\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.18": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card C\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card C",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.19": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card D\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card D",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.20": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card E\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card E",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.21": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Within a card: Card F\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Within a card: Card F",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.22": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in A, out B\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in A, out B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.23": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in B, out C\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in B, out C",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.24": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out D\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out D",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.25": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out A\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.26": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in D, out A\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in D, out A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.27": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in D, out B\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in D, out B",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.28": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out E (XS8)\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in C, out E (XS8)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.29": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in F (base board), out E (XS8)\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in F (base board), out E (XS8)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.48.30": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that l2 unicast only occurs within a VLAN. Across 2 cards: in E (base board), out A\n\n[Inferred behavior \u2014 no execution history for this case] Check that l2 unicast only occurs within a VLAN. Across 2 cards: in E (base board), out A",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 48,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.50.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "L3 traffic routing through the DUT between VLANs over Static Aggregators\n\n[Inferred behavior \u2014 no execution history for this case] L3 traffic routing through the DUT between VLANs over Static Aggregators",
+    "reference": "Story 132",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 50,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.60.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Learning time for nexthops\n\n[Inferred behavior \u2014 no execution history for this case] Learning time for nexthops",
+    "reference": "Story SBXLEM-1743",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 60,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.83.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check ports all come up\n\n[Inferred behavior \u2014 no execution history for this case] Check ports all come up",
+    "reference": "Stories 56, 83",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 83,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.83.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check ports all come up when link partnerhas ports set to 100M\n\n[Inferred behavior \u2014 no execution history for this case] Check ports all come up when link partnerhas ports set to 100M",
+    "reference": "Stories 56, 83",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 83,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.88.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Ensure new master CFC can configure LIFs after failover - Link Speed\n\n[Inferred behavior \u2014 no execution history for this case] Ensure new master CFC can configure LIFs after failover - Link Speed",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Ensure new master CFC can configure LIFs after failover - Link State\n\n[Inferred behavior \u2014 no execution history for this case] Ensure new master CFC can configure LIFs after failover - Link State",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.3": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "ARPs are added to hardware of all cards after master failover\n\n[Inferred behavior \u2014 no execution history for this case] ARPs are added to hardware of all cards after master failover",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.4": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Routes are added to hardware of all cards after master failover\n\n[Inferred behavior \u2014 no execution history for this case] Routes are added to hardware of all cards after master failover",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.5": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Packet replication after master CFC failover\n\n[Inferred behavior \u2014 no execution history for this case] Packet replication after master CFC failover",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.6": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check MAC Table\n\n[Inferred behavior \u2014 no execution history for this case] Check MAC Table",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.7": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check IP Table\n\n[Inferred behavior \u2014 no execution history for this case] Check IP Table",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.8": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check IPMulti Table\n\n[Inferred behavior \u2014 no execution history for this case] Check IPMulti Table",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.9": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check IPv6Multi Table\n\n[Inferred behavior \u2014 no execution history for this case] Check IPv6Multi Table",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.88.10": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check IPv6 Table\n\n[Inferred behavior \u2014 no execution history for this case] Check IPv6 Table",
+    "reference": "-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 88,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.90.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Show System and Show Card synchronisation after reboot\n\n[Inferred behavior \u2014 no execution history for this case] Show System and Show Card synchronisation after reboot",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 90,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.91.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 91,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.91.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Chassis startup with varying CFC staggered start timing\n\n[Inferred behavior \u2014 no execution history for this case] Chassis startup with varying CFC staggered start timing",
+    "reference": "CR",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 91,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.100.0": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 100,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "8003.100.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that testbox can successfully ping the switch with one ip address on a single vlan\n\n[Inferred behavior \u2014 no execution history for this case] Check that testbox can successfully ping the switch with one ip address on a single vlan",
+    "reference": "None",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 100,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.127.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Check that private vlans work correctly (within LIF)\n\n[Inferred behavior \u2014 no execution history for this case] Check that private vlans work correctly (within LIF)",
+    "reference": "Story 127",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 127,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.999.1": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Do tear down for continual test\n\n[Inferred behavior \u2014 no execution history for this case] Do tear down for continual test",
+    "reference": "Continuous Test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 999,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "8003.999.2": {
+    "suite_id": "8003",
+    "suite_name": "8003_x8100",
+    "description": "Delete old tech-support files\n\n[Inferred behavior \u2014 no execution history for this case] Delete old tech-support files",
+    "reference": "Continuous Test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 999,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

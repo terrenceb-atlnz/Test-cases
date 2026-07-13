@@ -1,0 +1,46 @@
+{
+  "AWPTCM-T33234": {
+    "objective": "<ul><li>A port with no pluggable present defaults to automatic MDI/MDI-X polarity handling.</li><li>Inserting a supported pluggable results in successful polarity resolution and link establishment.</li><li>A port configured for Auto speed and duplex resolves MDI or MDIX polarity correctly with a compliant link partner.</li><li>Link establishment succeeds for straight-through and crossover cables under Auto polarity and when one or both sides are forced to MDI or MDIX.</li><li>The port accurately reports the resolved polarity setting (MDI or MDIX) together with speed and duplex.</li><li>Link status is correctly reported as up once automatic polarity handling completes.</li><li>Automatic MDI/MDI-X handling produces a working link across supported configurations and cable types with a compliant partner.</li><li>Polarity resolution functions as expected when used together with LPI (ecofriendly) features on supported ports.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/5000_mdi_mdix<br />https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T37856<br />Note: the automated test covers multiple test cases.<br /><br />Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify default behavior with no pluggable present. Confirm the port defaults to automatic MDI/MDI-X polarity handling and reports the default configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Insert a supported pluggable while the port is set to Auto. Confirm polarity is automatically resolved and a link is established with a compliant partner.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the port to Auto for speed, duplex, and polarity. Test with link partner configured for MDI and MDIX (both sides on Auto). Confirm polarity resolves correctly and link establishes for both straight-through and crossover cables.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure one side to Auto and the other to forced MDI or MDIX. Verify successful link establishment in compatible combinations and correct link-down behavior in incompatible combinations.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the port accurately reports the resolved polarity (MDI or MDIX) together with the negotiated speed and duplex values.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify link status is correctly reported as up once polarity resolution completes, and that the link remains stable across supported configurations and cable types.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Hot-insert and hot-remove supported pluggables while the port is set to Auto polarity. Confirm polarity negotiation and link status update correctly on insertion and removal.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Where the platform and media support it, test with LPI (Low Power Idle) enabled and disabled on Auto-negotiated links with varying polarity settings. Confirm LPI behavior and stable link.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

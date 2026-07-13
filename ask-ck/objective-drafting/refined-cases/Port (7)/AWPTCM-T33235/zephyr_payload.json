@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33235": {
+    "objective": "<ul><li>A port configured to a fixed speed establishes a link at exactly the configured speed with a compliant partner.</li><li>A port configured to a fixed speed and duplex (full or half) reports the configured fixed values (not Auto) in interface status.</li><li>Link establishment succeeds at supported fixed speeds (e.g. 10, 100, 1000) with matching partner settings.</li><li>When an unsupported speed is configured, the link does not come up or is correctly reported as down.</li><li>Hot-insert of a supported pluggable while the port is in fixed speed mode results in link coming up at the configured fixed rate.</li><li>Show interface and status commands accurately reflect the fixed speed, duplex, and current link state.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the port to a supported fixed speed and full duplex (e.g. 1000/Full). Confirm the link comes up at exactly that speed/duplex, the port reports the fixed speed (not Auto), and traffic can be forwarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat for other supported fixed speeds on the media type (100/Full, 1000/Full, etc. as applicable). Confirm link establishment at the exact configured rate and correct reporting in each case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test fixed speed with half and full duplex where supported. Confirm correct link-up and reporting for each duplex setting at the fixed speed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an unsupported speed on the port (or force mismatch with partner). Confirm link does not come up or is reported down, and status reflects the misconfiguration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Hot-insert / hot-remove supported pluggables or change cables while port is set to fixed speed. Confirm link state updates correctly and fixed configuration is retained after re-insertion where applicable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify show interface and related status commands accurately reflect the fixed speed/duplex configuration and current link state.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

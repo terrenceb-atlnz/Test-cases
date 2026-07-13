@@ -1,0 +1,26 @@
+{
+  "AWPTCM-T37865": {
+    "objective": "<ul><li>With HANP enabled, PoE devices attached to the switch retain power during a warm restart (no power loss to PDs).</li><li>The Last negotiated time and date for PoE ports with attached devices remains the same before and after the warm restart.</li><li>HANP active status is logged during/after the restart.</li><li>HANP can be enabled globally and on a per-port basis (when globally enabled), with configuration and negotiated power info visible in CLI show commands.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable HANP (globally and on relevant ports if applicable). Attach several PoE capable devices to the DUT. Verify via \"show power-inline interface detail\" that HANP is enabled, devices are powered, and Last negotiated time/date is displayed for all attached ports.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform a warm restart of the DUT (awplus#reboot). Monitor logs for HANP active messages. After reboot, verify no PoE devices lost power. Confirm Last negotiated times/dates on all ports with devices attached are the same as before the restart.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify CLI show commands display correct HANP system and interface level configuration and negotiated power info.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

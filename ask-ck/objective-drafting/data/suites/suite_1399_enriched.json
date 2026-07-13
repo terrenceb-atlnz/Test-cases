@@ -1,0 +1,491 @@
+{
+  "1399.0.0": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1399.1001.0": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1399.1001.1": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF auto recover from sdcard\n\n[Log-derived analysis] Verifies ATMF auto-recovery of a node using a backup held on local SD card media. Brings up a multi-node ATMF network, takes a manual ATMF backup of all nodes to SD media, then runs 'atmf cleanup' on a target node to wipe its NVS/flash and reboot it. Confirms the node is automatically re-provisioned from the SD-card backup, rejoins the ATMF network with the full node count restored, the running-config matches the pre-test configuration after teardown, and no exceptions are logged.",
+    "reference": "CR-55328",
+    "past_crs": [
+      "57733",
+      "57738",
+      "72413",
+      "76957",
+      "76935",
+      "86181",
+      "86396",
+      "SYST-8148",
+      "CR-88357"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93638464",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1001.2": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF auto recover from sdcard with non-standard ATMF Management VLAN\n\n[Log-derived analysis] Same SD-card ATMF auto-recovery flow as the standard case, but with the ATMF management VLAN set to a non-standard (non-default) VID. Confirms a wiped node still auto-recovers from its SD-card backup and rejoins the ATMF network when management runs over a custom VLAN, with config preserved and no exceptions.",
+    "reference": "CR-55328",
+    "past_crs": [
+      "57733",
+      "57738",
+      "72413",
+      "76957",
+      "76935",
+      "86181",
+      "CR-88357"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93639430",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1001.3": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Secure-mode ATMF auto recover from sdcard\n\n[Log-derived analysis] SD-card ATMF auto-recovery exercised with ATMF Secure Mode enabled. Confirms that a node cleaned with 'atmf cleanup' is automatically restored from its SD-card backup and re-authenticates/rejoins the secure ATMF network, with the expected node count, preserved configuration, and no exceptions.",
+    "reference": "CR-55328",
+    "past_crs": [
+      "57722",
+      "57733",
+      "57738",
+      "58006",
+      "58580",
+      "58695",
+      "58791",
+      "59176",
+      "68290",
+      "69959",
+      "72207",
+      "75140",
+      "76957",
+      "76935",
+      "86181",
+      "88357",
+      "SYST-8731"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93640056",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.0": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1399.1002.1": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Backup to Remote File Server\n\n[Log-derived analysis] Verifies ATMF backup to a remote (off-box) file server. Confirms the ATMF Master mounts the configured remote backup server(s) over SSH, runs a manual backup of all nodes to the remote path, and reports the expected number of good backups, with no errors during the backup.",
+    "reference": "",
+    "past_crs": [
+      "67060",
+      "72413",
+      "86181"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93640524",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.2": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Auto-Recovery from Remote File Server\n\n[Log-derived analysis] Verifies ATMF auto-recovery of a node from a backup stored on a remote file server. After backing up to the remote server, runs 'atmf cleanup' on a target node to wipe and reboot it, then confirms it is automatically restored from the remote backup, rejoins the ATMF network with the full node count, preserves its configuration, and logs no exceptions.",
+    "reference": "CR-55328",
+    "past_crs": [
+      "57738",
+      "58491",
+      "62918",
+      "67060",
+      "72413",
+      "76957",
+      "86181",
+      "CR-88357"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93641051",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.3": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Auto-Recovery from Remote File Server with non-standard ATMF Management VLAN\n\n[Log-derived analysis] Same remote-file-server ATMF auto-recovery flow, but with a non-standard ATMF management VLAN. Confirms a cleaned node auto-recovers from the remote backup and rejoins the network when management runs over a custom VLAN, with config preserved and no exceptions.",
+    "reference": "CR-55328",
+    "past_crs": [
+      "57738",
+      "58491",
+      "67060",
+      "72413",
+      "86181",
+      "CR-86396",
+      "CR-88357",
+      "SYST-8345",
+      "CR-88357",
+      "SYST-8345"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93641764",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.4": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "A clean device with no connection to an ATMF network or DHCP server will auto-configure a static IPv4 address\n\n[Log-derived analysis] Verifies that a clean (cleaned/auto-recovered) device with no ATMF network and no DHCP server falls back to auto-configuring a default static IPv4 address. Triggers ATMF auto-recovery on a target node, then confirms recovery completes and that the device no longer answers ARP for the default fallback IP once it has rejoined, with config preserved and no exceptions.",
+    "reference": "Project 2034. Moved to 1399.1002.6283",
+    "past_crs": [
+      "57738",
+      "58491",
+      "62918",
+      "67060",
+      "72413",
+      "75962",
+      "83561"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3252230",
+      "log_uid": "90899240",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "5.5.3-2.9-rc2",
+      "run_date": "2026-03-16",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.5": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "A clean device with no connection to an ATMF network will receive an IP address via DHCP\n\n[Log-derived analysis] Verifies that a clean device with no ATMF network obtains its IP address via DHCP. Stands up a DHCP server, triggers auto-recovery on the target node, confirms recovery completes and that the device stops answering ARP for the DHCP-assigned address once recovered, then tears down the DHCP server with config preserved and no exceptions.",
+    "reference": "Project 2034",
+    "past_crs": [
+      "57738",
+      "58503",
+      "59970",
+      "62918",
+      "67060",
+      "72413",
+      "75962",
+      "83561",
+      "86181",
+      "CR-88357",
+      "SYST-8340",
+      "SYST-8264",
+      "CR-88930",
+      "SYST-8605",
+      "CR-89204",
+      "SYST-8680",
+      "CR-89353",
+      "CR-89795"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93643078",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.6": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Auto-Recovery with ATMF backup redundancy, remote backup ID 1\n\n[Log-derived analysis] Verifies ATMF auto-recovery using ATMF backup redundancy with the remote backup selected via redundancy ID 1. Enables backup redundancy (remote server plus local SD media), backs up all nodes, then cleans and recovers a target node, confirming it is restored from the expected redundant backup source, rejoins with the full node count, and preserves its configuration with no exceptions.",
+    "reference": "CR-74915",
+    "past_crs": [
+      "86181"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93643710",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.7": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "ATMF Auto-Recovery with ATMF backup redundancy, remote backup ID 2\n\n[Log-derived analysis] Same ATMF backup-redundancy auto-recovery flow as the ID-1 case but exercising remote backup redundancy ID 2, confirming recovery succeeds from the second redundant backup source with the node count restored, configuration preserved, and no exceptions.",
+    "reference": "CR-74915",
+    "past_crs": [
+      "86181",
+      "CR-88357"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355629",
+      "log_uid": "93644221",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.6283": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "A clean device with no connection to an ATMF network or DHCP server will auto-configure a static IPv4 address\n\n[Log-derived analysis] Variant of the clean-device fallback static-IPv4 auto-configuration case. Confirms that after auto-recovery a device with no ATMF network and no DHCP server auto-configures its default static IPv4 address and stops answering ARP for that fallback address once recovered, with config preserved and no exceptions.",
+    "reference": "Project 2034, ER-6283, Previously 1399.1002.4",
+    "past_crs": [
+      "86181",
+      "CR-88357",
+      "SYST-8264",
+      "SYST-8561",
+      "SYST-8605",
+      "SYST-8680",
+      "CR-89204",
+      "CR-89795",
+      "SYST-8761"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 6283,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358005",
+      "log_uid": "93711461",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "1399.1002.62831": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "A clean device with no connection to an ATMF network or DHCP server will auto-configure a static IPv4 address\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that a clean device with no ATMF network and no DHCP server auto-configures a default static IPv4 address. Reported UNSUPPORTED on the current test setup (the case was skipped because its required exclusivity/platform precondition was not met).",
+    "reference": "Project 2034, ER-6283, Previously 1399.1002.4",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 62831,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1399.1003.0": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1399.1003.1": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Autoboot recover software from sd card\n\n[Log-derived analysis] Verifies autoboot software recovery from SD card. Stages a recovery release as the autoboot file on external SD media, sets the device to boot a missing/relocated release so autoboot triggers, power-cycles it, and confirms the 'Autoboot restore successful' message, that the device boots the recovered software version, and that configuration is preserved with no exceptions.",
+    "reference": "CR-57789",
+    "past_crs": [
+      "81839",
+      "SYST-8536",
+      "CR-89116",
+      "CR-89239",
+      "CR-89239"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3354254",
+      "log_uid": "93592231",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1399.1003.2": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Autoboot recover software from usb\n\n[Log-derived analysis] Same autoboot software-recovery flow as the SD-card case but using external USB media. Confirms the device recovers its software from the USB autoboot file, boots the recovered version, and preserves configuration with no exceptions.",
+    "reference": "CR-57789",
+    "past_crs": [
+      "67060",
+      "76951",
+      "81857",
+      "86181",
+      "86181",
+      "86566",
+      "CR-81912",
+      "SYST-8536",
+      "CR-89116"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357162",
+      "log_uid": "93685673",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1399.1003.3": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Autoboot recover configs & release from sdcard\n\n[Log-derived analysis] Verifies autoboot recovery of both configuration and release from SD card. Stages release (and config) recovery files on external SD media, forces an autoboot, and confirms the device restores and boots the recovered release/config, with configuration preserved and no exceptions.",
+    "reference": "CR-57789",
+    "past_crs": [
+      "67060",
+      "81839",
+      "CR-89239"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3354254",
+      "log_uid": "93592709",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "1399.1003.4": {
+    "suite_id": "1399",
+    "suite_name": "1399_system_recovery",
+    "description": "Autoboot recover configs & software from usb\n\n[Log-derived analysis] Verifies autoboot recovery of both configuration and software from external USB media. Forces an autoboot with recovery files staged on USB, confirms the 'Autoboot restore successful' message and that the device boots the recovered software/config, with configuration preserved and no exceptions.",
+    "reference": "CR-57789",
+    "past_crs": [
+      "67060",
+      "76951",
+      "81857",
+      "86566",
+      "CR-89116",
+      "SYST-8536"
+    ],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357162",
+      "log_uid": "93685856",
+      "platform": "tftpboot.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

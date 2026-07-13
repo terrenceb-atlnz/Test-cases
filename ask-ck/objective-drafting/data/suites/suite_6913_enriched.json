@@ -1,0 +1,30 @@
+{
+  "6913.1001.1": {
+    "suite_id": "6913",
+    "suite_name": "6913_ATPyLib_training",
+    "description": "ATPyLib Training - ping the DUT from the TestBox\n\n[Inferred behavior \u2014 no execution history for this case] ATPyLib Training - ping the DUT from the TestBox",
+    "reference": "https://intranet.atlnz.lc/awpwiki/index.php/ATPyLib_Training#TestCase_1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6913.1001.2": {
+    "suite_id": "6913",
+    "suite_name": "6913_ATPyLib_training",
+    "description": "ATPyLib Training - route IPv4 traffic through the DUT\n\n[Inferred behavior \u2014 no execution history for this case] ATPyLib Training - route IPv4 traffic through the DUT",
+    "reference": "https://intranet.atlnz.lc/awpwiki/index.php/ATPyLib_Training#TestCase_2",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

@@ -1,0 +1,4398 @@
+{
+  "1501.1000.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Dont have the required License\n\n[Inferred behavior \u2014 no execution history for this case] Dont have the required License",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1000.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Security, Checking whether IP reputation and Web control can be turned on\n\n[Inferred behavior \u2014 no execution history for this case] Security, Checking whether IP reputation and Web control can be turned on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1000.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring readonly users do not have access to router security tabs\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring readonly users do not have access to router security tabs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1000.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Turning on and off IP reputation and web control for a network group\n\n[Inferred behavior \u2014 no execution history for this case] Turning on and off IP reputation and web control for a network group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check for helpful information if users network is not setup for ATS\n\n[Inferred behavior \u2014 no execution history for this case] Check for helpful information if users network is not setup for ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Open ATS settings from the network map and toggle ATS\n\n[Inferred behavior \u2014 no execution history for this case] Open ATS settings from the network map and toggle ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1001.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1004.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check active cells and filters for ACL Matrix\n\n[Inferred behavior \u2014 no execution history for this case] Check active cells and filters for ACL Matrix",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1004.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that we can display host/port groups\n\n[Inferred behavior \u2014 no execution history for this case] Check that we can display host/port groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1005.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:\n\n[Inferred behavior \u2014 no execution history for this case] Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1005.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As admin, deploy an existing Application Priority policy to R1 from the map and then delete the deployment:\n\n[Inferred behavior \u2014 no execution history for this case] As admin, deploy an existing Application Priority policy to R1 from the map and then delete the deployment:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1005.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create and delete a new Application Priority policy :\n\n[Inferred behavior \u2014 no execution history for this case] Create and delete a new Application Priority policy :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1005.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edit and overwrite existing Application Priority policy:\n\n[Inferred behavior \u2014 no execution history for this case] Edit and overwrite existing Application Priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1005.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Clone and save an existing Application Priority priority policy:\n\n[Inferred behavior \u2014 no execution history for this case] Clone and save an existing Application Priority priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1006.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1007.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Updating Device GUI from url\n\n[Inferred behavior \u2014 no execution history for this case] Updating Device GUI from url",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1008.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a user can navigate the file system\n\n[Inferred behavior \u2014 no execution history for this case] Check that a user can navigate the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1008.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a user can upload to the file system\n\n[Inferred behavior \u2014 no execution history for this case] Check that a user can upload to the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1009.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1009.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can update the devices firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can update the devices firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring statuses of Devices and Links on the network map change after a topology refresh\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring statuses of Devices and Links on the network map change after a topology refresh",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are shown in the groups tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are shown in the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the groups tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are hidden when toggled visibility on the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to an existing group and then removing that device from the group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to an existing group and then removing that device from the group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to a new group, Moving a device, Renaming a group, and Removing a group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to a new group, Moving a device, Renaming a group, and Removing a group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to an existing site and then removing that device from the site\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to an existing site and then removing that device from the site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.7": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to a new site and moving that node to a different site, and also removing a site\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to a new site and moving that node to a different site, and also removing a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.8": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Having 3 layers of sites visible\n\n[Inferred behavior \u2014 no execution history for this case] Having 3 layers of sites visible",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.9": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the sites tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are hidden when toggled visibility on the sites tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.10": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Renaming a site\n\n[Inferred behavior \u2014 no execution history for this case] Renaming a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.11": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map\n\n[Inferred behavior \u2014 no execution history for this case] Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.12": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Using search input to trace paths and fail tracing paths on the network map\n\n[Inferred behavior \u2014 no execution history for this case] Using search input to trace paths and fail tracing paths on the network map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.13": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.14": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking undo button on layout removes blue dot and undoes actions\n\n[Inferred behavior \u2014 no execution history for this case] Checking undo button on layout removes blue dot and undoes actions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.15": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot disappears when saving as a new Layout\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot disappears when saving as a new Layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1010.16": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot stays present when user opens and closes topology menu\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot stays present when user opens and closes topology menu",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet breakout, turn on and off, check tabs when on and off as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Internet breakout, turn on and off, check tabs when on and off as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Export a CSV file\n\n[Inferred behavior \u2014 no execution history for this case] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select a column\n\n[Inferred behavior \u2014 no execution history for this case] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect columns\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect columns",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Deselect all columns but one (there always must be at least one)\n\n[Inferred behavior \u2014 no execution history for this case] Deselect all columns but one (there always must be at least one)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and apply filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and apply filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select filters and search on every field\n\n[Inferred behavior \u2014 no execution history for this case] Select filters and search on every field",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1008": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Search for an empty device table\n\n[Inferred behavior \u2014 no execution history for this case] Search for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1009": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter for an empty device table\n\n[Inferred behavior \u2014 no execution history for this case] Filter for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1010": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Creating, editing and deleting a static node\n\n[Inferred behavior \u2014 no execution history for this case] Creating, editing and deleting a static node",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1011": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Show the device list page by page in inventory\n\n[Inferred behavior \u2014 no execution history for this case] Show the device list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1011,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1012": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Network status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1012,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1013": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Updating Device GUI from url\n\n[Inferred behavior \u2014 no execution history for this case] Updating Device GUI from url",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1013,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1014": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1014,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1015": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1015,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1016": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1016,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1017": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1017,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1018": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1018,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1019": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Updating Device GUI from url\n\n[Inferred behavior \u2014 no execution history for this case] Updating Device GUI from url",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1019,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1011.1023": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1023,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that an admin user can backup, favourite and delete unfavourited backups of device configurations\n\n[Inferred behavior \u2014 no execution history for this case] Check that an admin user can backup, favourite and delete unfavourited backups of device configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a user can navigate the file system\n\n[Inferred behavior \u2014 no execution history for this case] Check that a user can navigate the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a user can delete from the file system\n\n[Inferred behavior \u2014 no execution history for this case] Check that a user can delete from the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Export a CSV file\n\n[Inferred behavior \u2014 no execution history for this case] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select a column\n\n[Inferred behavior \u2014 no execution history for this case] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a Group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a Group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Show the group list page by page in inventory\n\n[Inferred behavior \u2014 no execution history for this case] Show the group list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter using the Search box\n\n[Inferred behavior \u2014 no execution history for this case] Filter using the Search box",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Search for an empty groups table\n\n[Inferred behavior \u2014 no execution history for this case] Search for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1008": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter for an empty groups table\n\n[Inferred behavior \u2014 no execution history for this case] Filter for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1009": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Groups status for an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Groups status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1010": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1011": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1011,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1012": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1012,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1013": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1013,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1014": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1014,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1012.1015": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1012,
+    "caseId": 1015,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can't edit their username\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can't edit their username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can change their network topology layout\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can change their network topology layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can update the devices firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can update the devices firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab and cannot click the update firmware button\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab and cannot click the update firmware button",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1013.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab as and can't see any firmware to update\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab as and can't see any firmware to update",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning using the menu in the network map, as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that the provision device button is not visible for the read only user\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that the provision device button is not visible for the read only user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning using the menu in the network map, as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the provision button is not visible when logged in as a user with only area read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the provision button is not visible when logged in as a user with only area read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the provision button is not visible when logged in as a user with only group read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the provision button is not visible when logged in as a user with only group read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the provision button is not visible when logged in as a user with only site read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the provision button is not visible when logged in as a user with only site read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1014.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the provision button is not visible when logged in as a user with only site read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the provision button is not visible when logged in as a user with only site read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1015.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As an admin user, Jordan can load an old database with no radius configuration, users, groups and NAS should be found device configuration\n\n[Inferred behavior \u2014 no execution history for this case] As an admin user, Jordan can load an old database with no radius configuration, users, groups and NAS should be found device configuration",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1015.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that an admin user can backup, favourite and delete unfavourited backups of device configurations\n\n[Inferred behavior \u2014 no execution history for this case] Check that an admin user can backup, favourite and delete unfavourited backups of device configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1015.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a readonly user cannot create backups or delete backup configurations\n\n[Inferred behavior \u2014 no execution history for this case] Check that a readonly user cannot create backups or delete backup configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1015.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that user can write, save and delete notes in device search and the device's page\n\n[Inferred behavior \u2014 no execution history for this case] Check that user can write, save and delete notes in device search and the device's page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1016.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "User can check the auto recovery and configuration totals\n\n[Inferred behavior \u2014 no execution history for this case] User can check the auto recovery and configuration totals",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1016.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "User can download a PDF report\n\n[Inferred behavior \u2014 no execution history for this case] User can download a PDF report",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1016.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "User can check how many nodes were last active\n\n[Inferred behavior \u2014 no execution history for this case] User can check how many nodes were last active",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1017.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Display basic walk path on side panel\n\n[Inferred behavior \u2014 no execution history for this case] Display basic walk path on side panel",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1018.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Admin user can create, edit and delete VLAN through the device map node and vlan list\n\n[Inferred behavior \u2014 no execution history for this case] Admin user can create, edit and delete VLAN through the device map node and vlan list",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1018,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1018.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Admin user can set and discard a native VLAN\n\n[Inferred behavior \u2014 no execution history for this case] Admin user can set and discard a native VLAN",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1018,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1019.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Display basic walk path on side panel\n\n[Inferred behavior \u2014 no execution history for this case] Display basic walk path on side panel",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1020.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create an event rule\n\n[Inferred behavior \u2014 no execution history for this case] Create an event rule",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1020.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Remove SES alarm on the side-panel when receive Whitelist Accept syslog message\n\n[Inferred behavior \u2014 no execution history for this case] Remove SES alarm on the side-panel when receive Whitelist Accept syslog message",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring statuses of Devices and Links on the network map change after a topology refresh\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring statuses of Devices and Links on the network map change after a topology refresh",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are shown in the groups tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are shown in the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the groups tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are hidden when toggled visibility on the groups tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to an existing group and then removing that device from the group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to an existing group and then removing that device from the group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to a new group, Moving a device, Renaming a group, and Removing a group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to a new group, Moving a device, Renaming a group, and Removing a group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to an existing site and then removing that device from the site\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to an existing site and then removing that device from the site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a device to a new site and moving that node to a different site, and also removing a site\n\n[Inferred behavior \u2014 no execution history for this case] Adding a device to a new site and moving that node to a different site, and also removing a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1008": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Having 3 layers of sites visible\n\n[Inferred behavior \u2014 no execution history for this case] Having 3 layers of sites visible",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1009": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring devices are hidden when toggled visibility on the sites tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring devices are hidden when toggled visibility on the sites tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1010": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Renaming a site\n\n[Inferred behavior \u2014 no execution history for this case] Renaming a site",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1011": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map\n\n[Inferred behavior \u2014 no execution history for this case] Tracing a path between two nodes, and also failing tracing a path between two nodes on the Network Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1011,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1012": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Using search input to trace paths and fail tracing paths on the network map\n\n[Inferred behavior \u2014 no execution history for this case] Using search input to trace paths and fail tracing paths on the network map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1012,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1013": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot appears above layout when changes have been made to the layout, and disappears when the layout is saved",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1013,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1014": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking undo button on layout removes blue dot and undoes actions\n\n[Inferred behavior \u2014 no execution history for this case] Checking undo button on layout removes blue dot and undoes actions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1014,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1015": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot disappears when saving as a new Layout\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot disappears when saving as a new Layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1015,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1021.1016": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking Blue dot stays present when user opens and closes topology menu\n\n[Inferred behavior \u2014 no execution history for this case] Checking Blue dot stays present when user opens and closes topology menu",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1016,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1022.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Admin user can create, edit and delete VLAN through the device map node and vlan list\n\n[Inferred behavior \u2014 no execution history for this case] Admin user can create, edit and delete VLAN through the device map node and vlan list",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1022.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1022.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1022.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "readonly user cannot create, edit and delete VLANs on\n\n[Inferred behavior \u2014 no execution history for this case] readonly user cannot create, edit and delete VLANs on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1031.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Navigating to the event_log and filtering for critical events\n\n[Inferred behavior \u2014 no execution history for this case] Navigating to the event_log and filtering for critical events",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1031,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1041.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can create a new service monitor\n\n[Inferred behavior \u2014 no execution history for this case] Can create a new service monitor",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1041,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Dont have the required License\n\n[Inferred behavior \u2014 no execution history for this case] Dont have the required License",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Security, Checking whether IP reputation and Web control can be turned on\n\n[Inferred behavior \u2014 no execution history for this case] Security, Checking whether IP reputation and Web control can be turned on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check for helpful information if users network is not setup for ATS\n\n[Inferred behavior \u2014 no execution history for this case] Check for helpful information if users network is not setup for ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check for helpful information if users network is not setup for ATS\n\n[Inferred behavior \u2014 no execution history for this case] Check for helpful information if users network is not setup for ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create an Application Priority Policy and Deploy it\n\n[Inferred behavior \u2014 no execution history for this case] Create an Application Priority Policy and Deploy it",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1009": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring readonly users do not have access to router security tabs\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring readonly users do not have access to router security tabs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1051.1010": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Turning on and off IP reputation and web control for a network group\n\n[Inferred behavior \u2014 no execution history for this case] Turning on and off IP reputation and web control for a network group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1051,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:\n\n[Inferred behavior \u2014 no execution history for this case] Create and deploy an Application Priority Policy to R1 from the network map and then delete the policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet breakout, turn on and off, check tabs when on and off as an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Internet breakout, turn on and off, check tabs when on and off as an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Create and delete a new Application Priority policy :\n\n[Inferred behavior \u2014 no execution history for this case] Create and delete a new Application Priority policy :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edit and overwrite existing Application Priority policy:\n\n[Inferred behavior \u2014 no execution history for this case] Edit and overwrite existing Application Priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Clone and save an existing Application Priority priority policy:\n\n[Inferred behavior \u2014 no execution history for this case] Clone and save an existing Application Priority priority policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1052.1008": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for readonly user when right clicking does not include Application Priority options:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for readonly user when right clicking does not include Application Priority options:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1052,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1053.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check for helpful information if users network is not setup for ATS\n\n[Inferred behavior \u2014 no execution history for this case] Check for helpful information if users network is not setup for ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1053,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1053.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Open ATS settings from the network map and toggle ATS\n\n[Inferred behavior \u2014 no execution history for this case] Open ATS settings from the network map and toggle ATS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1053,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Navigating to the SD-WAN page and checking for rules\n\n[Inferred behavior \u2014 no execution history for this case] Navigating to the SD-WAN page and checking for rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Vista can find a rule on the devices cli but not yet in the database\n\n[Inferred behavior \u2014 no execution history for this case] Vista can find a rule on the devices cli but not yet in the database",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Test filters on the SD-WAN page\n\n[Inferred behavior \u2014 no execution history for this case] Test filters on the SD-WAN page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Add and delete a new SD-WAN rule:\n\n[Inferred behavior \u2014 no execution history for this case] Add and delete a new SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edit and revert changes to an SD-WAN rule:\n\n[Inferred behavior \u2014 no execution history for this case] Edit and revert changes to an SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1061.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check graphs are displayed for SD-WAN feature\n\n[Inferred behavior \u2014 no execution history for this case] Check graphs are displayed for SD-WAN feature",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1061,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1071.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can create a new valid user\n\n[Inferred behavior \u2014 no execution history for this case] Can create a new valid user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1071,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1071.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Shows correct validation fields then correcting each error\n\n[Inferred behavior \u2014 no execution history for this case] Shows correct validation fields then correcting each error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1071,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1071.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Shows correct validation fields then correcting each Invalid value error\n\n[Inferred behavior \u2014 no execution history for this case] Shows correct validation fields then correcting each Invalid value error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1071,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1071.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Cannot create users with same email address\n\n[Inferred behavior \u2014 no execution history for this case] Cannot create users with same email address",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1071,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1071.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Cannot create users with same username\n\n[Inferred behavior \u2014 no execution history for this case] Cannot create users with same username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1071,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1081.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Backup vista manager in system management.\n\n[Inferred behavior \u2014 no execution history for this case] Backup vista manager in system management.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1081,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1091.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can edit their full name, email, password, language, timeout period, and email reminders",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1091,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1091.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can't edit their username\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can't edit their username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1091,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1091.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can't edit their Sites and Groups access status (Read/Write or Readonly)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1091,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1091.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring a user can change their network topology layout\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring a user can change their network topology layout",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1091,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1092.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing Global and message Syslog Search\n\n[Inferred behavior \u2014 no execution history for this case] Testing Global and message Syslog Search",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1092,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1092.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing syslog filters\n\n[Inferred behavior \u2014 no execution history for this case] Testing syslog filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1092,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1092.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing filtering by time period\n\n[Inferred behavior \u2014 no execution history for this case] Testing filtering by time period",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1092,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1092.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing changing syslog expiry shows toast\n\n[Inferred behavior \u2014 no execution history for this case] Testing changing syslog expiry shows toast",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1092,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1092.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Making sure a User account type can't view syslogs\n\n[Inferred behavior \u2014 no execution history for this case] Making sure a User account type can't view syslogs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1092,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only group readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only area readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1101.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site readonly permissions\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the numbers of devices displayed on the dashboard are correct when logged in as a user with only site readonly permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1101,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1014": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1014,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1015": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1015,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1016": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1016,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1017": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1017,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1018": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1018,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1111.1019": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1111,
+    "caseId": 1019,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1010": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1011": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1011,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1012": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1012,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1013": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1013,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1014": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1014,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1112.1015": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1112,
+    "caseId": 1015,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1113.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1113,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1113.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab and cannot click the update firmware button\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab and cannot click the update firmware button",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1113,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1113.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab as and can't see any firmware to update\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab as and can't see any firmware to update",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1113,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1114.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning as the read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning as the read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1114,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1114.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that the provision device button is not visible for the read only user\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that the provision device button is not visible for the read only user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1114,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1114.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as the read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning using the menu in the network map, as the read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1114,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1115.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a readonly user cannot create backups or delete backup configurations\n\n[Inferred behavior \u2014 no execution history for this case] Check that a readonly user cannot create backups or delete backup configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1115,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1121.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that the menu shown when right clicking the node is not shown for the read only user\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that the menu shown when right clicking the node is not shown for the read only user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1121,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1121.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Deleting the device S3 which is down as a read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Deleting the device S3 which is down as a read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1121,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1121.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure the option to delete a device which is down is not present for a readonly user:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure the option to delete a device which is down is not present for a readonly user:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1121,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1122.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1122,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1122.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1122,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1122.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "readonly user cannot create, edit and delete VLANs on\n\n[Inferred behavior \u2014 no execution history for this case] readonly user cannot create, edit and delete VLANs on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1122,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1141.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Trigger existing service monitors and ensure that statuses are as expected as a readwrite user\n\n[Inferred behavior \u2014 no execution history for this case] Trigger existing service monitors and ensure that statuses are as expected as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1141,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1141.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring\n\n[Inferred behavior \u2014 no execution history for this case] Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1141,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1141.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can edit an existing service monitor as a user with readwrite permissions for service monitoring\n\n[Inferred behavior \u2014 no execution history for this case] Can edit an existing service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1141,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1141.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Delete existing service monitor as a readwrite user\n\n[Inferred behavior \u2014 no execution history for this case] Delete existing service monitor as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1141,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1141.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Account with readonly permissions for service monitoring cannot create or edit service monitoring rules\n\n[Inferred behavior \u2014 no execution history for this case] Account with readonly permissions for service monitoring cannot create or edit service monitoring rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1141,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1152.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As , deploy an existing Application Priority policy to from the map and then delete the deployment:\n\n[Inferred behavior \u2014 no execution history for this case] As , deploy an existing Application Priority policy to from the map and then delete the deployment:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1152,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1152.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1152,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1152.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1152,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1152.1008": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for readonly user when right clicking does not include Application Priority options:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for readonly user when right clicking does not include Application Priority options:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1152,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1153.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Read write user with permissions for all devices can make changes\n\n[Inferred behavior \u2014 no execution history for this case] Read write user with permissions for all devices can make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1153,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1153.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure read write without permissions for all devices or readonly user can read but not make changes\n\n[Inferred behavior \u2014 no execution history for this case] Ensure read write without permissions for all devices or readonly user can read but not make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1153,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1154.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring User users do not have access to the system management tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring User users do not have access to the system management tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1154,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1001": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Navigating to the SD-WAN page and checking for rules\n\n[Inferred behavior \u2014 no execution history for this case] Navigating to the SD-WAN page and checking for rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1002": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Vista can find a rule on the devices cli but not yet in the database\n\n[Inferred behavior \u2014 no execution history for this case] Vista can find a rule on the devices cli but not yet in the database",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1003": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Test filters on the SD-WAN page\n\n[Inferred behavior \u2014 no execution history for this case] Test filters on the SD-WAN page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1004": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Add and delete a new SD-WAN rule:\n\n[Inferred behavior \u2014 no execution history for this case] Add and delete a new SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1005": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edit and revert changes to an SD-WAN rule:\n\n[Inferred behavior \u2014 no execution history for this case] Edit and revert changes to an SD-WAN rule:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1006": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check graphs are displayed for SD-WAN feature\n\n[Inferred behavior \u2014 no execution history for this case] Check graphs are displayed for SD-WAN feature",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.1162.1007": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that read only accounts cannot add, edit, or delete rules:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that read only accounts cannot add, edit, or delete rules:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1162,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2002.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Read write user with permissions for all devices can make changes\n\n[Inferred behavior \u2014 no execution history for this case] Read write user with permissions for all devices can make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2002.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure read write without permissions for all devices or readonly user can read but not make changes\n\n[Inferred behavior \u2014 no execution history for this case] Ensure read write without permissions for all devices or readonly user can read but not make changes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2004.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As , deploy an existing Application Priority policy to from the map and then delete the deployment:\n\n[Inferred behavior \u2014 no execution history for this case] As , deploy an existing Application Priority policy to from the map and then delete the deployment:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2004.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that admin options on the Application Priority page are not accessible to read only or read/write user :",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2004.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for read/write user when right clicking includes Deploy Policy but does not include Add policy:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2004.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure menu for readonly user when right clicking does not include Application Priority options:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure menu for readonly user when right clicking does not include Application Priority options:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2005.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the correct number of devices are displayed for logged in users\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the correct number of devices are displayed for logged in users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2005.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checking that the correct number of devices are displayed for logged in read/write users\n\n[Inferred behavior \u2014 no execution history for this case] Checking that the correct number of devices are displayed for logged in read/write users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2006.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a user can not upload and delete from the file system\n\n[Inferred behavior \u2014 no execution history for this case] Check that a user can not upload and delete from the file system",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2007.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Tom can navigate to the firmware tab and can't update device with the same release as current firmware\n\n[Inferred behavior \u2014 no execution history for this case] Tom can navigate to the firmware tab and can't update device with the same release as current firmware",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2008.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet breakout, turn on and off, check tabs when on and off as read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Internet breakout, turn on and off, check tabs when on and off as read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2008.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet breakout, unable to turn on as a readonly user\n\n[Inferred behavior \u2014 no execution history for this case] Internet breakout, unable to turn on as a readonly user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2008.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet Breakout, Select multiple applications on separate IBO\n\n[Inferred behavior \u2014 no execution history for this case] Internet Breakout, Select multiple applications on separate IBO",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2008.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Internet Breakout, Select breakout using eth\n\n[Inferred behavior \u2014 no execution history for this case] Internet Breakout, Select breakout using eth",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2008,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2009.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning as the read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning as the read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2009.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Provision a device and then delete the provisioning using the menu in the network map, as the read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Provision a device and then delete the provisioning using the menu in the network map, as the read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2009,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2010.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As an admin user, Jordan can add and remove groups\n\n[Inferred behavior \u2014 no execution history for this case] As an admin user, Jordan can add and remove groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2010.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Read-only user cannot create or delete groups\n\n[Inferred behavior \u2014 no execution history for this case] Read-only user cannot create or delete groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2010.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Admin user can migrate users between groups\n\n[Inferred behavior \u2014 no execution history for this case] Admin user can migrate users between groups",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2010,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2011.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Admin user can create and remove a NAS\n\n[Inferred behavior \u2014 no execution history for this case] Admin user can create and remove a NAS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2011.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Read-only user cannot create or delete a NAS\n\n[Inferred behavior \u2014 no execution history for this case] Read-only user cannot create or delete a NAS",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2012.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "As an admin user, Jordan can create, delete and export key's for RADIUS user's\n\n[Inferred behavior \u2014 no execution history for this case] As an admin user, Jordan can create, delete and export key's for RADIUS user's",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2012.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Read-only user cannot create or delete users\n\n[Inferred behavior \u2014 no execution history for this case] Read-only user cannot create or delete users",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2012,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.2013.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensuring User users do not have access to the system management tab\n\n[Inferred behavior \u2014 no execution history for this case] Ensuring User users do not have access to the system management tab",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Export a CSV file\n\n[Inferred behavior \u2014 no execution history for this case] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select a column\n\n[Inferred behavior \u2014 no execution history for this case] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect columns\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect columns",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Deselect all columns but one (there always must be at least one)\n\n[Inferred behavior \u2014 no execution history for this case] Deselect all columns but one (there always must be at least one)",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and apply filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and apply filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.7": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select filters and search on every field\n\n[Inferred behavior \u2014 no execution history for this case] Select filters and search on every field",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.8": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Search for an empty device table\n\n[Inferred behavior \u2014 no execution history for this case] Search for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.9": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter for an empty device table\n\n[Inferred behavior \u2014 no execution history for this case] Filter for an empty device table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.10": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Creating, editing and deleting a static node\n\n[Inferred behavior \u2014 no execution history for this case] Creating, editing and deleting a static node",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.11": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Show the device list page by page in inventory\n\n[Inferred behavior \u2014 no execution history for this case] Show the device list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3000.12": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Network status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3001.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Navigating to the event_log and filtering for critical events\n\n[Inferred behavior \u2014 no execution history for this case] Navigating to the event_log and filtering for critical events",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3002.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing Global and message Syslog Search\n\n[Inferred behavior \u2014 no execution history for this case] Testing Global and message Syslog Search",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3002.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing syslog filters\n\n[Inferred behavior \u2014 no execution history for this case] Testing syslog filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3002.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing filtering by time period\n\n[Inferred behavior \u2014 no execution history for this case] Testing filtering by time period",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3002.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Testing changing syslog expiry shows toast\n\n[Inferred behavior \u2014 no execution history for this case] Testing changing syslog expiry shows toast",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3002.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Making sure a User account type can't view syslogs\n\n[Inferred behavior \u2014 no execution history for this case] Making sure a User account type can't view syslogs",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Export a CSV file\n\n[Inferred behavior \u2014 no execution history for this case] Export a CSV file",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select a column\n\n[Inferred behavior \u2014 no execution history for this case] Select a column",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Adding a Group\n\n[Inferred behavior \u2014 no execution history for this case] Adding a Group",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Select and deselect filters\n\n[Inferred behavior \u2014 no execution history for this case] Select and deselect filters",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Show the group list page by page in inventory\n\n[Inferred behavior \u2014 no execution history for this case] Show the group list page by page in inventory",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter using the Search box\n\n[Inferred behavior \u2014 no execution history for this case] Filter using the Search box",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.7": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Search for an empty groups table\n\n[Inferred behavior \u2014 no execution history for this case] Search for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.8": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Filter for an empty groups table\n\n[Inferred behavior \u2014 no execution history for this case] Filter for an empty groups table",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3003.9": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Groups status for an admin user\n\n[Inferred behavior \u2014 no execution history for this case] Groups status for an admin user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3003,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Navigating to the network map checking the numbers of nodes displayed\n\n[Inferred behavior \u2014 no execution history for this case] Navigating to the network map checking the numbers of nodes displayed",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Search for a device name and a device ip address\n\n[Inferred behavior \u2014 no execution history for this case] Search for a device name and a device ip address",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Use the Integrated Map to navigate to a node page\n\n[Inferred behavior \u2014 no execution history for this case] Use the Integrated Map to navigate to a node page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Assign devices to site using the Integrated Map\n\n[Inferred behavior \u2014 no execution history for this case] Assign devices to site using the Integrated Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Assign devices to group using the Integrated Map\n\n[Inferred behavior \u2014 no execution history for this case] Assign devices to group using the Integrated Map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Add and remove Static node using integrated map\n\n[Inferred behavior \u2014 no execution history for this case] Add and remove Static node using integrated map",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.7": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Deleting the device S3 which is down\n\n[Inferred behavior \u2014 no execution history for this case] Deleting the device S3 which is down",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3004.9": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that map nodes can be moved while the topology layout is unlocked\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that map nodes can be moved while the topology layout is unlocked",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3004,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3005.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that user can write, save and delete notes in device search and the device's page\n\n[Inferred behavior \u2014 no execution history for this case] Check that user can write, save and delete notes in device search and the device's page",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3006.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Backup vista manager in system management.\n\n[Inferred behavior \u2014 no execution history for this case] Backup vista manager in system management.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3007.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can create a new valid user\n\n[Inferred behavior \u2014 no execution history for this case] Can create a new valid user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3007.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Shows correct validation fields then correcting each error\n\n[Inferred behavior \u2014 no execution history for this case] Shows correct validation fields then correcting each error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3007.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Shows correct validation fields then correcting each Invalid value error\n\n[Inferred behavior \u2014 no execution history for this case] Shows correct validation fields then correcting each Invalid value error",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3007.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Cannot create users with same email address\n\n[Inferred behavior \u2014 no execution history for this case] Cannot create users with same email address",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.3007.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Cannot create users with same username\n\n[Inferred behavior \u2014 no execution history for this case] Cannot create users with same username",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3007,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4000.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4001.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab and cannot click the update firmware button\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab and cannot click the update firmware button",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4001.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Edan can navigate to the firmware tab as and can't see any firmware to update\n\n[Inferred behavior \u2014 no execution history for this case] Edan can navigate to the firmware tab as and can't see any firmware to update",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single area by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single area by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single group by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single group by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read only permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read only permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4002.6": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Network status for single site by a user with read/write permissions\n\n[Inferred behavior \u2014 no execution history for this case] Network status for single site by a user with read/write permissions",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4003.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that the menu shown when right clicking the node is not shown for the read only user\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that the menu shown when right clicking the node is not shown for the read only user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4003.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Deleting the device S3 which is down as a read/write user\n\n[Inferred behavior \u2014 no execution history for this case] Deleting the device S3 which is down as a read/write user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4003.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure the option to delete a device which is down is not present for a readonly user:\n\n[Inferred behavior \u2014 no execution history for this case] Ensure the option to delete a device which is down is not present for a readonly user:",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4004.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Check that a readonly user cannot create backups or delete backup configurations\n\n[Inferred behavior \u2014 no execution history for this case] Check that a readonly user cannot create backups or delete backup configurations",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4005.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Ensure that the provision device button is not visible for the read only user\n\n[Inferred behavior \u2014 no execution history for this case] Ensure that the provision device button is not visible for the read only user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4006.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Trigger existing service monitors and ensure that statuses are as expected as a readwrite user\n\n[Inferred behavior \u2014 no execution history for this case] Trigger existing service monitors and ensure that statuses are as expected as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4006.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring\n\n[Inferred behavior \u2014 no execution history for this case] Can create and trigger a new service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4006.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Can edit an existing service monitor as a user with readwrite permissions for service monitoring\n\n[Inferred behavior \u2014 no execution history for this case] Can edit an existing service monitor as a user with readwrite permissions for service monitoring",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4006.4": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Delete existing service monitor as a readwrite user\n\n[Inferred behavior \u2014 no execution history for this case] Delete existing service monitor as a readwrite user",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4006.5": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Account with readonly permissions for service monitoring cannot create or edit service monitoring rules\n\n[Inferred behavior \u2014 no execution history for this case] Account with readonly permissions for service monitoring cannot create or edit service monitoring rules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4006,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4007.1": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Switches-read/write user can create, edit and delete VLANs on Switches through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4007.2": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes\n\n[Inferred behavior \u2014 no execution history for this case] Checks Routers-read/write user can create, edit and delete VLANs on Routers through the map nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1501.4007.3": {
+    "suite_id": "1501",
+    "suite_name": "1501_gart_tests",
+    "description": "readonly user cannot create, edit and delete VLANs on\n\n[Inferred behavior \u2014 no execution history for this case] readonly user cannot create, edit and delete VLANs on",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

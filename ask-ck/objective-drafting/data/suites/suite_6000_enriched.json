@@ -1,0 +1,448 @@
+{
+  "6000.0.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.1001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.1001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Check each link between switches and between switches and the testbox\n\n[Log-derived analysis] Check each link between switches and between switches and the testbox",
+    "reference": "",
+    "past_crs": [
+      "61854",
+      "80940",
+      "CR-78945",
+      "CR-80976",
+      "CR-81936",
+      "CR-81955"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357181",
+      "log_uid": "93686059",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6000.1001.2": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Check setup members are connected to the correct power outlet\n\n[Log-derived analysis] Check setup members are connected to the correct power outlet",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357181",
+      "log_uid": "93686076",
+      "platform": "AR1050V-tb64.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6000.1001.3": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Get all system info on ART setups\n\n[Log-derived analysis] Get all system info on ART setups",
+    "reference": "SYST-6820",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2653446",
+      "log_uid": "73563196",
+      "platform": "x540-tb15.rel",
+      "sw_version": "5.5.4_1-20240822-2",
+      "run_date": "2024-08-26",
+      "result": "PASS"
+    }
+  },
+  "6000.1002.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.1002.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Use LLDP to discover links between all switches in the setup\n\n[Log-derived analysis] Use LLDP to discover links between all switches in the setup",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2464525",
+      "log_uid": "68052293",
+      "platform": "AR2050V-tb1001.rel",
+      "sw_version": "5.5.3-20240220-1",
+      "run_date": "2024-03-05",
+      "result": "PASS"
+    }
+  },
+  "6000.2001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6000.3001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Continuous power-cycle while flash operations are being performed\n\n[Log-derived analysis] Continuous power-cycle while flash operations are being performed",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2464525",
+      "log_uid": "68052294",
+      "platform": "AR2050V-tb1001.rel",
+      "sw_version": "5.5.3-20240220-1",
+      "run_date": "2024-03-05",
+      "result": "FAIL"
+    }
+  },
+  "6000.4001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Delete the .configs/passwd file from all setup members\n\n[Log-derived analysis] Delete the .configs/passwd file from all setup members",
+    "reference": "SYST-2419",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2464525",
+      "log_uid": "68052295",
+      "platform": "AR2050V-tb1001.rel",
+      "sw_version": "5.5.3-20240220-1",
+      "run_date": "2024-03-05",
+      "result": "FAIL"
+    }
+  },
+  "6000.5001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.5001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "TestCase confirms bootloader has been set\n\n[Inferred behavior \u2014 no execution history for this case] TestCase confirms bootloader has been set",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6000.6001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.7001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.8001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.8001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Set DUT to boot from flash\n\n[Inferred behavior \u2014 no execution history for this case] Set DUT to boot from flash",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6000.8001.20": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Set DUT to boot from flash, repeat 20 cycles\n\n[Inferred behavior \u2014 no execution history for this case] Set DUT to boot from flash, repeat 20 cycles",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6000.8001.210": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Fill flash with a release build, boot to flash using the current build, repeat 10 cycles\n\n[Inferred behavior \u2014 no execution history for this case] Fill flash with a release build, boot to flash using the current build, repeat 10 cycles",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 210,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6000.8001.320": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Erase flash, fill flash with a release build, boot to flash using the build under test, repeat 20 cycles\n\n[Log-derived analysis] Erase flash, fill flash with a release build, boot to flash using the build under test, repeat 20 cycles",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8001,
+    "caseId": 320,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1334549",
+      "log_uid": "38017269",
+      "platform": "SBx81CFC960-tb68.rel",
+      "sw_version": "5.5.0-2.1",
+      "run_date": "2020-12-02",
+      "result": "PASS"
+    }
+  },
+  "6000.8002.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.8002.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Time copying a release file to the DUT over TFTP\n\n[Inferred behavior \u2014 no execution history for this case] Time copying a release file to the DUT over TFTP",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6000.9001.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.9001.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Run findme\n\n[Log-derived analysis] Run findme",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1368785",
+      "log_uid": "38928901",
+      "platform": "SBx908NG-tb202.rel",
+      "sw_version": "5.5.0-2.1",
+      "run_date": "2021-01-14",
+      "result": "PASS"
+    }
+  },
+  "6000.9002.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.9002.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Run findme\n\n[Log-derived analysis] Run findme",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "1407345",
+      "log_uid": "39823670",
+      "platform": "x950-tb275.rel",
+      "sw_version": "5.5.0-2.1",
+      "run_date": "2021-02-24",
+      "result": "FAIL"
+    }
+  },
+  "6000.9003.0": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9003,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6000.9003.1": {
+    "suite_id": "6000",
+    "suite_name": "6000_link_check",
+    "description": "Confirm ALL devices in a setup can run a specific release\n\n[Log-derived analysis] Confirm ALL devices in a setup can run a specific release",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2674897",
+      "log_uid": "74226461",
+      "platform": "AR2010V-tb157.rel",
+      "sw_version": "5.5.3-20240913-1",
+      "run_date": "2024-09-16",
+      "result": "FAIL"
+    }
+  }
+}

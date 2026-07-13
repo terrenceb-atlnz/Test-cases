@@ -1,0 +1,2499 @@
+{
+  "2015.1.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "DUT sends LACPDU on each link to start Link Aggregation.\n\n[Log-derived analysis] DUT sends LACPDU on each link to start Link Aggregation.",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703889",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.1.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "DUT establishes successful Link Aggregation with ANVL over all links operating at same data rate. [Note: This test assumes that all links are operating at same data rate]\n\n[Log-derived analysis] DUT establishes successful Link Aggregation with ANVL over all links operating at same data rate. [Note: This test assumes that all links are operating at same data rate]",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703890",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.1.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "DUT responds to Marker Request.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] DUT responds to Marker Request.",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.1.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "DUT establishes successful Link Aggregation with ANVL after being reinitialized. [Note: This statement tests the establishment of LA after subsequent links being brought down and then up in DUT]\n\n[Log-derived analysis] DUT establishes successful Link Aggregation with ANVL after being reinitialized. [Note: This statement tests the establishment of LA after subsequent links being brought down and then up in DUT]",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703891",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.1.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "MAC frames are passed to MAC client when port state is Collecting.\n\n[Log-derived analysis] MAC frames are passed to MAC client when port state is Collecting.",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703892",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.1.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "MAC frames are passed from MAC client when port state is Distributing.\n\n[Log-derived analysis] MAC frames are passed from MAC client when port state is Distributing.",
+    "reference": "ANVL, Setup verification test",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703893",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.2.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "c) Increased availability - The failure or replacement of a single link within a Link Aggregation Group need not cause failure from the perspective of a MAC Client.\n\n[Log-derived analysis] c) Increased availability - The failure or replacement of a single link within a Link Aggregation Group need not cause failure from the perspective of a MAC Client.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P285 Goals and objectives IEEE Std 802.3-2005 Secti",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703894",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.2.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "d) Load sharing - MAC Client traffic may be distributed across multiple links.\n\n[Inferred behavior \u2014 no execution history for this case] d) Load sharing - MAC Client traffic may be distributed across multiple links.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P285 Goals and objectives",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.2.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "l) No change to the IEEE 802.3 frame format - Link aggregation neither adds to, nor changes the contents of frames exchanged between MAC Clients.\n\n[Log-derived analysis] l) No change to the IEEE 802.3 frame format - Link aggregation neither adds to, nor changes the contents of frames exchanged between MAC Clients.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P285 Goals and objectives",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703895",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.2.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "q) Operation across multiple data rates - All links in a LinkAggregation Group operate at the same data rate.\n\n[Inferred behavior \u2014 no execution history for this case] q) Operation across multiple data rates - All links in a LinkAggregation Group operate at the same data rate.",
+    "reference": "NEGATIVEIEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P286Goals and objectives",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.2.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "p) Half-duplex operation - Link Aggregation is supported only onpoint-to-point links with MACs operating in full duplex mode.\n\n[Inferred behavior \u2014 no execution history for this case] p) Half-duplex operation - Link Aggregation is supported only onpoint-to-point links with MACs operating in full duplex mode.",
+    "reference": "NEGATIVEIEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P286Goals and objectives",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.2.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "n) Multipoint Aggregations - The mechanisms specified in this clause do not support aggregations among more than two Systems.\n\n[Log-derived analysis] n) Multipoint Aggregations - The mechanisms specified in this clause do not support aggregations among more than two Systems.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.1.2 P286 Goals and objectives",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703896",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) Frame Distribution. This block is responsible for taking frames submitted by the MAC Client and submitting them for transmission on the appropriate port, based on a frame distribution algorithm employed by the Frame Distributor. [Note: This test tests that MAC client submits frame to port. it is not testing the distribution algorithm because we can't know the exact algorithm used by DUT]\n\n[Log-derived analysis] a) Frame Distribution. This block is responsible for taking frames submitted by the MAC Client and submitting them for transmission on the appropriate port, based on a frame distribution algorithm employed by the Frame Distributor. [Note: This test tests that MAC client submits frame to port. it is not testing the distribution algorithm because we can't know the exact algorithm used by DUT]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2 P288 Link Aggregation operation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703897",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "On receive, these blocks distinguish among Marker Request and pass each to the appropriate entity (Marker Responder, Marker Receiver, and Collector, respectively).\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] On receive, these blocks distinguish among Marker Request and pass each to the appropriate entity (Marker Responder, Marker Receiver, and Collector, respectively).",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2 P288 Link Aggregation operation IEEE Std 802.3-2005 S",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.3.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "On receive, these blocks distinguish among Marker Request and pass each to the appropriate entity (Marker Responder, Marker Receiver, and Collector, respectively).\n\n[Log-derived analysis] On receive, these blocks distinguish among Marker Request and pass each to the appropriate entity (Marker Responder, Marker Receiver, and Collector, respectively).",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2 P288 Link Aggregation operation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703898",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "On receive, these blocks distinguish Link Aggregation Control PDUs from other frames, passing the LACPDUs to the appropriate sublayer entity, and all other frames to the Aggregator. [Note: This test is to verify that DUT can distinguish LACPDUs]\n\n[Log-derived analysis] On receive, these blocks distinguish Link Aggregation Control PDUs from other frames, passing the LACPDUs to the appropriate sublayer entity, and all other frames to the Aggregator. [Note: This test is to verify that DUT can distinguish LACPDUs]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2 P288 Link Aggregation operation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703899",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "b) It is the responsibility of the Aggregator to distribute frame transmissions from the MAC Client to the various ports, and to collect received frames from the ports and pass them to the MAC Client transparently.\n\n[Log-derived analysis] b) It is the responsibility of the Aggregator to distribute frame transmissions from the MAC Client to the various ports, and to collect received frames from the ports and pass them to the MAC Client transparently.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.1 P288 Principles of Link Aggregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703900",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "c) A given port will bind to (at most) a single Aggregator at any time. A MAC Client is served by a single Aggregator at a time.\n\n[Inferred behavior \u2014 no execution history for this case] c) A given port will bind to (at most) a single Aggregator at any time. A MAC Client is served by a single Aggregator at a time.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.1 P288 Principles of Link Aggregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "f) The Distributor ensures that all frames of a given conversation are passed to a single port.\n\n[Log-derived analysis] f) The Distributor ensures that all frames of a given conversation are passed to a single port.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.1 P289 Principles of Link Aggregation IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703901",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "g) Conversations may be moved among ports within an aggregation both for load balancing and to maintain availability in the event of link failures.\n\n[Inferred behavior \u2014 no execution history for this case] g) Conversations may be moved among ports within an aggregation both for load balancing and to maintain availability in the event of link failures.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.1 P289 Principles of Link Aggregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Frames received from a given port are delivered to the MAC Client in the order that they are received by the Frame Collector.\n\n[Log-derived analysis] Frames received from a given port are delivered to the MAC Client in the order that they are received by the Frame Collector.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.3 P290 Frame Collector",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703902",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "This standard does not mandate any particular distribution algorithm(s), however, any distribution algorithm shall ensure that, when frames are received by a Frame Collector as specified in 43.2.3, the algorithm shall not cause b) Duplication of frames.\n\n[Log-derived analysis] This standard does not mandate any particular distribution algorithm(s), however, any distribution algorithm shall ensure that, when frames are received by a Frame Collector as specified in 43.2.3, the algorithm shall not cause b) Duplication of frames.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.4 P291 Frame Distributor",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703903",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The Aggregator Multiplexer shall provide transparent pass-through of frames submitted by the Frame Distributor to the port specified in the transmission request only when the port state is Distributing; otherwise, such frames shall be discarded.\n\n[Log-derived analysis] The Aggregator Multiplexer shall provide transparent pass-through of frames submitted by the Frame Distributor to the port specified in the transmission request only when the port state is Distributing; otherwise, such frames shall be discarded.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.7 P293 Aggregator Parser/Multiplexer",
+    "past_crs": [
+      "36530"
+    ],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3081058",
+      "log_uid": "85793970",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "5.5.4-0.6-rc9",
+      "run_date": "2025-09-30",
+      "result": "PASS"
+    }
+  },
+  "2015.3.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "On receipt, the Aggregator Parser decodes .... and discards frames with invalid Slow Protocol subtype values\n\n[Log-derived analysis] On receipt, the Aggregator Parser decodes .... and discards frames with invalid Slow Protocol subtype values",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.7 P293 Aggregator Parser/Multiplexer IEEE Std 802.3-2",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703905",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.13": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.\n\n[Inferred behavior \u2014 no execution history for this case] When the TTL field is set to zero, the receiving LLDP agent is notified all system information associated with the LLDP agent port is to be deleted. This TLV may be used, for example, to signal that the sending port has initiated a port shutdown procedure.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The Aggregator Parser shall pass all other frames to the Frame Collector for passage to the MAC Client only when the port state is Collecting; otherwise, such frames shall be discarded. [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] The Aggregator Parser shall pass all other frames to the Frame Collector for passage to the MAC Client only when the port state is Collecting; otherwise, such frames shall be discarded. [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.7 P293 Aggregator Parser/Multiplexer",
+    "past_crs": [],
+    "current_crs": [
+      "36534"
+    ],
+    "testSet": 3,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3084056",
+      "log_uid": "85862780",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "5.5.1-2.17-rc1",
+      "run_date": "2025-10-02",
+      "result": "PASS"
+    }
+  },
+  "2015.3.15": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The Frame Distributor is responsible for taking outgoing frames from the MAC Client ... This standard does not mandate any particular distribution algorithm(s), however, any distribution algorithm shall ensure that, the algorithm shall not cause a) Mis-ordering of frames that are part of any given conversation\n\n[Log-derived analysis] The Frame Distributor is responsible for taking outgoing frames from the MAC Client ... This standard does not mandate any particular distribution algorithm(s), however, any distribution algorithm shall ensure that, the algorithm shall not cause a) Mis-ordering of frames that are part of any given conversation",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.2.4 P291 Frame Distributor",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703907",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.3.16": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "When the TTL field is non-zero the receiving LLDP agent is notified to completely replace allinformation associated with this MSAP identifier with the information in the received LLDPDU. AND If no match is found, create a new MIB structure to receive information associated with the new MSAP identifier, and set these MIB objects to the values indicated in their respective TLVs. (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and checked that one does not replace the other and both exists)\n\n[Inferred behavior \u2014 no execution history for this case] When the TTL field is non-zero the receiving LLDP agent is notified to completely replace allinformation associated with this MSAP identifier with the information in the received LLDPDU. AND If no match is found, create a new MIB structure to receive information associated with the new MSAP identifier, and set these MIB objects to the values indicated in their respective TLVs. (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and checked that one does not replace the other and both exists)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.4 Page 24 'Time To Live TLV' IEEE Std 802.1AB-2005 Section 10.3.5 Page 40 'LLDP remote",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.17": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If rxTTL is zero, delete all information associated with the MSAP identifier from the LLDP remote systems MIB, set the variable somethingChangedRemote to TRUE, and wait for the next LLDPDU (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and then a LLDP PDU with TTL value 0 is sent for the first MSAP and checked that the first is deleted and second is not deleted)\n\n[Inferred behavior \u2014 no execution history for this case] If rxTTL is zero, delete all information associated with the MSAP identifier from the LLDP remote systems MIB, set the variable somethingChangedRemote to TRUE, and wait for the next LLDPDU (Note: Two LLDP PDU with different Chassis Id Val (i.e different MSAP) is sent and then a LLDP PDU with TTL value 0 is sent for the first MSAP and checked that the first is deleted and second is not deleted)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.3 Page 38 'TLV/MIB object value comparison'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.18": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If RFC2863 is implemented, the ifDescr object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If RFC2863 is implemented, the ifDescr object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.5.2 Page 25 'port description'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.19": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "An LLDPDU should not contain more than one Port Description TLV.\n\n[Inferred behavior \u2014 no execution history for this case] An LLDPDU should not contain more than one Port Description TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.5.3 Page 25 'Port Description TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.20": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If implementations support IETF RFC 3418, the sysName object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If implementations support IETF RFC 3418, the sysName object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.6.2 Page 25 'system name'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.21": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "An LLDPDU should not contain more than one System Name TLV.\n\n[Inferred behavior \u2014 no execution history for this case] An LLDPDU should not contain more than one System Name TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.6.3 Page 26 'System Name TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.22": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If implementations support IETF RFC 3418, the sysDescr object should be used for this field.\n\n[Inferred behavior \u2014 no execution history for this case] If implementations support IETF RFC 3418, the sysDescr object should be used for this field.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.7.2 Page 26 'system description'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.23": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "An LLDPDU should not contain more than one System Description TLV.\n\n[Inferred behavior \u2014 no execution history for this case] An LLDPDU should not contain more than one System Description TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.7.3 Page 26 'System Description TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.24": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "An LLDPDU should not contain more than one System Capabilities TLV.\n\n[Inferred behavior \u2014 no execution history for this case] An LLDPDU should not contain more than one System Capabilities TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.25": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded. (Note: Here the received System Capabilities TLV's System Supported is AND ed with System Enabled and checked if it is equal to System Enabled)\n\n[Inferred behavior \u2014 no execution history for this case] If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded. (Note: Here the received System Capabilities TLV's System Supported is AND ed with System Enabled and checked if it is equal to System Enabled)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.26": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the system capabilities field does not indicate the existence of a capability that the enabled capabilitiesfield indicates is enabled, the TLV will be interpreted as containing an error and shall be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.8.3 Page 27 'System Capabilities TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.27": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The returned address should be the most appropriate for management use, typically a layer 3 address such as the IPv4 address, 192.168.254.10 (see also Table 9-2, footnote 1).\n\n[Inferred behavior \u2014 no execution history for this case] a) The returned address should be the most appropriate for management use, typically a layer 3 address such as the IPv4 address, 192.168.254.10 (see also Table 9-2, footnote 1).",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.4 Page 28 'management address'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.28": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The interface number field shall contain the assigned number within the system that identifies the specificinterface associated with this management address. If the value of the interface subtype is unknown, this field shall be set to zero.\n\n[Inferred behavior \u2014 no execution history for this case] The interface number field shall contain the assigned number within the system that identifies the specificinterface associated with this management address. If the value of the interface subtype is unknown, this field shall be set to zero.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.6 Page 29 'interface number'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.29": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) At least one Management Address TLV should be included in every LLDPDU. AND b) Since there are typically a number of different addresses associated with a MSAP identifier, anindividual LLDPDU may contain more than one Management Address TLV.\n\n[Inferred behavior \u2014 no execution history for this case] a) At least one Management Address TLV should be included in every LLDPDU. AND b) Since there are typically a number of different addresses associated with a MSAP identifier, anindividual LLDPDU may contain more than one Management Address TLV.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.9 Page 29 'Management Address TLV usage rules' IEEE Std 802.1AB-2005 Section 9.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.3.30": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Organizationally Specific TLVs shall conform to 9.6.1 (i.e Organizationallly defined TLV information string length should be between 4 to 511 octets)\n\n[Inferred behavior \u2014 no execution history for this case] Organizationally Specific TLVs shall conform to 9.6.1 (i.e Organizationallly defined TLV information string length should be between 4 to 511 octets)",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.6 Page 29 'Organizationally Specific TLVs'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Ports that are members of a given Key Group can only be bound to Aggregators that share the same operational Key value. [Note: Aggregator and all ports have the same operational key value]\n\n[Log-derived analysis] Ports that are members of a given Key Group can only be bound to Aggregators that share the same operational Key value. [Note: Aggregator and all ports have the same operational key value]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.5 P301 Capability identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703908",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.4.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and txDelay is set to a much larger value than msgTxInterval, but DUT should send LLDP TTL at msgTxInterval only)\n\n[Inferred behavior \u2014 no execution history for this case] To prevent a series of successive LLDP frame transmissions during a short period due to rapid changes in LLDP local systems MIB objects and to increase the probability that multiple, rather than single changes are reported in each frame, the local LLDP shall limit the LLDP frame transmission rate through use of a variable transmit delay timer that may be set by network management. AND Enter TX_INFO_FRAME when txDelayWhile is zero and txTTR is zero (Note: Here somethingChangedLocal is FALSE and txDelay is set to a much larger value than msgTxInterval, but DUT should send LLDP TTL at msgTxInterval only)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2 Page 33 'Frame transmission' IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmi",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Ports that are members of a given Key Group can only be bound to Aggregators that share the same operational Key value. [Note: One port has the operational key value different from the operational key value of all ports]\n\n[Log-derived analysis] Ports that are members of a given Key Group can only be bound to Aggregators that share the same operational Key value. [Note: One port has the operational key value different from the operational key value of all ports]",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.5 P301 Capability identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703909",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.4.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "All Keys are 16-bit identifiers. All values except the null value (all zeroes) are available for local use.\n\n[Log-derived analysis] All Keys are 16-bit identifiers. All values except the null value (all zeroes) are available for local use.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.5 P301 Capability identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703910",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.4.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "In the event where adminStatus is transitioning to the disabled state and the LLDP agent will be shutting down, then thisshutdown procedure should be executed for all local ports.\n\n[Inferred behavior \u2014 no execution history for this case] In the event where adminStatus is transitioning to the disabled state and the LLDP agent will be shutting down, then thisshutdown procedure should be executed for all local ports.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2.1.2 Page 35 'Shutdown LLDPDU construction'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "b) All other links currently attached to the Aggregator have selected the same Link Aggregation Group.\n\n[Log-derived analysis] b) All other links currently attached to the Aggregator have selected the same Link Aggregation Group.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.9 P303 Attaching a link to an Aggregator",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703911",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.4.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length < 2)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length < 2)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length > 256)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 1, and the chassis ID TLV information string length isnot within the range 2 i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Chassis Id TLV value length > 256)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "1) If the extracted TLV type value does not equal 2, the TLV is not a Port ID TLV:i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.\n\n[Inferred behavior \u2014 no execution history for this case] 1) If the extracted TLV type value does not equal 2, the TLV is not a Port ID TLV:i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The globally unique identifier used to identify a System shall be the concatenation of a globally administered individual MAC address and the System Priority. The MAC address chosen may be the individual MAC address associated with one of the ports of the System.\n\n[Log-derived analysis] The globally unique identifier used to identify a System shall be the concatenation of a globally administered individual MAC address and the System Priority. The MAC address chosen may be the individual MAC address associated with one of the ports of the System.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.2 P299 System identification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703912",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.4.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length > 256)\n\n[Inferred behavior \u2014 no execution history for this case] 2) If the extracted TLV type value equals 2, and the port ID TLV information string length is notwithin the range 2 6: i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated. (Note: Test for Port Id TLV value length > 256)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "1) If the extracted TLV type value does not equal 3, the TLV is not a Time To Live TLV.i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.\n\n[Inferred behavior \u2014 no execution history for this case] 1) If the extracted TLV type value does not equal 3, the TLV is not a Time To Live TLV.i) The LLDPDU shall be discarded. ii) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. iii) The variable badFrame shall be set to TRUE. iv) The procedure rxProcessFrame() shall be terminated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.13": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Chassis Id TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Chassis Id TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Port Id TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one Port Id TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.15": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one TTL TLV)\n\n[Inferred behavior \u2014 no execution history for this case] a) If the LLDPDU contains more than one Chassis ID TLV, Port ID TLV, or Time To Live TLV:1) The LLDPDU shall be discarded. 2) The statsFramesDiscardedTotal and statsFramesInErrorsTotal counters shall both be incremented. (Note: Test with more than one TTL TLV)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.16": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if organizationally defined subtype and OUI Value is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if organizationally defined subtype and OUI Value is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.17": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only organizationally defined subtype is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only organizationally defined subtype is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.18": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only OUI Value is Invalid)\n\n[Inferred behavior \u2014 no execution history for this case] If the TLV's OUI and/or organizationally defined subtype are not recognized, the statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated. (Note: Test case if only OUI Value is Invalid)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.19": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If TLV_type_value is in the range of reserved TLV types in Table 9-1, the TLV is unrecognized andmay be a basic TLV from a later LLDP version. The statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated.\n\n[Inferred behavior \u2014 no execution history for this case] If TLV_type_value is in the range of reserved TLV types in Table 9-1, the TLV is unrecognized andmay be a basic TLV from a later LLDP version. The statsTLVsUnrecognizedTotal counter shall be incremented, and the TLV shall be assumed to be validated.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.2 Page 35 'LLDPDU validation'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.20": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "b) Since there are typically a number of different addresses associated with a MSAP identifier, an individual LLDPDU may contain more than one Management Address TLV. AND d) If more than one Management Address TLV is included in an LLDPDU, each management address shall be different from the management address in any other management address TLV in the LLDPDU.\n\n[Inferred behavior \u2014 no execution history for this case] b) Since there are typically a number of different addresses associated with a MSAP identifier, an individual LLDPDU may contain more than one Management Address TLV. AND d) If more than one Management Address TLV is included in an LLDPDU, each management address shall be different from the management address in any other management address TLV in the LLDPDU.",
+    "reference": "IEEE Std 802.1AB-2005 Section 9.5.9.9 Page 29 'Management Address TLV usage rules' IEEE Std 802.1AB-2005 Section 9.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.21": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Upon receipt of an LLDPDU, the LLDP transmission module shall: a) Prepend the appropriate source and destination addresses plus the LLDP Ethertype to the LLDPDU as defined in 8.1, 8.2, and 8.3 to complete the construction of the MA_UNITDATA.request. b) Utilize the services of the LLC to pass the MA_UNITDATA.request to the MAC for final frame formatting and transmission. c) Increment the statsFramesOutTotal counter. AND a) Transmission counter: 1) statsFramesOutTotal: A count of all LLDP frames transmitted through the port (10.5.2).\n\n[Inferred behavior \u2014 no execution history for this case] Upon receipt of an LLDPDU, the LLDP transmission module shall: a) Prepend the appropriate source and destination addresses plus the LLDP Ethertype to the LLDPDU as defined in 8.1, 8.2, and 8.3 to complete the construction of the MA_UNITDATA.request. b) Utilize the services of the LLC to pass the MA_UNITDATA.request to the MAC for final frame formatting and transmission. c) Increment the statsFramesOutTotal counter. AND a) Transmission counter: 1) statsFramesOutTotal: A count of all LLDP frames transmitted through the port (10.5.2).",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.2.2 Page 35 'LLDP frame formatting/transmission' IEEE Std 802.1AB-2005 Section 11.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.22": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. (Note: Test by disabling the interface and checking the Remote MIB entry exists when rxInfoTTL timer does not expire)\n\n[Inferred behavior \u2014 no execution history for this case] If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. (Note: Test by disabling the interface and checking the Remote MIB entry exists when rxInfoTTL timer does not expire)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.7 Page 40 'LLDP local port/connection failure'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.23": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. If rxInfoTTL timer associated with an MSAP identifier expires, all information associated with that MSAP identifier shall be deleted (Note: Test by disabling the interface and checking the Remote MIB entry does not exist when rxInfoTTL timer expires)\n\n[Inferred behavior \u2014 no execution history for this case] If the local port or the connection to the remote system fails before a shutdown frame can be sent, the LLDPmanager shall not delete objects in the LLDP remote systems MIB pertaining to information received from any MSAP identifier through that local port until the port is re-initialized or the associated rxInfoTTL timer expires. If rxInfoTTL timer associated with an MSAP identifier expires, all information associated with that MSAP identifier shall be deleted (Note: Test by disabling the interface and checking the Remote MIB entry does not exist when rxInfoTTL timer expires)",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.3.7 Page 40 'LLDP local port/connection failure' IEEE Std 802.1AB-2005 Section 10.3.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.24": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) adminStatus: This is a per-port variable that indicates whether or not the local LLDP agent is enabled. The defined values for this variable are: 1) enabledRxTx: the local LLDP agent can both transmit and receive LLDP frames through the port. 'enabledRxTx' is the adminStatus recommended default value. 2) enabledTxOnly: the local LLDP agent can only transmit LLDP frames. 3) enabledRxOnly: the local LLDP agent can only receive LLDP frames. 4) disabled: the local LLDP agent can neither transmit or receive LLDP frames.\n\n[Inferred behavior \u2014 no execution history for this case] a) adminStatus: This is a per-port variable that indicates whether or not the local LLDP agent is enabled. The defined values for this variable are: 1) enabledRxTx: the local LLDP agent can both transmit and receive LLDP frames through the port. 'enabledRxTx' is the adminStatus recommended default value. 2) enabledTxOnly: the local LLDP agent can only transmit LLDP frames. 3) enabledRxOnly: the local LLDP agent can only receive LLDP frames. 4) disabled: the local LLDP agent can neither transmit or receive LLDP frames.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.1 Page 43 'Global variables' IEEE Std 802.1AB-2005 Section 11.5.4 Table 11.1 Page 54",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.25": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Leave TX_SHUTDOWN_FRAME when txShutdownWhile == 0 AND c) reinitDelay: This parameter indicates the amount of delay from when adminStatus becomes \"disabled\" until re-initialization will be attempted. The recommended default value for reinitDelay is 2 seconds. AND There is an inherent race condition between an interface knowing it is going down and its ability to send \"one more frame\". If possible, the actual termination of the connection should be delayed until after this frame is transmitted\n\n[Inferred behavior \u2014 no execution history for this case] Leave TX_SHUTDOWN_FRAME when txShutdownWhile == 0 AND c) reinitDelay: This parameter indicates the amount of delay from when adminStatus becomes \"disabled\" until re-initialization will be attempted. The recommended default value for reinitDelay is 2 seconds. AND There is an inherent race condition between an interface knowing it is going down and its ability to send \"one more frame\". If possible, the actual termination of the connection should be delayed until after this frame is transmitted",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.4.3 Page 46 'Transmit state machine diagram' IEEE Std 802.1AB-2005 Section 10.5.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.26": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "b) txTTL: This variable indicates the time remaining before information in the outgoing LLDPDU will no longer be valid. The TTL field in the Time To Live TLV is set to txTTL during LLDPDU construction (see 10.2.1.1). The value of txTTL depends on the following: 1) During normal operation, txTTL is set according to the following: (msgTxInterval X msgTxHold) < txTTL < 65535\n\n[Inferred behavior \u2014 no execution history for this case] b) txTTL: This variable indicates the time remaining before information in the outgoing LLDPDU will no longer be valid. The TTL field in the Time To Live TLV is set to txTTL during LLDPDU construction (see 10.2.1.1). The value of txTTL depends on the following: 1) During normal operation, txTTL is set according to the following: (msgTxInterval X msgTxHold) < txTTL < 65535",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.4.1 Page 45 'Transmit state machine variables'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.4.27": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) msgTxHold: .... The recommended default value for msgTxHold is 4. b) msgTxInterval: .... The recommended default value for msgTxInterval is 30 seconds. c) reinitDelay: .... The recommended default value for reinitDelay is 2 seconds.\n\n[Inferred behavior \u2014 no execution history for this case] a) msgTxHold: .... The recommended default value for msgTxHold is 4. b) msgTxInterval: .... The recommended default value for msgTxInterval is 30 seconds. c) reinitDelay: .... The recommended default value for reinitDelay is 2 seconds.",
+    "reference": "IEEE Std 802.1AB-2005 Section 10.5.3.3 Page 44 'Transmit state machine timing parameters'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.5.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n\n[Inferred behavior \u2014 no execution history for this case] 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).",
+    "reference": "IEEE Std 802.1AB-2005 Section 11.5.2 Page 52 'LLDP operational statistics counters' IEEE Std 802.1AB-2005 Section 11.",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.5.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Active LACP indicates the port's preference to participate in the protocol regardless of the Partner's control value.\n\n[Log-derived analysis] Active LACP indicates the port's preference to participate in the protocol regardless of the Partner's control value.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.1 P306 LACP design elements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703913",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Periodic transmissions of LACPDUs occurs if the LACP_Activity control of either the Actor or the Partner is Active LACP. (DUT has LACP_Activity set to ACTIVE)\n\n[Log-derived analysis] Periodic transmissions of LACPDUs occurs if the LACP_Activity control of either the Actor or the Partner is Active LACP. (DUT has LACP_Activity set to ACTIVE)",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.1 P306 LACP design elements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703914",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Periodic transmissions of LACPDUs occurs if the LACP_Activity control of either the Actor or the Partner is Active LACP. (ANVL has LACP_Activity set to ACTIVE) [Note: DUT is by default in passive mode]\n\n[Log-derived analysis] Periodic transmissions of LACPDUs occurs if the LACP_Activity control of either the Actor or the Partner is Active LACP. (ANVL has LACP_Activity set to ACTIVE) [Note: DUT is by default in passive mode]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.1 P306 LACP design elements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703915",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "LACPDUs are basic IEEE 802.3 frames; they shall not be tagged.\n\n[Log-derived analysis] LACPDUs are basic IEEE 802.3 frames; they shall not be tagged.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703916",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Validate all the LACPDU specific fields.\n\n[Log-derived analysis] Validate all the LACPDU specific fields.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703917",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "General Field verification for LACPDU\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] General Field verification for LACPDU",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.5.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) Destination Address (DA). The DA in LACPDUs is the Slow_Protocols_Multicast address.\n\n[Log-derived analysis] a) Destination Address (DA). The DA in LACPDUs is the Slow_Protocols_Multicast address.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703918",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "c) Length/Type. LACPDUs are always Type encoded, and carry the Slow_Protocols_Type field value.\n\n[Log-derived analysis] c) Length/Type. LACPDUs are always Type encoded, and carry the Slow_Protocols_Type field value.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703919",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "d) Subtype. The Subtype field identifies the specific Slow Protocol being encapsulated. LACPDUs carry the Subtype value 0x01.\n\n[Log-derived analysis] d) Subtype. The Subtype field identifies the specific Slow Protocol being encapsulated. LACPDUs carry the Subtype value 0x01.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703920",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "e) Version Number. This identifies the LACP version; implementations conformant to this version of the standard carry the value 0x01. A Receive machine compliant to this standard shall not validate the Version Number field in received LACPDUs.\n\n[Log-derived analysis] e) Version Number. This identifies the LACP version; implementations conformant to this version of the standard carry the value 0x01. A Receive machine compliant to this standard shall not validate the Version Number field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703921",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "f) TLV_type = Actor Information. This field indicates the nature of the information carried in this TLV-tuple. Actor information is identified by the value 0x01. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.\n\n[Log-derived analysis] f) TLV_type = Actor Information. This field indicates the nature of the information carried in this TLV-tuple. Actor information is identified by the value 0x01. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P307 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703922",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.13": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "o) TLV_type = Partner Information. This field indicates the nature of the information carried in this TLV-tuple. Partner information is identified by the integer value 0x02. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.\n\n[Log-derived analysis] o) TLV_type = Partner Information. This field indicates the nature of the information carried in this TLV-tuple. Partner information is identified by the integer value 0x02. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P309 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703923",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "x) TLV_type = Collector Information. This field indicates the nature of the information carried in this TLV-tuple. Collector information is identified by the integer value 0x03. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.\n\n[Log-derived analysis] x) TLV_type = Collector Information. This field indicates the nature of the information carried in this TLV-tuple. Collector information is identified by the integer value 0x03. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P309 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703924",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.15": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "ab) TLV_type = Terminator. This field indicates the nature of the information carried in this TLV-tuple. Terminator (end of message) information is identified by the integer value 0x00. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.\n\n[Log-derived analysis] ab) TLV_type = Terminator. This field indicates the nature of the information carried in this TLV-tuple. Terminator (end of message) information is identified by the integer value 0x00. A Receive machine compliant to this standard shall not validate the TLV_type field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P310 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703925",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.16": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "n) Reserved (offset 33 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.\n\n[Log-derived analysis] n) Reserved (offset 33 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P309 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703926",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.17": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "w) Reserved (offset 53 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.\n\n[Log-derived analysis] w) Reserved (offset 53 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P309 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703927",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.18": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "aa) Reserved (offset 60 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.\n\n[Log-derived analysis] aa) Reserved (offset 60 octets). They shall be ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P310 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703928",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.19": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "ad) Reserved (offset 74 octets). They are ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.\n\n[Log-derived analysis] ad) Reserved (offset 74 octets). They are ignored on receipt and shall be transmitted as zeroes to claim compliance with Version 1 of this protocol. A Receive machine compliant to this standard shall not validate the Reserved field in received LACPDUs.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.2.2 P310 LACPDU structure IEEE Std 802.3-",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703929",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.5.20": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Partner_Admin_Port_State Default value for the Partner's state parameters, assigned by administrator or System policy for use when the Partner's information is unknown or expired. The value of Collecting shall be set the same as the value of Synchronization.\n\n[Log-derived analysis] Partner_Admin_Port_State Default value for the Partner's state parameters, assigned by administrator or System policy for use when the Partner's information is unknown or expired. The value of Collecting shall be set the same as the value of Synchronization.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.7 P316 Variables associated with each port",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703930",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.6.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Transmission of LACPDUs occurs either as a result of ... or as a result of changes to the Actors state information that need to be communicated to the Partner.\n\n[Log-derived analysis] Transmission of LACPDUs occurs either as a result of ... or as a result of changes to the Actors state information that need to be communicated to the Partner.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.1 P306 LACP design elements IEEE Std 802.3-2005 Secti",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703931",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.6.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Slow_Periodic_Time The number of seconds between periodic transmissions using Long Timeouts. Value: Integer 30\n\n[Log-derived analysis] Slow_Periodic_Time The number of seconds between periodic transmissions using Long Timeouts. Value: Integer 30",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.1 P306 LACP design elements IEEE Std 802.3-2005 Secti",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703932",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.6.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Long_Timeout_Time The number of seconds before invalidating received LACPDU information when using Long Timeouts (3 x Slow_Periodic_Time). Value: Integer 90\n\n[Log-derived analysis] Long_Timeout_Time The number of seconds before invalidating received LACPDU information when using Long Timeouts (3 x Slow_Periodic_Time). Value: Integer 90",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.4 P312 Constants IEEE Std 802.3-2005 Section 3, Claus",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703933",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.6.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "actor_churnThis variable indicates that the Actor Churn Detection machine hasdetected that a local port configuration has failed to convergewithin a specified time, and that management intervention isrequired.Value: Boolean\n\n[Inferred behavior \u2014 no execution history for this case] actor_churnThis variable indicates that the Actor Churn Detection machine hasdetected that a local port configuration has failed to convergewithin a specified time, and that management intervention isrequired.Value: Boolean",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.8 P317Variables used for managing the operation of the state ma",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Partner_Oper_Port_State.Synchronization is also set to TRUE if the value of Actor_State.Aggregation in the received PDU is set to FALSE ... Actor_State.Synchronization in the received PDU is set to TRUE, and LACP will actively maintain the link.\n\n[Log-derived analysis] Partner_Oper_Port_State.Synchronization is also set to TRUE if the value of Actor_State.Aggregation in the received PDU is set to FALSE ... Actor_State.Synchronization in the received PDU is set to TRUE, and LACP will actively maintain the link.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.9 P318 Functions",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703934",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.7.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Partner_Oper_Port_State.Synchronization is also set to TRUE if the value of Actor_State.Aggregation in the received PDU is set to FALSE ... Actor_State.Synchronization in the received PDU is set to TRUE, and LACP will actively maintain the link.\n\n[Log-derived analysis] Partner_Oper_Port_State.Synchronization is also set to TRUE if the value of Actor_State.Aggregation in the received PDU is set to FALSE ... Actor_State.Synchronization in the received PDU is set to TRUE, and LACP will actively maintain the link.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.9 P318 Functions",
+    "past_crs": [],
+    "current_crs": [
+      "36538"
+    ],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703935",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.7.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Otherwise, Partner_Oper_Port_State.Synchronization is set to FALSE.\n\n[Log-derived analysis] Otherwise, Partner_Oper_Port_State.Synchronization is set to FALSE.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.9 P318 Functions",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703936",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.7.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If one or more of the comparisons show that the value(s) received in the PDU differ from the current operational values, then NTT is set to TRUE.\n\n[Log-derived analysis] If one or more of the comparisons show that the value(s) received in the PDU differ from the current operational values, then NTT is set to TRUE.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.3.8 P303 Agreeing on a Link Aggregation Group IEEE Std",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703937",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.7.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the support bit (bit 1) of the flag field indicates that the port is not capable of supporting port and protocol VLANs but the enabled bit (bit 2) indicates that the port is enabled with one or more port and protocol VLANs, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the support bit (bit 1) of the flag field indicates that the port is not capable of supporting port and protocol VLANs but the enabled bit (bit 2) indicates that the port is enabled with one or more port and protocol VLANs, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.3.3 Page 109 'Port And Protocol VLAN ID TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If the PPVID reference number is greater than 4094, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.\n\n[Inferred behavior \u2014 no execution history for this case] If the PPVID reference number is greater than 4094, the Port And Protocol VLAN ID TLV will be interpreted as containing an error and will be discarded.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.3.3 Page 109 'Port And Protocol VLAN ID TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If more than one VLAN Name TLV is defined for a port, the VLAN ID and the associated VLAN name combination shall be different from any other VLAN ID and VLAN name combination defined for the port.\n\n[Inferred behavior \u2014 no execution history for this case] If more than one VLAN Name TLV is defined for a port, the VLAN ID and the associated VLAN name combination shall be different from any other VLAN ID and VLAN name combination defined for the port.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.4.5 Page 110 'VLAN Name TLv usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If more than one Protocol Identity TLV is defined for a port, the protocol identity field value shall be different from any other Protocol Identity TLV defined for the port.\n\n[Inferred behavior \u2014 no execution history for this case] If more than one Protocol Identity TLV is defined for a port, the protocol identity field value shall be different from any other Protocol Identity TLV defined for the port.",
+    "reference": "IEEE Std 802.1AB-2005 Section F.5.4 Page 110 'Protocol Identity TLV usage rules'",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Port And Protocol port and protocol lldpXdot1LocProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1LocProtoVlanEnabled VLAN enabled\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Port And Protocol port and protocol lldpXdot1LocProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1LocProtoVlanEnabled VLAN enabled",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. VLAN Name VLAN name lldpXdot1LocVlanName\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. VLAN Name VLAN name lldpXdot1LocVlanName",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Protocol Identity protocol identity lldpXdot1LocProtoId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP local system MIB objects are listed in Table F-4. Protocol Identity protocol identity lldpXdot1LocProtoId",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 112 Table F-4 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Port And Protocol port and protocol lldpXdot1RemProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1RemProtoVlanEnabled VLAN enabled\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Port And Protocol port and protocol lldpXdot1RemProtoVlanSupported VLAN ID VLAN supported port and protocol lldpXdot1RemProtoVlanEnabled VLAN enabled",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.13": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. VLAN Name VLAN name lldpXdot1RemVlanName\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. VLAN Name VLAN name lldpXdot1RemVlanName",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.7.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Protocol Identity protocol identity lldpXdot1RemProtoId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.1 Organizationally Specific TLVs and the LLDP remote systems MIB objects are listed in Table F-5. Protocol Identity protocol identity lldpXdot1RemProtoId",
+    "reference": "IEEE Std 802.1AB-2005 Section F.6.4 Page 113 Table F-5 'IEEE 802.1 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.8.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "A Receive machine may validate the Actor_Information_Length field.\n\n[Log-derived analysis] A Receive machine may validate the Actor_Information_Length field.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703938",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "A Receive machine may validate the Actor_Information_Length, Partner_Information_Length field.\n\n[Log-derived analysis] A Receive machine may validate the Actor_Information_Length, Partner_Information_Length field.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703939",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "A Receive machine may validate the Actor_Information_Length, Partner_Information_Length,Collector_Information_Length field.\n\n[Log-derived analysis] A Receive machine may validate the Actor_Information_Length, Partner_Information_Length,Collector_Information_Length field.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703940",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "A Receive machine may validate the Actor_Information_Length, Partner_Information_Length, Collector_Information_Length or Terminator_Length fields.\n\n[Log-derived analysis] A Receive machine may validate the Actor_Information_Length, Partner_Information_Length, Collector_Information_Length or Terminator_Length fields.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703941",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.5": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If no LACPDU is received before the current_while timer expires, the state machine transits to the EXPIRED state.\n\n[Log-derived analysis] If no LACPDU is received before the current_while timer expires, the state machine transits to the EXPIRED state.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine IEEE Std 802.3-2005 Section 3",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703942",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If no LACPDU is received before the current_while timer expires, the state machine transits to the EXPIRED state. [Note: We are testing here that if the current_while timer is not let to expire, then DUT remains in CURRENT state]\n\n[Log-derived analysis] If no LACPDU is received before the current_while timer expires, the state machine transits to the EXPIRED state. [Note: We are testing here that if the current_while timer is not let to expire, then DUT remains in CURRENT state]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703943",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "If no LACPDU is received before the current_while timer expires again, the state machine transits to the DEFAULTED state. [Note: The current state is EXPIRED]\n\n[Log-derived analysis] If no LACPDU is received before the current_while timer expires again, the state machine transits to the DEFAULTED state. [Note: The current state is EXPIRED]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.12 P322 Receive machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703944",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.8.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Maximum Frame Size maximum frame size lldpXdot3LocMaxFrameSize\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP LLDP local system MIB objects are listed in Table- G-6. Maximum Frame Size maximum frame size lldpXdot3LocMaxFrameSize",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 138 Table G-6 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.8.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. MAC/PHY Auto-negotiation lldpXdot3RemPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3RemPortAutoNegEnabled status PMD lldpXdot3RemPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3RemPortOperMauType type (Note: lldpXdot3RemPortAutoNegAdvCap corresponds to lldpXdot3RemPortAutoNegAdvertisedCap in IEEE 802.3 LLDP extension MIB Module)\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. MAC/PHY Auto-negotiation lldpXdot3RemPortAutoNegSupported Configuration support Status Auto-negotiation lldpXdot3RemPortAutoNegEnabled status PMD lldpXdot3RemPortAutoNegAdvCap auto-negotiation advertised capability operational MAU lldpXdot3RemPortOperMauType type (Note: lldpXdot3RemPortAutoNegAdvCap corresponds to lldpXdot3RemPortAutoNegAdvertisedCap in IEEE 802.3 LLDP extension MIB Module)",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.8.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Power Via MDI PortClass lldpXdot3RemPowerPortClass PSE MDI power support lldpXdot3RemPowerMDISupported PSE MDI power state lldpXdot3RemPowerMDIEnabled PSE pairs control lldpXdot3RemPowerPairControlable ability PSE power pair lldpXdot3RemPowerPairs power class lldpXdot3RemPowerClass\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Power Via MDI PortClass lldpXdot3RemPowerPortClass PSE MDI power support lldpXdot3RemPowerMDISupported PSE MDI power state lldpXdot3RemPowerMDIEnabled PSE pairs control lldpXdot3RemPowerPairControlable ability PSE power pair lldpXdot3RemPowerPairs power class lldpXdot3RemPowerClass",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.8.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Link Aggregation aggregation status lldpXdot3RemLinkAggStatus aggregation port ID lldpXdot3RemLinkAggPortId\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Link Aggregation aggregation status lldpXdot3RemLinkAggStatus aggregation port ID lldpXdot3RemLinkAggPortId",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.8.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Maximum Frame Size maximum frame size lldpXdot3RemMaxFrameSize\n\n[Inferred behavior \u2014 no execution history for this case] The cross references between the IEEE 802.3 TLVs and the LLDP remote system MIB objects are listed in Table- G-7. Maximum Frame Size maximum frame size lldpXdot3RemMaxFrameSize",
+    "reference": "IEEE Std 802.1AB-2005 Section G.6.3 Page 139 Table G-7 'IEEE 802.3 Organizationally Specific TLV/MIB object cross refere",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2015.10.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "g) Any pair of ports that are members of the same Link Aggregation Group, but are connected together by the same link, shall not select the same Aggregator (i.e., if a loopback condition exists between two ports, they shall not be aggregated together.\n\n[Log-derived analysis] g) Any pair of ports that are members of the same Link Aggregation Group, but are connected together by the same link, shall not select the same Aggregator (i.e., if a loopback condition exists between two ports, they shall not be aggregated together.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.14.1 P325 Selection Logic-Requirements",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703945",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.10.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "h) Any port that is required to be Individual (i.e. the operational state for the Actor or the Partner indicates that the port is Individual) shall not select the same Aggregator as any other port. i) Any port that is Aggregatable shall not select an Aggregator to which an Individual port is already attached.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] h) Any port that is required to be Individual (i.e. the operational state for the Actor or the Partner indicates that the port is Individual) shall not select the same Aggregator as any other port. i) Any port that is Aggregatable shall not select an Aggregator to which an Individual port is already attached.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.14.1 P325 Selection Logic Requirements",
+    "past_crs": [],
+    "current_crs": [
+      "36549"
+    ],
+    "testSet": 10,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.11.3": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID. [Note: This test is being done by changing system MAC address of system ID in LACPPDU sent from ANVL] [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID. [Note: This test is being done by changing system MAC address of system ID in LACPPDU sent from ANVL] [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703946",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.11.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID. [Note: This test is being done by changing system priority of system ID in LACPPDU sent from ANVL] [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID. [Note: This test is being done by changing system priority of system ID in LACPPDU sent from ANVL] [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703947",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.11.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703948",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.11.8": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703949",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.11.10": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703950",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.11.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation, the Actor System ID [Note: The test is being done by changing Actor System priority on DUT because system priority is part of system ID] [Note: This test is for Mux Coupled control]\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation, the Actor System ID [Note: The test is being done by changing Actor System priority on DUT because system priority is part of system ID] [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [
+      "36569"
+    ],
+    "testSet": 11,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.11.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation, the Actor System ID, the Actor Priority [Note: This test is for Mux Coupled control]\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] a) The Receive machine. The Receive machine can set Selected to UNSELECTED at any time if any of the following change: The Partner System ID, the Partner Priority, the Partner Key, the Partner_State.Aggregation, the Actor System ID, the Actor Priority [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.15 P327 Mux machine",
+    "past_crs": [],
+    "current_crs": [
+      "36570"
+    ],
+    "testSet": 11,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.12.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "When the LACP_Enabled variable is TRUE and the NTT variable is TRUE, ... subject to the restriction that no more than three LACPDUs may be transmitted in any Fast_Periodic_Time interval.\n\n[Log-derived analysis] When the LACP_Enabled variable is TRUE and the NTT variable is TRUE, ... subject to the restriction that no more than three LACPDUs may be transmitted in any Fast_Periodic_Time interval.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.4.16 P330 Transmit machine",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356882",
+      "log_uid": "93672935",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The Marker PDU is received by the Partners collection function and a Marker Response PDU is returned on the same link to the initiating Actors distribution function.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] The Marker PDU is received by the Partners collection function and a Marker Response PDU is returned on the same link to the initiating Actors distribution function.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5 P332 Marker protocol IEEE Std 802.3-2005 Section 3, C",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.2": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The operation of the Marker protocol is unaffected by any changes in the Collecting and Distributing states associated with the port. Therefore, Marker and Marker Response PDUs can be sent on a port whose distribution function is disabled.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] The operation of the Marker protocol is unaffected by any changes in the Collecting and Distributing states associated with the port. Therefore, Marker and Marker Response PDUs can be sent on a port whose distribution function is disabled.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5 P332 Marker protocol",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.4": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The operation of the Marker protocol is unaffected by any changes in the Collecting and Distributing states associated with the port. Therefore, Marker and Marker Response PDUs can be received and passed to the relevant Aggregators collection or distribution function on a port whose collection function is disabled. [Note: This test is for Mux Coupled control]\n\n[Log-derived analysis] The operation of the Marker protocol is unaffected by any changes in the Collecting and Distributing states associated with the port. Therefore, Marker and Marker Response PDUs can be received and passed to the relevant Aggregators collection or distribution function on a port whose collection function is disabled. [Note: This test is for Mux Coupled control]",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5 P332 Marker protocol",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703952",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.6": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Marker Response PDUs are basic IEEE 802.3 frames; they shall not be tagged.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Marker Response PDUs are basic IEEE 802.3 frames; they shall not be tagged.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU structure",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.7": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Marker PDUs and Marker Response PDUs are basic IEEE 802.3 frames; they shall not be tagged.\n\n[Log-derived analysis] Marker PDUs and Marker Response PDUs are basic IEEE 802.3 frames; they shall not be tagged.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703953",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.9": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "Maker Response PDU specific field verification\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Maker Response PDU specific field verification",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU structure",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.11": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "General Field verification for Maker Response PDU\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] General Field verification for Maker Response PDU",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU structure",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.12": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "a) Destination Address. The DA in all Marker and Marker Response PDUs is the Slow_Protocols_Multicast address.\n\n[Log-derived analysis] a) Destination Address. The DA in all Marker and Marker Response PDUs is the Slow_Protocols_Multicast address.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703954",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.13": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "c) Length/Type. Marker and Marker Response PDUs are always Type encoded, and carry the Slow Protocol type field.\n\n[Log-derived analysis] c) Length/Type. Marker and Marker Response PDUs are always Type encoded, and carry the Slow Protocol type field.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703955",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.14": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "d) Subtype. The Subtype field identifies the specific Slow Protocol being encapsulated. Both Marker and Marker Response PDUs carry the Marker_subtype value 0x02.\n\n[Log-derived analysis] d) Subtype. The Subtype field identifies the specific Slow Protocol being encapsulated. Both Marker and Marker Response PDUs carry the Marker_subtype value 0x02.",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P333 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703956",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.15": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "e) Version number. This identifies the Marker protocol version; implementations conformant to this version of the standard carry the value 0x01 Upon receipt of an Marker Request Packet, the Marker Responder shall not validate the Version Number fields in the contained Marker Request PDU\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] e) Version number. This identifies the Marker protocol version; implementations conformant to this version of the standard carry the value 0x01 Upon receipt of an Marker Request Packet, the Marker Responder shall not validate the Version Number fields in the contained Marker Request PDU",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.16": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "f) TLV_type = Marker Information/Marker Response Information. This indicates the nature of the information carried in this TLV-tuple. Marker Information is encoded as the integer value 0x01;\n\n[Log-derived analysis] f) TLV_type = Marker Information/Marker Response Information. This indicates the nature of the information carried in this TLV-tuple. Marker Information is encoded as the integer value 0x01;",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703957",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.17": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "g) Marker_Information_Length/Marker_Response_Information_Length. This field indicates the length (in octets) of this TLV-tuple. Both Marker and Marker Response information use a length value of 16 (0x10).\n\n[Log-derived analysis] g) Marker_Information_Length/Marker_Response_Information_Length. This field indicates the length (in octets) of this TLV-tuple. Both Marker and Marker Response information use a length value of 16 (0x10).",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU stru",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703958",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2015.13.18": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "h) Requester_Port. The port number assigned to the port by the Requester (the System sending the initial Marker PDU), encoded as an unsigned integer. Requester_Port parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] h) Requester_Port. The port number assigned to the port by the Requester (the System sending the initial Marker PDU), encoded as an unsigned integer. Requester_Port parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU structure IEE",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.19": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "i) Requester_System. The Requester's System ID, encoded as a MAC address. Requester_System parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] i) Requester_System. The Requester's System ID, encoded as a MAC address. Requester_System parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU structure IEE",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.20": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "j) Requester_Transaction_ID. The transaction ID allocated to this request by the requester, encoded as an integer. Requester_Transaction_ID parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] j) Requester_Transaction_ID. The transaction ID allocated to this request by the requester, encoded as an integer. Requester_Transaction_ID parameter in the Marker Response PDU carry the same values as those received in the corresponding Marker PDU.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU structure IEE",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.21": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "k) Pad. In Marker Response PDUs, this field may be transmitted as zeroes, or with the contents of this field from the Marker PDU triggering the response.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] k) Pad. In Marker Response PDUs, this field may be transmitted as zeroes, or with the contents of this field from the Marker PDU triggering the response.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P334 Marker and Marker Response PDU structure IEE",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.22": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "n) Reserved. These 90 octets... In Marker Response PDUs, this field may be either transmitted as zeroes, or with the contents of this field from the Marker PDU triggering the response. The field is ignored on receipt in all cases.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] n) Reserved. These 90 octets... In Marker Response PDUs, this field may be either transmitted as zeroes, or with the contents of this field from the Marker PDU triggering the response. The field is ignored on receipt in all cases.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.3.2 P335 Marker and Marker Response PDU structure IEE",
+    "past_crs": [],
+    "current_crs": [
+      "36494"
+    ],
+    "testSet": 13,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.13.23": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "A Marker Responder may (but is not required to) control its Marker Response transmissions to conform to this Slow Protocols timing constraint when faced with Marker messages not in compliance with this constraint (i.e., to send fewer Marker Response PDUs than Marker PDUs received). [Note: Responder shall not transmit more than 10 frames in any one second period]\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] A Marker Responder may (but is not required to) control its Marker Response transmissions to conform to this Slow Protocols timing constraint when faced with Marker messages not in compliance with this constraint (i.e., to send fewer Marker Response PDUs than Marker PDUs received). [Note: Responder shall not transmit more than 10 frames in any one second period]",
+    "reference": "NEGATIVE IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.5.4.1 P335 Operation of the marker protocol<br",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2015.14.1": {
+    "suite_id": "2015",
+    "suite_name": "2015_IxANVL_lacp",
+    "description": "The Link Aggregation Control Protocol cannot detect the presence of multiple Aggregation-aware devices on the same link.\n\n[Log-derived analysis] The Link Aggregation Control Protocol cannot detect the presence of multiple Aggregation-aware devices on the same link.",
+    "reference": "IEEE Std 802.3-2005 Section 3, Clause 43. Link Aggregation S43.6.3 P338 Link Aggregation on shared-medium links",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357816",
+      "log_uid": "93703959",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

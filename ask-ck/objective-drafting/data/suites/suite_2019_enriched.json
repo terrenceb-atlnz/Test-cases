@@ -1,0 +1,1817 @@
+{
+  "2019.1.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD messages described ... sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698897",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement for link-local IPv6 Source Address)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement for link-local IPv6 Source Address)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698898",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD General Query Message conforms to above statement for IPv6 Hop Limit)\n\n[Log-derived analysis] All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD General Query Message conforms to above statement for IPv6 Hop Limit)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698899",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD General Query Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698900",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages ... are sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header (Tests that MLD General Query Message conforms to above statement for ordering of Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages ... are sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header (Tests that MLD General Query Message conforms to above statement for ordering of Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698901",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD messages described ... are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671139",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.1.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for link-local IPv6 Source Address)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for link-local IPv6 Source Address)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698903",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.8": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for IPv6 Hop Limit)\n\n[Log-derived analysis] All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for IPv6 Hop Limit)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698904",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.9": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698905",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.10": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header (Tests that MLD M-A-S Query Message conforms to above statement for ordering of Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present, must immediately follow the IPv6 header (Tests that MLD M-A-S Query Message conforms to above statement for ordering of Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698906",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.11": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698907",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.12": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement for link-local IPv6 Source Address)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement for link-local IPv6 Source Address)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671145",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.1.13": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Report Message conforms to above statement for IPv6 Hop Limit)\n\n[Log-derived analysis] All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Report Message conforms to above statement for IPv6 Hop Limit)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698909",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.14": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Report Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698910",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.15": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present,must immediately follow the IPv6 header (Tests that MLD Report Message conforms to above statement for ordering of Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present,must immediately follow the IPv6 header (Tests that MLD Report Message conforms to above statement for ordering of Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698911",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.16": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, an IPv6 Hop Limit of 1, and an IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698912",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.17": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement for link-local IPv6 Source Address)\n\n[Log-derived analysis] All MLD messages described in this document are sent with a link-local IPv6 Source Address, ... in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement for link-local IPv6 Source Address)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698913",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.18": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Done Message conforms to above statement for IPv6 Hop Limit)\n\n[Log-derived analysis] All MLD messages described in this document are sent with ... an IPv6 Hop Limit of 1, ... Options header. (Tests that MLD Done Message conforms to above statement for IPv6 Hop Limit)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698914",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.19": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages described ... sent with ... IPv6 Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header. (Tests that MLD Done Message conforms to above statement for Router Alert option [RTR-ALERT] in a Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698915",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.1.20": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present,must immediately follow the IPv6 header (Tests that MLD Done Message conforms to above statement for ordering of Hop-by-Hop Options header)\n\n[Log-derived analysis] All MLD messages ... sent with ... Hop-by-Hop Options header. (IPv6 Specification) The Hop-by-Hop Options header, when present,must immediately follow the IPv6 header (Tests that MLD Done Message conforms to above statement for ordering of Hop-by-Hop Options header)",
+    "reference": "NEGATIVE RFC 2710 s3 p2 Message Format RFC 2460 s4 p6 IPv6 Extension Headers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698916",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD General Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698917",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698918",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field Initialized to zero by the sender;\n\n[Log-derived analysis] All MLD Messages' Code Field Initialized to zero by the sender;",
+    "reference": "(Tests that MLD Report Message conforms to above statement) TEST_REFERENCE RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698919",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field Initialized to zero by the sender; (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698920",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field ignored by receivers. (Tests that General Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field ignored by receivers. (Tests that General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698921",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field ignored by receivers. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field ignored by receivers. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698922",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.2.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field ignored by receivers. (Tests when MLD Report Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field ignored by receivers. (Tests when MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671160",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.2.8": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "All MLD Messages' Code Field ignored by receivers. (Tests when MLD Done Message conforms to above statement)\n\n[Log-derived analysis] All MLD Messages' Code Field ignored by receivers. (Tests when MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.2 p3 Code",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698924",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.3.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "The Maximum Response Delay field is meaningful only in Query messages ... In all other messages, it is set to zero by the sender (Tests when MLD Report Message conforms to above statement)\n\n[Log-derived analysis] The Maximum Response Delay field is meaningful only in Query messages ... In all other messages, it is set to zero by the sender (Tests when MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.4 p3 Maximum Response Delay",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698925",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.3.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "The Maximum Response Delay field is meaningful only in Query messages ... In all other messages, it is set to zero by the sender (Tests MLD Done Message conforms to above statement)\n\n[Log-derived analysis] The Maximum Response Delay field is meaningful only in Query messages ... In all other messages, it is set to zero by the sender (Tests MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.4 p3 Maximum Response Delay",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698926",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.3.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "The Maximum Response Delay field is meaningful only in Query messages ... In all other messages ... ignored by receivers. (Tests when MLD Report Message conforms to above statement)\n\n[Log-derived analysis] The Maximum Response Delay field is meaningful only in Query messages ... In all other messages ... ignored by receivers. (Tests when MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.4 p3 Maximum Response Delay",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698927",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.3.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "The Maximum Response Delay field is meaningful only in Query messages ... In all other messages ... ignored by receivers. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] The Maximum Response Delay field is meaningful only in Query messages ... In all other messages ... ignored by receivers. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.4 p3 Maximum Response Delay",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698928",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is Initialized to zero by thesender; (Tests that MLD General Query Message conforms toabove statement)\n\n[Log-derived analysis] MLD Message Reserved Field is Initialized to zero by thesender; (Tests that MLD General Query Message conforms toabove statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698929",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is Initialized to zero by the sender; (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is Initialized to zero by the sender; (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698930",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is Initialized to zero by the sender;\n\n[Log-derived analysis] MLD Message Reserved Field is Initialized to zero by the sender;",
+    "reference": "(Tests that MLD Report Message conforms to above statement) TEST_REFERENCE RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698931",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is Initialized to zero by the sender; (Tests when MLD Done Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is Initialized to zero by the sender; (Tests when MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698932",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is ignored by receivers. (Tests when MLD General Query Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is ignored by receivers. (Tests when MLD General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698933",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is ignored by receivers. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is ignored by receivers. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698934",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.4.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is ignored by receivers. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is ignored by receivers. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671172",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.4.8": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD Message Reserved Field is ignored by receivers. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] MLD Message Reserved Field is ignored by receivers. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.5 p4 Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698936",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.5.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In a Query message, the Multicast Address field is set to zero when sending a General Query (Tests that MLD General Query Message conforms to abovestatement)\n\n[Log-derived analysis] In a Query message, the Multicast Address field is set to zero when sending a General Query (Tests that MLD General Query Message conforms to abovestatement)",
+    "reference": "RFC 2710 s3.6 p4 Multicast Address RFC 2710 s5 p8 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698937",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.5.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In a Query message, ... and set to a specific IPv6 multicast address when sending a Multicast-Address-Specific Query. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] In a Query message, ... and set to a specific IPv6 multicast address when sending a Multicast-Address-Specific Query. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.6 p4 Multicast Address RFC 2710 s5 p8 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698938",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.5.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In a Report message, the Multicast Address field holds a specific IPv6 multicast address to which the message sender is listening\n\n[Log-derived analysis] In a Report message, the Multicast Address field holds a specific IPv6 multicast address to which the message sender is listening",
+    "reference": "RFC 2710 s3.6 p4 Multicast Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698939",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.5.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In a Done message, the Multicast Address field holds a specific IPv6 multicast address to which the message sender is ceasing to listen, respectively.\n\n[Log-derived analysis] In a Done message, the Multicast Address field holds a specific IPv6 multicast address to which the message sender is ceasing to listen, respectively.",
+    "reference": "RFC 2710 s3.6 p4 Multicast Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698940",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD General Query Message conforms to abovestatement)\n\n[Log-derived analysis] An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD General Query Message conforms to abovestatement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698941",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698942",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698943",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] An implementation of the version of MLD specified in this document MUST NOT send an MLD message longer than 24 octets. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698944",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that General Query Message conforms to above statement)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [
+      "36972"
+    ],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.6.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [
+      "36972"
+    ],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.6.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671182",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.6.8": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] An implementation of the version of MLD specified... and MUST ignore anything past the first 24 octets of a received MLD message. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698946",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.9": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests that MLD General Query Message conforms to above statement)\n\n[Log-derived analysis] In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests that MLD General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698947",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.10": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698948",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.6.11": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests when MLD Report Message conforms to above statement)\n\n[Log-derived analysis] In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests when MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356852",
+      "log_uid": "93671186",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "2019.6.12": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests when MLD Done Message conforms to above statement)\n\n[Log-derived analysis] In all cases, the MLD checksum MUST be computed over the entire MLD message, not just the first 24 octets. (Tests when MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s3.7 p4 Other fields",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698950",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD General Query Message conforms to above\n\n[Log-derived analysis] For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD General Query Message conforms to above",
+    "reference": "RFC 2710 s4 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698951",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s4 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698952",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s4 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698953",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Done Message conforms to above statement)\n\n[Log-derived analysis] For each attached link, a router selects one of its link-local unicast addresses on that link to be used as the IPv6 Source Address in all MLD packets it transmits on that link. (Tests that MLD Done Message conforms to above statement)",
+    "reference": "RFC 2710 s4 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698954",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "For each ... the router must configure that interface to listen to all link-layer multicast address that can be generated by IPv6 multicasts.\n\n[Log-derived analysis] For each ... the router must configure that interface to listen to all link-layer multicast address that can be generated by IPv6 multicasts.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698955",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If a router hears a Query message whose IPv6 Source Address is numerically less than its own selected address for that link, it MUST become a Non-Querier on that link.\n\n[Log-derived analysis] If a router hears a Query message whose IPv6 Source Address is numerically less than its own selected address for that link, it MUST become a Non-Querier on that link.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698956",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If a router hears a Query message whose IPv6 Source Address is numerically less than its own selected address for that link, it MUST become a Non-Querier on that link.\n\n[Log-derived analysis] If a router hears a Query message whose IPv6 Source Address is numerically less than its own selected address for that link, it MUST become a Non-Querier on that link.",
+    "reference": "NEGATIVE RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698957",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.8": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If [Other Querier Present Interval] passes without receiving, from a particular attached link, any Queries from a router with an address less than its own, a router resumes the role of Querier on that link.\n\n[Log-derived analysis] If [Other Querier Present Interval] passes without receiving, from a particular attached link, any Queries from a router with an address less than its own, a router resumes the role of Querier on that link.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698958",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.9": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "On startup, a router SHOULD send [Startup Query Count] General Queries spaced closely together [Startup Query Interval] on ... multicast listeners on those links. (Tests that router sends MLD Startup General Queries spaced closely together [Startup Query Interval])\n\n[Log-derived analysis] On startup, a router SHOULD send [Startup Query Count] General Queries spaced closely together [Startup Query Interval] on ... multicast listeners on those links. (Tests that router sends MLD Startup General Queries spaced closely together [Startup Query Interval])",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3145300",
+      "log_uid": "87721877",
+      "platform": "AR4050S-atr45.rel",
+      "sw_version": "awplus_main-20251126-1042",
+      "run_date": "2025-11-28",
+      "result": "PASS"
+    }
+  },
+  "2019.7.10": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "On startup, a router SHOULD send [Startup Query Count] General Queries spaced closely together [Startup Query Interval] on ... multicast listeners on those links. (Tests that router sends [Startup Query Count] MLD Startup General Queries\n\n[Log-derived analysis] On startup, a router SHOULD send [Startup Query Count] General Queries spaced closely together [Startup Query Interval] on ... multicast listeners on those links. (Tests that router sends [Startup Query Count] MLD Startup General Queries",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3045892",
+      "log_uid": "84861888",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "5.5.3-0.7-rc7",
+      "run_date": "2025-09-01",
+      "result": "PASS"
+    }
+  },
+  "2019.7.11": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a General Query, it sets a delay timer for each multicast address to which it is listening on the interface from which it received the Query, EXCLUDING the link-scope all-nodes address\n\n[Log-derived analysis] When a node receives a General Query, it sets a delay timer for each multicast address to which it is listening on the interface from which it received the Query, EXCLUDING the link-scope all-nodes address",
+    "reference": "RFC 2710 s4 p5 Protocol Description RFC 2710 s5 p10 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698961",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.12": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a General Query ... Each timer is set to a different random value, using the highest clock granularity available on the node, selected from the range [0, Maximum Response Delay] with Maximum Response Delay as specified in the Query packet.\n\n[Log-derived analysis] When a node receives a General Query ... Each timer is set to a different random value, using the highest clock granularity available on the node, selected from the range [0, Maximum Response Delay] with Maximum Response Delay as specified in the Query packet.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698962",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.13": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a General Query ... if a timer for any address is already running, it is reset to the new random value only if the requested Maximum Response Delay is less than the remaining value of the running timer.\n\n[Log-derived analysis] When a node receives a General Query ... if a timer for any address is already running, it is reset to the new random value only if the requested Maximum Response Delay is less than the remaining value of the running timer.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698963",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.14": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a General Query ... If the Query packet specifies a Maximum Response Delay of zero, each timer is effectively set to zero, and the action specified below for timer expiration is performed immediately.\n\n[Log-derived analysis] When a node receives a General Query ... If the Query packet specifies a Maximum Response Delay of zero, each timer is effectively set to zero, and the action specified below for timer expiration is performed immediately.",
+    "reference": "RFC 2710 s4 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698964",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.15": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a Multicast-Address-Specific Query, if it is listening to the queried Multicast Address on the interface from which the Query was received, it sets a delay timer for that address to a random value selected from the range [0, Maximum Response Delay], as above.\n\n[Log-derived analysis] When a node receives a Multicast-Address-Specific Query, if it is listening to the queried Multicast Address on the interface from which the Query was received, it sets a delay timer for that address to a random value selected from the range [0, Maximum Response Delay], as above.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698965",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.16": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a Multicast-Address-Specific Query ... if a timer for the address is already running, it is reset to the new random value only if the requested Maximum Response Delay is less than the remaining value of the running timer.\n\n[Log-derived analysis] When a node receives a Multicast-Address-Specific Query ... if a timer for the address is already running, it is reset to the new random value only if the requested Maximum Response Delay is less than the remaining value of the running timer.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698966",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.17": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node receives a Multicast-Address-Specific Query ... If the Query packet specifies a Maximum Response Delay of zero, the timer is effectively set to zero, and the action specified below for expiration is performed immediately.\n\n[Log-derived analysis] When a node receives a Multicast-Address-Specific Query ... If the Query packet specifies a Maximum Response Delay of zero, the timer is effectively set to zero, and the action specified below for expiration is performed immediately.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698967",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.18": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If a node's timer for a particular multicast address on ... the address being reported is carried in both the IPv6 Destination Address field and the MLD Multicast Address field of the Report packet.\n\n[Log-derived analysis] If a node's timer for a particular multicast address on ... the address being reported is carried in both the IPv6 Destination Address field and the MLD Multicast Address field of the Report packet.",
+    "reference": "RFC 2710 s4 p6",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698968",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.19": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If a node receives another node's Report from an interface for a multicast address while it has a timer running for that same address on that interface, it stops its timer and does not send a Report for that address, thus suppressing duplicate reports on the link.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If a node receives another node's Report from an interface for a multicast address while it has a timer running for that same address on that interface, it stops its timer and does not send a Report for that address, thus suppressing duplicate reports on the link.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.20": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a router receives a Report from a link, if the reported address is not already present in the router's list of multicast address ... its timer is set to [Multicast Listener Interval], and its appearance is made known to the router's multicast routing component.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When a router receives a Report from a link, if the reported address is not already present in the router's list of multicast address ... its timer is set to [Multicast Listener Interval], and its appearance is made known to the router's multicast routing component.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.21": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If a Report is received for a multicast address that is already present in the router's list, the timer for that address is reset to [Multicast Listener Interval].\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If a Report is received for a multicast address that is already present in the router's list, the timer for that address is reset to [Multicast Listener Interval].",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.22": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If an address's timer expires, it is assumed that there are no longer any listeners for that address present on the link, so it is deleted from the list and its disappearance is made known to the multicast routing component.\n\n[Log-derived analysis] If an address's timer expires, it is assumed that there are no longer any listeners for that address present on the link, so it is deleted from the list and its disappearance is made known to the multicast routing component.",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698969",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.23": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node starts listening to a Multicast Address on an interface, it should immediately transmit an unsolicited Report for that address on that interface, in case it is the first listener on the link\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When a node starts listening to a Multicast Address on an interface, it should immediately transmit an unsolicited Report for that address on that interface, in case it is the first listener on the link",
+    "reference": "RFC 2710 s4 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.24": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "To cover the possibility of the initial Report being lost or damaged, it is recommended that it be repeated once or twice after short delays [Unsolicited Report Interval].\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] To cover the possibility of the initial Report being lost or damaged, it is recommended that it be repeated once or twice after short delays [Unsolicited Report Interval].",
+    "reference": "RFC 2710 s4 p6",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.25": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a node ceases to listen to a multicast address on an interface, it SHOULD send a single Done message to the link-scope all-routers multicast address (FF02::2), carrying in its Multicast Address field the address to which it is ceasing to listen.\n\n[Log-derived analysis] When a node ceases to listen to a multicast address on an interface, it SHOULD send a single Done message to the link-scope all-routers multicast address (FF02::2), carrying in its Multicast Address field the address to which it is ceasing to listen.",
+    "reference": "RFC 2710 s4 p7 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698970",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.27": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a router in Querier state receives a Done message ... the Querier sends [Last Listener Query Count] Multicast-Address- Specific Queries, one every [Last Listener Query Interval] to that multicast address. (Tests that Querier sends in every [LastListenerQueryInterval])\n\n[Log-derived analysis] When a router in Querier state receives a Done message ... the Querier sends [Last Listener Query Count] Multicast-Address- Specific Queries, one every [Last Listener Query Interval] to that multicast address. (Tests that Querier sends in every [LastListenerQueryInterval])",
+    "reference": "RFC 2710 s4 p7 Protocol Description RFC 2710 s6 p14 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698971",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.28": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "When a router in Querier state receives a Done message ... the Querier sends [Last Listener Query Count] Multicast-Address- Specific Queries, one every [Last Listener Query Interval] to that multicast address. (Tests that Querier sends [Last Listener Query Count] Messages)\n\n[Log-derived analysis] When a router in Querier state receives a Done message ... the Querier sends [Last Listener Query Count] Multicast-Address- Specific Queries, one every [Last Listener Query Interval] to that multicast address. (Tests that Querier sends [Last Listener Query Count] Messages)",
+    "reference": "RFC 2710 s4 p7 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698972",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.29": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "These Multicast-Address-Specific Queries have their Maximum Response Delay set to [Last Listener Query Interval].\n\n[Log-derived analysis] These Multicast-Address-Specific Queries have their Maximum Response Delay set to [Last Listener Query Interval].",
+    "reference": "RFC 2710 s4 p7 Protocol Description RFC 2710 s5 p13 Node State Transition Diagram",
+    "past_crs": [
+      "37251"
+    ],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698973",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.30": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "If no Reports for the address are received from the link after the response delay of the last query has passed, the routers on the link assume that the address no longer has any listeners there; the address is therefore deleted from the list and its disappearance is made known to the multicast routing component.\n\n[Log-derived analysis] If no Reports for the address are received from the link after the response delay of the last query has passed, the routers on the link assume that the address no longer has any listeners there; the address is therefore deleted from the list and its disappearance is made known to the multicast routing component.",
+    "reference": "RFC 2710 s4 p7 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698974",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.7.31": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "This process is continued to its resolution (i.e. until a Report is received or the last MLD Multicast-Address-Specific Query Message is sent with no response) despite any transition from Querier to Non-Querier on this link.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] This process is continued to its resolution (i.e. until a Report is received or the last MLD Multicast-Address-Specific Query Message is sent with no response) despite any transition from Querier to Non-Querier on this link.",
+    "reference": "RFC 2710 s4 p7 Protocol Description RFC 2710 s6 p14 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [
+      "37532"
+    ],
+    "testSet": 7,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.7.32": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "Routers in Non-Querier state MUST ignore Done messages.\n\n[Log-derived analysis] Routers in Non-Querier state MUST ignore Done messages.",
+    "reference": "RFC 2710 s4 p7 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698975",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "To be valid, the Query message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD General Query Message conforms to above statement)\n\n[Log-derived analysis] To be valid, the Query message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD General Query Message conforms to above statement)",
+    "reference": "RFC 2710 s5 p8 Node State Transition Diagram RFC 2710 s6 p11 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698976",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "To be valid, the Query message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)\n\n[Log-derived analysis] To be valid, the Query message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD Multicast-Address-Specific Query Message conforms to above statement)",
+    "reference": "RFC 2710 s5 p8 Node State transition Diagram RFC 2710 s6 p11 Router State Transition Diagram RFC 2710 s6 p13 Router St",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698977",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "To be valid, the Report message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD Report Message conforms to above statement)\n\n[Log-derived analysis] To be valid, the Report message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum. (Tests that MLD Report Message conforms to above statement)",
+    "reference": "RFC 2710 s5 p8 Node State transition Diagram RFC 2710 s6 p13 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698978",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.4": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "Queries are ignored for addresses in the Non-Listener state.\n\n[Log-derived analysis] Queries are ignored for addresses in the Non-Listener state.",
+    "reference": "RFC 2710 s5 p8 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698979",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.5": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD messages are never sent for multicast addresses whose scope is 0 (reserved)\n\n[Log-derived analysis] MLD messages are never sent for multicast addresses whose scope is 0 (reserved)",
+    "reference": "RFC 2710 s5 p10 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698980",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.8.6": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD messages are never sent for multicast addresses whose scope is 1 (node-local)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] MLD messages are never sent for multicast addresses whose scope is 1 (node-local)",
+    "reference": "RFC 2710 s5 p10 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [
+      "37259"
+    ],
+    "testSet": 8,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.8.7": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "MLD messages ARE sent for multicast addresses whose scope is 2 (link-local),including Solicited-Node multicast addresses [ADDR- ARCH], except for the link-scope, all-nodes address (FF02::1). (Tests that MLD messages are sent for Solicited-Node multicast addresses)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] MLD messages ARE sent for multicast addresses whose scope is 2 (link-local),including Solicited-Node multicast addresses [ADDR- ARCH], except for the link-scope, all-nodes address (FF02::1). (Tests that MLD messages are sent for Solicited-Node multicast addresses)",
+    "reference": "RFC 2710 s5 p10 Node State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [
+      "37262"
+    ],
+    "testSet": 8,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2019.9.1": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "To be valid, the Done message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum.\n\n[Log-derived analysis] To be valid, the Done message MUST come from a link-local IPv6 Source Address, be at least 24 octets long, and have a correct MLD checksum.",
+    "reference": "RFC 2710 s6 p13 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698981",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.9.2": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "start timer* ... the Maximum Response Delay in the Query message * [Last Listener Query Count] if this router is a non-Querier. When a router in Non-Querier state receives a Multicast-Address- Specific Query, ... address is greater than [Last Listener Query Count] times the Maximum Response Delay ... that latter value.\n\n[Log-derived analysis] start timer* ... the Maximum Response Delay in the Query message * [Last Listener Query Count] if this router is a non-Querier. When a router in Non-Querier state receives a Multicast-Address- Specific Query, ... address is greater than [Last Listener Query Count] times the Maximum Response Delay ... that latter value.",
+    "reference": "RFC 2710 s6 p13 Router State Transition Diagram RFC 2710 s4 p7 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698982",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2019.9.3": {
+    "suite_id": "2019",
+    "suite_name": "2019_IxANVL_mld_router",
+    "description": "Initial State : Checking Listener Event : rexmt timer expired Action : Send Multicast Address Specific Queries Final State : Checking Listener\n\n[Log-derived analysis] Initial State : Checking Listener Event : rexmt timer expired Action : Send Multicast Address Specific Queries Final State : Checking Listener",
+    "reference": "RFC 2710 s6 p15 Router State Transition Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357626",
+      "log_uid": "93698983",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  }
+}

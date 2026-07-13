@@ -1,0 +1,414 @@
+{
+  "1350.1000.0": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1350.1000.1001": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "QoS configuration check\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch's QoS configuration is correctly applied and reported. Sets up the QoS policy/queue configuration and checks that the resulting state in the table/hardware matches what was configured.",
+    "reference": "AWP-xxxx",
+    "past_crs": [
+      "50060",
+      "51443"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1002": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "ACL entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies that ACL entries are correctly installed. Configures access-control-list rules and confirms the expected ACL entries are present and programmed in the switch's table state.",
+    "reference": "AWP-4965",
+    "past_crs": [
+      "51443"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1003": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "802.1x clients\n\n[Inferred behavior \u2014 no execution history for this case] Verifies that 802.1x authenticated clients are tracked correctly. Brings up 802.1x supplicant sessions and confirms the expected authenticated-client entries appear in the switch's table state.",
+    "reference": "AWP-4975",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1004": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "50 MAC entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch correctly learns and reports a populated MAC address table. Programs the expected number of MAC entries and confirms they are all present in the forwarding-database table.",
+    "reference": "AWP-xxxx",
+    "past_crs": [
+      "52145"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1005": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "50 ARP entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch correctly resolves and reports a populated ARP table. Programs the expected number of ARP entries and confirms they are all present in the ARP table state.",
+    "reference": "AWP-xxxx",
+    "past_crs": [
+      "52780",
+      "52914",
+      "53214",
+      "56273"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1006": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv4 MC (*,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv4 multicast any-source (*,G) routing entries are programmed correctly. Establishes the multicast group state and confirms the expected (*,G) entries appear in the IPv4 multicast routing table.",
+    "reference": "AWP-5056",
+    "past_crs": [
+      "50107",
+      "50834",
+      "52759",
+      "56165",
+      "56397"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1007": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv4 MC (S,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv4 multicast source-specific (S,G) routing entries are programmed correctly. Establishes the source/group state and confirms the expected (S,G) entries appear in the IPv4 multicast routing table.",
+    "reference": "AWP-5058",
+    "past_crs": [
+      "50107",
+      "50834",
+      "56397"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1008": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 MC (*,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 multicast any-source (*,G) routing entries are programmed correctly. Establishes the multicast group state and confirms the expected (*,G) entries appear in the IPv6 multicast routing table.",
+    "reference": "AWP-5061",
+    "past_crs": [
+      "50062",
+      "50834",
+      "53345",
+      "56165",
+      "56397"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1009": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 MC (S,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 multicast source-specific (S,G) routing entries are programmed correctly. Establishes the source/group state and confirms the expected (S,G) entries appear in the IPv6 multicast routing table.",
+    "reference": "AWP-12757",
+    "past_crs": [
+      "50062",
+      "50834",
+      "56165",
+      "56397"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.1010": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 unicast interfaces\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 unicast interface state is reported correctly. Configures the IPv6 unicast interfaces and confirms the expected interface entries are present in the IPv6 interface table.",
+    "reference": "AWP-xxxx",
+    "past_crs": [
+      "54768"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1000.2001": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "show license internal\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch's internal licensing state. Issues the internal license query and confirms the expected license entries/features are reported.",
+    "reference": "ER-161",
+    "past_crs": [
+      "50712",
+      "50755",
+      "53535",
+      "55248"
+    ],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 2001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.0": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1350.1010.1001": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "QoS configuration check\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch's QoS configuration is correctly applied and reported. Sets up the QoS policy/queue configuration and checks that the resulting state in the table/hardware matches what was configured.",
+    "reference": "AWP-xxxx",
+    "past_crs": [
+      "56426"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1002": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "ACL entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies that ACL entries are correctly installed. Configures access-control-list rules and confirms the expected ACL entries are present and programmed in the switch's table state.",
+    "reference": "AWP-4965",
+    "past_crs": [
+      "56426"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1002,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1003": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "802.1x clients\n\n[Inferred behavior \u2014 no execution history for this case] Verifies that 802.1x authenticated clients are tracked correctly. Brings up 802.1x supplicant sessions and confirms the expected authenticated-client entries appear in the switch's table state.",
+    "reference": "AWP-4975",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1003,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1004": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "50 MAC entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch correctly learns and reports a populated MAC address table. Programs the expected number of MAC entries and confirms they are all present in the forwarding-database table.",
+    "reference": "AWP-xxxx",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1004,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1005": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "50 ARP entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies the switch correctly resolves and reports a populated ARP table. Programs the expected number of ARP entries and confirms they are all present in the ARP table state.",
+    "reference": "AWP-xxxx",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1005,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1006": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv4 MC (*,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv4 multicast any-source (*,G) routing entries are programmed correctly. Establishes the multicast group state and confirms the expected (*,G) entries appear in the IPv4 multicast routing table.",
+    "reference": "AWP-5056",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1006,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1007": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv4 MC (S,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv4 multicast source-specific (S,G) routing entries are programmed correctly. Establishes the source/group state and confirms the expected (S,G) entries appear in the IPv4 multicast routing table.",
+    "reference": "AWP-5058",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1007,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1008": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 MC (*,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 multicast any-source (*,G) routing entries are programmed correctly. Establishes the multicast group state and confirms the expected (*,G) entries appear in the IPv6 multicast routing table.",
+    "reference": "AWP-5061",
+    "past_crs": [
+      "53345"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1008,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1009": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 MC (S,G) entries\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 multicast source-specific (S,G) routing entries are programmed correctly. Establishes the source/group state and confirms the expected (S,G) entries appear in the IPv6 multicast routing table.",
+    "reference": "AWP-12757",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1009,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.1010": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "IPv6 unicast interfaces\n\n[Inferred behavior \u2014 no execution history for this case] Verifies IPv6 unicast interface state is reported correctly. Configures the IPv6 unicast interfaces and confirms the expected interface entries are present in the IPv6 interface table.",
+    "reference": "AWP-xxxx",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 1010,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.1010.3001": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "ER-897 UCL3 SYNC testing\n\n[Inferred behavior \u2014 no execution history for this case] Exercises the ER-897 UCL3 SYNC scenario, verifying that state is correctly synchronised across the relevant table entries for this feature and reported consistently.",
+    "reference": "",
+    "past_crs": [
+      "56494"
+    ],
+    "current_crs": [],
+    "testSet": 1010,
+    "caseId": 3001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1350.3000.0": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1350.3000.3001": {
+    "suite_id": "1350",
+    "suite_name": "1350_table_entries",
+    "description": "ER-897 UCL3 SYNC testing\n\n[Inferred behavior \u2014 no execution history for this case] Exercises the ER-897 UCL3 SYNC scenario, verifying that state is correctly synchronised across the relevant table entries for this feature and reported consistently.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3000,
+    "caseId": 3001,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

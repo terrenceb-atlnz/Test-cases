@@ -1,0 +1,2815 @@
+{
+  "2035.1.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The VRRP router controlling the IP address(es) associated with a virtual router is called the Master, and forwards packets sent to these IP addresses.\n\n[Log-derived analysis] The VRRP router controlling the IP address(es) associated with a virtual router is called the Master, and forwards packets sent to these IP addresses.",
+    "reference": "Setup Verification Tests",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711909",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.1.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The VRRP router controlling the IP address(es) associated with a virtual router is called the Master, and forwards packets sent to these IP addresses. (Note: Here we check that Backup does not forward packets)\n\n[Log-derived analysis] The VRRP router controlling the IP address(es) associated with a virtual router is called the Master, and forwards packets sent to these IP addresses. (Note: Here we check that Backup does not forward packets)",
+    "reference": "Setup Verification Tests",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711910",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.1.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Protocol ID of GVRP PDU is 0x0001.\n\n[Inferred behavior \u2014 no execution history for this case] The Protocol ID of GVRP PDU is 0x0001.",
+    "reference": "Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.1.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "LeaveAll Message is triggered after LeaveAll Timer expires\n\n[Inferred behavior \u2014 no execution history for this case] LeaveAll Message is triggered after LeaveAll Timer expires",
+    "reference": "Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.1.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "VLAN ID is deregistered when DUT transits from LV to MT state\n\n[Inferred behavior \u2014 no execution history for this case] VLAN ID is deregistered when DUT transits from LV to MT state",
+    "reference": "Setup Verification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.2.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "To minimize network traffic, only the Master for each virtual router sends periodic VRRP Advertisement messages. (Note: Here we elect DUT as master and check only for periodic packets from Master)\n\n[Log-derived analysis] To minimize network traffic, only the Master for each virtual router sends periodic VRRP Advertisement messages. (Note: Here we elect DUT as master and check only for periodic packets from Master)",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711911",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "To minimize network traffic, only the Master for each virtual router sends periodic VRRP Advertisement messages. (Note: Here we elect ANVL as master so DUT is Backup and check that DUT does not send periodic VRRP Advertisements)\n\n[Log-derived analysis] To minimize network traffic, only the Master for each virtual router sends periodic VRRP Advertisement messages. (Note: Here we elect ANVL as master so DUT is Backup and check that DUT does not send periodic VRRP Advertisements)",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711912",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.\n\n[Log-derived analysis] If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711913",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.\n\n[Log-derived analysis] If the Master becomes unavailable then the highest priority Backup will transition to Master after a short delay, providing a controlled transition of the virtual router responsibility with minimal service interruption.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711914",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The virtual router MAC address is used as the source in all periodic VRRP messages sent by the Master router to enable bridge learning in an extended LAN.\n\n[Log-derived analysis] The virtual router MAC address is used as the source in all periodic VRRP messages sent by the Master router to enable bridge learning in an extended LAN.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711915",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Backup router will not attempt to preempt the Master unless it has higher priority.\n\n[Log-derived analysis] A Backup router will not attempt to preempt the Master unless it has higher priority.",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 5798 Sec 3 p10 VRRP Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711916",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.2.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "It's also possible to administratively prohibit all preemption attempts. While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: Here we check that when Preempt_Mode is FALSE, DUT still stays in BACKUP mode)\n\n[Log-derived analysis] It's also possible to administratively prohibit all preemption attempts. While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: Here we check that when Preempt_Mode is FALSE, DUT still stays in BACKUP mode)",
+    "reference": "RFC 3768 Sec 3 p6 VRRP Overview RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 3 p10 VRRP Overview RFC 5798 Sec 6.4.2 p",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711917",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The primary IP address of the interface the packet is being sent from. (Note: This test check whether the source address of IP packet is primary IP address configured when DUT is the owner)\n\n[Log-derived analysis] The primary IP address of the interface the packet is being sent from. (Note: This test check whether the source address of IP packet is primary IP address configured when DUT is the owner)",
+    "reference": "RFC 3768 Sec 5.2.1 p10 Source Address RFC 5798 Sec 5.1.1.1 p15 Source Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711918",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The primary IP address of the interface the packet is being sent from. (Note: This test check whether the source address of IP packet is primary IP address configured when DUT is not the owner)\n\n[Log-derived analysis] The primary IP address of the interface the packet is being sent from. (Note: This test check whether the source address of IP packet is primary IP address configured when DUT is not the owner)",
+    "reference": "RFC 3768 Sec 5.2.1 p10 Source Address RFC 5798 Sec 5.1.1.1 p15 Source Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711919",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The IP multicast address as assigned by the IANA for VRRP is: (224.0.0.18). This is a link local scope multicast address.\n\n[Log-derived analysis] The IP multicast address as assigned by the IANA for VRRP is: (224.0.0.18). This is a link local scope multicast address.",
+    "reference": "RFC 3768 Sec 5.2.2 p11 Destination Address RFC 5798 Sec 5.1.1.2 p15 Destination Address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711920",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The TTL MUST be set to 255.\n\n[Log-derived analysis] The TTL MUST be set to 255.",
+    "reference": "RFC 3768 Sec 5.2.3 p11 TTL RFC 5798 Sec 5.1.1.3 p16 TTL",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711921",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A VRRP router receiving a packet with the TTL not equal to 255 MUST discard the packet.\n\n[Log-derived analysis] A VRRP router receiving a packet with the TTL not equal to 255 MUST discard the packet.",
+    "reference": "NEGATIVE RFC 3768 Sec 5.2.3 p11 TTL RFC 5798 Sec 5.1.1.3 p16 TTL",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711922",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.3.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The IP protocol number assigned by the IANA for VRRP is 112(decimal).\n\n[Log-derived analysis] The IP protocol number assigned by the IANA for VRRP is 112(decimal).",
+    "reference": "RFC 3768 Sec 5.2.4 p11 Protocol RFC 5798 Sec 5.1.1.4 p16 Protocol",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711923",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The version field specifies the VRRP protocol version of this packet.\n\n[Log-derived analysis] The version field specifies the VRRP protocol version of this packet.",
+    "reference": "RFC 3768 Sec 5.3.1 p11 Version RFC 5798 Sec 5.2.1 p16 Version",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711924",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The only packet type defined in this version of the protocol is: 1(ADVERTISEMENT)\n\n[Log-derived analysis] The only packet type defined in this version of the protocol is: 1(ADVERTISEMENT)",
+    "reference": "RFC 3768 Sec 5.3.2 p11 Type RFC 5798 Sec 5.2.2 p17 Type",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711925",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A packet with unknown type MUST be discarded. (Note: Here DUT discards a higher priority VRRP packet with unknown value in Type field and continues sending VRRP advertisement)\n\n[Log-derived analysis] A packet with unknown type MUST be discarded. (Note: Here DUT discards a higher priority VRRP packet with unknown value in Type field and continues sending VRRP advertisement)",
+    "reference": "RFC 3768 Sec 5.3.2 p11 Type RFC 5798 Sec 5.2.2 p17 Type",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711926",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The priority value for the VRRP router that owns the IP address(es) associated with the virtual router MUST be 255 (decimal).\n\n[Log-derived analysis] The priority value for the VRRP router that owns the IP address(es) associated with the virtual router MUST be 255 (decimal).",
+    "reference": "RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711927",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "VRRP routers backing up a virtual router MUST use priority values between 1-254 (decimal).\n\n[Log-derived analysis] VRRP routers backing up a virtual router MUST use priority values between 1-254 (decimal).",
+    "reference": "RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711928",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "VRRP routers backing up a virtual router MUST use priority values between 1-254 (decimal).\n\n[Log-derived analysis] VRRP routers backing up a virtual router MUST use priority values between 1-254 (decimal).",
+    "reference": "NEGATIVE RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711929",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The default priority value for VRRP routers backing up a virtual router is 100 (decimal).\n\n[Log-derived analysis] The default priority value for VRRP routers backing up a virtual router is 100 (decimal).",
+    "reference": "RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711930",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.8": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second.\n\n[Log-derived analysis] The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second.",
+    "reference": "RFC 3768 Sec 5.3.7 p13 Advertisement Interval (Adver Int) RFC 5798 Sec 5.2.7 p17 Maximum Advertisement Interval (Max Adve",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711931",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.9": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second. (Note: Here we check that advertisements are periodically sent after 1 sec)\n\n[Log-derived analysis] The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second. (Note: Here we check that advertisements are periodically sent after 1 sec)",
+    "reference": "RFC 3768 Sec 5.3.7 p13 Advertisement Interval (Adver Int) RFC 5798 Sec 5.2.7 p17 Maximum Advertisement Interval (Max Adve",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711932",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.10": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The use of this authentication type means that VRRP protocolexchanges are not authenticated. The contents of the AuthenticationData field should be set to zero on transmission and ignored onreception.(Note: Here we check DUT send null Auth Data)\n\n[Inferred behavior \u2014 no execution history for this case] The use of this authentication type means that VRRP protocolexchanges are not authenticated. The contents of the AuthenticationData field should be set to zero on transmission and ignored onreception.(Note: Here we check DUT send null Auth Data)",
+    "reference": "RFC 3768 Sec 5.3.6.1 p12 Authentication Type 0 - No Authentication",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.11": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The use of this authentication type means that VRRP protocolexchanges are not authenticated. The contents of the AuthenticationData field should be set to zero on transmission and ignored onreception.(Note: Here we send non null Auth Data)\n\n[Inferred behavior \u2014 no execution history for this case] The use of this authentication type means that VRRP protocolexchanges are not authenticated. The contents of the AuthenticationData field should be set to zero on transmission and ignored onreception.(Note: Here we send non null Auth Data)",
+    "reference": "NEGATIVERFC 3768 Sec 5.3.6.1 p12 Authentication Type 0 - No Authentication",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.12": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "This authentication type is reserved to maintain backwardscompatibility with RFC 2338.\n\n[Inferred behavior \u2014 no execution history for this case] This authentication type is reserved to maintain backwardscompatibility with RFC 2338.",
+    "reference": "RFC 3768 Sec 5.3.6.2 p12 Authentication Type 1 - Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.13": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "This authentication type is reserved to maintain backwardscompatibility with RFC 2338.\n\n[Inferred behavior \u2014 no execution history for this case] This authentication type is reserved to maintain backwardscompatibility with RFC 2338.",
+    "reference": "RFC 3768 Sec 5.3.6.3 p13 Authentication Type 2 - Reserved",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.14": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The priority value zero (0) has special meaning indicating that the current Master has stopped participating in VRRP. (Note: Here we check that DUT sends a VRRP advertisement with priority 0 when vrrp shutdown)\n\n[Log-derived analysis] The priority value zero (0) has special meaning indicating that the current Master has stopped participating in VRRP. (Note: Here we check that DUT sends a VRRP advertisement with priority 0 when vrrp shutdown)",
+    "reference": "RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711933",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.15": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The priority value zero (0) has special meaning indicating that the current Master has stopped participating in VRRP. (Note: Here we check DUT becomes master when a VRRP advertisement with priority 0 is received We set listen time to master down time as the DUT should send a advertisement within the master down interval)\n\n[Log-derived analysis] The priority value zero (0) has special meaning indicating that the current Master has stopped participating in VRRP. (Note: Here we check DUT becomes master when a VRRP advertisement with priority 0 is received We set listen time to master down time as the DUT should send a advertisement within the master down interval)",
+    "reference": "RFC 3768 Sec 5.3.4 p12 Priority RFC 5798 Sec 5.2.4 p17 Priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711934",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.16": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The number of IP addresses contained in this VRRP advertisement.(Note: We set two IP Addresses and see whether DUT sets Count IP Addrs field to 2)\n\n[Inferred behavior \u2014 no execution history for this case] The number of IP addresses contained in this VRRP advertisement.(Note: We set two IP Addresses and see whether DUT sets Count IP Addrs field to 2)",
+    "reference": "RFC 3768 Sec 5.3.5 p12 Count IP Addrs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.17": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "One or more IP addresses that are associated with the virtual router.The number of addresses included is specified in the \"Count IP Addrs\" field.\n\n[Inferred behavior \u2014 no execution history for this case] One or more IP addresses that are associated with the virtual router.The number of addresses included is specified in the \"Count IP Addrs\" field.",
+    "reference": "RFC 3768 Sec 5.3.9 p13 IP Address(es)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.18": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The authentication string is currently only used to maintain backwardscompatibility with RFC 2338. It SHOULD be set to zero on transmissionand ignored on reception. (Note: Here we check only transmission by DUT) (NOTE: If DUT doesn't support a particular auth type then that CASE will not be run\n\n[Inferred behavior \u2014 no execution history for this case] The authentication string is currently only used to maintain backwardscompatibility with RFC 2338. It SHOULD be set to zero on transmissionand ignored on reception. (Note: Here we check only transmission by DUT) (NOTE: If DUT doesn't support a particular auth type then that CASE will not be run",
+    "reference": "RFC 3768 Sec 5.3.10 p13 Authentication Data",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.19": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The authentication string is currently only used to maintain backwardscompatibility with RFC 2338. It SHOULD be set to zero on transmissionand ignored on reception. (Note: Here we check only reception by DUT) (NOTE: If DUT doesn't support a particular auth type then that CASE will not be run(NOTE: This testcase tests that DUT correctly ignores the Authentication Data field and does not log an error\n\n[Inferred behavior \u2014 no execution history for this case] The authentication string is currently only used to maintain backwardscompatibility with RFC 2338. It SHOULD be set to zero on transmissionand ignored on reception. (Note: Here we check only reception by DUT) (NOTE: If DUT doesn't support a particular auth type then that CASE will not be run(NOTE: This testcase tests that DUT correctly ignores the Authentication Data field and does not log an error",
+    "reference": "NEGATIVERFC 3768 Sec 5.3.10 p13 Authentication Data",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.4.20": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. This field is used for troubleshooting misconfigured routers. (Note: Here we check the consequence when DUTs advertisement interval is 1 and ANVLs adv interval is greater than )\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. This field is used for troubleshooting misconfigured routers. (Note: Here we check the consequence when DUTs advertisement interval is 1 and ANVLs adv interval is greater than )",
+    "reference": "NEGATIVE RFC 3768 Sec 5.3.7 p13 Advertisement Interval (Adver Int) RFC 5798 Sec 5.2.7 p17 Maximum Advertisement Interv",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.4.21": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second. (Note: Here we check with non-default values for Advertisement Interval)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] The Advertisement interval indicates the time interval (in seconds) between ADVERTISEMENTS. The default is 1 second. (Note: Here we check with non-default values for Advertisement Interval)",
+    "reference": "RFC 3768 Sec 5.3.7 p13 Advertisement Interval (Adver Int) RFC 5798 Sec 5.2.7 p17 Maximum Advertisement Interval (Max Adve",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.4.22": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "For computing the checksum, the checksum field is set to zero.\n\n[Log-derived analysis] For computing the checksum, the checksum field is set to zero.",
+    "reference": "RFC 3768 Sec 5.3.8 p13 Checksum RFC 5798 Sec 5.2.8 p18 Checksum",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711935",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.23": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "For computing the checksum, the checksum field is set to zero. (Note: Here we put a checksum which is calculated with checksum field not set to 0)\n\n[Log-derived analysis] For computing the checksum, the checksum field is set to zero. (Note: Here we put a checksum which is calculated with checksum field not set to 0)",
+    "reference": "NEGATIVE RFC 3768 Sec 5.3.8 p13 Checksum RFC 5798 Sec 5.2.8 p18 Checksum",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711936",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.4.24": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Virtual Router Identifier (VRID) field identifies the virtual router this packet is reporting status for.\n\n[Log-derived analysis] The Virtual Router Identifier (VRID) field identifies the virtual router this packet is reporting status for.",
+    "reference": "RFC 3768 Sec 5.3.3 p11 Virtual Rtr ID (VRID) RFC 5798 Sec 5.2.3 p17 Virtual Rtr ID (VRID)",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711937",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.5.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Table 6-3 specifies default regenerated priority values for each of the eight possible values of the received priority. These default values shall be used as the initial values of the corresponding entries of the Priority Regeneration Table for each Port.\n\n[Inferred behavior \u2014 no execution history for this case] Table 6-3 specifies default regenerated priority values for each of the eight possible values of the received priority. These default values shall be used as the initial values of the corresponding entries of the Priority Regeneration Table for each Port.",
+    "reference": "IEEE Std 802.1Q-2005, S6.7.3, P29 Regenerating priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.5.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The values in the Priority Regeneration Table may be modified by management, as described in Clause 12. If this capability is provided, the value of the table entries shall be independently settable for each reception Port and for each value of received priority, and the Bridge shall have the capability to use the full range of values in the parameter ranges specified in Table 6-3.\n\n[Inferred behavior \u2014 no execution history for this case] The values in the Priority Regeneration Table may be modified by management, as described in Clause 12. If this capability is provided, the value of the table entries shall be independently settable for each reception Port and for each value of received priority, and the Bridge shall have the capability to use the full range of values in the parameter ranges specified in Table 6-3.",
+    "reference": "IEEE Std 802.1Q-2005, S6.7.3, P29 Regenerating priority",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.5.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "When a host sends an ARP request for one of the virtual router IP addresses, the Master virtual router MUST respond to the ARP request with the virtual MAC address for the virtual router.\n\n[Log-derived analysis] When a host sends an ARP request for one of the virtual router IP addresses, the Master virtual router MUST respond to the ARP request with the virtual MAC address for the virtual router.",
+    "reference": "RFC 3768 Sec 8.2 p20 Host ARP Requests RFC 5798 Sec 8.1.2 p29 Host ARP Requests",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711938",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "FAIL"
+    }
+  },
+  "2035.5.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "When a VRRP router restarts or boots, it SHOULD not send any ARP messages with its physical MAC address for the IP address it owns,\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] When a VRRP router restarts or boots, it SHOULD not send any ARP messages with its physical MAC address for the IP address it owns,",
+    "reference": "RFC 3768 Sec 8.2 p20 Host ARP Requests RFC 5798 Sec 8.1.2 p29 Host ARP Requests",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.5.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If Proxy ARP is to be used on a VRRP router, then the VRRP router must advertise the Virtual Router MAC address in the Proxy ARP message.\n\n[Log-derived analysis] If Proxy ARP is to be used on a VRRP router, then the VRRP router must advertise the Virtual Router MAC address in the Proxy ARP message.",
+    "reference": "RFC 3768 Sec 8.3 p20 Proxy ARP RFC 5798 Sec 8.1.3 p30 Proxy ARP",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711939",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.5.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A VRRP router SHOULD not forward packets addressed to the IP Address(es) it becomes Master for if it is not the owner.\n\n[Log-derived analysis] A VRRP router SHOULD not forward packets addressed to the IP Address(es) it becomes Master for if it is not the owner.",
+    "reference": "RFC 3768 Sec 8.4 p21 Potential Forwarding Loop RFC 5798 Sec 8.3.1 p31 Potential Forwarding Loop",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711940",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Send an ADVERTISEMENT\n\n[Log-derived analysis] - If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Send an ADVERTISEMENT",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 5798 Sec 6.4.1 p21 Initialize",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711941",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n\n[Inferred behavior \u2014 no execution history for this case] Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.",
+    "reference": "IEEE Std 802.1Q-2005, S6.8, P29 Protocol VLAN classification",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check with default and non-default Adver_timer)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] - If the Priority = 255 (i.e., the router owns the IP address(es) associated with the virtual router) o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check with default and non-default Adver_timer)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 5798 Sec 6.4.1 p21 Initialize",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.6.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state (Note: We check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)\n\n[Log-derived analysis] - If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state (Note: We check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 5798 Sec 6.4.1 p21 Initialize",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711942",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check whether DUT transits to backup state by expiring master down timer and waiting for advertisements from DUT since it should be in master state now. We check using non-default Advertisement Interval) (Also we check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] - If the Priority is not 255 (i.e., the router does not own the IP address(es) associated with the virtual router) o Set the Master_Down_Timer to Master_Down_Interval o Transition to the {Backup} state While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Set the Adver_Timer to Advertisement_Interval o Transition to the {Master} state (Note: Here we check whether DUT transits to backup state by expiring master down timer and waiting for advertisements from DUT since it should be in master state now. We check using non-default Advertisement Interval) (Also we check DUT sets Master down Interval properly so that we donot receive any advertisement within Master Down Interval)",
+    "reference": "RFC 3768 Sec 6.4.1 p15 Initialize RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.1 p21 Initialize RFC 5798 Sec 6.4",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.6.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following:- MUST NOT respond to ARP requests for the IP address(s) associated with the virtual router.(Note: Here we check ARP for all IP Addresses configured for a virtual Router)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following:- MUST NOT respond to ARP requests for the IP address(s) associated with the virtual router.(Note: Here we check ARP for all IP Addresses configured for a virtual Router)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST discard packets with a destination link layer MAC address equal to the virtual router MAC address.\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - MUST discard packets with a destination link layer MAC address equal to the virtual router MAC address.",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711943",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.8": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following:- MUST NOT accept packets addressed to the IP address(es) associated with the virtual router.\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following:- MUST NOT accept packets addressed to the IP address(es) associated with the virtual router.",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.9": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Master_Down_Timer o Transition to the {Initialize} state (Note: Here we check that after shutdown is received and DUT transits to Initialize state and doesnot send any advertisements when ANVL doesnot send any advertisement for more than Master_Down_Interval time)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Master_Down_Timer o Transition to the {Initialize} state (Note: Here we check that after shutdown is received and DUT transits to Initialize state and doesnot send any advertisements when ANVL doesnot send any advertisement for more than Master_Down_Interval time)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711944",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.10": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Send an ADVERTISEMENT\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Send an ADVERTISEMENT",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711945",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.11": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Broadcast a gratuitous ARP request containing the virtual router MAC address for each IP address associated with the virtual router(Note: Here we check that DUT sends gratuitous ARP Request for each address associated with Virtual Router)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following: - If the Master_Down_Timer fires, then: o Broadcast a gratuitous ARP request containing the virtual router MAC address for each IP address associated with the virtual router(Note: Here we check that DUT sends gratuitous ARP Request for each address associated with Virtual Router)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.12": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Set the Master_Down_Timer to Skew_Time o Transition to the {Master} state\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Set the Master_Down_Timer to Skew_Time o Transition to the {Master} state",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711946",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.13": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: This test is when Priority is greater, we check DUT sets Master_Down_Interval properly by expiring the same)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval (Note: This test is when Priority is greater, we check DUT sets Master_Down_Interval properly by expiring the same)",
+    "reference": "RFC 3768 Sec 6.4.2 p16 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711947",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.14": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is lesser than local priority)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is lesser than local priority)",
+    "reference": "RFC 3768 Sec 6.4.2 p17 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711948",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.15": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is equal to local priority)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: - If the Priority in the ADVERTISEMENT is not Zero, then: - If Preempt_Mode is False, or If the Priority in the ADVERTISEMENT is greater than or equal to the local Priority, then: o Reset the Master_Down_Timer to Master_Down_Interval else: o Discard the ADVERTISEMENT (Note: This test is when Preempt_Mode is True and Priority is equal to local priority)",
+    "reference": "RFC 3768 Sec 6.4.2 p17 Backup RFC 5798 Sec 6.4.2 p22 Backup",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711949",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.16": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in the {Master} state the router functions as the forwardingrouter for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and when DUT is owner of primary)\n\n[Inferred behavior \u2014 no execution history for this case] While in the {Master} state the router functions as the forwardingrouter for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and when DUT is owner of primary)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.17": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in the {Master} state the router functions as the forwardingrouter for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and when DUT is not owner of both)\n\n[Inferred behavior \u2014 no execution history for this case] While in the {Master} state the router functions as the forwardingrouter for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and when DUT is not owner of both)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.18": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following:- MUST respond to ARP requests for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and DUT is owner of primary VR address)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following:- MUST respond to ARP requests for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and DUT is owner of primary VR address)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.19": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following:- MUST respond to ARP requests for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and DUT is not owner of primary VR address)\n\n[Inferred behavior \u2014 no execution history for this case] While in this state, a VRRP router MUST do the following:- MUST respond to ARP requests for the IP address(es) associated with the virtual router.(Note: Here we check with primary and secondary addresses of VR and DUT is not owner of primary VR address)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.6.20": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST forward packets with a destination link layer MAC address equal to the virtual router MAC address.\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - MUST forward packets with a destination link layer MAC address equal to the virtual router MAC address.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p24 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711950",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.21": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST NOT accept packets addressed to the IP address(es) associated with the virtual router if it is not the IP address owner.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] While in this state, a VRRP router MUST do the following: - MUST NOT accept packets addressed to the IP address(es) associated with the virtual router if it is not the IP address owner.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.6.22": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IP address(es) associated with the virtual router if it is the IP address owner.\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IP address(es) associated with the virtual router if it is the IP address owner.",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 22,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711951",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.23": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is IP Address owner)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 23,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711952",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.24": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is not the IP Address owner)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If a Shutdown event is received, then: o Cancel the Adver_Timer o Send an ADVERTISEMENT with Priority = 0 o Transition to the {Initialize} state (Note: This test is when DUT is not the IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 24,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711953",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.25": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is IP Address owner)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 25,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711954",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.26": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is not the IP Address owner)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is Zero, then: o Send an ADVERTISEMENT o Reset the Adver_Timer to Advertisement_Interval (Note: This test is when DUT is not the IP Address owner)",
+    "reference": "RFC 3768 Sec 6.4.3 p17 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 26,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711955",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.27": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is greater)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is greater)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 27,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711956",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.28": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is equal but IP Address is greater. The ANVL router's address is set to be greater than DUTs address)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state (Note: Here we test the case when priority is equal but IP Address is greater. The ANVL router's address is set to be greater than DUTs address)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 28,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711957",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.29": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is low and DUT should discard advertisement)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is not Zero, then: - If the Priority in the ADVERTISEMENT is greater than the local Priority, or If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then: o Cancel Adver_Timer o Transition to the {Backup} state else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is low and DUT should discard advertisement)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p26 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 29,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711958",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.30": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then.. else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is equal but IP Address is lesser and DUT should discard Advertisement)\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - If an ADVERTISEMENT is received, then: If the Priority in the ADVERTISEMENT is equal to the local Priority and the primary IP Address of the sender is greater than the local primary IP Address, then.. else: o Discard ADVERTISEMENT (Note: Here we test the case when priority is equal but IP Address is lesser and DUT should discard Advertisement)",
+    "reference": "RFC 3768 Sec 6.4.3 p18 Master RFC 5798 Sec 6.4.3 p26 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 30,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711959",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.31": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is the IPvX owner and Accept_Mode is False\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is the IPvX owner and Accept_Mode is False",
+    "reference": "RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 31,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711960",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.6.32": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is not the IPvX owner and Accept_Mode is True\n\n[Log-derived analysis] While in this state, a VRRP router MUST do the following: - MUST accept packets addressed to the IPvX address(es) associated with the virtual router if it is the IPvX address owner or if Accept_Mode is True. Otherwise, MUST NOT accept these packets. Note: VRRP router is not the IPvX owner and Accept_Mode is True",
+    "reference": "RFC 5798 Sec 6.4.3 p25 Master",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 32,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711961",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.7.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the IP TTL is 255.\n\n[Log-derived analysis] If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the IP TTL is 255.",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711962",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.7.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify the VRRP version is 2.\n\n[Log-derived analysis] If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify the VRRP version is 2.",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711963",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.7.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify the VRRP checksum.\n\n[Log-derived analysis] If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify the VRRP checksum.",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711964",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.7.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the VRID is configured on the receiving interface and the local router is not the IP Address owner (Priority equals 255 (decimal)). (Note: Here we check when VRID configured is different)\n\n[Log-derived analysis] If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the VRID is configured on the receiving interface and the local router is not the IP Address owner (Priority equals 255 (decimal)). (Note: Here we check when VRID configured is different)",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358078",
+      "log_uid": "93711965",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2035.7.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the VRID is configured on the receiving interface and the local router is not the IP Address owner (Priority equals 255 (decimal)). (Note: Here we check when local router is the IP Address Owner)\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If any one of the above checks fails, the receiver MUST discard the packet, SHOULD log the event - MUST verify that the VRID is configured on the receiving interface and the local router is not the IP Address owner (Priority equals 255 (decimal)). (Note: Here we check when local router is the IP Address Owner)",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.7.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If any one of the above checks fails, the receiver MUST discard thepacket, SHOULD log the event- MUST verify that the Auth Type matches the locally configured authentication method for the virtual router and perform that authentication method.\n\n[Inferred behavior \u2014 no execution history for this case] If any one of the above checks fails, the receiver MUST discard thepacket, SHOULD log the event- MUST verify that the Auth Type matches the locally configured authentication method for the virtual router and perform that authentication method.",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.7.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- MAY verify that \"Count IP Addrs\" and the list of IP Address matches the IP_Addresses configured for the VRID If the above check fails, the receiver SHOULD log the event\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] - MAY verify that \"Count IP Addrs\" and the list of IP Address matches the IP_Addresses configured for the VRID If the above check fails, the receiver SHOULD log the event",
+    "reference": "RFC 3768 Sec 7.1 p18 Receiving VRRP Packets RFC 5798 Sec 7.1 p27 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2035.7.8": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "- MUST verify that the Adver Interval in the packet is the same as the locally configured for this virtual routerIf the above check fails, the receiver MUST discard the packet,SHOULD log the event\n\n[Inferred behavior \u2014 no execution history for this case] - MUST verify that the Adver Interval in the packet is the same as the locally configured for this virtual routerIf the above check fails, the receiver MUST discard the packet,SHOULD log the event",
+    "reference": "RFC 3768 Sec 7.1 p19 Receiving VRRP Packets",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.8.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge can filter frames to confine them to LANs that belong to the VLAN to which they are assigned and, thus, define the VLAN\ufffds maximum extent (7.3). The functions that support the use and maintenance of information for this purpose are: a) Configuration of a PVID for each Port,to associate a VID with untagged and priority-tagged received frames\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge can filter frames to confine them to LANs that belong to the VLAN to which they are assigned and, thus, define the VLAN\ufffds maximum extent (7.3). The functions that support the use and maintenance of information for this purpose are: a) Configuration of a PVID for each Port,to associate a VID with untagged and priority-tagged received frames",
+    "reference": "IEEE Std 802.1Q-2005, S8.1.4, P39 Traffic Segregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.8.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge can filter frames to confine them to LANs that belong to the VLAN to which they are assigned and, thus, define the VLAN\ufffds maximum extent (7.3). The functions that support the use and maintenance of information for this purpose are: c) Configuration of the Enable Ingress Filtering parameter to enable or disable application of Static VLAN Registration Entries to received frame\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge can filter frames to confine them to LANs that belong to the VLAN to which they are assigned and, thus, define the VLAN\ufffds maximum extent (7.3). The functions that support the use and maintenance of information for this purpose are: c) Configuration of the Enable Ingress Filtering parameter to enable or disable application of Static VLAN Registration Entries to received frame",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.1.4, P39 Traffic Segregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.8.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge may filter frames ... The function that supports the use and maintenance of information for this purpose is a) Explicit configuration of the Ingress Rules associated with each Port (8.4, 8.6.1 8.9):\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge may filter frames ... The function that supports the use and maintenance of information for this purpose is a) Explicit configuration of the Ingress Rules associated with each Port (8.4, 8.6.1 8.9):",
+    "reference": "IEEE Std 802.1Q-2005, S8.1.4, P39 Traffic Segregation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.9.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: c) Automatic inclusion and removal of Bridge Ports in the VLAN, through configuration of Dynamic VLAN Registration Entries by means of GVRP (8.8.5 and 11.2)\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: c) Automatic inclusion and removal of Bridge Ports in the VLAN, through configuration of Dynamic VLAN Registration Entries by means of GVRP (8.8.5 and 11.2)",
+    "reference": "IEEE Std 802.1Q-2005, S8.1.5, P40 Traffic reduction",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.9.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: d) Explicit configuration of management controls associated with the operation of GVRP by means of Static VLAN Registration Entries (8.8.2 and 11.2)\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: d) Explicit configuration of management controls associated with the operation of GVRP by means of Static VLAN Registration Entries (8.8.2 and 11.2)",
+    "reference": "IEEE Std 802.1Q-2005, S8.1.5, P40 Traffic reduction",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.9.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: a) Automatic learning of dynamic filtering information for unicast destination addresses through observation of source addresses of frames,\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge can filter frames to confine them to LAN segments that either have end stations attached to their assigned VLAN or that connect those LAN segments, and thus define the current practical extent of the VLAN (7.4). LANs not attaching to or forming part of the path between the source and destination(s) of any given communication do not have to support the transmission of related frames, potentially improving the quality of the MAC service for other communications. The functions that support the use and maintenance of information for this purpose are: a) Automatic learning of dynamic filtering information for unicast destination addresses through observation of source addresses of frames,",
+    "reference": "IEEE Std 802.1Q-2005, S8.1.5, P40 Traffic reduction",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.10.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Bridge Port Transmit and Receive process supports the attachment of the Bridge Port to a network. As illustrated in Figure 8-8.\n\n[Inferred behavior \u2014 no execution history for this case] The Bridge Port Transmit and Receive process supports the attachment of the Bridge Port to a network. As illustrated in Figure 8-8.",
+    "reference": "IEEE Std 802.1Q-2005, S8.5, P45 Bridge Port Transmit and Receive",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: Acceptible Frame Types = \"Admit All Frames\", Enable Ingress Filtering = TRUE and Port is in Member Set)\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: Acceptible Frame Types = \"Admit All Frames\", Enable Ingress Filtering = TRUE and Port is in Member Set)",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is in Member Set\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is in Member Set",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = FALSE and Port is not in Member Set\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = FALSE and Port is not in Member Set",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = FALSE and Port is in Member Set\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = FALSE and Port is in Member Set",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is not in Member Set This test is for untagged frame)\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is not in Member Set This test is for untagged frame)",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.11.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: This test is for, Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is not in Member Set This test is for priority-tagged frame)\n\n[Inferred behavior \u2014 no execution history for this case] Each frame submitted to the MAC Relay Entity shall be forwarded subject to the constituent functions of the Forwarding Process (Figure 8-9). (NOTE: This test is for, Acceptible Frame Types = \"Admit Only VLAN-tagged Frames\", Enable Ingress Filtering = TRUE and Port is not in Member Set This test is for priority-tagged frame)",
+    "reference": "IEEE Std 802.1Q-2005, S8.6, P47 The Forwarding Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 11,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.12.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.\n\n[Inferred behavior \u2014 no execution history for this case] The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.6.1, P47 Active topology enforcement",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.12.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.\n\n[Inferred behavior \u2014 no execution history for this case] The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.6.1, P47 Active topology enforcement",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.12.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.\n\n[Inferred behavior \u2014 no execution history for this case] The Forwarding Process allocates each received frame to a spanning tree. If the reception Port State for that spanning tree is Forwarding or Learning, the source address and VID are submitted to the Learning Process. If the reception Port State is Forwarding, each Bridge Port, other than the reception Port, with a Port State of Forwarding for that tree is identified as a potential transmission Port.",
+    "reference": "IEEE Std 802.1Q-2005, S8.6.1, P47 Active topology enforcement",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.\n\n[Inferred behavior \u2014 no execution history for this case] Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.",
+    "reference": "IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The default value for this parameter is reset, i.e., Disable Ingress Filtering, for all Ports. Any Port that supports setting this parameter shall also support resetting it. The parameter may be configured by the management operations defined in Clause 12.\n\n[Inferred behavior \u2014 no execution history for this case] The default value for this parameter is reset, i.e., Disable Ingress Filtering, for all Ports. Any Port that supports setting this parameter shall also support resetting it. The parameter may be configured by the management operations defined in Clause 12.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.\n\n[Inferred behavior \u2014 no execution history for this case] Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.\n\n[Inferred behavior \u2014 no execution history for this case] Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.",
+    "reference": "IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.\n\n[Inferred behavior \u2014 no execution history for this case] Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.13.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.\n\n[Inferred behavior \u2014 no execution history for this case] Each Port may support an Enable Ingress Filtering parameter. A frame received on a Port that is not in the member set (8.8.9) associated with the VID shall be discarded if this parameter is set.",
+    "reference": "IEEE Std 802.1Q-2005, S8.6.2, P48 Ingress",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.14.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Learning Process receives the source MAC Addresses and VIDs of received frames from the Forwarding Process, following the application of the ingress rules (8.6.2). It shall create or update a Dynamic Filtering Entry (8.8.3) that specifies the reception Port for the frame\ufffds source address and VID, if and only if the source address is an Individual Address, i.e., is not a Group Address, the resulting number of entries would not exceed the capacity of the Filtering Database, and the filtering utility criteria for the receiving Bridge Port are met\n\n[Inferred behavior \u2014 no execution history for this case] The Learning Process receives the source MAC Addresses and VIDs of received frames from the Forwarding Process, following the application of the ingress rules (8.6.2). It shall create or update a Dynamic Filtering Entry (8.8.3) that specifies the reception Port for the frame\ufffds source address and VID, if and only if the source address is an Individual Address, i.e., is not a Group Address, the resulting number of entries would not exceed the capacity of the Filtering Database, and the filtering utility criteria for the receiving Bridge Port are met",
+    "reference": "IEEE Std 802.1Q-2005, S8.7, P51 The Learning Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.14.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Learning Process receives the source MAC Addresses and VIDs of received frames from the Forwarding Process, following the application of the ingress rules (8.6.2).\n\n[Inferred behavior \u2014 no execution history for this case] The Learning Process receives the source MAC Addresses and VIDs of received frames from the Forwarding Process, following the application of the ingress rules (8.6.2).",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.7, P51 The Learning Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.14.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "It shall create or update a Dynamic Filtering Entry (8.8.3) that specifies the reception Port for the frame\ufffds source address and VID, if and only if the source address is an Individual Address, i.e., is not a Group Address, the resulting number of entries would not exceed the capacity of the Filtering Database [NOTE: This test can be carried out if DUT flushes the first in Filtering Database entry to make room for the new ones when Filtering Database is full]\n\n[Inferred behavior \u2014 no execution history for this case] It shall create or update a Dynamic Filtering Entry (8.8.3) that specifies the reception Port for the frame\ufffds source address and VID, if and only if the source address is an Individual Address, i.e., is not a Group Address, the resulting number of entries would not exceed the capacity of the Filtering Database [NOTE: This test can be carried out if DUT flushes the first in Filtering Database entry to make room for the new ones when Filtering Database is full]",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.7, P51 The Learning Process",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.15.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The default for a VLAN-aware Bridge is that the member set (8.8.9) for the frame\ufffds VID includes at least one Port.\n\n[Inferred behavior \u2014 no execution history for this case] The default for a VLAN-aware Bridge is that the member set (8.8.9) for the frame\ufffds VID includes at least one Port.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.7.1, P51 Default filtering utility criteria",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.15.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "NOTE: If the member set for a given VID is empty, that VLAN is not currently active, and the Bridge will filter all frames destined for that VLAN, regardless of their destination address. Note: This testcase tests whether DUT discards packets with VID that is not in the Member Set\n\n[Inferred behavior \u2014 no execution history for this case] NOTE: If the member set for a given VID is empty, that VLAN is not currently active, and the Bridge will filter all frames destined for that VLAN, regardless of their destination address. Note: This testcase tests whether DUT discards packets with VID that is not in the Member Set",
+    "reference": "IEEE Std 802.1Q-2005, S8.7.1, P51 Default filtering utility criteria",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.16.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Static filtering information is added to, modified, and removed from the Filtering Database only under explicit management control. It shall not be automatically removed by any ageing mechanism.\n\n[Inferred behavior \u2014 no execution history for this case] Static filtering information is added to, modified, and removed from the Filtering Database only under explicit management control. It shall not be automatically removed by any ageing mechanism.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8, P52 The Filtering Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.17.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 1) Forwarded, independently of any dynamic filtering information held by the Filtering Database;\n\n[Inferred behavior \u2014 no execution history for this case] A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 1) Forwarded, independently of any dynamic filtering information held by the Filtering Database;",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.1, P54 Static Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.17.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 2) Filtered, independently of any dynamic filtering information\n\n[Inferred behavior \u2014 no execution history for this case] A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 2) Filtered, independently of any dynamic filtering information",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.1, P54 Static Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.17.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 3) Forwarded or filtered on the basis of dynamic filtering information, or on the basis of the default Group filtering behavior for the outbound Port (8.8.6) if no dynamic filtering information is present specifically for the MAC Address.\n\n[Inferred behavior \u2014 no execution history for this case] A Static Filtering Entry specifies a) A MAC Address specification,.. 1) An Individual MAC Address; or ... b) A VLAN identifier specification, comprising: ... c) A Port Map, containing a control element for each outbound Port, specifying that a frame with a destination MAC Address and VID that meets this specification is to be 3) Forwarded or filtered on the basis of dynamic filtering information, or on the basis of the default Group filtering behavior for the outbound Port (8.8.6) if no dynamic filtering information is present specifically for the MAC Address.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.1, P54 Static Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.17.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "For a given MAC Address specification, a separate Static Filtering Entry with a distinct Port Map may be created for each VLAN from which frames are received by the Forwarding Process.\n\n[Inferred behavior \u2014 no execution history for this case] For a given MAC Address specification, a separate Static Filtering Entry with a distinct Port Map may be created for each VLAN from which frames are received by the Forwarding Process.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.1, P55 Static Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.17.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Static configuration of filtering of frames that might otherwise be sent to an outbound port indicates Registration Forbidden.\n\n[Inferred behavior \u2014 no execution history for this case] Static configuration of filtering of frames that might otherwise be sent to an outbound port indicates Registration Forbidden.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.1, P55 Static Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... i) Registration Fixed; or 2) Whether frames are to be VLAN-tagged or untagged when transmitted\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... i) Registration Fixed; or 2) Whether frames are to be VLAN-tagged or untagged when transmitted",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... ii) Registration Forbidden; 2) Whether frames are to be VLAN-tagged or untagged when transmitted\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... ii) Registration Forbidden; 2) Whether frames are to be VLAN-tagged or untagged when transmitted",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... iii) Normal Registration. 2) Whether frames are to be VLAN-tagged or untagged when transmitted\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... iii) Normal Registration. 2) Whether frames are to be VLAN-tagged or untagged when transmitted",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... i) Registration Fixed; or 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... i) Registration Fixed; or 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... ii) Registration Forbidden; 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... ii) Registration Forbidden; 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... iii) Normal Registration. 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)\n\n[Inferred behavior \u2014 no execution history for this case] A Static VLAN Registration Entry specifies a) The VID of the VLAN to which the static filtering information applies; b) A Port Map, consisting of a control element ... 1) The Registrar Administrative Control values for the ... iii) Normal Registration. 2) Whether frames are to be VLAN-tagged or untagged when transmitted (Note : This test is for untagged frame)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.8": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The untagged set is empty if no Static VLAN Registration Entry exists for the VLAN.\n\n[Inferred behavior \u2014 no execution history for this case] The untagged set is empty if no Static VLAN Registration Entry exists for the VLAN.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.18.9": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN\n\n[Inferred behavior \u2014 no execution history for this case] The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.2, P55 Static VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 18,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.8.7) to identify a set of VIDs for which no more than one Dynamic Filtering Entry can exist for any individual MAC Address; Dynamic Filtering Entries are created and updated by the Learning Process (8.7). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated. No more than one Dynamic Filtering Entry shall be created in the Filtering Database for a given combination of MAC Address and FID. Dynamic Filtering Entries cannot be created or updated by management.\n\n[Inferred behavior \u2014 no execution history for this case] A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.8.7) to identify a set of VIDs for which no more than one Dynamic Filtering Entry can exist for any individual MAC Address; Dynamic Filtering Entries are created and updated by the Learning Process (8.7). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated. No more than one Dynamic Filtering Entry shall be created in the Filtering Database for a given combination of MAC Address and FID. Dynamic Filtering Entries cannot be created or updated by management.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.10.7) to identify a set of VIDs ... c) A Port Map specifying forwarding of frames ... (NOTE: This test is for single VLAN assigned to single FID.)\n\n[Inferred behavior \u2014 no execution history for this case] A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.10.7) to identify a set of VIDs ... c) A Port Map specifying forwarding of frames ... (NOTE: This test is for single VLAN assigned to single FID.)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.10.7) to identify a set of VIDs ... c) A Port Map specifying forwarding of frames ... (NOTE: This test is for multiple VLANs assigned to single FID.)\n\n[Inferred behavior \u2014 no execution history for this case] A Dynamic Filtering Entry specifies a) An individual MAC Address; b) The FID, an identifier assigned by the MAC Bridge (8.10.7) to identify a set of VIDs ... c) A Port Map specifying forwarding of frames ... (NOTE: This test is for multiple VLANs assigned to single FID.)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated\n\n[Inferred behavior \u2014 no execution history for this case] Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "No more than one Dynamic Filtering Entry shall be created in the Filtering Database for a given combination of MAC Address and FID.\n\n[Inferred behavior \u2014 no execution history for this case] No more than one Dynamic Filtering Entry shall be created in the Filtering Database for a given combination of MAC Address and FID.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated (Note : This is to test that the DUT abides the Ageing time default value with some tolerance when removing a filtering entry)\n\n[Inferred behavior \u2014 no execution history for this case] Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated (Note : This is to test that the DUT abides the Ageing time default value with some tolerance when removing a filtering entry)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated (Note : This test verifies that whether the ageing timer gets restarted after the filtering entry was updated or not)\n\n[Inferred behavior \u2014 no execution history for this case] Dynamic Filtering Entries are created and updated by the Learning Process (8.8). They shall be automatically removed after a specified time, the Ageing Time, has elapsed since the entry was created or last updated (Note : This test verifies that whether the ageing timer gets restarted after the filtering entry was updated or not)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.19.10": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Ageing time 300.0 sec (Recommended value) 10.0-1 000 000.0 sec (Range) (This test is checking the higher boundary condition of aging time)\n\n[Inferred behavior \u2014 no execution history for this case] Ageing time 300.0 sec (Recommended value) 10.0-1 000 000.0 sec (Range) (This test is checking the higher boundary condition of aging time)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.8.3, P56 Dynamic Filtering Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 19,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.21.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Dynamic VLAN Registration Entry specifies a) The VID of the VLAN to which the dynamic filtering information applies; b) A Port Map with a control element for each outbound Port specifying whether the VLAN is registered on that Port\n\n[Inferred behavior \u2014 no execution history for this case] A Dynamic VLAN Registration Entry specifies a) The VID of the VLAN to which the dynamic filtering information applies; b) A Port Map with a control element for each outbound Port specifying whether the VLAN is registered on that Port",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.5, P57 Dynamic VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.21.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A separate Dynamic VLAN Registration Entry with a distinct Port Map may be created for each VLAN from which frames are received by the Forwarding Process.\n\n[Inferred behavior \u2014 no execution history for this case] A separate Dynamic VLAN Registration Entry with a distinct Port Map may be created for each VLAN from which frames are received by the Forwarding Process.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.5, P57 Dynamic VLAN Registration Entries",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 21,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.22.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "In Bridges that support only Basic Filtering Services, the default Group Filtering behavior is Forward All Groups for all Ports of the Bridge, for all VLANs.\n\n[Inferred behavior \u2014 no execution history for this case] In Bridges that support only Basic Filtering Services, the default Group Filtering behavior is Forward All Groups for all Ports of the Bridge, for all VLANs.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.6, P58 Default Group Filtering behavior",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 22,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The set of active VLANs (i.e., those VLANs on whose behalf the Bridge may be called upon to forward frames). A VLAN is active if either of the following is true: 1) The VLAN\ufffds Member set (8.8.9) contains one Port that is in a forwarding state, and at least one other Port of the Bridge is both in a forwarding state and has Ingress Filtering (8.6.2) disabled; (This test is for member set)\n\n[Inferred behavior \u2014 no execution history for this case] The set of active VLANs (i.e., those VLANs on whose behalf the Bridge may be called upon to forward frames). A VLAN is active if either of the following is true: 1) The VLAN\ufffds Member set (8.8.9) contains one Port that is in a forwarding state, and at least one other Port of the Bridge is both in a forwarding state and has Ingress Filtering (8.6.2) disabled; (This test is for member set)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005,S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The set of active VLANs (i.e., those VLANs on whose behalf the Bridge may be called upon to forward frames). A VLAN is active if either of the following is true: 2)The VLAN's Member set contains two or more Ports that are in a forwarding state.\n\n[Inferred behavior \u2014 no execution history for this case] The set of active VLANs (i.e., those VLANs on whose behalf the Bridge may be called upon to forward frames). A VLAN is active if either of the following is true: 2)The VLAN's Member set contains two or more Ports that are in a forwarding state.",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge shall support a minimum of one FID\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge shall support a minimum of one FID",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Bridge shall support a minimum of one FID and may support up to 4094 FIDs (Note : We check that VLAN Bridge supports 4094 FIDs)\n\n[Inferred behavior \u2014 no execution history for this case] A Bridge shall support a minimum of one FID and may support up to 4094 FIDs (Note : We check that VLAN Bridge supports 4094 FIDs)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A VLAN Bridge shall support the ability to allocate at least one VID to each FID\n\n[Inferred behavior \u2014 no execution history for this case] A VLAN Bridge shall support the ability to allocate at least one VID to each FID",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A VLAN Bridge shall support the ability to allocate at least one VID to each FID, and may support the ability to allocate more than one VID to each FID. (Note : To test that DUT may support allocation of more than one VID to each FID)\n\n[Inferred behavior \u2014 no execution history for this case] A VLAN Bridge shall support the ability to allocate at least one VID to each FID, and may support the ability to allocate more than one VID to each FID. (Note : To test that DUT may support allocation of more than one VID to each FID)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.7": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "NOTE-In an SVL/IVL Bridge (3.28), a number of FIDs are supported, and one or more VID can be mapped to each FID. In an SVL Bridge (3.27), a single FID is supported, and all VIDs are mapped to that FID. In an IVL Bridge(3.9), a number of FIDs are supported, and only one VID can be mapped to each FID. (SVL Test)\n\n[Inferred behavior \u2014 no execution history for this case] NOTE-In an SVL/IVL Bridge (3.28), a number of FIDs are supported, and one or more VID can be mapped to each FID. In an SVL Bridge (3.27), a single FID is supported, and all VIDs are mapped to that FID. In an IVL Bridge(3.9), a number of FIDs are supported, and only one VID can be mapped to each FID. (SVL Test)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.23.8": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "NOTE-In an SVL/IVL Bridge (3.28), a number of FIDs are supported, and one or more VID can be mapped to each FID. In an SVL Bridge (3.27), a single FID is supported, and all VIDs are mapped to that FID. In an IVL Bridge(3.9), a number of FIDs are supported, and only one VID can be mapped to each FID. (IVL Test)\n\n[Inferred behavior \u2014 no execution history for this case] NOTE-In an SVL/IVL Bridge (3.28), a number of FIDs are supported, and one or more VID can be mapped to each FID. In an SVL Bridge (3.27), a single FID is supported, and all VIDs are mapped to that FID. In an IVL Bridge(3.9), a number of FIDs are supported, and only one VID can be mapped to each FID. (IVL Test)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.7, P59 Allocation of VIDs to FIDs",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.24.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If Static Filtering Entry for an individual MAC address and port represents \"Forward\", then data packet will be forwarded. (NOTE: 1st Row, 1st Col of Table 8-5)\n\n[Inferred behavior \u2014 no execution history for this case] If Static Filtering Entry for an individual MAC address and port represents \"Forward\", then data packet will be forwarded. (NOTE: 1st Row, 1st Col of Table 8-5)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.8 Table 8-4, P62 Querying the Filtering Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.24.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Data packet will be filtered, if Static Filtering Entry for an individual MAC address and port represents \"Filter\". (NOTE: 1st Row, 2nd Col of Table 8-5)\n\n[Inferred behavior \u2014 no execution history for this case] Data packet will be filtered, if Static Filtering Entry for an individual MAC address and port represents \"Filter\". (NOTE: 1st Row, 2nd Col of Table 8-5)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.8 Table 8-4, P62 Querying the Filtering Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.24.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If no Static Filtering Entry for an individual MAC address and port is present, then use Dynamic Filtering Entry. (NOTE: 1st Row, 3nd Col of Table 8-5)\n\n[Inferred behavior \u2014 no execution history for this case] If no Static Filtering Entry for an individual MAC address and port is present, then use Dynamic Filtering Entry. (NOTE: 1st Row, 3nd Col of Table 8-5)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.8 Table 8-4, P62 Querying the Filtering Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.24.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If no Static Filtering Entry and Dynamic Filtering Entry for an individual MAC address and port is present, then Forward any data frame on all ports. (NOTE: 1st Row, 5nd Col of Table 8-4)\n\n[Inferred behavior \u2014 no execution history for this case] If no Static Filtering Entry and Dynamic Filtering Entry for an individual MAC address and port is present, then Forward any data frame on all ports. (NOTE: 1st Row, 5nd Col of Table 8-4)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.8 Table 8-4, P62 Querying the Filtering Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 24,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.25.13": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If a Static VLAN Registration Entry for a VID and port specifies Registration Fixed, then the port belongs to the member set of the VID. (NOTE: 1st Row, 1st Col of the table 8-7)\n\n[Inferred behavior \u2014 no execution history for this case] If a Static VLAN Registration Entry for a VID and port specifies Registration Fixed, then the port belongs to the member set of the VID. (NOTE: 1st Row, 1st Col of the table 8-7)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.9 Table 8-7, P64 Determination of the member set for a VLAN",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.25.14": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If no Static VLAN Registration Entry is present, but a Dynamic VLAN Registration Entry specifies Registration Fixed for a VID and port, then the port belongs to the member set of the VID. (NOTE: 1st Row, 3rd Col of the table 8-7)\n\n[Inferred behavior \u2014 no execution history for this case] If no Static VLAN Registration Entry is present, but a Dynamic VLAN Registration Entry specifies Registration Fixed for a VID and port, then the port belongs to the member set of the VID. (NOTE: 1st Row, 3rd Col of the table 8-7)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.9 Table 8-7, P64 Determination of the member set for a VLAN",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.25.15": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If no Static VLAN Registration Entry is present, but a Dynamic VLAN Registration Entry specifies Registration Fixed for a VID and port, then the port does not belong to the member set of the VID. (NOTE: 1st Row, 4th Col of the table 8-7)\n\n[Inferred behavior \u2014 no execution history for this case] If no Static VLAN Registration Entry is present, but a Dynamic VLAN Registration Entry specifies Registration Fixed for a VID and port, then the port does not belong to the member set of the VID. (NOTE: 1st Row, 4th Col of the table 8-7)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.9 Table 8-7, P64 Determination of the member set for a VLAN",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.25.16": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "If no Static VLAN Registration Entry, but Dynamic VLAN Registration Entry is present for a VID and port, then the port does not belong to the member set of the VID. (NOTE: 1st Row, 5th Col of the table 8-7)\n\n[Inferred behavior \u2014 no execution history for this case] If no Static VLAN Registration Entry, but Dynamic VLAN Registration Entry is present for a VID and port, then the port does not belong to the member set of the VID. (NOTE: 1st Row, 5th Col of the table 8-7)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.9 Table 8-7, P64 Determination of the member set for a VLAN",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 25,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.26.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Permanent Database provides fixed storage for a number of Static Filtering Entries and Static VLAN Registration Entries... Entries may be added to and removed from the Permanent Database under explicit management control, using the management functionality defined in Clause 12. (Modify the Static VLAN Registration Entry for default VLAN)\n\n[Inferred behavior \u2014 no execution history for this case] The Permanent Database provides fixed storage for a number of Static Filtering Entries and Static VLAN Registration Entries... Entries may be added to and removed from the Permanent Database under explicit management control, using the management functionality defined in Clause 12. (Modify the Static VLAN Registration Entry for default VLAN)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.10, P64 Permanent Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.26.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The Permanent Database provides fixed storage for a number of Static Filtering Entries and Static VLAN Registration Entries... Entries may be added to and removed from the Permanent Database under explicit management control, using the management functionality defined in Clause 12. (Delete the Static VLAN Registration Entry for default VLAN)\n\n[Inferred behavior \u2014 no execution history for this case] The Permanent Database provides fixed storage for a number of Static Filtering Entries and Static VLAN Registration Entries... Entries may be added to and removed from the Permanent Database under explicit management control, using the management functionality defined in Clause 12. (Delete the Static VLAN Registration Entry for default VLAN)",
+    "reference": "IEEE Std 802.1Q-2005, S8.8.10, P64 Permanent Database",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 26,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.27.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A Spanning Tree Protocol Entity or GARP Protocol Entity that receives a BPDU or a GARP PDU with an unknown Protocol Identifier shall discard that PDU.\n\n[Inferred behavior \u2014 no execution history for this case] A Spanning Tree Protocol Entity or GARP Protocol Entity that receives a BPDU or a GARP PDU with an unknown Protocol Identifier shall discard that PDU.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.13.3 P67 Use of LLC by Spanning Tree Protocol and GARP Entities",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 27,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.28.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "A set of 48-bit Universal Addresses, known as GARP Application addresses, have been assigned for use by VLAN-aware Bridges. The values of the GARP Application addresses are defined in Table 12-1 of IEEE Std 802.1D. These group MAC Addresses are reserved for assignment to standard protocols, according to the criteria for such assignment\n\n[Inferred behavior \u2014 no execution history for this case] A set of 48-bit Universal Addresses, known as GARP Application addresses, have been assigned for use by VLAN-aware Bridges. The values of the GARP Application addresses are defined in Table 12-1 of IEEE Std 802.1D. These group MAC Addresses are reserved for assignment to standard protocols, according to the criteria for such assignment",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.13.6 P68 Group MAC Addresses for GARP Applications",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 28,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.29.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Any frame with a destination address that is a Reserved MAC Address shall not be forwarded by a Bridge. Reserved MAC Addresses for VLAN-aware Bridges are specified in Table 8-1.\n\n[Inferred behavior \u2014 no execution history for this case] Any frame with a destination address that is a Reserved MAC Address shall not be forwarded by a Bridge. Reserved MAC Addresses for VLAN-aware Bridges are specified in Table 8-1.",
+    "reference": "IEEE Std 802.1Q-2005, S8.13.4 P68 Reserved MAC Addresses",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 29,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.30.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The source MAC address field of frames transmitted by Spanning Tree Protocol Entities contains the individual MAC Address for the Bridge Port used to transmit the frame.\n\n[Inferred behavior \u2014 no execution history for this case] The source MAC address field of frames transmitted by Spanning Tree Protocol Entities contains the individual MAC Address for the Bridge Port used to transmit the frame.",
+    "reference": "IEEE Std 802.1Q-2005, S8.13.5 P73 Group MAC Addresses for spanning tree protocols",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 30,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.31.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "NOTE-Any BPDUs or GVRP PDUs that carry a tag header are not recognized as well-formed BPDUs or GVRP PDUs and are not forwarded by the Bridge.\n\n[Inferred behavior \u2014 no execution history for this case] NOTE-Any BPDUs or GVRP PDUs that carry a tag header are not recognized as well-formed BPDUs or GVRP PDUs and are not forwarded by the Bridge.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S8.13.10 P73 VLAN attachment and connectivity for Higher Layer Entities",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 31,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.31.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The definition of the GVRP application (11.2.3) calls for all GVRP frames to be transmitted untagged for similar reasons\n\n[Inferred behavior \u2014 no execution history for this case] The definition of the GVRP application (11.2.3) calls for all GVRP frames to be transmitted untagged for similar reasons",
+    "reference": "IEEE Std 802.1Q-2005, S8.13.10 P73 VLAN attachment and connectivity for Higher Layer Entities",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 31,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.32.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "In Bridges that do not support any GARP applications, the set of GARP Application addresses should not be configured in the Filtering Database(8.10) or the Permanent Database(8.10.10)\n\n[Inferred behavior \u2014 no execution history for this case] In Bridges that do not support any GARP applications, the set of GARP Application addresses should not be configured in the Filtering Database(8.10) or the Permanent Database(8.10.10)",
+    "reference": "IEEE Std 802.1Q-2005, S8.14.3 P73 Bridge Protocol Entities and GARP Protocol Entities",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 32,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.33.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The null VLAN ID. Indicates that the tag header contains only user_priority information; no VLAN identifier is present in the frame. This VID value shall not be configured as a PVID or a member of a VID Set, or configured in any Filtering Database entry, or used in any Management operation. (Table 9.2, row-1, col-2)\n\n[Inferred behavior \u2014 no execution history for this case] The null VLAN ID. Indicates that the tag header contains only user_priority information; no VLAN identifier is present in the frame. This VID value shall not be configured as a PVID or a member of a VID Set, or configured in any Filtering Database entry, or used in any Management operation. (Table 9.2, row-1, col-2)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S9.6, P76 VLAN Tag Control Information",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 33,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.36.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The initial state of the Permanent Database contains a Static VLAN Registration Entry for the VLAN corresponding to the Default PVID (Table 9-2). The Port Map in this entry specifies Registration Fixed and forwarding untagged for all Ports of the Bridge\n\n[Inferred behavior \u2014 no execution history for this case] The initial state of the Permanent Database contains a Static VLAN Registration Entry for the VLAN corresponding to the Default PVID (Table 9-2). The Port Map in this entry specifies Registration Fixed and forwarding untagged for all Ports of the Bridge",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.1.3, P85 Use of the PVID and VID Set",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 36,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.36.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The initial state of the Permanent Database contains a Static VLAN Registration Entry for the Default PVID, ... .This ensures that in the default state, where the value of every PVID of each Port is the Default PVID and where the VID Set of each Port is empty, membership of the Default PVID is propagated across the Bridged LAN to all other GVRP-aware devices.\n\n[Inferred behavior \u2014 no execution history for this case] The initial state of the Permanent Database contains a Static VLAN Registration Entry for the Default PVID, ... .This ensures that in the default state, where the value of every PVID of each Port is the Default PVID and where the VID Set of each Port is empty, membership of the Default PVID is propagated across the Bridged LAN to all other GVRP-aware devices.",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.1.3, P85 Use of the PVID and VID set",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 36,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.37.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "VLAN-aware Bridges register and propagate VLAN memberships on all Bridge Ports that are part of the active topology of the underlying Spanning Tree.\n\n[Inferred behavior \u2014 no execution history for this case] VLAN-aware Bridges register and propagate VLAN memberships on all Bridge Ports that are part of the active topology of the underlying Spanning Tree.",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.1.2, P85 Behavior of Bridges",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 37,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.37.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Any changes in the state of registration of a given VID on a given Port are propagated on Ports that are part of the active topology of the Spanning Tree, in order to ensure that other GVRP-aware devices in the Bridged LAN update their Filtering Databases appropriately.\n\n[Inferred behavior \u2014 no execution history for this case] Any changes in the state of registration of a given VID on a given Port are propagated on Ports that are part of the active topology of the Spanning Tree, in order to ensure that other GVRP-aware devices in the Bridged LAN update their Filtering Databases appropriately.",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.1.2, P85 Behavior of Bridges",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 37,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.38.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The group MAC Address used as the destination address for GARP PDUs destined for GVRP Participants shall be the GVRP address identified in Table 11-1.\n\n[Inferred behavior \u2014 no execution history for this case] The group MAC Address used as the destination address for GARP PDUs destined for GVRP Participants shall be the GVRP address identified in Table 11-1.",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.3.1.1, P86 GVRP Application address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 38,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.38.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "a) In Bridges and end stations that support the operation of GVRP, all such PDUs shall be submitted to the GVRP Participant associated with the receiving Port for further processing;\n\n[Inferred behavior \u2014 no execution history for this case] a) In Bridges and end stations that support the operation of GVRP, all such PDUs shall be submitted to the GVRP Participant associated with the receiving Port for further processing;",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.3.1.1, P86 GVRP Application address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 38,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.38.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "a) In Bridges and end stations that support the operation of GVRP, all such PDUs shall be submitted to the GVRP Participant associated with the receiving Port for further processing;\n\n[Inferred behavior \u2014 no execution history for this case] a) In Bridges and end stations that support the operation of GVRP, all such PDUs shall be submitted to the GVRP Participant associated with the receiving Port for further processing;",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.1, P86 GVRP Application address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 38,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.38.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "b) In Bridges that do not support the operation of GVRP, all such PDUs shall be submitted to the Forwarding Process.\n\n[Inferred behavior \u2014 no execution history for this case] b) In Bridges that do not support the operation of GVRP, all such PDUs shall be submitted to the Forwarding Process.",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.1, P86 GVRP Application address",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 38,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.1": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The operation of GVRP defines a single Attribute Type (IEEE Std 802.1D, 1998 Edition) that are carried in GARP protocol exchanges; the VID Attribute Type. The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1.\n\n[Inferred behavior \u2014 no execution history for this case] The operation of GVRP defines a single Attribute Type (IEEE Std 802.1D, 1998 Edition) that are carried in GARP protocol exchanges; the VID Attribute Type. The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1.",
+    "reference": "IEEE Std 802.1Q-2005, S11.2.3.1.2, P86 Encoding of GVRP Attribute Types",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.2": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (In this test, GVRP PDU contains one message)\n\n[Inferred behavior \u2014 no execution history for this case] The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (In this test, GVRP PDU contains one message)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.2, P86 Encoding of GVRP Attribute Types",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.3": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (NOTE: Here GVRP PDU contains multiple messages with invalid attribute type.)\n\n[Inferred behavior \u2014 no execution history for this case] The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (NOTE: Here GVRP PDU contains multiple messages with invalid attribute type.)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.2, P86 Encoding of GVRP Attribute Types",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.4": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (NOTE: Here GVRP PDU contains multiple messages with invalid attribute event.)\n\n[Inferred behavior \u2014 no execution history for this case] The VID Attribute Type is used to identify values of VLAN Identifiers (VIDs). The value of the Group Attribute Type carried in GVRP PDUs shall be 1. (NOTE: Here GVRP PDU contains multiple messages with invalid attribute event.)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.2, P86 Encoding of GVRP Attribute Types",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.5": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Values of instances of the VID Attribute Type shall be encoded as Attribute Values in GARP PDUs (IEEE Std 802.1D, 1998 Edition, 12.11.2.6) as two octets, taken to represent an unsigned binary number, and equal to the hexadecimal value of the VLAN identifier that is to be encoded. (NOTE: This test is for Attribute Length)\n\n[Inferred behavior \u2014 no execution history for this case] Values of instances of the VID Attribute Type shall be encoded as Attribute Values in GARP PDUs (IEEE Std 802.1D, 1998 Edition, 12.11.2.6) as two octets, taken to represent an unsigned binary number, and equal to the hexadecimal value of the VLAN identifier that is to be encoded. (NOTE: This test is for Attribute Length)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.3, P86 Encoding of GVRP Attribute Values",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2035.39.6": {
+    "suite_id": "2035",
+    "suite_name": "2035_IxANVL_vrrp",
+    "description": "Values of instances of the VID Attribute Type shall be encoded as Attribute Values in GARP PDUs (IEEE Std 802.1D, 1998 Edition, 12.11.2.6) as two octets, taken to represent an unsigned binary number, and equal to the hexadecimal value of the VLAN identifier that is to be encoded. (NOTE: This test is for Attribute Value)\n\n[Inferred behavior \u2014 no execution history for this case] Values of instances of the VID Attribute Type shall be encoded as Attribute Values in GARP PDUs (IEEE Std 802.1D, 1998 Edition, 12.11.2.6) as two octets, taken to represent an unsigned binary number, and equal to the hexadecimal value of the VLAN identifier that is to be encoded. (NOTE: This test is for Attribute Value)",
+    "reference": "NEGATIVE IEEE Std 802.1Q-2005, S11.2.3.1.3, P86 Encoding of GVRP Attribute Types",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 39,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

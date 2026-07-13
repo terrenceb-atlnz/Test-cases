@@ -1,0 +1,255 @@
+{
+  "1365.0.0": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1365.1001.0": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1365.1001.1": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP ring forms\n\n[Log-derived analysis] MRP (Media Redundancy Protocol) ring formation test. Configures one switch/stack as Media Redundancy Manager (MRM) and the partner switches as Media Redundancy Clients (MRC) wired into a ring, then inspects the MRP ring state on every node. Verifies the manager comes up with the ring Enabled/Running and the network status Closed, one ring port Forwarding and the other Blocking so the loop is broken, each client shows both ring ports Forwarding, and the negotiated profile, link-change reaction setting, and VLAN-id are correct, with configuration preserved and no exceptions after teardown.",
+    "reference": "",
+    "past_crs": [
+      "CR-86618"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93698806",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.2": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP ring change ring settings\n\n[Log-derived analysis] MRP ring re-configuration test. Sweeps the ring through combinations of recovery profile, ring VLAN-id, and link-change-reaction (lc-react) settings, re-applying each and re-reading ring state on manager and clients. Verifies that each setting takes effect: the manager keeps a Closed ring with one Forwarding and one Blocking port, the chosen profile and its derived timers are reported, the react-on-link-change flag reflects the configured value, and the VLAN-id matches (or is blank when unset) consistently across all ring nodes.",
+    "reference": "",
+    "past_crs": [
+      "71710",
+      "78985",
+      "CR-86618",
+      "SYST-7864",
+      "CR-87728"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93698861",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.3": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP tagged vlan\n\n[Log-derived analysis] MRP tagged-VLAN test. Assigns the MRP ring to a tagged VLAN and re-reads ring state across the manager and clients for each VLAN value tried. Verifies the ring stays Enabled and Closed with the correct manager/client roles and port states, and confirms the reported ring VLAN-id matches the configured tagged VLAN on every node.",
+    "reference": "",
+    "past_crs": [
+      "76041"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699015",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.4": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP Traffic check and failover\n\n[Log-derived analysis] MRP traffic-flow and ring-failover test. Brings up the ring, flips the manager's port to steer traffic in a known direction, and runs a broadcast stream around the ring to confirm baseline connectivity. It then breaks the ring by shutting a client ring port and re-sends traffic, verifying the manager transitions the ring network status from Closed to Open (unblocking its secondary port) so traffic is still delivered around the recovered path.",
+    "reference": "",
+    "past_crs": [
+      "CR-86618",
+      "CR-88942"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699044",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.5": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Multiple Managers detected\n\n[Log-derived analysis] MRP multiple-manager detection test. Introduces a second Media Redundancy Manager on the same ring and inspects the affected nodes. Verifies the switches log the multiple-managers condition and that the associated MRP counters are incremented correctly on the relevant devices.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699080",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.6": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Disable MRP on MRM\n\n[Log-derived analysis] MRP manager disable/enable test. With the ring up and broadcast traffic flowing, disables MRP on the Media Redundancy Manager and confirms the ring shows Disabled/Stopped and that traffic is no longer delivered around the ring. It then re-enables the ring and verifies the manager returns to Enabled/Running with a Closed network status, the correct Forwarding/Blocking port split, and traffic forwarding restored.",
+    "reference": "",
+    "past_crs": [
+      "78985",
+      "CR-86618",
+      "CR-88942"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699104",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.7": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Dynamic configuartion of MRP\n\n[Log-derived analysis] MRP dynamic-configuration test. Repeatedly reconfigures MRP on the live ring across many iterations, re-reading ring state on the manager and clients after each change. Verifies the ring consistently reconverges to the correct manager/client roles, Closed network status, and Forwarding/Blocking port states, with the expected profile and VLAN-id, and confirms broadcast traffic is still carried around the ring at the end.",
+    "reference": "",
+    "past_crs": [
+      "78985",
+      "CR-86618",
+      "CR-88942"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699226",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.8": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Soft reboot MRP nodes\n\n[Log-derived analysis] MRP soft-reboot resilience test. Soft-reboots each MRP node (manager and clients) in turn, waiting for ring ports to return to a running state after each reboot. Verifies that after every node restarts MRP comes back up with the correct role, Closed/Enabled ring state, and proper port states, and confirms broadcast traffic is delivered around the ring once all nodes have rejoined.",
+    "reference": "",
+    "past_crs": [
+      "86618"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699341",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.9": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "Check ports removed from STP\n\n[Log-derived analysis] MRP / STP interaction test. Adds and removes MRP from ring ports both individually and via the MRP service/ring configuration, checking whether each port is taken out of spanning-tree control. Verifies that ports enrolled in MRP are correctly removed from STP and that ports are returned to STP control when MRP is removed, across each device's ring ports.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357619",
+      "log_uid": "93699387",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1365.1001.20": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP not working across stacks\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify that MRP does not operate (as expected/by design) across separate stacks, exercising the cross-stack MRP scenario and confirming the documented limitation.",
+    "reference": "https://jira.atlnz.lc/browse/CR-70835",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1365.1001.70835": {
+    "suite_id": "1365",
+    "suite_name": "1365_mrp",
+    "description": "MRP not working across stacks\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify the MRP cross-stack behaviour tracked by CR-70835. Reported UNSUPPORTED/blocked because the underlying defect (CR-70835) is not yet fixed, so the test cannot pass on the current setup.",
+    "reference": "https://jira.atlnz.lc/browse/CR-70835",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 70835,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  }
+}

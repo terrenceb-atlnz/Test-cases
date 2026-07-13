@@ -1,0 +1,1245 @@
+{
+  "2033.1.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST send a SYN,ACK in response to a SYN in LISTEN state\n\n[Log-derived analysis] TCP MUST send a SYN,ACK in response to a SYN in LISTEN state",
+    "reference": "RFC 793 s3.2 p23 Terminology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708357",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.1.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST move on to ESTABLISHED state after receiving ACK in SYN-RCVD state\n\n[Log-derived analysis] TCP MUST move on to ESTABLISHED state after receiving ACK in SYN-RCVD state",
+    "reference": "RFC 793 s3.2 p23 Terminology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708358",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.1.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST send an ACK in response to a FIN received in ESTABLISHED state\n\n[Log-derived analysis] TCP MUST send an ACK in response to a FIN received in ESTABLISHED state",
+    "reference": "RFC 793 s3.2 p23 Terminology",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708359",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.1.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in CLOSED state, MUST send a RST segment with zero SEQ number in response to an incoming segment not containing RST and ACK flags\n\n[Log-derived analysis] TCP, in CLOSED state, MUST send a RST segment with zero SEQ number in response to an incoming segment not containing RST and ACK flags",
+    "reference": "RFC 793 s3.9 p65 Event Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708360",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.1.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in CLOSED state, MUST send a RST in response to an incoming segment containing ACK and not containing RST and SEQ number is taken from SEG.ACK\n\n[Log-derived analysis] TCP, in CLOSED state, MUST send a RST in response to an incoming segment containing ACK and not containing RST and SEQ number is taken from SEG.ACK",
+    "reference": "RFC 793 s3.9 p65 Event Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708361",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.2.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Receiver TCP MUST check the checksum in any incoming segment, and MUST acknowledge in case of no error\n\n[Log-derived analysis] Receiver TCP MUST check the checksum in any incoming segment, and MUST acknowledge in case of no error",
+    "reference": "RFC 1122 s4.2.2.7 p86 TCP Checksum: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708362",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.2.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Receiver TCP MUST check the checksum in any incoming segment, and MUST NOT acknowledge in case of an error\n\n[Log-derived analysis] Receiver TCP MUST check the checksum in any incoming segment, and MUST NOT acknowledge in case of an error",
+    "reference": "RFC 1122 s4.2.2.7 p86 TCP Checksum: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708363",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.2.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Hosts/Routers MUST NOT discard IP packets with TTL delivered locally\n\n[Inferred behavior \u2014 no execution history for this case] Hosts/Routers MUST NOT discard IP packets with TTL delivered locally",
+    "reference": "RFC 1812 Time To Live s4.2.2.9 p46 RFC 1122 Requirements for Internet Hosts s3.2.1.7 p34",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "For RIP-1, only AF_INET (2) is generally supported.\n\n[Inferred behavior \u2014 no execution history for this case] For RIP-1, only AF_INET (2) is generally supported.",
+    "reference": "NEGATIVE RFC 2453 s3.6 p21 Message Format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "A router MUST NOT set unused (reserved) bits to one in datagrams originated by the router\n\n[Inferred behavior \u2014 no execution history for this case] A router MUST NOT set unused (reserved) bits to one in datagrams originated by the router",
+    "reference": "RFC 1812 Unused IP Header Bits s4.2.2.3 p43",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.6": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "A router MUST NOT drop a packet merely because one or more of the reserved bits has a non-zero value\n\n[Inferred behavior \u2014 no execution history for this case] A router MUST NOT drop a packet merely because one or more of the reserved bits has a non-zero value",
+    "reference": "RFC 1812 Unused IP Header Bits s4.2.2.3 p43",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.7": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "A router MUST ignore IP options which it does not recognize. A router MUST implement the 'End of Option List' and 'No Operation' options\n\n[Inferred behavior \u2014 no execution history for this case] A router MUST ignore IP options which it does not recognize. A router MUST implement the 'End of Option List' and 'No Operation' options",
+    "reference": "RFC 1812 Unrecognized Header Options s4.2.2.6 p44",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.8": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The RIP Response Message Format is: 0 1 2 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | command (1) | version (1) | must be zero (2) | +---------------+---------------+-------------------------------+ | | ~ RIP Entry (20) ~ | | +---------------+---------------+---------------+---------------+ There may be between 1 and 25 (inclusive) RIP entries.\n\n[Inferred behavior \u2014 no execution history for this case] The RIP Response Message Format is: 0 1 2 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | command (1) | version (1) | must be zero (2) | +---------------+---------------+-------------------------------+ | | ~ RIP Entry (20) ~ | | +---------------+---------------+---------------+---------------+ There may be between 1 and 25 (inclusive) RIP entries.",
+    "reference": "RFC 2453 s3.6 p20 Message Format RFC 2453 s4 p31 Protocol Extensions",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.9": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Router MUST silently discard datagram with bad destination IP address\n\n[Inferred behavior \u2014 no execution history for this case] Router MUST silently discard datagram with bad destination IP address",
+    "reference": "RFC 1812 Addressing s4.2.2.11 p48 RFC 1812 IP Broadcast Addresses s4.2.3.1 p50",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.2.10": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Router MUST Silently discard datagram with bad source IP address\n\n[Inferred behavior \u2014 no execution history for this case] Router MUST Silently discard datagram with bad source IP address",
+    "reference": "RFC 1812 Addressing s4.2.2.11 p47-49",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.3.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST return to LISTEN state, on receiving an acceptable RST, in SYN-RCVD state\n\n[Log-derived analysis] TCP MUST return to LISTEN state, on receiving an acceptable RST, in SYN-RCVD state",
+    "reference": "RFC 793 s3.4 p33 Establishing a connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708364",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST NOT change state, on receiving an unacceptable RST, in SYN-RCVD state\n\n[Log-derived analysis] TCP MUST NOT change state, on receiving an unacceptable RST, in SYN-RCVD state",
+    "reference": "RFC 793 s3.4 p33 Establishing a connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708365",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST send a RST after receiving an unacceptable ACK in SYN-RCVD state\n\n[Log-derived analysis] TCP MUST send a RST after receiving an unacceptable ACK in SYN-RCVD state",
+    "reference": "RFC 793 s3.4 p35 Establishing a Connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708366",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in ESTABLISHED state, MUST return ACK with proper SEQ and ACK numbers after recv a seg with OTW SEQ or unacc ACK number, and remain in same state If the connection is in a synchronized state, any unacceptable segment (out of window sequence number or unacceptible acknowledgment number) must elicit only an empty acknowledgment segment containing the current send-sequence number and an acknowledgment indicating the next sequence number expected to be received, and the connection remains in the same state.\n\n[Log-derived analysis] TCP, in ESTABLISHED state, MUST return ACK with proper SEQ and ACK numbers after recv a seg with OTW SEQ or unacc ACK number, and remain in same state If the connection is in a synchronized state, any unacceptable segment (out of window sequence number or unacceptible acknowledgment number) must elicit only an empty acknowledgment segment containing the current send-sequence number and an acknowledgment indicating the next sequence number expected to be received, and the connection remains in the same state.",
+    "reference": "RFC 793 s3.4 p37 Establishing a Connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708367",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "These routers should create RIP entries for the address 0.0.0.0, just as if it were a network to which they are connected. The decision as to how routers create entries for 0.0.0.0 is left to the implementor. Most commonly, the system administrator will be provided with a way to specify which routers should create entries for 0.0.0.0\n\n[Inferred behavior \u2014 no execution history for this case] These routers should create RIP entries for the address 0.0.0.0, just as if it were a network to which they are connected. The decision as to how routers create entries for 0.0.0.0 is left to the implementor. Most commonly, the system administrator will be provided with a way to specify which routers should create entries for 0.0.0.0",
+    "reference": "RFC 2453 s3.7 p23 Addressing Considerations",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.3.6": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in LISTEN state MUST send a RST after receiving a segment that is carrying an unacceptable ACK and remain in the same state\n\n[Log-derived analysis] TCP, in LISTEN state MUST send a RST after receiving a segment that is carrying an unacceptable ACK and remain in the same state",
+    "reference": "RFC 793 s3.4 p36 Establishing a Connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708368",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.7": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in ESTABLISHED state, MUST send an ACK indicating the correct SEQ number it expects, after receiving a SYN with a SEQ number that is OTW\n\n[Log-derived analysis] TCP, in ESTABLISHED state, MUST send an ACK indicating the correct SEQ number it expects, after receiving a SYN with a SEQ number that is OTW",
+    "reference": "RFC 793 s3.4 p34 Establishing a Connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708369",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.3.8": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP, in LISTEN state, MUST send a RST after receiving a spurious SYN,ACK that potentially corresponds to an old SYN\n\n[Log-derived analysis] TCP, in LISTEN state, MUST send a RST after receiving a spurious SYN,ACK that potentially corresponds to an old SYN",
+    "reference": "RFC 793 s3.4 p35 Establishing a Connection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708370",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.4.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in a CLOSED state, MUST ignore a RST control message\n\n[Log-derived analysis] TCP in a CLOSED state, MUST ignore a RST control message",
+    "reference": "RFC 793 s3.9 p65 Event Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708371",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.4.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "A router MUST generate an ICMP Time Exceeded message when it discards a packet due to an expired TTL field\n\n[Inferred behavior \u2014 no execution history for this case] A router MUST generate an ICMP Time Exceeded message when it discards a packet due to an expired TTL field",
+    "reference": "RFC 1812 Time Exceeded s5.2.7.3 p84",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.4.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Route expiration timer should be 180 seconds and garbage collection timer should be 120 seconds.\n\n[Inferred behavior \u2014 no execution history for this case] Route expiration timer should be 180 seconds and garbage collection timer should be 120 seconds.",
+    "reference": "RFC 2453 s3.8 p24 Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.4.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The garbage-collection timer is reset upon the reception of a new route to an unreachable network.\n\n[Inferred behavior \u2014 no execution history for this case] The garbage-collection timer is reset upon the reception of a new route to an unreachable network.",
+    "reference": "RFC 2453 s3.8 p23-24 Timers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.5.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "When a router forwards a packet, it MUST reduce the TTL by at least 1\n\n[Inferred behavior \u2014 no execution history for this case] When a router forwards a packet, it MUST reduce the TTL by at least 1",
+    "reference": "RFC 1812 Time to Live (TTL) s5.3.1 p85",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.5.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "RIP messages of version 1 are to be discarded if any Must Be Zero (MBZ) field is non-zero.\n\n[Inferred behavior \u2014 no execution history for this case] RIP messages of version 1 are to be discarded if any Must Be Zero (MBZ) field is non-zero.",
+    "reference": "RFC 2453 s5 p34 Compatability",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.5.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "RIP messages of any version greater than 1 should not be discarded simply because an MBZ field contains a value other than zero.\n\n[Inferred behavior \u2014 no execution history for this case] RIP messages of any version greater than 1 should not be discarded simply because an MBZ field contains a value other than zero.",
+    "reference": "RFC 2453 s5 p34 Compatability",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.6.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Normally, Requests are sent as broadcasts, from the RIP port, by routers which have just come up and are seeking to fill in their routing tables as quickly as possible. However, there may be situations (e.g., router monitoring) where the routing table of only a single router is needed. In this case, the Request should be sent directly to that router from a UDP port other than the RIP port. If such a Request is received, the router responds directly to the requestor's address and port.\n\n[Inferred behavior \u2014 no execution history for this case] Normally, Requests are sent as broadcasts, from the RIP port, by routers which have just come up and are seeking to fill in their routing tables as quickly as possible. However, there may be situations (e.g., router monitoring) where the routing table of only a single router is needed. In this case, the Request should be sent directly to that router from a UDP port other than the RIP port. If such a Request is received, the router responds directly to the requestor's address and port.",
+    "reference": "RFC 2453 s3.9.1 p25 Request Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.6.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "If there is exactly one entry in the request, and it has an address family identifier of zero and a metric of infinity (i.e., 16), then this is a request to send the entire routing table.\n\n[Inferred behavior \u2014 no execution history for this case] If there is exactly one entry in the request, and it has an address family identifier of zero and a metric of infinity (i.e., 16), then this is a request to send the entire routing table.",
+    "reference": "NEGATIVE: RFC 2453 s3.9.1 p25 Request Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.6.6": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Validate RIP Response Message in reply to Request Message.\n\n[Inferred behavior \u2014 no execution history for this case] Validate RIP Response Message in reply to Request Message.",
+    "reference": "RFC 2453 s3.9.1 p25 Request Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The Response must be ignored if it is not from the RIP port. (UDP Port 520).\n\n[Inferred behavior \u2014 no execution history for this case] The Response must be ignored if it is not from the RIP port. (UDP Port 520).",
+    "reference": "RFC 2453 s3.9.2 p26 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The datagram's IPv4 source address should be checked to see whether the datagram is from a valid neighbor\n\n[Inferred behavior \u2014 no execution history for this case] The datagram's IPv4 source address should be checked to see whether the datagram is from a valid neighbor",
+    "reference": "NEGATIVE: RFC 2453 s3.9.2 p26 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "It is also worth checking to see whether the response is from one of the router's own addresses. Interfaces on broadcast networks may receive copies of their own broadcasts/multicasts immediately. If a router processes its own output as new input, confusion is likely so such datagrams must be ignored.\n\n[Inferred behavior \u2014 no execution history for this case] It is also worth checking to see whether the response is from one of the router's own addresses. Interfaces on broadcast networks may receive copies of their own broadcasts/multicasts immediately. If a router processes its own output as new input, confusion is likely so such datagrams must be ignored.",
+    "reference": "NEGATIVE: RFC 2453 s3.9.2 p26 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.9": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Set the command to Response. Set the bytes labeled \"must be zero\" to zero. RIP messages of version 1 are to be discarded if any Must Be Zero (MBZ) field is non-zero NEGATIVE: RFC 2453 s3.10.2 p30 Generating Response Messages\n\n[Inferred behavior \u2014 no execution history for this case] Set the command to Response. Set the bytes labeled \"must be zero\" to zero. RIP messages of version 1 are to be discarded if any Must Be Zero (MBZ) field is non-zero NEGATIVE: RFC 2453 s3.10.2 p30 Generating Response Messages",
+    "reference": "RFC 2453 s5 p34 Compatibility",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.10": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Once the entry has been validated, update the metric by adding the cost of the network on which the message arrived. If the result is greater than infinity, use infinity. That is, metric = MIN (metric + cost, infinity)\n\n[Inferred behavior \u2014 no execution history for this case] Once the entry has been validated, update the metric by adding the cost of the network on which the message arrived. If the result is greater than infinity, use infinity. That is, metric = MIN (metric + cost, infinity)",
+    "reference": "RFC 2453 s3.4.2 p27 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.12": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "If there is no such route, add this route to the routing table, unless the metric is infinity (there is no point in adding a route which is unusable).\n\n[Inferred behavior \u2014 no execution history for this case] If there is no such route, add this route to the routing table, unless the metric is infinity (there is no point in adding a route which is unusable).",
+    "reference": "RFC 2453 s3.9.2 p27 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.13": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "If the new metric is infinity, start the deletion process\n\n[Inferred behavior \u2014 no execution history for this case] If the new metric is infinity, start the deletion process",
+    "reference": "RFC 2453 s3.9.2 p28 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.7.14": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Any entry that fails these tests is ignored, as it is no better than the current route.\n\n[Inferred behavior \u2014 no execution history for this case] Any entry that fails these tests is ignored, as it is no better than the current route.",
+    "reference": "RFC 2453 s3.9.2 p27 Response Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.8.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST ignore an incoming segment with RST flag in LISTEN state\n\n[Log-derived analysis] TCP MUST ignore an incoming segment with RST flag in LISTEN state",
+    "reference": "RFC 793 s3.9 p65 Event Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708372",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.8.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, TCP MUST send RST in response to incoming segment with ACK and remain in the same state, SEQ number of RST is taken from SEG.ACK\n\n[Log-derived analysis] TCP in LISTEN state, TCP MUST send RST in response to incoming segment with ACK and remain in the same state, SEQ number of RST is taken from SEG.ACK",
+    "reference": "RFC 793 s3.9 p65 Event Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708373",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.8.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "This processing may be triggered by triggered updates (broadcast/multicast when a route changes)\n\n[Inferred behavior \u2014 no execution history for this case] This processing may be triggered by triggered updates (broadcast/multicast when a route changes)",
+    "reference": "RFC 2453 s3.10 p28 Output Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.8.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "After a triggered update is sent, a timer should be set for a random interval between 1 and 5 seconds. If other changes that would trigger updates occur before the timer expires, a single update is triggered when the timer expires. The timer is then reset to another random value between 1 and 5 seconds.\n\n[Inferred behavior \u2014 no execution history for this case] After a triggered update is sent, a timer should be set for a random interval between 1 and 5 seconds. If other changes that would trigger updates occur before the timer expires, a single update is triggered when the timer expires. The timer is then reset to another random value between 1 and 5 seconds.",
+    "reference": "RFC 2453 s3.10.1 p29 Triggered Updates",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.8.18": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "\"Split horizon with poisoned reverse\" includes such routes in updates, but sets their metrics to infinity. If split horizon with poisoned reverse is used, the router must mention all routes that it learns from the backbone, with metrics of 16. The router requirements RFC [11] specifies that all implementation of RIP must use split horizon and should also use split horizon with poisoned reverse\n\n[Inferred behavior \u2014 no execution history for this case] \"Split horizon with poisoned reverse\" includes such routes in updates, but sets their metrics to infinity. If split horizon with poisoned reverse is used, the router must mention all routes that it learns from the backbone, with metrics of 16. The router requirements RFC [11] specifies that all implementation of RIP must use split horizon and should also use split horizon with poisoned reverse",
+    "reference": "RFC 2453 s3.4.3 p15-16 Split horizon",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 8,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.9.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The RIP Header format is: 0 1 2 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | command (1) | version (1) | must be zero (2) | +---------------+---------------+-------------------------------+\n\n[Inferred behavior \u2014 no execution history for this case] The RIP Header format is: 0 1 2 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | command (1) | version (1) | must be zero (2) | +---------------+---------------+-------------------------------+",
+    "reference": "RFC 2453 s3.6 p20 Message format",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.9.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The format for the 20-octet route entry (RTE) for RIP-2 is: 0 1 2 3 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | Address Family Identifier (2) | Route Tag (2) | +-------------------------------+-------------------------------+ | IP Address (4) | +---------------------------------------------------------------+ | Subnet Mask (4) | +---------------------------------------------------------------+ | Next Hop (4) | +---------------------------------------------------------------+ | Metric (4) | +---------------------------------------------------------------+\n\n[Inferred behavior \u2014 no execution history for this case] The format for the 20-octet route entry (RTE) for RIP-2 is: 0 1 2 3 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | Address Family Identifier (2) | Route Tag (2) | +-------------------------------+-------------------------------+ | IP Address (4) | +---------------------------------------------------------------+ | Subnet Mask (4) | +---------------------------------------------------------------+ | Next Hop (4) | +---------------------------------------------------------------+ | Metric (4) | +---------------------------------------------------------------+",
+    "reference": "RFC 2453 s4 p31 Protocol Extensions",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.10.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "If the Address Family Identifier of the first (and only the first) entry in the message is 0xFFFF, then the remainder of the entry contains the authentication.\n\n[Inferred behavior \u2014 no execution history for this case] If the Address Family Identifier of the first (and only the first) entry in the message is 0xFFFF, then the remainder of the entry contains the authentication.",
+    "reference": "RFC 2453 s4.1 p31 Authentication",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.10.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "If authentication is not in use, then no entries in the message should have an Address Family Identifier of 0xFFFF.\n\n[Inferred behavior \u2014 no execution history for this case] If authentication is not in use, then no entries in the message should have an Address Family Identifier of 0xFFFF.",
+    "reference": "NEGATIVE: RFC 2453 s4.1 p31 Authentication",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.10.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "Currently, the only Authentication Type is simple password and it is type 2. The remaining 16 octets contain the plain text password. If the password is under 16 octets, it must be left-justified and padded to the right with nulls (0x00).\n\n[Inferred behavior \u2014 no execution history for this case] Currently, the only Authentication Type is simple password and it is type 2. The remaining 16 octets contain the plain text password. If the password is under 16 octets, it must be left-justified and padded to the right with nulls (0x00).",
+    "reference": "NEGATIVE: RFC 2453 s4.1 p32 Authentication",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 10,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.12.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST be prepared to handle an illegal option length for MSS, in a SYN segment, without crashing\n\n[Log-derived analysis] TCP MUST be prepared to handle an illegal option length for MSS, in a SYN segment, without crashing",
+    "reference": "RFC 1122 s4.2.2.5 p85 TCP Options: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708374",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.12.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST be able to receive No Operation and End of Options List options in SYN segment\n\n[Log-derived analysis] TCP MUST be able to receive No Operation and End of Options List options in SYN segment",
+    "reference": "RFC 1122 s4.2.2.5 p85 TCP Options: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708375",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.12.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST ignore without error any TCP option it does not implement\n\n[Log-derived analysis] TCP MUST ignore without error any TCP option it does not implement",
+    "reference": "RFC 1122 s4.2.2.5 p85 TCP Options: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708376",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.12.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MUST be prepared to handle an illegal option length for MSS, in a SYN segment; a suggested procedure is to reset the connection\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] TCP MUST be prepared to handle an illegal option length for MSS, in a SYN segment; a suggested procedure is to reset the connection",
+    "reference": "RFC 1122 s4.2.2.5 p85 TCP Options: RFC-793 Section 3.1",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 12,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2033.13.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "A full-sized segment MUST be acknowledged within a time of 0.5 sec\n\n[Log-derived analysis] A full-sized segment MUST be acknowledged within a time of 0.5 sec",
+    "reference": "RFC 1122 s4.2.3.2 p96 When to Send an ACK Segment",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708377",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.13.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP SHOULD implement a delayed ACK, but the delay MUST be less than 0.5 sec\n\n[Log-derived analysis] TCP SHOULD implement a delayed ACK, but the delay MUST be less than 0.5 sec",
+    "reference": "RFC 1122 s4.2.3.2 p96 When to Send an ACK Segment",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708378",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.13.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP SHOULD be capable of queuing out-of-order segments\n\n[Log-derived analysis] TCP SHOULD be capable of queuing out-of-order segments",
+    "reference": "RFC 1122 s4.2.2.20 p93 Event Processing: RFC-793 Section 3.9",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708379",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.13.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP MAY send an ACK segment acknowledging RCV.NXT for valid out-of-order data segments\n\n[Log-derived analysis] TCP MAY send an ACK segment acknowledging RCV.NXT for valid out-of-order data segments",
+    "reference": "RFC 1122 s4.2.2.21 p94 Acknowledging Queued Segments: RFC-793 Section 3.9",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 13,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708380",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.14.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "An address specified as a next hop must, per force, be directly reachable on the logical subnet over which the advertisement is made.\n\n[Inferred behavior \u2014 no execution history for this case] An address specified as a next hop must, per force, be directly reachable on the logical subnet over which the advertisement is made.",
+    "reference": "RFC 2453 s4.4 p33 Next hop",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.14.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The purpose of the Next Hop field is to eliminate packets being routed through extra hops in the system. It is particularly useful... If the received Next Hop is not directly reachable, it should be treated as 0.0.0.0.\n\n[Inferred behavior \u2014 no execution history for this case] The purpose of the Next Hop field is to eliminate packets being routed through extra hops in the system. It is particularly useful... If the received Next Hop is not directly reachable, it should be treated as 0.0.0.0.",
+    "reference": "RFC 2453 s4.4 p33 Next hop",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 14,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.15.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "In order to reduce unnecessary load on those hosts which are not listening to RIP-2 messages, an IP multicast address will be used for periodic broadcasts. The IP multicast address is 224.0.0.9. In order to maintain backwards compatibility, the use of the multicast address will be configurable (NOTE: Here we are testing DUT sends multicast RIP-2 update)\n\n[Inferred behavior \u2014 no execution history for this case] In order to reduce unnecessary load on those hosts which are not listening to RIP-2 messages, an IP multicast address will be used for periodic broadcasts. The IP multicast address is 224.0.0.9. In order to maintain backwards compatibility, the use of the multicast address will be configurable (NOTE: Here we are testing DUT sends multicast RIP-2 update)",
+    "reference": "RFC 2453 s4.5 p33 Multicasting",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.15.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "In order to reduce unnecessary load on those hosts which are not listening to RIP-2 messages, an IP multicast address will be used for periodic broadcasts. The IP multicast address is 224.0.0.9. In order to maintain backwards compatibility, the use of the multicast address will be configurable (NOTE: Here we are testing DUT accepts multicast RIP-2 update)\n\n[Inferred behavior \u2014 no execution history for this case] In order to reduce unnecessary load on those hosts which are not listening to RIP-2 messages, an IP multicast address will be used for periodic broadcasts. The IP multicast address is 224.0.0.9. In order to maintain backwards compatibility, the use of the multicast address will be configurable (NOTE: Here we are testing DUT accepts multicast RIP-2 update)",
+    "reference": "RFC 2453 s4.5 p33 Multicasting",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 15,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: Only RIP-1 messages are sent\n\n[Inferred behavior \u2014 no execution history for this case] The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: Only RIP-1 messages are sent",
+    "reference": "RFC 2453 s5.1 p34 Compatibility switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: RIP-2 messages are broadcast\n\n[Inferred behavior \u2014 no execution history for this case] The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: RIP-2 messages are broadcast",
+    "reference": "RFC 2453 s5.1 p34 Compatibility switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: RIP-2 messages are multicast\n\n[Inferred behavior \u2014 no execution history for this case] The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: RIP-2 messages are multicast",
+    "reference": "RFC 2453 s5.1 p34 Compatibility switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: No RIP messages are sent\n\n[Inferred behavior \u2014 no execution history for this case] The switch has four settings: RIP-1, in which only RIP-1 messages are sent; RIP-1 compatibility, in which RIP-2 messages are broadcast; RIP-2, in which RIP-2 messages are multicast; and \"none\", which disables the sending of RIP messages. CASE: No RIP messages are sent",
+    "reference": "RFC 2453 s5.1 p34 Compatibility switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "For completeness, routers should also implement a receive control switch which would determine whether to accept RIP-1 only.\n\n[Inferred behavior \u2014 no execution history for this case] For completeness, routers should also implement a receive control switch which would determine whether to accept RIP-1 only.",
+    "reference": "RFC 2453 s5.1 p34 Compatibility Switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.6": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "For completeness, routers should also implement a receive control switch which would determine whether to accept RIP-2 only\n\n[Inferred behavior \u2014 no execution history for this case] For completeness, routers should also implement a receive control switch which would determine whether to accept RIP-2 only",
+    "reference": "RFC 2453 s5.1 p34 Compatibility Switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.7": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "For completeness, routers should also implement a receive control switch which would determine whether to accept both\n\n[Inferred behavior \u2014 no execution history for this case] For completeness, routers should also implement a receive control switch which would determine whether to accept both",
+    "reference": "RFC 2453 s5.1 p34 Compatibility Switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.16.8": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "For completeness, routers should also implement a receive control switch which would determine whether to accept none.\n\n[Inferred behavior \u2014 no execution history for this case] For completeness, routers should also implement a receive control switch which would determine whether to accept none.",
+    "reference": "RFC 2453 s5.1 p34 Compatibility Switch",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 16,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.17.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "It may be necessary to specify an actual list of neighboring routers and send a datagram to each one explicitly\n\n[Inferred behavior \u2014 no execution history for this case] It may be necessary to specify an actual list of neighboring routers and send a datagram to each one explicitly",
+    "reference": "RFC 2453 s3.10 p29 Output Processing",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 17,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "2033.23.1": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with source IP address identical to the destination IP address (of DUT)\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with source IP address identical to the destination IP address (of DUT)",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708381",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.23.2": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with broadcast network address as source IP address\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with broadcast network address as source IP address",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708382",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.23.3": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708383",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.23.4": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708384",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.23.5": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708385",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2033.23.6": {
+    "suite_id": "2033",
+    "suite_name": "2033_IxANVL_tcp_core",
+    "description": "TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address\n\n[Log-derived analysis] TCP in LISTEN state, MUST reject an incoming SYN with a reserved private network address as source IP address",
+    "reference": "CERT Advisory CA-96.21 III. Solution",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 23,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357963",
+      "log_uid": "93708386",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  }
+}

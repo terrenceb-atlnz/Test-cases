@@ -1,0 +1,3406 @@
+{
+  "6201.0.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Special Case: Initialize Router\n\n[Log-derived analysis] Special Case: Initialize Router",
+    "reference": "N/A",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93626746",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check time between reboot and finishing applying wireless config\n\n[Log-derived analysis] Check time between reboot and finishing applying wireless config",
+    "reference": "N/A",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93627010",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1000.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-5):No Radio enabled and No Default Password for VAPs\n\n[Log-derived analysis] RED Cert (AUM-5):No Radio enabled and No Default Password for VAPs",
+    "reference": "https://jira.atlnz.lc/browse/WART-130",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93627206",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-1) (SCM-1) (SCM-2) (SCM-3) (SCM-4): WPA2 Personal, Correct password on Radio 1 and 2\n\n[Log-derived analysis] RED Cert (AUM-1) (SCM-1) (SCM-2) (SCM-3) (SCM-4): WPA2 Personal, Correct password on Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/browse/WART-128",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93627509",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-1) (AUM-4): WPA2 Personal, Incorrect password on Radio 1 and 2\n\n[Log-derived analysis] RED Cert (AUM-1) (AUM-4): WPA2 Personal, Incorrect password on Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/browse/WART-128",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93627637",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-1) (SCM-1) (SCM-2) (SCM-3) (SCM-4): WPA2 Enterprise, Legitimate Radius + CP + Mac Auth on Radio 1 and 2\n\n[Log-derived analysis] RED Cert (AUM-1) (SCM-1) (SCM-2) (SCM-3) (SCM-4): WPA2 Enterprise, Legitimate Radius + CP + Mac Auth on Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/browse/WART-128",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93627905",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-1) (AUM-4): WPA2 Enterprise, Illegitimate Radius or CP or Mac Auth on Radio 1 and 2\n\n[Log-derived analysis] RED Cert (AUM-1) (AUM-4): WPA2 Enterprise, Illegitimate Radius or CP or Mac Auth on Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/browse/WART-128",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93628578",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-1) (AUM-6) (SCM-1) (SCM-2) (SCM-3) (SCM-4) (AUM-4): WPA3 Enterprise, legitimate Radius + CP + Mac Auth W/ Certificates on Radio 1, 2 and 3\n\n[Log-derived analysis] RED Cert (AUM-1) (AUM-6) (SCM-1) (SCM-2) (SCM-3) (SCM-4) (AUM-4): WPA3 Enterprise, legitimate Radius + CP + Mac Auth W/ Certificates on Radio 1, 2 and 3",
+    "reference": "https://jira.atlnz.lc/browse/WART-128",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93629046",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1000.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RED Cert (AUM-6):WPA-2 Personal - User can configure a complex passphrase.\n\n[Log-derived analysis] RED Cert (AUM-6):WPA-2 Personal - User can configure a complex passphrase.",
+    "reference": "https://jira.atlnz.lc/browse/WART-131",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1000,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93629292",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1001.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1001.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm number of maximum Dynamic vlan users\n\n[Log-derived analysis] Confirm number of maximum Dynamic vlan users",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4723",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93630637",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1001.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm number of maximum bridge with Communication Test\n\n[Log-derived analysis] Confirm number of maximum bridge with Communication Test",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4723",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93630941",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1001.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm the communication without using Bridge\n\n[Log-derived analysis] Confirm the communication without using Bridge",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4723",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93632650",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1002.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Client isolation per VAP - Check VAP client isolation behavior Client isolation Enabled in various configurations.\n\n[Log-derived analysis] Client isolation per VAP - Check VAP client isolation behavior Client isolation Enabled in various configurations.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [
+      "TQROUT-1910"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93633844",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Station isolation per Radio - Check VAP radio isolation behavior Station isolation disabled for radio 1 and enabled for radio 2\n\n[Log-derived analysis] Station isolation per Radio - Check VAP radio isolation behavior Station isolation disabled for radio 1 and enabled for radio 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93634269",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Station isolation per Radio - Check VAP radio isolation behavior Station isolation Enabled for radio 1 and disabled for radio 2\n\n[Log-derived analysis] Station isolation per Radio - Check VAP radio isolation behavior Station isolation Enabled for radio 1 and disabled for radio 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93634854",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Station isolation per Radio - Check VAP radio isolation behavior Station isolation Enabled\n\n[Log-derived analysis] Station isolation per Radio - Check VAP radio isolation behavior Station isolation Enabled",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93635408",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "DTIM - Check TIM IE Checking DTIM Period and Count\n\n[Log-derived analysis] DTIM - Check TIM IE Checking DTIM Period and Count",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93635698",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "DTIM - Check Hidden SSID Checking that hidden ssid works and stations can connect\n\n[Log-derived analysis] DTIM - Check Hidden SSID Checking that hidden ssid works and stations can connect",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93635925",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check operation with all VAPs enabled Check that all the VAPs work simultaneously and submit correct beacons\n\n[Log-derived analysis] Check operation with all VAPs enabled Check that all the VAPs work simultaneously and submit correct beacons",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [
+      "CR-86524",
+      "CR-89308"
+    ],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93636849",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "[DTIM] Check PVB (Partial Virtual Bitmap)\n\n[Log-derived analysis] [DTIM] Check PVB (Partial Virtual Bitmap)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355352",
+      "log_uid": "93638608",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1002.9": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check operation of Association Advertisment\n\n[Log-derived analysis] Check operation of Association Advertisment",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3607",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355352",
+      "log_uid": "93638910",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1003.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1003.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "IPv6 Router Advertisement test\n\n[Log-derived analysis] IPv6 Router Advertisement test",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4346",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93638322",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1003.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "IPv6 Static Communication Testing Check IPv6 Neighbor advertisement packet\n\n[Log-derived analysis] IPv6 Static Communication Testing Check IPv6 Neighbor advertisement packet",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4346",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93638428",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1003.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "IPv6 Link Local Communication Testing\n\n[Log-derived analysis] IPv6 Link Local Communication Testing",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4346",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1003,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93638560",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1004.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1004.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check CSA (Channel Switch Announcement) and Check finish CAC period Bandwith 80+80 MHz\n\n[Log-derived analysis] Check CSA (Channel Switch Announcement) and Check finish CAC period Bandwith 80+80 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4332",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355351",
+      "log_uid": "93638279",
+      "platform": "TQ6602GEN2R-tb84.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1005.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Personal & Enterprise - Security Confirming radio 1 and 2 can be configured with each WPA setting Management Frame Protection (MFP)\n\n[Log-derived analysis] WPA Personal & Enterprise - Security Confirming radio 1 and 2 can be configured with each WPA setting Management Frame Protection (MFP)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93639319",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Test comms beetween STA's on same VAP, different VAP and from STA to eth/LAN (VCW)\n\n[Log-derived analysis] Test comms beetween STA's on same VAP, different VAP and from STA to eth/LAN (VCW)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93639635",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Identify and Radius Server IP - Check secondary Radius server IP\n\n[Log-derived analysis] Identify and Radius Server IP - Check secondary Radius server IP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93640381",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Personal - Broadcast Key Refresh Rate\n\n[Log-derived analysis] WPA Personal - Broadcast Key Refresh Rate",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93641417",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Enterprise-Secondary RADIUS (2.4Ghz and 5GHz)\n\n[Log-derived analysis] WPA Enterprise-Secondary RADIUS (2.4Ghz and 5GHz)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93641705",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1005.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Enterprise-Secondary RADIUS Different Secret (2.4Ghz and 5GHz)\n\n[Log-derived analysis] WPA Enterprise-Secondary RADIUS Different Secret (2.4Ghz and 5GHz)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3608",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1005,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93642070",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1006.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1006.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Neighboring AP detection Reboot the AP after Neighbor AP Detection is enabled\n\n[Log-derived analysis] Neighboring AP detection Reboot the AP after Neighbor AP Detection is enabled",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3603",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355351",
+      "log_uid": "93641419",
+      "platform": "TQ6602GEN2R-tb84.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1006.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check supported connection frameworks\n\n[Log-derived analysis] Check supported connection frameworks",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3603",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355352",
+      "log_uid": "93642385",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1007.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA-Enterprise Dynamic VLAN - RADIUS attribute - session-timeout and Termination-Action\n\n[Log-derived analysis] WPA-Enterprise Dynamic VLAN - RADIUS attribute - session-timeout and Termination-Action",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829,",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93643587",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "If Dynamic VLAN ID is same as native vlan ID\n\n[Log-derived analysis] If Dynamic VLAN ID is same as native vlan ID",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93643734",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Dynamic VLAN with external radius server\n\n[Log-derived analysis] Dynamic VLAN with external radius server",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93643915",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Dynamic VLAN with not using bridge\n\n[Log-derived analysis] Dynamic VLAN with not using bridge",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [
+      "CR-83936",
+      "CR-84132"
+    ],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93644211",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm behavior when VLANID is included in RADIUS attribute even though dynamic VLAN is disabled\n\n[Log-derived analysis] Confirm behavior when VLANID is included in RADIUS attribute even though dynamic VLAN is disabled",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93644393",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "STA that assigned by dynamic VLAN receives broadcast/multicast frames from another VLAN\n\n[Log-derived analysis] STA that assigned by dynamic VLAN receives broadcast/multicast frames from another VLAN",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [
+      "TQCR-1839"
+    ],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3118457",
+      "log_uid": "86937051",
+      "platform": "TQ7403R-tb408.rel",
+      "sw_version": "awplus_main-20251103-997",
+      "run_date": "2025-11-03",
+      "result": "FAIL"
+    }
+  },
+  "6201.1007.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Communication Test between two STA connecting to different VAP (using Dynamic VLAN)\n\n[Log-derived analysis] Communication Test between two STA connecting to different VAP (using Dynamic VLAN)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93644637",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Communication Test between two STA connecting to same VAP (using Dynamic VLAN)\n\n[Log-derived analysis] Communication Test between two STA connecting to same VAP (using Dynamic VLAN)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93644803",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.9": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication Function - Check Radio 1 and 2\n\n[Log-derived analysis] MAC Authentication Function - Check Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93645268",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.10": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication Function - WPA Enterprise and Dynamic VLAN Radio 1 and 2\n\n[Log-derived analysis] MAC Authentication Function - WPA Enterprise and Dynamic VLAN Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93645675",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1007.11": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Wireless client Isolation behavior Radio 1 and 2\n\n[Log-derived analysis] Wireless client Isolation behavior Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3829",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1007,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93645980",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1008.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1008.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Proxy ARP behavior\n\n[Log-derived analysis] Check Proxy ARP behavior",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7027",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93646906",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1008.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Proxy ARP with Static IP behaviour\n\n[Log-derived analysis] Check Proxy ARP with Static IP behaviour",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7020",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1008,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93647794",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1011.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1011.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check TQR can communicate over WDS bridge with hidden ssid\n\n[Log-derived analysis] Check TQR can communicate over WDS bridge with hidden ssid",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3606",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93648802",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1011.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check TQR can communicate over WDS bridge with different bandwidth\n\n[Log-derived analysis] Check TQR can communicate over WDS bridge with different bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3606",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93650239",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1011.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check 2 stations with seperate vlans can communicate on dutB\n\n[Log-derived analysis] Check 2 stations with seperate vlans can communicate on dutB",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3606",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93650678",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1011.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check that WDS link is using tagged packets\n\n[Log-derived analysis] Check that WDS link is using tagged packets",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3606",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93651152",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1011.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check that WDS link is using tagged packets with wired client\n\n[Log-derived analysis] Check that WDS link is using tagged packets with wired client",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3606",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1011,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93651531",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1013.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1013.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Channel Bandwidth settings for 2.4, 5 & 6GHz\n\n[Log-derived analysis] Channel Bandwidth settings for 2.4, 5 & 6GHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3605",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93652066",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1013.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check the selected channel is applied\n\n[Log-derived analysis] Check the selected channel is applied",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3605",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93653830",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1013.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check multicast transmit rate is applied\n\n[Log-derived analysis] Check multicast transmit rate is applied",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3605",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93654527",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1013.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check legacy rates are applied - Radio 1, 2 & 3\n\n[Log-derived analysis] Check legacy rates are applied - Radio 1, 2 & 3",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3605",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1013,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93654852",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1014.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication - Security - WPA Personal (CCMP) Radio 1 and 2\n\n[Log-derived analysis] MAC Authentication - Security - WPA Personal (CCMP) Radio 1 and 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93655151",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication - Security - WPA Enterprise (WPA2 CCMP) Radio 1 and Radio 2\n\n[Log-derived analysis] MAC Authentication - Security - WPA Enterprise (WPA2 CCMP) Radio 1 and Radio 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93655386",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication - Security - WEP Security Radio 1 and Radio 2\n\n[Log-derived analysis] MAC Authentication - Security - WEP Security Radio 1 and Radio 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [
+      "TQROUT-1909"
+    ],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93655665",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Filtering - Block on Radio 1 & 2\n\n[Log-derived analysis] MAC Filtering - Block on Radio 1 & 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93656158",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Filtering - Allow on Radio 1 & 2\n\n[Log-derived analysis] MAC Filtering - Allow on Radio 1 & 2",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93656666",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Enterprise-Secondary RADIUS Different Secret (2.4Ghz and 5GHz)\n\n[Log-derived analysis] WPA Enterprise-Secondary RADIUS Different Secret (2.4Ghz and 5GHz)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93656913",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA Enterprise-Secondary RADIUS - Same Secret (2.4Ghz and 5GHz)\n\n[Log-derived analysis] WPA Enterprise-Secondary RADIUS - Same Secret (2.4Ghz and 5GHz)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93657108",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1014.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication - Deleted Secondary RADIUS Server (Radio 1 & 2)\n\n[Log-derived analysis] MAC Authentication - Deleted Secondary RADIUS Server (Radio 1 & 2)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3609",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1014,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93657819",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1015.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout - Bandwidth 20 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout - Bandwidth 20 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [
+      "CR-84143"
+    ],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93659488",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout - Bandwidth 40 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout - Bandwidth 40 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93661243",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout - Bandwidth 80 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout - Bandwidth 80 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93662932",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 20 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 20 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93663464",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 40 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 40 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355357",
+      "log_uid": "93659615",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93663952",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (120, 124, 128), at 20 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (120, 124, 128), at 20 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93660059",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116, 124), at 40 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116, 124), at 40 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93664603",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.9": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116), at 80 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116), at 80 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93664928",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.10": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout - Bandwidth 160 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout - Bandwidth 160 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93665697",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.11": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 160 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 160 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7516",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93665773",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.12": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3130971",
+      "log_uid": "87332647",
+      "platform": "TQ7403R-tb408.rel",
+      "sw_version": "awplus_main-20251114-1022",
+      "run_date": "2025-11-15",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.13": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (120, 124, 128), at 20 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (120, 124, 128), at 20 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3133061",
+      "log_uid": "87396184",
+      "platform": "TQ6702GEN2R-tb409.rel",
+      "sw_version": "awplus_main-20251117-1024",
+      "run_date": "2025-11-18",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.14": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116, 124), at 40 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116, 124), at 40 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3133303",
+      "log_uid": "87399182",
+      "platform": "TQ7403R-tb408.rel",
+      "sw_version": "awplus_main-20251117-1024",
+      "run_date": "2025-11-18",
+      "result": "PASS"
+    }
+  },
+  "6201.1015.15": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116), at 80 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 600s, on long CAC channels (116), at 80 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C3836",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1015,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3133303",
+      "log_uid": "87399183",
+      "platform": "TQ7403R-tb408.rel",
+      "sw_version": "awplus_main-20251117-1024",
+      "run_date": "2025-11-18",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1016.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 20 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 20 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93663308",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 40 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 40 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355351",
+      "log_uid": "93661512",
+      "platform": "TQ6602GEN2R-tb84.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 80 MHz\n\n[Log-derived analysis] Check Radar Detection and NOC list timeout with Zero Wait DFS enabled - Bandwidth 80 MHz",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93665010",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 20 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 20 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93665574",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 40 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 40 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93665927",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1016.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth\n\n[Log-derived analysis] Ensure Channel Availability Check (CAC) duration is 60s on all channels at 80 MHz bandwidth",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6569",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1016,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93666090",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1017.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1017.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Change Maximum Clients then check operation\n\n[Log-derived analysis] Change Maximum Clients then check operation",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C4347",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93666639",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1017.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check the validation of maximum client settings\n\n[Log-derived analysis] Check the validation of maximum client settings",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6594",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1017,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93667343",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1019.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L2 Broadcast between Eth and wireless not dynamic vlan VAP.\n\n[Log-derived analysis] L2 Broadcast between Eth and wireless not dynamic vlan VAP.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5380",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93667886",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L2 Multicast from Eth to not dynamic vlan VAP.\n\n[Log-derived analysis] L2 Multicast from Eth to not dynamic vlan VAP.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5380",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93668394",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L3 Multicast between Eth and wireless not dynamic vlan VAP.\n\n[Log-derived analysis] L3 Multicast between Eth and wireless not dynamic vlan VAP.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5380",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93668675",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L3 Broadcast between Eth and wireless not dynamic vlan VAP.\n\n[Log-derived analysis] L3 Broadcast between Eth and wireless not dynamic vlan VAP.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5380",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93668977",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Combination Multicast to unicast conversion and Proxy ARP behaviour not dynamic vlan VAP\n\n[Log-derived analysis] Combination Multicast to unicast conversion and Proxy ARP behaviour not dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93670692",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Combination Multicast to unicast conversion and Proxy ARP behaviour dynamic vlan VAP\n\n[Log-derived analysis] Combination Multicast to unicast conversion and Proxy ARP behaviour dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93670998",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L2 Broadcast between Eth and wireless dynamic vlan VAP\n\n[Log-derived analysis] L2 Broadcast between Eth and wireless dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93673231",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L2 Multicast between Eth and wireless dynamic vlan VAP\n\n[Log-derived analysis] L2 Multicast between Eth and wireless dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93674859",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.9": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L3 Multicast between Eth and wireless dynamic vlan VAP\n\n[Log-derived analysis] L3 Multicast between Eth and wireless dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93676104",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1019.10": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "L3 Broadcast between Eth and wireless dynamic vlan VAP\n\n[Log-derived analysis] L3 Broadcast between Eth and wireless dynamic vlan VAP",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7045",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1019,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93677319",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1020.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1020.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Keep settings for MAC Address List + External RADIUS after reboot\n\n[Log-derived analysis] Keep settings for MAC Address List + External RADIUS after reboot",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5052",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93676550",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1020.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "[MAC Address List + External RADIUS] Connection test (Allow mode)\n\n[Log-derived analysis] [MAC Address List + External RADIUS] Connection test (Allow mode)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5052",
+    "past_crs": [
+      "CR-86078"
+    ],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93678768",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1020.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "[MAC Address List + External RADIUS] Connection test (Deny mode)\n\n[Log-derived analysis] [MAC Address List + External RADIUS] Connection test (Deny mode)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5052",
+    "past_crs": [
+      "CR-86078"
+    ],
+    "current_crs": [],
+    "testSet": 1020,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93680016",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1021.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Captive Portal: Click-Through Authentication Page Proxy: Disabled -> Session Keep\n\n[Log-derived analysis] Captive Portal: Click-Through Authentication Page Proxy: Disabled -> Session Keep",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5238",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93680361",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Combination Authenticaion-Page-Proxy and Fixed URL\n\n[Log-derived analysis] Combination Authenticaion-Page-Proxy and Fixed URL",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5238",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93680590",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Combination Authenticaion-Page-Proxy and Session-Keep\n\n[Log-derived analysis] Combination Authenticaion-Page-Proxy and Session-Keep",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5238",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93680859",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Redirect Type: Session Keep -> Fixed URL\n\n[Log-derived analysis] Redirect Type: Session Keep -> Fixed URL",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5238",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93681275",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Ignore Dynamic VLAN attr.\n\n[Log-derived analysis] External RADIUS: Ignore Dynamic VLAN attr.",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93681441",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Check Auth Failed\n\n[Log-derived analysis] External RADIUS: Check Auth Failed",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93681775",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.7": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Combination Authenticaion-Page-Proxy and Fixed URL\n\n[Log-derived analysis] External RADIUS: Combination Authenticaion-Page-Proxy and Fixed URL",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93682013",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.8": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Combination Authenticaion-Page-Proxy and Session-Keep\n\n[Log-derived analysis] External RADIUS: Combination Authenticaion-Page-Proxy and Session-Keep",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93682259",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.9": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Redirect Type: Session Keep -> Fixed URL\n\n[Log-derived analysis] External RADIUS: Redirect Type: Session Keep -> Fixed URL",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93682809",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.10": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Combination with other function\n\n[Log-derived analysis] External RADIUS: Combination with other function",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93683191",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.11": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "External RADIUS: Check RADIUS down\n\n[Log-derived analysis] External RADIUS: Check RADIUS down",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93683465",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.12": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Authentication-page-proxy\n\n[Log-derived analysis] Authentication-page-proxy",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5239",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93683755",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.13": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Send accounting-request when STA disconnects and reconnects\n\n[Log-derived analysis] Send accounting-request when STA disconnects and reconnects",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5240",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93684375",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1021.14": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Send accounting-request interim update\n\n[Log-derived analysis] Send accounting-request interim update",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5240",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1021,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93684805",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1022.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm wpa_e VLAN assignment precedence with radius mac and wpa_e VLAN tagging\n\n[Log-derived analysis] Confirm wpa_e VLAN assignment precedence with radius mac and wpa_e VLAN tagging",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93685513",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check MAC VLAN tagging behavior after toggling during runtime\n\n[Log-derived analysis] Check MAC VLAN tagging behavior after toggling during runtime",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93686233",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm vlan assignment with radius mac and mac list (allow)\n\n[Log-derived analysis] Confirm vlan assignment with radius mac and mac list (allow)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93686791",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Confirm vlan assignment with radius mac and mac list (deny)\n\n[Log-derived analysis] Confirm vlan assignment with radius mac and mac list (deny)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93687936",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Dvlan assignment for open security\n\n[Log-derived analysis] Dvlan assignment for open security",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93688281",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1022.6": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "MAC Authentication with Cache and Flapping station\n\n[Log-derived analysis] MAC Authentication with Cache and Flapping station",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5873",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1022,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93689635",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1023.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1023,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1023.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "CCMP of WPA3 Check feature behaviour\n\n[Log-derived analysis] CCMP of WPA3 Check feature behaviour",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5884",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1023,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93690493",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1024.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1024,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1024.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WEP Open and Shared System 64/128 bits HEX/ASCII\n\n[Log-derived analysis] WEP Open and Shared System 64/128 bits HEX/ASCII",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7030",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1024,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93693032",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1025.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1025,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1025.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check behavior for PSC list (Radio 3)\n\n[Log-derived analysis] Check behavior for PSC list (Radio 3)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5905",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1025,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93691815",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1027.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1027.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Message Authenticator: Captive Portal\n\n[Log-derived analysis] Radius Message Authenticator: Captive Portal",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5965",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93694889",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1027.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Message Authenticator: Mac address list + Ex Radius (Allow)\n\n[Log-derived analysis] Radius Message Authenticator: Mac address list + Ex Radius (Allow)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5965",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93695391",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1027.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Message Authenticator: Mac address list + Ex Radius (Deny)\n\n[Log-derived analysis] Radius Message Authenticator: Mac address list + Ex Radius (Deny)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5965",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93696115",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1027.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Message Authenticator: Mac access control\n\n[Log-derived analysis] Radius Message Authenticator: Mac access control",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5965",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93697389",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1027.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Message Authenticator: WPA-Enterprise\n\n[Log-derived analysis] Radius Message Authenticator: WPA-Enterprise",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C5965",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1027,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93697999",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1030.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1030,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1030.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Enhanced Open and Transition mode\n\n[Log-derived analysis] Enhanced Open and Transition mode",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6489",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1030,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93695977",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1031.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1031,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1031.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Proxy ARP - Transmit unlearned ARP packet behavior\n\n[Log-derived analysis] Check Proxy ARP - Transmit unlearned ARP packet behavior",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7035",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1031,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355347",
+      "log_uid": "93669731",
+      "platform": "TQ6702eGEN2R-tb185.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1031.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check Proxy ARP - Transmit unlearned ARP packet behavior with multicast to unicast conversion enabled\n\n[Log-derived analysis] Check Proxy ARP - Transmit unlearned ARP packet behavior with multicast to unicast conversion enabled",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7035",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1031,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93699146",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1032.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1032,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1032.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RFScan One channel mode, scan interval and scan duration\n\n[Log-derived analysis] RFScan One channel mode, scan interval and scan duration",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7034",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1032,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3330259",
+      "log_uid": "93088311",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "5.5.6-0.3",
+      "run_date": "2026-05-31",
+      "result": "PASS"
+    }
+  },
+  "6201.1032.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "RFScan All channel mode, scan interval\n\n[Log-derived analysis] RFScan All channel mode, scan interval",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7034",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1032,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3259466",
+      "log_uid": "91144905",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260324-1312",
+      "run_date": "2026-03-25",
+      "result": "PASS"
+    }
+  },
+  "6201.1033.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1033.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Two step auth MAC Address List (Allow mode)\n\n[Log-derived analysis] Two step auth MAC Address List (Allow mode)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7037",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355347",
+      "log_uid": "93670794",
+      "platform": "TQ6702eGEN2R-tb185.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "6201.1033.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Two step auth MAC Address List (Deny mode)\n\n[Log-derived analysis] Two step auth MAC Address List (Deny mode)",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7037",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355347",
+      "log_uid": "93671508",
+      "platform": "TQ6702eGEN2R-tb185.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1033.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Two step auth MAC RADIUS\n\n[Log-derived analysis] Two step auth MAC RADIUS",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7037",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355347",
+      "log_uid": "93672297",
+      "platform": "TQ6702eGEN2R-tb185.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1033.4": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Two step auth MAC Address list + external RADIUS\n\n[Log-derived analysis] Two step auth MAC Address list + external RADIUS",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7037",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355347",
+      "log_uid": "93673700",
+      "platform": "TQ6702eGEN2R-tb185.rel",
+      "sw_version": "awplus_main-20260605-1494",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1033.5": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Two step auth Check MAC auth and web auth fail\n\n[Log-derived analysis] Two step auth Check MAC auth and web auth fail",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7037",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1033,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93706239",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1034.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1034,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1034.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA3 Personal Compatibility mode 802.11be enabled check\n\n[Log-derived analysis] WPA3 Personal Compatibility mode 802.11be enabled check",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6540",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1034,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355350",
+      "log_uid": "93704406",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "6201.1034.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "WPA3 Personal Compatibility mode 802.11be disabled check\n\n[Log-derived analysis] WPA3 Personal Compatibility mode 802.11be disabled check",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C6540",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1034,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3352943",
+      "log_uid": "93581896",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260617-1523",
+      "run_date": "2026-06-18",
+      "result": "PASS"
+    }
+  },
+  "6201.1035.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1035,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1035.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Fast Roaming (krv) beacon check\n\n[Log-derived analysis] Fast Roaming (krv) beacon check",
+    "reference": "https://jira.atlnz.lc/secure/Tests.jspa#/testPlayer/AWPTCM-C7013",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1035,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3351773",
+      "log_uid": "93551699",
+      "platform": "TQ7413R-tb478.rel",
+      "sw_version": "awplus_main-20260616-1519",
+      "run_date": "2026-06-17",
+      "result": "PASS"
+    }
+  },
+  "6201.1036.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1036,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.1036.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Radius Dynamic Authorization CoA / Disconnect\n\n[Log-derived analysis] Radius Dynamic Authorization CoA / Disconnect",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1036,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93707297",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "6201.5000.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5000,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.5006.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5006,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.5006.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Verify interface status\n\n[Log-derived analysis] Verify interface status",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5006,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100914",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.5006.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Verify installed modules\n\n[Log-derived analysis] Verify installed modules",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5006,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100915",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.5006.3": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Verify default running process\n\n[Log-derived analysis] Verify default running process",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5006,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100916",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.5009.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5009,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.5009.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "TQR7413-13:Check AKM suite Compatibility mode\n\n[Log-derived analysis] TQR7413-13:Check AKM suite Compatibility mode",
+    "reference": "TestLink TQR7413-13",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5009,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100917",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.5010.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5010,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.5010.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check WPA3 Beacon Protection Enable/Disable\n\n[Log-derived analysis] Check WPA3 Beacon Protection Enable/Disable",
+    "reference": "TestLink TQR7413-14",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5010,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100918",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.5010.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Check WPA2+WPA3 Beacon Protection Enable/Disable\n\n[Log-derived analysis] Check WPA2+WPA3 Beacon Protection Enable/Disable",
+    "reference": "TestLink TQR7413-14",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5010,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3190978",
+      "log_uid": "89100919",
+      "platform": "TQ7613R-tb184.rel",
+      "sw_version": "awplus_main-20260109-1139",
+      "run_date": "2026-01-11",
+      "result": "FAIL"
+    }
+  },
+  "6201.9999.0": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "6201.9999.1": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Special Case: Teardown Router\n\n[Log-derived analysis] Special Case: Teardown Router",
+    "reference": "N/A",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355349",
+      "log_uid": "93707349",
+      "platform": "TQ6403GEN2R-tb469.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "6201.9999.2": {
+    "suite_id": "6201",
+    "suite_name": "6201_awp_wifi",
+    "description": "Special Case: Upload to WART DB\n\n[Log-derived analysis] Special Case: Upload to WART DB",
+    "reference": "N/A",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 9999,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3245542",
+      "log_uid": "90704358",
+      "platform": "TQ3403R-tb296.rel",
+      "sw_version": "awplus_main-20260310-1279",
+      "run_date": "2026-03-11",
+      "result": "PASS"
+    }
+  }
+}

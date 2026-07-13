@@ -1,0 +1,129 @@
+{
+  "6005.1001.0": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "6005.1001.1": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Basic check that all devices are providing POE\n\n[Inferred behavior \u2014 no execution history for this case] Basic check that all devices are providing POE",
+    "reference": "",
+    "past_crs": [
+      "55355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.2": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check device reporting of POE status\n\n[Inferred behavior \u2014 no execution history for this case] Check device reporting of POE status",
+    "reference": "",
+    "past_crs": [
+      "55355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.3": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check POE is supplied for all priority settings\n\n[Inferred behavior \u2014 no execution history for this case] Check POE is supplied for all priority settings",
+    "reference": "",
+    "past_crs": [
+      "55355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.4": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check POE spare pair of 2-pair POE devices\n\n[Inferred behavior \u2014 no execution history for this case] Check POE spare pair of 2-pair POE devices",
+    "reference": "",
+    "past_crs": [
+      "55355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.5": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check POE data pair of 2-pair POE devices\n\n[Inferred behavior \u2014 no execution history for this case] Check POE data pair of 2-pair POE devices",
+    "reference": "",
+    "past_crs": [
+      "55355"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.6": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check global disable/enable of POE\n\n[Inferred behavior \u2014 no execution history for this case] Check global disable/enable of POE",
+    "reference": "",
+    "past_crs": [
+      "55255",
+      "55355",
+      "55696",
+      "55735"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "6005.1001.7": {
+    "suite_id": "6005",
+    "suite_name": "6005_POE_basic",
+    "description": "Check high-availability network power behaviour\n\n[Inferred behavior \u2014 no execution history for this case] Check high-availability network power behaviour",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "AWPTCM-T43851": {
+    "objective": "<ul><li>Lease probing for a DHCP pool is enabled by default.</li><li>Probing can be enabled or disabled per DHCP pool using the \"probe enable\" and \"no probe enable\" commands.</li><li>When probing is enabled with type ARP, the DHCP server probes IP addresses using ARP packets before assigning leases.</li><li>The number of probe packets and timeout are configurable (default 5 packets, timeout range).</li><li>Show commands display the probing configuration and status for pools.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a DHCP pool and verify that probing is enabled by default (using ARP). Use \"show ip dhcp pool\" to confirm.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable probing with \"no probe enable\" on the pool and verify it is disabled. Re-enable and confirm.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set probe type to ARP, configure number of packets (e.g. 3), and verify with capture or behavior that ARP probes are sent the configured number of times.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a client and verify probing prevents assignment of in-use IPs.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

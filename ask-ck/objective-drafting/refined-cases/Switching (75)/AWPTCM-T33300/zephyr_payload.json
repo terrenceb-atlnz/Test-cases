@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33300": {
+    "objective": "<ul><li>MAC address thrashing protection is enabled by default and detects rapid MAC address movement indicative of a loop.</li><li>Thrashing protection can be configured with different actions on detection: learn-disable, link-down, port-disable, vlan-disable, or none (with optional timeout).</li><li>When the configured action triggers, the affected port or VLAN is placed in the appropriate state (e.g. link-down, learning disabled, or VLAN disabled on the port) and the reason is logged.</li><li>Show commands (e.g. show interface switchport) correctly report which VLANs or ports are currently experiencing MAC thrashing.</li><li>MAC thrashing protection functions correctly on G.8032 interfaces (R-APS messages may require higher thrash limits to avoid false triggers).</li><li>Protection works across LAGs/static channels (treated appropriately) and in stacked environments.</li><li>Protection interoperates with related features such as LDF and UFO without overriding their decisions incorrectly.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify MAC thrashing protection is enabled by default. Induce rapid MAC movement (loop) between ports and confirm detection occurs with appropriate logging.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure thrash-limit with action learn-disable (and timeout). Trigger thrashing and verify learning is disabled on the affected port/VLAN and it logs the event.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat for other actions: link-down, port-disable, vlan-disable. Confirm the port or VLAN enters the expected state and recovers after timeout if configured.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure action none (log only) and verify thrashing is detected and logged without disabling the port or learning.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Issue show interface switchport (and related commands) while thrashing is active. Confirm the output accurately identifies the thrashing VLANs/ports.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure on G.8032 ring interfaces (with suitable high thrash-limit). Induce ring breaks/restores and confirm MAC thrashing protection functions without disrupting G.8032 operation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test on LAG interfaces and in a stack. Confirm thrashing is detected and action applied correctly (LAG treated as logical unit where appropriate).",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

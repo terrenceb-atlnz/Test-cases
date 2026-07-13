@@ -1,0 +1,135 @@
+{
+  "1367.0.0": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1367.1001.0": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1367.1001.1": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "Radius Server Auth-mac Simple Test\n\n[Log-derived analysis] Verifies MAC-based RADIUS authentication on a switch port. Configures auth-mac with a RADIUS server, presents a client, and confirms the switch authenticates it against the server. Also checks that the running-config is preserved after teardown and that no exceptions occur on the stack or partner switches.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3350957",
+      "log_uid": "93500103",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260615-1516",
+      "run_date": "2026-06-15",
+      "result": "PASS"
+    }
+  },
+  "1367.1001.2": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "Radius Server Auth-web Simple Test\n\n[Log-derived analysis] Verifies web-based RADIUS authentication. Configures auth-web so an unauthenticated client is redirected to the Web Access Authentication Gateway, submits credentials, and confirms the switch authenticates the client against the RADIUS server. Also checks running-config is preserved after teardown and no exceptions occur.",
+    "reference": "",
+    "past_crs": [
+      "SYST-7446",
+      "CR-86750"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355571",
+      "log_uid": "93636821",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1367.1001.11": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "Radius COA Support\n\n[Log-derived analysis] Verifies RADIUS Change-of-Authorization (CoA) support. Authenticates a client by auth-mac and confirms the assigned VLAN, then sends a CoA request from the server and confirms the switch returns a CoA-ACK and applies the updated authorization (VLAN) to the already-authenticated session. Also checks running-config preservation and absence of exceptions.",
+    "reference": "Project 2584",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355571",
+      "log_uid": "93636858",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1367.1001.21": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "MACSec test\n\n[Log-derived analysis] Verifies MACsec link encryption between switches. Selects a MACsec-capable module link, applies the required licence, enables platform MACsec and reboots, then sends traffic across the encrypted link and confirms it passes. Validates MACsec and MKA policy state via show commands, that the stack returns to a good state, and that config is restored and no exceptions occur after teardown.",
+    "reference": "SYST-4823",
+    "past_crs": [
+      "SYST-7406"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 21,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357673",
+      "log_uid": "93700440",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1367.1001.72373": {
+    "suite_id": "1367",
+    "suite_name": "1367_security_failover",
+    "description": "The authenticator forwards the packet from supplicant before the response from the RADIUS server\n\n[Log-derived analysis] Verifies the authenticator does not leak supplicant traffic before authentication completes. Runs repeated auth-mac authentication cycles and confirms that no packets from the supplicant are forwarded before the port is authenticated (i.e. before the RADIUS server response), while still confirming the client authenticates and the correct VLAN is assigned. Also checks config preservation and no exceptions.",
+    "reference": "CR-72373",
+    "past_crs": [
+      "SYST-6758",
+      "SYST-7965"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 72373,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355571",
+      "log_uid": "93637300",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

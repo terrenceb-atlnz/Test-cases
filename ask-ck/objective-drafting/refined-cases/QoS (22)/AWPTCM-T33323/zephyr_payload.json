@@ -1,0 +1,34 @@
+{
+  "AWPTCM-T33323": {
+    "objective": "<ul><li>A policy-map can be modified (e.g., class contents changed) while attached to an interface or LAG without first detaching it.</li><li>Dynamic changes to an attached policy-map take effect immediately with no error, are visible in show commands, and correctly affect ongoing traffic.</li><li>Dynamic policy-map changes work on static and LACP LAG interfaces.</li><li>Dynamic policy-map changes work on VCS stacks, including during master failover or member disruptions, without causing instability (no memory leaks, high CPU, etc.).</li><li>When hardware classifier tables are full, further dynamic additions to the policy-map are rejected with an appropriate error; configurations within the limit continue to work correctly.</li><li>Basic QoS (ACL/class-map/policy-map) setup continues to function correctly before and after dynamic updates.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure QoS with ACL/class-map/policy-map and apply to interface. Send traffic. Change class contents of the policy-map without detaching. Verify show reflects change, no error, and traffic uses updated policy.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the dynamic change while traffic is continuously flowing; confirm immediate effect and continued correct QoS behavior.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply and dynamically change policy-map on a static LAG and on an LACP LAG; verify operation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On a VCS stack (with LAG across members), dynamically change policy-map during normal operation and during VCS disruption (e.g. failover). Confirm stability and correct updated behavior.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure QoS until HW filter limit is reached. Attempt further dynamic additions to policy-map/class/ACL without detaching; verify rejection with error. Confirm working policy within limit still functions.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "AWPTCM-T37859": {
+    "objective": "<ul><li>When a PoE PD draws more power than the user-configured budget on a port, the port indicates a fault condition (per device specification for PD Fault LED/state operation; e.g. flashing orange on some platforms).</li><li>Nominal PoE operation (PD drawing within the allocated user budget) is indicated by the expected LED/state per device spec (e.g. steady green on some platforms).</li><li>Over-drawing power based on class allocation (instead of user budget) is indicated by the expected fault state per device spec (e.g. steady orange on some platforms).</li><li>When a PD enters a fault state due to over-drawing, it is excluded from the switch's allocated power calculation; allocated power is recalculated and updated when the PD returns from the fault condition.</li><li>When a PD stops drawing power, the allocated power on the port is recalculated accordingly.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a PoE port with a user power budget. Connect a PD and have it draw more power than the user budget. Verify that the port indicates the fault condition per the device specification for PD Fault operation (typically flashing orange LED on some platforms).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify nominal operation: with PD drawing within budget, confirm the expected LED/state indication on the port per device spec (typically steady green).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test overdraw by class allocation (instead of or in addition to user budget) and confirm the expected fault indication per device spec (typically steady orange).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Put a port into fault by over-drawing. Verify the PD/port is excluded from allocated power calculation. Clear the fault (PD stops over-drawing) and confirm allocated power is updated.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Have a PD stop drawing power and confirm allocated power on the port is recalculated.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

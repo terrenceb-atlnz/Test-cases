@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33236": {
+    "objective": "<ul><li>A port configured for fixed full duplex establishes a link with a compliant partner at the configured speed.</li><li>A port configured for fixed half duplex establishes a link with a compliant partner at the configured speed.</li><li>Changing the duplex configuration (half or full) on an ETH or switchport does not cause the port LED to turn off while the link remains up.</li><li>The port accurately reports the configured duplex mode (full or half, not Auto) together with speed in interface status and show commands.</li><li>Fixed duplex settings are retained after port flaps, reloads, and supported pluggable insert/remove operations.</li><li>Duplex mismatch between link partners results in link failure or errors that are correctly reported by the port.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a port for fixed full duplex at a supported speed (e.g. 1000/Full). Confirm the link comes up, the port reports the fixed duplex (not Auto), LED remains on, and traffic forwards correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the same port for fixed half duplex at a supported speed. Confirm link establishment, correct reporting of half duplex, LED state unchanged, and forwarding works.",
+          "expectedResult": ""
+        },
+        {
+          "description": "While link is up, toggle between half and full duplex. Verify the port LED does not turn off during the change and link state updates correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify show interface and related status commands accurately reflect the configured duplex mode, speed, and current link state in both half and full duplex.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test retention of fixed duplex config across port shutdown/no-shutdown, reload scenarios, and pluggable hot-swap where applicable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force a duplex mismatch with the link partner. Confirm link does not come up or reports errors, and status reflects the misconfiguration.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

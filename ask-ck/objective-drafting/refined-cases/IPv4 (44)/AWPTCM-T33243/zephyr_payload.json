@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33243": {
+    "objective": "<ul><li>A gratuitous ARP is transmitted after an interface link transitions to Up (default delay 5 seconds).</li><li>The gratuitous ARP transmission delay is configurable via the gratuitous-arp-link timer.</li><li>Setting gratuitous-arp-link to 0 disables gratuitous ARP transmission on link up.</li><li>Gratuitous ARP is sent on link up for IP interfaces, tagged ports, and static/dynamic channels.</li><li>Gratuitous ARP is sent after system startup and after hot-swap insertion of modules/ports.</li><li>ARP and neighbour tables are updated correctly after a gratuitous ARP is sent.</li><li>Static ARP entries remain intact and functional after a gratuitous ARP event on the same interface.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/1351. Note: the automated test covers multiple test cases. Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure an IP interface and bring the link up (or perform shutdown/no shutdown). Confirm a gratuitous ARP is transmitted after the configured gratuitous-arp-link delay (default 5 seconds).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a non-default gratuitous-arp-link timer value. Bring the link up and confirm the gratuitous ARP is sent at the configured interval.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set gratuitous-arp-link to 0. Bring the link up and confirm no gratuitous ARP is transmitted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test gratuitous ARP on tagged ports and on static/dynamic channel-groups. Confirm transmission occurs when the whole logical interface transitions.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform multiple link up/down cycles, startup, and hot-swap where supported. Confirm gratuitous ARP is sent for each affected IP interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify ARP and neighbour tables are updated correctly after gratuitous ARP transmission, and that any static ARP entries remain intact.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

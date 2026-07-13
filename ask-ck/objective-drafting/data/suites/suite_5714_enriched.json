@@ -1,0 +1,58 @@
+{
+  "5714.1001.2": {
+    "suite_id": "5714",
+    "suite_name": "5714_Profinet",
+    "description": "Profinet DCP Identify\n\n[Inferred behavior \u2014 no execution history for this case] Profinet DCP Identify",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5714.1001.3": {
+    "suite_id": "5714",
+    "suite_name": "5714_Profinet",
+    "description": "Profinet DCP Set and Get IP Option\n\n[Inferred behavior \u2014 no execution history for this case] Profinet DCP Set and Get IP Option",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5714.1001.11": {
+    "suite_id": "5714",
+    "suite_name": "5714_Profinet",
+    "description": "Profinet Connect\n\n[Inferred behavior \u2014 no execution history for this case] Profinet Connect",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "5714.1002.1": {
+    "suite_id": "5714",
+    "suite_name": "5714_Profinet",
+    "description": "Profinet Connect\n\n[Inferred behavior \u2014 no execution history for this case] Profinet Connect",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

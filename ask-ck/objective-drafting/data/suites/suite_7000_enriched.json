@@ -1,0 +1,226 @@
+{
+  "7000.1001.1": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Reboot everything\n\n[Inferred behavior \u2014 no execution history for this case] Reboot everything",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.1001.2": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Controller check atmf network\n\n[Inferred behavior \u2014 no execution history for this case] Controller check atmf network",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.1001.3": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "port shutdown - rejoin/leave atmf member\n\n[Inferred behavior \u2014 no execution history for this case] port shutdown - rejoin/leave atmf member",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.1001.4": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Failover all stax\n\n[Inferred behavior \u2014 no execution history for this case] Failover all stax",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.1001.5": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Atmf select area stress\n\n[Inferred behavior \u2014 no execution history for this case] Atmf select area stress",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.1001.11": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Check show atmf nodes\n\n[Inferred behavior \u2014 no execution history for this case] Check show atmf nodes",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2001.1": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Basic check of Ixia traffic\n\n[Inferred behavior \u2014 no execution history for this case] Basic check of Ixia traffic",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2001.2": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Basic check of AMF members\n\n[Inferred behavior \u2014 no execution history for this case] Basic check of AMF members",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2001.3": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Basic check of log errors\n\n[Inferred behavior \u2014 no execution history for this case] Basic check of log errors",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2001.4": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Basic check of exception log\n\n[Inferred behavior \u2014 no execution history for this case] Basic check of exception log",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2002.1": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Failover of stack [1] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [1] in scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2002.2": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Failover of stack [2] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [2] in scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2002.3": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Failover of stack [3] in scenario\n\n[Inferred behavior \u2014 no execution history for this case] Failover of stack [3] in scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2002,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2003.1": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Flipping single portlinks on scenario\n\n[Inferred behavior \u2014 no execution history for this case] Flipping single portlinks on scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2003.2": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Flipping static aggregators on scenario\n\n[Inferred behavior \u2014 no execution history for this case] Flipping static aggregators on scenario",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2003,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "7000.2004.1": {
+    "suite_id": "7000",
+    "suite_name": "7000_charter",
+    "description": "Hotswap Lif/XEM\n\n[Inferred behavior \u2014 no execution history for this case] Hotswap Lif/XEM",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2004,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

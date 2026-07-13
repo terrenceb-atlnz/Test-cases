@@ -1,0 +1,534 @@
+{
+  "2007.1.2": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Quick test to verify that DUT supports an IGMP router behavior i.e. it sends an IGMP general query at startup\n\n[Log-derived analysis] Quick test to verify that DUT supports an IGMP router behavior i.e. it sends an IGMP general query at startup",
+    "reference": "DUT supporting IGMP router",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710986",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.2.1": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Upon starting the router should multicast a general query\n\n[Log-derived analysis] Upon starting the router should multicast a general query",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357158",
+      "log_uid": "93684957",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2007.2.2": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "On startup, a router SHOULD Multicast [Startup Query Count] General Queries spaced closely together [Startup Query Interval] (This test is for number of startup General Queries)\n\n[Log-derived analysis] On startup, a router SHOULD Multicast [Startup Query Count] General Queries spaced closely together [Startup Query Interval] (This test is for number of startup General Queries)",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710988",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.2.3": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "On startup, a router SHOULD Multicast [Startup Query Count] General Queries spaced closely together [Startup Query Interval] (This test is for the interval between startup General Queries)\n\n[Log-derived analysis] On startup, a router SHOULD Multicast [Startup Query Count] General Queries spaced closely together [Startup Query Interval] (This test is for the interval between startup General Queries)",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357158",
+      "log_uid": "93684959",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2007.2.4": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Routers periodically [QUERY_INTERVAL] multicast a general query on each attached network for which this router is the querier\n\n[Log-derived analysis] Routers periodically [QUERY_INTERVAL] multicast a general query on each attached network for which this router is the querier",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710990",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.2.5": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "If a multicast router hears a query message from a router with lower IP address, it MUST become a non-querier for that network\n\n[Log-derived analysis] If a multicast router hears a query message from a router with lower IP address, it MUST become a non-querier for that network",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710991",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.2.6": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "If a multicast router hears a query message from a router with lower IP address, it MUST become a non-querier for that network\n\n[Log-derived analysis] If a multicast router hears a query message from a router with lower IP address, it MUST become a non-querier for that network",
+    "reference": "NEGATIVE: RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710992",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.2.7": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "After multicasting Startup Query Count general queries, a router multicasts a general query after QUERY_INTERVAL\n\n[Log-derived analysis] After multicasting Startup Query Count general queries, a router multicasts a general query after QUERY_INTERVAL",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357158",
+      "log_uid": "93684963",
+      "platform": "SBx908NG-atr43.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "2007.2.8": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "A general query is addressed to ALL-SYSTEMS, has a Group Address field of 0 and a Max Response Time of [Query Response Interval].\n\n[Log-derived analysis] A general query is addressed to ALL-SYSTEMS, has a Group Address field of 0 and a Max Response Time of [Query Response Interval].",
+    "reference": "RFC 2236, IGMP Version 2, s3 p4 Protocol Description RFC 2236, IGMP Version 2, s2 p2 Introduction",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710994",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.3.2": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "When a router receives a report, it adds the group being reported to the list of multicast group memberships on the network.\n\n[Log-derived analysis] When a router receives a report, it adds the group being reported to the list of multicast group memberships on the network.",
+    "reference": "RFC 2236, IGMP Version 2, s3 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710996",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "FAIL"
+    }
+  },
+  "2007.3.3": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "The router stops forwarding remotely-originated multicasts for a group after GROUP_MEMBERSHIP_INTERVAL\n\n[Log-derived analysis] The router stops forwarding remotely-originated multicasts for a group after GROUP_MEMBERSHIP_INTERVAL",
+    "reference": "RFC 2236, IGMP Version 2, s3 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710997",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.3.8": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Routers SHOULD accept a leave group message being addressed to the group being left\n\n[Log-derived analysis] Routers SHOULD accept a leave group message being addressed to the group being left",
+    "reference": "RFC 2236, IGMP Version 2, s3 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710998",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.3.9": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "A querier multicasts [Last Member Query Count] Group-Specific Queries every [LAST_MEMBER_QUERY_INTERVAL] upon receiving a Leave message\n\n[Log-derived analysis] A querier multicasts [Last Member Query Count] Group-Specific Queries every [LAST_MEMBER_QUERY_INTERVAL] upon receiving a Leave message",
+    "reference": "RFC 2236, IGMP Version 2, s3 p5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93710999",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.3.10": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Any querier to non-querier transition is ignored during the period of Last Member Query Interval * Last Member Query Count\n\n[Log-derived analysis] Any querier to non-querier transition is ignored during the period of Last Member Query Interval * Last Member Query Count",
+    "reference": "RFC 2236, IGMP Version 2, s3 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711000",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.3.11": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "Queriers SHOULD ignore Leave Group messages for which there are no group members on the reception interface\n\n[Log-derived analysis] Queriers SHOULD ignore Leave Group messages for which there are no group members on the reception interface",
+    "reference": "RFC 2236, IGMP Version 2, s3 p6 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711001",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.4.2": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "When in IGMP v1 mode, routers MUST multicast periodic queries with a Max Response Time of 0\n\n[Log-derived analysis] When in IGMP v1 mode, routers MUST multicast periodic queries with a Max Response Time of 0",
+    "reference": "RFC 2236, IGMP Version 2, s4 p5 Compatibility with IGMPv1 routers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711002",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.4.3": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "When in IGMP v1 mode, routers MUST ignore Leave Group messages\n\n[Log-derived analysis] When in IGMP v1 mode, routers MUST ignore Leave Group messages",
+    "reference": "RFC 2236, IGMP Version 2, s4 p6 Compatibility with IGMPv1 routers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711003",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.4.5": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "If an IGMP v2 router hears a v1 report it must set up a timer equal to GROUP_MEMBERSHIP_INTERVAL\n\n[Log-derived analysis] If an IGMP v2 router hears a v1 report it must set up a timer equal to GROUP_MEMBERSHIP_INTERVAL",
+    "reference": "RFC 2236, IGMP Version 2, s5 p7 Compatibility with IGMPv1 hosts",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711004",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.5.4": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "To be valid the query message MUST have the right checksum and must be 8 octets long\n\n[Log-derived analysis] To be valid the query message MUST have the right checksum and must be 8 octets long",
+    "reference": "NEGATIVE: RFC 2236, IGMP Version 2, s6 p8 Host State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711005",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.5.6": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "To be valid a report must have a valid checksum and any greater than 8 octets long must be accepted for future compatability\n\n[Log-derived analysis] To be valid a report must have a valid checksum and any greater than 8 octets long must be accepted for future compatability",
+    "reference": "NEGATIVE: RFC 2236, IGMP Version 2, s6 p8 Host State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711006",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "FAIL"
+    }
+  },
+  "2007.5.10": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "The Leave message is sent to ALL-ROUTERS\n\n[Log-derived analysis] The Leave message is sent to ALL-ROUTERS",
+    "reference": "NEGATIVE: RFC 2236, IGMP Version 2, s6 p9 Host State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711007",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.1": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "To be valid, a leave message must have correct IGMP checksum and must be 8 octets long\n\n[Log-derived analysis] To be valid, a leave message must have correct IGMP checksum and must be 8 octets long",
+    "reference": "NEGATIVE: RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711008",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.3": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "The DUT retransmits the Group-Specific query when the retransmit timer expires. Its value is LAST_MEMBER_QUERY_INTERVAL\n\n[Log-derived analysis] The DUT retransmits the Group-Specific query when the retransmit timer expires. Its value is LAST_MEMBER_QUERY_INTERVAL",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711009",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.4": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "The Group-Specific query has a Max Response Time of [Last Member Query Interval]\n\n[Log-derived analysis] The Group-Specific query has a Max Response Time of [Last Member Query Interval]",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711010",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.5": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "There is no querier-non-querier transition when a group-specific query has been sent out\n\n[Log-derived analysis] There is no querier-non-querier transition when a group-specific query has been sent out",
+    "reference": "RFC 2236, IGMP Version 2, s3 page 5 Protocol Description",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711011",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.6": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "10 IGMP v2 hosts join and leave 2 groups on 2 different interfaces DUT is an IGMP v2 router (Tests an IGMP router behavior according to router state machine on its multiple interfaces)\n\n[Log-derived analysis] 10 IGMP v2 hosts join and leave 2 groups on 2 different interfaces DUT is an IGMP v2 router (Tests an IGMP router behavior according to router state machine on its multiple interfaces)",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711012",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.7": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "10 IGMP v2 hosts join and leave a group, DUT is an IGMP v2 router (Tests an IGMP router behavior according to router state machine on its one interface)\n\n[Log-derived analysis] 10 IGMP v2 hosts join and leave a group, DUT is an IGMP v2 router (Tests an IGMP router behavior according to router state machine on its one interface)",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711013",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2007.6.9": {
+    "suite_id": "2007",
+    "suite_name": "2007_IxANVL_igmp_router",
+    "description": "10 IGMP v2 hosts join and leave a group, DUT is an IGMP v2 router. 10 remotely originated multicast packets are sent to the DUT (Tests an IGMP router behavior including its multicast packet forwarding capability according to router state machine\n\n[Log-derived analysis] 10 IGMP v2 hosts join and leave a group, DUT is an IGMP v2 router. 10 remotely originated multicast packets are sent to the DUT (Tests an IGMP router behavior including its multicast packet forwarding capability according to router state machine",
+    "reference": "RFC 2236, IGMP Version 2, s7 page 13 Router State Diagram",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358046",
+      "log_uid": "93711014",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "FAIL"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "key": "AWPTCM-T33249",
+  "primary": {
+    "m": "AWP-4397",
+    "c": "med",
+    "w": "ARP Log: Functionality"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-02 19:57:23.395941",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-9337",
+        "title": "Logging",
+        "justification": "Related TestLink case"
+      },
+      {
+        "id_or_key": "AWP-9864",
+        "title": "ARP Security - logging enabled/disabled/thrash",
+        "justification": "Related TestLink case"
+      },
+      {
+        "id_or_key": "AWP-5519",
+        "title": "Logging",
+        "justification": "Related TestLink case"
+      }
+    ]
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-02 19:57:25.924037",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T33249",
+        "title": "(21) IPv4_ARP - ARP Logging",
+        "justification": "The case being refined"
+      },
+      {
+        "id_or_key": "AWPTCM-T1552",
+        "title": "ATMF Minor Clients  License - Autorecovery blocked when no license",
+        "justification": "Related Zephyr case (same area/keywords)"
+      }
+    ]
+  },
+  "step3": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step4": {},
+  "gaps": "",
+  "art_string": "",
+  "full_session": {},
+  "updated_at": "2026-07-12 19:59:52.321752",
+  "llm_config": {
+    "provider": "mock",
+    "auth_method": "api_key",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "1338.0.0": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1338.1001.0": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1338.1001.1": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Continuous Reboot Prevention mechanism triggered by killing nsm\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that on a standalone switch the Continuous Reboot Prevention mechanism is triggered when a critical process (nsm) is repeatedly killed, forcing back-to-back unexpected reboots within the prevention window. Expects the reboot history to record the critical-process failures and a continuous-reboot-prevention event, and that only the expected process exceptions are seen. Reported UNSUPPORTED with no recent PASS on the current setup.",
+    "reference": "",
+    "past_crs": [
+      "36137",
+      "74715",
+      "78414",
+      "SYST-8538"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1338.1001.2": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Continuous Reboot Prevention mechanism triggered by killing lacpd\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that on a standalone switch the Continuous Reboot Prevention mechanism is triggered when the lacpd process is repeatedly killed, driving back-to-back unexpected reboots within the prevention window. Expects the reboot history to log the process failures plus a continuous-reboot-prevention event, with only the expected exceptions recorded. Reported UNSUPPORTED with no recent PASS on the current setup.",
+    "reference": "",
+    "past_crs": [
+      "35788",
+      "36137",
+      "38697",
+      "55250",
+      "57875",
+      "75891",
+      "78414",
+      "CR-86063"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1338.1001.3": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Continuous Reboot Prevention mechanism triggered by power cycling\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that on a standalone switch the Continuous Reboot Prevention mechanism is triggered by repeated power cycling, where rapid successive unexpected reboots fall inside the prevention window. Expects the reboot history to record the power-loss reboots and a continuous-reboot-prevention event. Reported UNSUPPORTED with no recent PASS on the current setup.",
+    "reference": "",
+    "past_crs": [
+      "36137",
+      "78414"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1338.1001.4": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Continuous Reboot Prevention mechanism NOT triggered by CLI reboot\n\n[Log-derived analysis] Verifies that on a standalone switch normal user-initiated CLI reboots do NOT trigger Continuous Reboot Prevention. Clears logs and reboot history, performs successive CLI reboots, and confirms each is recorded as an Expected reboot, that no continuous-reboot event is logged, and that no tech-support file is generated. Also checks the running-config is preserved after teardown and no exceptions occur.",
+    "reference": "",
+    "past_crs": [
+      "CR-86063"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356148",
+      "log_uid": "93651547",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1338.1001.5": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Confirm the size of reboot history\n\n[Log-derived analysis] Verifies the reboot-history buffer size cap on a standalone switch. Performs more reboots than the history can hold, then confirms the history retains only the most recent capped number of entries, shows them in correct (newest-first) chronological order, and that the config is preserved after teardown with no exceptions.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "2733781",
+      "log_uid": "75800913",
+      "platform": "AR2050V-tb41.rel",
+      "sw_version": "5.5.3-20241003-1",
+      "run_date": "2024-11-06",
+      "result": "PASS"
+    }
+  },
+  "1338.1001.6": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Standalone switch, Continuous Reboot Prevention not triggered due to short period\n\n[Log-derived analysis] Verifies that on a standalone switch Continuous Reboot Prevention is NOT triggered when critical-process failures are spaced far enough apart to fall outside the prevention window. Repeatedly kills the nsm process with a deliberate delay between failures and confirms each reboot is logged as an unexpected critical-process failure without a continuous-reboot event, that only the expected exceptions are seen, and that the config is preserved with no exceptions.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356148",
+      "log_uid": "93652266",
+      "platform": "AR3050S-tb70.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1338.2001.0": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1338.2001.1": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Stack, Continuous Reboot Prevention mechanism triggered with stack ID conflicts\n\n[Log-derived analysis] Verifies that on a stack the Continuous Reboot Prevention mechanism is triggered by repeated stack-ID (duplicate VCS member-ID) conflicts. Renumbers a member to create a duplicate ID and reboots it across successive cycles, confirming the first conflict reboot is logged as an unexpected duplicate-member-ID reboot and a later one is attributed to continuous-reboot prevention. Confirms a tech-support file is generated, the stack returns to a good (Ready/Sync) state, the config is preserved, and no member reports exceptions.",
+    "reference": "",
+    "past_crs": [
+      "36137",
+      "38697",
+      "40929",
+      "57719",
+      "64291",
+      "68269",
+      "81907",
+      "SYST-7459",
+      "SYST-8418",
+      "SYST-8016",
+      "SYST-8016",
+      "SYST-8418"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356586",
+      "log_uid": "93663322",
+      "platform": "SBx908NG-tb126.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1338.2001.2": {
+    "suite_id": "1338",
+    "suite_name": "1338_cont_reboot",
+    "description": "Stack, Continuous Reboot Prevention mechanism triggered by rolling reboot timeout\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify that on a stack the Continuous Reboot Prevention mechanism is triggered by repeated rolling-reboot timeouts, where members fail to rejoin within the expected window across successive reboot cycles. Best-effort intent inferred from sibling stack cases: expects the reboot history to record the rolling-reboot-timeout reboots and a continuous-reboot-prevention event, with the stack recovering to a good state and the config preserved afterward.",
+    "reference": "",
+    "past_crs": [
+      "36137",
+      "50025"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

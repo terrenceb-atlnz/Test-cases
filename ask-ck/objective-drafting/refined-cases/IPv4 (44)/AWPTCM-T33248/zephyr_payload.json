@@ -1,0 +1,38 @@
+{
+  "AWPTCM-T33248": {
+    "objective": "<ul><li>The clear arp-cache command removes all dynamic ARP entries from the ARP table while leaving static ARP entries intact.</li><li>Static ARP entries persist across system restart, failover, and hot-swap events.</li><li>Static ARP entries are not replaced by dynamic ARP entries.</li><li>Static ARP entries are not overwritten by gratuitous ARP packets.</li><li>Static ARP entries maintain correct association with their configured L2 interface and static FDB entry.</li><li>show arp and related commands accurately reflect static ARP configuration and state.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a static ARP entry on a VLAN interface. Verify it appears correctly in show arp and is not replaced by dynamic ARP learning.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the static ARP entry and confirm a dynamic ARP entry is learned for the same IP. Re-add the static ARP and confirm the dynamic entry is replaced.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify static ARP entries persist across system restart, failover, and hot-swap events.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Send gratuitous ARP packets for a static ARP IP and confirm the static entry is not overwritten.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify static ARP entries maintain correct L2 interface association and corresponding static FDB entry.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test changing the port of an existing static ARP entry and confirm it updates correctly without leaving stale entries.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

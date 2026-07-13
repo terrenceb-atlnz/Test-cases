@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33370": {
+    "objective": "<ul><li>When two-step authentication is enabled with MAC as the first method and WEB as the second method, a correct MAC address at the first step transitions the supplicant to the \"Connecting\" state awaiting the second-step WEB authentication.</li><li>Invalid MAC at the first step places the supplicant in the HELD state for the duration of the quiet-period.</li><li>Invalid WEB credentials within the max-auth-fail limit at the second step place the supplicant in the \"Reauthenticating\" state, allowing further attempts.</li><li>Invalid WEB credentials at the max-auth-fail count at the second step place the supplicant in the HELD state for the quiet-period.</li><li>Successful completion of the second-step WEB authentication results in the supplicant reaching the Authenticated state.</li><li>Correct log messages are generated at the appropriate times for success and failure of each step (first MAC and second WEB), including IP and MAC details for WEB.</li><li>The \"auth two-step enable\" command is accepted, appears in running-config, persists after save and reboot, and can be disabled with the \"no\" form.</li><li>The \"show auth two-step supplicant\" (and brief) commands accurately report two-step information including firstMethod (mac), secondMethod (web), per-supplicant status for each step, and counts.</li><li>The \"auth-mac password\" command works correctly for two-step MAC first / WEB second (password can match MAC or be RADIUS configured).</li><li>The maximum number of supplicants supported for two-step auth (1st MAC / 2nd WEB) is correctly enforced.</li><li>Repeated execution of two-step authentication using 1st MAC / 2nd WEB does not cause crashes, hangs, or errors.</li><li>RADIUS integration and MAC address list (allow/deny) function correctly in the two-step MAC first / WEB second context.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable two-step authentication (auth two-step enable) together with MAC auth and WEB auth. Configure optional auth-mac password. Verify the enable command and \"no\" form work, persist after reboot, and appear correctly in running-config.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect a supplicant. Perform Two-Step with 1st step MAC (correct MAC) followed by 2nd step WEB (correct credentials). Verify transition through Connecting state to final Authenticated state. Confirm \"show auth two-step supplicant\" reports firstMethod=mac, secondMethod=web, and step statuses. Verify auth-mac password works if used.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test failure paths: invalid MAC at 1st step (expect HELD + quiet-period), correct MAC then invalid WEB within max-auth-fail (expect Reauthenticating), then full max-auth-fail (expect HELD). Verify logs are generated at the correct steps for WEB as 2nd.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify correct success and failure log messages are produced for each step (MAC first and WEB second), including proper formatting with IP/MAC for WEB logs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test the supported maximum number of supplicants for this two-step combination (1st MAC / 2nd WEB). Confirm enforcement and that excess attempts are handled correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the full 1st-MAC / 2nd-WEB two-step sequence multiple times (including logout). Confirm no crashes, hangs, or unexpected errors occur.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm MAC address list (allow/deny) and RADIUS integration work in the two-step MAC first + WEB second context.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

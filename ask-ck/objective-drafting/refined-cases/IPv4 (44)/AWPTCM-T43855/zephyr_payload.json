@@ -1,0 +1,26 @@
+{
+  "AWPTCM-T43855": {
+    "objective": "<ul><li>IPv4 static routes are supported and can be configured on the device.</li><li>Configured IPv4 static routes are visible in show commands and used for unicast traffic forwarding.</li><li>IPv4 static routes function correctly during power cycle and rolling reboot scenarios (convergence and forwarding maintained).</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure IPv4 static routes and verify they are accepted and shown in running-config and show ip route.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify unicast traffic forwards correctly using the static routes (e.g. ping or traffic test).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test during power cycle and rolling reboot; confirm routes converge and traffic continues.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

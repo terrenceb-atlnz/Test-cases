@@ -1,0 +1,42 @@
+{
+  "AWPTCM-T33369": {
+    "objective": "<ul><li>When two-step authentication is enabled with MAC as the first method and 802.1X as the second method, a correct MAC address at the first step transitions the supplicant to the \"Connecting\" state awaiting the second-step 802.1X authentication.</li><li>Invalid MAC at the first step places the supplicant in the HELD state for the duration of the quiet-period.</li><li>Invalid credentials at the second-step 802.1X authentication place the supplicant in the HELD state for the quiet-period.</li><li>Successful completion of the second-step 802.1X authentication results in the supplicant reaching the Authenticated state.</li><li>Correct log messages are generated at the appropriate times for success and failure of each step (first MAC and second 802.1X).</li><li>The \"auth two-step enable\" command is accepted, appears in running-config, persists after save and reboot, and can be disabled with the \"no\" form.</li><li>The \"show auth two-step supplicant\" (and brief) commands accurately report two-step information including firstMethod (mac), secondMethod (802.1x), per-supplicant status for each step, and counts.</li><li>The maximum number of supplicants supported for two-step auth (1st MAC / 2nd 802.1X) is correctly enforced.</li><li>Repeated execution of two-step authentication using 1st MAC / 2nd 802.1X does not cause crashes, hangs, or errors.</li><li>MAC-based and 802.1X authentication can operate together (including in two-step mode) without interference on supported ports.</li></ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable two-step authentication (auth two-step enable) together with MAC auth and 802.1X. Configure a port for the combination. Verify the enable command and \"no\" form work, persist after reboot, and appear correctly in running-config.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Connect a supplicant. Perform Two-Step with 1st step MAC (correct MAC) followed by 2nd step 802.1X (correct credentials). Verify transition through Connecting state to final Authenticated state. Confirm \"show auth two-step supplicant\" reports firstMethod=mac, secondMethod=802.1x (or dot1x), and step statuses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test failure paths: invalid MAC at 1st step (expect HELD + quiet-period), correct MAC then invalid 802.1X at 2nd step (expect HELD). Verify logs are generated at the correct steps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify correct success and failure log messages are produced for each step (MAC first and 802.1X second).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test the supported maximum number of supplicants for this two-step combination. Confirm enforcement and that excess attempts are handled correctly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the full 1st-MAC / 2nd-802.1X two-step sequence multiple times. Confirm no crashes, hangs, or unexpected errors occur.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm MAC auth list (allow/deny) and RADIUS integration work in the two-step context where supported.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

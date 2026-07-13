@@ -1,0 +1,34 @@
+You are an expert at analyzing automated test coverage for manual test cases.
+
+Given this manual test case and prior reviews:
+
+Case: {{ case_key }}
+Primary decision: {{ primary }}
+
+TestLink selections (historical context for artefacts):
+{% for s in testlink_selections %}
+- {{ s.id_or_key }}: {{ s.title }} (justification: {{ s.justification }})
+{% endfor %}
+
+Zephyr cross-references reviewed:
+{% for s in zephyr_selections %}
+- {{ s.key or s.id_or_key }}: {{ s.title }}
+{% endfor %}
+
+Here are candidate ATPyLib automated tests (id: description + suite):
+{% for c in candidates %}
+- {{ c.id }}: {{ c.description }} (suite: {{ c.suite }})
+{% endfor %}
+
+Task:
+1. Score each candidate from 0.0 to 1.0 for relevance to the artefacts, scenarios, and edge cases described in the TestLink and Zephyr selections.
+2. Select and rank the top 6-10 most relevant (highest scores first).
+
+Do NOT write a gaps analysis here. Gaps are generated later at synthesis/export for the Traceability artefact.
+
+Return ONLY valid JSON in this exact shape (no other text):
+{
+  "ranked": [
+    {"id": "1342.301.12", "score": 0.92, "reason": "Directly covers auto negotiation and polarity from primary TL case"}
+  ]
+}

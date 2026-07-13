@@ -1,0 +1,342 @@
+{
+  "2011.1.1": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Before the link-local address ..., a node must attempt to verify that this \"tentative\" address is not already in use by another node on the link. ... Target Address is set to the address being checked, the IP source is set to the unspecified address and the IP destination is set to the solicited-node multicast address of the target address.\n\n[Log-derived analysis] Before the link-local address ..., a node must attempt to verify that this \"tentative\" address is not already in use by another node on the link. ... Target Address is set to the address being checked, the IP source is set to the unspecified address and the IP destination is set to the solicited-node multicast address of the target address.",
+    "reference": "RFC 4862 s4 p8 Protocol Overview RFC 4862 s5.4.2 p14-15 Sending Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712461",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.1.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "If another node is already using that address, it will return a Neighbor Advertisement saying so.\n\n[Log-derived analysis] If another node is already using that address, it will return a Neighbor Advertisement saying so.",
+    "reference": "RFC 4862 s4 p8 Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712462",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.1.3": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Once a node ascertains that its tentative link-local address is unique, it assigns it to the interface. At this point, the node has IP-level connectivity with neighboring nodes\n\n[Log-derived analysis] Once a node ascertains that its tentative link-local address is unique, it assigns it to the interface. At this point, the node has IP-level connectivity with neighboring nodes",
+    "reference": "RFC 4862 s4 p8 Protocol Overview",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712463",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.2.3": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "A link-local address is formed by combining the well-known link-local prefix FE80::0 [RFC4291] (of appropriate length) with an interface identifier ...\n\n[Log-derived analysis] A link-local address is formed by combining the well-known link-local prefix FE80::0 [RFC4291] (of appropriate length) with an interface identifier ...",
+    "reference": "RFC 4862 s5.3 p12 Creation of Link-Local Addresses",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712464",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.3.1": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - An interface whose DupAddrDetectTransmits variable is set to zero does not perform Duplicate Address Detection.\n\n[Log-derived analysis] Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - An interface whose DupAddrDetectTransmits variable is set to zero does not perform Duplicate Address Detection.",
+    "reference": "RFC 4862 s5.4 p12 Duplicate Address Detection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712465",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.3.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - Duplicate Address Detection MUST NOT be performed on anycast addresses (note that anycast addresses cannot syntactically be distinguished from unicast addresses).\n\n[Log-derived analysis] Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - Duplicate Address Detection MUST NOT be performed on anycast addresses (note that anycast addresses cannot syntactically be distinguished from unicast addresses).",
+    "reference": "RFC 4862 s5.4 p12 Duplicate Address Detection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3294278",
+      "log_uid": "92063774",
+      "platform": "AR4050S-atr45.rel",
+      "sw_version": "awplus_main-20260421-1372",
+      "run_date": "2026-04-29",
+      "result": "PASS"
+    }
+  },
+  "2011.3.3": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - Each individual unicast address SHOULD be tested for uniqueness. Note that there are implementations deployed that only perform Duplicate Address Detection for the link-local address and skip the test for the global address that uses the same interface identifier as that of the link-local address.\n\n[Log-derived analysis] Duplicate Address Detection MUST be performed on all unicast addresses prior to assigning them to an interface, regardless of whether they are obtained through stateless autoconfiguration, DHCPv6, or manual configuration, with the following exceptions: - Each individual unicast address SHOULD be tested for uniqueness. Note that there are implementations deployed that only perform Duplicate Address Detection for the link-local address and skip the test for the global address that uses the same interface identifier as that of the link-local address.",
+    "reference": "RFC 4862 s5.4 p12 Duplicate Address Detection RFC 4291 s2.5.1 p8 Interface Identifiers",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712467",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.3.4": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Other packets addressed to the tentative address should be silently discarded. (Note: for Neighbor Advertisement)\n\n[Log-derived analysis] Other packets addressed to the tentative address should be silently discarded. (Note: for Neighbor Advertisement)",
+    "reference": "RFC 4862 s5.4 p13 Duplicate Address Detection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712468",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.3.5": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Other packets addressed to the tentative address should be silently discarded. (Note: for Neighbor Solicitation)\n\n[Log-derived analysis] Other packets addressed to the tentative address should be silently discarded. (Note: for Neighbor Solicitation)",
+    "reference": "RFC 4862 s5.4 p13 Duplicate Address Detection",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712469",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.4.1": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "A node MUST silently discard any Neighbor Solicitation or Advertisement message that does not pass the validity checks specified in [RFC4861]. (Note: Neighbor Advertisement, tests validity failure for IP Hop-Limit field value different from 255)\n\n[Log-derived analysis] A node MUST silently discard any Neighbor Solicitation or Advertisement message that does not pass the validity checks specified in [RFC4861]. (Note: Neighbor Advertisement, tests validity failure for IP Hop-Limit field value different from 255)",
+    "reference": "RFC 4862 s5.4.1 p14 Message Validation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712470",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.4.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "A node MUST silently discard any Neighbor Solicitation or Advertisement message that does not pass the validity checks specified in [RFC4861]. (Note: Neighbor Solicitation, Tests validity failure for IP Hop-Limit field value different from 255)\n\n[Log-derived analysis] A node MUST silently discard any Neighbor Solicitation or Advertisement message that does not pass the validity checks specified in [RFC4861]. (Note: Neighbor Solicitation, Tests validity failure for IP Hop-Limit field value different from 255)",
+    "reference": "RFC 4862 s5.4.1 p14 Message Validation",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712471",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.5.1": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "To check an address, a node sends DupAddrDetectTransmits Neighbor Solicitations, each separated by RetransTimer millisecond.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] To check an address, a node sends DupAddrDetectTransmits Neighbor Solicitations, each separated by RetransTimer millisecond.",
+    "reference": "RFC 4862 s5.4.2 p14 Sending Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2011.5.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "If the Neighbor Solicitation is going to be the first message sent from an interface after interface (re)initialization, the node SHOULD delay joining the solicited-node multicast address by a random delay between 0 and MAX_RTR_SOLICITATION_DELAY as specified in [RFC4861].\n\n[Log-derived analysis] If the Neighbor Solicitation is going to be the first message sent from an interface after interface (re)initialization, the node SHOULD delay joining the solicited-node multicast address by a random delay between 0 and MAX_RTR_SOLICITATION_DELAY as specified in [RFC4861].",
+    "reference": "RFC 4862 s5.4.2 p14 Sending Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712472",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.5.3": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "In order to improve the robustness of the Duplicate Address Detection algorithm, an interface MUST receive and process datagrams sent to the all-nodes multicast address or solicited-node multicast address of the tentative address during the delay period. (Note: To test if DUT processes the datagram sent to all-nodes multicast address)\n\n[Log-derived analysis] In order to improve the robustness of the Duplicate Address Detection algorithm, an interface MUST receive and process datagrams sent to the all-nodes multicast address or solicited-node multicast address of the tentative address during the delay period. (Note: To test if DUT processes the datagram sent to all-nodes multicast address)",
+    "reference": "RFC 4862 s5.4.2 p15 Sending Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712473",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.5.4": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "Before sending a Neighbor Solicitation, an interface MUST join the all-nodes multicast address and the solicited-node multicast address of the tentative address. Note that when a node joins a multicast address, it typically sends a Multicast Listener Discovery (MLD) report message [RFC2710] [RFC3810] for the multicast address. Note: Here Checking for Solicited Node Multicast Address\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Before sending a Neighbor Solicitation, an interface MUST join the all-nodes multicast address and the solicited-node multicast address of the tentative address. Note that when a node joins a multicast address, it typically sends a Multicast Listener Discovery (MLD) report message [RFC2710] [RFC3810] for the multicast address. Note: Here Checking for Solicited Node Multicast Address",
+    "reference": "RFC 4862 s5.4.2 p14, p15 Sending Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2011.6.1": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "In all cases, a node MUST NOT respond to a Neighbor Solicitation for a tentative address\n\n[Log-derived analysis] In all cases, a node MUST NOT respond to a Neighbor Solicitation for a tentative address",
+    "reference": "RFC 4862 s5.4.3 p15 Receiving Neighbor Solicitation Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3358094",
+      "log_uid": "93712474",
+      "platform": "SBx81CFC960-atr42.rel",
+      "sw_version": "awplus_main-20260618-1527",
+      "run_date": "2026-06-22",
+      "result": "PASS"
+    }
+  },
+  "2011.6.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "If a Neighbor Solicitation for a tentative address is received prior to having sent one, the tentative address is a duplicate. A tentative address that is determined to be a duplicate as described above, MUST NOT be assigned to an interface\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] If a Neighbor Solicitation for a tentative address is received prior to having sent one, the tentative address is a duplicate. A tentative address that is determined to be a duplicate as described above, MUST NOT be assigned to an interface",
+    "reference": "RFC 4862 s5.4.3 p16 Receiving Neighbor Solicitation Messages RFC 4862 s5.4.5 p16 When Duplicate Address Detection Fails",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2011.6.3": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "On receipt of a valid Neighbor Advertisement message on an interface, node behavior depends on whether the target address is tentative or matches a unicast or anycast address assigned to the interface: 1. If the target address is tentative, the tentative address is not unique.\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] On receipt of a valid Neighbor Advertisement message on an interface, node behavior depends on whether the target address is tentative or matches a unicast or anycast address assigned to the interface: 1. If the target address is tentative, the tentative address is not unique.",
+    "reference": "RFC 4862 s5.4.4 p16 Receiving Neighbor Advertisement Messages",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 6,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "2011.7.2": {
+    "suite_id": "2011",
+    "suite_name": "2011_IxANVL_ipv6_autoconfig",
+    "description": "A tentative address that is determined to be a duplicate as described above MUST NOT be assigned to an interface, ... - silently drop any IP packets received on the interface,\n\n[Inferred behavior \u2014 no execution history for this case] A tentative address that is determined to be a duplicate as described above MUST NOT be assigned to an interface, ... - silently drop any IP packets received on the interface,",
+    "reference": "RFC 4862 s5.4.5 p17 When Duplicate Address Detection Fails",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 7,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  }
+}

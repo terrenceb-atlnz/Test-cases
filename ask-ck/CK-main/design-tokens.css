@@ -1,0 +1,78 @@
+/* Design System - Design Tokens */
+/* Extracted from Design Guidelines Showcase */
+
+:root {
+  /* Light Theme */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --bg-tertiary: #F1F3F5;
+  --bg-sidebar: #F8F9FA;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F1F3F5;
+  --bg-active: #E9ECEF;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-inverse: #FFFFFF;
+  --border-default: #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --border-strong: #D1D5DB;
+  --accent-primary: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-muted: #DBEAFE;
+  --accent-text: #1D4ED8;
+  --status-critical: #EF4444;
+  --status-critical-muted: #FEE2E2;
+  --status-high: #F97316;
+  --status-high-muted: #FFEDD5;
+  --status-medium: #EAB308;
+  --status-medium-muted: #FEF9C3;
+  --status-low: #6B7280;
+  --status-low-muted: #F3F4F6;
+  --status-success: #22C55E;
+  --status-success-muted: #DCFCE7;
+  --focus-ring: #3B82F680;
+  --overlay: #00000050;
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* Dark Theme */
+.dark {
+  --bg-primary: #0F0F0F;
+  --bg-secondary: #171717;
+  --bg-tertiary: #1E1E1E;
+  --bg-sidebar: #141414;
+  --bg-elevated: #1E1E1E;
+  --bg-hover: #1E1E1E;
+  --bg-active: #262626;
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --text-inverse: #111827;
+  --border-default: #262626;
+  --border-subtle: #1E1E1E;
+  --border-strong: #3F3F46;
+  --accent-primary: #3B82F6;
+  --accent-hover: #60A5FA;
+  --accent-muted: #1E3A5F;
+  --accent-text: #60A5FA;
+  --status-critical: #F87171;
+  --status-critical-muted: #3B1111;
+  --status-high: #FB923C;
+  --status-high-muted: #3B1F06;
+  --status-medium: #FACC15;
+  --status-medium-muted: #3B3506;
+  --status-low: #9CA3AF;
+  --status-low-muted: #1E1E1E;
+  --status-success: #4ADE80;
+  --status-success-muted: #0B3B1B;
+  --focus-ring: #3B82F680;
+  --overlay: #FFFFFF15;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+}

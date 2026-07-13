@@ -1,0 +1,1144 @@
+{
+  "1339.0.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSuite PostRun failure for results publishing\n\nTest-harness step (not a functional test): logs the test-suite post-run outcome for results publishing. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 0,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1339.1001.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1339.1001.1": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Hello ATMF\n\n[Log-derived analysis] Sanity check that a basic ATMF network forms correctly. Builds the working-set across all members, confirms every node has joined the ATMF network, verifies no unexpected channel groups exist, and that configuration is restored and exception-free after teardown.",
+    "reference": "",
+    "past_crs": [
+      "40648"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621091",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.2": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Unique internal IDs\n\n[Log-derived analysis] Verifies that each ATMF node has a unique internal node ID. Sets the internal ATMF ID to a duplicate value on one device, reboots all devices, waits for them to rejoin, and confirms the node IDs are reassigned to unique values so the network forms correctly.",
+    "reference": "AWP-12253",
+    "past_crs": [
+      "40335",
+      "41530",
+      "54138",
+      "55345",
+      "56068",
+      "61324"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621127",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.3": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF remote-login WORD\n\n[Log-derived analysis] Verifies ATMF remote-login behaviour from the master. Confirms a remote login to a valid member succeeds, that logging in to an unknown host fails, that nesting a remote login from within a remote login is rejected, and that attempting to remote-login to the current host produces the expected warning.",
+    "reference": "AWP-12230",
+    "past_crs": [
+      "39127",
+      "40335",
+      "51086",
+      "62596",
+      "73386"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621137",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.4": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF disable and re-enable\n\n[Log-derived analysis] Verifies ATMF can be disabled and re-enabled. Disables ATMF (confirming a reboot is required), reboots and checks the node has left the network while the others stay up, then re-enables ATMF and confirms all nodes rejoin, surviving a subsequent reboot.",
+    "reference": "AWP-12231, AWP-12232",
+    "past_crs": [
+      "38697",
+      "40335",
+      "41495",
+      "50789",
+      "50791",
+      "SYST-7778",
+      "SYST-7778",
+      "SYST-7778"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621258",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.5": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Network name\n\n[Log-derived analysis] Verifies the ATMF network name. Configures a member as a separate master with a different network name and reboots it, confirms it forms its own single-node network while the original master keeps its members, then restores the original name and confirms all nodes rejoin the one network.",
+    "reference": "AWP-12313",
+    "past_crs": [
+      "38747",
+      "40335"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621468",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.6": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Symbolic hostnames\n\n[Log-derived analysis] Verifies symbolic (VCN) hostnames. Confirms setting the device hostname updates the ATMF node name, that clearing it reverts to the auto-generated default, that names with invalid characters or exceeding the maximum length are rejected, and that nodes are reachable by their .atmf hostnames via ping.",
+    "reference": "AWP-12371",
+    "past_crs": [
+      "40335",
+      "54178"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621611",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.7": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Define groups of VCN members and select them by name\n\n[Log-derived analysis] Verifies user-defined ATMF groups. Creates a working set of all nodes, removes a node from it, defines a named group containing selected members, confirms the group resolves to the expected nodes, then removes the group.",
+    "reference": "AWP-12245",
+    "past_crs": [
+      "40335"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621660",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.8": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Automatic master group\n\n[Log-derived analysis] Verifies the automatic 'master' group. Confirms the built-in master group is available on the master and contains only the master node, and that the master group is not available when queried from a member.",
+    "reference": "AWP-12258",
+    "past_crs": [
+      "40335",
+      "55324"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621706",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.9": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Scripts should work on working set\n\n[Log-derived analysis] Verifies that ATMF scripts run across a working set. Activates a script against the all-nodes working set, confirms the configuration change is applied on every device, then removes the change and restores configuration.",
+    "reference": "AWP-12257",
+    "past_crs": [
+      "40335"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621763",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.10": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF specific domain name\n\n[Log-derived analysis] Verifies connectivity using an ATMF-specific domain name. Confirms the expected node count and that ping, telnet, traceroute, and ATMF remote-login all succeed to members addressed by their ATMF names.",
+    "reference": "AWP-12959",
+    "past_crs": [
+      "39127",
+      "40335",
+      "51086",
+      "73386"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93621819",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.11": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF management VLAN\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify ATMF operation with a non-default ATMF management VLAN across a VCS stack. Reported UNSUPPORTED because the DUT is not stacked on the current test setup.",
+    "reference": "AWP-12405",
+    "past_crs": [
+      "40335",
+      "50030"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1339.1001.12": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF works after failover\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that ATMF continues to operate correctly after a VCS stack master failover. Reported UNSUPPORTED because the DUT is not stacked on the current test setup.",
+    "reference": "-",
+    "past_crs": [
+      "40335",
+      "58744",
+      "SYST-7905"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1339.1001.13": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF backup onto sdcard\n\n[Log-derived analysis] Verifies ATMF backup onto an SD card. Populates the master and a member with many release files, runs repeated manual ATMF backups to the SD media, and confirms each backup completes successfully with all nodes shown as backed up and no errors logged.",
+    "reference": "cr39431",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93622251",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.14": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Network name\n\n[Log-derived analysis] Verifies the ATMF network name handling when a member is configured as a master. Configures a member as an ATMF master with a different network name and reboots it, confirms it forms its own single-node network while the original keeps the remaining member, then restores the name and confirms all nodes rejoin.",
+    "reference": "AWP-12313, 1339.1001.5",
+    "past_crs": [
+      "54278",
+      "41888",
+      "SYST-7469"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93622437",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.15": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "VCS master failover of ATMF master node\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that a VCS stack master failover of the ATMF master node is handled cleanly with the network reforming. Reported UNSUPPORTED because the DUT is not stacked on the current test setup.",
+    "reference": "",
+    "past_crs": [
+      "59375",
+      "76299",
+      "SYST-7905",
+      "CR-87771"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1339.1001.16": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF file copy\n\n[Log-derived analysis] Verifies ATMF file copy between nodes. Creates a file and confirms copying it local-to-remote and remote-to-local (both silent and with progress feedback) succeeds and the copied file matches, then removes the test file from all devices.",
+    "reference": "CR-50274, AWP-12959",
+    "past_crs": [
+      "51102",
+      "53362"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93622489",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.17": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF secure mode\n\n[Log-derived analysis] Verifies ATMF secure mode. Enables secure-mode on each member individually, confirms the network reforms as secured with restricted login, then disables secure-mode and confirms all nodes rejoin the unsecured network.",
+    "reference": "CR-58695",
+    "past_crs": [
+      "CR-90206",
+      "SYST-8779,"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93622556",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.18": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF secure mode from the ATMF Master\n\n[Log-derived analysis] Verifies enabling/disabling ATMF secure mode network-wide from the master. Confirms that toggling secure mode from the master causes the member nodes to leave and then rejoin the (secured, then unsecured) network as expected.",
+    "reference": "CR-58695",
+    "past_crs": [
+      "74601"
+    ],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93622615",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.1001.19": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF eventwatch for LACP\n\n[Log-derived analysis] Verifies ATMF eventwatch reporting of LACP state changes. Confirms the LACP-state-change-events feature is off by default and not logged, enables it and triggers a port event, confirms the LACP attach/detach event is captured in the eventwatch, then disables the feature again.",
+    "reference": "ER-4354",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 1001,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92993075",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.2001.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1339.2001.1": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF virtual-link sanity check\n\n[Log-derived analysis] Sanity check of ATMF virtual-links. Confirms all nodes join over the virtual-links, then in turn brings down the underlying physical ports, the carrier VLANs, and de-configures the virtual-links, each time confirming the nodes leave the network and rejoin once the link is restored.",
+    "reference": "",
+    "past_crs": [
+      "CR-86361",
+      "CR-86350",
+      "CR-86343",
+      "SYST-7456",
+      "CR-87771"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93623482",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.2001.2": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF rolling reboot with virtual-links\n\n[Log-derived analysis] Verifies an ATMF rolling reboot across nodes connected by virtual-links. Triggers a rolling reboot of every node in sequence and confirms each node leaves and rejoins the network in turn, with all nodes back in the ATMF network and configuration preserved afterwards.",
+    "reference": "",
+    "past_crs": [
+      "52287",
+      "SYST-7456"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93623768",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.2001.3": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF virtual-link by hostname with remote host configuration - sanity check\n\n[Log-derived analysis] Sanity check of an ATMF virtual-link configured by hostname with remote-host configuration. Confirms the nodes join, then brings down the physical port, the carrier VLAN, and de-configures the virtual-link, each time confirming the nodes leave and rejoin when the link is restored.",
+    "reference": "SYST-6859",
+    "past_crs": [
+      "SYST-7456"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93623965",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-19",
+      "result": "PASS"
+    }
+  },
+  "1339.2001.82833": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check that AMF is not unstable after changing AMF link setting\n\n[Log-derived analysis] Verifies ATMF stability when an ATMF link type is changed. Shuts the virtual ATMF link and brings up a physical ATMF link between the affected nodes, confirms the node rejoins at the expected new node depth, and confirms the ATMF network remains stable (node count unchanged) over a sustained monitoring period.",
+    "reference": "CR-82833",
+    "past_crs": [
+      "SYST-7749",
+      "SYST-7817"
+    ],
+    "current_crs": [],
+    "testSet": 2001,
+    "caseId": 82833,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3356638",
+      "log_uid": "93665611",
+      "platform": "IE560-tb89.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.3001.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "harness_step"
+    }
+  },
+  "1339.3001.1": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Backup to Remote File Server\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify ATMF backup to a remote file server: configuring an external file server as the backup target and confirming node backups are written to it successfully.",
+    "reference": "",
+    "past_crs": [
+      "52940"
+    ],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1339.3001.2": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Auto-Recovery from Remote File Server\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify ATMF auto-recovery from a remote file server: a replacement node automatically retrieves its backed-up configuration from the remote file server and rejoins the network.",
+    "reference": "CR-55328",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1339.3001.3": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Auto-Recovery from Remote File Server with non-standard ATMF Management VLAN\n\n[Inferred behavior \u2014 no execution history for this case] Intended to verify ATMF auto-recovery from a remote file server when a non-standard ATMF management VLAN is in use, confirming a replacement node still recovers its configuration and rejoins.",
+    "reference": "CR-55328",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 3001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": false,
+      "reason": "no_execution_history"
+    }
+  },
+  "1339.4001.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1339.4001.1": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Controller - Hello World\n\n[Log-derived analysis] Sanity check of an ATMF controller connecting two ATMF areas. Confirms both the SRC and DST areas are reachable and authenticated from the controller and that each area can be reached via the CLI.",
+    "reference": "",
+    "past_crs": [
+      "52726",
+      "53285",
+      "54737",
+      "55348",
+      "73388",
+      "83547"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92995203",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.4001.2": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Controller - Link Downs\n\n[Log-derived analysis] Verifies ATMF controller area reachability under link failures. Shuts the area link to each area in turn and confirms the controller correctly reports that area as unreachable while the other stays reachable, then brings the links back and confirms both areas are reachable and authenticated again.",
+    "reference": "",
+    "past_crs": [
+      "53285",
+      "54737",
+      "83547"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92995321",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.4001.3": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Controller - Reboots\n\n[Log-derived analysis] Verifies ATMF controller area reachability survives node reboots. Reboots the area gateway nodes and confirms that connectivity to both ATMF areas is correctly restored, reachable, authenticated, and accessible via the CLI afterwards.",
+    "reference": "",
+    "past_crs": [
+      "53285",
+      "54737",
+      "55348",
+      "83547"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92995440",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.4001.4": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ATMF Controller - Stack failovers\n\n[Log-derived analysis] Verifies ATMF controller area connectivity survives a VCS stack master failover. Confirms both areas are reachable before failover, power-cycles the active stack master to force a failover, then confirms the stack reforms and both areas are reachable, authenticated, and CLI-accessible after the failover.",
+    "reference": "",
+    "past_crs": [
+      "53285",
+      "54737",
+      "55418",
+      "55348",
+      "55956",
+      "66408",
+      "83547"
+    ],
+    "current_crs": [],
+    "testSet": 4001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3357135",
+      "log_uid": "93688253",
+      "platform": "SBx81CFC960-tb123.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-21",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.0": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Log TestSet setup outcome\n\nTest-harness step (not a functional test): logs the per-test-set setup outcome before the set's functional cases run. Excluded from manual-test coverage mapping.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 0,
+    "log_analysis": {
+      "analysed": false,
+      "result": "FAIL",
+      "reason": "harness_step"
+    }
+  },
+  "1339.5001.1": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Master can be sent a Block request using the webapi. Check ATMF Members learn about the block\n\n[Log-derived analysis] Verifies an ATMF master accepts a block request over the web API and propagates it. Sends a link-down/drop block via the web API and confirms every node learns the block, that only nodes blocking locally list it without the 'all' qualifier, then removes the block and confirms it clears network-wide.",
+    "reference": "",
+    "past_crs": [
+      "60053",
+      "SYST-8664",
+      "SYST-8875"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 1,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996212",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.2": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Members implement a drop block by adding a discard entry into the FDB table\n\n[Log-derived analysis] Verifies an AMF member implements a drop block by installing a discard entry in the MAC FDB. Issues a web API drop request for a host, confirms the static discard entry appears in both the software and hardware MAC tables on the source switch, then removes the block and confirms the entry returns to forwarding.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 2,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996260",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.3": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Members implement a link-down block by putting the correct port into err-disabled state\n\n[Log-derived analysis] Verifies an AMF member implements a link-down block by err-disabling the host's port. Issues a web API link-down request, confirms the correct port enters err-disabled state, then removes the block and confirms the port returns to admin-up and running.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 3,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996292",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.4": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Master does not reply to webapi message unless the service is enabled\n\n[Log-derived analysis] Verifies the AMF master does not service web API block requests when the application-proxy service is disabled. Turns the service off and confirms the API responds with HTTP 503, then re-enables the service.",
+    "reference": "",
+    "past_crs": [
+      "CR-89485"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 4,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626114",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.5": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Master removes all blocks across the network if the service is disabled\n\n[Log-derived analysis] Verifies the AMF master clears all network-wide blocks when the application-proxy service is disabled. Adds several drop blocks, confirms they exist on every node, disables the service on the master, and confirms a log message is raised and the blocks are removed across the network.",
+    "reference": "",
+    "past_crs": [
+      "62249",
+      "71678"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 5,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626148",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.6": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Member removes all local blocks if the service is disabled\n\n[Log-derived analysis] Verifies an AMF member clears only its local blocks when its application-proxy service is disabled. Adds blocks network-wide, disables the service on one member, and confirms that member logs the event and clears its local blocks while the master and other members retain theirs.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 6,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996386",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.7": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Link down port of matching dynamic (DHCP) host by IP\n\n[Log-derived analysis] Verifies a link-down block against a dynamic (DHCP) host matched by IP. Confirms the DHCP client initially has connectivity, issues a web API link-down by IP, confirms traffic is then blocked, removes the block, and confirms connectivity is restored.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 7,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996441",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.8": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Drop traffic of matching dynamic (DHCP) host by IP\n\n[Log-derived analysis] Verifies a drop block against a dynamic (DHCP) host matched by IP. Confirms the DHCP client initially has connectivity, issues a web API drop by IP, confirms traffic is then dropped, removes the block, and confirms connectivity is restored.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 8,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996485",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.9": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Link down port of matching dynamic (DHCP) host by MAC\n\n[Log-derived analysis] Verifies a link-down block against a dynamic (DHCP) host matched by MAC. Confirms initial connectivity, issues a web API link-down by MAC, confirms traffic is then blocked, removes the block, and confirms connectivity is restored.",
+    "reference": "",
+    "past_crs": [
+      "SYST-8875"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 9,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626748",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.10": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Drop port of matching dynamic (DHCP) host by MAC\n\n[Log-derived analysis] Verifies a drop block against a dynamic (DHCP) host matched by MAC. Confirms initial connectivity, issues a web API drop by MAC, confirms traffic is then dropped, removes the block, and confirms connectivity is restored.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 10,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626807",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.11": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Link down port of matching dynamic (DHCP) host by IP without DHCP snooping\n\n[Log-derived analysis] Verifies a link-down block against a dynamic (DHCP) host matched by IP when DHCP snooping is not in use, relying on an opportunistic-ND ARP entry. Confirms initial connectivity, blocks by IP, confirms traffic is blocked, then removes the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 11,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626873",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.12": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "ARP match propagated to device with MAC match for IP block\n\n[Log-derived analysis] Verifies an IP-based block is correctly propagated to the device holding the matching MAC via its ARP entry. Confirms connectivity, issues a web API block by IP, confirms traffic is blocked on the correct device, then clears the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 12,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626932",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.13": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Quarantine port of matching dynamic (DHCP) host by IP\n\n[Log-derived analysis] Verifies a quarantine block against a dynamic (DHCP) host matched by IP. Confirms connectivity, issues a web API request that moves the host's port into the quarantine VLAN, confirms traffic is blocked, then removes the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 13,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93626995",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.14": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Apply global ip-filter block for IP address\n\n[Log-derived analysis] Verifies a global ip-filter block for an IP address. Confirms connectivity, issues a web API ip-block request, confirms the ip-filter is applied and traffic is blocked, then removes the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 14,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996822",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.15": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Move a blocked IP to another port on the network\n\n[Log-derived analysis] Verifies that a blocked host remains blocked after moving to another port on the network. Applies a block, relocates the host to a different port, and confirms the block continues to take effect, then clears the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 15,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92996890",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.16": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Failover ATMF Master with blocks\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that application-proxy threat-protection blocks survive a VCS stack master failover of the ATMF master. Reported UNSUPPORTED because it requires a stack of at least two members, which the current test setup does not provide.",
+    "reference": "",
+    "past_crs": [
+      "58943",
+      "59456",
+      "60250",
+      "60461",
+      "SYST-8419",
+      "SYST-8567",
+      "CR-89532",
+      "SYST-8704"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 16,
+    "log_analysis": {
+      "analysed": false,
+      "result": "UNSUPPORTED",
+      "reason": "unsupported_on_platform"
+    }
+  },
+  "1339.5001.17": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Trigger sending of block summary via master CLI\n\n[Log-derived analysis] Verifies that a block summary can be re-distributed from the master CLI. Applies a block and confirms all nodes have it, records the per-member add-notice count, triggers a block-summary send from the master, and confirms the add-notice count increments showing the blocks were redistributed.",
+    "reference": "",
+    "past_crs": [
+      "63700"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 17,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93627554",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.18": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Reboot ATMF Master with blocks\n\n[Log-derived analysis] Verifies that blocks persist across an ATMF master reboot. Applies a link-down block, reboots the ATMF master, and confirms the host remains blocked after the master comes back and all nodes rejoin, then clears the block and confirms connectivity returns.",
+    "reference": "",
+    "past_crs": [
+      "59456",
+      "63705",
+      "SYST-7787",
+      "SYST-8419",
+      "CR-90330"
+    ],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 18,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92997121",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.19": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Members implement a log-only block which does not block and only logs the threat (ER-2505)\n\n[Log-derived analysis] Verifies a log-only block matched by IP (ER-2505): the threat is logged but traffic is not blocked. Issues a web API log-only request by IP, confirms the block is known, that traffic still passes and no MAC discard or port link-down occurs, that the threat is written to the system log, and that clearing it is also logged.",
+    "reference": "ER-2505",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 19,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3329380",
+      "log_uid": "92997186",
+      "platform": "AR4050S-tb67.rel",
+      "sw_version": "awplus_main-20260528-1466",
+      "run_date": "2026-05-28",
+      "result": "PASS"
+    }
+  },
+  "1339.5001.20": {
+    "suite_id": "1339",
+    "suite_name": "1339_atmf",
+    "description": "Check ATMF Members implement a log-only block which does not block and only logs the threat (ER-2505)\n\n[Log-derived analysis] Verifies a log-only block matched by MAC (ER-2505): the threat is logged but traffic is not blocked. Issues a web API log-only request by MAC, confirms the block is known, that traffic still passes and no MAC discard or port link-down occurs, that the threat is written to the system log, and that clearing it is also logged.",
+    "reference": "ER-2505",
+    "past_crs": [],
+    "current_crs": [],
+    "testSet": 5001,
+    "caseId": 20,
+    "log_analysis": {
+      "analysed": true,
+      "source_run": "3355162",
+      "log_uid": "93627938",
+      "platform": "AR4050S-tb97.rel",
+      "sw_version": "awplus_main-20260619-1530",
+      "run_date": "2026-06-20",
+      "result": "PASS"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "key": "AWPTCM-T43822",
+  "primary": {
+    "m": "AWP-12123",
+    "c": "med",
+    "w": "VRRP dual-stack core"
+  },
+  "step1": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step2": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step3": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step4": {},
+  "gaps": "",
+  "art_string": "",
+  "full_session": {},
+  "updated_at": "2026-07-03 00:54:48.223350",
+  "llm_config": {
+    "provider": "mock",
+    "auth_method": "api_key",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  }
+}
