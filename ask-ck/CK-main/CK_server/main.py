@@ -48,8 +48,23 @@ from routers.wizard import router as wizard_router
 from routers.zephyr_tool import router as zephyr_tool_router
 from routers.test_composer import router as test_composer_router
 from routers.pytest_create import router as pytest_create_router
+from routers.agent_bridge import router as agent_bridge_router
+import llm as _llm
 
 app = FastAPI(title="Ask CK (Server-Backed)")
+
+
+@app.middleware("http")
+async def _bind_session_id(request: Request, call_next):
+    """Expose the browser's X-CK-Session header to the LLM layer (claude_agent routing).
+
+    Set per request in a ContextVar; never persisted. Empty for non-browser callers.
+    """
+    token = _llm.current_session_id.set(request.headers.get("X-CK-Session", ""))
+    try:
+        return await call_next(request)
+    finally:
+        _llm.current_session_id.reset(token)
 
 # Serve the migrated frontend using absolute path relative to this file
 static_dir = os.path.join(BASE_DIR, "static")
@@ -67,6 +82,7 @@ app.include_router(wizard_router, prefix="/api/wizard")
 app.include_router(zephyr_tool_router, prefix="/api/zephyr-tool")
 app.include_router(test_composer_router, prefix="/api/test-composer")
 app.include_router(pytest_create_router, prefix="/api/pytest-create")
+app.include_router(agent_bridge_router, prefix="/api/agent")
 
 
 @app.get("/favicon.ico")

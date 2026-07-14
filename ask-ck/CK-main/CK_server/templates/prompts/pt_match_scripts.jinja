@@ -29,6 +29,6 @@ For each candidate script decide whether it does ALL, SOME, or NONE of what the 
 - coverage "partial" = the script tests some entries or contains directly reusable mechanics (same feature, same CLI area, same traffic pattern).
 - coverage "none" = superficially similar only; exclude these from the output.
 - "covers_steps" lists the sequence numbers (n) the script addresses.
-- Rank output by usefulness. At most 10 entries.
+- Include EVERY candidate that has full or partial coverage — do not truncate the list. Rank by usefulness (most useful first).
 - Output JSON ONLY:
 {"matches": [{"id": "art/....py", "coverage": "full|partial", "covers_steps": [1,2], "reason": "one sentence"}]}

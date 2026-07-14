@@ -45,19 +45,36 @@
     ]
   },
   "step3": {
-    "confirmed": false,
-    "confirmed_at": null,
+    "confirmed": true,
+    "confirmed_at": "2026-07-13 23:37:43.242498",
     "none_selected": false,
-    "selections": []
+    "selections": [
+      {
+        "id_or_key": "1331.1001.30675",
+        "title": "Private VLAN does not work on 534, related to CR30322.",
+        "justification": "Private VLAN does not work on 534, related to CR30322.\n\n[Log-derived analysis] Verifies that private VLANs operate correctly. The test transmits traffic between promiscuous, isolated, and community ports and confirms that primary-to-secondary and secondary-to-primary traffic flows while traffic between isolated and community ports is blocked."
+      },
+      {
+        "id_or_key": "1353.1001.64796",
+        "title": "CR-64796 - IPv6 Router Solicitation can not be sent when firewall is enabled after AW+ router is rebooted",
+        "justification": "CR-64796 - IPv6 Router Solicitation can not be sent when firewall is enabled after AW+ router is rebooted\n\n[Log-derived analysis] Regression test that IPv6 Router Solicitations are still sent after reboot when the firewall is enabled, guarding against a firewall-related defect that suppressed them."
+      },
+      {
+        "id_or_key": "1353.1001.80881",
+        "title": "Specifying a range of ports that do not exist will cause a coredump",
+        "justification": "Specifying a range of ports that do not exist will cause a coredump\n\n[Log-derived analysis] Regression test that configuring a non-existent port range does not cause a coredump, confirming graceful handling of invalid port-range input."
+      }
+    ]
   },
   "step4": {},
+  "step5": {},
   "gaps": "",
-  "art_string": "",
+  "art_string": "1331.1001.30675 + 1353.1001.64796 + 1353.1001.80881",
   "full_session": {},
-  "updated_at": "2026-07-02 22:15:13.732093",
+  "updated_at": "2026-07-13 23:37:43.242521",
   "llm_config": {
-    "provider": "mock",
-    "auth_method": "api_key",
+    "provider": "claude",
+    "auth_method": "claude_code",
     "api_key": null,
     "token": null,
     "base_url": null,

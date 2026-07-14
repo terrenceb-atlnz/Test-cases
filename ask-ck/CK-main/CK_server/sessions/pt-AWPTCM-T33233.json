@@ -40,8 +40,377 @@
     }
   },
   "traceability": "# Traceability & Supporting Data for AWPTCM-T33233 ()\n\n## Primary Decision\n\n- **AWP-23992** \u2013 Auto/Auto negotiation; Zephyr says covered by auto-test\n  - Decision confidence: low\n  - Rationale: Auto/Auto negotiation; Zephyr says covered by auto-test\n\n\n## Top Relevant TestLink Cases\n\n(No TestLink selections)\n\n\n## Zephyr Cross-References (Step 2)\n**Relevant Zephyr Scale cases identified**\n\nThese cases were reviewed from the full Zephyr database (via `data/zephyr_full/`) for objective style, step structure, and related behaviour.\n\n\n\n## ATPyLib Cases (Step 3)\n\n\n\n## Gaps Noted\nNo specific automated tests were confirmed as related coverage for this case, so while Zephyr flags it as covered by an auto-test, that claim is not currently substantiated by any identified automation artefact. Auto/Auto link negotiation is the kind of behaviour that automated checks can reasonably confirm at the level of a link reaching an established state with the expected negotiated speed and duplex. Even assuming such coverage exists, the less well-covered areas are typically the negotiation transients and edge conditions \u2014 renegotiation after link flaps, mismatched or forced peer settings, and behaviour across cable or media changes \u2014 along with the observability that a manual tester relies on, such as advertised-capability exchange, negotiation status reporting, and log or counter evidence that the outcome was genuinely auto-negotiated rather than defaulted. Until a concrete automated test is identified, this should be treated as an unverified coverage gap rather than confirmed automation.\n\n## Tangential Cases Reviewed\n(See selections for full list.)\n\n## ART Test Cases String\n\n\n**Status**: TestLink list completed. ATPyLib reviewed. Full artefacts and steps drafted in zephyr_payload.json. Traceability finalized.",
-  "step2": {},
-  "step3": {},
+  "step2": {
+    "sequence": [
+      {
+        "n": 1,
+        "action": "On the DUT with no pluggable installed in the target port, read the port default configuration with 'show interface portX.Y.Z' (or 'show interface portX.Y.Z status').",
+        "verify": "Output reports the port's configured speed as 'auto'/'Auto-negotiate' and duplex as 'auto', confirming Auto is the factory default for both speed and duplex on an empty port.",
+        "zephyr_step_idx": 1
+      },
+      {
+        "n": 2,
+        "action": "After a supported pluggable is present in the target port (insertion is physical \u2014 see notes), read the port state with 'show interface portX.Y.Z' and 'show system pluggable'.",
+        "verify": "Pluggable is detected/recognized, the port link state reads 'up', and speed/duplex show negotiated values consistent with the pluggable's supported rate \u2014 proving autonegotiation completed and a link was established.",
+        "zephyr_step_idx": 1
+      },
+      {
+        "n": 3,
+        "action": "Enter configuration mode on the DUT port and explicitly set 'speed auto' and 'duplex auto'; ensure the link partner port is also configured for auto speed and auto duplex.",
+        "verify": "'show running-config interface portX.Y.Z' reflects speed auto and duplex auto on both ends with no config errors.",
+        "zephyr_step_idx": 2
+      },
+      {
+        "n": 4,
+        "action": "With both DUT and partner on Auto/Auto, bring the link up and read 'show interface portX.Y.Z status' on the DUT.",
+        "verify": "Link state = up; the port reports negotiation mode as Auto AND displays the concrete negotiated speed and duplex (e.g., 1000/full), confirming Auto mode is reported together with the negotiated values.",
+        "zephyr_step_idx": 2
+      },
+      {
+        "n": 5,
+        "action": "For each supported speed S, force the link partner port to fixed 'speed S' / 'duplex full' while leaving the DUT on Auto/Auto; re-check link after each change with 'show interface portX.Y.Z status'.",
+        "verify": "For every supported S, DUT link state = up and DUT-reported negotiated speed equals S with matching duplex, confirming Auto-vs-forced-supported combinations establish a link at the partner's forced rate.",
+        "zephyr_step_idx": 3
+      },
+      {
+        "n": 6,
+        "action": "For each supported speed, set both DUT and partner to the same fixed supported speed/duplex, then repeat with both back on Auto/Auto; read 'show interface portX.Y.Z status' after each configuration.",
+        "verify": "Link state = up in every supported configuration; when both are Auto the negotiated speed equals the highest common supported rate, confirming a working link across all supported configurations.",
+        "zephyr_step_idx": 3
+      },
+      {
+        "n": 7,
+        "action": "Optionally, send bidirectional test traffic across the negotiated link (Scapy transmit, tcpdump capture on partner) for a representative negotiated configuration.",
+        "verify": "All transmitted frames are received with no loss and no CRC/error-counter increments in 'show interface portX.Y.Z' counters, proving the auto-negotiated link is genuinely functional (not merely reported up).",
+        "zephyr_step_idx": 3
+      },
+      {
+        "n": 8,
+        "action": "Configure an incompatible pairing: leave DUT on Auto and force the partner to a duplex the DUT cannot match / an unsupported rate (e.g., partner fixed 'duplex half' or a speed the pluggable does not support), then read 'show interface portX.Y.Z status'.",
+        "verify": "DUT link state is reported as 'down' (or the link fails to establish / shows a duplex-mismatch condition); no valid negotiated speed+duplex is presented, confirming incompatible settings do not bring the link up.",
+        "zephyr_step_idx": 4
+      },
+      {
+        "n": 9,
+        "action": "With the port set to Auto/Auto, perform a hot-remove of the supported pluggable (physical \u2014 see notes) and read 'show interface portX.Y.Z' and 'show system pluggable' plus the event log.",
+        "verify": "On removal, link state transitions to 'down', pluggable no longer listed, and a link-down/pluggable-removed log entry is generated \u2014 confirming link status updates correctly on removal.",
+        "zephyr_step_idx": 5
+      },
+      {
+        "n": 10,
+        "action": "Hot-insert the supported pluggable back into the Auto/Auto port (physical \u2014 see notes) and read 'show interface portX.Y.Z status' and the event log.",
+        "verify": "Autonegotiation re-runs cleanly, link state returns to 'up' with expected negotiated speed/duplex, and a link-up/pluggable-inserted log entry is generated.",
+        "zephyr_step_idx": 5
+      },
+      {
+        "n": 11,
+        "action": "Where platform/media support it, enable EcoMode (e.g., 'ecofriendly lpi') on the DUT port over an established Auto-negotiated link, then read 'show interface portX.Y.Z status' and 'show ecofriendly' over a short soak.",
+        "verify": "EcoMode/LPI reports as enabled, link remains 'up' and stable (no flaps / no error-counter increments), and negotiated speed/duplex are unchanged.",
+        "zephyr_step_idx": 6
+      },
+      {
+        "n": 12,
+        "action": "Disable EcoMode ('no ecofriendly lpi') on the same Auto-negotiated port and re-read 'show interface portX.Y.Z status' and 'show ecofriendly'.",
+        "verify": "EcoMode/LPI reports as disabled, link remains 'up' and stable with the same negotiated speed/duplex, confirming EcoMode toggling does not disrupt the auto-negotiated link.",
+        "zephyr_step_idx": 6
+      }
+    ],
+    "notes": "",
+    "confirmed": true,
+    "provenance": {
+      "llm": {
+        "provider": "claude",
+        "model": "default",
+        "auth_method": "claude_agent"
+      },
+      "response": "{\"sequence\": [\n  {\"n\": 1, \"action\": \"On the DUT with no pluggable installed in the target port, read the port default configuration with 'show interface portX.Y.Z' (or 'show interface portX.Y.Z status').\", \"verify\": \"Output reports the port's configured speed as 'auto'/'Auto-negotiate' and duplex as 'auto', confirming Auto is the factory default for both speed and duplex on an empty port.\", \"zephyr_step_idx\": 1},\n  {\"n\": 2, \"action\": \"After a supported pluggable is present in the target port (insertion is physical \u2014 see notes), read the port state with 'show interface portX.Y.Z' and 'show system pluggable'.\", \"verify\": \"Pluggable is detected/recognized, the port link state reads 'up', and speed/duplex show negotiated values consistent with the pluggable's supported rate \u2014 proving autonegotiation completed and a link was established.\", \"zephyr_step_idx\": 1},\n  {\"n\": 3, \"action\": \"Enter configuration mode on the DUT port and explicitly set 'speed auto' and 'duplex auto'; ensure the link partner port is also configured for auto speed and auto duplex.\", \"verify\": \"'show running-config interface portX.Y.Z' reflects speed auto and duplex auto on both ends with no config errors.\", \"zephyr_step_idx\": 2},\n  {\"n\": 4, \"action\": \"With both DUT and partner on Auto/Auto, bring the link up and read 'show interface portX.Y.Z status' on the DUT.\", \"verify\": \"Link state = up; the port reports negotiation mode as Auto AND displays the concrete negotiated speed and duplex (e.g., 1000/full), confirming Auto mode is reported together with the negotiated values.\", \"zephyr_step_idx\": 2},\n  {\"n\": 5, \"action\": \"For each supported speed S, force the link partner port to fixed 'speed S' / 'duplex full' while leaving the DUT on Auto/Auto; re-check link after each change with 'show interface portX.Y.Z status'.\", \"verify\": \"For every supported S, DUT link state = up and DUT-reported negotiated speed equals S with matching duplex, confirming Auto-vs-forced-supported combinations establish a link at the partner's forced rate.\", \"zephyr_step_idx\": 3},\n  {\"n\": 6, \"action\": \"For each supported speed, set both DUT and partner to the same fixed supported speed/duplex, then repeat with both back on Auto/Auto; read 'show interface portX.Y.Z status' after each configuration.\", \"verify\": \"Link state = up in every supported configuration; when both are Auto the negotiated speed equals the highest common supported rate, confirming a working link across all supported configurations.\", \"zephyr_step_idx\": 3},\n  {\"n\": 7, \"action\": \"Optionally, send bidirectional test traffic across the negotiated link (Scapy transmit, tcpdump capture on partner) for a representative negotiated configuration.\", \"verify\": \"All transmitted frames are received with no loss and no CRC/error-counter increments in 'show interface portX.Y.Z' counters, proving the auto-negotiated link is genuinely functional (not merely reported up).\", \"zephyr_step_idx\": 3},\n  {\"n\": 8, \"action\": \"Configure an incompatible pairing: leave DUT on Auto and force the partner to a duplex the DUT cannot match / an unsupported rate (e.g., partner fixed 'duplex half' or a speed the pluggable does not support), then read 'show interface portX.Y.Z status'.\", \"verify\": \"DUT link state is reported as 'down' (or the link fails to establish / shows a duplex-mismatch condition); no valid negotiated speed+duplex is presented, confirming incompatible settings do not bring the link up.\", \"zephyr_step_idx\": 4},\n  {\"n\": 9, \"action\": \"With the port set to Auto/Auto, perform a hot-remove of the supported pluggable (physical \u2014 see notes) and read 'show interface portX.Y.Z' and 'show system pluggable' plus the event log.\", \"verify\": \"On removal, link state transitions to 'down', pluggable no longer listed, and a link-down/pluggable-removed log entry is generated \u2014 confirming link status updates correctly on removal.\", \"zephyr_step_idx\": 5},\n  {\"n\": 10, \"action\": \"Hot-insert the supported pluggable back into the Auto/Auto port (physical \u2014 see notes) and read 'show interface portX.Y.Z status' and the event log.\", \"verify\": \"Autonegotiation re-runs cleanly, link state returns to 'up' with expected negotiated speed/duplex, and a link-up/pluggable-inserted log entry is generated.\", \"zephyr_step_idx\": 5},\n  {\"n\": 11, \"action\": \"Where platform/media support it, enable EcoMode (e.g., 'ecofriendly lpi') on the DUT port over an established Auto-negotiated link, then read 'show interface portX.Y.Z status' and 'show ecofriendly' over a short soak.\", \"verify\": \"EcoMode/LPI reports as enabled, link remains 'up' and stable (no flaps / no error-counter increments), and negotiated speed/duplex are unchanged.\", \"zephyr_step_idx\": 6},\n  {\"n\": 12, \"action\": \"Disable EcoMode ('no ecofriendly lpi') on the same Auto-negotiated port and re-read 'show interface portX.Y.Z status' and 'show ecofriendly'.\", \"verify\": \"EcoMode/LPI reports as disabled, link remains 'up' and stable with the same negotiated speed/duplex, confirming EcoMode toggling does not disrupt the auto-negotiated link.\", \"zephyr_step_idx\": 6}\n], \"notes\": \"Physical pluggable actions cannot be driven from the testbox and are assumed to be staged by the harness/operator or a programmable insertion fixture: initial pluggable insertion (step 1/n2), and the hot-remove/hot-insert cycle (Zephyr step 5, sequence n9/n10) \u2014 these steps verify device-observable state (link, pluggable detection, logs) but rely on the physical media change happening externally. Coordinating a variety of SVT-supplied pluggables (Zephyr step 5) is a logistics/setup task, not an automatable action, and is out of scope for the script. Visual LED checks are omitted; link/pluggable state is confirmed via CLI and event logs instead. Assumptions: a two-node testbed (DUT + compliant link partner switch, both AlliedWare-Plus-style CLI over serial); 'portX.Y.Z' and the concrete supported speed set are platform-specific and must be parameterized per DUT/pluggable; EcoMode (n11/n12, Zephyr step 6) is conditional on platform+media support and should be skipped with a logged reason where unsupported. Auto-negotiation edge cases flagged in the traceability gap notes (renegotiation after link flap, advertised-capability exchange) are not in the Zephyr steps and were not added.\"}"
+    },
+    "confirmed_at": "2026-07-14T02:30:24.415136"
+  },
+  "step3": {
+    "matches": [
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "SFP Copper - 1 Gig Straight Through - Confirm default settings on both ends",
+        "n_cases": 11,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 19.0,
+        "reason": "Tests a copper SFP pluggable with default/auto speed and duplex plus forced auto-speed combinations, matching the pluggable auto-negotiation and negotiated speed/duplex checks.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "SFP Fibre - 1 Gig - Confirm default settings on both ends",
+        "n_cases": 8,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 19.0,
+        "reason": "Exercises a 1G fibre SFP with speed auto/duplex auto and multiple forced-speed negotiations, directly reusing the pluggable link-up and negotiated-value verification mechanics.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0004-CopperSFP_Cross.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "SFP Copper - 1 Gig Cross Over - confirm default settings on both ends",
+        "n_cases": 6,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 25.0,
+        "reason": "Copper SFP pluggable with auto speed/duplex/polarity default confirmation, covering pluggable detection and auto-negotiation link establishment.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1001.py",
+        "db": "legacy",
+        "suite_dir": "5703_Speed_Duplex_Polarity",
+        "kind": "test",
+        "title": "Check system information (Show sys, show run, show sys plug etc.)",
+        "n_cases": 13,
+        "framework_imports": [
+          "framework"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 27.0,
+        "reason": "Checks system info (show sys/run/sys plug) and supported/unsupported speeds across fixed, SFP, fibre and DAC media, matching the negotiated/forced-speed verification steps.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          2,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1002.py",
+        "db": "legacy",
+        "suite_dir": "5703_Speed_Duplex_Polarity",
+        "kind": "test",
+        "title": "Check system information (Show sys, show run, show sys plug etc.)",
+        "n_cases": 13,
+        "framework_imports": [
+          "framework"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 27.0,
+        "reason": "Checks system info and supported/unsupported duplex settings across media, reusable for the duplex-negotiation and configuration verification steps.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          3,
+          4,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "Fixed Port - Straight Through - Confirm default settings both ends",
+        "n_cases": 28,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 25.0,
+        "reason": "Confirms default (auto) settings and runs auto-speed/duplex forced combinations on fixed copper, matching the auto/auto and forced-speed link-up steps (no pluggable).",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "Fixed Copper - Cross Over - Conform default settings on both ends",
+        "n_cases": 26,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 31.0,
+        "reason": "Same auto/forced speed-duplex negotiation mechanics on fixed copper cross-over, reusable for the configuration and negotiated-value steps.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0005-CopperFixed2.5G_5G_Straight.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "Fixed Port - Straight Through - Confirm default settings both ends",
+        "n_cases": 42,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 25.0,
+        "reason": "Multi-rate (2.5G/5G) fixed copper auto and forced speed/duplex negotiation checks, matching the auto-vs-forced link establishment steps.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5000_mdi_mdix/test-5000.0006-CopperFixed2.5G_5G_Cross.py",
+        "db": "legacy",
+        "suite_dir": "5000_mdi_mdix",
+        "kind": "test",
+        "title": "Fixed Copper - Cross Over - Conform default settings on both ends",
+        "n_cases": 42,
+        "framework_imports": [
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 31.0,
+        "reason": "Cross-over variant of the 2.5G/5G fixed copper auto/forced speed-duplex negotiation tests.",
+        "coverage": "partial",
+        "covers_steps": [
+          1,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5703_Speed_Duplex_Polarity/test-5000.1003.py",
+        "db": "legacy",
+        "suite_dir": "5703_Speed_Duplex_Polarity",
+        "kind": "test",
+        "title": "Check system information (Show sys, show run, show sys plug etc.)",
+        "n_cases": 13,
+        "framework_imports": [
+          "framework"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 27.0,
+        "reason": "Checks system information and polarity across media in the same speed/duplex/polarity feature area, reusable for the default-config read step.",
+        "coverage": "partial",
+        "covers_steps": [
+          1
+        ]
+      },
+      {
+        "id": "legacy/5703_Speed_Duplex_Polarity/library_5000.py",
+        "db": "legacy",
+        "suite_dir": "5703_Speed_Duplex_Polarity",
+        "kind": "library",
+        "title": "library_5000.py",
+        "n_cases": 0,
+        "framework_imports": [
+          "framework.ATPackets"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 20.0,
+        "reason": "Shared helper library for the speed/duplex/polarity suite providing directly reusable link-configuration and negotiated-value verification mechanics.",
+        "coverage": "partial",
+        "covers_steps": [
+          4,
+          5,
+          6
+        ]
+      },
+      {
+        "id": "legacy/5712_Release_Testing_Transceivers/test-5712.1.py",
+        "db": "legacy",
+        "suite_dir": "5712_Release_Testing_Transceivers",
+        "kind": "test",
+        "title": "Log system pluggable information",
+        "n_cases": 1,
+        "framework_imports": [
+          "framework.ATDrivers",
+          "framework.ATTestCase",
+          "framework.ATTestSet"
+        ],
+        "feature_tags": [],
+        "summary": "",
+        "score": 19.0,
+        "reason": "Logs 'show system pluggable' information, reusable for the pluggable detection/recognition verification steps.",
+        "coverage": "partial",
+        "covers_steps": [
+          2
+        ]
+      }
+    ],
+    "user_inputs": "",
+    "mechanical_considered": 40,
+    "confirmed": false
+  },
   "step4": {},
   "step5": {},
   "step6": {},
@@ -49,11 +418,11 @@
   "step8": {},
   "llm_config": {
     "provider": "claude",
-    "auth_method": "claude_code",
+    "auth_method": "claude_agent",
     "api_key": null,
     "token": null,
     "base_url": null,
     "model": null
   },
-  "updated_at": "2026-07-13 20:54:58.290112"
+  "updated_at": "2026-07-14 02:58:56.087612"
 }

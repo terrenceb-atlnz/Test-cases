@@ -1,6 +1,6 @@
 {
   "provider": "claude",
-  "auth_method": "claude_code",
+  "auth_method": "claude_agent",
   "api_key": null,
   "token": null,
   "base_url": null,

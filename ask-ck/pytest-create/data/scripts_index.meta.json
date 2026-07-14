@@ -1,5 +1,5 @@
 {
- "built_at": "2026-07-14T08:08:44",
+ "built_at": "2026-07-15T08:03:30",
  "roots": {
   "art": "/media/terrenceb/mnt/testbox_home/testsuites_art",
   "svt": "/media/terrenceb/mnt/testbox_home/svt_scripts",
@@ -12,7 +12,9 @@
   "__pycache__",
   ".git",
   "ixnetwork_restpy_git",
-  "node_modules"
+  "node_modules",
+  "a1c_playwright",
+  "sqlalchemy"
  ],
  "counts": {
   "art": {
@@ -26,14 +28,14 @@
    "tool": 38
   },
   "legacy": {
-   "test": 284,
+   "test": 268,
    "library": 66,
-   "tool": 333
+   "tool": 180
   }
  },
- "total_files": 999,
- "parse_errors": 120,
- "enriched": 0,
- "enrichment_pct": 0.0,
+ "total_files": 830,
+ "parse_errors": 146,
+ "enriched": 830,
+ "enrichment_pct": 100.0,
  "framework_modules": 55
 }

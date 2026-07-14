@@ -11,6 +11,7 @@ session persistence (sessions/pt-{key}.json), workspace LLM config reuse.
 """
 
 from fastapi import APIRouter, HTTPException, Body, Request
+from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
 from pathlib import Path
@@ -610,7 +611,7 @@ async def extract_sequence(key: str, request: Request):
     fields = _case_payload_fields(sess)
     if not fields["steps"]:
         raise HTTPException(409, "Refined case has no test steps to work from.")
-    meta = run_prompt("pt_extract_sequence.jinja", {
+    meta = await run_in_threadpool(run_prompt, "pt_extract_sequence.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
         "objective": fields["objective"],
@@ -688,7 +689,7 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
 
     llm_matches = []
     if candidates:
-        meta = run_prompt("pt_match_scripts.jinja", {
+        meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
             "case_key": key, "sequence": sequence,
             "user_inputs": user_inputs, "candidates": candidates,
         }, llm_config=_llm_cfg(sess), timeout=300)
@@ -702,7 +703,7 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
     mech_by_id = {c["id"]: c for c in mech}
     matches = [{**mech_by_id.get(m["id"], {"id": m["id"]}), **m} for m in llm_matches]
     if not matches:  # LLM unavailable/empty -> mechanical fallback, marked as such
-        matches = [{**c, "coverage": "unknown", "covers_steps": []} for c in mech[:10]]
+        matches = [{**c, "coverage": "unknown", "covers_steps": []} for c in mech]
 
     sess.step3 = {**(sess.step3 or {}),
                   "matches": matches, "user_inputs": user_inputs,
@@ -773,7 +774,7 @@ async def assess_fit(key: str, request: Request):
             "case_src": case_src,
         })
 
-    meta = run_prompt("pt_assess_fit.jinja", {
+    meta = await run_in_threadpool(run_prompt, "pt_assess_fit.jinja", {
         "case_key": key, "sequence": sequence, "scripts": scripts_ctx,
     }, llm_config=_llm_cfg(sess), timeout=300)
     if meta.get("error"):
@@ -838,7 +839,7 @@ async def gather_fragments(key: str, request: Request):
             symbols.append({"kind": "function", "name": h["name"], "desc": h.get("doc", "")})
         scripts_ctx.append({"id": sid, "symbols": symbols})
 
-    meta = run_prompt("pt_gather_fragments.jinja", {
+    meta = await run_in_threadpool(run_prompt, "pt_gather_fragments.jinja", {
         "case_key": key, "sequence": sequence,
         "decision": step4.get("decision"), "base_script": step4.get("base_script"),
         "per_step": step4.get("per_step", []), "scripts": scripts_ctx,
@@ -927,7 +928,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     exemplar_rec = (data.get("scripts_index_by_id") or {}).get(EXEMPLAR_ID)
     exemplar = _read_source(exemplar_rec) if exemplar_rec else ""
 
-    meta = run_prompt("pt_generate_script.jinja", {
+    meta = await run_in_threadpool(run_prompt, "pt_generate_script.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
         "file_name": file_name,
@@ -1146,7 +1147,7 @@ async def fix_script(key: str, request: Request):
             Path(last["log_file"]).read_text(encoding="utf-8", errors="replace"), parsed)
 
     naming = step6.get("naming") or {}
-    meta = run_prompt("pt_fix_script.jinja", {
+    meta = await run_in_threadpool(run_prompt, "pt_fix_script.jinja", {
         "case_key": key,
         "file_name": step6["files"]["test"]["name"],
         "iteration": step6.get("iterations", 1),

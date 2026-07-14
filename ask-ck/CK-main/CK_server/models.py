@@ -21,9 +21,13 @@ class LLMConfig(BaseModel):
     """Per-session LLM login config.
 
     - api_key: classic developer key (HTTP calls against the provider's API)
-    - claude_code: headless Claude Code CLI mode (Claude only). Uses the locally
-      installed + logged-in `claude` CLI, so a Claude Team subscription seat is
-      used directly — no key/token is entered or stored by this server.
+    - claude_agent: browser-brokered Claude Code CLI on the USER's own machine
+      (Claude only). For a shared server: each user runs ck-agent locally and their
+      prompts execute against THEIR OWN seat — seats are never shared. The current
+      UI-selectable Claude mode.
+    - claude_code: headless Claude Code CLI on the SERVER host (Claude only). Uses the
+      server machine's own `claude` login — single-user hosting only. Retained for
+      back-compat; not offered in the UI (shared use would pool one seat).
     - grok_cli: headless Grok CLI mode (Grok/xAI only). Uses the locally
       installed + logged-in `grok` CLI (SuperGrok or X Premium+ via `grok login --oauth`).
       No separate xAI API key. Auth and billing against the subscription.

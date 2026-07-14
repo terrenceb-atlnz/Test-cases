@@ -45,7 +45,14 @@ EXCLUDES = (
     ".git",
     "ixnetwork_restpy_git",
     "node_modules",
+    "a1c_playwright",   # web-UI Playwright automation (JS-oriented) — not AT framework scripts
+    "sqlalchemy",       # vendored DB library bundled inside tools/memory_leak_tools — not a test script
 )
+
+# Legacy (test_scripts) suite directories are numeric-prefixed, e.g. 5003_feature_limits,
+# 1364_vrf_limits. Index any .py inside such a suite dir (in-suite helpers/config often
+# aren't named test-/library_ but are part of the suite).
+_SUITE_DIR_RX = re.compile(r"^\d+_")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PT_DATA_DIR = REPO_ROOT / "ask-ck" / "pytest-create" / "data"
@@ -69,8 +76,12 @@ def wanted_file(root_key: str, path: Path) -> bool:
         return True
     if name.startswith("ixNetworkTest"):
         return True
-    if root_key == "legacy" and any(d in path.parts for d in ("tools", "misc_scripts", "platformTestScripts")):
-        return True
+    if root_key == "legacy":
+        if any(d in path.parts for d in ("tools", "misc_scripts", "platformTestScripts", "stre_scripts", "Validation")):
+            return True
+        # Any .py inside a numeric suite directory (in-suite helpers/config included).
+        if any(_SUITE_DIR_RX.match(p) for p in path.parts):
+            return True
     return False
 
 

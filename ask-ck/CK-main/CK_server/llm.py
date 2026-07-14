@@ -23,12 +23,18 @@ import json
 import re
 import shutil
 import subprocess
+import contextvars
 from jinja2 import Environment, FileSystemLoader
 from typing import Dict, Any, List, Optional
 import requests  # fallback, or use openai litellm for more providers later
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROMPTS_DIR = os.path.join(BASE_DIR, "templates", "prompts")
+
+# Per-request browser session id, set by middleware from the X-CK-Session header.
+# Used to route claude_agent jobs to the right user's browser/agent without
+# persisting the (ephemeral, per-tab) id in any session config file.
+current_session_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_session_id", default="")
 
 env = Environment(loader=FileSystemLoader(PROMPTS_DIR))
 
@@ -221,12 +227,34 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
         return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180) -> Dict[str, Any]:
+def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id: str, timeout: int) -> Dict[str, Any]:
+    """Route a Claude call to the USER's own machine via the browser-brokered agent.
+
+    The server does not run `claude`; it enqueues the prompt for `session_id` and
+    blocks until that user's browser (which talks to their local ck-agent) posts the
+    completion back. This is what makes a shared server use each user's own seat.
+    See ask-ck/CK-main/PLAN-per-user-agent.md.
+    """
+    from agent_jobs import registry  # local import avoids a hard dep at module load
+    session_id = session_id or current_session_id.get("")
+    if not session_id:
+        meta.update({"content": ("ERROR: Claude-agent mode needs a browser session id but none was "
+                                 "provided. Reload the Ask CK page."), "error": True})
+        return meta
+    result = registry.submit(session_id, prompt, model, timeout)
+    meta.update({"content": result.get("content", ""), "raw_response": result,
+                 "error": bool(result.get("error")), "provider": "claude"})
+    return meta
+
+
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "") -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
     Supports multiple login styles (chosen in the UI):
     - "api_key": classic developer API key (HTTP calls).
-    - "claude_code": headless Claude Code CLI (Claude Team subscription).
+    - "claude_agent": browser-brokered local Claude Code CLI on the USER's machine
+      (shared-server safe — each user spends their own seat; needs session_id).
+    - "claude_code": headless Claude Code CLI on the SERVER host (single-user hosting only).
     - "grok_cli": headless Grok CLI (SuperGrok / X Premium+ subscription via OAuth).
       No key/token stored by server; auth lives in the local CLI's login.
 
@@ -265,6 +293,8 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     }
 
     # Headless CLI modes (subscription accounts) need no credential here.
+    if provider == "claude" and auth_method == "claude_agent":
+        return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout)
     if provider == "claude" and auth_method == "claude_code":
         return _call_claude_code_headless(prompt, model, meta, timeout=timeout)
     if provider == "grok" and auth_method == "grok_cli":
@@ -522,6 +552,7 @@ def generate_coverage_gaps(session: Dict[str, Any], llm_config: Optional[Dict] =
             base_url=base_url,
             model=model,
             auth_method=auth_method,
+            session_id=cfg.get("session_id", ""),
         )
         content = (meta.get("content") or "").strip()
         # Strip accidental fences / labels
@@ -571,6 +602,7 @@ def _resolve_llm_runtime(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
         "credential": credential,
         "base_url": base_url,
         "model": model,
+        "session_id": cfg.get("session_id") or "",
     }
 
 
@@ -610,6 +642,7 @@ def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = 
         base_url=rt["base_url"],
         model=rt["model"],
         auth_method=rt["auth_method"],
+        session_id=rt["session_id"],
     )
     obj_llm = obj_meta.get("content", "")
     structured = parse_llm_to_structured(obj_llm, context.get("case_key", "unknown"))
@@ -671,6 +704,7 @@ def synthesize_steps(
         base_url=rt["base_url"],
         model=rt["model"],
         auth_method=rt["auth_method"],
+        session_id=rt["session_id"],
     )
     steps_llm = steps_meta.get("content", "")
     steps_struct = parse_llm_to_structured(steps_llm, context.get("case_key", "unknown"))
@@ -811,7 +845,7 @@ def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
 
     prompt = render_prompt("suggest_atp.jinja", context)
-    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method)
+    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method, session_id=cfg.get("session_id", ""))
     content = meta.get("content", "")
     return _parse_suggest_id_list(content, id_patterns=[r'(\d+\.\d+(?:\.\d+)?)'])
 
@@ -843,6 +877,7 @@ def suggest_relevant_testlink(
         base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
         model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
         auth_method=auth_method,
+        session_id=cfg.get("session_id", ""),
     )
     return _parse_suggest_id_list(meta.get("content", ""), id_patterns=[r'(AWP-\d+)'])
 
@@ -872,6 +907,7 @@ def suggest_relevant_zephyr(
         prompt,
         provider=provider,
         api_key=credential,
+        session_id=cfg.get("session_id", ""),
         base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
         model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
         auth_method=auth_method,
@@ -918,7 +954,8 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
             api_key=credential,
             base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
             model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
-            auth_method=auth_method
+            auth_method=auth_method,
+            session_id=cfg.get("session_id", ""),
         )
         content = meta.get("content", "")
 
@@ -965,6 +1002,7 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
         model=rt["model"],
         auth_method=rt["auth_method"],
         timeout=timeout,
+        session_id=rt["session_id"],
     )
     meta["template"] = template_name
     return meta

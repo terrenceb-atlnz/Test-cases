@@ -165,25 +165,53 @@ export LLM_BASE_URL=https://api.openai.com/v1   # or your Grok/Claude-compatible
 
 Real LLM (API key or local CLI login) is required. MOCK/demo mode has been removed.
 
-### Claude Team Subscription (Headless Mode)
+### Claude — per-user local agent (shared-server safe; the UI Claude mode)
 
-If your users have **Claude Team subscriptions** (not developer API keys), the tool can call Claude through the **Claude Code CLI** in headless print mode instead of the HTTP API. Auth lives entirely with the CLI's own login; the server never sees or stores a key or token.
+`auth_method: "claude_agent"`. This is how a **shared** Ask CK webpage uses Claude
+while keeping each user on **their own** Claude seat — never a shared one.
 
-**Intended deployment**: each user hosts the tool locally (or the server runs as their own user), so calls bill against *their own* Team seat. Do **not** run one shared server instance under a single login for many users — that pools everyone's usage through one subscription seat.
+**Why:** a Claude subscription seat is per-person; the Claude Code CLI login lives on
+a user's own machine and can't be handed to a remote server. So on a shared server the
+server must **not** run `claude` itself. Instead:
 
-Per-machine setup:
+```
+ user's laptop:  ck-agent (127.0.0.1:8765) ── runs ──▶ claude -p  (user's OWN seat)
+                       ▲ localhost
+                 browser tab ──────────────── brokers ───────────────▶ shared Ask CK server
+                                                                        (UI/data; NO claude)
+```
 
-1. Install Claude Code on the machine running this server (see anthropic.com/claude-code).
-2. In a terminal, run `claude` and log in (`/login`) with your Claude Team account.
-3. In the tool UI (sidebar **LLM → Configure**): select **Claude Code CLI (Team subscription)** → "Check Claude CLI" → "Apply / Login".
-4. Leave Model blank to use the CLI's default (or pass e.g. `sonnet`).
+The shared server queues a prompt job keyed to the browser's session id
+(`X-CK-Session` header, minted per tab). That user's tab long-polls
+`GET /api/agent/next`, POSTs the prompt to its own `ck-agent` at
+`http://127.0.0.1:8765/run`, and returns the completion via `POST /api/agent/result`.
+`claude` only ever runs on the user's machine; the server sees prompts/completions
+(as always) but never a credential or seat.
 
-Notes / limitations:
+**Per-user setup:**
+1. On your own machine, install Claude Code (anthropic.com/claude-code); run `claude` → `/login`.
+2. Start the agent: `cd ask-ck/agent && ./run-agent.sh` (leave it running). See `ask-ck/agent/README.md`. To pin CORS to your server: `CK_AGENT_ORIGIN=http://ck-box.lan:8000 ./run-agent.sh`.
+3. In the UI (**LLM → Configure**): select **Claude Code CLI (my local machine)** → **Check my local agent** → **Apply / Login**.
 
-- Server-side check: `GET /api/wizard/claude_cli_status` reports whether the CLI binary is found (login state surfaces on the first real call — a login error message is returned in the synthesis output if the CLI isn't logged in).
-- Team seats have rolling session-based usage limits shared with the user's interactive Claude Code use. The tool's calls are minimal, but an exhausted window surfaces as a CLI error until it resets.
-- Latency is higher than a direct HTTP call (CLI process startup per request) — acceptable for the tool's occasional synthesis calls.
-- Old "account" / token-paste flows were removed from the UI long ago. Current UI only exposes the two subscription CLI radios. Legacy `api_key` and old `account` values are mapped gracefully on restore but not presented to new users.
+Notes:
+- The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
+- Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.
+- Usage counts against each user's own Claude seat's limits. Keep the agent running and the tab open while working.
+- Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result`, `GET /api/agent/status?session=…`.
+
+### Claude on the server host (single-user hosting only)
+
+`auth_method: "claude_code"` runs `claude -p` on the **server** machine against its own
+login. Correct only when **one person** hosts Ask CK for themselves (e.g. on their
+laptop). It is **not** offered in the UI anymore — a shared instance would pool every
+user through one seat (a subscription-terms problem). Legacy `claude_code` configs still
+deserialize and are mapped to `claude_agent` when restored in the UI. For a genuine
+multi-user *server* that isn't per-user, use the Anthropic **API** (`api_key`), which is
+licensed for that; the code path exists though it isn't surfaced in the UI.
+
+### Grok CLI Subscription Mode (SuperGrok / X Premium+)
+
+`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. **Same seat-sharing caveat as server-local Claude**: it runs on the server host, so it's for single-user hosting (a per-user Grok agent could be added later, mirroring `claude_agent`).
 
 ### Grok CLI Subscription Mode (SuperGrok / X Premium+)
 

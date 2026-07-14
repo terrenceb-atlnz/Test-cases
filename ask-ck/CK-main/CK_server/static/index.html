@@ -243,9 +243,92 @@ body {
   margin-bottom: 6px;
 }
 
+/* PyTest Creator step-3: two clearly-separated find-match tools */
+.pt-search-tools {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.pt-search-box {
+  flex: 1 1 320px;
+  min-width: 280px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.pt-search-box-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.pt-guidance {
+  width: 100%;
+  height: 40px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+/* PyTest Creator match list: one scrollable list per source database */
+.pt-match-db { margin-bottom: 12px; }
+.pt-match-db-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono, monospace);
+  margin-bottom: 4px;
+}
+.pt-match-db-empty { padding: 4px 2px; }
+.pt-match-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;               /* no horizontal scrollbar — columns fit 100% */
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+.pt-match-scroll thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary, var(--bg-primary));
+  z-index: 1;
+}
+/* Proportional columns that always sum to 100% (table-layout:fixed) */
+.pt-match-table { width: 100%; }
+.pt-match-table th:nth-child(1), .pt-match-table td:nth-child(1) { width: 28px; text-align: center; }
+.pt-match-table th:nth-child(2), .pt-match-table td:nth-child(2) { width: 34%; }
+.pt-match-table th:nth-child(3), .pt-match-table td:nth-child(3) { width: 64px; }
+.pt-match-table th:nth-child(4), .pt-match-table td:nth-child(4) { width: 44px; text-align: right; }
+.pt-match-table th:nth-child(5), .pt-match-table td:nth-child(5) { width: auto; }
+.pt-match-table th:nth-child(6), .pt-match-table td:nth-child(6) { width: 52px; text-align: center; }
+.pt-match-table td { word-break: break-word; overflow-wrap: anywhere; }
+.pt-match-table .cell-id { white-space: normal; }
+.pt-match-table .btn-compact { width: 100%; padding: 4px 4px; }
+
 .sidebar-section-label:first-of-type {
   margin-top: 8px;
 }
+
+/* Collapsible accordion sections (one open at a time) */
+.sidebar-section-label.collapsible {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  transition: background-color 120ms;
+}
+.sidebar-section-label.collapsible:hover { background: var(--bg-hover); }
+.sidebar-section-label .section-caret {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  transition: transform 150ms;
+}
+.sidebar-section-label.section-open .section-caret { transform: rotate(90deg); }
+.sidebar-section-body.section-collapsed { display: none; }
 
 .sidebar-nav-item {
   display: flex;
@@ -618,10 +701,14 @@ button.secondary:not(.btn):hover {
 
 .table {
   width: 100%;
-  table-layout: fixed;
+  max-width: 100%;
+  table-layout: fixed;   /* every column obeys its width; content wraps, never widens */
   border-collapse: collapse;
   font-size: 11px;
 }
+/* A button in a table cell must fit the cell, not force horizontal overflow. */
+.table td .btn-compact,
+.table td .btn { max-width: 100%; box-sizing: border-box; }
 
 .table thead {
   background: var(--bg-secondary);
@@ -1271,32 +1358,32 @@ h2 {
     <div id="panel-llm-config" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use your locally logged-in subscription (Grok CLI for SuperGrok/X Premium+ or Claude Code CLI for Team). No developer API keys. The radio buttons select the provider and mode. Apply / Login saves the workspace default (no case required); it is applied to cases as they load, and also stored on the currently selected case if there is one.</div>
+        <div class="section-description">Use your own locally logged-in subscription — Grok CLI (SuperGrok / X Premium+) or the Claude Code CLI on <em>your own machine</em>. No developer API keys. Apply / Login saves the workspace default; it is applied to cases as they load. On a shared Ask CK server, the Claude option runs against <strong>your own</strong> Claude seat via the local agent — seats are never shared.</div>
 
         <div class="radio-group">
           <label class="radio-label">
             <input type="radio" name="llmAuthMethod" value="grok_cli" checked onchange="updateAuthMethodUI()"> Grok CLI (SuperGrok / X Premium+ subscription)
           </label>
           <label class="radio-label">
-            <input type="radio" name="llmAuthMethod" value="claude_code" onchange="updateAuthMethodUI()"> Claude Code CLI (Team subscription)
+            <input type="radio" name="llmAuthMethod" value="claude_agent" onchange="updateAuthMethodUI()"> Claude Code CLI (my local machine)
           </label>
           <button id="grokCliStatusBtn" onclick="checkGrokCLIStatus()" class="btn btn-secondary btn-compact-small">Check Grok CLI</button>
-          <button id="cliStatusBtn" onclick="checkClaudeCLIStatus()" class="btn btn-secondary btn-compact-small">Check Claude CLI</button>
+          <button id="agentStatusBtn" onclick="checkLocalAgent()" class="btn btn-secondary btn-compact-small">Check my local agent</button>
 
           <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
           <button onclick="setLLMConfig()" class="btn btn-primary">Apply / Login</button>
           <span id="llmStatus" class="llm-status-inline"></span>
         </div>
 
-        <div id="claudeCodeInstructions" class="instructions-panel hidden">
-          <strong>Claude Code CLI — Headless Mode (Team Subscription)</strong><br><br>
-          Synthesis calls run through the Claude Code CLI installed on the machine hosting this tool, using its own login. No API key or token is entered or stored here.<br><br>
-          1. Install Claude Code on the machine running this server (see anthropic.com/claude-code).<br>
-          2. In a terminal, run <code>claude</code> and log in (<code>/login</code>) with your Claude Team account.<br>
-          3. Click <strong>"Check Claude CLI"</strong> to verify the CLI is found.<br>
+        <div id="claudeAgentInstructions" class="instructions-panel hidden">
+          <strong>Claude Code CLI — via your local agent (per-user, unshared)</strong><br><br>
+          On a shared Ask CK page, the server never runs <code>claude</code>. Instead, a tiny agent on <strong>your own machine</strong> runs it against <strong>your own</strong> Claude login, brokered through this browser tab. Your seat is never shared with other users, and the server never sees your credentials.<br><br>
+          1. On your machine, install Claude Code (anthropic.com/claude-code) and run <code>claude</code> → <code>/login</code>.<br>
+          2. Start the agent: <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code> (leave it running). See <code>ask-ck/agent/README.md</code>.<br>
+          3. Click <strong>"Check my local agent"</strong> to confirm it's reachable and logged in.<br>
           4. Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.<br><br>
-          <em>Usage counts against your own Team seat's limits (shared with your interactive Claude Code use). If a call fails with a login error, re-run <code>claude</code> in a terminal and log in again.</em>
-          <div id="cliStatusResult" class="status-result"></div>
+          <em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em>
+          <div id="agentStatusResult" class="status-result"></div>
         </div>
 
         <div id="grokCliInstructions" class="instructions-panel">
@@ -1522,13 +1609,28 @@ h2 {
     <div id="panel-pt-search" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 3. Script Search <span id="pt-badge-3" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Check the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence. Tick the ones to carry forward, add guidance, then confirm.</div>
-        <div class="compact-flex mb-2">
-          <input id="pt-search-q" type="text" class="form-input form-input-search" placeholder="Free search of the script index…" onkeydown="if(event.key==='Enter')ptManualSearch()">
-          <button onclick="ptManualSearch()" class="btn btn-compact">Search</button>
-          <button onclick="ptSuggestScripts()" class="btn btn-primary btn-compact" id="pt-suggest-btn">Suggest from Sequence (LLM)</button>
+        <div class="section-description">Check the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence. Two ways to find matches — a plain keyword search, or an LLM suggestion from the sequence. Tick the ones to carry forward, then confirm.</div>
+
+        <div class="pt-search-tools">
+          <div class="pt-search-box">
+            <div class="pt-search-box-title">Keyword search</div>
+            <div class="justification-note mb-1">Plain index search — no LLM. Matches script names, tags, and summaries.</div>
+            <div class="compact-flex">
+              <input id="pt-search-q" type="text" class="form-input form-input-search" placeholder="e.g. mdix polarity sfp" onkeydown="if(event.key==='Enter')ptManualSearch()">
+              <button onclick="ptManualSearch()" class="btn btn-compact">Search</button>
+            </div>
+          </div>
+
+          <div class="pt-search-box">
+            <div class="pt-search-box-title">LLM suggestion</div>
+            <div class="justification-note mb-1">Ranks the databases against your confirmed sequence and judges coverage. The guidance below is added to <em>this</em> request (and nudges pre-ranking) — use keywords, not sentences.</div>
+            <textarea id="pt-user-inputs" class="form-input pt-guidance" placeholder="Optional keyword guidance, e.g.  poe  x930  libSvt  ixia  copper-only"></textarea>
+            <div class="compact-flex mt-1">
+              <button onclick="ptSuggestScripts()" class="btn btn-primary btn-compact" id="pt-suggest-btn">Suggest from Sequence (LLM)</button>
+            </div>
+          </div>
         </div>
-        <textarea id="pt-user-inputs" class="form-textarea-small form-input" placeholder="Additional guidance for matching (topology constraints, platforms, must-use libraries…)"></textarea>
+
         <div id="pt-search-status" class="justification-note mb-2"></div>
         <div id="pt-match-list" class="mt-2"></div>
         <div class="compact-flex mt-2">
@@ -1672,7 +1774,7 @@ h2 {
       </div>
     </div>
 
-    <details id="session-debug" class="session-debug">
+    <details id="session-debug" class="session-debug hidden">
       <summary class="session-debug-summary">Session debug JSON</summary>
       <pre id="session-view" class="session-pre"></pre>
     </details>
@@ -1680,6 +1782,39 @@ h2 {
 </div>
 
 <script>
+// ============================================================================
+// Per-tab session id + X-CK-Session header injection.
+// Each browser tab gets a unique id so the shared server can route claude_agent
+// LLM jobs back to THIS user's browser (and thus their own local ck-agent).
+// We patch window.fetch once so every same-origin /api call carries the header
+// without touching each call site.
+// ============================================================================
+const CK_SESSION_ID = (function () {
+  let id = sessionStorage.getItem('ckSessionId');
+  if (!id) {
+    id = 'sess-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+    sessionStorage.setItem('ckSessionId', id);
+  }
+  return id;
+})();
+(function patchFetch() {
+  const orig = window.fetch;
+  window.fetch = function (input, init) {
+    try {
+      const url = (typeof input === 'string') ? input : (input && input.url) || '';
+      // Only attach to our own API (never to the localhost agent or external hosts).
+      const sameApi = url.startsWith('/api/') || url.includes(location.host + '/api/');
+      if (sameApi) {
+        init = init || {};
+        const headers = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
+        headers.set('X-CK-Session', CK_SESSION_ID);
+        init.headers = headers;
+      }
+    } catch (_) { /* never break fetch */ }
+    return orig.call(this, input, init);
+  };
+})();
+
 let currentSession = null;
 let currentKey = null;
 let currentStep = 0;
@@ -2358,7 +2493,7 @@ async function setLLMConfig() {
     if (r.checked) { auth_method = r.value; break; }
   }
 
-  let provider = (auth_method === 'claude_code') ? 'claude' : 'grok';
+  let provider = (auth_method === 'claude_agent' || auth_method === 'claude_code') ? 'claude' : 'grok';
 
   const body = { provider, auth_method };
   // CLI subscription modes require no credential here
@@ -2383,12 +2518,15 @@ async function setLLMConfig() {
       model: data.llm_config.model || null
     })); } catch (_) {}
     updateLLMStatus(data.llm_config);
-    if (auth_method === 'claude_code') {
-      const cli = data.llm_config.claude_cli || {};
-      if (cli.available) {
-        alert(`Claude Code headless mode enabled (CLI: ${cli.version || 'found'}). Calls will use the CLI's own Team login.`);
+    if (auth_method === 'claude_agent') {
+      ckBrokerLoop();  // ensure the broker is running (idempotent) so jobs get served
+      const a = await probeLocalAgent();
+      if (a.ok && a.claude_cli) {
+        alert("Claude (my local machine) enabled. Calls run through the ck-agent on YOUR machine against YOUR own Claude seat. Keep the agent running and this tab open.");
+      } else if (a.ok && !a.claude_cli) {
+        alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude' -> /login, then retry.");
       } else {
-        alert('Claude Code mode set, but the CLI was NOT found on the server machine.\n\n' + (cli.hint || 'Install Claude Code and log in, then re-apply.'));
+        alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nStart it: cd ask-ck/agent && ./run-agent.sh — then click 'Check my local agent'.");
       }
     } else if (auth_method === 'grok_cli') {
       const cli = data.llm_config.grok_cli || {};
@@ -2404,21 +2542,84 @@ async function setLLMConfig() {
   }
 }
 
-async function checkClaudeCLIStatus() {
-  const resultDiv = document.getElementById('cliStatusResult');
-  if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking…</em>';
+// --- Per-user local Claude agent (ck-agent on the USER's machine) -----------
+const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
+
+async function probeLocalAgent() {
+  // Ask the user's own ck-agent whether it's up and whether claude is installed.
   try {
-    const res = await fetch('/api/wizard/claude_cli_status');
+    const res = await fetch(CK_AGENT_URL + '/health', { method: 'GET' });
+    if (!res.ok) return { ok: false };
     const s = await res.json();
-    if (resultDiv) {
-      if (s.available) {
-        resultDiv.innerHTML = `<span class="status-ok">&#10003; Claude Code CLI found</span> — ${escapeHtml(s.version || '')} <span class="status-muted">(${escapeHtml(s.path || '')})</span><br><span class="status-muted">Note: login state is verified on first real call.</span>`;
-      } else {
-        resultDiv.innerHTML = `<span class="status-err">&#10007; Not found.</span> ${escapeHtml(s.hint || '')}`;
-      }
-    }
+    return { ok: true, claude_cli: !!s.claude_cli, path: s.claude_path, hint: s.hint };
   } catch (e) {
-    if (resultDiv) resultDiv.innerHTML = `<span class="status-err">Status check failed: ${escapeHtml(String(e))}</span>`;
+    return { ok: false, error: String(e) };
+  }
+}
+
+// The broker loop: while claude_agent is the active LLM mode, continuously
+// long-poll the shared server for prompt jobs for THIS session, run each on the
+// user's own local agent, and post the completion back. This is the transport
+// that lets the shared server use each user's own Claude seat.
+let ckBrokerRunning = false;
+
+function ckAgentModeActive() {
+  const c = (currentSession && currentSession.llm_config) || window.lastLLMConfig || {};
+  const am = (c.auth_method || '').toLowerCase();
+  const radio = document.querySelector('input[name="llmAuthMethod"]:checked');
+  return am === 'claude_agent' || (radio && radio.value === 'claude_agent');
+}
+
+async function ckBrokerLoop() {
+  if (ckBrokerRunning) return;      // single loop per tab
+  ckBrokerRunning = true;
+  while (true) {
+    try {
+      // Long-poll for the next job (server holds up to ~25s). Header added by patchFetch.
+      const res = await fetch(`/api/agent/next?session=${encodeURIComponent(CK_SESSION_ID)}&wait=25`);
+      if (!res.ok) { await new Promise(r => setTimeout(r, 2000)); continue; }
+      const data = await res.json();
+      const job = data.job;
+      if (!job) continue;           // timed out with no work — poll again
+      // Run it on the user's own local agent.
+      let content = '', error = false;
+      try {
+        const ares = await fetch(CK_AGENT_URL + '/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: job.prompt, model: job.model, timeout: 600 }),
+        });
+        const ajson = await ares.json();
+        content = ajson.content || '';
+        error = !!ajson.error;
+      } catch (e) {
+        content = 'ERROR: local agent unreachable — is ck-agent running? ' + e;
+        error = true;
+      }
+      // Deliver the completion back to the shared server.
+      await fetch('/api/agent/result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: job.job_id, content, error }),
+      });
+    } catch (e) {
+      await new Promise(r => setTimeout(r, 2000));   // transient error — back off, keep going
+    }
+  }
+}
+
+async function checkLocalAgent() {
+  const resultDiv = document.getElementById('agentStatusResult');
+  if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking your local agent…</em>';
+  const s = await probeLocalAgent();
+  if (!resultDiv) return;
+  if (!s.ok) {
+    resultDiv.innerHTML = `<span class="status-err">&#10007; Agent not reachable at ${escapeHtml(CK_AGENT_URL)}.</span> `
+      + `Start it: <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code>, then retry.`;
+  } else if (!s.claude_cli) {
+    resultDiv.innerHTML = `<span class="status-err">&#10007; Agent up, but Claude CLI not found on your machine.</span> ${escapeHtml(s.hint || "Install Claude Code and run 'claude' -> /login.")}`;
+  } else {
+    resultDiv.innerHTML = `<span class="status-ok">&#10003; Local agent ready</span> <span class="status-muted">(claude at ${escapeHtml(s.path || '')})</span><br><span class="status-muted">Prompts will run on YOUR machine against YOUR own seat while this tab is open.</span>`;
   }
 }
 
@@ -2446,7 +2647,7 @@ function normalizeLLMConfig(config) {
   const am = (c.auth_method || '').toLowerCase();
   // Session dict does not include has_key; treat CLI modes as configured
   if (c.has_key === undefined) {
-    c.has_key = !!(c.api_key || c.token) || am === 'claude_code' || am === 'grok_cli';
+    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli';
   }
   return c;
 }
@@ -2459,7 +2660,7 @@ function updateLLMStatus(config) {
   c = normalizeLLMConfig(c);
   const provider = c.provider || '';
   const am = (c.auth_method || '').toLowerCase();
-  const cliMode = (am === 'claude_code' || am === 'grok_cli');
+  const cliMode = (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli');
   const hasCred = !!(c.has_key || c.api_key || c.token || cliMode);
 
   let text = '';
@@ -2471,7 +2672,8 @@ function updateLLMStatus(config) {
   } else {
     const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
     let m = ' (API key)';
-    if (am === 'claude_code') m = ' (Claude Code CLI)';
+    if (am === 'claude_agent') m = ' (Claude — my local machine)';
+    else if (am === 'claude_code') m = ' (Claude Code CLI)';
     else if (am === 'grok_cli') m = ' (Grok CLI subscription)';
     text = `Using ${p}${m}`;
     ok = true;
@@ -2494,7 +2696,7 @@ function updateLLMDefaults() {
   if (!modelInput || modelInput.value) return;
 
   const checked = document.querySelector('input[name="llmAuthMethod"]:checked');
-  if (checked && checked.value === 'claude_code') {
+  if (checked && checked.value === 'claude_agent') {
     modelInput.placeholder = '(Claude CLI default)';
   } else {
     modelInput.placeholder = '(Grok CLI default)';
@@ -2504,22 +2706,22 @@ function updateLLMDefaults() {
 function updateAuthMethodUI() {
   // Radios now directly choose the subscription CLI mode (no dropdown, no API key)
   const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'grok_cli';
-  const cliBtn = document.getElementById('cliStatusBtn');
+  const agentBtn = document.getElementById('agentStatusBtn');
   const grokBtn = document.getElementById('grokCliStatusBtn');
-  const claudeInstr = document.getElementById('claudeCodeInstructions');
+  const agentInstr = document.getElementById('claudeAgentInstructions');
   const grokInstr = document.getElementById('grokCliInstructions');
 
-  if (method === 'claude_code') {
-    if (cliBtn) cliBtn.classList.remove('hidden');
-    if (claudeInstr) claudeInstr.classList.remove('hidden');
+  if (method === 'claude_agent') {
+    if (agentBtn) agentBtn.classList.remove('hidden');
+    if (agentInstr) agentInstr.classList.remove('hidden');
     if (grokBtn) grokBtn.classList.add('hidden');
     if (grokInstr) grokInstr.classList.add('hidden');
   } else {
     // grok_cli
     if (grokBtn) grokBtn.classList.remove('hidden');
     if (grokInstr) grokInstr.classList.remove('hidden');
-    if (cliBtn) cliBtn.classList.add('hidden');
-    if (claudeInstr) claudeInstr.classList.add('hidden');
+    if (agentBtn) agentBtn.classList.add('hidden');
+    if (agentInstr) agentInstr.classList.add('hidden');
   }
 
   // Placeholder only (no reverse call into this function)
@@ -2530,7 +2732,7 @@ function restoreLLMUI() {
   // Prefer active session config; fall back to last applied / localStorage
   let c = currentSession && currentSession.llm_config;
   const am = c && (c.auth_method || '').toLowerCase();
-  const sessionActive = c && (am === 'claude_code' || am === 'grok_cli' || c.api_key || c.token || c.has_key);
+  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || c.api_key || c.token || c.has_key);
   if (!sessionActive) {
     c = window.lastLLMConfig || null;
     if (!c) {
@@ -2545,6 +2747,7 @@ function restoreLLMUI() {
   // Set method from saved config (no provider dropdown; radios embody the choice)
   let method = c.auth_method || 'grok_cli';
   if (method === 'account' || method === 'api_key') method = 'grok_cli';  // legacy mappings
+  if (method === 'claude_code') method = 'claude_agent';  // server-local CLI removed from UI; map to per-user agent
   const radios = document.querySelectorAll('input[name="llmAuthMethod"]');
   for (let r of radios) {
     r.checked = (r.value === method);
@@ -2558,6 +2761,7 @@ function restoreLLMUI() {
 
   updateAuthMethodUI();
   updateLLMStatus(normalizeLLMConfig(c));
+  if (method === 'claude_agent') ckBrokerLoop();  // resume serving jobs for a returning agent user
 }
 
 async function confirmStep(step) {
@@ -2917,6 +3121,70 @@ async function initCases() {
   await refreshCaseSelects();
 }
 
+// ============================================================================
+// Collapsible sidebar sections (accordion — one open at a time, all collapsed
+// by default). Built at load time from the existing label+content markup so no
+// section HTML had to be restructured. Each .sidebar-section-label owns the
+// sibling nodes up to the next label as its "body".
+// ============================================================================
+function initSidebarAccordion() {
+  const labels = Array.from(document.querySelectorAll('.sidebar .sidebar-section-label'));
+  labels.forEach((label, i) => {
+    // Collect this section's body nodes (until the next label).
+    const body = [];
+    let n = label.nextElementSibling;
+    while (n && !n.classList.contains('sidebar-section-label')) {
+      body.push(n);
+      n = n.nextElementSibling;
+    }
+    label.classList.add('collapsible');
+    label.dataset.sectionIndex = String(i);
+    body.forEach(el => { el.classList.add('sidebar-section-body'); el.dataset.sectionIndex = String(i); });
+    // caret indicator
+    if (!label.querySelector('.section-caret')) {
+      const caret = document.createElement('span');
+      caret.className = 'section-caret';
+      caret.textContent = '▸';
+      label.appendChild(caret);
+    }
+    label.onclick = () => toggleSidebarSection(i);
+  });
+  collapseAllSections();
+}
+
+function collapseAllSections() {
+  document.querySelectorAll('.sidebar .sidebar-section-label.collapsible')
+    .forEach(l => l.classList.remove('section-open'));
+  document.querySelectorAll('.sidebar .sidebar-section-body')
+    .forEach(b => b.classList.add('section-collapsed'));
+}
+
+function openSidebarSection(i) {
+  collapseAllSections();  // accordion: only one open
+  const label = document.querySelector(`.sidebar-section-label.collapsible[data-section-index="${i}"]`);
+  if (label) label.classList.add('section-open');
+  document.querySelectorAll(`.sidebar-section-body[data-section-index="${i}"]`)
+    .forEach(b => b.classList.remove('section-collapsed'));
+}
+
+function toggleSidebarSection(i) {
+  const label = document.querySelector(`.sidebar-section-label.collapsible[data-section-index="${i}"]`);
+  if (label && label.classList.contains('section-open')) collapseAllSections();
+  else openSidebarSection(i);
+}
+
+function expandSectionForActivePanel(panelId) {
+  // Find the sidebar item for this panel and open its owning section.
+  const item = document.querySelector(`.sidebar-nav-item[data-panel="${panelId}"]`)
+    || (/^step-\d+$/.test(panelId)
+        ? document.querySelector(`.sidebar-nav-item[data-step="${panelId.slice(5)}"]`)
+        : null);
+  if (!item) return;
+  const body = item.closest('.sidebar-section-body');
+  if (body && body.dataset.sectionIndex != null) openSidebarSection(body.dataset.sectionIndex);
+}
+
+initSidebarAccordion();
 initCases();
 updateAuthMethodUI();
 currentStep = 0;              // Generator defaults to step 0 when first opened
@@ -2954,7 +3222,15 @@ function goToPanel(panelId) {
     item.classList.toggle('active', target === panelId);
   });
 
+  // Keep the active panel's sidebar section expanded (accordion).
+  if (typeof expandSectionForActivePanel === 'function') expandSectionForActivePanel(panelId);
+
   updatePageHeader();
+
+  // Session debug JSON is the Generator's currentSession — only meaningful on the
+  // Objective/Test Case Generator step panels (step-0..step-5), not other tools/Main.
+  const dbg = document.getElementById('session-debug');
+  if (dbg) dbg.classList.toggle('hidden', !/^step-\d+$/.test(panelId));
 
   const ptRenderers = {
     'panel-pt-seq': renderPtSeqPanel,
@@ -3242,20 +3518,44 @@ function ptRenderMatches(matches, selections) {
     return;
   }
   const selSet = new Set(selections || []);
-  let html = '<table class="table"><thead><tr><th style="width:20px"></th><th>Script</th><th style="width:60px">Coverage</th><th style="width:46px">Score</th><th>Why</th><th style="width:44px"></th></tr></thead><tbody>';
-  matches.forEach(m => {
-    const cov = m.coverage || '?';
-    const covClass = cov === 'full' ? 'badge-success' : '';
-    html += `<tr>
-      <td><input type="checkbox" class="pt-match-sel" value="${escapeHtml(m.id)}" ${selSet.has(m.id) ? 'checked' : ''}></td>
-      <td class="cell-id">${escapeHtml(m.id)}<div class="justification-note">${escapeHtml(m.title || '')}</div></td>
-      <td><span class="badge ${covClass}">${escapeHtml(cov)}</span>${m.covers_steps && m.covers_steps.length ? `<div class="justification-note">steps ${m.covers_steps.join(',')}</div>` : ''}</td>
-      <td>${m.score != null ? m.score : ''}</td>
-      <td class="justification-note">${escapeHtml(m.reason || '')}</td>
-      <td><button class="btn btn-compact" onclick="ptViewSource('${escapeHtml(m.id)}')">view</button></td>
-    </tr>`;
+  // Group matches by source database so each shows in its own labeled, scrollable list.
+  const DBS = [
+    { key: 'art', label: 'testsuites_art' },
+    { key: 'svt', label: 'svt_scripts' },
+    { key: 'legacy', label: 'test_scripts' },
+  ];
+  const byDb = {};
+  matches.forEach(m => { (byDb[m.db || 'other'] = byDb[m.db || 'other'] || []).push(m); });
+
+  let html = `<div class="justification-note mb-1">${matches.length} match(es) across ${Object.keys(byDb).length} database(s)</div>`;
+  const order = DBS.slice();
+  // Any unexpected db bucket (shouldn't happen) appended at the end.
+  Object.keys(byDb).forEach(k => { if (!order.some(d => d.key === k)) order.push({ key: k, label: k }); });
+
+  order.forEach(({ key, label }) => {
+    const group = byDb[key] || [];
+    html += `<div class="pt-match-db"><div class="pt-match-db-head">${escapeHtml(label)} <span class="justification-note">(${group.length})</span></div>`;
+    if (!group.length) {
+      html += '<div class="justification-note pt-match-db-empty">No matches in this database.</div></div>';
+      return;
+    }
+    html += '<div class="pt-match-scroll"><table class="table pt-match-table">'
+      + '<thead><tr><th></th><th>Script</th><th>Coverage</th><th>Score</th><th>Why</th><th></th></tr></thead><tbody>';
+    group.forEach(m => {
+      const cov = m.coverage || '?';
+      const covClass = cov === 'full' ? 'badge-success' : '';
+      html += `<tr>
+        <td><input type="checkbox" class="pt-match-sel" value="${escapeHtml(m.id)}" ${selSet.has(m.id) ? 'checked' : ''}></td>
+        <td class="cell-id">${escapeHtml(m.id)}<div class="justification-note">${escapeHtml(m.title || '')}</div></td>
+        <td><span class="badge ${covClass}">${escapeHtml(cov)}</span>${m.covers_steps && m.covers_steps.length ? `<div class="justification-note">steps ${m.covers_steps.join(',')}</div>` : ''}</td>
+        <td>${m.score != null ? m.score : ''}</td>
+        <td class="justification-note">${escapeHtml(m.reason || '')}</td>
+        <td><button class="btn btn-compact" onclick="ptViewSource('${escapeHtml(m.id)}')">view</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table></div></div>';
   });
-  el.innerHTML = html + '</tbody></table>';
+  el.innerHTML = html;
 }
 
 async function ptManualSearch() {

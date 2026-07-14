@@ -10,6 +10,7 @@ Per PROGRESS.md (High Priority #1) and SERVER-README.md:
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Body
+from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
 from pathlib import Path
@@ -64,7 +65,7 @@ def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
     if not cfg:
         return False
     am = (getattr(cfg, "auth_method", None) or "").lower()
-    if am in ("claude_code", "grok_cli"):
+    if am in ("claude_code", "claude_agent", "grok_cli"):
         return True
     if getattr(cfg, "api_key", None) or getattr(cfg, "token", None):
         return True
@@ -1179,10 +1180,11 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
     llm_cfg = {}
     if hasattr(sess, "llm_config"):
         llm_cfg = sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
-    suggestions = suggest_relevant_atp(
+    suggestions = await run_in_threadpool(
+        suggest_relevant_atp,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
-        llm_config=llm_cfg
+        llm_config=llm_cfg,
     )
 
     # Enrich with full source descriptions (not just LLM reason) for Step 3 UI
@@ -1255,7 +1257,8 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
                 "score": cand.get("score") or 0.5,
             })
             seen.add(cid)
-    suggestions = suggest_relevant_testlink(
+    suggestions = await run_in_threadpool(
+        suggest_relevant_testlink,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
         llm_config=_session_llm_cfg(sess),
@@ -1307,7 +1310,8 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
         q_parts.append(sel.title or "")
     q = body.get("q") or " ".join(filter(None, q_parts))
     candidates = _search_zephyr_external(q, data, case_key=key, limit=30)
-    suggestions = suggest_relevant_zephyr(
+    suggestions = await run_in_threadpool(
+        suggest_relevant_zephyr,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
         llm_config=_session_llm_cfg(sess),
@@ -1472,10 +1476,10 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         provider = "grok"
     if provider == "mock":
         raise HTTPException(400, "MOCK provider removed. Use grok, claude or openai with real auth.")
-    if auth_method not in ("api_key", "account", "claude_code", "grok_cli"):
+    if auth_method not in ("api_key", "account", "claude_code", "claude_agent", "grok_cli"):
         auth_method = "api_key"
-    if auth_method == "claude_code" and provider != "claude":
-        raise HTTPException(400, "Headless Claude Code mode is only available for the Claude provider.")
+    if auth_method in ("claude_code", "claude_agent") and provider != "claude":
+        raise HTTPException(400, "Claude Code modes are only available for the Claude provider.")
     if auth_method == "grok_cli" and provider != "grok":
         raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
 
@@ -1494,9 +1498,9 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         # Sensible defaults per provider
         if provider == "grok" and auth_method != "grok_cli":
             cfg.model = "grok-beta"
-        elif provider == "claude" and auth_method != "claude_code":
+        elif provider == "claude" and auth_method not in ("claude_code", "claude_agent"):
             cfg.model = "claude-3-5-sonnet-20241022"
-        # claude_code / grok_cli: leave model unset so the CLI's own default is used
+        # claude_code / claude_agent / grok_cli: leave model unset so the CLI's own default is used
 
     # Remember as workspace default so future case loads keep this LLM choice
     _save_global_llm(cfg)
@@ -1573,7 +1577,9 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
 
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
     llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
-    result = synthesize_objectives(session_dict, llm_config=llm_cfg)
+    # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
+    # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
+    result = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg)
 
     # Store objective phase only; clear prior "confirmed" so user re-reviews after re-synth
     prev4 = stored.step4 if isinstance(stored.step4, dict) else {}
@@ -1726,7 +1732,8 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
     llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
     try:
-        result = synthesize_steps(
+        result = await run_in_threadpool(
+            synthesize_steps,
             session_dict,
             llm_config=llm_cfg,
             objective=_session_objective(stored),
@@ -1775,7 +1782,7 @@ async def synthesize(req: SynthesisRequest):
 
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
     llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
-    result = synthesize_objectives_and_steps(session_dict, llm_config=llm_cfg)
+    result = await run_in_threadpool(synthesize_objectives_and_steps, session_dict, llm_config=llm_cfg)
 
     stored.step4 = {
         "objective": result.get("objective"),

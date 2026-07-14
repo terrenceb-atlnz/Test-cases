@@ -16,6 +16,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -28,14 +29,32 @@ sys.path.insert(0, str(CK_SERVER))
 
 
 def _load_workspace_llm() -> dict:
-    """Use the Ask CK workspace LLM login (sessions/_workspace_llm.json) if present."""
+    """Resolve an LLM config usable from THIS standalone (no-browser) process.
+
+    The UI's workspace default may be "claude_agent" (browser-brokered) — that only
+    works with a live browser tab, so it's useless here. This tool runs `claude`/`grok`
+    directly, so we normalize claude_agent -> claude_code (server-local CLI) and keep
+    grok_cli / api_key as-is. Env override: CK_ENRICH_PROVIDER / CK_ENRICH_AUTH.
+    """
     path = CK_SERVER / "sessions" / "_workspace_llm.json"
+    cfg = {}
     if path.exists():
         try:
-            return json.load(open(path, encoding="utf-8"))
+            cfg = json.load(open(path, encoding="utf-8"))
         except Exception:
-            pass
-    return {}
+            cfg = {}
+    # Browser-only mode can't run headless — use the local CLI directly instead.
+    if (cfg.get("auth_method") or "").lower() == "claude_agent":
+        cfg["auth_method"] = "claude_code"
+    # Explicit overrides for running against a chosen backend from the shell.
+    if os.environ.get("CK_ENRICH_PROVIDER"):
+        cfg["provider"] = os.environ["CK_ENRICH_PROVIDER"]
+    if os.environ.get("CK_ENRICH_AUTH"):
+        cfg["auth_method"] = os.environ["CK_ENRICH_AUTH"]
+    if not cfg:
+        # No stored config: default to the locally logged-in Claude Code CLI.
+        cfg = {"provider": "claude", "auth_method": "claude_code"}
+    return cfg
 
 
 def _seen_sha1s() -> set:
@@ -82,8 +101,15 @@ def run_enrichment(limit: int = 50, batch_size: int = 10) -> int:
                 print(f"LLM error on batch {i // batch_size}: "
                       f"{meta.get('content', '')[:200]}", file=sys.stderr)
                 break  # resumable — stop cleanly, rerun later
-            parsed = extract_json_block(meta.get("content", "")) or {}
-            by_id = {e.get("id"): e for e in parsed.get("enriched", [])}
+            parsed = extract_json_block(meta.get("content", ""))
+            # Tolerate both {"enriched": [...]} and a bare [...] array from the LLM.
+            if isinstance(parsed, list):
+                rows = parsed
+            elif isinstance(parsed, dict):
+                rows = parsed.get("enriched") or []
+            else:
+                rows = []
+            by_id = {e.get("id"): e for e in rows if isinstance(e, dict)}
             sha_by_id = {r["id"]: r["sha1"] for r in chunk}
             for rid, sha in sha_by_id.items():
                 e = by_id.get(rid)

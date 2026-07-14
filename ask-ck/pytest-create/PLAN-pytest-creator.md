@@ -40,8 +40,16 @@
 3. Add a real testbox in the Testboxes panel, `Check Connection`, and shake out the SSH run path end-to-end.
 4. Consider `.gitignore`/LFS treatment for `ask-ck/pytest-create/data/` (~2.6 MB regenerable index files) — currently untracked.
 
+## Script index status (as of 2026-07-15) — COMPLETE
+
+- **Index: 830 scripts, 100% enriched** (art 239, svt 77, legacy 514). Final composition after excluding a nested vendored SQLAlchemy copy (235 files) found bundled inside `legacy/tools/memory_leak_tools/` — added `"sqlalchemy"` to `EXCLUDES` (7 genuine memory-leak tooling files in that dir remain indexed). Also earlier widened the legacy filter to include numeric suite dirs (e.g. `5003_feature_limits`) and excluded `a1c_playwright` (Playwright web-UI tests, not framework scripts).
+- **Enrichment completed across 3 resumed runs** (150 → 370 → 930 → 1000 → 830 after the vendor exclusion), hit and recovered from one Claude seat 429 rate limit mid-way; fully resumable via the sha1-keyed jsonl, zero data loss.
+- **Verified the fix works**: mechanical scoring for the MDI/MDIX case now returns **art: 13, svt: 11, legacy: 25** matches (was 0/0/10 before enrichment) — confirms the "art/svt score zero" symptom is resolved.
+- To rebuild later (e.g. after script repos change): `cd tool && ./build_script_index.py --mechanical-only` then `./enrich_script_index.py --limit 2000` (only re-enriches new/changed files, sha1-keyed) then `./build_script_index.py` to merge.
+
 ## Progress Log
 
+- **2026-07-15** — Enrichment fully completed (830/830 scripts, 100%) across 3 resumed background runs; found and excluded a nested vendored SQLAlchemy copy (235 files) inside `legacy/tools/memory_leak_tools/` that the LLM correctly refused to tag with networking vocabulary. Verified fix: MDI/MDIX mechanical matching now returns art 13 / svt 11 / legacy 25 (was 0/0/10). Also fixed step-3 UI: per-database result sections, scrollable lists, no horizontal overflow (generalized `.table` overflow guard), and reworked the search/guidance layout (keyword box vs LLM-suggestion box). Confirmed all three DBs are swept by the mechanical scorer — the original zero results for art/svt were purely a 0%-enrichment + numeric-dir-naming issue, not a sweep bug.
 - **2026-07-14** — Plan approved; tracker created.
 - **2026-07-14** — Full implementation landed in one session:
   - `tool/build_script_index.py` + `tool/enrich_script_index.py` (index: 999 files, 55 framework modules).
