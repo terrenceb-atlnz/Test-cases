@@ -1,0 +1,109 @@
+# Ask-CK: LLM-Request Observability (debug footer, per-session log, token accounting)
+
+> ## Session handoff (read first)
+>
+> **Status (2026-07-15):** Plan approved by Terrence; **no code written yet**. Execution starts at Commit 1 below.
+>
+> - **Line numbers were verified against the working tree at planning time** (HEAD `b15e411`). If files have moved, re-locate by name: `_call_llm_with_meta` / the catch-all `except` in llm.py, `_bind_session_id` middleware in main.py, `#session-debug` in index.html, `ptApi` / `goToPanel` / the fetch patch in app.js.
+> - **Requirements source:** Terrence's three asks, verbatim intent — (1) hideable per-page footer showing last LLM request incl. failures, updated every request, not persisted across browser sessions; (2) per-session LLM request log stored in `debug-log/`; (3) token counts on every log entry AND next to the pressed LLM button on success, to compare model efficiency/output quality.
+> - **Settled decisions — don't re-litigate:** surface debug info via a separate `GET /api/llm/recent` endpoint, NOT embedded in existing responses (pytest error paths 502 before a body exists); per-page = per-`currentPanel`, attributed via a new `X-CK-Panel` header; token counts shown honestly as `— tok` where the transport doesn't report usage (Grok CLI plain output, agent bridge) — never estimate/fabricate; badge updates only on success; footer hidden on panels with no LLM activity.
+> - **Sibling plans in this directory** (all approved, none executed): `PLAN-es-module-split.md` (app.js → ES modules) and `PLAN-db-migration.md` (SQLite). This plan is written against **current single-file app.js** — if the ES split lands first, put the frontend section in its own module (`js/llm-debug.js`) instead of a comment-fenced app.js section; the backend half is unaffected. If this lands first, the new app.js section is deliberately self-contained so the split lifts it cleanly. The SQLite plan may later absorb the JSONL log — schema kept flat on purpose; do not couple now.
+> - **Environment:** server via `ask-ck/CK-main/run.sh` (uvicorn :8000); LLM calls need real credentials (`LLM_API_KEY` or claude/grok CLI logins) — for verification steps that exercise failures, an intentionally invalid api key is the cheapest path. Verification is **manual by preference** (no Playwright); curl steps for the backend commit are in the Verification section.
+> - **Secrets rule:** the recorder must whitelist meta fields — `api_key` must never reach `debug-log/`; verification step 1 greps for it.
+
+## Context
+
+Ask-CK's frontend-triggered LLM prompts are opaque: no way to see what was sent, what came back, what it cost, or why a request failed (quota/rate-limit bodies are discarded today). This adds three things:
+
+1. A **hideable footer** (cloning the existing `#session-debug` `<details>` pattern, [index.html:684-687](ask-ck/CK-main/CK_server/static/index.html#L684)) showing the last LLM request **per panel** — including failures — updated every request, not persisted across sessions.
+2. A **per-session JSONL log** of all LLM requests in a new `CK_server/debug-log/` directory (gitignored).
+3. **Token annotation**: every log entry carries tokens spent; a token badge appears next to the LLM button that was pressed after a successful request.
+
+**Key verified facts:**
+- All five LLM transports funnel through `_call_llm_with_meta` ([llm.py:250](ask-ck/CK-main/CK_server/llm.py#L250)), which **never raises** (catch-all at :376 returns `meta` with `error: True`) — safe to rename-and-wrap.
+- Token usage is **already present but unread** in `raw_response` for: Anthropic HTTP (`usage.input_tokens/output_tokens`, llm.py:316-341), OpenAI/Grok HTTP (`usage.prompt_tokens/completion_tokens/total_tokens`, :343-374), Claude Code CLI JSON envelope (`usage`, `total_cost_usd`, :169-227). **Not available** for Grok CLI plain-text (:107-166) and the agent bridge (`{content,error}` contract, agent_jobs.py:83) — show `— tok`, never fabricate.
+- HTTP 429/402 error bodies are discarded today (only `str(e)` kept at llm.py:376) — preserve them.
+- `current_session_id` ContextVar (llm.py:37, set from `X-CK-Session` by middleware main.py:57-67) is the only session key available at the choke point.
+- Wizard endpoints return 200-with-error-in-provenance; pytest endpoints raise HTTPException(502) — so surfacing debug info via a **separate GET endpoint** (not embedded in responses) works uniformly for both, including failures.
+- `ptLintScript` and `ptValidate` are mechanical (no LLM) — excluded. `model` may pass through as literal `"default"` in some paths — cosmetic, note only.
+
+## Commit 1 — Backend: recorder + debug-log + /api/llm endpoints
+
+**paths.py**: add `DEBUG_LOG_DIR = CK_SERVER_DIR / "debug-log"`.
+
+**New `CK_server/llm_debug.py`**:
+- `normalize_usage(auth_method, raw_response) -> dict | None` returning `{input_tokens, output_tokens, total_tokens, cost_usd}`: Anthropic shape (also covers claude_code envelope; fold `cache_read/creation_input_tokens` into input; `total_cost_usd` → cost_usd), OpenAI shape, tolerant `raw["usage"]` probe for agent-bridge, `None` for grok CLI (comment: future — investigate `grok --output-format json`). Everything try/except → None; telemetry must never break a call.
+- `record(meta, duration_ms) -> dict`: builds record from a **whitelist** of meta keys (never api_key/llm_config), reads session from `llm.current_session_id`, panel from new `current_panel_id` ContextVar, endpoint from new `current_request_path` ContextVar; `request_id = uuid4().hex[:12]`; appends one line to `DEBUG_LOG_DIR/<session-id or 'no-session'>.jsonl` (lazy mkdir, `open(..., "a")` O_APPEND single-line writes); pushes into per-session in-memory ring buffer (`deque(maxlen=20)`, evict oldest sessions beyond ~50); wrapped try/except-print.
+- `recent(session_id, limit) -> list[dict]`.
+
+**JSONL record schema** (flat, deliberately columnar so the pending SQLite plan can absorb it later):
+`ts, request_id, session_id, panel, endpoint, template, provider, auth_method, model, base_url, duration_ms, usage{...}|null, error, error_detail, prompt (full), response (full), content_chars`.
+
+**llm.py**:
+- Add ContextVars next to line 37: `current_panel_id`, `current_request_path`.
+- Rename `_call_llm_with_meta` → `_call_llm_raw` (unchanged); new thin `_call_llm_with_meta(same signature, plus template="")`: time with `time.monotonic()`, call raw, set `meta["usage"] = normalize_usage(...)`, `meta["template"]`, call `llm_debug.record(meta, duration_ms)`. All existing callers (llm.py:48, :548, :638, :700, :848, :873, :906, :951, :997) untouched and auto-instrumented.
+- Error-body preservation in the catch-all at :376: if `isinstance(e, requests.HTTPError) and e.response is not None`, set `meta["error_detail"] = e.response.text[:2000]` and append first ~300 chars to the `content` error message (quota/rate-limit reasons then surface in wizard provenance and pytest 502 details too).
+- Template attribution: `run_prompt` (llm.py:997) passes `template=template_name`; the wizard-side call sites (:548, :638, :700, :848, :873, :906, :951) pass their phase/template names.
+
+**Agent bridge (optional usage, server-tolerant)**: `agent_jobs.py:77` deliver gains `usage=None` param; line 83 → `job.result = {"content": content, "error": bool(error), **({"usage": usage} if usage else {})}`. `routers/agent_bridge.py:44` passes `body.get("usage")`. The out-of-repo ck-agent can adopt later; normalizer already probes `raw["usage"]`.
+
+**New `routers/llm_debug.py`** mounted at `/api/llm` (main.py, next to the other includes at :81-85):
+- `GET /recent?limit=20` — ring-buffer records for the caller's `X-CK-Session`, prompt/response truncated to ~20k chars each (full text lives in JSONL). Returning last-K (not last-1) lets the frontend pick the newest record matching its panel — handles concurrent calls in one session.
+- `GET /log` — returns the session's JSONL contents (404 → `{"records": []}`); the per-session log viewable without shell access.
+
+**main.py middleware** (:57-67): set/reset `current_panel_id` (from new `X-CK-Panel` header) and `current_request_path` (from `request.url.path`) in the same try/finally as the session ContextVar. ContextVar propagation into `run_in_threadpool` is safe — same mechanism `current_session_id` already relies on.
+
+**.gitignore** (repo root): add `ask-ck/CK-main/CK_server/debug-log/`.
+
+## Commit 2 — Frontend: footer, per-panel store, token badges
+
+**index.html**:
+- Footer as sibling directly after `#session-debug` (:687):
+  ```html
+  <details id="llm-debug" class="session-debug hidden">
+    <summary class="session-debug-summary">Last LLM request (this page) <span id="llm-debug-tag" class="badge hidden"></span></summary>
+    <pre id="llm-debug-view" class="session-pre"></pre>
+  </details>
+  ```
+- Add ids to the five id-less wizard LLM buttons: `tl-suggest-llm-btn` (:323), `zp-suggest-llm-btn` (:340), `atp-suggest-llm-btn` (:357), `obj-synth-btn` (:382), `steps-synth-btn` (:406). PyTest buttons already have ids.
+
+**app.js** — one new comment-fenced section (after the ptApi block ~:1571; keep self-contained except `currentPanel`/`goToPanel` refs, so the pending ES-module split lifts it cleanly):
+- `const llmDebugByPanel = {};` — plain object; dies with the page (satisfies "not session-to-session").
+- Fetch patch (:16-32): inside the existing `/api/` branch also set `X-CK-Panel: currentPanel`.
+- `fmtTokens(usage)`: `null → '— tok'`, else `'1,234→356 tok'` (input→output; abbreviate ≥10k as `12.3k`).
+- `setTokenBadge(btnEl, usage)`: reuse/insert sibling `span.badge.llm-token-badge` after the button; `.badge-success` when usage present, plain badge `'— tok'` when null (grok CLI / agent paths). **Badge only updates on success** — failures go to the footer + existing alert/statusEl paths.
+- `async recordLLMDebug(btnEl)`: fetch `/api/llm/recent?limit=5`; pick newest record with `rec.panel === currentPanel` (else newest overall); skip if `request_id` already stored for this panel; store, `renderLlmDebugFooter()`; if `btnEl && !rec.error` → `setTokenBadge(btnEl, rec.usage)`.
+- `renderLlmDebugFooter()`: no entry for `currentPanel` → hide `#llm-debug` (matches `#session-debug` precedent; non-LLM panels stay clean). Else unhide and fill `#llm-debug-view`: header line `ts · endpoint · template · provider/model via auth_method · duration · tokens`, `⚠ ERROR` line + `error_detail` on failure, then `--- PROMPT ---` / `--- RESPONSE ---` full texts; `#llm-debug-tag` shows token summary or `ERROR`.
+- Hook `goToPanel` (:1433): after the session-debug toggle at :1453-1454, call `renderLlmDebugFooter()`.
+- Call `recordLLMDebug(document.getElementById('<btn-id>'))` in the finally/after path of **10 handlers** (+1 optional): `suggestTestLinkWithLLM` (:2416), `suggestZephyrWithLLM` (:2478), `suggestATPWithLLM` (:2540), `synthesizeObjectives` (:1042), `synthesizeSteps` (:1065), `ptExtractSequence` (:1703, `#pt-seq-extract-btn`), `ptSuggestScripts` (:1792, `#pt-suggest-btn`), `ptAssessFit` (:1850, `#pt-fit-btn`), `ptGenerateScript` (:1965, `#pt-gen-btn`), `ptFixScript` (:2152, `#pt-fix-btn`); optional `loadCase` (:41, `null` btn — `analyze_atp_coverage` may run an LLM during case load, footer-only).
+
+**styles.css** (near badge block :868): `.llm-token-badge { margin-left: 6px; vertical-align: middle; }` and `.llm-debug-error { color: var(--status-low, #ef4444); }`. Everything else reuses `.badge`, `.badge-success`, `.session-debug*`, `.session-pre`.
+
+## Verification (manual — no Playwright)
+
+Backend (commit 1, `./run.sh`, curl only):
+1. POST an LLM endpoint with `-H 'X-CK-Session: sess-test1' -H 'X-CK-Panel: panel-pt-seq'` → `debug-log/sess-test1.jsonl` gains a line with ts/request_id/panel/endpoint/template/model/duration_ms/usage/prompt/response; **grep the file for the api key — must be absent**.
+2. `GET /api/llm/recent` with the same session header returns the record.
+3. Invalid api key → record has `error: true` + `error_detail` with the provider's 401/429 body; endpoint still returns its normal error shape (pytest 502 / wizard 200+provenance).
+4. No session header → lands in `no-session.jsonl`, no server error.
+
+Frontend (commit 2, hard reload, console open):
+5. Press each button type (a wizard suggest, a synthesize, pt extract/suggest/fit/generate/fix) → token badge appears next to the exact pressed button on success.
+6. API-key provider shows `in→out tok`; grok_cli / claude_agent shows `— tok`.
+7. Per-panel isolation: LLM action on step-1, another on panel-pt-fit, switch between them → footer shows each panel's own request; panel-main shows no footer.
+8. Broken key: wizard button (alert path) and pt button (statusEl path) → footer shows ERROR record with preserved provider body; no badge change.
+9. Tab refresh → footer store empty (per-page state gone) while `debug-log/<session>.jsonl` retains history; new tab → new session file.
+10. `git status` clean (debug-log gitignored); no console errors throughout.
+
+## Risks / notes
+
+- **JSONL growth**: full prompts run 10–50 KB (generate_script embeds fragments); a heavy session reaches a few MB. Acceptable for a debug aid; rotation out of scope (docstring note).
+- **Secrets**: recorder whitelists meta fields; `meta` never contains the credential (verified at llm.py:287-293); verification step 1 double-checks.
+- **Concurrency**: per-session files + O_APPEND single-line writes; `/recent` last-K + panel matching handles in-session concurrent calls.
+- **Pending plans** (note, don't couple): ES-module split will lift the new app.js section into a module — keep it comment-fenced and self-contained. SQLite migration could later absorb the JSONL log as a table — schema is flat on purpose.
+- Grok CLI / agent bridge report no usage — badge shows `— tok` honestly; bridge protocol extended server-side to *accept* optional usage when the ck-agent client adds it.
+
+## Critical files
+
+- Modified: `CK_server/llm.py`, `CK_server/main.py`, `CK_server/paths.py`, `CK_server/agent_jobs.py`, `CK_server/routers/agent_bridge.py`, `CK_server/static/index.html`, `CK_server/static/app.js`, `CK_server/static/styles.css`, repo-root `.gitignore`
+- New: `CK_server/llm_debug.py`, `CK_server/routers/llm_debug.py` (+ runtime `CK_server/debug-log/`)
