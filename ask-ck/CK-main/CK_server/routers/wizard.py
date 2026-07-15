@@ -15,6 +15,7 @@ from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
 from pathlib import Path
 import json
+import math
 import os
 import re
 
@@ -924,12 +925,15 @@ async def get_cases(data=Depends(get_data)):
 
 
 @router.get("/search_atp")
-async def search_atp(q: str = "", data=Depends(get_data)):
+async def search_atp(q: str = "", keep_ids: str = "", data=Depends(get_data)):
     """ATPyLib keyword search for Step 3 (merged client-side with preloaded candidates).
 
+    keep_ids: comma-separated ids already shown in the client pool — always
+    returned, re-scored against `q`, so a new search re-ranks the whole pool.
     Returns short title + full description (no mid-sentence truncation).
     """
-    cands = _get_atp_candidates(q, data, limit=20)
+    keep = {s for s in (keep_ids or "").split(",") if s}
+    cands = _get_atp_candidates(q, data, limit=20, keep_ids=keep)
     return {
         "results": [
             {
@@ -945,16 +949,71 @@ async def search_atp(q: str = "", data=Depends(get_data)):
     }
 
 
-def _search_testlink(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
+# --- Shared keyword relevance scoring ----------------------------------------
+# Replaces the old flat "count distinct query tokens present" ranking (which gave
+# every single-keyword hit an identical score) with a weighted relevance signal:
+#   • title matches weigh more than body/description matches
+#   • term frequency counts (with diminishing returns) — not just presence
+#   • whole-word matches beat substring-inside-another-word matches
+#   • exact phrase (all query words, in order) earns a bonus
+#   • coverage: fraction of distinct query tokens matched anywhere
+# Returns a normalized 0..0.95 score plus per-row match stats for the reason line.
+
+def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]]):
+    """rank_words: lowercased query tokens. fields: list of (text, weight).
+
+    Returns (score_0_to_0.95, matched_token_count, total_hits). Weight scales a
+    field's contribution (e.g. title 3.0, description 1.0).
+    """
+    if not rank_words:
+        return 0.0, 0, 0
+    matched = set()
+    weighted = 0.0
+    total_hits = 0
+    for text, weight in fields:
+        if not text:
+            continue
+        low = text.lower()
+        for w in rank_words:
+            # occurrences (term frequency) with diminishing returns
+            occ = low.count(w)
+            if occ <= 0:
+                continue
+            matched.add(w)
+            total_hits += occ
+            # whole-word match earns a bonus over a mere substring hit
+            whole = re.search(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", low) is not None
+            tf = 1.0 + math.log1p(occ - 1)          # 1 occ -> 1.0, extra occ -> +log
+            weighted += weight * tf * (1.35 if whole else 1.0)
+    if not matched:
+        return 0.0, 0, 0
+    # coverage: reward rows that hit more of the distinct query tokens
+    coverage = len(matched) / len(set(rank_words))
+    # exact phrase bonus (multi-word queries only)
+    phrase_bonus = 0.0
+    if len(rank_words) > 1:
+        phrase = " ".join(rank_words)
+        if any(phrase in (t or "").lower() for t, _ in fields):
+            phrase_bonus = 0.15
+    # squash the unbounded weighted sum into 0..1, then blend with coverage
+    raw = 1.0 - math.exp(-weighted / 4.0)           # saturating
+    score = 0.35 + 0.5 * raw + 0.10 * coverage + phrase_bonus
+    return min(0.95, round(score, 4)), len(matched), total_hits
+
+
+def _search_testlink(q: str, data: dict, limit: int = 20,
+                     keep_ids: Optional[set] = None) -> List[Dict[str, Any]]:
     """Keyword search over full TestLink extract (id + title + steps text).
 
     Ranking may scan a step prefix for speed; description uses full step text
-    (no [:500] mid-sentence truncation).
+    (no [:500] mid-sentence truncation). keep_ids: pool ids always returned
+    (re-scored) so a new search re-ranks the whole visible pool.
     """
     tl = data.get("testlink", {}) or {}
+    keep_ids = keep_ids or set()
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
-    if not words:
+    if not words and not keep_ids:
         return []
     specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
     rank_words = specific or words
@@ -966,22 +1025,37 @@ def _search_testlink(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]
         step_blob = " ".join(
             f"{s.get('action','')} {s.get('expected','')}" for s in steps[:20]
         )
-        text = f"{tid} {title} {step_blob}".lower()
-        hit = sum(1 for w in rank_words if w in text)
-        if hit <= 0:
+        # Weighted: id + title matches count for much more than deep step-text hits.
+        score, nmatch, nhits = _relevance_score(rank_words, [
+            (f"{tid} {title}", 3.0),
+            (step_blob, 1.0),
+        ])
+        in_pool = tid in keep_ids
+        if nmatch <= 0 and not in_pool:
             continue
         rich = _build_testlink_description(item, title=title)
-        scored.append((hit, {
+        scored.append((score, {
             "id": tid,
             "title": title,
-            "score": min(0.95, 0.4 + 0.1 * hit),
+            "score": score,
             "description": rich,
             "snippet": title or "",
             "source": "search",
-            "justification": f"Matched search ({hit} token hits)",
+            "justification": f"Matched search ({nmatch}/{len(set(rank_words))} terms, {nhits} hits)",
         }))
     scored.sort(key=lambda x: (-x[0], x[1]["id"]))
-    return [item for _, item in scored[:limit]]
+    out, seen = [], set()
+    for _, item in scored:
+        if item["id"] in keep_ids:
+            out.append(item); seen.add(item["id"])
+    fresh = 0
+    for _, item in scored:
+        if item["id"] in seen:
+            continue
+        out.append(item); fresh += 1
+        if fresh >= limit:
+            break
+    return out
 
 
 def _search_zephyr_external(
@@ -989,10 +1063,13 @@ def _search_zephyr_external(
     data: dict,
     case_key: str = "",
     limit: int = 20,
+    keep_ids: Optional[set] = None,
 ) -> List[Dict[str, Any]]:
     """Keyword search over slim_index, omitting current Cases list + primary key.
 
     Returns enriched full descriptions (objective/precondition/steps) for UI.
+    keep_ids: pool keys always returned (re-scored) so a new search re-ranks the
+    whole visible pool instead of leaving prior results pinned at stale scores.
     """
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
@@ -1000,9 +1077,10 @@ def _search_zephyr_external(
     }
     if case_key:
         current_cases.add(case_key)
+    keep_ids = keep_ids or set()
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
-    if not words:
+    if not words and not keep_ids:
         return []
     specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
     rank_words = specific or words
@@ -1013,18 +1091,22 @@ def _search_zephyr_external(
             continue
         title = z.get("title") or ""
         folder = z.get("folder") or ""
-        text = f"{rel_key} {title} {folder}".lower()
-        hit = sum(1 for w in rank_words if w in text)
-        if hit <= 0:
+        # Weighted: title/key matches outrank folder-only matches.
+        score, nmatch, nhits = _relevance_score(rank_words, [
+            (f"{rel_key} {title}", 3.0),
+            (folder, 1.0),
+        ])
+        in_pool = rel_key in keep_ids
+        if nmatch <= 0 and not in_pool:
             continue
-        scored.append((hit, {
+        scored.append((score, {
             "key": rel_key,
             "id": rel_key,
             "title": title,
             "folder": folder,
-            "score": min(0.95, 0.4 + 0.12 * hit),
+            "score": score,
             "description": title,  # replaced by full enrich below
-            "justification": f"Matched search ({hit} token hits)",
+            "justification": f"Matched search ({nmatch}/{len(set(rank_words))} terms, {nhits} hits)",
             "source": "search",
             "status": z.get("status"),
             "has_objective": z.get("has_objective"),
@@ -1032,30 +1114,48 @@ def _search_zephyr_external(
             "labels": z.get("labels"),
         }))
     scored.sort(key=lambda x: (-x[0], x[1].get("key") or ""))
-    # diversify titles slightly
-    seen = set()
+    # Pooled rows (keep_ids) are always kept; fresh matches are diversified by
+    # title stem and capped at `limit`.
     out = []
+    seen_keys = set()
     for _, item in scored:
-        stem = re.sub(r"\s+", " ", (item.get("title") or "").lower())[:40]
-        if stem in seen:
+        if item["key"] in keep_ids:
+            out.append(item)
+            seen_keys.add(item["key"])
+    seen_stems = set()
+    fresh = 0
+    for _, item in scored:
+        if item["key"] in seen_keys:
             continue
-        seen.add(stem)
+        stem = re.sub(r"\s+", " ", (item.get("title") or "").lower())[:40]
+        if stem in seen_stems:
+            continue
+        seen_stems.add(stem)
         out.append(item)
-        if len(out) >= limit:
+        fresh += 1
+        if fresh >= limit:
             break
     return _enrich_zephyr_rows(out, data)
 
 
 @router.get("/search_testlink")
-async def search_testlink(q: str = "", data=Depends(get_data)):
-    """TestLink keyword search for Step 1 (merged client-side with load candidates)."""
-    return {"results": _search_testlink(q, data, limit=20)}
+async def search_testlink(q: str = "", keep_ids: str = "", data=Depends(get_data)):
+    """TestLink keyword search for Step 1 (merged client-side with load candidates).
+
+    keep_ids: comma-separated pool ids, always returned re-scored against `q`.
+    """
+    keep = {s for s in (keep_ids or "").split(",") if s}
+    return {"results": _search_testlink(q, data, limit=20, keep_ids=keep)}
 
 
 @router.get("/search_zephyr")
-async def search_zephyr(q: str = "", case_key: str = "", data=Depends(get_data)):
-    """External Zephyr keyword search for Step 2 (omits current Cases list)."""
-    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20)}
+async def search_zephyr(q: str = "", case_key: str = "", keep_ids: str = "", data=Depends(get_data)):
+    """External Zephyr keyword search for Step 2 (omits current Cases list).
+
+    keep_ids: comma-separated pool keys, always returned re-scored against `q`.
+    """
+    keep = {s for s in (keep_ids or "").split(",") if s}
+    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20, keep_ids=keep)}
 
 
 def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
@@ -1103,13 +1203,20 @@ def _split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple
     return (fallback_id or full[:80], full)
 
 
-def _get_atp_candidates(q: str, data: dict, limit: int = 20) -> List[Dict[str, Any]]:
+def _get_atp_candidates(q: str, data: dict, limit: int = 20,
+                        keep_ids: Optional[set] = None) -> List[Dict[str, Any]]:
     """Retrieve candidate ATP tests using keyword search ranked by token hits.
 
     Returns full descriptions (no [:200] / [:120] truncation) so Step 3 UI can
     show complete analysis text; title is the short first-line name only.
+
+    keep_ids: ids already in the caller's candidate pool. These are ALWAYS
+    returned (re-scored against the new query, even if they now score 0) so a
+    subsequent search re-ranks the whole visible pool instead of leaving prior
+    results pinned at their stale scores.
     """
     descs = data.get("test_id_desc", {}) or {}
+    keep_ids = keep_ids or set()
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9.+_-]{1,}", qlow) if len(w) > 2]
     # Prefer non-generic words when ranking
@@ -1121,22 +1228,41 @@ def _get_atp_candidates(q: str, data: dict, limit: int = 20) -> List[Dict[str, A
         suite = info.get("suite_name") or ""
         if "(not a functional test)" in desc.lower() or "(not a functional test)" in tid.lower():
             continue
-        text = (tid + " " + desc + " " + suite).lower()
-        if rank_words and not any(w in text for w in rank_words):
-            continue
-        hit = sum(1 for w in rank_words if w in text)
-        if hit <= 0 and words:
-            continue
         short_title, full_desc = _split_atp_title_description(desc, tid)
-        scored.append((hit, {
+        # Weighted: a hit in the short test name (title) is far more relevant than
+        # one buried in the long analysis body. This is what stops e.g. an
+        # "IPv4 unicast VRRP" row (matched "igmp" deep in its body) from
+        # outranking an "IGMP Snooping" row.
+        score, nmatch, nhits = _relevance_score(rank_words, [
+            (f"{tid} {short_title}", 3.0),
+            (suite, 1.5),
+            (full_desc, 1.0),
+        ])
+        in_pool = tid in keep_ids
+        if nmatch <= 0 and words and not in_pool:
+            continue
+        scored.append((score, {
             "id": tid,
             "description": full_desc,
             "title": short_title,
             "suite": suite,
-            "score": min(0.95, 0.45 + 0.1 * hit),
+            "score": score,
         }))
     scored.sort(key=lambda x: (-x[0], x[1]["id"]))
-    return [item for _, item in scored[:limit]]
+    # New matches are capped at `limit`; pooled rows are always returned so the
+    # caller can re-rank them (they don't consume the new-match budget).
+    out, seen = [], set()
+    for _, item in scored:
+        if item["id"] in keep_ids:
+            out.append(item); seen.add(item["id"])
+    fresh = 0
+    for _, item in scored:
+        if item["id"] in seen:
+            continue
+        out.append(item); fresh += 1
+        if fresh >= limit:
+            break
+    return out
 
 
 def _get_refined_group(case_key: str, data: dict) -> str:

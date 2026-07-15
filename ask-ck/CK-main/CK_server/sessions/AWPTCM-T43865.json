@@ -7,48 +7,84 @@
   },
   "step1": {
     "confirmed": true,
-    "confirmed_at": "2026-07-02 23:45:29.595574",
+    "confirmed_at": "2026-07-15 20:25:58.897563",
     "none_selected": false,
     "selections": [
       {
         "id_or_key": "AWP-11233",
         "title": "PIM-SSM functionality",
-        "justification": "PIM-SMM is entered entries dynamically | step1: Multicast traffic is forwarded and status on multicast table is correct when group was joined: >Check Multicast Table (s => Multicast routing table updates accordingly"
+        "justification": "Step: Multicast traffic is forwarded and status on multicast table is correct when group was joined:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check IGMP Host Joined the correct multicast source\nExpected: Multicast routing table updates accordingly\n\nStep: Multicast traffic was stopped and prune correctly when group was left and multicast table updated correctly:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when all IGMP Host leave the group\nExpected: Multicast routing table updates accordingly\n\nStep: The state when port interface does down/up:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when no more IGMP Host connected\nExpected: Multicast routing table updates accordingly",
+        "order": 0
       },
       {
         "id_or_key": "AWP-11230",
         "title": "PIM-SSM with static mroute",
-        "justification": "Verify PIM-SSM works properly with static mroute | step1: Configure the static mroute at the last hope router (DUT4). >Send multicast stream >Send IGMP Joined => static mroute works with PIM-SSM, IGMP host joined the correct source and reci"
+        "justification": "Step: Configure the static mroute at the last hope router (DUT4).\n>Send multicast stream\n>Send IGMP Joined\nExpected: static mroute works with PIM-SSM, IGMP host joined the correct source and recieved multicast data.",
+        "order": 1
       },
       {
         "id_or_key": "AWP-3466",
         "title": "CLI to check sh ip pim mroute",
-        "justification": "Command line test | step1: 1. Setup PIM-DM / SM network. 2. Server sends multicast traffic 3. Client joins the multicast group 4. Execute the comma => Command should be accepted in CLI and display PIM-DM/PIM-SM multicast routing ta"
+        "justification": "Step: 1. Setup PIM-DM / SM network.\n2. Server sends multicast traffic\n3. Client joins the multicast group\n4. Execute the command to display multicast routing table\n- show ip pim dense-mode mroute\n- show ip pim sparse-mode mroute\nExpected: Command should be accepted in CLI and display PIM-DM/PIM-SM multicast routing table.",
+        "order": 2
       }
     ]
   },
   "step2": {
     "confirmed": true,
-    "confirmed_at": "2026-07-02 23:45:31.102281",
+    "confirmed_at": "2026-07-15 20:26:03.416015",
     "none_selected": false,
     "selections": [
       {
-        "id_or_key": "AWPTCM-T43865",
-        "title": "(42) IPv4_MulticastRouting - PIM-SSM",
-        "justification": "PIM-SMM is entered entries dynamically Multicast traffic is forwarded and status on multicast table is correct when group was joined:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check IGMP Host Joined the correct multicast source | Multicast traffic was stopped and prune correctly when group was left and multicast table updated correctly:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when all IGMP Host leave the group | The state when port interface does down/up:\n>Check Multicast Table (show ip mroute; show ip pim spare-mode mroute)\n>Check IGMP Groups (show ip igmp group)\n>Check when no more IGMP Host connected"
+        "id_or_key": "AWPTCM-T11805",
+        "title": "CLI Test - PIM-SSM - ip igmp static-group",
+        "justification": "Status: Approved | Has objective: True | Num steps: 1 | Labels: Device-Management",
+        "order": 1
       },
       {
-        "id_or_key": "AWPTCM-T1552",
-        "title": "ATMF Minor Clients  License - Autorecovery blocked when no license",
-        "justification": "ATMF Minor Clients  License - Autorecovery blocked when no license"
+        "id_or_key": "AWPTCM-T11754",
+        "title": "CLI Test - PIM-SSM - ip pim ssm",
+        "justification": "Status: Approved | Has objective: True | Num steps: 2 | Labels: Device-Management",
+        "order": 2
+      },
+      {
+        "id_or_key": "AWPTCM-T11759",
+        "title": "CLI Test - ip igmp ssm-map enable",
+        "justification": "Status: Approved | Has objective: True | Num steps: 1 | Labels: Device-Management",
+        "order": 3
+      },
+      {
+        "id_or_key": "AWPTCM-T11760",
+        "title": "CLI Test - ip igmp ssm-map static",
+        "justification": "Status: Approved | Has objective: True | Num steps: 1 | Labels: Device-Management",
+        "order": 4
+      },
+      {
+        "id_or_key": "AWPTCM-T11782",
+        "title": "Combining L2 and L3 multicasting in the network",
+        "justification": "Status: Approved | Has objective: True | Num steps: 1 | Labels: Operational",
+        "order": 5
+      },
+      {
+        "id_or_key": "AWPTCM-T11774",
+        "title": "100 PIM interfaces with PIM-SSM",
+        "justification": "Status: Approved | Has objective: True | Num steps: 2 | Labels: Functional",
+        "order": 7
       }
     ]
   },
   "step3": {
     "confirmed": true,
-    "confirmed_at": "2026-07-02 23:45:32.663879",
+    "confirmed_at": "2026-07-15 20:26:07.462172",
     "none_selected": false,
-    "selections": []
+    "selections": [
+      {
+        "id_or_key": "5707.2001.70",
+        "title": "PIM - SSM, 1 source, join 1 client",
+        "justification": "PIM - SSM, 1 source, join 1 client\n\n[Inferred behavior \u2014 no execution history for this case] PIM - SSM, 1 source, join 1 client",
+        "order": 8
+      }
+    ]
   },
   "step4": {
     "objective": "<ul>\n<li>Multicast traffic for a source-specific group is forwarded only to interfaces with an active IGMPv3 join for that (S,G) pair once the join is processed.</li>\n<li>The multicast routing table reflects an accurate (S,G) entry, including incoming interface, outgoing interface list, and forwarding state, immediately after a host joins the group.</li>\n<li>A statically configured mroute at the last-hop router is honored, with the source and receiver interfaces correctly reflected in the routing table alongside dynamically learned PIM-SSM entries.</li>\n<li>Multicast traffic is not forwarded to interfaces or hosts that have not issued a valid source-specific join for the group.</li>\n<li>Joins for groups or sources outside the configured SSM range are rejected or handled per SSM policy, with no erroneous forwarding state created.</li>\n<li>The CLI command to display the PIM multicast routing table is accepted and returns output consistent with the actual PIM-SSM/static mroute forwarding state.</li>\n<li>Multicast forwarding and routing table state remain correct and consistent across combinations of dynamically joined and statically configured mroute entries.</li>\n<li>Routing table entries are updated or removed appropriately when group membership or source reachability changes, preventing stale or orphaned forwarding state.</li>\n</ul>",
@@ -126,9 +162,71 @@
       "error": false
     }
   },
-  "step5": {},
+  "step5": {
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up SSM topology: multicast source, last-hop router (LHR) with PIM-SSM enabled, and a receiver host capable of IGMPv3, with the SSM range configured on the LHR.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a static mroute at the LHR for a known (S,G) pair, specifying source and receiver interfaces.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the CLI command to display the PIM multicast routing table is accepted and returns baseline output before any dynamic join.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the receiver host issuing a valid IGMPv3 source-specific join for an (S,G) pair within the configured SSM range.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the PIM mroute table reflects an accurate (S,G) entry immediately after the join, including correct incoming interface, outgoing interface list, and forwarding state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Send multicast traffic from the source for the joined (S,G) and confirm it is forwarded only to the interface with the active join.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm interfaces/hosts that have not issued a join for the (S,G) do not receive the multicast traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the statically configured mroute entry and the dynamically learned PIM-SSM entry both appear correctly in the routing table, with source and receiver interfaces accurately reflected for each.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a join request for a group or source outside the configured SSM range and verify it is rejected or handled per SSM policy.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify no erroneous forwarding state or mroute entry is created as a result of the out-of-range join attempt.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the receiver host to leave the group (or expire membership) and verify the corresponding mroute entry is updated or removed from the routing table.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the multicast source becoming unreachable and verify stale or orphaned forwarding state for the affected (S,G) is not retained.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the PIM mroute table remains consistent and accurate when re-querying via the CLI across combinations of remaining static and dynamic entries.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  },
   "gaps": "Automation focuses narrowly on functional PIM-SSM group-join forwarding \u2014 verifying multicast traffic delivery and multicast table state after a join, largely mirroring the intent of AWP-11233 and the CLI-based mroute inspection from AWP-3466. It does not exercise static mroute configuration at the last-hop router path described in AWP-11230, nor any teardown, leave, or re-join transitions, source-change, or multiple-group/multiple-source SSM scenarios. There is also no coverage tying this to the ATMF licensing/autorecovery behavior referenced in AWPTCM-T1552, and no automated validation of CLI output correctness (`sh ip pim mroute`) beyond what the manual case implies. Overall, observability gaps remain around static-route configuration, dynamic membership churn, and cross-feature interaction with licensing-driven client recovery.",
-  "art_string": "",
+  "art_string": "5707.2001.70",
   "full_session": {
     "llm": {
       "gaps_prompt": "You are documenting automation coverage gaps for a manual Zephyr test case.\n\nCase: AWPTCM-T43865\nPrimary decision: {'m': 'AWP-11233', 'c': 'high', 'w': 'Exact: PIM-SSM functionality'}\n\nConfirmed TestLink selections (historical artefacts / intent):\n\n- AWP-11233: PIM-SSM functionality \u2014 PIM-SMM is entered entries dynamically | step1: Multicast traffic is forwarded and status on multicast table is correct when group was joined: >Check Multicast \n\n- AWP-11230: PIM-SSM with static mroute \u2014 Verify PIM-SSM works properly with static mroute | step1: Configure the static mroute at the last hope router (DUT4). >Send multicast stream >Send IGMP Joined =\n\n- AWP-3466: CLI to check sh ip pim mroute \u2014 Command line test | step1: 1. Setup PIM-DM / SM network. 2. Server sends multicast traffic 3. Client joins the multicast group 4. Execute the comma => Command s\n\n\nConfirmed Zephyr cross-references:\n\n- AWPTCM-T43865: (42) IPv4_MulticastRouting - PIM-SSM\n\n- AWPTCM-T1552: ATMF Minor Clients  License - Autorecovery blocked when no license\n\n\nConfirmed ATPyLib (ART) automated tests selected as related coverage:\n\n\n\n\nWrite a concise Gaps analysis for the Traceability artefact (one short paragraph, 2\u20135 sentences):\n- What the selected ART coverage reasonably addresses\n- What important behaviours, edge cases, or observability from TestLink/Zephyr are NOT well covered by automation\n- Do not invent test IDs that are not listed above\n- Platform-agnostic language; no procedural \"verify that...\" style\n\nReturn ONLY the gaps paragraph as plain text (no JSON, no markdown headings, no bullet list unless a short clause list fits naturally).",
@@ -143,7 +241,7 @@
       "error": false
     }
   },
-  "updated_at": "2026-07-13 23:36:14.852359",
+  "updated_at": "2026-07-15 20:41:42.329390",
   "llm_config": {
     "provider": "claude",
     "auth_method": "claude_code",

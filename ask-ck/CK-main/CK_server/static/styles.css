@@ -1020,6 +1020,36 @@ h2 {
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
+/* Two-table review pattern: Choose button, chosen heading/table, confirm row. */
+.chosen-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin: 8px 0;
+}
+.chosen-heading {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 12px 0 6px;
+  color: var(--text-secondary, #9aa4b2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.chosen-empty {
+  color: var(--text-secondary, #9aa4b2);
+  font-style: italic;
+}
+/* Chosen table is the confirmed shortlist — subtle accent so it reads as distinct
+   from the candidates table above it. */
+.chosen-table {
+  border-left: 3px solid var(--accent-primary, #4f8cff);
+}
+.confirm-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
 .editable-steps {
   display: flex;
   flex-direction: column;

@@ -882,3 +882,35 @@ Future drafting sessions must cross-reference:
 **Primary handoff for PyTest Creator work:** start at `ask-ck/pytest-create/PLAN-pytest-creator.md`. Run with `./ask-ck/CK-main/run.sh`.
 
 ---
+
+
+## 2026-07-16 Session — ES-module split + two-table review shortlist + search relevance
+
+**Focus:** Execute the approved `ask-ck/ck-facelift/PLAN-es-module-split.md`, then two follow-on Generator improvements that grew out of a reported "ATP search doesn't work" quirk. All work is **staged in the working tree, not committed** (branch `main`; Terrence commits himself).
+
+**1. ES-module split (plan executed).** Split the 2663-line `CK_server/static/app.js` into 14 browser-native ES modules under `CK_server/static/js/` — **no bundler, no package.json**. `index.html` now loads `<script type="module" src="/static/js/main.js?v=1">`; `app.js` deleted.
+- **Keystone:** `js/actions.js` action registry (`registerActions`) replaced the `window[data-action]` dispatcher — module scope removes handlers from `window`, so each tool self-registers its own actions.
+- Staged in two logical commits (registry-in-classic-app.js first to de-risk the 52-name contract, then the atomic split), plus `js/README.md` documenting conventions + the remaining `window.current*`/`lastLLMConfig` bus debt.
+- Five bare globals (`currentSession`/`currentKey`/`currentStep`/`currentPanel`/`ptCase`) moved into a shared `S` object in `js/state.js` (137 rename sites).
+- **Verified:** all modules parse, 65 imports resolve, action-name contract exact, zero console errors driving the app in real Chrome (`load_case → 200`), Terrence manual-signed-off.
+
+**2. Two-table "chosen shortlist" (Generator steps 2/3/4 — TestLink/Zephyr/ATPyLib).** Replaced each step's single candidates-table+confirm with: candidates table → **↓ Choose selected** → insertion-ordered **Chosen** table → footer **Mark Reviewed + Confirmed** | **Clear selected contents**. Chosen rows disappear from the top; Clear moves them back. **Confirm reads ONLY the chosen table.** LLM Suggest drops picks straight into Chosen; keyword Search populates the top for manual Choose — this fixed the original "search results get buried" complaint.
+- New module `js/chosen.js` (insertion-ordered `window.current*Chosen` arrays, choose/clear/restore/`chosenSelections`); `js/tables.js` rewritten (top tables hide already-chosen rows; shared `renderChosenTable`). `Selection.order` added to `models.py` to persist click order (optional → old sessions still deserialize). Confirm/restore rewired in `generator.js`; merges in `db-search.js` simplified.
+
+**3. Search relevance scoring + pool re-scoring.** The old ATP/TestLink/Zephyr keyword search used a flat `0.45+0.1*hit` that gave every single-keyword hit an identical score (all 0.55), so ordering was meaningless. New shared `_relevance_score()` in `routers/wizard.py`: title>body field weighting, term frequency, whole-word bonus, phrase bonus, coverage. Wired into `_get_atp_candidates`, `_search_testlink`, `_search_zephyr_external`. Then fixed a follow-on: a **new search now re-scores the existing candidate pool** against the new query (search endpoints take a `keep_ids` param; frontend `poolIds()` sends current pool) so prior-search rows re-rank instead of staying pinned at stale scores — rows relevant to both queries stay up, non-matching ones sink (not discarded).
+
+**Accomplishments:**
+- `static/js/` — 14 modules + `chosen.js` + `README.md`; `app.js` removed; `index.html` module tag + two-table markup on steps 1/2/3; `styles.css` chosen-table/toolbar styles.
+- `models.py` — `Selection.order: Optional[int]`.
+- `routers/wizard.py` — `_relevance_score()`, three scorers reworked, `keep_ids` on all three search endpoints (`math` import added).
+- Memory notes: `pending-approved-plans` updated (split done; DB-migration + LLM-observability still pending), `atp-search-merge-ux` documents the quirk + all three fixes.
+
+**Verified:** JS syntax + 58-name action contract (52 original + 6 choose/clear) clean; Python imports clean; `_relevance_score` unit assertions pass; live-corpus checks (ATP "IGMP" ranks IGMP-titled rows on top; IGMP-pool re-scored to 0 when searching PIM). **Terrence manually tested and confirmed all three pieces working.**
+
+**Note:** testing overwrote `CK_server/sessions/AWPTCM-T43865.json` (re-confirmed steps, new timestamps + `order` fields + richer justifications) — Terrence chose to keep these changes.
+
+**State / next:** All three pieces complete + tested, staged uncommitted. The other two approved facelift plans — `PLAN-db-migration.md` (SQLite/FTS5/sqlite-vec) and `PLAN-llm-observability.md` — remain **not started**; the observability plan's frontend now targets a `static/js/` module since the split landed. Score-spread bunching near the cap and duplicate-title rows in the ATP corpus were noted and deliberately deferred.
+
+**Primary handoff:** start at `ask-ck/objective-drafting/PROGRESS.md`. Run with `./ask-ck/CK-main/run.sh`.
+
+---

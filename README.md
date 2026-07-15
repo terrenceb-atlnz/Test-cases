@@ -90,7 +90,8 @@ Authoritative process: **`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.m
 | Candidate generation + decisions | ~410 AWPTCM cases; decisions across review batches |
 | Refined case outputs | **~42** cases with `traceability.md` + `zephyr_payload.json` under `ask-ck/objective-drafting/refined-cases/<Group>/` |
 | Objective drafting process | Stable, documented, used in production workflow |
-| **Ask CK workbench** | Multi-tool facelift complete (2026-07-13): Objective/Test Case Generator (full), sidebar LLM Configure panel, plus Test Composer and Zephyr Templating Tool (scaffolded) — see `ask-ck/objective-drafting/PROGRESS.md` |
+| **Ask CK workbench** | Multi-tool facelift complete (2026-07-13): Objective/Test Case Generator (full), sidebar LLM Configure panel, plus Test Composer and Zephyr Templating Tool (scaffolded) — see `ask-ck/objective-drafting/PROGRESS.md`. **Frontend refactored to browser-native ES modules (2026-07-16)** — `static/app.js` → `static/js/` (see `static/js/README.md`). |
+| **Generator review UX** | **Two-table "chosen shortlist" (2026-07-16)** on the TestLink/Zephyr/ATPyLib steps (candidates ↑ / chosen ↓, insertion-ordered; confirm reads the chosen table only), plus **relevance-ranked keyword search** (title-weighted scoring; each new search re-ranks the whole candidate pool) |
 | **PyTest Creator** | **Fully implemented (2026-07-14):** 8-step gated flow turning refined cases into runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test scripts, with a script-database index, testbox SSH execution, and an LLM fix loop to Final Validation — see `ask-ck/pytest-create/PLAN-pytest-creator.md` |
 
 **Refined-case groups present** (examples): Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management, Bootloader.
@@ -130,6 +131,8 @@ The original Ask CK tool. Turns a sparse AWPTCM manual case into a refined case 
 4. **ATPyLib (scored)** — review the scored automation-coverage candidates and Confirm which ART suites apply.
 5. **Objectives (LLM)** — synthesize the declarative objective artefacts from the confirmed reviews; edit, then Confirm.
 6. **Test Steps (LLM)** — synthesize the Zephyr test steps from the finalized objective, then **Export the Repeatable Bundle** — this writes `traceability.md` + `zephyr_payload.json` into `ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/`. A case becomes **Complete** once this exists.
+
+**Review steps 2–4 use a two-table "chosen shortlist" (2026-07-16):** the top **candidates** table holds Search / Suggest results (keyword Search is relevance-ranked — title matches outrank body-only hits, and each new search re-ranks the whole pool against the new terms); tick rows and click **↓ Choose selected** to move them into the bottom **chosen** table, which stays in the order you added them. **Clear selected contents** moves chosen rows back up. **Mark Reviewed + Confirmed reads only the chosen table.** LLM **Suggest** drops its picks straight into the chosen table. Loading a previously-confirmed case pre-populates the chosen tables.
 
 Gaps for Traceability are synthesized by the LLM at the synthesize/export step (not user-edited mid-wizard). Optional final step: push a refined case to Zephyr with `tool/upload_refined.py` (see below).
 

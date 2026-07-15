@@ -10,6 +10,10 @@ class Selection(BaseModel):
     id_or_key: str
     title: str
     justification: Optional[str] = ""
+    # Insertion order in the "chosen" shortlist (two-table review UI). Optional so
+    # sessions persisted before this field still deserialize; the frontend falls
+    # back to saved-list order when absent.
+    order: Optional[int] = None
 
 class StepState(BaseModel):
     confirmed: bool = False

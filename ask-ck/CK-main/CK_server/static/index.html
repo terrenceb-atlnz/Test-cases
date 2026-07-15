@@ -323,7 +323,15 @@
           <button type="button" data-action="suggestTestLinkWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="tl-table" class="table-container"><em>Select a case above and click Load to see actual TestLink candidates here.</em></div>
-        <button data-action="confirmStep" data-args='[1]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+        <div class="chosen-toolbar">
+          <button type="button" data-action="chooseTestLink" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+        </div>
+        <div class="chosen-heading">Chosen TestLink cases</div>
+        <div id="tl-chosen-table" class="table-container"><em class="chosen-empty">No cases chosen yet — tick rows above and click Choose.</em></div>
+        <div class="confirm-toolbar">
+          <button data-action="confirmStep" data-args='[1]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+          <button type="button" data-action="clearChosenTestLink" class="btn btn-secondary">Clear selected contents</button>
+        </div>
       </div>
     </div>
 
@@ -340,7 +348,15 @@
           <button type="button" data-action="suggestZephyrWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="zephyr-table" class="table-container"><em>Select a case above and click Load to see actual Zephyr cross-refs here.</em></div>
-        <button data-action="confirmStep" data-args='[2]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+        <div class="chosen-toolbar">
+          <button type="button" data-action="chooseZephyr" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+        </div>
+        <div class="chosen-heading">Chosen Zephyr cases</div>
+        <div id="zephyr-chosen-table" class="table-container"><em class="chosen-empty">No cases chosen yet — tick rows above and click Choose.</em></div>
+        <div class="confirm-toolbar">
+          <button data-action="confirmStep" data-args='[2]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+          <button type="button" data-action="clearChosenZephyr" class="btn btn-secondary">Clear selected contents</button>
+        </div>
       </div>
     </div>
 
@@ -357,7 +373,15 @@
           <button type="button" data-action="suggestATPWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="atp-table" class="table-container"><em>ATPyLib candidates will appear here after loading a case.</em></div>
-        <button data-action="confirmStep" data-args='[3]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+        <div class="chosen-toolbar">
+          <button type="button" data-action="chooseATP" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
+        </div>
+        <div class="chosen-heading">Chosen ATPyLib tests</div>
+        <div id="atp-chosen-table" class="table-container"><em class="chosen-empty">No tests chosen yet — tick rows above and click Choose.</em></div>
+        <div class="confirm-toolbar">
+          <button data-action="confirmStep" data-args='[3]' class="btn btn-primary">Mark Reviewed + Confirmed</button>
+          <button type="button" data-action="clearChosenATP" class="btn btn-secondary">Clear selected contents</button>
+        </div>
       </div>
     </div>
 
@@ -688,6 +712,6 @@
   </main>
 </div>
 
-<script src="/static/app.js"></script>
+<script type="module" src="/static/js/main.js?v=1"></script>
 </body>
 </html>
