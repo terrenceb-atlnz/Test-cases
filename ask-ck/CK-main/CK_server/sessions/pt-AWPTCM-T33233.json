@@ -409,9 +409,88 @@
     ],
     "user_inputs": "",
     "mechanical_considered": 40,
-    "confirmed": false
+    "confirmed": true,
+    "confirmed_at": "2026-07-15T00:43:59.668726",
+    "selections": [
+      "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py",
+      "legacy/5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py",
+      "legacy/5000_mdi_mdix/test-5000.0004-CopperSFP_Cross.py"
+    ]
   },
-  "step4": {},
+  "step4": {
+    "decision": "new",
+    "base_script": null,
+    "rationale": "The three selected legacy scripts are MDI/MDIX polarity suites whose TestSet topology assumes a pluggable is already seated for the whole run and whose TestCases only assert configured speed/duplex/polarity plus link-up via checkLinkStatus/checkConfiguredPort helpers. None of them exercise the empty-port default read, explicit config-mode auto/auto entry, forced-partner-vs-auto-DUT sweeps, traffic validation, incompatible-duplex link-down proof, hot-remove/insert, or EcoMode toggling required by this sequence, so a new script composed from these helper patterns is needed rather than extending one chassis.",
+    "per_step": [
+      {
+        "n": 1,
+        "covered_by": "",
+        "gap": "TestCase_1 in each script checks speed/duplex=auto only after the pluggable is already installed; none reads port defaults on an empty port before pluggable insertion."
+      },
+      {
+        "n": 2,
+        "covered_by": "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py:TestCase_1",
+        "gap": "configure() logs 'show sys'/'show sys plug' and TestCase_1 confirms link-up with auto/auto, but no assertion explicitly ties pluggable detection to negotiated rate consistent with the pluggable's supported speed."
+      },
+      {
+        "n": 3,
+        "covered_by": "",
+        "gap": "No script shows an explicit config-mode 'speed auto'/'duplex auto' entry followed by a running-config check on both DUT and partner; existing cases only assert resulting state."
+      },
+      {
+        "n": 4,
+        "covered_by": "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py:TestCase_11",
+        "gap": "Confirms auto/auto configured and link up, but does not assert the status output shows the concrete negotiated speed/duplex value alongside the Auto mode label."
+      },
+      {
+        "n": 5,
+        "covered_by": "",
+        "gap": "No case forces only the link-partner to a fixed speed while leaving the DUT on Auto/Auto; the speed-variant cases (e.g. TestCase_6-10) appear to change both ends together, not asymmetric Auto-vs-forced pairs, and don't sweep every supported speed."
+      },
+      {
+        "n": 6,
+        "covered_by": "",
+        "gap": "Existing speed variants toggle among auto-1000/100/10 combos for polarity testing but don't set fully fixed (non-auto) matching speeds on both ends across the whole supported range, nor explicitly verify highest-common-rate negotiation when reverting to auto/auto."
+      },
+      {
+        "n": 7,
+        "covered_by": "",
+        "gap": "No Scapy/tcpdump frame-loss or CRC-counter validation exists; scripts only check port/link status, not traffic-level correctness."
+      },
+      {
+        "n": 8,
+        "covered_by": "",
+        "gap": "No case configures an incompatible duplex/speed pairing to confirm the DUT link fails or reports down; all existing cases target working link configurations."
+      },
+      {
+        "n": 9,
+        "covered_by": "",
+        "gap": "No hot-remove of the pluggable is performed; TestSet topology assumes the pluggable remains inserted for the whole script run, with no event-log check for removal."
+      },
+      {
+        "n": 10,
+        "covered_by": "",
+        "gap": "No hot-insert-after-removal step or link-up/pluggable-inserted event-log verification exists."
+      },
+      {
+        "n": 11,
+        "covered_by": "",
+        "gap": "No EcoMode/'ecofriendly lpi' enablement or 'show ecofriendly' check exists in any selected script."
+      },
+      {
+        "n": 12,
+        "covered_by": "",
+        "gap": "No EcoMode disablement/regression check exists in any selected script."
+      }
+    ],
+    "confirmed": false,
+    "provenance": {
+      "llm": {
+        "provider": "claude",
+        "model": "default"
+      }
+    }
+  },
   "step5": {},
   "step6": {},
   "step7": {},
@@ -424,5 +503,5 @@
     "base_url": null,
     "model": null
   },
-  "updated_at": "2026-07-14 02:58:56.087612"
+  "updated_at": "2026-07-15 00:44:54.631941"
 }

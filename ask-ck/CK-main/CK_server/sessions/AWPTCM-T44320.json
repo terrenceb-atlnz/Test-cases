@@ -1,0 +1,40 @@
+{
+  "key": "AWPTCM-T44320",
+  "primary": {
+    "m": "AWP-21829",
+    "c": "med",
+    "w": "AMF controller license/support"
+  },
+  "step1": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step2": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step3": {
+    "confirmed": false,
+    "confirmed_at": null,
+    "none_selected": false,
+    "selections": []
+  },
+  "step4": {},
+  "step5": {},
+  "gaps": "",
+  "art_string": "",
+  "full_session": {},
+  "updated_at": "2026-07-15 00:40:04.457825",
+  "llm_config": {
+    "provider": "claude",
+    "auth_method": "claude_agent",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": null
+  }
+}
