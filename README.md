@@ -22,6 +22,17 @@ Tools, data, and workflows for enriching and mapping **AWPTCM manual test cases*
 
 ## Getting Started
 
+**Quick start (recommended):** the bootstrap script does all of the below in one go — LFS pull, virtual environment, dependency install — then offers to launch the server:
+
+```bash
+git clone https://github.com/terrenceb-atlnz/Test-cases.git
+cd Test-cases
+./setup.sh          # idempotent; safe to re-run
+```
+
+<details>
+<summary>Or do it manually</summary>
+
 ```bash
 git clone https://github.com/terrenceb-atlnz/Test-cases.git
 cd Test-cases
@@ -29,9 +40,27 @@ cd Test-cases
 # Required: materialize large source files
 git lfs install
 git lfs pull
+
+# Recommended: isolate the Python dependencies in a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+# Required: install the Ask CK server dependencies
+pip install -r ask-ck/CK-main/requirements.txt
 ```
 
-**Requirements:** Python 3 + [Git LFS](https://git-lfs.com/).
+</details>
+
+**Requirements:** Python 3 + [Git LFS](https://git-lfs.com/) **≥ 3.3** + the Python packages in [`ask-ck/CK-main/requirements.txt`](ask-ck/CK-main/requirements.txt) (FastAPI, uvicorn, Jinja2, requests, python-multipart, pydantic). Installing these is mandatory — the server will not start without them (you'll get `ModuleNotFoundError: No module named 'fastapi'`).
+
+> **Git LFS version matters on Ubuntu.** Older Git LFS (e.g. 3.0.2, the version in Ubuntu's apt repos) is incompatible with modern Git (2.38+) and fails `git lfs pull` on a fresh clone with `cannot add to the index - missing --add option?`. If you hit this, install a current Git LFS from its own repo rather than apt:
+> ```bash
+> curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+> sudo apt-get install git-lfs      # now installs 3.3+
+> git lfs install
+> ```
+
+> **On the virtual environment:** the `venv` is recommended but optional — it only isolates *where* these packages are installed, it does not change how the project runs. If you skip it, install into your user site-packages instead with `pip install --user -r ask-ck/CK-main/requirements.txt`. `run.sh` **auto-activates a repo-local `.venv` if present**, so you don't need to activate it first to start the server. You still need to activate it yourself (`source .venv/bin/activate`) before running `tool/*.py` scripts directly.
 
 Large Zephyr sources (`zephyr_cases.jsonl`, full XML export, related indexes) live in the repo via Git LFS under `ask-ck/objective-drafting/data/zephyr_full/`. Prefer `slim_index.json` for day-to-day work; see `ask-ck/objective-drafting/data/zephyr_full/README.md`. The original Zephyr XML export remains the immutable source of truth.
 
@@ -73,9 +102,18 @@ Authoritative process: **`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.m
 Ask CK is a server-backed test-engineering workbench for the AWPTCM test-case program. It brings the tools for enriching manual test cases, mapping them to automation, and turning them into runnable scripts into one place. This same welcome + per-tool guide is the **Main** splash page inside the app (sidebar → **Help → Main**).
 
 ```bash
-./ask-ck/CK-main/run.sh
+# One-time: install the server dependencies (see Getting Started, or run ./setup.sh)
+pip install -r ask-ck/CK-main/requirements.txt
+
+./ask-ck/CK-main/run.sh        # auto-uses .venv; asks foreground or background
 # then open http://localhost:8000/   (opens on the Main splash page)
+
+./ask-ck/CK-main/run.sh --stop # stop a backgrounded server
 ```
+
+`run.sh` automatically uses the repo-local `.venv` (if present) and, when run interactively, asks whether to run in the **foreground** (Ctrl-C to stop) or the **background**. Background mode prints the PID + log path and is stopped with `./ask-ck/CK-main/run.sh --stop` (or `./setup.sh --stop`). Background logs append to `.ck-server.log`.
+
+> **Use `http://`, not `https://`.** Ask CK serves plain HTTP. If your browser forces HTTPS (Firefox HTTPS-Only mode, HSTS) you'll get a blank "Secure Connection Failed" / `SSL_ERROR_RX_RECORD_TOO_LONG` page. Browse to `http://localhost:8000/` explicitly and, if needed, exempt localhost from HTTPS-Only mode. Note the banner prints `http://0.0.0.0:8000` — `0.0.0.0` is the bind address; browse via `localhost` or `127.0.0.1`.
 
 - FastAPI backend (`ask-ck/CK-main/CK_server/`) + multi-tool sidebar UI; **server-side confirm gates** at every step.
 - LLM via **local subscription CLIs** (sidebar **LLM → Configure**): Grok CLI or Claude Code CLI; the workspace login persists across cases. Set this up first — most tools need it. (MOCK/demo paths removed — real CLI login required.)
@@ -155,7 +193,7 @@ Always dry-run first. Auth matches the extract tools (JIRA_KEY + Bearer). Detail
 Test-cases/
 ├── SESSION_STATE.md                # Broader session history
 ├── ask-ck/                         # Ask CK workbench (all tool code, data, docs)
-│   ├── CK-main/                    # App: run.sh, SERVER-README.md, design assets
+│   ├── CK-main/                    # App: run.sh, requirements.txt, SERVER-README.md, design assets
 │   │   └── CK_server/              # FastAPI server (main.py, paths.py, routers/, static/, templates/, sessions/)
 │   ├── objective-drafting/         # Generator data + docs + outputs
 │   │   ├── OBJECTIVE_DRAFTING_PROCESS.md   # Process source of truth
@@ -201,3 +239,24 @@ Test-cases/
 See the notice at the top of this file and the `COPYRIGHT` file in the repository root.
 
 All rights reserved. No permissions are granted to use, copy, or distribute this work.
+
+---
+
+## Setup & Maintenance Fix Log — 2026-07-15
+
+This section records the setup/install fixes made on 2026-07-15 while walking the
+Getting Started flow on a fresh Ubuntu machine, and *why* each was needed.
+
+| # | Fix | Why it was needed |
+|---|-----|-------------------|
+| 1 | **Added `ask-ck/CK-main/requirements.txt`** and documented it as a mandatory install step. | The server crashed on startup with `ModuleNotFoundError: No module named 'fastapi'`. The app's Python dependencies (FastAPI, Jinja2, requests, …) were never listed anywhere, so a fresh clone had no way to know what to install. `uvicorn` starting but then failing to import the app was the confusing symptom. |
+| 2 | **Added a virtual-environment step** (`python3 -m venv .venv` + activate) to Getting Started. | Isolates the dependencies from the user's global/site packages so versions can't collide with other projects. Optional but recommended — it does not change how the project runs, only *where* the packages live. |
+| 3 | **Documented Git LFS ≥ 3.3** and how to install it from the git-lfs repo instead of apt. | On Ubuntu, apt ships Git LFS 3.0.2, which is incompatible with modern Git (2.38+). A fresh `git lfs pull` fails with `cannot add to the index - missing --add option?`. It only "worked" on the dev machine because the large files were already materialized, so the smudge step never ran. |
+| 4 | **Documented HTTP-only access** (`http://`, not `https://`) and the `0.0.0.0` bind-address gotcha. | Browsers with HTTPS-Only mode (e.g. Firefox) auto-upgrade to `https://`, and the plain-HTTP server can't answer a TLS handshake — producing a blank `SSL_ERROR_RX_RECORD_TOO_LONG` page and a `WARNING: Invalid HTTP request` in the server log. A same-port https→http redirect is not possible (the failure is at the TLS layer, before any HTTP is exchanged). |
+| 5 | **Added `setup.sh`** — an idempotent one-shot bootstrap (git-lfs check → LFS pull → venv → deps → offer to launch). | `run.sh` assumes everything is already set up and gives cryptic errors otherwise. `setup.sh` performs the full first-time setup in order and can be safely re-run. It also **detects a missing or too-old git-lfs (< 3.3) and offers to install/upgrade it** (via the packagecloud apt repo, with `sudo`, after asking) so fix #3 is handled automatically rather than left to the reader. To start the server it **delegates to `run.sh`** (which asks foreground/background — see #8); `./setup.sh --stop` also delegates to `run.sh --stop`. |
+| 5a | **git-lfs upgrade installs an explicit version.** | On this machine the Ubuntu **ESM** repo pins git-lfs 3.0.2 at a *higher* apt priority (510) than packagecloud (500), so a plain `apt-get install git-lfs` kept the old version. `setup.sh` now installs the newest available version explicitly (`git-lfs=<latest>`) to bypass the pin. |
+| 6 | **Corrected stale Git LFS paths in `.gitattributes`.** | After the 2026-07-13 restructure, `data/` moved under `ask-ck/objective-drafting/`, but the LFS rules still pointed at the old `data/zephyr_full/…` paths and so matched nothing. `zephyr_cases.jsonl` (53 MB), `index.json` (17 MB), and `suites/testlink_awp.json` (28 MB) were therefore committed as plain Git blobs instead of LFS objects. Rules were repathed to the real locations; the `Zephyr-Database-*.xml` rule was unaffected because it is a path-independent filename glob. |
+| 7 | **Renormalized the three files into LFS** (`git add --renormalize`). | With the rules corrected, the already-committed plain blobs were re-run through the LFS filter so their tracked representation becomes ~130-byte LFS pointers instead of full content. This makes fix #6 actually take effect on the existing files (not just future edits). Working-tree contents are unchanged; this does **not** rewrite history, so old blobs remain in past commits. |
+| 8 | **`run.sh` now auto-activates the venv and offers foreground/background, with `--stop`.** | Previously you had to `source .venv/bin/activate` before `run.sh`, and it only ran in the foreground (Ctrl-C). Now `run.sh` auto-uses the repo-local `.venv` if present; when interactive it asks **[F]oreground / [b]ackground**; background mode detaches the process (own session/process group), records the PID in `.ck-server.pid`, appends to `.ck-server.log`, and is stopped cleanly with `./ask-ck/CK-main/run.sh --stop`. Non-interactive/CI runs default to foreground with no prompt. The background/stop mechanics live only in `run.sh`; `setup.sh` delegates to it (see #5). |
+
+> **Note on fixes #6–#7:** the renormalize was **staged locally, not committed or pushed** — commit it when ready. It does not rewrite history (old blobs stay in past commits; use `git lfs migrate import` + a force-push for that, which is best avoided on a published repo). After this lands, fresh clones must `git lfs pull` (or run `setup.sh`) to materialize these files — the same as the XML already requires. None of these files exceed GitHub's 100 MB limit today, so this is preventative, not urgent.
