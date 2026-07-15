@@ -2,9 +2,10 @@
 
 > ## Session handoff (read first)
 >
-> **Status (2026-07-15):** Plan approved by Terrence; **no code written yet**. Execution starts at Commit 1 below.
+> **Status (2026-07-16):** Plan approved by Terrence. **Step 0 (below) added 2026-07-16** — a new `local_llm` (org vLLM) auth method + Fast/Thinking toggle; execute it FIRST, then Commit 1, then Commit 2. No code written yet.
 >
-> - **Line numbers were verified against the working tree at planning time** (HEAD `b15e411`). If files have moved, re-locate by name: `_call_llm_with_meta` / the catch-all `except` in llm.py, `_bind_session_id` middleware in main.py, `#session-debug` in index.html, `ptApi` / `goToPanel` / the fetch patch in app.js.
+> - **The ES-module split has LANDED and is committed** (HEAD `3d8eced`, tree clean). `static/app.js` is GONE — the frontend is 14 ES modules under `static/js/` (entry `main.js`, loaded `type="module"` with `?v=N` cache-bust). So **all frontend line numbers in Commit 2 below are stale**; re-target onto modules per the map in `static/js/README.md`. Confirmed relocations: fetch patch → `js/session.js:16-32` (already sets `X-CK-Session`); `currentPanel` → `S.currentPanel` (`js/state.js`); `goToPanel` → `js/nav.js`; the new frontend section becomes its **own module `js/llm-debug.js`** registered in `main.js`; button wiring goes through `registerActions({...})` in the owning module (`generator.js` / `pytest.js`), NOT `window`. Bump `?v=1`→`?v=2` on the main.js tag when shipping Commit 2.
+> - **Backend anchors re-verified against HEAD `3d8eced` (2026-07-16) — all unchanged:** llm.py:37 `current_session_id`, llm.py:250 `_call_llm_with_meta`, catch-all :376, main.py:57-67 `_bind_session_id`, includes :81-85, paths.py:16 `CK_SERVER_DIR`. Commit 1 lands as written.
 > - **Requirements source:** Terrence's three asks, verbatim intent — (1) hideable per-page footer showing last LLM request incl. failures, updated every request, not persisted across browser sessions; (2) per-session LLM request log stored in `debug-log/`; (3) token counts on every log entry AND next to the pressed LLM button on success, to compare model efficiency/output quality.
 > - **Settled decisions — don't re-litigate:** surface debug info via a separate `GET /api/llm/recent` endpoint, NOT embedded in existing responses (pytest error paths 502 before a body exists); per-page = per-`currentPanel`, attributed via a new `X-CK-Panel` header; token counts shown honestly as `— tok` where the transport doesn't report usage (Grok CLI plain output, agent bridge) — never estimate/fabricate; badge updates only on success; footer hidden on panels with no LLM activity.
 > - **Sibling plans in this directory** (all approved, none executed): `PLAN-es-module-split.md` (app.js → ES modules) and `PLAN-db-migration.md` (SQLite). This plan is written against **current single-file app.js** — if the ES split lands first, put the frontend section in its own module (`js/llm-debug.js`) instead of a comment-fenced app.js section; the backend half is unaffected. If this lands first, the new app.js section is deliberately self-contained so the split lifts it cleanly. The SQLite plan may later absorb the JSONL log — schema kept flat on purpose; do not couple now.
@@ -26,6 +27,51 @@ Ask-CK's frontend-triggered LLM prompts are opaque: no way to see what was sent,
 - `current_session_id` ContextVar (llm.py:37, set from `X-CK-Session` by middleware main.py:57-67) is the only session key available at the choke point.
 - Wizard endpoints return 200-with-error-in-provenance; pytest endpoints raise HTTPException(502) — so surfacing debug info via a **separate GET endpoint** (not embedded in responses) works uniformly for both, including failures.
 - `ptLintScript` and `ptValidate` are mechanical (no LLM) — excluded. `model` may pass through as literal `"default"` in some paths — cosmetic, note only.
+
+## Step 0 — New `local_llm` auth method (org vLLM) + Fast/Thinking toggle
+
+**Added 2026-07-16, execute before Commit 1.** A third LLM radio: the organization's self-hosted, API-driven vLLM endpoint. It is OpenAI-shaped, so it rides the existing OpenAI HTTP path (llm.py:343-374) with **no new transport** — and because that path reads `usage.prompt_tokens/completion_tokens`, this provider will show **real in→out token counts** in the Commit 2 badges (unlike grok_cli / claude_agent, which honestly show `— tok`).
+
+**Settled decisions (don't re-litigate):**
+- **auth_method = `local_llm`** → forces `provider="openai"`, `base_url="http://vllm.ai.atlnz.lc/v1"`.
+- **Two modes via the `model` field:** `vllm-fast` (default) / `vllm-thinking`, chosen by a Fast/Thinking toggle shown only when the Local LLM radio is selected.
+- **Credential = env var `LOCAL_LLM_KEY`**, resolved server-side only. It must NEVER be sent from the browser, stored on the session/`cfg`, or reach `debug-log/` (the Commit 1 recorder already whitelists meta keys and never sees `api_key`; this key never enters `cfg`, so it is doubly safe).
+- **UI label:** radio reads "Local LLM"; the sub-toggle reads "Fast / Thinking".
+- Source of truth for the endpoint shape: `resources.md` (org example); key lives in gitignored `secrets.md` as `LOCAL_LLM_KEY=...`.
+
+**Backend edits:**
+- **`llm.py` — inject centrally in `_call_llm_with_meta` (:250), NOT at the ~6 call sites.** Right after the provider-defaults block (~:285), before the `meta = {...}` dict is built:
+  ```python
+  if auth_method == "local_llm":
+      provider = "openai"
+      base_url = "http://vllm.ai.atlnz.lc/v1"
+      model = model or "vllm-fast"
+      api_key = os.environ.get("LOCAL_LLM_KEY")  # server-side only; never from cfg/browser
+  ```
+  It then falls straight through the existing OpenAI-compatible branch (:343-374). `model` (`vllm-fast`/`vllm-thinking`) flows through from `cfg.model` unchanged. This one edit covers every caller (:542, :595, :833, :865, :897, :929, and run_prompt :997) at once — none of them need touching.
+- No change to the catch-all (:376) or the token normalizer (Commit 1's `normalize_usage` already handles the OpenAI `usage` shape).
+
+**Router edit — `routers/wizard.py:set_llm_config` (:1595-1613):**
+- Add `local_llm` to the auth_method allow-list at :1605: `("api_key", "account", "claude_code", "claude_agent", "grok_cli", "local_llm")`.
+- Add a guard alongside the others (:1607-1610): `if auth_method == "local_llm" and provider != "openai": provider = "openai"` (coerce rather than 400 — the radio always pairs them, but be defensive).
+- Model default (:1621-1629): when `auth_method == "local_llm"` and no model supplied, `cfg.model = "vllm-fast"`. **Never** put the key in `cfg` here — it stays an env var resolved at call time.
+- `has_key`/status (:1649): treat `local_llm` as configured when `os.environ.get("LOCAL_LLM_KEY")` is set (surface a clear "Local LLM key not set on server" warning in the returned config when it is absent, mirroring the grok_cli `available` pattern — so the Configure page can tell the user).
+
+**Frontend edits (ES modules):**
+- **`static/index.html`** (radio block ~:272-275): add a third radio `value="local_llm"` labelled "Local LLM (organization vLLM)", and a `#localLlmModeRow` (hidden by default) with a Fast/Thinking control — a paired radio/segmented toggle `name="localLlmMode"` with values `vllm-fast` (checked) / `vllm-thinking`. Place it near `#llmModel`.
+- **`js/llm.js`** — `updateAuthMethodUI()` (:132-155): extend the show/hide to reveal `#localLlmModeRow` (and hide the grok/agent instruction panels) when `local_llm` is selected. In `setLLMConfig()` (:7): when the Local LLM radio is checked, set `provider='openai'`, `auth_method='local_llm'`, and `body.model =` the checked `localLlmMode` value (`vllm-fast`/`vllm-thinking`) — do **not** send any key. `updateLLMStatus()` (:81): add a friendly label branch, e.g. `Using Local LLM (vLLM — Fast|Thinking)`. `restoreLLMUI()` (:157): restore the radio + the Fast/Thinking toggle from saved `auth_method`/`model`.
+- No `session.js` change for Step 0 (that fetch-patch edit belongs to Commit 2's `X-CK-Panel`).
+
+**`run.sh`:** document/export `LOCAL_LLM_KEY`. Preferred: `run.sh` sources it from the gitignored `secrets.md` (or a `.env`) so the server process has it in its environment without hardcoding. Add a one-line note to SERVER-README.
+
+**Verification (manual + curl):**
+- S0.1 — `LOCAL_LLM_KEY` set, select Local LLM + Fast on Configure, apply → status shows "Using Local LLM (vLLM — Fast)"; a Generator synthesize returns real content.
+- S0.2 — flip to Thinking, re-apply, synthesize → request uses `model=vllm-thinking` (confirm in server log line `model=vllm-thinking`).
+- S0.3 — direct curl parity with `resources.md` example against `http://vllm.ai.atlnz.lc/v1/chat/completions` returns a `choices[].message.content` and a `usage` block (this is what Commit 2's badge will read).
+- S0.4 — unset `LOCAL_LLM_KEY` → Configure shows the "key not set on server" warning; a call errors cleanly via the normal error shape (no stack trace, no key leak).
+- S0.5 — `grep -ri "sk-" debug-log/ ; grep -ri LOCAL_LLM_KEY sessions/` after a call → **no hits** (key never persisted). (debug-log exists only after Commit 1; run this again at Commit 1 verification step 1.)
+
+**Critical files (Step 0):** modified `CK_server/llm.py`, `CK_server/routers/wizard.py`, `CK_server/static/index.html`, `CK_server/static/js/llm.js`, `CK-main/run.sh`, `CK-main/SERVER-README.md`. No new files.
 
 ## Commit 1 — Backend: recorder + debug-log + /api/llm endpoints
 
