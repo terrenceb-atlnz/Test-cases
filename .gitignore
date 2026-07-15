@@ -59,3 +59,7 @@ backups/
 *.swp
 *.swo
 *~
+
+# Ask CK background-server runtime files (setup.sh)
+.ck-server.pid
+.ck-server.log

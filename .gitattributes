@@ -1,12 +1,13 @@
 # Git LFS tracking for large raw source data that the tools depend on.
-# These files exceed GitHub's 100MB limit and must use LFS.
+# Paths are repo-root-relative and reflect the 2026-07-13 restructure
+# (data now lives under ask-ck/objective-drafting/).
 Zephyr-Database-*.xml filter=lfs diff=lfs merge=lfs -text
-data/zephyr_full/zephyr_cases.jsonl filter=lfs diff=lfs merge=lfs -text
-data/zephyr_full/index.json filter=lfs diff=lfs merge=lfs -text
+ask-ck/objective-drafting/data/zephyr_full/zephyr_cases.jsonl filter=lfs diff=lfs merge=lfs -text
+ask-ck/objective-drafting/data/zephyr_full/index.json filter=lfs diff=lfs merge=lfs -text
+ask-ck/objective-drafting/data/suites/testlink_awp.json filter=lfs diff=lfs merge=lfs -text
 # Optional: track other large data files with LFS if they grow
-# data/suites/testlink_awp.json filter=lfs diff=lfs merge=lfs -text
-# data/suites/all_test_suites.json filter=lfs diff=lfs merge=lfs -text
-# data/suites/test_id_description.json filter=lfs diff=lfs merge=lfs -text
+# ask-ck/objective-drafting/data/suites/all_test_suites.json filter=lfs diff=lfs merge=lfs -text
+# ask-ck/objective-drafting/data/suites/test_id_description.json filter=lfs diff=lfs merge=lfs -text
 # Text files that should not be converted
 *.md text
 *.py text
