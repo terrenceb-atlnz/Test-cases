@@ -3,6 +3,10 @@
 # (setup.sh installs these into the repo .venv and also builds ck.db.)
 #
 # Versions below are lower bounds known to work as of 2026-07-16.
+#
+# Requires Python >= 3.10 (fastapi>=0.139 drops 3.9). setup.sh enforces this and
+# will pick the newest python3.1x on PATH; installing manually on Python 3.9 or
+# older fails with "No matching distribution found for fastapi".
 
 # --- Core server (required to boot; keyword search works with just these) ---
 fastapi>=0.139

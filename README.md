@@ -22,12 +22,29 @@ Tools, data, and workflows for enriching and mapping **AWPTCM manual test cases*
 
 ## Getting Started
 
-**Quick start (recommended):** the bootstrap script does all of the below in one go — LFS pull, virtual environment, dependency install — then offers to launch the server:
+**Quick start (recommended):** run the bootstrap script — it is the supported way to set up a new machine. On a fresh clone it does everything below in order and is safe to re-run:
 
 ```bash
 git clone https://github.com/terrenceb-atlnz/Test-cases.git
 cd Test-cases
 ./setup.sh          # idempotent; safe to re-run
+```
+
+`setup.sh` runs a **preflight** before doing any work and, when run interactively, prompts before each fix (needs `sudo` for installs):
+
+1. **Base toolchain** — verifies `git`, `git-lfs`, `curl` are present; offers to install any that are missing via your package manager (`apt`/`dnf`/`pacman`).
+2. **Python ≥ 3.10** — required by the dependencies (`fastapi>=0.139` drops 3.9). It selects the newest suitable `python3.x` on `PATH`, or offers to install a newer one; if none can be found it stops early with clear guidance instead of failing deep inside `pip`.
+3. **Git LFS ≥ 3.3** — installs/upgrades if needed (older LFS fails `git lfs pull` on a fresh clone), then pulls the large source files.
+4. **Virtual environment + dependencies** — creates `.venv` with the vetted interpreter (recreating a stale one), installs the CPU PyTorch wheel then `requirements.txt`.
+5. **Database** — builds `ask-ck/var/ck.db`, imports sessions, and offers to build semantic vectors.
+6. Finally, **offers to launch the server** (delegates to `run.sh`, which asks foreground/background).
+
+Useful flags: `./setup.sh --stop` stops a backgrounded server; any other arguments are forwarded to `run.sh` (e.g. `./setup.sh --port 9000`). Non-interactive runs (piped/CI) skip every prompt and never launch the server.
+
+Run it non-interactively without any prompts:
+
+```bash
+./setup.sh < /dev/null   # fails fast if a prerequisite is missing; prints the exact install command
 ```
 
 <details>
@@ -42,6 +59,7 @@ git lfs install
 git lfs pull
 
 # Recommended: isolate the Python dependencies in a virtual environment
+# (use a Python >= 3.10 interpreter, e.g. python3.12 if your default python3 is older)
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
@@ -51,7 +69,7 @@ pip install -r ask-ck/CK-main/requirements.txt
 
 </details>
 
-**Requirements:** Python 3 + [Git LFS](https://git-lfs.com/) **≥ 3.3** + the Python packages in [`ask-ck/CK-main/requirements.txt`](ask-ck/CK-main/requirements.txt) (FastAPI, uvicorn, Jinja2, requests, python-multipart, pydantic). Installing these is mandatory — the server will not start without them (you'll get `ModuleNotFoundError: No module named 'fastapi'`).
+**Requirements:** **Python ≥ 3.10** + [Git LFS](https://git-lfs.com/) **≥ 3.3** + `curl` (used by the LFS installer) + the Python packages in [`ask-ck/CK-main/requirements.txt`](ask-ck/CK-main/requirements.txt) (FastAPI, uvicorn, Jinja2, requests, python-multipart, pydantic). Installing these is mandatory — the server will not start without them (you'll get `ModuleNotFoundError: No module named 'fastapi'`). On Debian/Ubuntu, `python3 -m venv` also needs the `python3-venv` package. `setup.sh` checks all of this for you; if you set up manually, note that installing `requirements.txt` on Python 3.9 or older fails with `No matching distribution found for fastapi`.
 
 > **Git LFS version matters on Ubuntu.** Older Git LFS (e.g. 3.0.2, the version in Ubuntu's apt repos) is incompatible with modern Git (2.38+) and fails `git lfs pull` on a fresh clone with `cannot add to the index - missing --add option?`. If you hit this, install a current Git LFS from its own repo rather than apt:
 > ```bash
