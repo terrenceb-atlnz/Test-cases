@@ -961,3 +961,29 @@ FUTURE session — not started.
 `python3 tool/build_db.py --fresh --verify`. Run the server with `./ask-ck/CK-main/run.sh`.
 
 ---
+
+## 2026-07-16 Session (later) — Repo hygiene scrub (vestigial files)
+
+Scrubbed a small set of genuinely-vestigial files. **Deliberately narrow** — most apparent
+cruft in this tree is still live and was left untouched (see the guard note below).
+
+**Removed (committed):**
+- `zephyr-auto_negotiation.xml` (repo root) — stray 4.9 KB single-suite Zephyr export from the
+  2026-07-13 restructure commit (`2361dcb`); referenced by zero tools, not an LFS-tracked source.
+  An untracked duplicate had drifted into `data/zephyr_full/` — deleted that too.
+- `data/suites/_gather_suite.py`, `_remaining_suites.txt`, `_todo_suites.json` — enrichment
+  working-scratch; Phase 2 enrichment is complete. `_enrichment_agent_spec.md` kept (it's a
+  referenced doc). `ENRICHMENT_STATE.md` Assets block updated to record the removal.
+- `CK_server/debug-log/{b-test,c-test,c}.jsonl` — gitignored LLM debug test scratch (on-disk
+  only, never tracked).
+
+**GUARD — do NOT delete in a general scrub (still live, despite looking redundant):** the
+`data/suites/suite_*_enriched.json` corpora (~130 files), `zephyr_full/*.jsonl`/`index.json`/
+`slim_index.json`, `candidates.json`, `data/decisions/*.json`, and the `CK_server/sessions/*.json`
++ `pt-*.json` files. The corpora are still the rebuildable **build input** for `ck.db`
+(`build_db.py`) — DB-only search (`PLAN-db-only-search.md`) is planned, NOT started, so nothing
+reads the DB as sole source yet. Session JSON is an intentional *frozen pre-migration backup*
+(`wizard.py:_persist_session`). These retire only in **Phase 5** of the DB-only plan, as a
+coordinated step — not ad-hoc.
+
+---

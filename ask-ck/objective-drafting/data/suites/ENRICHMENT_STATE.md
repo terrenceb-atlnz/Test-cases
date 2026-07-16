@@ -19,12 +19,14 @@ Scope: **all 120 suites EXCEPT 6003** (6003_AMF_Release_Interop, 78,579 auto-gen
 Intranet base: `https://intranet.atlnz.lc/systest/ATPyLib/regression`
 
 ## Assets (durable, in this folder)
-- `_gather_suite.py` — per-suite gather script (ALSO on box at `/tmp/gather_suite.py`). Usage on box: `python3 /tmp/gather_suite.py <SID>` → writes `/tmp/logs_<SID>.json`.
-  Selection rule: topmost run if PASS; else most-recent PASS within 12mo (CUTOFF 2025-06-22); else topmost (flag no_recent_pass).
 - `_enrichment_agent_spec.md` — the subagent prompt spec (replace `__SID__`). Defines voice (intent only, NO run-specific numbers), prefixes, harness/no-run/UNSUPPORTED handling, output schema, provenance `log_analysis` block.
-- `_remaining_suites.txt` — 105 suite IDs still to do (numeric order).
-- `_todo_suites.json` — full 117 todo list.
 - Bundles pre-gathered for ALL 117 suites on box `/tmp/logs_<SID>.json` (present as of pause; regenerate with gather_suite.py if cleared).
+
+> **Removed 2026-07-16 (repo scrub):** the enrichment working-scratch files `_gather_suite.py`
+> (also on box at `/tmp/gather_suite.py`; selection rule: topmost run if PASS, else most-recent
+> PASS within 12mo / CUTOFF 2025-06-22, else topmost flagged `no_recent_pass`), `_remaining_suites.txt`
+> (105 remaining IDs), and `_todo_suites.json` (full 117 todo list) were deleted as vestigial —
+> Phase 2 enrichment is complete (below). Recover from git history if a re-run is ever needed.
 
 ## ✅ Phase 2 COMPLETE: All 119 suites enriched & merged (2026-06-23 13:53 UTC)
 
