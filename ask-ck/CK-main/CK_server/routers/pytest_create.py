@@ -63,22 +63,23 @@ def _pt_session_path(key: str) -> Path:
 
 
 def _pt_persist(sess: PtSession) -> None:
+    """Commit C: persist to ck.db (kind='pt'); llm_config split into its own
+    column by db.save_session. The pt-{key}.json file stays as frozen backup."""
     sess.updated_at = datetime.utcnow()
     try:
         data = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
-        with open(_pt_session_path(sess.key), "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str)
+        dbx.save_session("pt", sess.key, data)
     except Exception as e:
         print(f"Warning: failed to persist pt session {sess.key}: {e}")
 
 
 def _pt_load(key: str) -> Optional[PtSession]:
-    path = _pt_session_path(key)
-    if path.exists():
-        try:
-            return PtSession(**json.load(open(path, encoding="utf-8")))
-        except Exception as e:
-            print(f"Warning: failed to load pt session {key}: {e}")
+    try:
+        raw = dbx.load_session("pt", key)
+        if raw is not None:
+            return PtSession(**raw)
+    except Exception as e:
+        print(f"Warning: failed to load pt session {key}: {e}")
     return None
 
 
@@ -562,9 +563,7 @@ async def get_session(key: str):
 @router.post("/clear_session/{key}")
 async def clear_session(key: str):
     pt_sessions.pop(key, None)
-    path = _pt_session_path(key)
-    if path.exists():
-        path.unlink()
+    dbx.delete_session("pt", key)   # Commit C: sessions live in ck.db
     return {"cleared": key}
 
 

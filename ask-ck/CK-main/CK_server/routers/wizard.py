@@ -78,11 +78,12 @@ def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
 
 
 def _load_global_llm() -> Optional[LLMConfig]:
-    """Load last-applied workspace LLM config (shared across all cases)."""
-    if not GLOBAL_LLM_PATH.exists():
-        return None
+    """Load last-applied workspace LLM config (shared across all cases). Commit C:
+    from the sessions table (id='_workspace_llm')."""
     try:
-        raw = json.load(open(GLOBAL_LLM_PATH, encoding="utf-8"))
+        raw = db.load_workspace_llm()
+        if not raw:
+            return None
         cfg = LLMConfig(**raw)
         return cfg if _llm_is_active(cfg) else None
     except Exception as e:
@@ -96,8 +97,7 @@ def _save_global_llm(cfg: LLMConfig) -> None:
         return
     try:
         data = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
-        with open(GLOBAL_LLM_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str)
+        db.save_workspace_llm(data)
     except Exception as e:
         print(f"Warning: failed to save workspace LLM config: {e}")
 
@@ -119,40 +119,35 @@ def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
 
 
 def _persist_session(sess: WizardSession) -> None:
-    """Persist full session (confirmed flags + selections + step4) to disk.
-    This fulfills the 'Persist confirmation state per session' requirement.
-    """
+    """Persist full session (confirmed flags + selections + step4/5) to ck.db
+    (Commit C). llm_config is split into its own column by db.save_session. The
+    old sessions/{key}.json file stays in place as a frozen pre-migration backup."""
     sess.updated_at = datetime.utcnow()
-    path = _session_path(sess.key)
     try:
         data = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str)
+        db.save_session("wizard", sess.key, data)
     except Exception as e:
         print(f"Warning: failed to persist session {sess.key}: {e}")
 
 
 def _load_persisted(key: str) -> Optional[WizardSession]:
-    """Restore persisted session (used for restart survival and authoritative state)."""
-    path = _session_path(key)
-    if path.exists():
-        try:
-            raw = json.load(open(path, encoding="utf-8"))
+    """Restore persisted session from ck.db (restart survival / authoritative state)."""
+    try:
+        raw = db.load_session("wizard", key)
+        if raw is not None:
             return WizardSession(**raw)
-        except Exception as e:
-            print(f"Warning: failed to load persisted session {key}: {e}")
+    except Exception as e:
+        print(f"Warning: failed to load persisted session {key}: {e}")
     return None
 
 
 def _clear_persisted(key: str) -> None:
-    """Delete the persisted session file for a key."""
-    path = _session_path(key)
-    if path.exists():
-        try:
-            path.unlink()
-            print(f"Cleared persisted session for {key}")
-        except Exception as e:
-            print(f"Warning: failed to delete session file for {key}: {e}")
+    """Delete the persisted session row for a key."""
+    try:
+        db.delete_session("wizard", key)
+        print(f"Cleared persisted session for {key}")
+    except Exception as e:
+        print(f"Warning: failed to delete session for {key}: {e}")
 
 
 def _get_full_zephyr_case(key: str) -> dict:
@@ -733,42 +728,13 @@ def _refined_complete_keys() -> set:
 
 
 def _session_progress_map() -> Dict[str, dict]:
-    """Per-case wizard progress from sessions/*.json (confirms + step4/5)."""
-    out: Dict[str, dict] = {}
+    """Per-case wizard progress (confirms + step4/5). Commit C: sourced from the
+    sessions table via db.list_session_progress() (identical derivation)."""
     try:
-        for path in SESSIONS_DIR.glob("AWPTCM-*.json"):
-            try:
-                raw = json.load(open(path, encoding="utf-8"))
-            except Exception:
-                continue
-            key = raw.get("key") or path.stem
-            s1 = bool((raw.get("step1") or {}).get("confirmed"))
-            s2 = bool((raw.get("step2") or {}).get("confirmed"))
-            s3 = bool((raw.get("step3") or {}).get("confirmed"))
-            s4 = raw.get("step4") or {}
-            s5 = raw.get("step5") or {}
-            has_obj = bool(isinstance(s4, dict) and (s4.get("objective") or "").strip())
-            has_steps = bool(
-                (isinstance(s5, dict) and (s5.get("testScript") or {}).get("steps"))
-                or (isinstance(s4, dict) and (s4.get("testScript") or {}).get("steps"))
-            )
-            has_step4 = bool(s4) or has_obj
-            n_conf = sum([s1, s2, s3])
-            if n_conf or has_step4 or has_steps or (raw.get("gaps") or "").strip():
-                out[key] = {
-                    "step1": s1,
-                    "step2": s2,
-                    "step3": s3,
-                    "has_step4": has_step4,
-                    "has_objective": has_obj,
-                    "objectives_confirmed": bool(isinstance(s4, dict) and s4.get("confirmed")),
-                    "has_step5": has_steps,
-                    "confirms": n_conf,
-                    "status": "in_progress",
-                }
+        return db.list_session_progress()
     except Exception as e:
-        print(f"Warning: scanning sessions failed: {e}")
-    return out
+        print(f"Warning: reading session progress failed: {e}")
+        return {}
 
 
 def _build_case_groups(keys, zephyr: dict) -> List[dict]:

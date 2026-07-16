@@ -592,8 +592,11 @@ def search_scripts(query_tokens: set, db_filter: str = "", limit: int = 40) -> L
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Session CRUD  (Commit C imports the JSON files + rewires the routers; the
-# functions live here now so the read API is complete.)
+# Session CRUD  (Commit C). The routers (wizard.py / pytest_create.py) delegate
+# their persist/load/clear helpers here; session JSON files stay in place as a
+# frozen pre-migration backup. `llm_config` (may hold a plaintext api_key) is
+# stored in its OWN column, never in `payload`, so progress/log queries can't
+# leak it — encryption-at-rest is noted debt.
 # ─────────────────────────────────────────────────────────────────────────────
 def _session_id(kind: str, key: str) -> str:
     if kind == "pt":
@@ -603,26 +606,35 @@ def _session_id(kind: str, key: str) -> str:
     return key
 
 
-def save_session(kind: str, key: str, payload: dict, llm_config: Optional[dict] = None) -> None:
-    import json
+def _write_session(sid: str, kind: str, case_key: Optional[str],
+                   payload_json: str, llm_config_json: Optional[str]) -> None:
     from datetime import datetime
-    sid = _session_id(kind, key)
-    case_key = key if kind in ("wizard", "pt") else None
     conn = get_connection()
     conn.execute(
         "INSERT INTO sessions (id, kind, case_key, payload, llm_config, updated_at) "
         "VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
         "kind=excluded.kind, case_key=excluded.case_key, payload=excluded.payload, "
         "llm_config=excluded.llm_config, updated_at=excluded.updated_at",
-        (sid, kind, case_key, json.dumps(payload, default=str),
-         json.dumps(llm_config, default=str) if llm_config is not None else None,
+        (sid, kind, case_key, payload_json, llm_config_json,
          datetime.utcnow().isoformat()))
     conn.commit()
 
 
+def save_session(kind: str, key: str, model_dump: dict) -> None:
+    """Persist a wizard/pt session from its full model dump. The `llm_config`
+    field is split into its own column so `payload` never carries the credential."""
+    import json
+    d = dict(model_dump or {})
+    llm_config = d.pop("llm_config", None)
+    _write_session(
+        _session_id(kind, key), kind, d.get("key"),
+        json.dumps(d, default=str),
+        json.dumps(llm_config, default=str) if llm_config is not None else None)
+
+
 def load_session(kind: str, key: str) -> Optional[dict]:
-    sid = _session_id(kind, key)
-    r = _one("SELECT payload, llm_config FROM sessions WHERE id=?", (sid,))
+    """Return the full model dump (llm_config merged back in) or None."""
+    r = _one("SELECT payload, llm_config FROM sessions WHERE id=?", (_session_id(kind, key),))
     if not r:
         return None
     payload = _json(r["payload"], {})
@@ -638,20 +650,63 @@ def delete_session(kind: str, key: str) -> None:
     conn.commit()
 
 
+def save_workspace_llm(cfg: dict) -> None:
+    """Workspace-default LLM config (the old sessions/_workspace_llm.json). The
+    whole record IS a credential, so it lives in the llm_config column; payload
+    is empty."""
+    import json
+    _write_session("_workspace_llm", "workspace", None, "{}",
+                   json.dumps(cfg, default=str) if cfg is not None else None)
+
+
+def load_workspace_llm() -> Optional[dict]:
+    r = _one("SELECT llm_config FROM sessions WHERE id='_workspace_llm'")
+    return _json(r["llm_config"], None) if r else None
+
+
 def list_session_progress() -> Dict[str, dict]:
-    """Per-wizard-case confirm flags (json_extract over payload). Commit C aligns
-    the emitted shape with wizard._session_progress_map when it rewires the router."""
+    """Per-wizard-case progress map — exact replica of wizard._session_progress_map,
+    now sourced from the sessions table instead of globbing sessions/*.json."""
     out: Dict[str, dict] = {}
-    sql = ("SELECT id, "
-           "json_extract(payload,'$.step1_confirmed'), json_extract(payload,'$.step2_confirmed'), "
-           "json_extract(payload,'$.step3_confirmed'), json_extract(payload,'$.objectives_confirmed') "
-           "FROM sessions WHERE kind='wizard'")
-    for r in _rows(sql):
-        out[r[0]] = {
-            "step1": bool(r[1]), "step2": bool(r[2]), "step3": bool(r[3]),
-            "objectives_confirmed": bool(r[4]), "status": "in_progress",
-        }
+    for r in _rows("SELECT id, payload FROM sessions WHERE kind='wizard'"):
+        raw = _json(r["payload"], {})
+        key = raw.get("key") or r["id"]
+        s1 = bool((raw.get("step1") or {}).get("confirmed"))
+        s2 = bool((raw.get("step2") or {}).get("confirmed"))
+        s3 = bool((raw.get("step3") or {}).get("confirmed"))
+        s4 = raw.get("step4") or {}
+        s5 = raw.get("step5") or {}
+        has_obj = bool(isinstance(s4, dict) and (s4.get("objective") or "").strip())
+        has_steps = bool(
+            (isinstance(s5, dict) and (s5.get("testScript") or {}).get("steps"))
+            or (isinstance(s4, dict) and (s4.get("testScript") or {}).get("steps"))
+        )
+        has_step4 = bool(s4) or has_obj
+        n_conf = sum([s1, s2, s3])
+        if n_conf or has_step4 or has_steps or (raw.get("gaps") or "").strip():
+            out[key] = {
+                "step1": s1, "step2": s2, "step3": s3,
+                "has_step4": has_step4, "has_objective": has_obj,
+                "objectives_confirmed": bool(isinstance(s4, dict) and s4.get("confirmed")),
+                "has_step5": has_steps, "confirms": n_conf, "status": "in_progress",
+            }
     return out
+
+
+def snapshot_sessions() -> List[tuple]:
+    """Dump the sessions table (for --fresh session preservation in build_db)."""
+    return [tuple(r) for r in _rows(
+        "SELECT id, kind, case_key, payload, llm_config, updated_at FROM sessions")]
+
+
+def restore_sessions(rows: List[tuple]) -> None:
+    if not rows:
+        return
+    conn = get_connection()
+    conn.executemany(
+        "INSERT OR REPLACE INTO sessions (id, kind, case_key, payload, llm_config, updated_at) "
+        "VALUES (?,?,?,?,?,?)", rows)
+    conn.commit()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

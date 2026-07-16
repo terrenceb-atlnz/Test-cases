@@ -39,6 +39,7 @@ import db  # noqa: E402  (uses the single connection factory)
 from paths import DATA_DIR, PT_DATA_DIR, VAR_DIR, DB_PATH  # noqa: E402
 
 SCHEMA_SQL = CK_SERVER / "schema.sql"
+SESSIONS_DIR = CK_SERVER / "sessions"
 BATCH = 1000
 SCHEMA_VERSION = "1"
 
@@ -282,6 +283,48 @@ def fts_rebuild(conn):
     print("  FTS rebuilt (4 indexes)")
 
 
+def _snapshot_sessions_file(path: str):
+    """Read the sessions table straight from the existing DB file (before --fresh
+    deletes it) so live sessions survive a corpora rebuild. Sessions are PRIMARY
+    data now, not a derived cache."""
+    import sqlite3
+    if not os.path.exists(path):
+        return []
+    c = sqlite3.connect(path)
+    try:
+        return [tuple(r) for r in c.execute(
+            "SELECT id, kind, case_key, payload, llm_config, updated_at FROM sessions")]
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        c.close()
+
+
+def import_sessions() -> int:
+    """One-shot import of the JSON session files into the sessions table. Files
+    stay in place as a frozen pre-migration backup (never deleted)."""
+    import db
+    if not SESSIONS_DIR.exists():
+        print("  no sessions/ directory — nothing to import")
+        return 0
+    n_w = n_p = n_ws = 0
+    for p in sorted(SESSIONS_DIR.glob("*.json")):
+        try:
+            raw = _load_json(p)
+        except Exception as e:
+            print(f"  skip {p.name}: {e}")
+            continue
+        stem = p.stem
+        if stem == "_workspace_llm":
+            db.save_workspace_llm(raw); n_ws += 1
+        elif stem.startswith("pt-"):
+            db.save_session("pt", raw.get("key") or stem[3:], raw); n_p += 1
+        elif stem.startswith("AWPTCM-"):
+            db.save_session("wizard", raw.get("key") or stem, raw); n_w += 1
+    print(f"  imported sessions: {n_w} wizard, {n_p} pt, {n_ws} workspace")
+    return n_w + n_p + n_ws
+
+
 def write_meta(conn, counts):
     from datetime import datetime
     src_files = {
@@ -306,16 +349,22 @@ def write_meta(conn, counts):
 
 def build(fresh: bool):
     VAR_DIR.mkdir(parents=True, exist_ok=True)
+    saved_sessions = []
     if fresh:
+        # Sessions are primary data — preserve them across the file wipe.
+        saved_sessions = _snapshot_sessions_file(str(DB_PATH))
         for suffix in ("", "-wal", "-shm"):
             p = Path(str(DB_PATH) + suffix)
             if p.exists():
                 p.unlink()
-        print(f"  --fresh: removed {DB_PATH.name}(+wal/shm)")
+        print(f"  --fresh: removed {DB_PATH.name}(+wal/shm)"
+              + (f"; preserving {len(saved_sessions)} sessions" if saved_sessions else ""))
     conn = db.get_connection()
     t0 = time.time()
     apply_schema(conn)
     clear_corpora(conn)
+    if saved_sessions:
+        db.restore_sessions(saved_sessions)
     print("Ingesting…")
     ingest_zephyr(conn)
     ingest_testlink(conn)
@@ -371,10 +420,16 @@ def verify():
 
 def main():
     ap = argparse.ArgumentParser(description="Build ask-ck/var/ck.db from source JSON/JSONL.")
-    ap.add_argument("--fresh", action="store_true", help="delete ck.db first")
+    ap.add_argument("--fresh", action="store_true", help="delete ck.db first (sessions preserved)")
+    ap.add_argument("--sessions", action="store_true",
+                    help="one-shot import of sessions/*.json into the DB (no corpora rebuild)")
     ap.add_argument("--verify", action="store_true", help="assert counts + spot lookups after build")
     args = ap.parse_args()
-    build(args.fresh)
+    if args.sessions:
+        # Import into the existing DB; do NOT rebuild corpora.
+        import_sessions()
+    else:
+        build(args.fresh)
     if args.verify:
         ok = verify()
         sys.exit(0 if ok else 1)
