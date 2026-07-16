@@ -1,11 +1,27 @@
 # Python dependencies for the Ask CK server-backed workbench (ask-ck/CK-main).
 # Install with:  pip install --user -r ask-ck/CK-main/requirements.txt
+# (setup.sh installs these into the repo .venv and also builds ck.db.)
 #
-# Versions below are lower bounds known to work as of 2026-07-15.
+# Versions below are lower bounds known to work as of 2026-07-16.
 
+# --- Core server (required to boot; keyword search works with just these) ---
 fastapi>=0.139
 uvicorn>=0.46
 jinja2>=3.1
 requests>=2.34
 python-multipart>=0.0.9
 pydantic>=2.9
+
+# --- Semantic / hybrid search (Stage D; the server degrades to keyword without them) ---
+# torch is CPU-only for this app. A bare `pip install torch` on Linux pulls the
+# large CUDA build — prefer the CPU wheel:
+#     pip install --index-url https://download.pytorch.org/whl/cpu torch
+# setup.sh does this automatically (CPU wheel first, then the rest).
+sqlite-vec>=0.1.6
+sentence-transformers>=3.0
+torch>=2.2
+# sqlite-vec needs a SQLite built with enable_load_extension. If the runtime
+# Python's stdlib sqlite3 lacks it (e.g. macOS system Python), install this
+# self-contained build (Linux/most wheels); db.py auto-prefers it. Vector search
+# just degrades to keyword when neither is available — never a startup failure.
+pysqlite3-binary>=0.5; platform_system == "Linux"

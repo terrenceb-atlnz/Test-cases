@@ -184,7 +184,10 @@ async def health():
         "db": {
             "ready": chk.get("ok", False),
             "counts": chk.get("counts", {}),
-            "vector_search": chk.get("has_vec", False),
+            "vector_search": chk.get("vector_search", False),   # live: extension loaded AND vectors exist
+            "sqlite_vec_loaded": chk.get("has_vec", False),
+            "embeddings": chk.get("embeddings", 0),
+            "embed_model": chk.get("embed_model"),
             "schema_version": chk.get("schema_version"),
             "built_at": chk.get("built_at"),
             "error": chk.get("error"),

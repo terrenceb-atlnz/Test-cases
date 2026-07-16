@@ -116,13 +116,70 @@ fi
 # --- 4. Activate + install deps --------------------------------------------
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
-echo "▶ Installing dependencies from $REQ_FILE"
+echo "▶ Upgrading pip"
 python3 -m pip install --upgrade pip >/dev/null
+
+# Install the CPU-only PyTorch wheel FIRST so requirements' torch resolves to the
+# small CPU build instead of the large default (CUDA) wheel. Best-effort — if it
+# fails (offline / unsupported platform), the requirements step still tries.
+echo "▶ Installing PyTorch (CPU wheel)"
+python3 -m pip install --index-url https://download.pytorch.org/whl/cpu torch \
+  || echo "  ⚠ CPU torch install failed; requirements.txt will fall back to the default wheel."
+
+echo "▶ Installing dependencies from $REQ_FILE"
 python3 -m pip install -r "$REQ_FILE"
+
+# --- 4b. Vector-search capability check (sqlite-vec needs enable_load_extension) ---
+echo "▶ Checking semantic/hybrid search capability"
+if python3 - <<'PYEOF'
+import sys
+try:
+    try:
+        import pysqlite3 as sq
+    except ImportError:
+        import sqlite3 as sq
+    c = sq.connect(":memory:"); c.enable_load_extension(True)
+    import sqlite_vec; sqlite_vec.load(c); c.execute("select vec_version()")
+    print("  ✓ sqlite-vec loads — semantic/hybrid search is available.")
+    sys.exit(0)
+except Exception as e:
+    print(f"  ⚠ sqlite-vec cannot load ({e.__class__.__name__}: {e}).")
+    print("    Keyword search still works fully. On Linux, `pip install pysqlite3-binary`")
+    print("    usually fixes it; otherwise use a Python whose sqlite3 has enable_load_extension.")
+    sys.exit(1)
+PYEOF
+then VEC_OK=1; else VEC_OK=0; fi
+
+# --- 4c. Build ck.db (gitignored — a fresh clone has none) ------------------
+echo "▶ Building ck.db from source data (tool/build_db.py --fresh --verify)"
+python3 tool/build_db.py --fresh --verify || {
+  echo "✗ Database build/verify failed. Ensure 'git lfs pull' materialized the corpora."; exit 1; }
+echo "▶ Importing existing session files into the DB"
+python3 tool/build_db.py --sessions
+
+# --- 4d. Optional semantic embeddings (downloads ~90 MB model from huggingface.co) ---
+if [ "$VEC_OK" = "1" ]; then
+  if [ -t 0 ]; then
+    read -r -p "Build semantic-search vectors now? (downloads ~90 MB model, few min CPU) [y/N] " EMB
+  else EMB="n"; echo "  (non-interactive — skipping embeddings; run later with --embed)"; fi
+  case "$EMB" in
+    [yY]|[yY][eE][sS])
+      echo "▶ Embedding (tool/build_db.py --embed)"
+      python3 tool/build_db.py --embed \
+        || echo "  ⚠ Embedding failed — is huggingface.co reachable? Internal networks may block it."
+      echo "     If blocked: pre-fetch all-MiniLM-L6-v2 into ask-ck/var/models/ and set SENTENCE_TRANSFORMERS_HOME."
+      ;;
+    *) echo "  Skipped. Build vectors later with:  python3 tool/build_db.py --embed" ;;
+  esac
+else
+  echo "  Skipping embeddings (sqlite-vec unavailable). Keyword search is fully functional."
+fi
 
 echo
 echo "✅ Setup complete."
 echo "   Virtual env: $VENV_DIR"
+echo "   Database:    ask-ck/var/ck.db (rebuild anytime: python3 tool/build_db.py --fresh)"
+echo "   Semantic:    python3 tool/build_db.py --embed   (needs sqlite-vec + the model)"
 echo "   NOTE: this activated the venv only for this script. To run tool/*.py"
 echo "         yourself later, activate it in your shell: source .venv/bin/activate"
 echo

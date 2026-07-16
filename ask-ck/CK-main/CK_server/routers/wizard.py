@@ -868,15 +868,16 @@ async def get_cases(data=Depends(get_data)):
 
 
 @router.get("/search_atp")
-async def search_atp(q: str = "", keep_ids: str = "", data=Depends(get_data)):
-    """ATPyLib keyword search for Step 3 (merged client-side with preloaded candidates).
+async def search_atp(q: str = "", keep_ids: str = "", mode: str = "", data=Depends(get_data)):
+    """ATPyLib search for Step 3. mode=keyword|hybrid|semantic (default hybrid when
+    vectors are available, else keyword). Merged client-side with preloaded candidates.
 
     keep_ids: comma-separated ids already shown in the client pool — always
     returned, re-scored against `q`, so a new search re-ranks the whole pool.
     Returns short title + full description (no mid-sentence truncation).
     """
     keep = {s for s in (keep_ids or "").split(",") if s}
-    cands = _get_atp_candidates(q, data, limit=20, keep_ids=keep)
+    cands = _get_atp_candidates(q, data, limit=20, keep_ids=keep, mode=mode)
     return {
         "results": [
             {
@@ -899,18 +900,20 @@ async def search_atp(q: str = "", keep_ids: str = "", data=Depends(get_data)):
 # those; this module no longer keeps a private copy (was a drift risk).
 
 
-def _search_testlink(q: str, data: dict, limit: int = 20,
-                     keep_ids: Optional[set] = None) -> List[Dict[str, Any]]:
-    """Keyword search over full TestLink extract (id + title + steps text).
+def _hybrid_on(mode: str) -> bool:
+    """True → use semantic+keyword hybrid; False → keyword only. Default (mode
+    empty/'hybrid'/'semantic') is hybrid when vectors are available, else keyword;
+    'keyword' forces keyword. db.*_hybrid also degrades internally, so this is safe."""
+    return (mode or "").lower() != "keyword" and db.HAS_VEC
 
-    Ranking may scan a step prefix for speed; description uses full step text
-    (no [:500] mid-sentence truncation). keep_ids: pool ids always returned
-    (re-scored) so a new search re-ranks the whole visible pool.
-    """
-    # Commit B: ranking delegates to db.search_testlink (identical formula/shape).
-    # Re-enrich the description with the full step text for the UI (db returns
-    # summary-or-title; _build_testlink_description matches the pre-migration UI).
-    rows = db.search_testlink(q, keep_ids=keep_ids or set(), limit=limit)
+
+def _search_testlink(q: str, data: dict, limit: int = 20,
+                     keep_ids: Optional[set] = None, mode: str = "") -> List[Dict[str, Any]]:
+    """Keyword (or hybrid) search over TestLink. Ranking delegates to db; the
+    description is re-enriched with full step text for the UI (Commit B/D)."""
+    keep = keep_ids or set()
+    rows = (db.search_testlink_hybrid(q, keep_ids=keep, limit=limit) if _hybrid_on(mode)
+            else db.search_testlink(q, keep_ids=keep, limit=limit))
     for r in rows:
         full = data.get("testlink", {}).get(r["id"]) or {}
         rich = _build_testlink_description(full, title=r.get("title") or "")
@@ -925,45 +928,44 @@ def _search_zephyr_external(
     case_key: str = "",
     limit: int = 20,
     keep_ids: Optional[set] = None,
+    mode: str = "",
 ) -> List[Dict[str, Any]]:
-    """Keyword search over slim_index, omitting current Cases list + primary key.
-
-    Returns enriched full descriptions (objective/precondition/steps) for UI.
-    keep_ids: pool keys always returned (re-scored) so a new search re-ranks the
-    whole visible pool instead of leaving prior results pinned at stale scores.
-    """
-    # Commit B: ranking + current-cases exclusion + title-stem dedup delegate to
-    # db.search_zephyr (identical formula/shape). Full descriptions are filled by
-    # _enrich_zephyr_rows (now db-backed) for the UI.
+    """Keyword (or hybrid) external-Zephyr search, omitting the current Cases list
+    + primary key. Full descriptions filled by _enrich_zephyr_rows (Commit B/D)."""
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
         if c.get("candidates")
     }
     if case_key:
         current_cases.add(case_key)
-    rows = db.search_zephyr(q, case_key=case_key, exclude_keys=current_cases,
-                            keep_ids=keep_ids or set(), limit=limit)
+    keep = keep_ids or set()
+    if _hybrid_on(mode):
+        rows = db.search_zephyr_hybrid(q, case_key=case_key, exclude_keys=current_cases,
+                                       keep_ids=keep, limit=limit)
+    else:
+        rows = db.search_zephyr(q, case_key=case_key, exclude_keys=current_cases,
+                                keep_ids=keep, limit=limit)
     return _enrich_zephyr_rows(rows, data)
 
 
 @router.get("/search_testlink")
-async def search_testlink(q: str = "", keep_ids: str = "", data=Depends(get_data)):
-    """TestLink keyword search for Step 1 (merged client-side with load candidates).
-
-    keep_ids: comma-separated pool ids, always returned re-scored against `q`.
-    """
+async def search_testlink(q: str = "", keep_ids: str = "", mode: str = "", data=Depends(get_data)):
+    """TestLink search for Step 1. mode=keyword|hybrid|semantic (default hybrid when
+    vectors are available, else keyword). keep_ids: comma-separated pool ids,
+    always returned re-scored against `q`."""
     keep = {s for s in (keep_ids or "").split(",") if s}
-    return {"results": _search_testlink(q, data, limit=20, keep_ids=keep)}
+    return {"results": _search_testlink(q, data, limit=20, keep_ids=keep, mode=mode)}
 
 
 @router.get("/search_zephyr")
-async def search_zephyr(q: str = "", case_key: str = "", keep_ids: str = "", data=Depends(get_data)):
-    """External Zephyr keyword search for Step 2 (omits current Cases list).
-
-    keep_ids: comma-separated pool keys, always returned re-scored against `q`.
-    """
+async def search_zephyr(q: str = "", case_key: str = "", keep_ids: str = "",
+                        mode: str = "", data=Depends(get_data)):
+    """External Zephyr search for Step 2 (omits current Cases list). mode=keyword|
+    hybrid|semantic (default hybrid when vectors are available, else keyword).
+    keep_ids: comma-separated pool keys, always returned re-scored against `q`."""
     keep = {s for s in (keep_ids or "").split(",") if s}
-    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20, keep_ids=keep)}
+    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20,
+                                               keep_ids=keep, mode=mode)}
 
 
 def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
@@ -1012,20 +1014,13 @@ def _split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple
 
 
 def _get_atp_candidates(q: str, data: dict, limit: int = 20,
-                        keep_ids: Optional[set] = None) -> List[Dict[str, Any]]:
-    """Retrieve candidate ATP tests using keyword search ranked by token hits.
-
-    Returns full descriptions (no [:200] / [:120] truncation) so Step 3 UI can
-    show complete analysis text; title is the short first-line name only.
-
-    keep_ids: ids already in the caller's candidate pool. These are ALWAYS
-    returned (re-scored against the new query, even if they now score 0) so a
-    subsequent search re-ranks the whole visible pool instead of leaving prior
-    results pinned at their stale scores.
-    """
-    # Commit B: keyword ranking + "(not a functional test)" filter delegate to
-    # db.search_atp (identical formula/shape/return keys).
-    return db.search_atp(q, keep_ids=keep_ids or set(), limit=limit)
+                        keep_ids: Optional[set] = None, mode: str = "") -> List[Dict[str, Any]]:
+    """Candidate ATP tests via keyword (or hybrid) search. Full descriptions,
+    short title. keep_ids pool rows always returned, re-scored (Commit B/D)."""
+    keep = keep_ids or set()
+    if _hybrid_on(mode):
+        return db.search_atp_hybrid(q, keep_ids=keep, limit=limit)
+    return db.search_atp(q, keep_ids=keep, limit=limit)
 
 
 def _get_refined_group(case_key: str, data: dict) -> str:

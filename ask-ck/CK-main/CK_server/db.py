@@ -24,11 +24,20 @@ Design notes:
 import math
 import os
 import re
-import sqlite3
 import threading
 from typing import Any, Dict, List, Optional, Tuple
 
-from paths import DB_PATH
+# Prefer pysqlite3 (bundles a modern SQLite WITH enable_load_extension — needed to
+# load sqlite-vec) when installed; otherwise the stdlib sqlite3. On builds whose
+# sqlite3 lacks enable_load_extension (e.g. macOS system Python), vector search
+# simply degrades to keyword (HAS_VEC=False) — never a startup failure. This is a
+# portable capability preference, not a platform branch.
+try:
+    import pysqlite3 as sqlite3            # type: ignore
+except ImportError:
+    import sqlite3                          # type: ignore
+
+from paths import DB_PATH, EMBED_MODEL_DIR
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Connection factory
@@ -592,6 +601,163 @@ def search_scripts(query_tokens: set, db_filter: str = "", limit: int = 40) -> L
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Embeddings + hybrid (Stage D). Semantic search rides sqlite-vec; when the
+# extension can't load (HAS_VEC=False) every hybrid entry point returns the pure
+# keyword result, so callers never need to branch.
+# ─────────────────────────────────────────────────────────────────────────────
+EMBED_DIM = 384
+EMBED_MODEL = os.getenv("CK_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+_model = None
+
+# entity -> (vec table, base table, base-rowid column, id column)
+_VEC_TABLES = {
+    "zephyr":   ("vec_zephyr",   "zephyr_cases",   "id",    "key"),
+    "testlink": ("vec_testlink", "testlink_cases", "rowid", "id"),
+    "atp":      ("vec_atp",      "atp_tests",      "rowid", "tid"),
+    "scripts":  ("vec_scripts",  "scripts",        "rowid", "id"),
+}
+
+
+def _get_model():
+    """Lazy-load the sentence-transformers model (CK_EMBED_MODEL, cached under
+    EMBED_MODEL_DIR / SENTENCE_TRANSFORMERS_HOME)."""
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        cache = os.getenv("SENTENCE_TRANSFORMERS_HOME", str(EMBED_MODEL_DIR))
+        _model = SentenceTransformer(EMBED_MODEL, cache_folder=cache)
+    return _model
+
+
+def embed_texts(texts: List[str]) -> List[List[float]]:
+    """Encode texts to L2-normalized EMBED_DIM float vectors (cosine-ready)."""
+    model = _get_model()
+    vecs = model.encode(list(texts), normalize_embeddings=True, convert_to_numpy=True,
+                        show_progress_bar=False)
+    return [v.tolist() for v in vecs]
+
+
+def _serialize_vec(vec: List[float]) -> bytes:
+    import sqlite_vec
+    return sqlite_vec.serialize_float32(vec)
+
+
+def _vector_hits(entity: str, qvec: List[float], k: int = 200) -> List[Tuple[str, float]]:
+    """KNN over an entity's vec table. Returns [(entity_id, cos_sim)] best-first.
+    Vec tables use distance_metric=cosine, so cos_sim = 1 - distance. []
+    when vectors are unavailable/empty."""
+    if not HAS_VEC:
+        return []
+    vt, base, rowcol, idcol = _VEC_TABLES[entity]
+    try:
+        rows = get_connection().execute(
+            f"SELECT b.{idcol} AS id, v.distance AS dist FROM {vt} v "
+            f"JOIN {base} b ON b.{rowcol} = v.rowid "
+            f"WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?",
+            (_serialize_vec(qvec), k)).fetchall()
+    except sqlite3.OperationalError:
+        return []   # vec table not built yet
+    return [(r["id"], round(1.0 - r["dist"], 4)) for r in rows]
+
+
+def _rrf_merge(keyword_rows: List[dict], vector_hits: List[Tuple[str, float]],
+               id_key: str, hydrate, limit: int, k: int = 60) -> List[dict]:
+    """Reciprocal Rank Fusion of a keyword result list and a vector hit list.
+
+    Keyword rows keep their formula scores; vector-only rows are hydrated via
+    `hydrate(id, cos_sim)` and scored min(0.95, 0.35 + 0.5*cos_sim) with a
+    'Semantic match (cos N.NN)' justification (source='search') so the app.js
+    merge keeps working. Ordering is by fused RRF."""
+    rrf: Dict[str, float] = {}
+    kw_by_id: Dict[str, dict] = {}
+    for rank, row in enumerate(keyword_rows):
+        rid = row.get(id_key)
+        kw_by_id[rid] = row
+        rrf[rid] = rrf.get(rid, 0.0) + 1.0 / (k + rank)
+    sim_by_id: Dict[str, float] = {}
+    for rank, (rid, sim) in enumerate(vector_hits):
+        sim_by_id[rid] = sim
+        rrf[rid] = rrf.get(rid, 0.0) + 1.0 / (k + rank)
+    merged = []
+    for rid, score in sorted(rrf.items(), key=lambda x: (-x[1], str(x[0]))):
+        if rid in kw_by_id:
+            row = dict(kw_by_id[rid])
+        else:
+            sim = sim_by_id.get(rid, 0.0)
+            row = hydrate(rid, sim)
+            if row is None:
+                continue
+            row["score"] = min(0.95, round(0.35 + 0.5 * sim, 2))
+            row["justification"] = f"Semantic match (cos {sim:.2f})"
+            row["source"] = "search"
+        row["rrf"] = round(score, 6)
+        merged.append(row)
+    return merged[:limit]
+
+
+def _hybrid(entity: str, q: str, keyword_rows: List[dict], id_key: str,
+            hydrate, limit: int) -> List[dict]:
+    if not HAS_VEC or not (q or "").strip():
+        return keyword_rows
+    try:
+        qvec = embed_texts([q])[0]
+    except Exception as e:
+        print(f"WARNING: embed failed ({e}); keyword-only for this query.")
+        return keyword_rows
+    hits = _vector_hits(entity, qvec, k=200)
+    if not hits:
+        return keyword_rows
+    return _rrf_merge(keyword_rows, hits, id_key, hydrate, limit)
+
+
+def search_zephyr_hybrid(q: str, case_key: str = "", exclude_keys: Optional[set] = None,
+                         keep_ids: Optional[set] = None, limit: int = 20) -> List[dict]:
+    kw = search_zephyr(q, case_key=case_key, exclude_keys=exclude_keys,
+                       keep_ids=keep_ids, limit=limit)
+    excl = set(exclude_keys) if exclude_keys is not None else get_current_case_keys()
+    if case_key:
+        excl.add(case_key)
+
+    def hydrate(key, sim):
+        if key in excl:
+            return None
+        r = _one("SELECT key, title, folder, status, has_objective, num_steps, labels "
+                 "FROM zephyr_cases WHERE key=?", (key,))
+        if not r:
+            return None
+        return {"key": r["key"], "id": r["key"], "title": r["title"], "folder": r["folder"],
+                "description": r["title"], "status": r["status"],
+                "has_objective": bool(r["has_objective"]), "num_steps": r["num_steps"],
+                "labels": _json(r["labels"], [])}
+    return _hybrid("zephyr", q, kw, "key", hydrate, limit)
+
+
+def search_testlink_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[dict]:
+    kw = search_testlink(q, keep_ids=keep_ids, limit=limit)
+
+    def hydrate(cid, sim):
+        r = _one("SELECT id, title, summary FROM testlink_cases WHERE id=?", (cid,))
+        if not r:
+            return None
+        return {"id": r["id"], "title": r["title"] or "",
+                "description": r["summary"] or r["title"] or "", "snippet": r["title"] or ""}
+    return _hybrid("testlink", q, kw, "id", hydrate, limit)
+
+
+def search_atp_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[dict]:
+    kw = search_atp(q, keep_ids=keep_ids, limit=limit)
+
+    def hydrate(tid, sim):
+        r = _one("SELECT tid, description, suite_name FROM atp_tests WHERE tid=?", (tid,))
+        if not r:
+            return None
+        short_title, full_desc = _split_atp_title_description(r["description"] or "", tid)
+        return {"id": r["tid"], "description": full_desc, "title": short_title,
+                "suite": r["suite_name"] or ""}
+    return _hybrid("atp", q, kw, "id", hydrate, limit)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Session CRUD  (Commit C). The routers (wizard.py / pytest_create.py) delegate
 # their persist/load/clear helpers here; session JSON files stay in place as a
 # frozen pre-migration backup. `llm_config` (may hold a plaintext api_key) is
@@ -726,8 +892,13 @@ def counts() -> Dict[str, int]:
     return c
 
 
+def embeddings_count() -> int:
+    r = _one("SELECT count(*) AS n FROM embeddings_meta")
+    return r["n"] if r else 0
+
+
 def startup_check() -> Dict[str, Any]:
-    """Report DB presence, counts, HAS_VEC. Never raises; the server decides."""
+    """Report DB presence, counts, HAS_VEC + embedding state. Never raises."""
     info: Dict[str, Any] = {"db_path": _resolve_db_path(), "has_vec": HAS_VEC}
     try:
         get_connection()
@@ -735,6 +906,11 @@ def startup_check() -> Dict[str, Any]:
         info["counts"] = counts()
         info["schema_version"] = get_meta("schema_version")
         info["built_at"] = get_meta("built_at")
+        n_emb = embeddings_count()
+        info["embeddings"] = n_emb
+        info["embed_model"] = get_meta("embed_model")
+        # Vector search is only live when the extension loaded AND vectors exist.
+        info["vector_search"] = bool(HAS_VEC and n_emb > 0)
         info["ok"] = info["counts"].get("zephyr_cases", 0) > 0
     except Exception as e:
         info["ok"] = False

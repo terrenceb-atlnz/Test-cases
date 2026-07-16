@@ -136,6 +136,20 @@ CREATE TABLE IF NOT EXISTS json_docs (
   updated_at TEXT
 );
 
+-- Embedding bookkeeping (Stage D). A PLAIN table (no extension needed), so it is
+-- safe in the base schema. The vec0 virtual tables themselves are created by
+-- build_db.py --embed, ONLY when sqlite-vec loads — keeping keyword-only builds
+-- (and any Python without enable_load_extension) working. content_sha1 + model
+-- make the embed pass resumable and auto-invalidate on a model/content change.
+CREATE TABLE IF NOT EXISTS embeddings_meta (
+  entity       TEXT NOT NULL,                          -- 'zephyr'|'testlink'|'atp'|'scripts'
+  base_rowid   INTEGER NOT NULL,                       -- rowid in the entity's base table
+  content_sha1 TEXT NOT NULL,
+  model        TEXT NOT NULL,
+  embedded_at  TEXT,
+  PRIMARY KEY (entity, base_rowid)
+);
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Sessions  (Commit C imports these; table created now, populated later)
 -- ─────────────────────────────────────────────────────────────────────────────

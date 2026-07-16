@@ -300,6 +300,94 @@ def _snapshot_sessions_file(path: str):
         c.close()
 
 
+# ── Stage D: embeddings ──────────────────────────────────────────────────────
+# vec0 tables are created HERE (not in schema.sql) because CREATE VIRTUAL TABLE
+# USING vec0 needs the sqlite-vec extension loaded. Keyword-only builds / Pythons
+# without enable_load_extension never touch this path.
+def _ensure_vec_schema(conn):
+    for vt in ("vec_zephyr", "vec_testlink", "vec_atp", "vec_scripts"):
+        conn.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS {vt} "
+                     "USING vec0(embedding float[384] distance_metric=cosine)")
+    conn.commit()
+
+
+def _zephyr_embed_text(r):
+    t = (r["title"] or "").strip()
+    obj = (r["objective"] or "").strip()
+    return f"{t} {obj}".strip() if obj else f"{t} {r['folder'] or ''}".strip()
+
+
+# entity -> (vec table, SELECT of base rows with rid+content_sha1, text builder)
+_EMBED_SPEC = {
+    "zephyr": ("vec_zephyr",
+               "SELECT id AS rid, title, objective, folder, content_sha1 AS sha FROM zephyr_cases",
+               _zephyr_embed_text),
+    "testlink": ("vec_testlink",
+                 "SELECT rowid AS rid, title, summary, content_sha1 AS sha FROM testlink_cases",
+                 lambda r: f"{r['title'] or ''} {r['summary'] or ''}".strip()),
+    "atp": ("vec_atp",
+            "SELECT rowid AS rid, description, content_sha1 AS sha FROM atp_tests",
+            lambda r: (r["description"] or "").strip()),
+    "scripts": ("vec_scripts",
+                "SELECT rowid AS rid, title, summary, feature_tags, sha1 AS sha FROM scripts",
+                lambda r: f"{r['title'] or ''} {r['summary'] or ''} "
+                          f"{' '.join(json.loads(r['feature_tags'] or '[]'))}".strip()),
+}
+
+
+def embed(batch: int = 64, limit=None):
+    """Resumable, Ctrl-C-safe embedding pass. Skips rows whose content_sha1+model
+    already match embeddings_meta, so re-runs are near-instant and a model switch
+    (CK_EMBED_MODEL) auto-invalidates. Commits per batch."""
+    import db
+    if not db.HAS_VEC:
+        print("  sqlite-vec unavailable on this Python (enable_load_extension missing or "
+              "extension load failed) — skipping --embed. Keyword search is unaffected; run "
+              "--embed on a host where sqlite-vec loads (e.g. Linux, or with pysqlite3).")
+        return
+    from datetime import datetime
+    conn = db.get_connection()
+    _ensure_vec_schema(conn)
+    model = db.EMBED_MODEL
+    print(f"Embedding with {model} (batch={batch}"
+          + (f", limit={limit}/entity" if limit else "") + ")…")
+    total = 0
+    for entity, (vt, sql, text_fn) in _EMBED_SPEC.items():
+        done = {r[0]: r[1] for r in conn.execute(
+            "SELECT base_rowid, content_sha1 FROM embeddings_meta WHERE entity=? AND model=?",
+            (entity, model))}
+        pending = []
+        for r in conn.execute(sql):
+            if done.get(r["rid"]) == r["sha"]:
+                continue
+            pending.append((r["rid"], text_fn(r), r["sha"]))
+            if limit and len(pending) >= limit:
+                break
+        if not pending:
+            print(f"  {entity}: up to date ({len(done)} embedded)")
+            continue
+        n = 0
+        for i in range(0, len(pending), batch):
+            chunk = pending[i:i + batch]
+            vecs = db.embed_texts([t for _, t, _ in chunk])
+            ts = datetime.utcnow().isoformat()
+            for (rid, _txt, sha), vec in zip(chunk, vecs):
+                conn.execute(f"DELETE FROM {vt} WHERE rowid=?", (rid,))
+                conn.execute(f"INSERT INTO {vt}(rowid, embedding) VALUES (?, ?)",
+                             (rid, db._serialize_vec(vec)))
+                conn.execute("INSERT OR REPLACE INTO embeddings_meta "
+                             "(entity, base_rowid, content_sha1, model, embedded_at) "
+                             "VALUES (?,?,?,?,?)", (entity, rid, sha, model, ts))
+            conn.commit()          # per-batch → Ctrl-C keeps progress
+            n += len(chunk)
+            print(f"    {entity}: {n}/{len(pending)}", end="\r", flush=True)
+        print(f"  {entity}: embedded {n}")
+        total += n
+    conn.execute("INSERT OR REPLACE INTO meta(k,v) VALUES ('embed_model', ?)", (model,))
+    conn.commit()
+    print(f"Embeddings done ({total} new/changed).")
+
+
 def import_sessions() -> int:
     """One-shot import of the JSON session files into the sessions table. Files
     stay in place as a frozen pre-migration backup (never deleted)."""
@@ -423,9 +511,16 @@ def main():
     ap.add_argument("--fresh", action="store_true", help="delete ck.db first (sessions preserved)")
     ap.add_argument("--sessions", action="store_true",
                     help="one-shot import of sessions/*.json into the DB (no corpora rebuild)")
+    ap.add_argument("--embed", action="store_true",
+                    help="build/update semantic vectors (sqlite-vec; resumable, Ctrl-C-safe)")
+    ap.add_argument("--batch", type=int, default=64, help="embedding batch size (--embed)")
+    ap.add_argument("--limit", type=int, default=None, help="cap rows/entity (--embed; for testing)")
     ap.add_argument("--verify", action="store_true", help="assert counts + spot lookups after build")
     args = ap.parse_args()
-    if args.sessions:
+    if args.embed:
+        # Embed into the existing DB; no corpora rebuild.
+        embed(batch=args.batch, limit=args.limit)
+    elif args.sessions:
         # Import into the existing DB; do NOT rebuild corpora.
         import_sessions()
     else:
