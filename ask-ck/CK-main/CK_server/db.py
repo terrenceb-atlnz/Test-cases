@@ -70,12 +70,31 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
+_warned_missing = False
+
+
+def _warn_db(e: Exception) -> None:
+    global _warned_missing
+    if not _warned_missing:
+        print(f"WARNING: ck.db read failed ({e}). Run `python3 tool/build_db.py --fresh`. "
+              "Reads degrade to empty until then.")
+        _warned_missing = True
+
+
 def _rows(sql: str, params: tuple = ()) -> List[sqlite3.Row]:
-    return get_connection().execute(sql, params).fetchall()
+    try:
+        return get_connection().execute(sql, params).fetchall()
+    except sqlite3.OperationalError as e:   # e.g. DB not built yet (no such table)
+        _warn_db(e)
+        return []
 
 
 def _one(sql: str, params: tuple = ()) -> Optional[sqlite3.Row]:
-    return get_connection().execute(sql, params).fetchone()
+    try:
+        return get_connection().execute(sql, params).fetchone()
+    except sqlite3.OperationalError as e:
+        _warn_db(e)
+        return None
 
 
 def _json(s: Optional[str], default):
@@ -278,6 +297,18 @@ def get_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
 def get_target_cases() -> List[dict]:
     return [_zephyr_row_to_case(r) for r in
             _rows("SELECT * FROM zephyr_cases WHERE is_target=1 ORDER BY key")]
+
+
+def iter_zephyr_slim():
+    """Yield slim zephyr records (the fields _score_zephyr_candidate + Step-2
+    related-ref ranking read) — replaces the in-RAM slim_index list."""
+    for r in _rows("SELECT key, title, folder, labels, status, has_objective, num_steps "
+                   "FROM zephyr_cases"):
+        yield {
+            "key": r["key"], "title": r["title"], "folder": r["folder"],
+            "labels": _json(r["labels"], []), "status": r["status"],
+            "has_objective": bool(r["has_objective"]), "num_steps": r["num_steps"],
+        }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

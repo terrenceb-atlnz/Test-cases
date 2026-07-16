@@ -15,12 +15,12 @@ from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
 from pathlib import Path
 import json
-import math
 import os
 import re
 
 from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig
 from data import load_all_data
+import db
 from llm import (
     synthesize_objectives_and_steps,
     synthesize_objectives,
@@ -162,37 +162,10 @@ def _get_full_zephyr_case(key: str) -> dict:
 
 
 def _get_full_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
-    """Single-pass lookup of multiple keys from zephyr_cases.jsonl.
-    Avoids re-scanning the large file once per related Step 2 case.
-    """
-    wanted = {k for k in keys if k}
-    if not wanted:
-        return {}
-    path = os.path.join("data", "zephyr_full", "zephyr_cases.jsonl")
-    if not os.path.exists(path):
-        return {}
-    out: Dict[str, dict] = {}
-    try:
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                if len(out) >= len(wanted):
-                    break
-                line = line.strip()
-                if not line:
-                    continue
-                # Fast path: skip parse if key substring cannot match
-                if not any(k in line for k in wanted):
-                    continue
-                try:
-                    case = json.loads(line)
-                    k = case.get("key")
-                    if k in wanted and k not in out:
-                        out[k] = case
-                except (json.JSONDecodeError, TypeError, KeyError):
-                    continue
-    except Exception as e:
-        print(f"Warning: batch zephyr lookup failed: {e}")
-    return out
+    """Batch lookup of full Zephyr cases by key. Commit B: indexed SQLite read
+    (db.get_zephyr_cases_batch) — replaces the per-request zephyr_cases.jsonl
+    linear scan that this used to do."""
+    return db.get_zephyr_cases_batch([k for k in keys if k])
 
 
 def _mark_updated(sess: WizardSession) -> None:
@@ -501,9 +474,9 @@ def _enrich_zephyr_rows(
 ) -> List[Dict[str, Any]]:
     """Fill description from zephyr_master / batch jsonl for UI rows that only have title."""
     zm = data.get("zephyr_master", {}) or {}
-    slim_by_key = {
-        z.get("key"): z for z in (data.get("slim_index") or []) if z.get("key")
-    }
+    # Commit B: slim fields (title/folder/status/labels/…) already ride on each
+    # row from db.search_zephyr, so no slim_index dict is needed.
+    slim_by_key = {}
     need = []
     for r in rows:
         k = r.get("key") or r.get("id")
@@ -559,7 +532,7 @@ def _select_related_zephyr_refs(
         if c.get("candidates")
     }
     zm = data.get("zephyr_master", {}) or {}
-    slim = data.get("slim_index", []) or []
+    slim = db.iter_zephyr_slim()   # Commit B: stream slim rows from ck.db (was 45k-item RAM list)
 
     extra: set = set()
     # Prefer decision *rationale* (w), not match ids (m) which are AWP-#### noise for scoring
@@ -954,55 +927,10 @@ async def search_atp(q: str = "", keep_ids: str = "", data=Depends(get_data)):
 
 
 # --- Shared keyword relevance scoring ----------------------------------------
-# Replaces the old flat "count distinct query tokens present" ranking (which gave
-# every single-keyword hit an identical score) with a weighted relevance signal:
-#   • title matches weigh more than body/description matches
-#   • term frequency counts (with diminishing returns) — not just presence
-#   • whole-word matches beat substring-inside-another-word matches
-#   • exact phrase (all query words, in order) earns a bonus
-#   • coverage: fraction of distinct query tokens matched anywhere
-# Returns a normalized 0..0.95 score plus per-row match stats for the reason line.
-
-def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]]):
-    """rank_words: lowercased query tokens. fields: list of (text, weight).
-
-    Returns (score_0_to_0.95, matched_token_count, total_hits). Weight scales a
-    field's contribution (e.g. title 3.0, description 1.0).
-    """
-    if not rank_words:
-        return 0.0, 0, 0
-    matched = set()
-    weighted = 0.0
-    total_hits = 0
-    for text, weight in fields:
-        if not text:
-            continue
-        low = text.lower()
-        for w in rank_words:
-            # occurrences (term frequency) with diminishing returns
-            occ = low.count(w)
-            if occ <= 0:
-                continue
-            matched.add(w)
-            total_hits += occ
-            # whole-word match earns a bonus over a mere substring hit
-            whole = re.search(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", low) is not None
-            tf = 1.0 + math.log1p(occ - 1)          # 1 occ -> 1.0, extra occ -> +log
-            weighted += weight * tf * (1.35 if whole else 1.0)
-    if not matched:
-        return 0.0, 0, 0
-    # coverage: reward rows that hit more of the distinct query tokens
-    coverage = len(matched) / len(set(rank_words))
-    # exact phrase bonus (multi-word queries only)
-    phrase_bonus = 0.0
-    if len(rank_words) > 1:
-        phrase = " ".join(rank_words)
-        if any(phrase in (t or "").lower() for t, _ in fields):
-            phrase_bonus = 0.15
-    # squash the unbounded weighted sum into 0..1, then blend with coverage
-    raw = 1.0 - math.exp(-weighted / 4.0)           # saturating
-    score = 0.35 + 0.5 * raw + 0.10 * coverage + phrase_bonus
-    return min(0.95, round(score, 4)), len(matched), total_hits
+# Commit B: the weighted relevance scorer now lives in db._relevance_score and is
+# applied inside db.search_testlink / search_zephyr / search_atp (single source of
+# truth, shared with tool/ scripts). The three wizard wrappers below delegate to
+# those; this module no longer keeps a private copy (was a drift risk).
 
 
 def _search_testlink(q: str, data: dict, limit: int = 20,
@@ -1013,53 +941,16 @@ def _search_testlink(q: str, data: dict, limit: int = 20,
     (no [:500] mid-sentence truncation). keep_ids: pool ids always returned
     (re-scored) so a new search re-ranks the whole visible pool.
     """
-    tl = data.get("testlink", {}) or {}
-    keep_ids = keep_ids or set()
-    qlow = (q or "").lower().strip()
-    words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
-    if not words and not keep_ids:
-        return []
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
-    rank_words = specific or words
-    scored = []
-    for tid, item in tl.items():
-        title = item.get("title") or ""
-        steps = item.get("steps") or []
-        # Ranking blob: enough steps to match keywords without loading huge strings always
-        step_blob = " ".join(
-            f"{s.get('action','')} {s.get('expected','')}" for s in steps[:20]
-        )
-        # Weighted: id + title matches count for much more than deep step-text hits.
-        score, nmatch, nhits = _relevance_score(rank_words, [
-            (f"{tid} {title}", 3.0),
-            (step_blob, 1.0),
-        ])
-        in_pool = tid in keep_ids
-        if nmatch <= 0 and not in_pool:
-            continue
-        rich = _build_testlink_description(item, title=title)
-        scored.append((score, {
-            "id": tid,
-            "title": title,
-            "score": score,
-            "description": rich,
-            "snippet": title or "",
-            "source": "search",
-            "justification": f"Matched search ({nmatch}/{len(set(rank_words))} terms, {nhits} hits)",
-        }))
-    scored.sort(key=lambda x: (-x[0], x[1]["id"]))
-    out, seen = [], set()
-    for _, item in scored:
-        if item["id"] in keep_ids:
-            out.append(item); seen.add(item["id"])
-    fresh = 0
-    for _, item in scored:
-        if item["id"] in seen:
-            continue
-        out.append(item); fresh += 1
-        if fresh >= limit:
-            break
-    return out
+    # Commit B: ranking delegates to db.search_testlink (identical formula/shape).
+    # Re-enrich the description with the full step text for the UI (db returns
+    # summary-or-title; _build_testlink_description matches the pre-migration UI).
+    rows = db.search_testlink(q, keep_ids=keep_ids or set(), limit=limit)
+    for r in rows:
+        full = data.get("testlink", {}).get(r["id"]) or {}
+        rich = _build_testlink_description(full, title=r.get("title") or "")
+        if rich:
+            r["description"] = rich
+    return rows
 
 
 def _search_zephyr_external(
@@ -1075,71 +966,18 @@ def _search_zephyr_external(
     keep_ids: pool keys always returned (re-scored) so a new search re-ranks the
     whole visible pool instead of leaving prior results pinned at stale scores.
     """
+    # Commit B: ranking + current-cases exclusion + title-stem dedup delegate to
+    # db.search_zephyr (identical formula/shape). Full descriptions are filled by
+    # _enrich_zephyr_rows (now db-backed) for the UI.
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
         if c.get("candidates")
     }
     if case_key:
         current_cases.add(case_key)
-    keep_ids = keep_ids or set()
-    qlow = (q or "").lower().strip()
-    words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
-    if not words and not keep_ids:
-        return []
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
-    rank_words = specific or words
-    scored = []
-    for z in data.get("slim_index", []) or []:
-        rel_key = z.get("key")
-        if not rel_key or rel_key in current_cases:
-            continue
-        title = z.get("title") or ""
-        folder = z.get("folder") or ""
-        # Weighted: title/key matches outrank folder-only matches.
-        score, nmatch, nhits = _relevance_score(rank_words, [
-            (f"{rel_key} {title}", 3.0),
-            (folder, 1.0),
-        ])
-        in_pool = rel_key in keep_ids
-        if nmatch <= 0 and not in_pool:
-            continue
-        scored.append((score, {
-            "key": rel_key,
-            "id": rel_key,
-            "title": title,
-            "folder": folder,
-            "score": score,
-            "description": title,  # replaced by full enrich below
-            "justification": f"Matched search ({nmatch}/{len(set(rank_words))} terms, {nhits} hits)",
-            "source": "search",
-            "status": z.get("status"),
-            "has_objective": z.get("has_objective"),
-            "num_steps": z.get("num_steps"),
-            "labels": z.get("labels"),
-        }))
-    scored.sort(key=lambda x: (-x[0], x[1].get("key") or ""))
-    # Pooled rows (keep_ids) are always kept; fresh matches are diversified by
-    # title stem and capped at `limit`.
-    out = []
-    seen_keys = set()
-    for _, item in scored:
-        if item["key"] in keep_ids:
-            out.append(item)
-            seen_keys.add(item["key"])
-    seen_stems = set()
-    fresh = 0
-    for _, item in scored:
-        if item["key"] in seen_keys:
-            continue
-        stem = re.sub(r"\s+", " ", (item.get("title") or "").lower())[:40]
-        if stem in seen_stems:
-            continue
-        seen_stems.add(stem)
-        out.append(item)
-        fresh += 1
-        if fresh >= limit:
-            break
-    return _enrich_zephyr_rows(out, data)
+    rows = db.search_zephyr(q, case_key=case_key, exclude_keys=current_cases,
+                            keep_ids=keep_ids or set(), limit=limit)
+    return _enrich_zephyr_rows(rows, data)
 
 
 @router.get("/search_testlink")
@@ -1219,54 +1057,9 @@ def _get_atp_candidates(q: str, data: dict, limit: int = 20,
     subsequent search re-ranks the whole visible pool instead of leaving prior
     results pinned at their stale scores.
     """
-    descs = data.get("test_id_desc", {}) or {}
-    keep_ids = keep_ids or set()
-    qlow = (q or "").lower().strip()
-    words = [w for w in re.findall(r"[a-z0-9][a-z0-9.+_-]{1,}", qlow) if len(w) > 2]
-    # Prefer non-generic words when ranking
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
-    rank_words = specific or words
-    scored = []
-    for tid, info in descs.items():
-        desc = info.get("description") or ""
-        suite = info.get("suite_name") or ""
-        if "(not a functional test)" in desc.lower() or "(not a functional test)" in tid.lower():
-            continue
-        short_title, full_desc = _split_atp_title_description(desc, tid)
-        # Weighted: a hit in the short test name (title) is far more relevant than
-        # one buried in the long analysis body. This is what stops e.g. an
-        # "IPv4 unicast VRRP" row (matched "igmp" deep in its body) from
-        # outranking an "IGMP Snooping" row.
-        score, nmatch, nhits = _relevance_score(rank_words, [
-            (f"{tid} {short_title}", 3.0),
-            (suite, 1.5),
-            (full_desc, 1.0),
-        ])
-        in_pool = tid in keep_ids
-        if nmatch <= 0 and words and not in_pool:
-            continue
-        scored.append((score, {
-            "id": tid,
-            "description": full_desc,
-            "title": short_title,
-            "suite": suite,
-            "score": score,
-        }))
-    scored.sort(key=lambda x: (-x[0], x[1]["id"]))
-    # New matches are capped at `limit`; pooled rows are always returned so the
-    # caller can re-rank them (they don't consume the new-match budget).
-    out, seen = [], set()
-    for _, item in scored:
-        if item["id"] in keep_ids:
-            out.append(item); seen.add(item["id"])
-    fresh = 0
-    for _, item in scored:
-        if item["id"] in seen:
-            continue
-        out.append(item); fresh += 1
-        if fresh >= limit:
-            break
-    return out
+    # Commit B: keyword ranking + "(not a functional test)" filter delegate to
+    # db.search_atp (identical formula/shape/return keys).
+    return db.search_atp(q, keep_ids=keep_ids or set(), limit=limit)
 
 
 def _get_refined_group(case_key: str, data: dict) -> str:

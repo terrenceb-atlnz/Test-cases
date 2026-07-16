@@ -177,7 +177,19 @@ async def process_page():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    import db
+    chk = db.startup_check()
+    return {
+        "status": "ok",
+        "db": {
+            "ready": chk.get("ok", False),
+            "counts": chk.get("counts", {}),
+            "vector_search": chk.get("has_vec", False),
+            "schema_version": chk.get("schema_version"),
+            "built_at": chk.get("built_at"),
+            "error": chk.get("error"),
+        },
+    }
 
 if __name__ == "__main__":
     uvicorn.run("drafting_tool.drafting_server.main:app", host="0.0.0.0", port=8000, reload=True)

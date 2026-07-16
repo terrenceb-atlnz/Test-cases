@@ -25,6 +25,7 @@ import tempfile
 from models import PtSession, LLMConfig
 from paths import REFINED_DIR, PT_DATA_DIR, PT_GENERATED_DIR
 from llm import run_prompt, extract_json_block
+import db as dbx   # aliased: several functions here have a `db` filter parameter
 from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
     check_profile, parse_framework_log, failure_excerpts, run_manager,
@@ -247,20 +248,10 @@ def _propose_name(title: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Mechanical scoring (adapted from wizard.py:291-409)
+# Query tokenization. The 12/10/6 script scorer + its stopword/area sets now live
+# in db (db._score_script_candidate), applied inside dbx.search_scripts — single
+# source of truth, no private copy here (Commit B).
 # ---------------------------------------------------------------------------
-
-_PT_GENERIC_TOKENS = {
-    "test", "tests", "testing", "verify", "verifies", "check", "checks",
-    "confirm", "confirms", "switch", "switches", "port", "ports", "device",
-    "devices", "case", "cases", "script", "run", "running", "show", "output",
-    "correct", "correctly", "ensure", "behaviour", "behavior", "default",
-    "config", "configure", "configuration", "set", "and", "the", "with",
-}
-_PT_AREA_SUPPORT = {"ipv4", "ipv6", "poe", "vlan", "stp", "qos", "acl", "lldp",
-                    "snmp", "dhcp", "igmp", "epsr", "ospf", "bgp", "reboot",
-                    "stack", "stacking", "mirror", "sfp", "pluggable"}
-
 
 def _pt_tokens(s: str) -> set:
     s = (s or "").replace("_", " ").replace("/", " ").replace("-", " ").lower()
@@ -313,15 +304,10 @@ def _score_script_candidate(query_toks: set, slim: dict) -> Tuple[float, str]:
 
 
 def _search_slim(data: dict, query_toks: set, db: str = "", limit: int = 40) -> List[dict]:
-    out = []
-    for slim in data.get("scripts_slim") or []:
-        if db and slim.get("db") != db:
-            continue
-        score, reason = _score_script_candidate(query_toks, slim)
-        if score > 0:
-            out.append({**slim, "score": round(score, 1), "reason": reason})
-    out.sort(key=lambda c: (-c["score"], c["id"]))
-    return out[:limit]
+    """Commit B: mechanical script ranking delegates to dbx.search_scripts (same
+    12/10/6 formula, applied over the scripts table). `db` = optional db filter
+    ('art'/'svt'/'test'). `data` kept for signature compatibility."""
+    return dbx.search_scripts(query_toks, db_filter=db, limit=limit)
 
 
 # ---------------------------------------------------------------------------
@@ -521,18 +507,20 @@ async def status(request: Request):
     if PT_GENERATED_DIR.exists():
         generated = [str(p.relative_to(PT_GENERATED_DIR))
                      for p in PT_GENERATED_DIR.glob("*/*.py")]
+    # Commit B: script count comes from ck.db (scripts table), not an in-RAM list.
+    scripts_indexed = dbx.counts().get("scripts", 0)
     return {
         "tool": "pytest-create",
-        "status": "ok" if data.get("scripts_index") else "index-missing",
-        "scripts_indexed": len(data.get("scripts_index") or []),
+        "status": "ok" if scripts_indexed else "index-missing",
+        "scripts_indexed": scripts_indexed,
         "index_counts": meta.get("counts", {}),
         "enrichment_pct": meta.get("enrichment_pct", 0.0),
         "index_built_at": meta.get("built_at"),
         "framework_modules": len(data.get("framework_surface") or {}),
         "profiles": len(load_profiles()),
         "generated_scripts": generated,
-        "message": ("Run tool/build_script_index.py to build the script index."
-                    if not data.get("scripts_index") else None),
+        "message": ("Run tool/build_db.py --fresh to build the script index."
+                    if not scripts_indexed else None),
     }
 
 
