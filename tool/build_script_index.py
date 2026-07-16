@@ -216,6 +216,7 @@ def extract_helpers(tree: ast.Module):
                 "name": node.name,
                 "args": [a.arg for a in node.args.args],
                 "doc": doc.strip().splitlines()[0] if doc.strip() else "",
+                "loc": [node.lineno, getattr(node, "end_lineno", None)],
             })
     return helpers
 
@@ -233,6 +234,44 @@ def regex_fallback(src: str) -> dict:
     for i, d in enumerate(descs[: len(cases)]):
         cases[i]["desc"] = d
     return {"test_cases": cases, "imports": sorted(set(re.findall(r"^(?:from|import)\s+([\w.]+)", src, re.M))), "helpers": []}
+
+
+def _slice_code(lines, loc):
+    """lines: 0-indexed; loc: [start, end] 1-based inclusive. '' if unusable."""
+    if not loc or not loc[0]:
+        return ""
+    a = loc[0]
+    b = loc[1] or a
+    return "\n".join(lines[a - 1:b])
+
+
+def _build_chunks(rec, src):
+    """Literal-code chunks for scripts_sources.jsonl — one per test_case / helper /
+    testset (using the loc ranges already extracted), or a single whole-file 'file'
+    chunk when none apply, so every captured script yields >=1 searchable unit."""
+    lines = src.splitlines()
+    basename = Path(rec["path"]).name
+    whole = {"unit": "file", "name": basename, "descr": rec.get("docstring", ""),
+             "loc": [1, rec["loc_total"]], "code": src}
+    if rec.get("parse_error"):
+        return [whole]
+    chunks = []
+    ts = rec.get("testset")
+    if ts and ts.get("loc") and _slice_code(lines, ts["loc"]).strip():
+        chunks.append({"unit": "testset", "name": ts.get("class") or basename,
+                       "descr": rec.get("docstring", ""), "loc": ts["loc"],
+                       "code": _slice_code(lines, ts["loc"])})
+    for tc in rec.get("test_cases", []):
+        code = _slice_code(lines, tc.get("loc"))
+        if code.strip():
+            chunks.append({"unit": "test_case", "name": tc.get("class", ""),
+                           "descr": tc.get("desc", ""), "loc": tc["loc"], "code": code})
+    for h in rec.get("helpers", []):
+        code = _slice_code(lines, h.get("loc"))
+        if code.strip():
+            chunks.append({"unit": "helper", "name": h.get("name", ""),
+                           "descr": h.get("doc", ""), "loc": h["loc"], "code": code})
+    return chunks or [whole]
 
 
 def index_file(root_key: str, root: Path, path: Path) -> dict:
@@ -259,6 +298,8 @@ def index_file(root_key: str, root: Path, path: Path) -> dict:
     except SyntaxError:
         rec["parse_error"] = True
         rec.update(regex_fallback(src))
+        rec["_source"] = src
+        rec["_chunks"] = _build_chunks(rec, src)
         return rec
 
     doc = ast.get_docstring(tree) or ""
@@ -281,6 +322,8 @@ def index_file(root_key: str, root: Path, path: Path) -> dict:
                 "method": meta["testCaseMethod"].strip(),
                 "loc": [node.lineno, end],
             })
+    rec["_source"] = src
+    rec["_chunks"] = _build_chunks(rec, src)
     return rec
 
 
@@ -398,6 +441,23 @@ def write_outputs(records, surface, enrich_map):
             r["feature_tags"] = e.get("feature_tags", [])
             r["covered_actions"] = e.get("covered_actions", [])
             enriched += 1
+
+    # Split the heavy literal code out of the (committed, metadata-only) index
+    # into a sidecar. build_db.py ingests it into scripts.source_text +
+    # script_chunks; it is LFS-tracked like the other large corpora. Popping the
+    # underscore keys keeps scripts_index.json lean and byte-stable.
+    n_chunks = 0
+    with (PT_DATA_DIR / "scripts_sources.jsonl").open("w", encoding="utf-8") as fh:
+        for r in records:
+            source = r.pop("_source", None)
+            chunks = r.pop("_chunks", []) or []
+            if source is None:
+                continue
+            n_chunks += len(chunks)
+            fh.write(json.dumps({"id": r["id"], "sha1": r["sha1"],
+                                 "source_text": source, "chunks": chunks},
+                                ensure_ascii=False) + "\n")
+    print(f"scripts_sources.jsonl: {len(records)} files, {n_chunks} code chunks", file=sys.stderr)
 
     (PT_DATA_DIR / "scripts_index.json").write_text(
         json.dumps(records, ensure_ascii=False, indent=1), encoding="utf-8")

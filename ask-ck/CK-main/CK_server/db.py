@@ -283,6 +283,8 @@ def _zephyr_row_to_case(r: sqlite3.Row) -> dict:
         "labels": _json(r["labels"], []),
         "script_type": r["script_type"] or "", "script_text": r["script_text"] or "",
         "steps": _json(r["steps"], []),
+        "issues": _json(r["issues"], []) if "issues" in r.keys() else [],
+        "attachments": _json(r["attachments"], []) if "attachments" in r.keys() else [],
     }
 
 
@@ -390,7 +392,24 @@ def get_script(sid: str) -> Optional[dict]:
         "covered_actions": _json(r["covered_actions"], []), "imports": _json(r["imports"], None),
         "testset": _json(r["testset"], None), "test_cases": _json(r["test_cases"], None),
         "helpers": _json(r["helpers"], None),
+        "source_text": r["source_text"] if "source_text" in r.keys() else None,
     }
+
+
+def get_script_source(sid: str) -> Optional[str]:
+    """The whole literal file body for a script id (None if code not captured)."""
+    r = _one("SELECT source_text FROM scripts WHERE id=?", (sid,))
+    return r["source_text"] if r else None
+
+
+def get_script_chunks(sid: str) -> List[dict]:
+    """Literal-code chunks for a script id, in source order."""
+    rows = _rows(
+        "SELECT unit, name, descr, start_line, end_line, code FROM script_chunks "
+        "WHERE script_id=? ORDER BY start_line", (sid,))
+    return [{"unit": r["unit"], "name": r["name"], "descr": r["descr"],
+             "start_line": r["start_line"], "end_line": r["end_line"], "code": r["code"]}
+            for r in rows]
 
 
 def iter_scripts_slim(db_filter: str = ""):
@@ -600,6 +619,91 @@ def search_scripts(query_tokens: set, db_filter: str = "", limit: int = 40) -> L
     return out[:limit]
 
 
+def _code_snippet(code: str, words: List[str], ctx: int = 3, max_lines: int = 14) -> str:
+    """A few lines of `code` centred on the first line that contains any query
+    word (falls back to the head of the chunk) — for a compact search preview."""
+    lines = (code or "").splitlines()
+    if not lines:
+        return ""
+    hit = 0
+    for i, ln in enumerate(lines):
+        low = ln.lower()
+        if any(w in low for w in words):
+            hit = i
+            break
+    a = max(0, hit - ctx)
+    return "\n".join(lines[a:a + max_lines])
+
+
+def search_code(q: str, db_filter: str = "", limit: int = 20) -> List[dict]:
+    """Literal-code keyword search over script_chunks (function / test-case / file
+    bodies). FTS recall over name+descr+code, then the shared re-score weighting
+    the symbol name and description above the raw body. Each hit carries a snippet
+    and loc so a caller can cite `path:start-end`. Empty when no code was captured
+    (script_chunks is empty until build_script_index.py runs on the testbox)."""
+    qlow = (q or "").lower().strip()
+    words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]*", qlow) if len(w) > 1]
+    if not words:
+        return []
+    sql = ("SELECT ch.id, ch.script_id, ch.unit, ch.name, ch.descr, ch.start_line, "
+           "ch.end_line, ch.code, s.path, s.db AS sdb, s.kind "
+           "FROM chunks_fts f JOIN script_chunks ch ON ch.id=f.rowid "
+           "JOIN scripts s ON s.id=ch.script_id WHERE chunks_fts MATCH ?")
+    params: list = [_fts_match_expr(words)]
+    if db_filter:
+        sql += " AND s.db=?"
+        params.append(db_filter)
+    scored = []
+    for r in _rows(sql, tuple(params)):
+        score, nmatch, _ = _relevance_score(words, [
+            (r["name"] or "", 3.0), (r["descr"] or "", 2.0), (r["code"] or "", 1.0)])
+        if nmatch <= 0:
+            continue
+        scored.append((score, r))
+    scored.sort(key=lambda x: (-x[0], x[1]["script_id"], x[1]["start_line"] or 0))
+    out = []
+    for score, r in scored[:limit]:
+        out.append({
+            "chunk_id": r["id"], "id": r["script_id"], "script_id": r["script_id"],
+            "path": r["path"], "db": r["sdb"], "kind": r["kind"], "unit": r["unit"],
+            "name": r["name"], "descr": r["descr"], "start_line": r["start_line"],
+            "end_line": r["end_line"], "code": r["code"],
+            "snippet": _code_snippet(r["code"], words), "score": round(score, 2),
+        })
+    return out
+
+
+def search_code_hybrid(q: str, db_filter: str = "", limit: int = 20) -> List[dict]:
+    """search_code fused (RRF) with semantic KNN over vec_chunks. Degrades to the
+    pure keyword result when sqlite-vec/embeddings are unavailable."""
+    kw = search_code(q, db_filter=db_filter, limit=limit)
+    if not HAS_VEC or not (q or "").strip():
+        return kw
+    try:
+        qvec = embed_texts([q])[0]
+    except Exception as e:
+        print(f"WARNING: embed failed ({e}); keyword-only for this code query.")
+        return kw
+    hits = _vector_hits("chunks", qvec, k=200)
+    if not hits:
+        return kw
+
+    def hydrate(chunk_id, sim):
+        r = _one("SELECT ch.id, ch.script_id, ch.unit, ch.name, ch.descr, ch.start_line, "
+                 "ch.end_line, ch.code, s.path, s.db AS sdb, s.kind FROM script_chunks ch "
+                 "JOIN scripts s ON s.id=ch.script_id WHERE ch.id=?", (chunk_id,))
+        if not r:
+            return None
+        if db_filter and r["sdb"] != db_filter:
+            return None
+        return {"chunk_id": r["id"], "id": r["script_id"], "script_id": r["script_id"],
+                "path": r["path"], "db": r["sdb"], "kind": r["kind"], "unit": r["unit"],
+                "name": r["name"], "descr": r["descr"], "start_line": r["start_line"],
+                "end_line": r["end_line"], "code": r["code"],
+                "snippet": _code_snippet(r["code"], [w for w in re.split(r"\W+", q.lower()) if w])}
+    return _rrf_merge(kw, hits, "chunk_id", hydrate, limit)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Embeddings + hybrid (Stage D). Semantic search rides sqlite-vec; when the
 # extension can't load (HAS_VEC=False) every hybrid entry point returns the pure
@@ -615,6 +719,7 @@ _VEC_TABLES = {
     "testlink": ("vec_testlink", "testlink_cases", "rowid", "id"),
     "atp":      ("vec_atp",      "atp_tests",      "rowid", "tid"),
     "scripts":  ("vec_scripts",  "scripts",        "rowid", "id"),
+    "chunks":   ("vec_chunks",   "script_chunks",  "id",    "id"),
 }
 
 
@@ -885,7 +990,7 @@ def get_meta(k: str) -> Optional[str]:
 
 def counts() -> Dict[str, int]:
     c = {}
-    for t in ("zephyr_cases", "testlink_cases", "atp_tests", "scripts",
+    for t in ("zephyr_cases", "testlink_cases", "atp_tests", "scripts", "script_chunks",
               "candidates", "decisions", "sessions"):
         c[t] = _one(f"SELECT count(*) AS n FROM {t}")["n"]
     c["zephyr_target"] = _one("SELECT count(*) AS n FROM zephyr_cases WHERE is_target=1")["n"]

@@ -56,8 +56,17 @@ def _sha1(obj) -> str:
 
 
 def _zephyr_steps_text(steps) -> str:
-    return " ".join(f"{s.get('description','')} {s.get('expected','')}"
+    return " ".join(f"{s.get('description','')} {s.get('testData','')} {s.get('expected','')}"
                     for s in (steps or [])).strip()
+
+
+def _zephyr_refs_text(issues, attachments) -> str:
+    """Flatten issue keys+summaries + attachment names into one FTS-recall blob."""
+    parts = []
+    for i in (issues or []):
+        parts.append(f"{i.get('key','')} {i.get('summary','')}".strip())
+    parts.extend(attachments or [])
+    return " ".join(p for p in parts if p).strip()
 
 
 def _tl_steps_text(steps) -> str:
@@ -80,7 +89,7 @@ def apply_schema(conn):
 def clear_corpora(conn):
     """Clear base tables so a full rebuild is idempotent without --fresh.
     (Sessions are intentionally preserved — Commit C manages those.)"""
-    for t in ("zephyr_cases", "testlink_cases", "atp_tests", "scripts",
+    for t in ("zephyr_cases", "testlink_cases", "atp_tests", "scripts", "script_chunks",
               "candidates", "decisions", "json_docs"):
         conn.execute(f"DELETE FROM {t}")
     conn.commit()
@@ -92,7 +101,8 @@ def ingest_zephyr(conn):
     jsonl = DATA_DIR / "zephyr_full" / "zephyr_cases.jsonl"
     ins = ("INSERT INTO zephyr_cases (key,src,is_target,title,folder,objective,precondition,"
            "priority,status,labels,script_type,script_text,steps,steps_text,num_steps,"
-           "has_objective,content_sha1) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+           "has_objective,issues,attachments,refs_text,content_sha1) "
+           "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
     n = 0
     batch = []
     with open(jsonl, encoding="utf-8") as f:
@@ -103,12 +113,16 @@ def ingest_zephyr(conn):
             r = json.loads(line)
             steps = r.get("steps") or []
             obj = r.get("objective") or ""
+            iss = r.get("issues") or []
+            att = r.get("attachments") or []
             batch.append((
                 r["key"], "xml", 0, r.get("title") or "", r.get("folder") or "",
                 obj, r.get("precondition") or "", r.get("priority") or "", r.get("status") or "",
                 json.dumps(r.get("labels") or []), r.get("script_type") or "",
                 r.get("script_text") or "", json.dumps(steps), _zephyr_steps_text(steps),
-                len(steps), 1 if obj.strip() else 0, _sha1(r)))
+                len(steps), 1 if obj.strip() else 0,
+                json.dumps(iss) if iss else None, json.dumps(att) if att else None,
+                _zephyr_refs_text(iss, att), _sha1(r)))
             if len(batch) >= BATCH:
                 conn.executemany(ins, batch); n += len(batch); batch = []
     if batch:
@@ -119,23 +133,30 @@ def ingest_zephyr(conn):
     master = _load_json(DATA_DIR / "zephyr_master.json")
     ups = ("INSERT INTO zephyr_cases (key,src,is_target,title,folder,objective,precondition,"
            "priority,status,labels,script_type,script_text,steps,steps_text,num_steps,"
-           "has_objective,content_sha1) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+           "has_objective,issues,attachments,refs_text,content_sha1) "
+           "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
            "ON CONFLICT(key) DO UPDATE SET src=excluded.src, is_target=1, title=excluded.title, "
            "folder=excluded.folder, objective=excluded.objective, precondition=excluded.precondition, "
            "priority=excluded.priority, status=excluded.status, labels=excluded.labels, "
            "script_type=excluded.script_type, script_text=excluded.script_text, steps=excluded.steps, "
            "steps_text=excluded.steps_text, num_steps=excluded.num_steps, "
-           "has_objective=excluded.has_objective, content_sha1=excluded.content_sha1")
+           "has_objective=excluded.has_objective, issues=excluded.issues, "
+           "attachments=excluded.attachments, refs_text=excluded.refs_text, "
+           "content_sha1=excluded.content_sha1")
     m = 0
     for r in master:
         steps = r.get("steps") or []
         obj = r.get("objective") or ""
+        iss = r.get("issues") or []
+        att = r.get("attachments") or []
         conn.execute(ups, (
             r["key"], "api", 1, r.get("title") or "", r.get("folder") or "",
             obj, r.get("precondition") or "", r.get("priority") or "", r.get("status") or "",
             json.dumps(r.get("labels") or []), r.get("script_type") or "",
             r.get("script_text") or "", json.dumps(steps), _zephyr_steps_text(steps),
-            len(steps), 1 if obj.strip() else 0, _sha1(r)))
+            len(steps), 1 if obj.strip() else 0,
+            json.dumps(iss) if iss else None, json.dumps(att) if att else None,
+            _zephyr_refs_text(iss, att), _sha1(r)))
         m += 1
     conn.commit()
     print(f"  zephyr_cases: {n} xml + {m} api-target upserts")
@@ -235,6 +256,52 @@ def ingest_scripts(conn):
     return n
 
 
+def ingest_script_sources(conn):
+    """Load the literal-code sidecar (scripts_sources.jsonl) written by
+    build_script_index.py: fill scripts.source_text and populate script_chunks.
+    The sidecar is OPTIONAL — when absent (e.g. the extractor has not been re-run
+    on the testbox yet) scripts still ingest fully, just without code. Matched by
+    (id, sha1): a stale sidecar entry whose sha1 no longer matches the freshly
+    indexed script is skipped, so code never drifts out of sync with metadata."""
+    sidecar = PT_DATA_DIR / "scripts_sources.jsonl"
+    if not sidecar.exists():
+        print("  script sources: (no scripts_sources.jsonl — code columns empty; "
+              "run tool/build_script_index.py on the testbox to capture code)")
+        return 0
+    # Current id -> sha1 from the just-ingested scripts table (the parity anchor).
+    cur = {r["id"]: r["sha1"] for r in conn.execute("SELECT id, sha1 FROM scripts")}
+    ins = ("INSERT INTO script_chunks (script_id,unit,name,descr,start_line,end_line,"
+           "code,content_sha1) VALUES (?,?,?,?,?,?,?,?)")
+    n_src = n_chunk = n_stale = 0
+    batch = []
+    with open(sidecar, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            sid, sha = rec.get("id"), rec.get("sha1")
+            if cur.get(sid) != sha:            # stale/orphan sidecar entry
+                n_stale += 1
+                continue
+            conn.execute("UPDATE scripts SET source_text=? WHERE id=?",
+                         (rec.get("source_text") or "", sid))
+            n_src += 1
+            for ch in rec.get("chunks") or []:
+                loc = ch.get("loc") or [None, None]
+                code = ch.get("code") or ""
+                batch.append((sid, ch.get("unit") or "file", ch.get("name") or "",
+                              ch.get("descr") or "", loc[0], loc[1], code, _sha1(code)))
+                if len(batch) >= BATCH:
+                    conn.executemany(ins, batch); n_chunk += len(batch); batch = []
+    if batch:
+        conn.executemany(ins, batch); n_chunk += len(batch)
+    conn.commit()
+    print(f"  script sources: {n_src} files with code, {n_chunk} chunks"
+          + (f" ({n_stale} stale sidecar rows skipped)" if n_stale else ""))
+    return n_chunk
+
+
 def ingest_candidates(conn):
     cands = _load_json(DATA_DIR / "candidates.json")
     conn.executemany("INSERT OR REPLACE INTO candidates (case_key,payload) VALUES (?,?)",
@@ -277,10 +344,10 @@ def ingest_json_docs(conn):
 
 
 def fts_rebuild(conn):
-    for t in ("zephyr_fts", "testlink_fts", "atp_fts", "scripts_fts"):
+    for t in ("zephyr_fts", "testlink_fts", "atp_fts", "scripts_fts", "chunks_fts"):
         conn.execute(f"INSERT INTO {t}({t}) VALUES('rebuild')")
     conn.commit()
-    print("  FTS rebuilt (4 indexes)")
+    print("  FTS rebuilt (5 indexes)")
 
 
 def _snapshot_sessions_file(path: str):
@@ -305,7 +372,7 @@ def _snapshot_sessions_file(path: str):
 # USING vec0 needs the sqlite-vec extension loaded. Keyword-only builds / Pythons
 # without enable_load_extension never touch this path.
 def _ensure_vec_schema(conn):
-    for vt in ("vec_zephyr", "vec_testlink", "vec_atp", "vec_scripts"):
+    for vt in ("vec_zephyr", "vec_testlink", "vec_atp", "vec_scripts", "vec_chunks"):
         conn.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS {vt} "
                      "USING vec0(embedding float[384] distance_metric=cosine)")
     conn.commit()
@@ -332,6 +399,11 @@ _EMBED_SPEC = {
                 "SELECT rowid AS rid, title, summary, feature_tags, sha1 AS sha FROM scripts",
                 lambda r: f"{r['title'] or ''} {r['summary'] or ''} "
                           f"{' '.join(json.loads(r['feature_tags'] or '[]'))}".strip()),
+    # Literal-code chunks. Lead with name+descr (survives the model's ~256-token
+    # truncation) then the code body. base_rowid = script_chunks.id.
+    "chunks": ("vec_chunks",
+               "SELECT id AS rid, name, descr, code, content_sha1 AS sha FROM script_chunks",
+               lambda r: f"{r['name'] or ''} {r['descr'] or ''}\n{r['code'] or ''}".strip()),
 }
 
 
@@ -421,6 +493,7 @@ def write_meta(conn, counts):
         "testlink_awp.json": DATA_DIR / "suites" / "testlink_awp.json",
         "test_id_description.json": DATA_DIR / "suites" / "test_id_description.json",
         "scripts_index.json": PT_DATA_DIR / "scripts_index.json",
+        "scripts_sources.jsonl": PT_DATA_DIR / "scripts_sources.jsonl",
         "candidates.json": DATA_DIR / "candidates.json",
     }
     meta = {"schema_version": SCHEMA_VERSION, "built_at": datetime.utcnow().isoformat()}
@@ -458,6 +531,7 @@ def build(fresh: bool):
     ingest_testlink(conn)
     ingest_atp(conn)
     ingest_scripts(conn)
+    ingest_script_sources(conn)
     ingest_candidates(conn)
     ingest_decisions(conn)
     ingest_json_docs(conn)

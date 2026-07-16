@@ -64,19 +64,26 @@ def norm_script(ts_elem):
         for step in ts_elem.findall(".//step"):
             desc = html_to_text(step.findtext("description") or "")
             exp = html_to_text(step.findtext("expectedResult") or "")
+            # Per-step test data (config snippets / inputs). Populated on ~1,300
+            # cases; the previous version hardcoded "" and silently dropped it.
+            data = html_to_text(step.findtext("testData") or "")
             steps.append({
                 "description": desc,
-                "testData": "",
+                "testData": data,
                 "expected": exp
             })
         return {"script_type": "STEP_BY_STEP", "script_text": "", "steps": steps}
 
-    # Plain / text script or other
-    text = ""
-    for txt in ts_elem.findall(".//text"):
-        text = html_to_text("".join(txt.itertext()))
-        if text:
-            break
+    # Plain / text script or other. The body lives in <details> (the previous
+    # version searched for a <text> element that does not exist in this export, so
+    # every PLAIN script came out empty). Fall back to .//text for other shapes.
+    text = html_to_text("".join(ts_elem.find("details").itertext())) \
+        if ts_elem.find("details") is not None else ""
+    if not text:
+        for txt in ts_elem.findall(".//text"):
+            text = html_to_text("".join(txt.itertext()))
+            if text:
+                break
     return {
         "script_type": (ts_elem.get("type") or "PLAIN").upper(),
         "script_text": text,
@@ -111,6 +118,23 @@ def parse_testcase(elem):
     ts_el = elem.find("testScript")
     script = norm_script(ts_el)
 
+    # Traceability: linked defects/features (<issues><issue><key>+<summary>).
+    # Populated on ~480 cases; omitted entirely when empty (no blank field).
+    issues = []
+    for iss in elem.findall("./issues/issue"):
+        ikey = (iss.findtext("key") or "").strip()
+        isumm = html_to_text(iss.findtext("summary") or "")
+        if ikey or isumm:
+            issues.append({"key": ikey, "summary": isumm})
+
+    # Attachment file names (contents are not in the export). ~250 cases; the
+    # names encode the traffic-gen/config setup (e.g. *.ixncfg).
+    attachments = []
+    for att in elem.findall("./attachments/attachment"):
+        aname = (att.findtext("name") or "").strip()
+        if aname:
+            attachments.append(aname)
+
     rec = {
         "src": "zephyr_xml",
         "key": key,
@@ -123,6 +147,10 @@ def parse_testcase(elem):
         "labels": labels,
     }
     rec.update(script)
+    if issues:
+        rec["issues"] = issues
+    if attachments:
+        rec["attachments"] = attachments
     return rec
 
 

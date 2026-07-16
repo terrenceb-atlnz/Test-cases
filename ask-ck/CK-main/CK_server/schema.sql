@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS zephyr_cases (
   steps_text    TEXT NOT NULL DEFAULT '',              -- flattened step text (feeds FTS)
   num_steps     INTEGER NOT NULL DEFAULT 0,
   has_objective INTEGER NOT NULL DEFAULT 0,
+  issues        TEXT,                                  -- JSON [{key,summary}] linked defects/features (NULL when none)
+  attachments   TEXT,                                  -- JSON [filename,…] attachment names (NULL when none)
+  refs_text     TEXT NOT NULL DEFAULT '',              -- issue summaries + attachment names flattened (feeds FTS recall)
   content_sha1  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_zephyr_is_target ON zephyr_cases(is_target);
@@ -110,9 +113,30 @@ CREATE TABLE IF NOT EXISTS scripts (
   test_cases     TEXT,                                 -- JSON
   helpers        TEXT,                                 -- JSON
   tags_text      TEXT NOT NULL DEFAULT '',             -- feature_tags + covered_actions flattened (feeds FTS)
-  dir_text       TEXT NOT NULL DEFAULT ''              -- suite_dir flattened (feeds FTS)
+  dir_text       TEXT NOT NULL DEFAULT '',             -- suite_dir flattened (feeds FTS)
+  source_text    TEXT                                  -- WHOLE literal file body (nullable; from scripts_sources.jsonl)
 );
 CREATE INDEX IF NOT EXISTS idx_scripts_db ON scripts(db);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Script code chunks  (literal source, sliced per test-case / helper / testset;
+-- a whole-file 'file' chunk when a script yields no finer unit — so every script
+-- with a captured body has >=1 chunk). Populated from scripts_sources.jsonl; the
+-- table is simply empty when that sidecar is absent (keyword build still works).
+-- This is the retrieval + embedding unit for literal-code search.
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS script_chunks (
+  id           INTEGER PRIMARY KEY,
+  script_id    TEXT NOT NULL,                          -- REFERENCES scripts(id) logically
+  unit         TEXT NOT NULL,                          -- 'test_case' | 'helper' | 'testset' | 'file'
+  name         TEXT,                                   -- class/function name (or file basename for 'file')
+  descr        TEXT,                                   -- testCaseDesc / docstring line (search + display)
+  start_line   INTEGER,
+  end_line     INTEGER,
+  code         TEXT NOT NULL,                          -- the literal source lines
+  content_sha1 TEXT NOT NULL                           -- sha1(code); makes --embed resumable per chunk
+);
+CREATE INDEX IF NOT EXISTS idx_chunks_script ON script_chunks(script_id);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Generator pipeline docs (rebuildable from JSON source of truth)
@@ -168,8 +192,13 @@ CREATE INDEX IF NOT EXISTS idx_sessions_kind ON sessions(kind);
 -- Rebuilt via ('rebuild') at the end of every ingest — corpora are only ever
 -- written by build_db.py, so the base tables are authoritative.
 -- ═════════════════════════════════════════════════════════════════════════════
+-- script_text (recovered PLAIN-script bodies) + refs_text (issue/attachment
+-- names) are indexed for RECALL only — search_zephyr still scores key+title+
+-- folder, so results are unchanged; these make the new content reachable by
+-- future/column-specific search. FTS column names must match zephyr_cases
+-- columns (external-content 'rebuild' selects by name).
 CREATE VIRTUAL TABLE IF NOT EXISTS zephyr_fts USING fts5(
-  key, title, folder, objective, steps_text,
+  key, title, folder, objective, steps_text, script_text, refs_text,
   content='zephyr_cases', content_rowid='id',
   tokenize="unicode61 remove_diacritics 2 tokenchars '.+'", prefix='2 3'
 );
@@ -192,24 +221,33 @@ CREATE VIRTUAL TABLE IF NOT EXISTS scripts_fts USING fts5(
   tokenize="unicode61 remove_diacritics 2 tokenchars '.+'", prefix='2 3'
 );
 
+-- Literal-code index. UNLIKE the corpora FTS above, code wants word-splitting on
+-- '_' and '.' (find `reboot` inside `self.dut.reboot`, `failover` inside
+-- `trigger_failover`), so NO tokenchars override here — plain unicode61.
+CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+  name, descr, code,
+  content='script_chunks', content_rowid='id',
+  tokenize="unicode61 remove_diacritics 2", prefix='2 3'
+);
+
 -- External-content sync triggers.
 -- zephyr_cases has an explicit INTEGER PRIMARY KEY (id) used as content_rowid;
 -- the other three use the implicit rowid. All keep the FTS shadow tables in
 -- lockstep so incremental writes stay correct even between full ('rebuild')s.
 
 CREATE TRIGGER IF NOT EXISTS zephyr_ai AFTER INSERT ON zephyr_cases BEGIN
-  INSERT INTO zephyr_fts(rowid, key, title, folder, objective, steps_text)
-  VALUES (new.id, new.key, new.title, new.folder, new.objective, new.steps_text);
+  INSERT INTO zephyr_fts(rowid, key, title, folder, objective, steps_text, script_text, refs_text)
+  VALUES (new.id, new.key, new.title, new.folder, new.objective, new.steps_text, new.script_text, new.refs_text);
 END;
 CREATE TRIGGER IF NOT EXISTS zephyr_ad AFTER DELETE ON zephyr_cases BEGIN
-  INSERT INTO zephyr_fts(zephyr_fts, rowid, key, title, folder, objective, steps_text)
-  VALUES ('delete', old.id, old.key, old.title, old.folder, old.objective, old.steps_text);
+  INSERT INTO zephyr_fts(zephyr_fts, rowid, key, title, folder, objective, steps_text, script_text, refs_text)
+  VALUES ('delete', old.id, old.key, old.title, old.folder, old.objective, old.steps_text, old.script_text, old.refs_text);
 END;
 CREATE TRIGGER IF NOT EXISTS zephyr_au AFTER UPDATE ON zephyr_cases BEGIN
-  INSERT INTO zephyr_fts(zephyr_fts, rowid, key, title, folder, objective, steps_text)
-  VALUES ('delete', old.id, old.key, old.title, old.folder, old.objective, old.steps_text);
-  INSERT INTO zephyr_fts(rowid, key, title, folder, objective, steps_text)
-  VALUES (new.id, new.key, new.title, new.folder, new.objective, new.steps_text);
+  INSERT INTO zephyr_fts(zephyr_fts, rowid, key, title, folder, objective, steps_text, script_text, refs_text)
+  VALUES ('delete', old.id, old.key, old.title, old.folder, old.objective, old.steps_text, old.script_text, old.refs_text);
+  INSERT INTO zephyr_fts(rowid, key, title, folder, objective, steps_text, script_text, refs_text)
+  VALUES (new.id, new.key, new.title, new.folder, new.objective, new.steps_text, new.script_text, new.refs_text);
 END;
 
 CREATE TRIGGER IF NOT EXISTS testlink_ai AFTER INSERT ON testlink_cases BEGIN
@@ -255,4 +293,19 @@ CREATE TRIGGER IF NOT EXISTS scripts_au AFTER UPDATE ON scripts BEGIN
   VALUES ('delete', old.rowid, old.id, old.title, old.summary, old.tags_text, old.dir_text, old.docstring);
   INSERT INTO scripts_fts(rowid, id, title, summary, tags_text, dir_text, docstring)
   VALUES (new.rowid, new.id, new.title, new.summary, new.tags_text, new.dir_text, new.docstring);
+END;
+
+CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON script_chunks BEGIN
+  INSERT INTO chunks_fts(rowid, name, descr, code)
+  VALUES (new.id, new.name, new.descr, new.code);
+END;
+CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON script_chunks BEGIN
+  INSERT INTO chunks_fts(chunks_fts, rowid, name, descr, code)
+  VALUES ('delete', old.id, old.name, old.descr, old.code);
+END;
+CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON script_chunks BEGIN
+  INSERT INTO chunks_fts(chunks_fts, rowid, name, descr, code)
+  VALUES ('delete', old.id, old.name, old.descr, old.code);
+  INSERT INTO chunks_fts(rowid, name, descr, code)
+  VALUES (new.id, new.name, new.descr, new.code);
 END;
