@@ -60,12 +60,19 @@ This version replaces the original single-file static `index.html` approach.
 - **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) writes `CK_server/sessions/_workspace_llm.json`; load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session.
 - Full provenance (prompts/responses/provider/auth) captured per session.
 
-**Data**:
-- The three databases (under `ask-ck/objective-drafting/data/`):
-  - TestLink historical + candidates/decisions
-  - Zephyr (slim_index + zephyr_cases.jsonl)
-  - Enriched ATPyLib (test_id_description + suite files)
-- Loaded on server startup. Server-side indexes enable fast search and cross-referencing.
+**Data** (SQLite `ck.db`, migrated 2026-07-16):
+- All corpora + sessions are served from **`ask-ck/var/ck.db`** (gitignored; build/rebuild with
+  `python3 tool/build_db.py --fresh --verify`). `db.py` is the single access layer:
+  - Zephyr (45k XML cases + 410 API targets), TestLink historical, enriched ATPyLib, the script index
+  - FTS5 keyword search (`db.search_*`) + optional sqlite-vec **hybrid/semantic** (`mode=keyword|hybrid|semantic`; degrades to keyword when the extension can't load)
+  - Sessions (per-case + workspace LLM) with `llm_config` isolated in its own column
+- **The server no longer scans JSON at runtime.** The JSON/JSONL under
+  `ask-ck/objective-drafting/data/` + `ask-ck/pytest-create/data/` is the rebuildable **build
+  input** for `tool/build_db.py`, not a runtime source. `data.py` keeps a few small references
+  in RAM (being migrated to the DB — see below).
+- **Direction — strict DB-only search** (planned, not started): `ck.db` becomes the sole
+  search/reference source, server reads zero JSON, originals ingest direct-to-DB. Roadmap +
+  testbox checklist: **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
 
 **Hosting**:
 - Intended to run behind nginx on a local IP.

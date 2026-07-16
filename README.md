@@ -62,7 +62,9 @@ pip install -r ask-ck/CK-main/requirements.txt
 
 > **On the virtual environment:** the `venv` is recommended but optional — it only isolates *where* these packages are installed, it does not change how the project runs. If you skip it, install into your user site-packages instead with `pip install --user -r ask-ck/CK-main/requirements.txt`. `run.sh` **auto-activates a repo-local `.venv` if present**, so you don't need to activate it first to start the server. You still need to activate it yourself (`source .venv/bin/activate`) before running `tool/*.py` scripts directly.
 
-Large Zephyr sources (`zephyr_cases.jsonl`, full XML export, related indexes) live in the repo via Git LFS under `ask-ck/objective-drafting/data/zephyr_full/`. Prefer `slim_index.json` for day-to-day work; see `ask-ck/objective-drafting/data/zephyr_full/README.md`. The original Zephyr XML export remains the immutable source of truth.
+Large Zephyr sources (full XML export, `zephyr_cases.jsonl`, related indexes) live in the repo via Git LFS under `ask-ck/objective-drafting/data/zephyr_full/`. The original Zephyr XML export remains the immutable source of truth.
+
+**Data layer (2026-07-16):** all corpora and sessions are served from a SQLite database, **`ask-ck/var/ck.db`** (gitignored — build/rebuild with `python3 tool/build_db.py --fresh --verify`; `setup.sh` does this on a fresh clone). It provides FTS5 keyword search + optional sqlite-vec semantic/hybrid search. The JSON/JSONL files are the rebuildable *build input*, no longer read by the running server. **Direction:** the project is moving to strict DB-only search (server reads zero JSON) — see the roadmap in [`ask-ck/ck-facelift/PLAN-db-only-search.md`](ask-ck/ck-facelift/PLAN-db-only-search.md).
 
 ## Project Goal
 
@@ -93,6 +95,8 @@ Authoritative process: **`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.m
 | **Ask CK workbench** | Multi-tool facelift complete (2026-07-13): Objective/Test Case Generator (full), sidebar LLM Configure panel, plus Test Composer and Zephyr Templating Tool (scaffolded) — see `ask-ck/objective-drafting/PROGRESS.md`. **Frontend refactored to browser-native ES modules (2026-07-16)** — `static/app.js` → `static/js/` (see `static/js/README.md`). |
 | **Generator review UX** | **Two-table "chosen shortlist" (2026-07-16)** on the TestLink/Zephyr/ATPyLib steps (candidates ↑ / chosen ↓, insertion-ordered; confirm reads the chosen table only), plus **relevance-ranked keyword search** (title-weighted scoring; each new search re-ranks the whole candidate pool) |
 | **PyTest Creator** | **Fully implemented (2026-07-14):** 8-step gated flow turning refined cases into runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test scripts, with a script-database index, testbox SSH execution, and an LLM fix loop to Final Validation — see `ask-ck/pytest-create/PLAN-pytest-creator.md` |
+| **Data layer (SQLite `ck.db`)** | **Migration complete (2026-07-16), committed A–D:** corpora + sessions served from `ask-ck/var/ck.db` (FTS5 keyword + sqlite-vec hybrid/semantic). Server no longer scans JSON at runtime. See `ask-ck/ck-facelift/PLAN-db-migration.md`. |
+| **Next: strict DB-only search** | **Planned, not started** — `ck.db` the sole search/reference source; originals ingest direct-to-DB. Two feature branches (scripts literal-code, Zephyr enrichment) staged uncommitted, pending one coordinated rebuild. Roadmap + testbox checklist: `ask-ck/ck-facelift/PLAN-db-only-search.md`. |
 
 **Refined-case groups present** (examples): Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management, Bootloader.
 

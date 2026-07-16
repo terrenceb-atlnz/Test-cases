@@ -2,6 +2,8 @@
 
 > ## Session handoff (read first)
 >
+> **Status (2026-07-16): ✅ COMPLETE — all four commits landed** (A `6cb97ca`, B `bdb2043`, C `14cf4ad`, D `1a0ef2a`). Corpora + sessions are served from `ask-ck/var/ck.db` (rebuild: `python3 tool/build_db.py --fresh --verify`). Note: some scoring formulas below are stale — the live parity target is `_relevance_score`. **Follow-on direction:** strict DB-only search → `PLAN-db-only-search.md`.
+>
 > **Status (2026-07-15):** Plan approved by Terrence; **no code written yet**. Execution starts at Commit A below.
 >
 > - **All decisions in this plan are settled** — engine, scope, hybrid search, and score-preservation were agreed interactively. Don't re-litigate them; if something proves wrong during implementation, surface it.

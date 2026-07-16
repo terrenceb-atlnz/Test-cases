@@ -914,3 +914,50 @@ Future drafting sessions must cross-reference:
 **Primary handoff:** start at `ask-ck/objective-drafting/PROGRESS.md`. Run with `./ask-ck/CK-main/run.sh`.
 
 ---
+
+## Session Close / Handoff (2026-07-16) — SQLite migration DONE; DB-only-search direction planned
+
+**1. DB migration (`PLAN-db-migration.md`, SQLite/FTS5/sqlite-vec) — COMPLETE, all four commits landed.**
+The corpora now live in `ask-ck/var/ck.db` (gitignored, rebuildable). Commits: **A `6cb97ca`**
+(schema + `db.py` connection factory/reads/FTS searches + `tool/build_db.py`), **B `bdb2043`**
+(server read paths → DB; killed the per-request `zephyr_cases.jsonl` scan + ~50 MB boot RAM),
+**C `14cf4ad`** (sessions → DB; `llm_config` isolated in its own column), **D `1a0ef2a`**
+(semantic + hybrid RRF search on sqlite-vec, keyword-degrade when the extension can't load).
+Search parity vs. the live `_relevance_score` was verified 79/80 top-10. Tokenizer dropped `_`
+so `mdi` matches inside `5000_mdi_mdix`. **KEY ENV:** vector `--embed` + live KNN only run where
+`enable_load_extension` exists (Linux / `pysqlite3-binary`), not this mac system Python.
+
+**2. Two feature branches built THIS session — STAGED, UNCOMMITTED, unit-verified, DB-rebuild pending.**
+- **Scripts literal-code:** captures the actual `.py` source (currently the DB has only
+  enrichment/tags/signatures). `scripts.source_text` (whole file) + `script_chunks` (per
+  test-case/helper/testset, sliced by loc, whole-file fallback) + `chunks_fts` (word-split
+  tokenizer) + `vec_chunks` (embeddings). New `db.search_code` / `search_code_hybrid`,
+  `get_script_source/chunks`. `build_script_index.py` emits a `scripts_sources.jsonl` courier;
+  `build_db` ingests it (graceful if absent). Extractor chunk logic unit-tested here.
+- **Zephyr enrichment:** fixes two silent-drop bugs + adds two fields — `<details>` plain-script
+  bodies (~1,300 cases were coming out `''`) → `script_text`; per-step `<testData>` (~1,285) →
+  steps; `issues` (JSON `[{key,summary}]`, ~480 cases) + `attachments` (filenames, ~250) as
+  nullable columns; `script_text`+`refs_text` added to `zephyr_fts` RECALL only (scorer still
+  key+title+folder, so results unchanged). Extractor logic unit-tested here. Deliberately did NOT
+  capture: createdBy/On, updatedBy/On, owner, estimatedTime, or the always-empty containers
+  (customFields, confluencePageLinks, parameters) — Terrence's explicit exclusions.
+
+**Working tree (uncommitted — Terrence commits himself):** `M` `db.py`, `schema.sql`,
+`tool/build_db.py`, `tool/build_script_index.py`, `tool/extract_zephyr_xml.py`; `??`
+`ask-ck/ck-facelift/PLAN-db-only-search.md`. Nothing verified against a DB rebuild yet — the
+single `build_db --fresh --verify` (+ `--embed`) is deferred to the coordinated testbox pass so
+both branches + real extractions land in ONE rebuild.
+
+**3. Architecture DECISION — strict DB-only search (Terrence, 2026-07-16).** `ck.db` is the SOLE
+source for all search + all runtime reference; the server must read ZERO JSON; originals ingest
+direct-to-DB; JSON survives only as a build courier for physically-remote sources (testbox
+scripts, live APIs), never searched. **Full phased plan + testbox checklist:**
+`ask-ck/ck-facelift/PLAN-db-only-search.md`. Phase-1 gap is small (repoint 5 runtime JSON reads
+in `data.py` + one in `pytest_create.py` to `db.*` getters that already exist). To run in a
+FUTURE session — not started.
+
+**Primary handoff:** `ask-ck/objective-drafting/PROGRESS.md`, then
+`ask-ck/ck-facelift/PLAN-db-only-search.md`. Rebuild the DB anytime with
+`python3 tool/build_db.py --fresh --verify`. Run the server with `./ask-ck/CK-main/run.sh`.
+
+---
