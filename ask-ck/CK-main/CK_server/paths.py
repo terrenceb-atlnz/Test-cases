@@ -29,3 +29,10 @@ PT_GENERATED_DIR = PYTEST_CREATE_ROOT / "generated"
 # LLM observability (see ask-ck/ck-facelift/PLAN-llm-observability.md)
 DEBUG_LOG_DIR = CK_SERVER_DIR / "debug-log"                 # per-session LLM request JSONL (gitignored)
 LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"    # app-owned Local LLM key (gitignored via secrets.*)
+
+# SQLite data layer (see ask-ck/ck-facelift/PLAN-db-migration.md)
+# The DB is a derived, rebuildable cache — the XML/extractor JSON outputs under
+# DATA_DIR / PT_DATA_DIR remain the source of truth. All of ask-ck/var/ is gitignored.
+VAR_DIR = ASKCK_ROOT / "var"                                # .../ask-ck/var
+DB_PATH = VAR_DIR / "ck.db"                                 # SQLite (FTS5 + sqlite-vec) single file
+EMBED_MODEL_DIR = VAR_DIR / "models"                        # local sentence-transformers cache
