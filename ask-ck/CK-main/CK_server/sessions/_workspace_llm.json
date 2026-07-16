@@ -1,8 +1,8 @@
 {
-  "provider": "claude",
-  "auth_method": "claude_agent",
+  "provider": "openai",
+  "auth_method": "local_llm",
   "api_key": null,
   "token": null,
   "base_url": null,
-  "model": null
+  "model": "vllm-fast"
 }

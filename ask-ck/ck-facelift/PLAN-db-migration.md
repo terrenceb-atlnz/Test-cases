@@ -92,6 +92,8 @@ Tokenizer keeps `test_id`/`10.1.2` tokens intact (matches existing regex `[a-z0-
 
 Plain **sync sqlite3** (queries are ms-scale; no async ceremony): module-level `threading.local()` connections, `row_factory=sqlite3.Row`, PRAGMAs WAL / `synchronous=NORMAL` / `busy_timeout=5000` / `mmap_size=256MB`. sqlite-vec loaded in try/except → `HAS_VEC` flag drives keyword-only degrade; server never fails startup over embeddings.
 
+**Connection layer — single factory, no exceptions.** One public `get_connection() -> sqlite3.Connection` is the *only* place `sqlite3.connect()` is called anywhere in the codebase; every router and every `tool/` script goes through it, so PRAGMAs, WAL mode, and `enable_load_extension`/sqlite-vec loading are applied identically in one spot (never re-opened ad hoc). Location resolves as `os.getenv("CK_DB_PATH", str(DB_PATH))` — `paths.py` default, env-overridable, matching the existing `CK_EMBED_MODEL`/`SENTENCE_TRANSFORMERS_HOME` convention. Unlike a networked-service connector (fresh connection per call + `close()`), SQLite is an embedded file so the factory **reuses one connection per thread** via `threading.local()` — re-opening and re-applying PRAGMAs/extension-load on every retrieval call would be pure waste. Callers still never touch a cursor directly; they call the domain functions below, which call `get_connection()` internally.
+
 API surface (return shapes identical to today's `_search_*` outputs incl. score/justification):
 
 ```python
