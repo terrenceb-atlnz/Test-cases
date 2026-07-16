@@ -1,10 +1,14 @@
 // ============================================================================
-// Per-tab session id + X-CK-Session header injection.
+// Per-tab session id + X-CK-Session / X-CK-Panel header injection.
 // Each browser tab gets a unique id so the shared server can route claude_agent
 // LLM jobs back to THIS user's browser (and thus their own local ck-agent).
-// We patch window.fetch once so every same-origin /api call carries the header
+// X-CK-Panel carries the active panel so the server's LLM debug log can
+// attribute each request to the page that triggered it (llm-debug.js).
+// We patch window.fetch once so every same-origin /api call carries the headers
 // without touching each call site.
 // ============================================================================
+import { S } from './state.js';
+
 const CK_SESSION_ID = (function () {
   let id = sessionStorage.getItem('ckSessionId');
   if (!id) {
@@ -24,6 +28,7 @@ const CK_SESSION_ID = (function () {
         init = init || {};
         const headers = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
         headers.set('X-CK-Session', CK_SESSION_ID);
+        if (S.currentPanel) headers.set('X-CK-Panel', S.currentPanel);
         init.headers = headers;
       }
     } catch (_) { /* never break fetch */ }

@@ -274,12 +274,29 @@
           <label class="radio-label">
             <input type="radio" name="llmAuthMethod" value="claude_agent"> Claude Code CLI (my local machine)
           </label>
+          <label class="radio-label">
+            <input type="radio" name="llmAuthMethod" value="local_llm"> Local LLM
+          </label>
           <button id="grokCliStatusBtn" data-action="checkGrokCLIStatus" class="btn btn-secondary btn-compact-small">Check Grok CLI</button>
           <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check my local agent</button>
 
           <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
           <button data-action="setLLMConfig" class="btn btn-primary">Apply / Login</button>
           <span id="llmStatus" class="llm-status-inline"></span>
+        </div>
+
+        <div id="localLlmRow" class="radio-group hidden">
+          <span class="justification-note">Mode:</span>
+          <label class="radio-label">
+            <input type="radio" name="localLlmMode" value="vllm-fast" checked> Fast
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="localLlmMode" value="vllm-thinking"> Thinking
+          </label>
+          <input id="localLlmKey" type="password" autocomplete="off"
+                 placeholder="Local LLM API key (leave blank to keep stored key)"
+                 class="form-input form-input-small">
+          <span id="localLlmKeyState" class="justification-note"></span>
         </div>
 
         <div id="claudeAgentInstructions" class="instructions-panel hidden">
@@ -320,7 +337,7 @@
         <div class="atp-toolbar">
           <input id="tlSearchQ" type="text" class="form-input form-input-search" placeholder="Search TestLink keywords…" />
           <button type="button" data-action="searchTestLink" class="btn btn-secondary btn-compact-small">Search TestLink</button>
-          <button type="button" data-action="suggestTestLinkWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+          <button type="button" id="tl-suggest-llm-btn" data-action="suggestTestLinkWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="tl-table" class="table-container"><em>Select a case above and click Load to see actual TestLink candidates here.</em></div>
         <div class="chosen-toolbar">
@@ -345,7 +362,7 @@
         <div class="atp-toolbar">
           <input id="zephyrSearchQ" type="text" class="form-input form-input-search" placeholder="Search Zephyr keywords…" />
           <button type="button" data-action="searchZephyr" class="btn btn-secondary btn-compact-small">Search Zephyr</button>
-          <button type="button" data-action="suggestZephyrWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+          <button type="button" id="zp-suggest-llm-btn" data-action="suggestZephyrWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="zephyr-table" class="table-container"><em>Select a case above and click Load to see actual Zephyr cross-refs here.</em></div>
         <div class="chosen-toolbar">
@@ -370,7 +387,7 @@
         <div class="atp-toolbar">
           <input id="atpSearchQ" type="text" class="form-input form-input-search" placeholder="Search ATP keywords…" />
           <button type="button" data-action="searchATP" class="btn btn-secondary btn-compact-small">Search ATP</button>
-          <button type="button" data-action="suggestATPWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
+          <button type="button" id="atp-suggest-llm-btn" data-action="suggestATPWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="atp-table" class="table-container"><em>ATPyLib candidates will appear here after loading a case.</em></div>
         <div class="chosen-toolbar">
@@ -403,7 +420,7 @@
         </div>
 
         <div class="synth-actions mb-2">
-          <button type="button" data-action="synthesizeObjectives" class="btn btn-primary">Synthesize Objectives (LLM)</button>
+          <button type="button" id="obj-synth-btn" data-action="synthesizeObjectives" class="btn btn-primary">Synthesize Objectives (LLM)</button>
           <button type="button" data-action="confirmObjectives" class="btn btn-secondary">Confirm Objectives → Step 6</button>
         </div>
         <div id="objective-result"></div>
@@ -427,7 +444,7 @@
         </div>
 
         <div class="synth-actions mb-2">
-          <button type="button" data-action="synthesizeSteps" class="btn btn-primary">Synthesize Test Steps (LLM)</button>
+          <button type="button" id="steps-synth-btn" data-action="synthesizeSteps" class="btn btn-primary">Synthesize Test Steps (LLM)</button>
           <button type="button" data-action="startEditSteps" class="btn btn-secondary" id="edit-steps-btn">Edit / Revise Steps</button>
         </div>
         <div id="steps-result"></div>
@@ -709,9 +726,13 @@
       <summary class="session-debug-summary">Session debug JSON</summary>
       <pre id="session-view" class="session-pre"></pre>
     </details>
+    <details id="llm-debug" class="session-debug hidden">
+      <summary class="session-debug-summary">Last LLM request (this page) <span id="llm-debug-tag" class="badge hidden"></span></summary>
+      <pre id="llm-debug-view" class="session-pre"></pre>
+    </details>
   </main>
 </div>
 
-<script type="module" src="/static/js/main.js?v=1"></script>
+<script type="module" src="/static/js/main.js?v=2"></script>
 </body>
 </html>

@@ -35,43 +35,64 @@ Ask-CK's frontend-triggered LLM prompts are opaque: no way to see what was sent,
 **Settled decisions (don't re-litigate):**
 - **auth_method = `local_llm`** → forces `provider="openai"`, `base_url="http://vllm.ai.atlnz.lc/v1"`.
 - **Two modes via the `model` field:** `vllm-fast` (default) / `vllm-thinking`, chosen by a Fast/Thinking toggle shown only when the Local LLM radio is selected.
-- **Credential = env var `LOCAL_LLM_KEY`**, resolved server-side only. It must NEVER be sent from the browser, stored on the session/`cfg`, or reach `debug-log/` (the Commit 1 recorder already whitelists meta keys and never sees `api_key`; this key never enters `cfg`, so it is doubly safe).
+- **Credential = a gitignored, app-owned `CK_server/secrets.local.json`** (shape `{"local_llm_key": "sk-..."}`), with **env var `LOCAL_LLM_KEY` as fallback**. Resolved server-side only — it must NEVER be sent from the browser, stored on the session/`cfg`, or reach `debug-log/`. Because it lives in a file and is injected server-side (never in `cfg`), Commit 1's meta-key whitelist excludes it for free. Do NOT reuse the human-authored `secrets.md` — that stays user-owned and holds only `JIRA_KEY` (used by `tool/upload_refined.py`, not the server). This is why the app writes its own JSON file, not `secrets.md`.
+- **Key is updatable from the Configure page** (keys expire): a key field + Save writes `secrets.local.json`. This satisfies "persist across server restart AND new browser session, without re-entering every time" while staying per-server. The key never rides a request.
 - **UI label:** radio reads "Local LLM"; the sub-toggle reads "Fast / Thinking".
-- Source of truth for the endpoint shape: `resources.md` (org example); key lives in gitignored `secrets.md` as `LOCAL_LLM_KEY=...`.
+- Source of truth for the endpoint shape: `resources.md` (org example).
+- **Future central-deploy extension (NOT built now, documented so it's not a surprise):** for true multi-seat/bring-your-own keys, the same Configure field flips to browser `localStorage` + a per-request `api_key`; at that point Commit 1's `debug-log` recorder must explicitly whitelist that field OUT. Today's single-user instance uses the server-side file, which is per-server-global by design (one seat).
 
 **Backend edits:**
+- **New tiny helper (put in a sensible existing module, e.g. `paths.py` or a new `local_llm_key.py`):**
+  ```python
+  LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"   # gitignored
+  def get_local_llm_key() -> Optional[str]:
+      try:
+          import json
+          if LOCAL_LLM_SECRETS.exists():
+              k = json.loads(LOCAL_LLM_SECRETS.read_text()).get("local_llm_key")
+              if k: return k
+      except Exception: pass
+      return os.environ.get("LOCAL_LLM_KEY")   # fallback
+  def set_local_llm_key(key: str) -> None:
+      import json
+      LOCAL_LLM_SECRETS.write_text(json.dumps({"local_llm_key": key}))
+  ```
 - **`llm.py` — inject centrally in `_call_llm_with_meta` (:250), NOT at the ~6 call sites.** Right after the provider-defaults block (~:285), before the `meta = {...}` dict is built:
   ```python
   if auth_method == "local_llm":
       provider = "openai"
       base_url = "http://vllm.ai.atlnz.lc/v1"
       model = model or "vllm-fast"
-      api_key = os.environ.get("LOCAL_LLM_KEY")  # server-side only; never from cfg/browser
+      api_key = get_local_llm_key()   # file → env fallback; server-side only, never from cfg/browser
   ```
-  It then falls straight through the existing OpenAI-compatible branch (:343-374). `model` (`vllm-fast`/`vllm-thinking`) flows through from `cfg.model` unchanged. This one edit covers every caller (:542, :595, :833, :865, :897, :929, and run_prompt :997) at once — none of them need touching.
+  It then falls straight through the existing OpenAI-compatible branch (:343-374). `model` (`vllm-fast`/`vllm-thinking`) flows through from `cfg.model` unchanged. This one edit covers every caller (:542, :595, :833, :865, :897, :929, and run_prompt :997) at once — none of them need touching. If `api_key` is None, the existing no-credential guard (:303-312) already errors cleanly.
 - No change to the catch-all (:376) or the token normalizer (Commit 1's `normalize_usage` already handles the OpenAI `usage` shape).
 
-**Router edit — `routers/wizard.py:set_llm_config` (:1595-1613):**
+**Router edits — `routers/wizard.py:set_llm_config` (:1595-1613):**
 - Add `local_llm` to the auth_method allow-list at :1605: `("api_key", "account", "claude_code", "claude_agent", "grok_cli", "local_llm")`.
 - Add a guard alongside the others (:1607-1610): `if auth_method == "local_llm" and provider != "openai": provider = "openai"` (coerce rather than 400 — the radio always pairs them, but be defensive).
-- Model default (:1621-1629): when `auth_method == "local_llm"` and no model supplied, `cfg.model = "vllm-fast"`. **Never** put the key in `cfg` here — it stays an env var resolved at call time.
-- `has_key`/status (:1649): treat `local_llm` as configured when `os.environ.get("LOCAL_LLM_KEY")` is set (surface a clear "Local LLM key not set on server" warning in the returned config when it is absent, mirroring the grok_cli `available` pattern — so the Configure page can tell the user).
+- Model default (:1621-1629): when `auth_method == "local_llm"` and no model supplied, `cfg.model = "vllm-fast"`. **Never** put the key in `cfg` — it lives only in `secrets.local.json`, resolved at call time.
+- **Accept a key on save:** if `auth_method == "local_llm"` and the body carries a `local_llm_key` (non-empty), call `set_local_llm_key(...)` to persist it, then **drop it from the body** — it must not land in `cfg`, the session, or the returned `safe_config`.
+- `has_key`/status (:1649): treat `local_llm` as configured when `get_local_llm_key()` returns truthy; surface `local_llm_key_set: bool` in the returned config (mirroring the grok_cli `available` pattern) so the Configure page can show a clear "Local LLM key not set" warning and whether a key is already stored (never echo the key itself).
 
 **Frontend edits (ES modules):**
-- **`static/index.html`** (radio block ~:272-275): add a third radio `value="local_llm"` labelled "Local LLM (organization vLLM)", and a `#localLlmModeRow` (hidden by default) with a Fast/Thinking control — a paired radio/segmented toggle `name="localLlmMode"` with values `vllm-fast` (checked) / `vllm-thinking`. Place it near `#llmModel`.
-- **`js/llm.js`** — `updateAuthMethodUI()` (:132-155): extend the show/hide to reveal `#localLlmModeRow` (and hide the grok/agent instruction panels) when `local_llm` is selected. In `setLLMConfig()` (:7): when the Local LLM radio is checked, set `provider='openai'`, `auth_method='local_llm'`, and `body.model =` the checked `localLlmMode` value (`vllm-fast`/`vllm-thinking`) — do **not** send any key. `updateLLMStatus()` (:81): add a friendly label branch, e.g. `Using Local LLM (vLLM — Fast|Thinking)`. `restoreLLMUI()` (:157): restore the radio + the Fast/Thinking toggle from saved `auth_method`/`model`.
+- **`static/index.html`** (radio block ~:272-275): add a third radio `value="local_llm"` labelled "Local LLM", and a `#localLlmRow` (hidden by default) containing (a) the Fast/Thinking control — paired radio/segmented toggle `name="localLlmMode"`, values `vllm-fast` (checked) / `vllm-thinking`; and (b) an optional key field `#localLlmKey` (type=password, placeholder "Local LLM API key — leave blank to keep stored key") + note showing whether a key is already stored. Place near `#llmModel`.
+- **`js/llm.js`** — `updateAuthMethodUI()` (:132-155): extend the show/hide to reveal `#localLlmRow` (and hide the grok/agent instruction panels) when `local_llm` is selected. In `setLLMConfig()` (:7): when the Local LLM radio is checked, set `provider='openai'`, `auth_method='local_llm'`, `body.model =` the checked `localLlmMode` value; and **only if** `#localLlmKey` is non-empty, `body.local_llm_key = <field>` (then clear the field on success so the key isn't left in the DOM). `updateLLMStatus()` (:81): add a branch, e.g. `Using Local LLM (vLLM — Fast|Thinking)`, and a warn state when `local_llm_key_set` is false. `restoreLLMUI()` (:157): restore the radio + Fast/Thinking toggle from saved `auth_method`/`model` (the key field always restores blank — it's write-only from the UI's perspective, like the old api_key never round-tripped).
 - No `session.js` change for Step 0 (that fetch-patch edit belongs to Commit 2's `X-CK-Panel`).
 
-**`run.sh`:** document/export `LOCAL_LLM_KEY`. Preferred: `run.sh` sources it from the gitignored `secrets.md` (or a `.env`) so the server process has it in its environment without hardcoding. Add a one-line note to SERVER-README.
+**`.gitignore` (repo root):** add `ask-ck/CK-main/CK_server/secrets.local.json`.
+
+**`run.sh` / SERVER-README:** no export needed — the key is read from `secrets.local.json` (set via the Configure page) with `LOCAL_LLM_KEY` env as an optional fallback for headless/CI. Add a one-line SERVER-README note: "Local LLM key is set on the Configure page (stored gitignored in `CK_server/secrets.local.json`); or export `LOCAL_LLM_KEY` for headless runs."
 
 **Verification (manual + curl):**
-- S0.1 — `LOCAL_LLM_KEY` set, select Local LLM + Fast on Configure, apply → status shows "Using Local LLM (vLLM — Fast)"; a Generator synthesize returns real content.
-- S0.2 — flip to Thinking, re-apply, synthesize → request uses `model=vllm-thinking` (confirm in server log line `model=vllm-thinking`).
-- S0.3 — direct curl parity with `resources.md` example against `http://vllm.ai.atlnz.lc/v1/chat/completions` returns a `choices[].message.content` and a `usage` block (this is what Commit 2's badge will read).
-- S0.4 — unset `LOCAL_LLM_KEY` → Configure shows the "key not set on server" warning; a call errors cleanly via the normal error shape (no stack trace, no key leak).
-- S0.5 — `grep -ri "sk-" debug-log/ ; grep -ri LOCAL_LLM_KEY sessions/` after a call → **no hits** (key never persisted). (debug-log exists only after Commit 1; run this again at Commit 1 verification step 1.)
+- S0.1 — select Local LLM, enter the key once + Fast, apply → status "Using Local LLM (vLLM — Fast)"; `secrets.local.json` now exists with the key; a Generator synthesize returns real content.
+- S0.2 — flip to Thinking, apply (key field left blank) → the stored key is reused (no re-entry) and the request uses `model=vllm-thinking` (confirm server log line `model=vllm-thinking`).
+- S0.3 — **restart the server, open a fresh browser tab** → status still shows Local LLM configured (key persisted across restart + new session); synthesize works without re-entering the key.
+- S0.4 — direct curl parity with the `resources.md` example against `http://vllm.ai.atlnz.lc/v1/chat/completions` returns `choices[].message.content` and a `usage` block (this is what Commit 2's badge will read).
+- S0.5 — remove `secrets.local.json` (and unset `LOCAL_LLM_KEY`) → Configure shows "key not set" warning; a call errors cleanly via the normal error shape (no stack trace, no key leak).
+- S0.6 — after a successful call, `grep -rn local_llm_key sessions/` and inspect the `/set_llm_config` JSON response → **the key appears in neither** (only `secrets.local.json` holds it). Re-run the `debug-log/` grep at Commit 1 verification step 1.
 
-**Critical files (Step 0):** modified `CK_server/llm.py`, `CK_server/routers/wizard.py`, `CK_server/static/index.html`, `CK_server/static/js/llm.js`, `CK-main/run.sh`, `CK-main/SERVER-README.md`. No new files.
+**Critical files (Step 0):** modified `CK_server/llm.py`, `CK_server/routers/wizard.py`, `CK_server/paths.py` (or new `CK_server/local_llm_key.py`), `CK_server/static/index.html`, `CK_server/static/js/llm.js`, repo-root `.gitignore`, `CK-main/SERVER-README.md`. New (runtime, gitignored): `CK_server/secrets.local.json`.
 
 ## Commit 1 — Backend: recorder + debug-log + /api/llm endpoints
 

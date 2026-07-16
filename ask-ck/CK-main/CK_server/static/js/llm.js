@@ -17,11 +17,23 @@ async function setLLMConfig() {
     if (r.checked) { auth_method = r.value; break; }
   }
 
-  let provider = (auth_method === 'claude_agent' || auth_method === 'claude_code') ? 'claude' : 'grok';
+  let provider = 'grok';
+  if (auth_method === 'claude_agent' || auth_method === 'claude_code') provider = 'claude';
+  else if (auth_method === 'local_llm') provider = 'openai';   // org vLLM rides the OpenAI-compatible path
 
   const body = { provider, auth_method };
   // CLI subscription modes require no credential here
   if (model) body.model = model;
+
+  if (auth_method === 'local_llm') {
+    // Fast/Thinking toggle IS the model choice for the org vLLM.
+    const mode = document.querySelector('input[name="localLlmMode"]:checked');
+    body.model = (mode && mode.value) || 'vllm-fast';
+    // Key travels ONLY when (re-)entered; blank keeps the server-stored key.
+    const keyEl = document.getElementById('localLlmKey');
+    const key = keyEl && keyEl.value.trim();
+    if (key) body.local_llm_key = key;
+  }
 
   const url = key
     ? `/api/wizard/set_llm_config/${encodeURIComponent(key)}`
@@ -59,6 +71,18 @@ async function setLLMConfig() {
       } else {
         alert('Grok CLI mode set, but the CLI was NOT found.\n\n' + (cli.hint || 'Install grok CLI and run grok login --oauth, then re-apply.'));
       }
+    } else if (auth_method === 'local_llm') {
+      const keyEl = document.getElementById('localLlmKey');
+      if (keyEl) keyEl.value = '';   // write-only field: never leave the key in the DOM
+      const keySet = data.llm_config.local_llm_key_set !== false;
+      const stateEl = document.getElementById('localLlmKeyState');
+      if (stateEl) stateEl.textContent = keySet ? 'key stored ✓' : '⚠ no key stored';
+      if (!keySet) {
+        alert('Local LLM selected, but NO API key is stored on the server yet.\n\nEnter your key in the "Local LLM API key" field and Apply again (it is stored server-side; you won\'t need to re-enter it until it expires).');
+      } else {
+        const modeLabel = (body.model === 'vllm-thinking') ? 'Thinking' : 'Fast';
+        alert(`Local LLM (org vLLM) enabled — ${modeLabel} mode. The key is stored server-side and persists across restarts.`);
+      }
     }
     // No credential field anymore for subscription modes
   } else {
@@ -71,9 +95,9 @@ export function normalizeLLMConfig(config) {
   // Normalize server/session llm_config for status display.
   const c = Object.assign({}, config || {});
   const am = (c.auth_method || '').toLowerCase();
-  // Session dict does not include has_key; treat CLI modes as configured
+  // Session dict does not include has_key; treat CLI + server-keyed modes as configured
   if (c.has_key === undefined) {
-    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli';
+    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm';
   }
   return c;
 }
@@ -86,7 +110,7 @@ export function updateLLMStatus(config) {
   c = normalizeLLMConfig(c);
   const provider = c.provider || '';
   const am = (c.auth_method || '').toLowerCase();
-  const cliMode = (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli');
+  const cliMode = (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm');
   const hasCred = !!(c.has_key || c.api_key || c.token || cliMode);
 
   let text = '';
@@ -95,6 +119,11 @@ export function updateLLMStatus(config) {
   if (!provider || !hasCred) {
     text = 'No credential (use CLI login or set key)';
     ok = false;
+  } else if (am === 'local_llm') {
+    const modeLabel = (c.model === 'vllm-thinking') ? 'Thinking' : 'Fast';
+    text = `Using Local LLM (vLLM — ${modeLabel})`;
+    ok = c.local_llm_key_set !== false;
+    if (!ok) text += ' — ⚠ no key stored on server';
   } else {
     const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
     let m = ' (API key)';
@@ -124,6 +153,8 @@ function updateLLMDefaults() {
   const checked = document.querySelector('input[name="llmAuthMethod"]:checked');
   if (checked && checked.value === 'claude_agent') {
     modelInput.placeholder = '(Claude CLI default)';
+  } else if (checked && checked.value === 'local_llm') {
+    modelInput.placeholder = '(model set by Fast/Thinking toggle)';
   } else {
     modelInput.placeholder = '(Grok CLI default)';
   }
@@ -136,10 +167,19 @@ export function updateAuthMethodUI() {
   const grokBtn = document.getElementById('grokCliStatusBtn');
   const agentInstr = document.getElementById('claudeAgentInstructions');
   const grokInstr = document.getElementById('grokCliInstructions');
+  const localRow = document.getElementById('localLlmRow');
+
+  if (localRow) localRow.classList.toggle('hidden', method !== 'local_llm');
 
   if (method === 'claude_agent') {
     if (agentBtn) agentBtn.classList.remove('hidden');
     if (agentInstr) agentInstr.classList.remove('hidden');
+    if (grokBtn) grokBtn.classList.add('hidden');
+    if (grokInstr) grokInstr.classList.add('hidden');
+  } else if (method === 'local_llm') {
+    // Org vLLM: no CLI to check, no instruction panels
+    if (agentBtn) agentBtn.classList.add('hidden');
+    if (agentInstr) agentInstr.classList.add('hidden');
     if (grokBtn) grokBtn.classList.add('hidden');
     if (grokInstr) grokInstr.classList.add('hidden');
   } else {
@@ -179,9 +219,18 @@ export function restoreLLMUI() {
     r.checked = (r.value === method);
   }
 
-  // Keep model field in sync when present
+  if (method === 'local_llm') {
+    // Restore the Fast/Thinking toggle from the saved model (key field stays
+    // blank — it is write-only; the key lives server-side).
+    const mode = (c.model === 'vllm-thinking') ? 'vllm-thinking' : 'vllm-fast';
+    document.querySelectorAll('input[name="localLlmMode"]').forEach((r) => {
+      r.checked = (r.value === mode);
+    });
+  }
+
+  // Keep model field in sync when present (not for local_llm — its model is the toggle)
   const modelInput = document.getElementById('llmModel');
-  if (modelInput && c.model && !modelInput.value) {
+  if (modelInput && c.model && !modelInput.value && method !== 'local_llm') {
     modelInput.value = c.model;
   }
 

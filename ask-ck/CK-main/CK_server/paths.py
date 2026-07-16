@@ -25,3 +25,7 @@ PROCESS_MD = OBJECTIVE_DRAFTING_ROOT / "OBJECTIVE_DRAFTING_PROCESS.md"
 PYTEST_CREATE_ROOT = ASKCK_ROOT / "pytest-create"
 PT_DATA_DIR = PYTEST_CREATE_ROOT / "data"
 PT_GENERATED_DIR = PYTEST_CREATE_ROOT / "generated"
+
+# LLM observability (see ask-ck/ck-facelift/PLAN-llm-observability.md)
+DEBUG_LOG_DIR = CK_SERVER_DIR / "debug-log"                 # per-session LLM request JSONL (gitignored)
+LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"    # app-owned Local LLM key (gitignored via secrets.*)

@@ -1,6 +1,7 @@
 // Sidebar accordion + panel/step navigation.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
+import { renderLlmDebugFooter } from './llm-debug.js';
 import { renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
 import { ptSession, renderPtFitPanel, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
 
@@ -82,6 +83,9 @@ export function goToPanel(panelId) {
   // Objective/Test Case Generator step panels (step-0..step-5), not other tools/Main.
   const dbg = document.getElementById('session-debug');
   if (dbg) dbg.classList.toggle('hidden', !/^step-\d+$/.test(panelId));
+
+  // LLM debug footer is per-panel: show this panel's last LLM request (or hide).
+  renderLlmDebugFooter();
 
   const ptRenderers = {
     'panel-pt-seq': renderPtSeqPanel,

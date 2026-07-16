@@ -16,7 +16,7 @@ graph evaluates.
 | File | Responsibility |
 |------|----------------|
 | `main.js` | Entry point: ordered imports, `loadToolStatus`, boot block, form-control bindings |
-| `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` (side-effect) |
+| `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` / `X-CK-Panel` (side-effect) |
 | `state.js` | Shared mutable `S` state object (see below) |
 | `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
 | `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs` |
@@ -28,6 +28,7 @@ graph evaluates.
 | `nav.js` | Sidebar accordion + panel/step navigation |
 | `pytest.js` | PyTest Creator (the full 8-step flow) |
 | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
+| `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
 | `theme.js` | Light/dark toggle (side-effect) |
 
 ## Conventions

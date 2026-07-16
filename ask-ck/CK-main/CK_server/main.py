@@ -49,6 +49,7 @@ from routers.zephyr_tool import router as zephyr_tool_router
 from routers.test_composer import router as test_composer_router
 from routers.pytest_create import router as pytest_create_router
 from routers.agent_bridge import router as agent_bridge_router
+from routers.llm_debug import router as llm_debug_router
 import llm as _llm
 
 app = FastAPI(title="Ask CK (Server-Backed)")
@@ -56,15 +57,23 @@ app = FastAPI(title="Ask CK (Server-Backed)")
 
 @app.middleware("http")
 async def _bind_session_id(request: Request, call_next):
-    """Expose the browser's X-CK-Session header to the LLM layer (claude_agent routing).
+    """Expose per-request browser context to the LLM layer via ContextVars:
+    X-CK-Session (claude_agent routing + debug-log keying), X-CK-Panel and the
+    request path (LLM debug-log attribution — see llm_debug.record).
 
-    Set per request in a ContextVar; never persisted. Empty for non-browser callers.
+    Set per request; never persisted. Empty for non-browser callers.
+    ContextVars propagate into run_in_threadpool — the same mechanism
+    current_session_id already relies on.
     """
     token = _llm.current_session_id.set(request.headers.get("X-CK-Session", ""))
+    panel_token = _llm.current_panel_id.set(request.headers.get("X-CK-Panel", ""))
+    path_token = _llm.current_request_path.set(request.url.path)
     try:
         return await call_next(request)
     finally:
         _llm.current_session_id.reset(token)
+        _llm.current_panel_id.reset(panel_token)
+        _llm.current_request_path.reset(path_token)
 
 # Serve the migrated frontend using absolute path relative to this file
 static_dir = os.path.join(BASE_DIR, "static")
@@ -83,6 +92,7 @@ app.include_router(zephyr_tool_router, prefix="/api/zephyr-tool")
 app.include_router(test_composer_router, prefix="/api/test-composer")
 app.include_router(pytest_create_router, prefix="/api/pytest-create")
 app.include_router(agent_bridge_router, prefix="/api/agent")
+app.include_router(llm_debug_router, prefix="/api/llm")
 
 
 @app.get("/favicon.ico")

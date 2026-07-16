@@ -4,6 +4,7 @@ import { S } from './state.js';
 import { dataArgs, escapeHtml } from './dom-helpers.js';
 import { refreshCaseSelects } from './cases.js';
 import { goToPanel } from './nav.js';
+import { recordLLMDebug } from './llm-debug.js';
 
 export let ptSession = null;          // server session for S.ptCase.key
 let ptCaseInfo = null;         // {title, group_display, objective, steps} from load_case
@@ -169,6 +170,7 @@ async function ptExtractSequence() {
   btn.disabled = true;
   const d = await ptApi(`/extract_sequence/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-seq-status'));
   btn.disabled = false;
+  recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   ptRenderSequence(d.sequence || []);
@@ -261,6 +263,7 @@ async function ptSuggestScripts() {
     body: JSON.stringify({ user_inputs: document.getElementById('pt-user-inputs').value }),
   }, ptStatusEl('pt-search-status'));
   btn.disabled = false;
+  recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   ptRenderMatches(d.matches || [], ((ptSession || {}).step3 || {}).selections || []);
@@ -316,6 +319,7 @@ async function ptAssessFit() {
   btn.disabled = true;
   const d = await ptApi(`/assess_fit/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-fit-status'));
   btn.disabled = false;
+  recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   renderPtFitPanel();
@@ -438,6 +442,7 @@ async function ptGenerateScript() {
     }),
   }, ptStatusEl('pt-gen-status'));
   btn.disabled = false;
+  recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   renderPtGenPanel();
@@ -619,6 +624,9 @@ async function ptFixScript() {
   ptStatusEl('pt-validate-status').textContent = 'Asking LLM for a fix (this can take a few minutes)…';
   const d = await ptApi(`/fix_script/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-validate-status'));
   btn.disabled = false;
+  // Awaited (unlike the other handlers): this handler navigates to panel-pt-gen
+  // below, and the record must be filed under THIS panel before currentPanel changes.
+  await recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   ptStatusEl('pt-validate-status').textContent =

@@ -74,13 +74,18 @@ class AgentJobRegistry:
             job = q.popleft()
             return job.id, job.prompt, job.model
 
-    def deliver(self, job_id: str, content: str, error: bool) -> bool:
-        """Browser posts a completion. Wakes the blocked caller. True if job existed."""
+    def deliver(self, job_id: str, content: str, error: bool, usage: Optional[dict] = None) -> bool:
+        """Browser posts a completion. Wakes the blocked caller. True if job existed.
+
+        `usage` is optional token accounting from the out-of-repo ck-agent (it may
+        adopt it later); when absent the result carries no usage key and the debug
+        log honestly shows "— tok" for this transport.
+        """
         with self._lock:
             job = self._inflight.get(job_id)
             if not job:
                 return False
-        job.result = {"content": content, "error": bool(error)}
+        job.result = {"content": content, "error": bool(error), **({"usage": usage} if usage else {})}
         job.event.set()
         return True
 

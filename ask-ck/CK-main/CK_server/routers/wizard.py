@@ -35,6 +35,7 @@ from llm import (
     check_claude_cli,
     check_grok_cli,
 )
+from local_llm_key import get_local_llm_key, set_local_llm_key
 from jinja2 import Environment, FileSystemLoader
 from paths import REFINED_DIR, ASKCK_ROOT
 
@@ -68,6 +69,9 @@ def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
     am = (getattr(cfg, "auth_method", None) or "").lower()
     if am in ("claude_code", "claude_agent", "grok_cli"):
         return True
+    if am == "local_llm":
+        # Key lives server-side (secrets.local.json / env), never on the config.
+        return bool(get_local_llm_key())
     if getattr(cfg, "api_key", None) or getattr(cfg, "token", None):
         return True
     return False
@@ -1602,12 +1606,22 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         provider = "grok"
     if provider == "mock":
         raise HTTPException(400, "MOCK provider removed. Use grok, claude or openai with real auth.")
-    if auth_method not in ("api_key", "account", "claude_code", "claude_agent", "grok_cli"):
+    if auth_method not in ("api_key", "account", "claude_code", "claude_agent", "grok_cli", "local_llm"):
         auth_method = "api_key"
     if auth_method in ("claude_code", "claude_agent") and provider != "claude":
         raise HTTPException(400, "Claude Code modes are only available for the Claude provider.")
     if auth_method == "grok_cli" and provider != "grok":
         raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
+    if auth_method == "local_llm":
+        # The radio always pairs local_llm with openai; coerce rather than 400.
+        provider = "openai"
+        # Key (re-)entered on the Configure page: persist server-side, then make
+        # sure it can never land in cfg / the session / the response below.
+        new_key = (body.get("local_llm_key") or "").strip()
+        if new_key:
+            set_local_llm_key(new_key)
+        api_key = None
+        token = None
 
     # Build the config (credentials stay on server)
     cfg = LLMConfig(provider=provider, auth_method=auth_method)
@@ -1622,7 +1636,9 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         cfg.model = model
     else:
         # Sensible defaults per provider
-        if provider == "grok" and auth_method != "grok_cli":
+        if auth_method == "local_llm":
+            cfg.model = "vllm-fast"
+        elif provider == "grok" and auth_method != "grok_cli":
             cfg.model = "grok-beta"
         elif provider == "claude" and auth_method not in ("claude_code", "claude_agent"):
             cfg.model = "claude-3-5-sonnet-20241022"
@@ -1640,6 +1656,8 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     # Headless mode readiness comes from the CLI install, not a stored credential
     cli_status = check_claude_cli() if auth_method == "claude_code" else None
     grok_cli_status = check_grok_cli() if auth_method == "grok_cli" else None
+    # local_llm readiness = a key is stored server-side (never echo the key itself)
+    local_llm_key_set = bool(get_local_llm_key()) if auth_method == "local_llm" else None
 
     # Return safe view (no credentials)
     safe_config = {
@@ -1647,7 +1665,8 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         "auth_method": cfg.auth_method,
         "has_key": bool(cfg.api_key or cfg.token) or
                    (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
-                   (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))),
+                   (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))) or
+                   (auth_method == "local_llm" and bool(local_llm_key_set)),
         "model": cfg.model,
         "base_url": cfg.base_url,
     }
@@ -1655,6 +1674,8 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         safe_config["claude_cli"] = cli_status
     if grok_cli_status is not None:
         safe_config["grok_cli"] = grok_cli_status
+    if local_llm_key_set is not None:
+        safe_config["local_llm_key_set"] = local_llm_key_set
 
     scope = "this case and the workspace default" if sess else "the workspace default"
     result = {

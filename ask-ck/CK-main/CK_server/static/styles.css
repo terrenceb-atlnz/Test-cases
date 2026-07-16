@@ -886,6 +886,10 @@ button.secondary:not(.btn):hover {
   color: var(--status-low);
 }
 
+/* LLM observability: token badge next to the pressed LLM button + footer error tag */
+.llm-token-badge { margin-left: 6px; vertical-align: middle; }
+.llm-debug-error { color: var(--status-low, #ef4444); }
+
 #theme-toggle {
   background: transparent;
   border: 1px solid var(--border-default);

@@ -7,6 +7,7 @@ import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
 import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
 import { goToStep, updatePageHeader } from './nav.js';
 import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from './llm.js';
+import { recordLLMDebug } from './llm-debug.js';
 
 async function loadCase() {
   const sel = getActiveCaseKey();
@@ -66,6 +67,7 @@ async function loadCase() {
     alert('Failed to load case: ' + e);
   } finally {
     if (loadBanner) loadBanner.classList.add('hidden');
+    recordLLMDebug(null);   // load_case may run analyze_atp_coverage (LLM) — footer only
   }
 }
 
@@ -504,6 +506,8 @@ async function synthesizeObjectives() {
     goToStep(4);
   } catch (e) {
     alert('Objective synthesis failed: ' + e);
+  } finally {
+    recordLLMDebug(document.getElementById('obj-synth-btn'));
   }
 }
 
@@ -535,6 +539,8 @@ async function synthesizeSteps() {
     goToStep(5);
   } catch (e) {
     alert('Test step synthesis failed: ' + e);
+  } finally {
+    recordLLMDebug(document.getElementById('steps-synth-btn'));
   }
 }
 

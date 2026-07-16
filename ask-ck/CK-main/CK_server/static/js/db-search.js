@@ -9,6 +9,7 @@ import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { renderStepTables } from './tables.js';
 import { chooseByIds } from './chosen.js';
+import { recordLLMDebug } from './llm-debug.js';
 
 /** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason). */
 function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
@@ -176,6 +177,8 @@ async function suggestTestLinkWithLLM() {
     mergeTestLinkCandidates(rows, { precheckIds: ids, source: 'llm' });
   } catch (e) {
     alert('Suggest TestLink with LLM failed: ' + e);
+  } finally {
+    recordLLMDebug(document.getElementById('tl-suggest-llm-btn'));
   }
 }
 
@@ -241,6 +244,8 @@ async function suggestZephyrWithLLM() {
     mergeZephyrCandidates(rows, { precheckIds: ids, source: 'llm' });
   } catch (e) {
     alert('Suggest Zephyr with LLM failed: ' + e);
+  } finally {
+    recordLLMDebug(document.getElementById('zp-suggest-llm-btn'));
   }
 }
 
@@ -305,6 +310,8 @@ async function suggestATPWithLLM() {
     mergeATPCandidates(rows, { precheckIds: ids, source: 'llm' });
   } catch (e) {
     alert('Suggest with LLM failed: ' + e);
+  } finally {
+    recordLLMDebug(document.getElementById('atp-suggest-llm-btn'));
   }
 }
 

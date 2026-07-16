@@ -24,9 +24,13 @@ import re
 import shutil
 import subprocess
 import contextvars
+import time
 from jinja2 import Environment, FileSystemLoader
 from typing import Dict, Any, List, Optional
 import requests  # fallback, or use openai litellm for more providers later
+
+import llm_debug
+from local_llm_key import get_local_llm_key
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROMPTS_DIR = os.path.join(BASE_DIR, "templates", "prompts")
@@ -35,6 +39,11 @@ PROMPTS_DIR = os.path.join(BASE_DIR, "templates", "prompts")
 # Used to route claude_agent jobs to the right user's browser/agent without
 # persisting the (ephemeral, per-tab) id in any session config file.
 current_session_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_session_id", default="")
+# Per-request debug attribution (same middleware, same lifecycle): the browser
+# panel that triggered the call (X-CK-Panel) and the API path being served.
+# Read only by llm_debug.record(); never persisted to session configs.
+current_panel_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_panel_id", default="")
+current_request_path: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_request_path", default="")
 
 env = Environment(loader=FileSystemLoader(PROMPTS_DIR))
 
@@ -247,7 +256,29 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "") -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "") -> Dict[str, Any]:
+    """Instrumented wrapper around _call_llm_raw (same signature + `template`).
+
+    Times the call, normalizes token usage from the raw response
+    (llm_debug.normalize_usage), and records the request — success or failure —
+    to the per-session debug log (llm_debug.record). Keeps the original
+    never-raises contract: _call_llm_raw never raises, and the recorder
+    swallows its own errors. All pre-existing callers hit this wrapper
+    unchanged and are auto-instrumented.
+    """
+    start = time.monotonic()
+    meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
+                         model=model, auth_method=auth_method, timeout=timeout,
+                         session_id=session_id)
+    duration_ms = int((time.monotonic() - start) * 1000)
+    meta["template"] = template
+    meta["usage"] = llm_debug.normalize_usage(meta.get("auth_method", auth_method),
+                                              meta.get("raw_response"))
+    llm_debug.record(meta, duration_ms)
+    return meta
+
+
+def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "") -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
     Supports multiple login styles (chosen in the UI):
@@ -257,12 +288,26 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     - "claude_code": headless Claude Code CLI on the SERVER host (single-user hosting only).
     - "grok_cli": headless Grok CLI (SuperGrok / X Premium+ subscription via OAuth).
       No key/token stored by server; auth lives in the local CLI's login.
+    - "local_llm": the organization's self-hosted vLLM endpoint (OpenAI-compatible).
+      Key is server-resolved (Configure page -> secrets.local.json, env fallback);
+      never supplied by the browser. Model = vllm-fast | vllm-thinking.
 
     provider: "grok" | "claude" | "openai" (no "mock")
     If no valid credential and not using a supported headless CLI auth_method, the call will error.
     """
     provider = (provider or "").lower()
     auth_method = (auth_method or "api_key").lower()
+
+    if auth_method == "local_llm":
+        # Org-hosted vLLM (OpenAI-compatible) — rides the standard OpenAI HTTP
+        # path below. Forced here centrally so every caller is covered; the key
+        # NEVER comes from cfg/browser (see local_llm_key.py). If no key is
+        # stored, the normal no-credential guard below errors cleanly.
+        provider = "openai"
+        base_url = "http://vllm.ai.atlnz.lc/v1"
+        if not model or model == "default":
+            model = "vllm-fast"
+        api_key = get_local_llm_key()
 
     if provider == "mock":
         err_msg = "ERROR: MOCK provider is no longer supported. Use a real provider (grok/claude/openai) with credentials or CLI auth_method."
@@ -302,7 +347,11 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
 
     credential = api_key
     if not credential:
-        err_msg = f"ERROR: LLM call failed ({provider} via {auth_method}): No credential provided and not using headless CLI mode. Set LLM_API_KEY or use grok_cli / claude_code auth_method with local login."
+        if auth_method == "local_llm":
+            err_msg = ("ERROR: LLM call failed (local_llm): no Local LLM key is stored on the server. "
+                       "Enter your key on the LLM Configure page (or export LOCAL_LLM_KEY) and retry.")
+        else:
+            err_msg = f"ERROR: LLM call failed ({provider} via {auth_method}): No credential provided and not using headless CLI mode. Set LLM_API_KEY or use grok_cli / claude_code auth_method with local login."
         print(err_msg)
         meta.update({
             "content": err_msg,
@@ -375,12 +424,27 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
 
     except Exception as e:
         err_msg = f"ERROR: LLM call failed ({provider} via {auth_method}): {str(e)}"
+        # Preserve the provider's HTTP error body (quota / rate-limit reasons
+        # etc. were previously discarded — only str(e) survived). Full body goes
+        # to error_detail for the debug log; the first ~300 chars are folded
+        # into the content message so wizard provenance / pytest 502 details
+        # surface the reason too.
+        error_detail = ""
+        if isinstance(e, requests.HTTPError) and getattr(e, "response", None) is not None:
+            try:
+                error_detail = (e.response.text or "")[:2000]
+            except Exception:
+                error_detail = ""
+        if error_detail:
+            err_msg += " | provider said: " + error_detail[:300]
         print(err_msg)
         meta.update({
             "content": err_msg,
             "raw_response": {"error": str(e)},
             "error": True,
         })
+        if error_detail:
+            meta["error_detail"] = error_detail
         return meta
 
 def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
@@ -553,6 +617,7 @@ def generate_coverage_gaps(session: Dict[str, Any], llm_config: Optional[Dict] =
             model=model,
             auth_method=auth_method,
             session_id=cfg.get("session_id", ""),
+            template="generate_gaps",
         )
         content = (meta.get("content") or "").strip()
         # Strip accidental fences / labels
@@ -643,6 +708,7 @@ def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = 
         model=rt["model"],
         auth_method=rt["auth_method"],
         session_id=rt["session_id"],
+        template="generate_objectives",
     )
     obj_llm = obj_meta.get("content", "")
     structured = parse_llm_to_structured(obj_llm, context.get("case_key", "unknown"))
@@ -705,6 +771,7 @@ def synthesize_steps(
         model=rt["model"],
         auth_method=rt["auth_method"],
         session_id=rt["session_id"],
+        template="generate_steps",
     )
     steps_llm = steps_meta.get("content", "")
     steps_struct = parse_llm_to_structured(steps_llm, context.get("case_key", "unknown"))
@@ -845,7 +912,7 @@ def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
 
     prompt = render_prompt("suggest_atp.jinja", context)
-    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method, session_id=cfg.get("session_id", ""))
+    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method, session_id=cfg.get("session_id", ""), template="suggest_atp")
     content = meta.get("content", "")
     return _parse_suggest_id_list(content, id_patterns=[r'(\d+\.\d+(?:\.\d+)?)'])
 
@@ -878,6 +945,7 @@ def suggest_relevant_testlink(
         model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
         auth_method=auth_method,
         session_id=cfg.get("session_id", ""),
+        template="suggest_testlink",
     )
     return _parse_suggest_id_list(meta.get("content", ""), id_patterns=[r'(AWP-\d+)'])
 
@@ -911,6 +979,7 @@ def suggest_relevant_zephyr(
         base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
         model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
         auth_method=auth_method,
+        template="suggest_zephyr",
     )
     return _parse_suggest_id_list(meta.get("content", ""), id_patterns=[r'(AWPTCM-T\d+)'])
 
@@ -956,6 +1025,7 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
             model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
             auth_method=auth_method,
             session_id=cfg.get("session_id", ""),
+            template="analyze_atp_coverage",
         )
         content = meta.get("content", "")
 
@@ -1003,8 +1073,8 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
         auth_method=rt["auth_method"],
         timeout=timeout,
         session_id=rt["session_id"],
+        template=template_name,
     )
-    meta["template"] = template_name
     return meta
 
 

@@ -41,7 +41,8 @@ async def deliver_result(body: dict = Body(...)):
     job_id = body.get("job_id")
     if not job_id:
         raise HTTPException(400, "job_id required")
-    ok = registry.deliver(job_id, body.get("content", ""), bool(body.get("error", False)))
+    ok = registry.deliver(job_id, body.get("content", ""), bool(body.get("error", False)),
+                          body.get("usage"))
     if not ok:
         # Job already timed out server-side, or unknown id — not fatal to the browser.
         return {"delivered": False, "reason": "job not awaiting (timed out or unknown)"}

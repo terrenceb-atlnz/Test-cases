@@ -223,6 +223,17 @@ licensed for that; the code path exists though it isn't surfaced in the UI.
 - Fully integrated into synthesis and ATP paths. Real calls were tested on a machine with an active subscription login.
 - Usage counts against the subscription (no separate API billing).
 
+### Local LLM (organization vLLM)
+
+`auth_method: "local_llm"` calls the org's self-hosted vLLM endpoint (`http://vllm.ai.atlnz.lc/v1`, OpenAI-compatible). Two modes via the **Fast / Thinking** toggle on the Configure page (models `vllm-fast` / `vllm-thinking`).
+
+- **Key**: set it once on the Configure page (stored gitignored in `CK_server/secrets.local.json`; survives restarts and new sessions). Re-enter to update when it expires; leave blank to keep the stored key. For headless runs, `export LOCAL_LLM_KEY=...` works as a fallback. The key never leaves the server (not in sessions, responses, or the debug log).
+- This transport reports real token usage (`usage.prompt_tokens/completion_tokens`), so the LLM debug footer/badges show actual in→out counts.
+
+### LLM request observability
+
+Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. Grok CLI / agent bridge). Credentials are whitelisted out of records.
+
 ## Accessing the Tool
 
 - Main Ask CK UI: `http://your-local-ip:8000/`
