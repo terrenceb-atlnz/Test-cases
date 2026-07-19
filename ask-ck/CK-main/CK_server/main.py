@@ -50,6 +50,7 @@ from routers.test_composer import router as test_composer_router
 from routers.pytest_create import router as pytest_create_router
 from routers.agent_bridge import router as agent_bridge_router
 from routers.llm_debug import router as llm_debug_router
+from routers.admin import router as admin_router
 import llm as _llm
 
 app = FastAPI(title="Ask CK (Server-Backed)")
@@ -69,11 +70,21 @@ async def _bind_session_id(request: Request, call_next):
     panel_token = _llm.current_panel_id.set(request.headers.get("X-CK-Panel", ""))
     path_token = _llm.current_request_path.set(request.url.path)
     try:
-        return await call_next(request)
+        response = await call_next(request)
     finally:
         _llm.current_session_id.reset(token)
         _llm.current_panel_id.reset(panel_token)
         _llm.current_request_path.reset(path_token)
+    # Force revalidation of ES modules. The entry main.js is cache-busted with
+    # ?v=N, but its imports (llm.js, nav.js, …) are bare specifiers with no
+    # query, so a stale cached child module can shadow a freshly-shipped one
+    # (symptom: new UI logic silently absent after a code change). StaticFiles
+    # sends an ETag but no Cache-Control, so browsers may skip revalidation;
+    # no-cache makes them revalidate every load (ETag => 304 when unchanged, so
+    # this is cheap). See static/js/README.md convention #4.
+    if request.url.path.startswith("/static/js/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 # Serve the migrated frontend using absolute path relative to this file
 static_dir = os.path.join(BASE_DIR, "static")
@@ -93,6 +104,7 @@ app.include_router(test_composer_router, prefix="/api/test-composer")
 app.include_router(pytest_create_router, prefix="/api/pytest-create")
 app.include_router(agent_bridge_router, prefix="/api/agent")
 app.include_router(llm_debug_router, prefix="/api/llm")
+app.include_router(admin_router, prefix="/api/admin")
 
 
 @app.get("/favicon.ico")

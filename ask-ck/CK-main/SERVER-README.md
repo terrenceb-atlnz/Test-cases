@@ -138,12 +138,42 @@ The easiest way is to use the included helper script from the project root:
 # With a real API key
 LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
 
+# Fast restart — prompt-free background start / stop+start
+./ask-ck/CK-main/run.sh --bg          # background, no prompts
+./ask-ck/CK-main/run.sh --restart     # --stop then --bg
+./ask-ck/CK-main/run.sh --stop        # stop the background server
+
 # Different port
 PORT=9000 ./ask-ck/CK-main/run.sh
 
 # Extra uvicorn options (e.g. debug logging)
 ./ask-ck/CK-main/run.sh --log-level debug
 ```
+
+> **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
+> server against the existing `ask-ck/var/ck.db` in seconds. `setup.sh` is for
+> first-time setup and DB **rebuilds** — it re-ingests every corpus (slow) and
+> prompts about embeddings. You only need `setup.sh` when the source data
+> changed or `ck.db` is missing; day-to-day, use `run.sh --bg` / `--restart`.
+> The server also runs with `--reload`, so **code edits hot-reload without any
+> restart** — you usually only need to restart for env/dependency changes.
+
+### Admin panel (in-page maintenance)
+
+**Double-click CK's face** (top-left sidebar logo — single-click still goes Home)
+to open a hidden **Admin** panel. Local single-user convenience so you don't
+drop to a terminal. Actions (`/api/admin/*`, all confirmation-gated):
+- **Reset current case session** / **workspace LLM config** / **ALL sessions** —
+  clears working session state only; corpora are never touched.
+- **Rebuild search vectors** (`build_db.py --embed`) / **Rebuild database**
+  (`--fresh --verify --sessions`, optional embed) — run as background jobs with a
+  live status tail (polled from `/api/admin/job`).
+- **Restart server** — touches a watched `.py` file so uvicorn's `--reload`
+  reloads the app; the page reconnects after ~2s.
+
+> **Localhost/single-user only.** These actions rebuild data and restart the
+> process; do not expose `/api/admin/*` on a shared deployment without adding
+> auth.
 
 The script automatically:
 - Uses `python3`

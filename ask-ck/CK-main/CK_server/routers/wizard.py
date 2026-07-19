@@ -1322,6 +1322,32 @@ async def grok_cli_status():
     return check_grok_cli()
 
 
+@router.get("/llm_config")
+async def get_llm_config():
+    """Return the persisted workspace LLM config (no secrets) for cold page load.
+
+    Without this, a fresh page has no way to learn the stored login, so the LLM
+    status shows "No credential" until the user re-applies — even though the
+    workspace default is persisted and already drives calls. The browser calls
+    this on boot to render the real status (and, for local_llm, whether a key is
+    stored). Credentials are never returned; only booleans/flags.
+    """
+    cfg = _load_global_llm()
+    if not cfg:
+        return {"llm_config": None}
+    am = (getattr(cfg, "auth_method", None) or "").lower()
+    safe = {
+        "provider": cfg.provider,
+        "auth_method": cfg.auth_method,
+        "model": cfg.model,
+        "base_url": cfg.base_url,
+        "has_key": _llm_is_active(cfg),
+    }
+    if am == "local_llm":
+        safe["local_llm_key_set"] = bool(get_local_llm_key())
+    return {"llm_config": safe}
+
+
 @router.post("/set_llm_config")
 @router.post("/set_llm_config/{key}")
 async def set_llm_config(body: dict, key: Optional[str] = None):

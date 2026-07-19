@@ -13,6 +13,7 @@ and whitelist that field OUT of the debug-log recorder.
 """
 import json
 import os
+import stat
 from typing import Optional
 
 from paths import LOCAL_LLM_SECRETS
@@ -31,5 +32,22 @@ def get_local_llm_key() -> Optional[str]:
 
 
 def set_local_llm_key(key: str) -> None:
-    """Persist a (re-)entered key from the Configure page (keys expire)."""
-    LOCAL_LLM_SECRETS.write_text(json.dumps({"local_llm_key": key}))
+    """Persist a (re-)entered key from the Configure page (keys expire).
+
+    Written 0600 (owner-only) so the credential isn't world-readable by other
+    local accounts on a shared host. Permissions are set before the key is
+    written by opening with a restrictive mode via os.open.
+    """
+    fd = os.open(str(LOCAL_LLM_SECRETS), os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                 stat.S_IRUSR | stat.S_IWUSR)  # 0600
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps({"local_llm_key": key}))
+    except Exception:
+        os.close(fd)  # only if fdopen itself failed; otherwise the with closed it
+        raise
+    # Re-assert mode in case the file pre-existed with looser perms.
+    try:
+        os.chmod(str(LOCAL_LLM_SECRETS), stat.S_IRUSR | stat.S_IWUSR)
+    except Exception:
+        pass

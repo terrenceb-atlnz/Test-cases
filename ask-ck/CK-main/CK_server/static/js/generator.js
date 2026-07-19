@@ -589,6 +589,8 @@ async function exportBundle() {
     try { await refreshCaseSelects(S.currentKey); } catch (_) {}
   } catch (e) {
     alert('Export failed: ' + e);
+  } finally {
+    recordLLMDebug(null);   // export synthesizes coverage-gaps (LLM) — footer only
   }
 }
 

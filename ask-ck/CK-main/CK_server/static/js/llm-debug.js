@@ -55,9 +55,14 @@ export async function recordLLMDebug(btnEl) {
     const mine = records.filter(r => r.panel === S.currentPanel);
     const pool = mine.length ? mine : records;
     const rec = pool[pool.length - 1];
-    const prev = llmDebugByPanel[S.currentPanel];
+    // File under the record's OWN panel (server-attributed via X-CK-Panel), not
+    // S.currentPanel at resolve time — a handler may navigate away before this
+    // async fetch settles (e.g. ptFixScript → panel-pt-gen). Falls back to the
+    // current panel only when the server didn't attribute one.
+    const panelKey = rec.panel || S.currentPanel;
+    const prev = llmDebugByPanel[panelKey];
     if (prev && prev.request_id === rec.request_id) return;   // already shown
-    llmDebugByPanel[S.currentPanel] = rec;
+    llmDebugByPanel[panelKey] = rec;
     renderLlmDebugFooter();
     if (btnEl && !rec.error) setTokenBadge(btnEl, rec.usage);
   } catch (_) { /* a debug aid must never break the flow */ }

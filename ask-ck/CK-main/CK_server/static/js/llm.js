@@ -90,6 +90,44 @@ async function setLLMConfig() {
   }
 }
 
+export async function applyLocalLlmMode() {
+  // Live Fast/Thinking toggle: persist the new model immediately (no Apply
+  // click needed). Only meaningful when Local LLM is the selected method.
+  // Reuses the server-stored key (no key is sent), and stays quiet — no alert
+  // popups — because this is an incidental toggle, not an explicit login.
+  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value;
+  if (method !== 'local_llm') return;
+  const mode = document.querySelector('input[name="localLlmMode"]:checked');
+  const model = (mode && mode.value) || 'vllm-fast';
+
+  const key = S.currentKey || getActiveCaseKey();
+  const url = key
+    ? `/api/wizard/set_llm_config/${encodeURIComponent(key)}`
+    : '/api/wizard/set_llm_config';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: 'openai', auth_method: 'local_llm', model }),
+    });
+    const data = await res.json();
+    if (data.llm_config) {
+      if (S.currentSession) S.currentSession.llm_config = data.llm_config;
+      window.lastLLMConfig = data.llm_config;
+      try {
+        localStorage.setItem('draftingLLMConfig', JSON.stringify({
+          provider: data.llm_config.provider,
+          auth_method: data.llm_config.auth_method,
+          model: data.llm_config.model || null,
+        }));
+      } catch (_) {}
+      updateLLMStatus(data.llm_config);
+      const stateEl = document.getElementById('localLlmKeyState');
+      if (stateEl) stateEl.textContent = data.llm_config.local_llm_key_set !== false ? 'key stored ✓' : '⚠ no key stored';
+    }
+  } catch (_) { /* leave prior state on a transient failure */ }
+}
+
 // --- Per-user local Claude agent (ck-agent on the USER's machine) -----------
 export function normalizeLLMConfig(config) {
   // Normalize server/session llm_config for status display.
@@ -194,11 +232,28 @@ export function updateAuthMethodUI() {
   updateLLMDefaults();
 }
 
+export async function loadWorkspaceLLMConfig() {
+  // Cold-load status: fetch the persisted workspace LLM config so the status
+  // line + Configure radios reflect the real stored login (incl. whether a
+  // Local LLM key is stored) instead of "No credential" until the user
+  // re-applies. Secrets are never returned by this endpoint.
+  try {
+    const res = await fetch('/api/wizard/llm_config');
+    if (!res.ok) return;
+    const data = await res.json();
+    const c = data.llm_config;
+    if (!c || !c.provider) return;
+    window.lastLLMConfig = c;
+    restoreLLMUI();               // sets radios + Fast/Thinking toggle + key-state note
+    updateLLMStatus(normalizeLLMConfig(c));
+  } catch (_) { /* offline / no stored config — leave the default status */ }
+}
+
 export function restoreLLMUI() {
   // Prefer active session config; fall back to last applied / localStorage
   let c = S.currentSession && S.currentSession.llm_config;
   const am = c && (c.auth_method || '').toLowerCase();
-  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || c.api_key || c.token || c.has_key);
+  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm' || c.api_key || c.token || c.has_key);
   if (!sessionActive) {
     c = window.lastLLMConfig || null;
     if (!c) {
@@ -221,11 +276,22 @@ export function restoreLLMUI() {
 
   if (method === 'local_llm') {
     // Restore the Fast/Thinking toggle from the saved model (key field stays
-    // blank — it is write-only; the key lives server-side).
-    const mode = (c.model === 'vllm-thinking') ? 'vllm-thinking' : 'vllm-fast';
-    document.querySelectorAll('input[name="localLlmMode"]').forEach((r) => {
-      r.checked = (r.value === mode);
-    });
+    // blank — it is write-only; the key lives server-side). Only override the
+    // toggle when the config carries an explicit vllm model — a restore whose
+    // model is missing/"default" (e.g. a case-load re-applying the workspace
+    // config) must NOT silently reset a chosen Thinking back to Fast.
+    if (c.model === 'vllm-fast' || c.model === 'vllm-thinking') {
+      document.querySelectorAll('input[name="localLlmMode"]').forEach((r) => {
+        r.checked = (r.value === c.model);
+      });
+    }
+    // Surface the stored-key state on restore too (not only after Apply). The
+    // saved config carries local_llm_key_set when it came from set_llm_config;
+    // when absent (older session), leave the note blank rather than guess.
+    const stateEl = document.getElementById('localLlmKeyState');
+    if (stateEl && c.local_llm_key_set !== undefined) {
+      stateEl.textContent = c.local_llm_key_set ? 'key stored ✓' : '⚠ no key stored';
+    }
   }
 
   // Keep model field in sync when present (not for local_llm — its model is the toggle)

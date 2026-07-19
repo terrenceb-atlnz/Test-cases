@@ -369,6 +369,7 @@ async function ptGatherFragments() {
   btn.disabled = true;
   const d = await ptApi(`/gather_fragments/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-frag-status'));
   btn.disabled = false;
+  recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
   renderPtFragPanel();

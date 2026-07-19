@@ -29,6 +29,7 @@ graph evaluates.
 | `pytest.js` | PyTest Creator (the full 8-step flow) |
 | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
 | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
+| `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, rebuild search data, restart server (`/api/admin/*`) |
 | `theme.js` | Light/dark toggle (side-effect) |
 
 ## Conventions

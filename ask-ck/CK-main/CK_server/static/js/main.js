@@ -6,8 +6,9 @@ import './actions.js';           // side-effect: keydown + click dispatcher; exp
 import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
-import { updateAuthMethodUI, updateLLMStatus } from './llm.js';
+import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode } from './llm.js';
 import { ptManualSearch, ptFitEdited, ptProfileSelected } from './pytest.js';
+import { openAdminPanel } from './admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
 import './generator.js';
 import './chosen.js';
@@ -33,6 +34,7 @@ updateAuthMethodUI();
 S.currentStep = 0;              // Generator defaults to step 0 when first opened
 goToPanel('panel-main');     // Landing view = Main splash / Help home
 updateLLMStatus();
+loadWorkspaceLLMConfig();       // cold-load: reflect the persisted login (incl. Local LLM key state)
 loadToolStatus('zephyr-tool', 'zt-info-status');
 loadToolStatus('test-composer', 'tc-status');
 
@@ -56,6 +58,17 @@ setTimeout(() => {
 document.querySelectorAll('input[name="llmAuthMethod"]').forEach((radio) => {
   radio.addEventListener('change', updateAuthMethodUI);
 });
+// Live Fast/Thinking toggle — persists the mode immediately (no Apply click).
+document.querySelectorAll('input[name="localLlmMode"]').forEach((radio) => {
+  radio.addEventListener('change', applyLocalLlmMode);
+});
+// Double-click CK's face → hidden Admin panel (single-click still goes Home,
+// via the logo's data-action="goToPanel"). dblclick fires after the click, so
+// the two don't conflict — you land Home for a beat, then Admin opens.
+{
+  const logo = document.querySelector('.sidebar-logo');
+  if (logo) logo.addEventListener('dblclick', (e) => { e.preventDefault(); openAdminPanel(); });
+}
 {
   const q = document.getElementById('pt-search-q');
   if (q) q.addEventListener('keydown', (e) => { if (e.key === 'Enter') ptManualSearch(); });
