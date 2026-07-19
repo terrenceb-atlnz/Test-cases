@@ -56,9 +56,9 @@ This version replaces the original single-file static `index.html` approach.
 **LLM Layer** (core of repeatability):
 - Prompt templates in `CK_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
 - **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable review-step field.
-- CLI subscription modes only in UI: `grok_cli` (default) and `claude_code`. Legacy `api_key` server-side only.
-- **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) writes `CK_server/sessions/_workspace_llm.json`; load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session.
-- Full provenance (prompts/responses/provider/auth) captured per session.
+- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI** (`claude_agent`, per-user local agent), **Grok CLI** (`grok_cli`). Legacy `api_key`/`claude_code` server-side only. See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
+- **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) persists the workspace default to the sessions table (`id='_workspace_llm'`, migrated off `sessions/_workspace_llm.json` in the 2026-07-16 DB migration); load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session. `GET /api/wizard/llm_config` returns the persisted default (no secrets) so a cold page load shows the real status instead of "No credential".
+- Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
 **Data** (SQLite `ck.db`, migrated 2026-07-16):
 - All corpora + sessions are served from **`ask-ck/var/ck.db`** (gitignored; build/rebuild with
@@ -284,7 +284,7 @@ Every LLM request (success or failure) is recorded to `CK_server/debug-log/<sess
 UI step numbers below are the visible 1–6 Generator labels.
 
 1. **Step 1 – Cases**: select an AWPTCM case (dual dropdowns populated with real project cases) and click **Load**.
-2. Sidebar **LLM → Configure**: choose the desired subscription CLI radio (Grok CLI is default). Optionally check status for the selected CLI. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
+2. Sidebar **LLM → Configure**: choose a login radio (**Local LLM** is default — pick Fast/Thinking and, first time, paste the key; or select Claude Code CLI / Grok CLI). Optionally check CLI status. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
 3. **Step 2 – TestLink**  
    Review primary + candidates. Use **Search TestLink** / **Suggest with LLM** to expand or re-rank, then confirm selections.
 4. **Step 3 – Zephyr**  
