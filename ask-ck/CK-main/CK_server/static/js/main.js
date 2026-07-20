@@ -10,6 +10,7 @@ import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocal
 import { ptManualSearch, ptFitEdited, ptProfileSelected } from './pytest.js';
 import { openAdminPanel } from './admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
+import './provenance.js';        // side-effect: provRefresh/provCopy* actions (shared)
 import './generator.js';
 import './chosen.js';
 import './db-search.js';

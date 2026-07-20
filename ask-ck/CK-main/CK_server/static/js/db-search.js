@@ -10,6 +10,16 @@ import { S } from './state.js';
 import { renderStepTables } from './tables.js';
 import { chooseByIds } from './chosen.js';
 import { recordLLMDebug } from './llm-debug.js';
+import { registerProvenance, renderProvenanceBlock } from './provenance.js';
+
+// Mount a suggest panel's provenance block (transient — suggests persist nothing,
+// so it renders empty and Refresh fills it live via dry_run).
+function mountSuggestProvenance(mountId, panelId, endpoint) {
+  const mount = document.getElementById(mountId);
+  if (!mount || !S.currentKey) return;
+  registerProvenance(panelId, () => endpoint + encodeURIComponent(S.currentKey), () => ({}));
+  mount.innerHTML = renderProvenanceBlock(panelId);
+}
 
 /** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason). */
 function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
@@ -179,6 +189,7 @@ async function suggestTestLinkWithLLM() {
     alert('Suggest TestLink with LLM failed: ' + e);
   } finally {
     recordLLMDebug(document.getElementById('tl-suggest-llm-btn'));
+    mountSuggestProvenance('tl-prov', 'panel-tl', '/api/wizard/suggest_testlink/');
   }
 }
 
@@ -246,6 +257,7 @@ async function suggestZephyrWithLLM() {
     alert('Suggest Zephyr with LLM failed: ' + e);
   } finally {
     recordLLMDebug(document.getElementById('zp-suggest-llm-btn'));
+    mountSuggestProvenance('zephyr-prov', 'panel-zephyr', '/api/wizard/suggest_zephyr/');
   }
 }
 
@@ -312,6 +324,7 @@ async function suggestATPWithLLM() {
     alert('Suggest with LLM failed: ' + e);
   } finally {
     recordLLMDebug(document.getElementById('atp-suggest-llm-btn'));
+    mountSuggestProvenance('atp-prov', 'panel-atp', '/api/wizard/suggest_atp/');
   }
 }
 

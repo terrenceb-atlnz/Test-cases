@@ -297,6 +297,9 @@
                  placeholder="Local LLM API key (leave blank to keep stored key)"
                  class="form-input form-input-small">
           <span id="localLlmKeyState" class="justification-note"></span>
+          <button type="button" id="llmHealthBtn" data-action="checkLlmHealth"
+                  class="btn btn-secondary btn-compact-small">Health check</button>
+          <span id="llmHealthState" class="justification-note"></span>
         </div>
 
         <div id="claudeAgentInstructions" class="instructions-panel hidden">
@@ -370,6 +373,7 @@
           <button type="button" id="tl-suggest-llm-btn" data-action="suggestTestLinkWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="tl-table" class="table-container"><em>Select a case above and click Load to see actual TestLink candidates here.</em></div>
+        <div id="tl-prov"></div>
         <div class="chosen-toolbar">
           <button type="button" data-action="chooseTestLink" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
         </div>
@@ -395,6 +399,7 @@
           <button type="button" id="zp-suggest-llm-btn" data-action="suggestZephyrWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="zephyr-table" class="table-container"><em>Select a case above and click Load to see actual Zephyr cross-refs here.</em></div>
+        <div id="zephyr-prov"></div>
         <div class="chosen-toolbar">
           <button type="button" data-action="chooseZephyr" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
         </div>
@@ -420,6 +425,7 @@
           <button type="button" id="atp-suggest-llm-btn" data-action="suggestATPWithLLM" class="btn btn-secondary btn-compact-small">Suggest with LLM</button>
         </div>
         <div id="atp-table" class="table-container"><em>ATPyLib candidates will appear here after loading a case.</em></div>
+        <div id="atp-prov"></div>
         <div class="chosen-toolbar">
           <button type="button" data-action="chooseATP" class="btn btn-secondary btn-compact-small">↓ Choose selected</button>
         </div>
@@ -580,6 +586,7 @@
         </div>
         <div id="pt-seq-status" class="justification-note mb-2"></div>
         <div id="pt-seq-list"></div>
+        <div id="pt-seq-prov"></div>
       </div>
     </div>
 
@@ -611,6 +618,7 @@
 
         <div id="pt-search-status" class="justification-note mb-2"></div>
         <div id="pt-match-list" class="mt-2"></div>
+        <div id="pt-match-prov"></div>
         <div class="compact-flex mt-2">
           <button data-action="ptSaveMatches" class="btn btn-compact">Save Selections</button>
           <button data-action="ptConfirm" data-args='[3]' class="btn btn-compact">Confirm Step 3</button>
@@ -636,6 +644,7 @@
         </div>
         <div id="pt-fit-status" class="justification-note mb-2"></div>
         <div id="pt-fit-result"></div>
+        <div id="pt-fit-prov"></div>
       </div>
     </div>
 
@@ -651,6 +660,7 @@
         </div>
         <div id="pt-frag-status" class="justification-note mb-2"></div>
         <div id="pt-frag-list"></div>
+        <div id="pt-frag-prov"></div>
       </div>
     </div>
 
@@ -679,6 +689,7 @@
           <div class="justification-note mt-2">Companion library: <span id="pt-gen-lib-name"></span></div>
           <textarea id="pt-gen-lib-code" class="form-input editor-textarea" style="height:180px" spellcheck="false"></textarea>
         </div>
+        <div id="pt-gen-prov"></div>
       </div>
     </div>
 
@@ -763,6 +774,6 @@
   </main>
 </div>
 
-<script type="module" src="/static/js/main.js?v=4"></script>
+<script type="module" src="/static/js/main.js?v=7"></script>
 </body>
 </html>

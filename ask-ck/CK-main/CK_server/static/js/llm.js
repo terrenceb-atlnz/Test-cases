@@ -3,6 +3,7 @@ import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { getActiveCaseKey } from './cases.js';
 import { ckBrokerLoop, probeLocalAgent } from './agent.js';
+import { fmtTokens } from './llm-debug.js';
 
 async function setLLMConfig() {
   // Case is optional: without one the config is saved as the workspace default
@@ -306,7 +307,39 @@ export function restoreLLMUI() {
 }
 
 
+export async function checkLlmHealth() {
+  // Ping the configured LLM via the server (same real-call path) to confirm it's
+  // up and answering — distinguishes "config wrong" from "backend down" without
+  // firing a real synthesize. Provider-agnostic; the ping is recorded in debug-log.
+  const btn = document.getElementById('llmHealthBtn');
+  const out = document.getElementById('llmHealthState');
+  if (out) { out.textContent = '⏳ pinging…'; out.style.color = ''; }
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch('/api/wizard/llm_health', { method: 'POST' });
+    const d = await res.json();
+    if (out) {
+      if (d.ok) {
+        const tok = d.usage ? ` · ${fmtTokens(d.usage)}` : '';
+        out.textContent = `✓ up — ${d.model} (${d.latency_ms} ms)${tok}`;
+        out.style.color = 'var(--status-ok, #16a34a)';
+      } else if (d.reason === 'not_configured') {
+        out.textContent = `⚠ ${d.detail || 'no LLM configured'}`;
+        out.style.color = 'var(--status-warn, #d97706)';
+      } else {
+        out.textContent = `✗ down — ${d.detail || 'LLM call failed'}`;
+        out.style.color = 'var(--status-low, #ef4444)';
+      }
+    }
+  } catch (e) {
+    if (out) { out.textContent = `✗ request failed — ${e.message || e}`; out.style.color = 'var(--status-low, #ef4444)'; }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 // Register this tool's data-action handlers.
 registerActions({
   setLLMConfig,
+  checkLlmHealth,
 });

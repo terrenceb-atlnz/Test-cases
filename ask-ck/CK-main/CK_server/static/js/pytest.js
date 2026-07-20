@@ -5,6 +5,18 @@ import { dataArgs, escapeHtml } from './dom-helpers.js';
 import { refreshCaseSelects } from './cases.js';
 import { goToPanel } from './nav.js';
 import { recordLLMDebug } from './llm-debug.js';
+import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
+
+// Mount the shared LLM Provenance block into a per-panel container, wired to the
+// panel's endpoint (dry_run for Refresh). `stepProv` seeds the last real call's
+// prompt/response from the session when present.
+function mountPtProvenance(mountId, panelId, endpoint, stepProv) {
+  const mount = document.getElementById(mountId);
+  if (!mount || !S.ptCase) return;
+  registerProvenance(panelId, () => endpoint.replace('{key}', encodeURIComponent(S.ptCase.key)), () => ({}));
+  if (stepProv) seedProvenanceFromStep(panelId, stepProv);
+  mount.innerHTML = renderProvenanceBlock(panelId);
+}
 
 export let ptSession = null;          // server session for S.ptCase.key
 let ptCaseInfo = null;         // {title, group_display, objective, steps} from load_case
@@ -122,6 +134,7 @@ export function renderPtSeqPanel() {
   ptRenderSequence(((ptSession.step2 || {}).sequence) || []);
   const notes = (ptSession.step2 || {}).notes;
   if (notes) ptStatusEl('pt-seq-status').textContent = 'LLM notes: ' + notes;
+  mountPtProvenance('pt-seq-prov', 'panel-pt-seq', '/api/pytest-create/extract_sequence/{key}', (ptSession.step2 || {}).provenance);
   updatePtBadges();
 }
 
@@ -242,6 +255,7 @@ function ptRenderMatches(matches, selections) {
     html += '</tbody></table></div></div>';
   });
   el.innerHTML = html;
+  mountPtProvenance('pt-match-prov', 'panel-pt-search', '/api/pytest-create/suggest_scripts/{key}', (ptSession.step3 || {}).provenance);
 }
 
 export async function ptManualSearch() {
@@ -308,6 +322,7 @@ export function renderPtFitPanel() {
     html += '</tbody></table>';
   }
   el.innerHTML = html;
+  mountPtProvenance('pt-fit-prov', 'panel-pt-fit', '/api/pytest-create/assess_fit/{key}', (ptSession.step4 || {}).provenance);
   updatePtBadges();
 }
 
@@ -360,6 +375,7 @@ export function renderPtFragPanel() {
     </div>`;
   });
   el.innerHTML = html;
+  mountPtProvenance('pt-frag-prov', 'panel-pt-frag', '/api/pytest-create/gather_fragments/{key}', (ptSession.step5 || {}).provenance);
   updatePtBadges();
 }
 
@@ -418,6 +434,9 @@ export function renderPtGenPanel() {
   }
   ptRenderLint(s6.lint);
   if (s6.iterations) ptStatusEl('pt-gen-status').textContent = `Iteration ${s6.iterations}.`;
+  // Generate + Fix both write step6; the provenance block covers generate_script.
+  // Fix reuses the same block via its own endpoint on Refresh from the Gen panel.
+  mountPtProvenance('pt-gen-prov', 'panel-pt-gen', '/api/pytest-create/generate_script/{key}', s6.provenance);
   updatePtBadges();
 }
 

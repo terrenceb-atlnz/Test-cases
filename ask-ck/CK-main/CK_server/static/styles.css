@@ -963,7 +963,10 @@ h2 {
 .step-expected { margin-top:2px; color:var(--text-secondary); font-size:11px; }
 .provenance-details { margin-top:12px; }
 .provenance-summary { cursor:pointer; font-size:11px; color:var(--text-tertiary); }
-.provenance-pre { font-size:9px; background:var(--bg-tertiary); padding:6px; border-radius:4px; max-height:120px; overflow:auto; margin-top:4px; }
+.provenance-pre { font-size:10px; background:var(--bg-tertiary); padding:8px; border-radius:4px; max-height:320px; overflow:auto; margin-top:4px; white-space:pre-wrap; word-break:break-word; }
+.provenance-actions { display:flex; align-items:center; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.provenance-label { font-size:10px; color:var(--text-tertiary); margin-top:8px; text-transform:uppercase; letter-spacing:0.04em; }
+.provenance-status { font-size:11px; color:var(--text-tertiary); }
 .instructions-panel { margin-top:12px; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:6px; font-size:13px; line-height:1.5; }
 .status-result { margin-top:8px; font-size:12px; }
 .status-ok { color:#5ddc7a; }

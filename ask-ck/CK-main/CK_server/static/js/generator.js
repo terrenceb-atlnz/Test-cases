@@ -8,6 +8,7 @@ import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases
 import { goToStep, updatePageHeader } from './nav.js';
 import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from './llm.js';
 import { recordLLMDebug } from './llm-debug.js';
+import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
 
 async function loadCase() {
   const sel = getActiveCaseKey();
@@ -168,14 +169,12 @@ export function renderObjectiveResult() {
   }
   const conf = !!(S.currentSession && S.currentSession.step4 && S.currentSession.step4.confirmed);
   const prov = (S.currentSession && S.currentSession.step4 && S.currentSession.step4.provenance) || null;
-  let provenanceHtml = '';
-  if (prov) {
-    provenanceHtml = `
-      <details class="provenance-details">
-        <summary class="provenance-summary">LLM Provenance — objectives (click for details)</summary>
-        <pre class="provenance-pre">${escapeHtml(JSON.stringify(prov, null, 2))}</pre>
-      </details>`;
-  }
+  const caseKey = (S.currentSession && S.currentSession.key) || '';
+  registerProvenance('panel-objectives',
+    () => '/api/wizard/synthesize_objectives',
+    () => ({ session: S.currentSession }));
+  if (prov) seedProvenanceFromStep('panel-objectives', prov);
+  const provenanceHtml = renderProvenanceBlock('panel-objectives');
   container.innerHTML = `
     <div class="section">
       <div class="section-heading">Objective (Human-Readable)
@@ -212,14 +211,13 @@ export function renderStepsResult() {
   const prov = (S.currentSession && S.currentSession.step5 && S.currentSession.step5.provenance)
     || (S.currentSession && S.currentSession.step4 && S.currentSession.step4.provenance)
     || null;
-  let provenanceHtml = '';
+  registerProvenance('panel-steps',
+    () => '/api/wizard/synthesize_steps',
+    () => ({ session: S.currentSession }));
   if (prov && (prov.steps_prompt || prov.phase === 'steps' || prov.phase === 'combined')) {
-    provenanceHtml = `
-      <details class="provenance-details">
-        <summary class="provenance-summary">LLM Provenance — steps (click for details)</summary>
-        <pre class="provenance-pre">${escapeHtml(JSON.stringify(prov, null, 2))}</pre>
-      </details>`;
+    seedProvenanceFromStep('panel-steps', prov);
   }
+  const provenanceHtml = renderProvenanceBlock('panel-steps');
   container.innerHTML = `
     <div class="section">
       <div class="section-heading">Test Steps (Human-Readable)</div>

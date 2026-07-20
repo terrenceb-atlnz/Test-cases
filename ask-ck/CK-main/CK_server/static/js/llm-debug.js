@@ -20,7 +20,9 @@ function fmtTok(n) {
 
 export function fmtTokens(usage) {
   if (!usage) return '— tok';
-  return `${fmtTok(usage.input_tokens)}→${fmtTok(usage.output_tokens)} tok`;
+  const inp = usage.input_tokens, out = usage.output_tokens;
+  const total = (inp != null && out != null) ? ` (${fmtTok(inp + out)} total)` : '';
+  return `${fmtTok(inp)} in / ${fmtTok(out)} out${total}`;
 }
 
 /** Reuse/insert a token badge right after the pressed LLM button. */
@@ -35,7 +37,7 @@ export function setTokenBadge(btnEl, usage) {
   badge.textContent = fmtTokens(usage);
   badge.title = (usage && usage.cost_usd != null)
     ? ('$' + usage.cost_usd)
-    : (usage ? 'input→output tokens' : 'This transport does not report token usage');
+    : (usage ? 'input tokens (prompt) / output tokens (generated)' : 'This transport does not report token usage');
 }
 
 /**
