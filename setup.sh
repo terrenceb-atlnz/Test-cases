@@ -43,7 +43,8 @@ fi
 # them commonly do NOT: python3 ships without the venv module (python3-venv, so
 # `python3 -m venv` dies with "ensurepip is not available"), and minimal cloud
 # images often lack curl (used by the git-lfs installer). git-lfs is required to
-# materialize the LFS-tracked corpora the DB build reads. When anything is
+# materialize the LFS-tracked permanent database (ask-ck/var/ck.db) + embedding
+# model the server reads directly (the DB is shipped, not built). When anything is
 # missing we offer to install it via the detected package manager, and only fall
 # back to printed instructions when non-interactive or on an unknown distro.
 
@@ -265,9 +266,10 @@ else
 fi
 
 if [ "$LFS_PULL_OK" != "1" ]; then
-  echo "⚠ LFS content may be incomplete. The DB build needs the LFS-tracked corpora"
-  echo "  (zephyr_cases.jsonl, testlink_awp.json). If the build fails below, fix LFS"
-  echo "  and re-run:  git lfs install && git lfs pull"
+  echo "⚠ LFS content may be incomplete. The permanent database ask-ck/var/ck.db (and"
+  echo "  the bundled embedding model) are shipped via Git LFS — the server needs them"
+  echo "  materialized. If the DB check below fails, fix LFS and re-run:"
+  echo "    git lfs install && git lfs pull"
 fi
 
 # --- 3. Virtual environment -------------------------------------------------

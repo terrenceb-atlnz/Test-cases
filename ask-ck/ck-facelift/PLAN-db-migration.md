@@ -1,5 +1,13 @@
 # Ask-CK Data Layer: JSON/JSONL/XML → SQLite (FTS5 + sqlite-vec)
 
+> ⚠ **Superseded premise (2026-07-20c):** this plan describes `ck.db` as a "derived,
+> rebuildable cache" built from JSON/JSONL/XML couriers (rebuild `build_db.py --fresh
+> --verify`). That flipped — **`ck.db` is now the PERMANENT single source of truth**:
+> built once, committed via Git LFS, NOT rebuildable, with the courier/source files
+> DELETED and the rebuild path removed. The migration steps below are accurate history;
+> the "rebuildable cache" framing is not the current model. Current source of truth:
+> `ask-ck/var/ck.db` — see `PLAN-db-only-search.md` and the `db-is-permanent-source` memory.
+
 > ## Session handoff (read first)
 >
 > **Status (2026-07-16): ✅ COMPLETE — all four commits landed** (A `6cb97ca`, B `bdb2043`, C `14cf4ad`, D `1a0ef2a`). Corpora + sessions are served from `ask-ck/var/ck.db` (rebuild: `python3 tool/build_db.py --fresh --verify`). Note: some scoring formulas below are stale — the live parity target is `_relevance_score`. **Follow-on direction:** strict DB-only search → `PLAN-db-only-search.md`.

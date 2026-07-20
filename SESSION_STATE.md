@@ -1072,3 +1072,47 @@ courier) + Phase 5 (prune legacy offline JSON tools, wire the guard into CI). Do
 session: README, SERVER-README, both DB plans, PROGRESS.
 
 ---
+
+## Session Close / Handoff (2026-07-21) — PyTest Creator: DB-only fix, framework read-only, standardized template (Part 1)
+
+Planning + build session for the PyTest Creator standardization/testing effort. All work
+committed + pushed to `main`. Living plan: `ask-ck/pytest-create/PLAN-pytest-testing.md`.
+
+**Shipped this session (commits `c29f53e`, `152e86b`, `ca90ff8`, + Part 1 template commit):**
+
+- **DB-only source fix.** `routers/pytest_create.py::_read_source` had been reading script
+  source off the retired `testsuites_art/` mount (gone from disk). Repointed to `ck.db`
+  (`scripts.source_text` / `db.get_script_source`); `rec["path"]` is now provenance-only. A
+  four-subagent audit read all 17 `CK_server/*.py` in full and confirmed this was the ONLY live
+  DB-only violation; removed dead scaffolding (`DATA_DIR`/`PT_DATA_DIR` anchors, vestigial
+  `SESSIONS_DIR`/`_session_path`/`GLOBAL_LLM_PATH`, stale comments). Extended
+  `tool/guard_db_only.py` from 1→4 detected regression shapes.
+
+- **Testbox framework dir is READ-ONLY.** New standing constraint: `/home/st-art/framework`
+  (profile `framework_path`) must never be written/edited/mutated (copy locally to edit).
+  Enforced at runtime in `pt_exec.py` (write-target + command guards, source-vs-dest aware) and
+  by the runnable `tool/guard_framework_readonly.py` (15 cases).
+
+- **Part 0 — logging contract** (`ask-ck/pytest-create/LOGGING-CONTRACT.md`): the required
+  per-step log format, verified three ways (framework source on tb470 + a real 101-case log +
+  the tool's `parse_framework_log`).
+
+- **Part 1 — standardized script template.** Generation now fills a fixed skeleton
+  (`templates/pt_script_template.py.jinja`) rather than composing freely: data-driven `init`,
+  suite `configure`/`tear_down` (no pass/fail), one `TestCase` per verification step with the
+  logging contract + per-case `tear_down`. `pt_generate_script.jinja` rewritten to fill-not-
+  compose; `_lint_generated` extended for template/logging-contract conformance. Docs:
+  `TEMPLATE-SPEC.md`; the ART run chain in `ask-ck/test-composer/ART-EXECUTION-CHAIN.md`.
+
+**State:** guards green (`guard_db_only`, `guard_framework_readonly`); `/health` ok; `ck.db`
+remains the permanent LFS-committed single source of truth (unchanged this session). Testbox
+`tb470` reachable (device on u5); `configs/tb470.setup`/`.cfg` not yet created (Part 3b prereq).
+
+**Next:** Part 2A (first real end-to-end walkthrough on T33234 — also the pipeline's maiden run
+against the live DB), Part 2B (keyword-vs-LLM + model-matrix harness), Part 3a/3b (judging +
+tb470 execution with two LLM judges + human holistic review).
+
+**Note on an older entry below:** the 2026-07-20b entry's line *"Why ck.db is gitignored: it's a
+derived, rebuildable cache"* was **superseded on 2026-07-20c** — `ck.db` is now the permanent,
+LFS-committed single source of truth (not gitignored, not rebuildable). See the 2026-07-20c
+PROGRESS entry and `db-is-permanent-source` memory.

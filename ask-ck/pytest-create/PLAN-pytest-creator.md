@@ -11,6 +11,16 @@
 > code chunks, and framework surface all live in **`ask-ck/var/ck.db`** (permanent single source of
 > truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
 > `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
+>
+> **Generation note (2026-07-21)**: Step 6 (Generate) no longer composes a script freely from a
+> style exemplar — it **fills a standardized skeleton** (`templates/pt_script_template.py.jinja`)
+> rendered from the reviewed sequence (one `TestCase` per verification step, mandatory logging
+> contract, suite + per-case `tear_down`, data-driven topology), and the lint enforces template +
+> logging-contract conformance. All fragment **source code comes from `ck.db`** (`db.get_script_source`);
+> the old script mount is retired (guarded). The testbox framework dir is **read-only** (guarded).
+> Design + status live in the separate testing plan **`PLAN-pytest-testing.md`** (Part 1 done; Parts
+> 2–3 pending) with `TEMPLATE-SPEC.md` + `LOGGING-CONTRACT.md`; this tracker's Step-6 body below
+> describes the original free-compose approach (historical).
 
 ## Status Checklist
 

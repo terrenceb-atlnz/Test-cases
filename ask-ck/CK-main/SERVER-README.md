@@ -390,14 +390,33 @@ Allied Telesis framework test script. Full plan + progress tracker:
    scripts' actual TestSet/TestCase source; override the decision if needed, Confirm.
 5. **Fragments** — LLM proposes symbols; the server resolves them to real code by
    indexed line ranges (invented symbols are dropped); untick unwanted, Confirm.
-6. **Generate** — LLM composes the script (fragments + style exemplar + framework
-   surface). Edit the proposed **Group / Script name** (`generated/<Group>/<Name>.py`),
-   review/edit code, **Lint** (py_compile + structure + framework-import checks),
-   **Save to generated/**, Confirm.
+   **Fragment source code comes from `ck.db`** (`scripts.source_text` via
+   `db.get_script_source`) — the old script mount (`testsuites_art/` etc.) is retired
+   and no longer read (2026-07-21; guarded by `tool/guard_db_only.py`).
+6. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
+   sequence (`templates/pt_script_template.py.jinja`), not a free-form compose
+   (2026-07-21). Fixed frame: header, `TestSet(ATTestSet.TestSet)` with **data-driven
+   `init`** (switches/stacks/portlink detected from the sequence + fragments),
+   `configure()`/`tear_down()` (suite setup/cleanup — **no** pass/fail), one
+   `TestCase_<n>` **per verification step** (each with the three `testCase*` attrs, a
+   `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
+   and the `__main__` footer. The prompt (`pt_generate_script.jinja`) instructs the LLM
+   to fill the FILL slots with the reused fragments + gap-fill and to keep the three
+   logging-contract calls. Reused code is tagged inline with its origin
+   (`# ART/SVT/legacy <id> <lines>`); gap-fill is tagged `# AI <model> <date>`. Edit
+   the **Group / Script name** (`generated/<Group>/<Name>.py`), review/edit, **Lint**
+   (py_compile + structure + framework-import + **template/logging-contract
+   conformance**: each `main()` needs a `self.log()` and ≥1 non-empty
+   `passed()`/`failed()`, no empty verdicts, no leftover FILL placeholders), **Save**,
+   Confirm. See `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT}.md`.
 7. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
    the `.setup`, **Check Connection**, **Run on Testbox**. The script + setup go over
    SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
-   comes back and is parsed into per-TestCase PASS/FAIL.
+   comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
+   (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
+   refuses any SFTP write or remote command that would mutate it (guarded by
+   `tool/guard_framework_readonly.py`); copy a framework file into the run workdir to
+   edit it. See the run-chain reference `ask-ck/test-composer/ART-EXECUTION-CHAIN.md`.
 8. **Validate** — Final Validation = run done + every case PASS + zero failures +
    exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
    archived), which un-confirms steps 6-7 so the revision is re-reviewed and re-run.
@@ -407,19 +426,28 @@ Allied Telesis framework test script. Full plan + progress tracker:
 in the gitignored `secrets.testboxes.json` (0600). Passwords are write-only; the API
 returns `has_password` only. Passwordless sudo on the box is required (probed by check).
 
-**Building the script index** (needed once, re-run when script repos change):
+**Building the script index** — ⚠ **Historical / provenance only.** The script index,
+literal source code, code chunks, and framework surface now live in **`ask-ck/var/ck.db`**
+(the permanent single source of truth); the runtime reads only the DB (`db.search_scripts`,
+`db.get_script_source`, `db.get_json_doc("framework_surface")`). The AST-pass builder below
+describes how the index was originally constructed from the script mounts — those mounts are
+retired and the courier files (`scripts_index*.json`, `scripts_sources.jsonl`,
+`framework_surface.json`) deleted. Kept only to document provenance; not part of the running
+system.
 ```bash
 cd tool
-./build_script_index.py --mechanical-only   # AST pass over testsuites_art / svt_scripts / test_scripts (+ framework surface)
-./enrich_script_index.py --limit 100        # resumable LLM tagging/summaries (uses the workspace CLI login)
-./build_script_index.py                     # rebuild with enrichment merged
+./build_script_index.py --mechanical-only   # (historical) AST pass over the script mounts + framework surface
+./enrich_script_index.py --limit 100        # (historical) resumable LLM tagging/summaries
+./build_script_index.py                     # (historical) rebuild with enrichment merged
 ```
-Outputs land in `ask-ck/pytest-create/data/`; the server loads them at startup and
-`GET /api/pytest-create/status` reports counts + enrichment %.
+`GET /api/pytest-create/status` reports the DB-backed script count + enrichment %.
 
 **Generated artifacts:** `ask-ck/pytest-create/generated/<Group>/<Name>.py`, with
 per-test provenance, sequence, iteration history, and run logs under
-`generated/.meta/<Group>/<Name>/`.
+`generated/.meta/<Group>/<Name>/`. Generated scripts carry **inline source-provenance
+tags** on reused blocks (`# ART/SVT/legacy <id> <lines>`) and gap-fill (`# AI <model>
+<date>`), so a reviewer can trace any block back to its origin script + lines or to the
+model that synthesised it.
 
 **Session persistence:** `CK_server/sessions/pt-<KEY>.json` (separate from wizard
 sessions). Confirming step N invalidates all later confirmations. Runs interrupted

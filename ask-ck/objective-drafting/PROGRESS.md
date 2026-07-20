@@ -2,7 +2,19 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-20 (by Claude)
+**Last Updated**: 2026-07-21 (by Claude)
+
+## Latest session (2026-07-21) — PyTest Creator: DB-only source fix, framework read-only guard, standardized template (Part 1)
+
+**Focus: planning + building the PyTest Creator standardization/testing effort. All committed + pushed to main.** Living plan: `ask-ck/pytest-create/PLAN-pytest-testing.md`.
+
+- **Fixed a live DB-only violation (`c29f53e`).** `routers/pytest_create.py::_read_source` was reading script source off the retired `testsuites_art/` mount (`Path(rec["path"]).read_text()`), which no longer exists on disk. Now reads from `ck.db` (`rec["source_text"]` / `db.get_script_source`); `rec["path"]` is provenance-only. A 4-agent full audit of all 17 `CK_server/*.py` confirmed this was the ONLY live violation; cleaned up dead scaffolding (removed `DATA_DIR`/`PT_DATA_DIR` anchors, vestigial `SESSIONS_DIR`/`_session_path`/`GLOBAL_LLM_PATH`, stale comments). **Extended `tool/guard_db_only.py`** from 1 to 4 detected shapes (retired corpus JSON; script source off disk; retired mount roots; retired corpus-dir anchors).
+- **Testbox framework dir is READ-ONLY (`152e86b`).** `/home/st-art/framework` (profile `framework_path`) must never be written/edited/mutated; copy locally to edit. Enforced in `pt_exec.py` (`_assert_write_allowed` on SFTP targets, `_assert_command_allowed` on remote commands, source-vs-dest aware) + new runnable `tool/guard_framework_readonly.py` (15 cases).
+- **Part 0 — logging contract (`ca90ff8`).** `ask-ck/pytest-create/LOGGING-CONTRACT.md`: the required per-step log format, verified against the framework source on tb470 + a real 101-case log + the tool's `parse_framework_log` (all three agree). Gotchas: empty `passed()/failed()` emits no marker; results are 4-valued (PASS/FAIL/ERROR/UNSUPPORTED).
+- **Part 1 — standardized script template (latest commit).** Generation now **fills a fixed skeleton** (`templates/pt_script_template.py.jinja`) instead of composing freely: data-driven `init` (switches/stacks/portlink detected from sequence+fragments), suite `configure`/`tear_down` (no pass/fail), one `TestCase_<n>` per verification step with the logging contract + per-case `tear_down`, `__main__` footer. `pt_generate_script.jinja` rewritten to fill-not-compose; `_lint_generated` extended for template/logging-contract conformance. Static exemplar chosen: `art/1363_ipv6/test-1363.1002.py` (replaces the dynamic 6011). Inline source-provenance tags planned (§1.5: `# ART/SVT/legacy <id> <lines>` / `# AI <model> <date>`). Docs: `TEMPLATE-SPEC.md`.
+- **ART execution chain documented** (`ask-ck/test-composer/ART-EXECUTION-CHAIN.md`) — the full ATPyLib run chain in dependency order (`<hostname>.cfg` → `.setup` → build load → `runAll` → `runTestSuite` → `test-*.py` → log → parse), the two entry points (suite runner vs our direct single-script path), and what Test Composer should reuse vs emulate. Finding: our direct `-s <setup>` path likely does NOT need `config.cfg` (a suite-runner concern) — to verify on the first real tb470 run.
+- **Testbox reachable this seat:** `ssh tb470` (device on u5, passwordless sudo, framework present). Neither `configs/tb470.setup` nor `tb470.cfg` exists yet — prerequisites before Part 3b execution.
+- **Still pending (next):** Part 2A (first real end-to-end walkthrough on T33234), Part 2B (model-comparison harness), Part 3a/3b (judging + tb470 execution). Guards green; `/health` ok.
 
 ## Latest session (2026-07-20c) — ck.db is the PERMANENT single source of truth
 
