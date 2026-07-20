@@ -46,22 +46,15 @@ router = APIRouter()
 # In-memory sessions (replace with DB later). File persistence added for restart survival.
 sessions: Dict[str, WizardSession] = {}
 
-# Simple file persistence directory (self-contained under drafting-tool/drafting_server/)
-# wizard.py lives in routers/ so go up one more level
+# wizard.py lives in routers/ so go up one more level to the CK_server package root.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SESSIONS_DIR = BASE_DIR / "sessions"
-SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-
-# Workspace-level LLM preference (survives switching cases). Not a case session.
-GLOBAL_LLM_PATH = SESSIONS_DIR / "_workspace_llm.json"
+# NOTE: sessions (per-case + the '_workspace_llm' workspace default) live in ck.db
+# via db.save_session/load_session — there is no runtime sessions/*.json read/write.
+# The sessions/*.json files on disk are frozen pre-migration backups only.
 
 # Output templates for repeatable exports (traceability.md etc.)
 OUTPUTS_DIR = BASE_DIR / "templates" / "outputs"
 OUTPUTS_ENV = Environment(loader=FileSystemLoader(str(OUTPUTS_DIR)))
-
-
-def _session_path(key: str) -> Path:
-    return SESSIONS_DIR / f"{key}.json"
 
 
 def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
@@ -153,7 +146,7 @@ def _clear_persisted(key: str) -> None:
 
 
 def _get_full_zephyr_case(key: str) -> dict:
-    """On-demand lookup from the full zephyr_cases.jsonl (single key). Prefer _get_full_zephyr_cases_batch."""
+    """On-demand lookup of one full Zephyr case from ck.db. Prefer _get_full_zephyr_cases_batch."""
     found = _get_full_zephyr_cases_batch([key])
     return found.get(key) or {}
 

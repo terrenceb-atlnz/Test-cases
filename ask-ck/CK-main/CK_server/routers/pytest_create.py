@@ -23,7 +23,7 @@ import re
 import tempfile
 
 from models import PtSession, LLMConfig
-from paths import REFINED_DIR, PT_DATA_DIR, PT_GENERATED_DIR
+from paths import REFINED_DIR, PT_GENERATED_DIR
 from llm import run_prompt, extract_json_block
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 from pt_exec import (
@@ -34,14 +34,11 @@ from routers.wizard import _load_global_llm, _llm_is_active
 
 router = APIRouter(tags=["pytest-creator"])
 
-# In-memory sessions + file persistence, mirroring wizard.py
+# In-memory cache over ck.db-persisted sessions, mirroring wizard.py.
+# Sessions live in ck.db (db.save_session/load_session, kind='pt'); the
+# sessions/pt-*.json files on disk are frozen pre-migration backups, not read at
+# runtime — there is no sessions/ path helper.
 pt_sessions: Dict[str, PtSession] = {}
-BASE_DIR = Path(__file__).resolve().parent.parent
-SESSIONS_DIR = BASE_DIR / "sessions"
-SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-
-TESTBOX_HOME = Path(os.environ.get("TESTBOX_HOME", "/media/terrenceb/mnt/testbox_home"))
-FRAMEWORK_LINT_PARENT = TESTBOX_HOME / "DeviceSkrips"  # readable framework copy for lint
 
 META_ROOT = PT_GENERATED_DIR / ".meta"
 
@@ -55,12 +52,8 @@ _NAME_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]{0,59}$")
 
 
 # ---------------------------------------------------------------------------
-# Session helpers (wizard.py:115-149 pattern, pt- prefix)
+# Session helpers (wizard.py pattern, pt- prefix; persisted in ck.db)
 # ---------------------------------------------------------------------------
-
-def _pt_session_path(key: str) -> Path:
-    return SESSIONS_DIR / f"pt-{key}.json"
-
 
 def _pt_persist(sess: PtSession) -> None:
     """Commit C: persist to ck.db (kind='pt'); llm_config split into its own
@@ -188,12 +181,19 @@ def _script_record(data: dict, script_id: str) -> dict:
 
 
 def _read_source(rec: dict, start: Optional[int] = None, end: Optional[int] = None) -> str:
-    """Read a validated index record's source (optionally a 1-based line slice)."""
-    path = Path(rec["path"])
-    try:
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError as e:
-        raise HTTPException(500, f"Cannot read {rec['id']}: {e}")
+    """Read a validated index record's source (optionally a 1-based line slice).
+
+    Source comes from ck.db — the single runtime source of truth — never from the
+    filesystem. The record's own `source_text` (loaded by db.get_script) is used
+    when present; otherwise it is fetched by id via db.get_script_source. The old
+    script mount (testsuites_art/ etc.) is gone and must never be referenced.
+    """
+    src = rec.get("source_text")
+    if src is None:
+        src = dbx.get_script_source(rec.get("id", ""))
+    if src is None:
+        raise HTTPException(404, f"No source in ck.db for {rec.get('id')}")
+    lines = src.splitlines()
     if start is None:
         return "\n".join(lines)
     end = end or len(lines)
@@ -770,7 +770,9 @@ async def script_source(request: Request, id: str,
     """Source (slice) of an indexed script — id validated against the index."""
     data = _data(request)
     rec = _script_record(data, id)
-    return {"id": id, "path": rec["path"], "start": start, "end": end,
+    # `source` comes from ck.db; `path` is provenance-only (original repo location),
+    # not a live filesystem handle — nothing reads it off disk anymore.
+    return {"id": id, "path": rec.get("path"), "start": start, "end": end,
             "source": _read_source(rec, start, end)}
 
 
