@@ -16,7 +16,7 @@ lib/
 lib64/
 parts/
 sdist/
-var/
+/var/
 wheels/
 *.egg-info/
 .installed.cfg
@@ -70,5 +70,12 @@ ask-ck/CK-main/CK_server/debug-log/
 # Ask CK Local LLM credential (app-owned, set via Configure page) — never commit
 ask-ck/CK-main/CK_server/secrets.local.json
 
-# Ask CK SQLite data layer — derived, rebuildable cache (build_db.py); model cache
-ask-ck/var/
+# Ask CK SQLite data layer. ck.db is the PERMANENT single source of truth (built
+# once from the provided data; NOT rebuildable — couriers retired). It and the
+# bundled embedding model are versioned via Git LFS. Only the transient WAL/SHM
+# side-files are ignored.
+ask-ck/var/*
+!ask-ck/var/ck.db
+!ask-ck/var/models/
+ask-ck/var/ck.db-wal
+ask-ck/var/ck.db-shm

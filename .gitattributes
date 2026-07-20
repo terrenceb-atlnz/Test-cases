@@ -8,6 +8,10 @@ ask-ck/objective-drafting/data/suites/testlink_awp.json filter=lfs diff=lfs merg
 # Literal script source + code chunks (build input for ck.db script-code search);
 # a captured snapshot of testbox .py sources, same category as zephyr_cases.jsonl.
 ask-ck/pytest-create/data/scripts_sources.jsonl filter=lfs diff=lfs merge=lfs -text
+# ck.db is the PERMANENT single source of truth (built once, not rebuildable) +
+# the bundled offline embedding model. Both versioned via LFS.
+ask-ck/var/ck.db filter=lfs diff=lfs merge=lfs -text
+ask-ck/var/models/** filter=lfs diff=lfs merge=lfs -text
 # Optional: track other large data files with LFS if they grow
 # ask-ck/objective-drafting/data/suites/all_test_suites.json filter=lfs diff=lfs merge=lfs -text
 # ask-ck/objective-drafting/data/suites/test_id_description.json filter=lfs diff=lfs merge=lfs -text
