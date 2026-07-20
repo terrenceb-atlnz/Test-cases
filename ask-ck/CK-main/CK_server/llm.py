@@ -256,7 +256,7 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "") -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False) -> Dict[str, Any]:
     """Instrumented wrapper around _call_llm_raw (same signature + `template`).
 
     Times the call, normalizes token usage from the raw response
@@ -265,7 +265,21 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     never-raises contract: _call_llm_raw never raises, and the recorder
     swallows its own errors. All pre-existing callers hit this wrapper
     unchanged and are auto-instrumented.
+
+    dry_run: render-only preview. The caller has already built `prompt` through
+    the exact real context path, so returning it here (WITHOUT sending to the
+    LLM) yields a provenance prompt that is byte-identical to what a real send
+    would transmit — that is the whole point: the "Refresh" provenance preview
+    reuses the same call path with this flag flipped, so 1-for-1 is guaranteed
+    by construction, not by re-implementing context-building. No send, no tokens,
+    and NOT written to debug-log (it was never a real request).
     """
+    if dry_run:
+        return {
+            "content": "", "prompt": prompt, "provider": provider,
+            "model": model, "auth_method": auth_method, "template": template,
+            "usage": None, "error": False, "dry_run": True,
+        }
     start = time.monotonic()
     meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
                          model=model, auth_method=auth_method, timeout=timeout,
@@ -498,7 +512,10 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
         # Fallback: try to find bullet-like lines and wrap (skip preamble)
         bullets = re.findall(r"^\s*[\-\*]\s*(.+)$", cleaned, re.MULTILINE)
         if bullets:
-            objective = "<ul>\n" + "\n".join(f"<li>{b.strip()}</li>" for b in bullets[:10]) + "\n</ul>"
+            # No [:10] cap — objective bullet count is not fixed (process principle);
+            # capping here would truncate a valid long objective that came back as
+            # markdown bullets instead of <ul>.
+            objective = "<ul>\n" + "\n".join(f"<li>{b.strip()}</li>" for b in bullets) + "\n</ul>"
         else:
             objective = "<ul><li>TODO - parse failed (no structured output found)</li></ul>"
 
@@ -681,19 +698,24 @@ def _synthesis_context(session: Dict[str, Any], gaps_text: str = "") -> Dict[str
         "atp_selections": session.get("step3", {}).get("selections", []) or [],
         "gaps": gaps_text or session.get("gaps") or "",
         "art_string": session.get("art_string", ""),
-        "process_principles": (
-            "Objectives are declarative artefacts (what should be true). Use <ul><li>. "
-            "First testScript step is notes + traceability. Cover positive/negative/special cases."
-        ),
+        # process_principles was dropped: it duplicated the header of
+        # generate_objectives.jinja verbatim and no template references it now.
     }
 
 
-def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = None, dry_run: bool = False) -> Dict[str, Any]:
     """Wizard Step 4: gaps (Traceability) + objective HTML only.
 
     Does not generate testScript steps — that is Step 5 after the user finalizes objectives.
+    dry_run: render the objective prompt (using any gaps already on the session)
+    and return it without sending — provenance preview, no tokens.
     """
     rt = _resolve_llm_runtime(llm_config)
+    if dry_run:
+        context = _synthesis_context(session, session.get("gaps") or "")
+        objective_prompt = render_prompt("generate_objectives.jinja", context)
+        return {"dry_run": True, "prompt": objective_prompt,
+                "provider": rt["provider"], "model": rt["model"], "auth_method": rt["auth_method"]}
     gaps_result = generate_coverage_gaps(session, llm_config=rt["cfg"])
     gaps_text = gaps_result.get("gaps") or ""
     session = {**session, "gaps": gaps_text}
@@ -736,11 +758,14 @@ def synthesize_steps(
     session: Dict[str, Any],
     llm_config: Optional[Dict] = None,
     objective: Optional[str] = None,
+    dry_run: bool = False,
 ) -> Dict[str, Any]:
     """Wizard Step 5: verification steps from finalized objective + review context.
 
     Prefers the provided objective (finalized Step 4), else session.step4.objective.
     Always injects the server-built first traceability note.
+    dry_run: render the steps prompt from the (real) resolved context and return
+    it without sending — provenance preview, no tokens.
     """
     rt = _resolve_llm_runtime(llm_config)
     # Finalized objective: explicit arg > step4.objective > empty
@@ -763,6 +788,9 @@ def synthesize_steps(
     context["objective"] = obj
 
     steps_prompt = render_prompt("generate_steps.jinja", context)
+    if dry_run:
+        return {"dry_run": True, "prompt": steps_prompt,
+                "provider": rt["provider"], "model": rt["model"], "auth_method": rt["auth_method"]}
     steps_meta = _call_llm_with_meta(
         steps_prompt,
         provider=rt["provider"],
@@ -882,14 +910,17 @@ def _parse_suggest_id_list(content: str, id_patterns: Optional[List[str]] = None
     return final
 
 
-def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any]], llm_config: Optional[Dict] = None) -> List[Dict[str, Any]]:
+def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any]], llm_config: Optional[Dict] = None, dry_run: bool = False):
     """Use LLM to pre-select the most relevant ATPyLib tests from a list of candidates.
 
     Returns list of {"id": "...", "reason": "..."}
     Uses same provider/config as other LLM calls.
+
+    dry_run: return {"dry_run": True, "prompt": <rendered>} instead of sending —
+    a provenance preview of the exact prompt that would be transmitted.
     """
     if not candidates:
-        return []
+        return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else []
 
     # Omit non-functional tests
     candidates = [c for c in candidates if "(not a functional test)" not in ((c.get("description") or "") + c.get("id", "")).lower() ]
@@ -912,7 +943,9 @@ def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
 
     prompt = render_prompt("suggest_atp.jinja", context)
-    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method, session_id=cfg.get("session_id", ""), template="suggest_atp")
+    meta = _call_llm_with_meta(prompt, provider=provider, api_key=credential, base_url=base_url, model=model, auth_method=auth_method, session_id=cfg.get("session_id", ""), template="suggest_atp", dry_run=dry_run)
+    if dry_run:
+        return {"dry_run": True, "prompt": meta.get("prompt", prompt), "provider": provider, "model": model, "auth_method": auth_method}
     content = meta.get("content", "")
     return _parse_suggest_id_list(content, id_patterns=[r'(\d+\.\d+(?:\.\d+)?)'])
 
@@ -922,10 +955,14 @@ def suggest_relevant_testlink(
     candidates: List[Dict[str, Any]],
     llm_config: Optional[Dict] = None,
     case_title: str = "",
-) -> List[Dict[str, Any]]:
-    """LLM pre-select TestLink cases. Returns [{"id","reason"}, ...]."""
+    dry_run: bool = False,
+):
+    """LLM pre-select TestLink cases. Returns [{"id","reason"}, ...].
+
+    dry_run: return {"dry_run": True, "prompt": <rendered>} without sending.
+    """
     if not candidates:
-        return []
+        return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else []
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
     auth_method = (cfg.get("auth_method") or "api_key").lower()
@@ -936,17 +973,21 @@ def suggest_relevant_testlink(
         "case_title": case_title or "",
         "candidates": candidates,
     }
+    model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
     prompt = render_prompt("suggest_testlink.jinja", context)
     meta = _call_llm_with_meta(
         prompt,
         provider=provider,
         api_key=credential,
         base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
-        model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
+        model=model,
         auth_method=auth_method,
         session_id=cfg.get("session_id", ""),
         template="suggest_testlink",
+        dry_run=dry_run,
     )
+    if dry_run:
+        return {"dry_run": True, "prompt": meta.get("prompt", prompt), "provider": provider, "model": model, "auth_method": auth_method}
     return _parse_suggest_id_list(meta.get("content", ""), id_patterns=[r'(AWP-\d+)'])
 
 
@@ -955,10 +996,14 @@ def suggest_relevant_zephyr(
     candidates: List[Dict[str, Any]],
     llm_config: Optional[Dict] = None,
     case_title: str = "",
-) -> List[Dict[str, Any]]:
-    """LLM pre-select external Zephyr cases. Returns [{"id","reason"}, ...] (id = key)."""
+    dry_run: bool = False,
+):
+    """LLM pre-select external Zephyr cases. Returns [{"id","reason"}, ...] (id = key).
+
+    dry_run: return {"dry_run": True, "prompt": <rendered>} without sending.
+    """
     if not candidates:
-        return []
+        return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else []
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
     auth_method = (cfg.get("auth_method") or "api_key").lower()
@@ -970,6 +1015,7 @@ def suggest_relevant_zephyr(
         "testlink_selections": session.get("step1", {}).get("selections", []) or [],
         "candidates": candidates,
     }
+    model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
     prompt = render_prompt("suggest_zephyr.jinja", context)
     meta = _call_llm_with_meta(
         prompt,
@@ -977,20 +1023,24 @@ def suggest_relevant_zephyr(
         api_key=credential,
         session_id=cfg.get("session_id", ""),
         base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
-        model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
+        model=model,
         auth_method=auth_method,
         template="suggest_zephyr",
+        dry_run=dry_run,
     )
+    if dry_run:
+        return {"dry_run": True, "prompt": meta.get("prompt", prompt), "provider": provider, "model": model, "auth_method": auth_method}
     return _parse_suggest_id_list(meta.get("content", ""), id_patterns=[r'(AWPTCM-T\d+)'])
 
 
-def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any]], llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any]], llm_config: Optional[Dict] = None, dry_run: bool = False) -> Dict[str, Any]:
     """Score/rank ATP candidates for Step 3 review (no gaps text — gaps are synthesis/export only).
 
     Returns: {"ranked": [{"id": "...", "score": 0.91, "reason": "..."}, ...]}
+    dry_run: return {"dry_run": True, "prompt": <rendered>} without sending.
     """
     if not candidates:
-        return {"ranked": []}
+        return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else {"ranked": []}
 
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
@@ -1015,6 +1065,10 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
         ]
     }
 
+    _model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
+    if dry_run:
+        prompt = render_prompt("analyze_atp_coverage.jinja", context)
+        return {"dry_run": True, "prompt": prompt, "provider": provider, "model": _model, "auth_method": auth_method}
     try:
         prompt = render_prompt("analyze_atp_coverage.jinja", context)
         meta = _call_llm_with_meta(
@@ -1022,7 +1076,7 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
             provider=provider,
             api_key=credential,
             base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
-            model=cfg.get("model") or os.environ.get("LLM_MODEL", "default"),
+            model=_model,
             auth_method=auth_method,
             session_id=cfg.get("session_id", ""),
             template="analyze_atp_coverage",
@@ -1033,7 +1087,11 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group(0))
-            ranked = parsed.get("ranked", [])[:10]
+            # No backend truncation: the prompt now asks for every genuinely
+            # relevant candidate, ranked. The scrollable table shows them in order
+            # (a UI "show more" can page through) — capping here would silently
+            # drop the LLM's ranking/reasoning for lower-ranked-but-relevant hits.
+            ranked = parsed.get("ranked", [])
             # Normalize scores to float 0-1
             for item in ranked:
                 if "score" in item:
@@ -1045,22 +1103,27 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
     except Exception as e:
         print(f"[LLM ATP analyze] failed: {e}")
 
-    # Fallback
-    top = candidates[:6]
+    # Fallback (LLM unavailable): return the keyword candidates as-is. They arrive
+    # already relevance-ranked from db.search_atp_hybrid (bounded by its own limit),
+    # so no extra cap here — the scrollable table shows them in score order.
     return {
-        "ranked": [{"id": c.get("id"), "score": 0.7, "reason": "Selected via fallback keyword matching"} for c in top],
+        "ranked": [{"id": c.get("id"), "score": 0.7, "reason": "Selected via fallback keyword matching"} for c in candidates],
     }
 
 
 
 def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional[Dict] = None,
-               timeout: int = 180) -> Dict[str, Any]:
+               timeout: int = 180, dry_run: bool = False) -> Dict[str, Any]:
     """Generic templated LLM call (used by the PyTest Creator + index enrichment).
 
     Renders templates/prompts/<template_name> with `context`, resolves the
     provider/auth from the session or env like every wizard call, and returns
     the raw meta dict from _call_llm_with_meta (content, provider, error, ...).
     Long generation prompts may pass a larger timeout than the 180s default.
+
+    dry_run: render the prompt and return it WITHOUT sending (provenance
+    preview). The template + context are exactly those a real call uses, so the
+    previewed prompt is 1-for-1 with what would be transmitted.
     """
     rt = _resolve_llm_runtime(llm_config)
     prompt = render_prompt(template_name, context)
@@ -1074,8 +1137,31 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
         timeout=timeout,
         session_id=rt["session_id"],
         template=template_name,
+        dry_run=dry_run,
     )
     return meta
+
+
+def _health_ping(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
+    """Minimal completion to confirm the configured LLM is reachable and answering.
+
+    Uses the same runtime resolution + _call_llm_with_meta choke point as every
+    real call (so it validates config/credential/transport end-to-end and is
+    recorded in debug-log), with a tiny prompt and short timeout. Returns the raw
+    meta dict; the caller decides ok/not-ok from meta["error"].
+    """
+    rt = _resolve_llm_runtime(llm_config)
+    return _call_llm_with_meta(
+        "Reply with the single word: OK",
+        provider=rt["provider"],
+        api_key=rt["credential"],
+        base_url=rt["base_url"],
+        model=rt["model"],
+        auth_method=rt["auth_method"],
+        timeout=30,
+        session_id=rt["session_id"],
+        template="health_ping",
+    )
 
 
 def extract_json_block(content: str) -> Any:

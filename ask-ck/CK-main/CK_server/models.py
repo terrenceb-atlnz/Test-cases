@@ -97,6 +97,7 @@ class PtSession(BaseModel):
 class SynthesisRequest(BaseModel):
     session: WizardSession
     use_llm: bool = True
+    dry_run: bool = False  # render-only provenance preview (no LLM send, no tokens)
 
 class ExportResponse(BaseModel):
     traceability_md: str
