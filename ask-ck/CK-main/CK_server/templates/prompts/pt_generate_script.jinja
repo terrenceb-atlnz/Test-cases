@@ -46,9 +46,13 @@ Reviewer note: {{ f.why }}
    parsing; don't discard them and write from scratch.
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.
-6. No placeholder/pseudo code, no TODOs, no leftover `# >>> FILL` markers, no
-   `output = ''` or `if False:` placeholders in the final output. No external pip deps
-   beyond what the fragments/exemplar already use.
+6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment
+   line once you have filled its slot.** These lines are scaffolding instructions to
+   you, NOT part of the script — writing the real code next to them is not enough, the
+   comment itself must be gone. The final script must contain ZERO `>>>` markers.
+7. No placeholder/pseudo code, no TODOs, no `output = ''` or `if False:` placeholders
+   left in the final output. No external pip deps beyond what the fragments/exemplar
+   already use.
 
 ## Output format
 Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python

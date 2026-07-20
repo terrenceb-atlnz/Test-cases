@@ -372,13 +372,49 @@ def _meta_dir(group: str, name: str) -> Path:
     return META_ROOT / group / name
 
 
+# A scaffolding-marker comment line: a pure comment (only whitespace before the
+# '#') carrying one of the template's slot markers. The markers span one or two
+# comment lines (opener + an indented continuation ending in '<<<'); both forms
+# are pure comments, so dropping every comment line that mentions a marker OR
+# closes one removes the guidance without touching filled-in code (real code is
+# never a pure comment). See templates/pt_script_template.py.jinja for shapes.
+_FILL_MARKER_RX = re.compile(r">>>\s*(FILL|replace|remove)\b", re.IGNORECASE)
+
+
+def _strip_fill_markers(code: str) -> str:
+    """Remove leftover '# >>> FILL/replace/remove ... <<<' scaffolding comments.
+
+    The model is told to delete these after filling a slot, but compliance is
+    non-deterministic; stripping them server-side guarantees no marker ever
+    survives into a saved/linted/run script regardless of the model. Only PURE
+    comment lines are removed — a line with real code before the '#' is kept.
+    Continuation lines of a two-line marker (indented comment ending in '<<<')
+    are removed while the marker is 'open'."""
+    out, in_marker = [], False
+    for line in code.splitlines():
+        stripped = line.lstrip()
+        is_comment = stripped.startswith("#")
+        if is_comment and _FILL_MARKER_RX.search(line):
+            in_marker = "<<<" not in line  # single-line marker closes immediately
+            continue
+        if in_marker and is_comment:
+            # continuation comment line of an open two-line marker
+            if "<<<" in line:
+                in_marker = False
+            continue
+        in_marker = False
+        out.append(line)
+    result = "\n".join(out)
+    return result if result.endswith("\n") else result + "\n"
+
+
 def _parse_generated_blocks(content: str) -> Dict[str, Any]:
     """Extract test + optional 'LIBRARY: <name>' python blocks from LLM output."""
     blocks = re.findall(r"(?:^|\n)(LIBRARY:\s*(\S+)\s*\n)?```(?:python)?\s*\n(.*?)```",
                         content, re.DOTALL)
     test_code, library = None, None
     for _, lib_name, code in blocks:
-        code = code.strip() + "\n"
+        code = _strip_fill_markers(code.strip() + "\n")
         if lib_name:
             library = {"name": lib_name.strip(), "code": code}
         elif test_code is None:

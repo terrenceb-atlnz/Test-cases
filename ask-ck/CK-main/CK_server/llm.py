@@ -256,7 +256,7 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False) -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False, system: str = "") -> Dict[str, Any]:
     """Instrumented wrapper around _call_llm_raw (same signature + `template`).
 
     Times the call, normalizes token usage from the raw response
@@ -283,7 +283,7 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     start = time.monotonic()
     meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
                          model=model, auth_method=auth_method, timeout=timeout,
-                         session_id=session_id)
+                         session_id=session_id, system=system)
     duration_ms = int((time.monotonic() - start) * 1000)
     meta["template"] = template
     meta["usage"] = llm_debug.normalize_usage(meta.get("auth_method", auth_method),
@@ -292,7 +292,7 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     return meta
 
 
-def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "") -> Dict[str, Any]:
+def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", system: str = "") -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
     Supports multiple login styles (chosen in the UI):
@@ -389,6 +389,8 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
                 "temperature": 0.2,
                 "messages": [{"role": "user", "content": prompt}],
             }
+            if system:
+                payload["system"] = system  # Anthropic: top-level field, not a message role
             resp = requests.post(f"{base_url}/messages", headers=headers, json=payload, timeout=120)
             resp.raise_for_status()
             data = resp.json()
@@ -423,9 +425,16 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             # 40-candidate match table) mid-JSON. Give reasoning models generous
             # headroom so real answers complete.
             max_out = 16000 if auth_method == "local_llm" else 2000
+            # A system message steers these reasoning models toward the terse,
+            # JSON-only answer the callers want, and sharply curbs the runaway
+            # chain-of-thought that otherwise burns the token budget (measured
+            # ~22x fewer completion tokens on a trivial JSON ask). Matches the
+            # documented vLLM usage shape (system + user) in resources.md.
+            messages = ([{"role": "system", "content": system}] if system else []) \
+                + [{"role": "user", "content": prompt}]
             payload = {
                 "model": model,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": messages,
                 "temperature": 0.2,
                 "max_tokens": max_out,
             }
@@ -1153,14 +1162,31 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
 
 
 
+# Every PyTest Creator / enrichment template ends with "Output JSON ONLY".
+# A system message that says the same thing up front steers the reasoning
+# models to skip the prose/scratchpad and emit the JSON directly — measured
+# ~22x fewer completion tokens on a trivial ask, and it is the message shape
+# the org vLLM docs (resources.md) demonstrate. Callers can override per-call.
+_JSON_SYSTEM_PROMPT = (
+    "You are a precise API that returns machine-readable output only. "
+    "Respond with exactly the JSON the user's instructions specify — no prose, "
+    "no explanation, no markdown fences, and no step-by-step thinking before it."
+)
+
+
 def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional[Dict] = None,
-               timeout: int = 180, dry_run: bool = False) -> Dict[str, Any]:
+               timeout: int = 180, dry_run: bool = False,
+               system: Optional[str] = None) -> Dict[str, Any]:
     """Generic templated LLM call (used by the PyTest Creator + index enrichment).
 
     Renders templates/prompts/<template_name> with `context`, resolves the
     provider/auth from the session or env like every wizard call, and returns
     the raw meta dict from _call_llm_with_meta (content, provider, error, ...).
     Long generation prompts may pass a larger timeout than the 180s default.
+
+    system: system message. Defaults to a JSON-only steer (see
+    _JSON_SYSTEM_PROMPT) since every current template asks for JSON; pass a
+    different string to override, or "" to send none.
 
     dry_run: render the prompt and return it WITHOUT sending (provenance
     preview). The template + context are exactly those a real call uses, so the
@@ -1179,6 +1205,7 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
         session_id=rt["session_id"],
         template=template_name,
         dry_run=dry_run,
+        system=_JSON_SYSTEM_PROMPT if system is None else system,
     )
     return meta
 

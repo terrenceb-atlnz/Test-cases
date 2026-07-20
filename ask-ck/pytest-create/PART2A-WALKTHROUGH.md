@@ -65,6 +65,34 @@ and returned the inner `per_step` list — never the object.
 > These three are the reason a headless vLLM run had never actually completed
 > before. The health-ping (tiny prompt) always passed, masking them.
 
+### Follow-on 4 — adopt the documented system+user message shape
+`resources.md` documents the org vLLM usage as a **system + user** message split;
+the code was sending **user-only**. Adopted it: `run_prompt` now sends a default
+JSON-steering system message (`_JSON_SYSTEM_PROMPT`), threaded through
+`_call_llm_with_meta` → `_call_llm_raw` (OpenAI path uses a `system` role;
+Anthropic path uses the top-level `system` field). Overridable per call; the
+health-ping still sends none.
+- **Measured effect on `extract_sequence` (same prompt):** completion tokens
+  7,959 → **5,141 (−35%)**, latency 45.5s → **28.9s (−37%)**, and — crucially —
+  the `notes` field went from **empty to populated** (the model now honors the
+  prompt's "skip physical steps & name them in notes" rule instead of burying it
+  under its own reasoning). On a trivial JSON ask the reduction was ~22×.
+
+### Follow-on 5 — guarantee no `# >>> FILL` scaffolding survives
+Generation is non-deterministic: one run stripped the template's `# >>> FILL …`
+guidance comments, another left all 44 in place (real code was written beside
+them, but the comments remained) → lint correctly failed. Fixed two ways:
+- **Server-side (deterministic):** `_strip_fill_markers` in the router removes
+  every pure-comment `>>> FILL/replace/remove` line (and its two-line
+  continuations) from generated code before lint/save. Verified on the failing
+  run: 44 markers → 0, all real filled code (observations + verify conditions)
+  preserved, result compiles.
+- **Prompt (root cause):** `pt_generate_script.jinja` rule 6 is now a standalone
+  imperative — "DELETE every `>>> FILL … <<<` comment once filled; the final
+  script must contain ZERO `>>>` markers."
+- **Re-verified end-to-end:** regenerated T33234 → 0 residual markers, lint clean,
+  compiles.
+
 ---
 
 ## Per-step verdicts
