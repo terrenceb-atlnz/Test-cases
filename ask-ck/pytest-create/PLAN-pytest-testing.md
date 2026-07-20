@@ -1,16 +1,26 @@
 # PyTest Creator — Testing & Standardization Plan
 
-> **Status: DRAFT v2 for review (2026-07-21).** Author: Claude, at Terrence's direction.
-> v2 folds in Terrence's answers to the four open questions (see §5, now RESOLVED)
-> and the corpus evidence gathered to settle them.
+> **Status: IN PROGRESS (updated 2026-07-21b).** Author: Claude, at Terrence's direction.
+> v2 folded in Terrence's answers to the four open questions (§5, RESOLVED) and the
+> corpus evidence gathered to settle them.
 > Purpose: upgrade the PyTest Creator process with a standardized code template,
 > validate that the current step-by-step flow actually works against the live
 > `ck.db`, and measure output quality across three known cases and several LLMs.
-> Nothing here is executed yet — this is the plan to agree on first.
 >
-> **Companion docs:** `PLAN-pytest-creator.md` (the original build, the flow it
-> describes is the thing under test here), `../ck-facelift/PLAN-db-only-search.md`
-> (the DB-only invariant this must respect).
+> **Progress:**
+> - ✅ **Part 0** (logging contract) — done; `LOGGING-CONTRACT.md`.
+> - ✅ **Part 1** (standardized template + conformance lint) — done;
+>   `TEMPLATE-SPEC.md`, `templates/pt_script_template.py.jinja`.
+> - ✅ **Part 2A** (first real end-to-end walkthrough on T33234) — done 2026-07-21b;
+>   steps 1–6 verified against the live DB via the org vLLM, 3 vLLM-path bugs fixed.
+>   Full per-step record: **`PART2A-WALKTHROUGH.md`**.
+> - ⏳ **Part 2B** (keyword-vs-LLM + model matrix), **Part 3a/3b** (judging + tb470
+>   execution) — pending. Part 3b gated on `configs/tb470.setup` + a testbox profile.
+>
+> **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
+> `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
+> under test here), `../ck-facelift/PLAN-db-only-search.md` (the DB-only invariant
+> this must respect).
 
 ---
 

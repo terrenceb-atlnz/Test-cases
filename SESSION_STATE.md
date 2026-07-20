@@ -1116,3 +1116,49 @@ tb470 execution with two LLM judges + human holistic review).
 derived, rebuildable cache"* was **superseded on 2026-07-20c** — `ck.db` is now the permanent,
 LFS-committed single source of truth (not gitignored, not rebuildable). See the 2026-07-20c
 PROGRESS entry and `db-is-permanent-source` memory.
+
+---
+
+## Session Close / Handoff (2026-07-21b) — PyTest Creator Part 2A + vLLM-path hardening
+
+**Scope:** first real end-to-end walkthrough of the 8-step PyTest Creator flow on
+T33234 (`AWPTCM-T33234`, Port Auto MDI/MDI-X), headless via the org vLLM against the
+permanent `ck.db`. Two commits, both pushed to main: `e6c0d64`, `1ccf1a7`. Full
+per-step record: `ask-ck/pytest-create/PART2A-WALKTHROUGH.md`.
+
+- **Pipeline verified steps 1–6.** load_case → extract_sequence → suggest_scripts →
+  assess_fit → gather_fragments → generate_script all produce correct output against
+  the live DB; the generated script compiles + passes conformance lint. Step 7 (run)
+  gates cleanly (`400`) with no testbox profile — fails safe. Every step verdict KEEP;
+  decomposition + confirm-gating sound. Live run (7–8) blocked only on the `tb470`
+  profile + `.setup` prereq (Part 3b).
+
+- **Three vLLM-path bugs fixed (`e6c0d64`, `llm.py`),** all from the org models being
+  reasoning models (CoT in `message.reasoning_content` before `message.content`):
+  (1) `max_tokens` 2000→16000 for `local_llm`; (2) response parser guards
+  null/empty/`finish_reason=length`-truncated content with a clear error +
+  `reasoning_content` fallback; (3) `extract_json_block` picks whichever of `{`/`[`
+  appears first (was returning a nested array instead of the outer object). The tiny
+  health-ping had masked all three.
+
+- **vLLM system+user shape adopted + FILL-marker guarantee (`1ccf1a7`).** `run_prompt`
+  now sends the documented system+user pair with a default JSON-only steer
+  (`_JSON_SYSTEM_PROMPT`) — measured −35% completion tokens / −37% latency on
+  `extract_sequence`, and it made the model honor the prompt's skip-and-note rule
+  (`notes` empty→populated). Deterministic `_strip_fill_markers` (router) + a stronger
+  `pt_generate_script.jinja` rule guarantee no `# >>> FILL` scaffolding survives.
+
+- **Open content items for Part 2B/3 (documented, not blocking):** inline provenance
+  tags (§1.5) are prompted but **not emitted** by the model; `— not yet implemented`
+  leaks into `failed()` reasons; assess_fit verdict is non-deterministic; generated CLI
+  syntax needs on-device validation.
+
+**State:** guards green (`guard_db_only`, `guard_framework_readonly`); `/health` ok
+(830 scripts, 83816 embeddings); `ck.db` unchanged — still the permanent LFS-committed
+single source of truth. No data-layer, courier, or rebuild-path changes this session.
+
+**Next:** Part 2B (keyword-vs-LLM + model matrix: vLLM fast/thinking, Claude
+Haiku/Sonnet/Opus, logged per-case), then Part 3a (offline judging, criteria 1–4 for
+T33233/T33234/T33235) and Part 3b (tb470 execution + log parsing, criteria 5–6, two
+LLM judges + human review) — the latter gated on creating `configs/tb470.setup` + a
+PyTest Creator testbox profile.

@@ -276,6 +276,7 @@ licensed for that; the code path exists though it isn't surfaced in the UI.
 
 - **Key**: set it once on the Configure page (stored gitignored in `CK_server/secrets.local.json`; survives restarts and new sessions). Re-enter to update when it expires; leave blank to keep the stored key. For headless runs, `export LOCAL_LLM_KEY=...` works as a fallback. The key never leaves the server (not in sessions, responses, or the debug log).
 - This transport reports real token usage (`usage.prompt_tokens/completion_tokens`), so the LLM debug footer/badges show actual in / out counts.
+- **Reasoning-model handling (2026-07-21).** *Both* org models are reasoning models: they spend completion tokens on hidden chain-of-thought (returned in `message.reasoning_content`) **before** emitting the answer in `message.content`. The OpenAI-compatible call path in `llm.py` accounts for this in three ways: (1) `max_tokens` is raised to **16000** for `local_llm` (the legacy 2000 was exhausted mid-reasoning, leaving `content` null); (2) the response parser guards a null/empty/`finish_reason=length`-truncated `content` and raises a *clear* error (falling back to `reasoning_content` for a reasoning-only reply) instead of a cryptic `NoneType` crash; (3) requests are sent as a **system + user** message pair (the shape documented in `resources.md`) — `run_prompt` prepends a default JSON-only steer (`_JSON_SYSTEM_PROMPT`) that skips the model's scratchpad and cuts completion tokens sharply (measured ~35% on `extract_sequence`, ~22× on a trivial JSON ask). Callers can override the system message per call; the health-ping sends none. Anthropic's native path uses the top-level `system` field instead of a message role.
 - **Health check** (next to the "key stored ✓" note): pings the *currently-selected* model with a minimal completion via the same real-call path (`POST /api/wizard/llm_health` → `_health_ping`), and reports `✓ up — <model> (<ms>) · N in / M out (total)` or a clean error. Distinguishes "my config is wrong" from "the backend is down" without spending a real synthesize. Provider-agnostic (works for any auth_method). Note: `vllm-thinking` reasons before replying, so even a trivial ping shows a large *output* count — that's the model's reasoning, and it's exactly the cost signal for comparing Fast vs. Thinking.
 
 ### LLM request observability
@@ -402,13 +403,20 @@ Allied Telesis framework test script. Full plan + progress tracker:
    `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
    and the `__main__` footer. The prompt (`pt_generate_script.jinja`) instructs the LLM
    to fill the FILL slots with the reused fragments + gap-fill and to keep the three
-   logging-contract calls. Reused code is tagged inline with its origin
-   (`# ART/SVT/legacy <id> <lines>`); gap-fill is tagged `# AI <model> <date>`. Edit
-   the **Group / Script name** (`generated/<Group>/<Name>.py`), review/edit, **Lint**
-   (py_compile + structure + framework-import + **template/logging-contract
-   conformance**: each `main()` needs a `self.log()` and ≥1 non-empty
-   `passed()`/`failed()`, no empty verdicts, no leftover FILL placeholders), **Save**,
-   Confirm. See `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT}.md`.
+   logging-contract calls. The prompt also mandates **deleting** each `# >>> FILL … <<<`
+   scaffolding comment once its slot is filled; because model compliance is
+   non-deterministic, `_parse_generated_blocks` **also strips** any residual
+   `>>> FILL/replace/remove` pure-comment lines server-side (`_strip_fill_markers`) so a
+   marker can never survive into a saved/linted/run script (2026-07-21). Reused code is
+   *intended* to be tagged inline with its origin (`# ART/SVT/legacy <id> <lines>`) and
+   gap-fill with `# AI <model> <date>` — note the Part 2A walkthrough found the model does
+   not yet emit these reliably (provenance tagging is prompted but not enforced; tracked
+   in `PART2A-WALKTHROUGH.md`). Edit the **Group / Script name**
+   (`generated/<Group>/<Name>.py`), review/edit, **Lint** (py_compile + structure +
+   framework-import + **template/logging-contract conformance**: each `main()` needs a
+   `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
+   FILL placeholders), **Save**, Confirm. See
+   `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
 7. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
    the `.setup`, **Check Connection**, **Run on Testbox**. The script + setup go over
    SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
