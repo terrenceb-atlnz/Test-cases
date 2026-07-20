@@ -47,6 +47,31 @@ Run it non-interactively without any prompts:
 ./setup.sh < /dev/null   # fails fast if a prerequisite is missing; prints the exact install command
 ```
 
+### `setup.sh` vs. `run.sh` — which do I need?
+
+**Short answer: after the first successful `setup.sh`, you almost always just use `run.sh`.**
+
+| Use `setup.sh` when… | Use `run.sh` when… |
+|---|---|
+| First-time setup on a new machine | Day-to-day: starting/stopping/restarting the server |
+| `ask-ck/var/ck.db` is missing or the source corpora changed (it **rebuilds** the DB — slow, re-ingests every corpus, prompts about embeddings) | The DB already exists and is current (it starts in seconds against the existing `ck.db`) |
+| Toolchain/deps changed (Python, Git LFS, `requirements.txt`) | Nothing about the environment changed |
+
+`setup.sh` is a superset — it does prerequisite checks + LFS pull + venv + **DB build**, *then* delegates to `run.sh` to launch. `run.sh` on its own does **none** of the setup; it only starts the server (auto-activating `.venv` if present). So a plain "bring the server back up" is `run.sh`, not `setup.sh`.
+
+Both scripts live at the repo root:
+
+```bash
+./run.sh            # foreground (asks fg/bg first time)
+./run.sh --bg       # background, no prompts (fast restart)
+./run.sh --restart  # stop + background start
+./run.sh --stop     # stop the background server
+```
+
+(Root `./run.sh` is a thin wrapper that forwards to the real launcher at `ask-ck/CK-main/run.sh`, which anchors its own paths — you can call either; the root one is just shorter.)
+
+> The server runs with `--reload`, so **code edits hot-reload — no restart needed**. You generally only restart for env/dependency changes or to pick up a new `secrets.local.json`. (Template `.jinja` and static JS/CSS changes are also picked up on the next request / hard-reload; bump the `?v=N` on `main.js` when shipping JS so browsers refetch.)
+
 <details>
 <summary>Or do it manually</summary>
 
@@ -113,7 +138,7 @@ Authoritative process: **`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.m
 | **Ask CK workbench** | Multi-tool facelift complete (2026-07-13): Objective/Test Case Generator (full), sidebar LLM Configure panel, plus Test Composer and Zephyr Templating Tool (scaffolded) — see `ask-ck/objective-drafting/PROGRESS.md`. **Frontend refactored to browser-native ES modules (2026-07-16)** — `static/app.js` → `static/js/` (see `static/js/README.md`). |
 | **Generator review UX** | **Two-table "chosen shortlist" (2026-07-16)** on the TestLink/Zephyr/ATPyLib steps (candidates ↑ / chosen ↓, insertion-ordered; confirm reads the chosen table only), plus **relevance-ranked keyword search** (title-weighted scoring; each new search re-ranks the whole candidate pool) |
 | **PyTest Creator** | **Fully implemented (2026-07-14):** 8-step gated flow turning refined cases into runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test scripts, with a script-database index, testbox SSH execution, and an LLM fix loop to Final Validation — see `ask-ck/pytest-create/PLAN-pytest-creator.md` |
-| **LLM: Local LLM + observability** | **2026-07-20:** third login mode **Local LLM** (org vLLM, OpenAI-compatible; Fast/Thinking toggle; server-stored key in gitignored `secrets.local.json`) — now the default radio. Per-request **observability**: per-panel debug footer + token badges + per-session log in `CK_server/debug-log/` (gitignored). See `ask-ck/ck-facelift/PLAN-llm-observability.md`. |
+| **LLM: Local LLM + observability + provenance** | **2026-07-20:** third login mode **Local LLM** (org vLLM, OpenAI-compatible; Fast/Thinking toggle; server-stored key in gitignored `secrets.local.json`) — now the default radio, with a **Health check** button on the Configure page. Per-request **observability** (dev scaffolding): per-panel debug footer + `N in / M out` token badges + per-session log in `CK_server/debug-log/` (gitignored). **LLM Provenance** (permanent): every LLM panel can show/copy the exact prompt and **Refresh** it live via a no-send `dry_run` render (1-for-1 with a real send, zero tokens) — for pasting into a competing LLM. See `ask-ck/ck-facelift/PLAN-llm-observability.md`. |
 | **Admin + fast restart** | **2026-07-20:** hidden **admin panel** (double-click CK's face) — reset sessions, rebuild embeddings/DB (background), restart server. Fast restart via `run.sh --bg` / `--restart` (a restart needs only `run.sh`, not `setup.sh`). Localhost/single-user. |
 | **Data layer (SQLite `ck.db`)** | **Migration complete (2026-07-16), committed A–D:** corpora + sessions served from `ask-ck/var/ck.db` (FTS5 keyword + sqlite-vec hybrid/semantic). Server no longer scans JSON at runtime. See `ask-ck/ck-facelift/PLAN-db-migration.md`. |
 | **Next: strict DB-only search** | **Planned, not started** — `ck.db` the sole search/reference source; originals ingest direct-to-DB. Two feature branches (scripts literal-code, Zephyr enrichment) staged uncommitted, pending one coordinated rebuild. Roadmap + testbox checklist: `ask-ck/ck-facelift/PLAN-db-only-search.md`. |
@@ -141,7 +166,7 @@ pip install -r ask-ck/CK-main/requirements.txt
 > **Use `http://`, not `https://`.** Ask CK serves plain HTTP. If your browser forces HTTPS (Firefox HTTPS-Only mode, HSTS) you'll get a blank "Secure Connection Failed" / `SSL_ERROR_RX_RECORD_TOO_LONG` page. Browse to `http://localhost:8000/` explicitly and, if needed, exempt localhost from HTTPS-Only mode. Note the banner prints `http://0.0.0.0:8000` — `0.0.0.0` is the bind address; browse via `localhost` or `127.0.0.1`.
 
 - FastAPI backend (`ask-ck/CK-main/CK_server/`) + multi-tool sidebar UI; **server-side confirm gates** at every step.
-- LLM via the sidebar **LLM → Configure** panel: **Local LLM** (organization vLLM, default — Fast/Thinking toggle, server-stored key), **Claude Code CLI** (per-user local agent), or **Grok CLI**. The workspace login persists across cases. Set this up first — most tools need it. (MOCK/demo paths removed — real login required.) Every LLM request is logged for observability (per-panel debug footer + token badges; per-session log in `CK_server/debug-log/`).
+- LLM via the sidebar **LLM → Configure** panel: **Local LLM** (organization vLLM, default — Fast/Thinking toggle, server-stored key, **Health check** button), **Claude Code CLI** (per-user local agent), or **Grok CLI**. The workspace login persists across cases. Set this up first — most tools need it. (MOCK/demo paths removed — real login required.) Every LLM request is logged for observability (per-panel debug footer + `N in / M out` token badges; per-session log in `CK_server/debug-log/`), and every LLM panel exposes an **LLM Provenance** block that can copy the exact prompt or **Refresh** it live without sending (dry-run) for use in a competing LLM.
 
 The tool guides below are in **inverse order of the sidebar list** (i.e. oldest/most-complete first), matching the Main splash page.
 

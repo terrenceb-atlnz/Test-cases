@@ -987,3 +987,60 @@ reads the DB as sole source yet. Session JSON is an intentional *frozen pre-migr
 coordinated step — not ad-hoc.
 
 ---
+
+## 2026-07-20 Session (later) — LLM-config bug, prompt trims, health check, provenance/dry-run
+
+Started as "test the trimmed Objectives/Steps prompts"; the new LLM debug-log immediately
+surfaced a real bug, and the session grew into four related pieces of work. **ALL UNCOMMITTED**
+at session end (Terrence commits himself). Server verified live throughout via `./run.sh`.
+
+**1. LLM-config bug (dangerous — FIXED).** PyTest Creator's LLM endpoints resolved
+`_llm_cfg(sess)` raw and only `load_case` applied the workspace login, so a session with a
+stale/inactive persisted config silently fell back to the LLM layer's default backend
+(`claude_agent` → api.anthropic.com, `model=default`) instead of the configured `local_llm`.
+Caught by the debug-log: a real `extract_sequence` on T33233 recorded `auth=claude_agent` and a
+180s timeout ("local Claude agent did not respond"). **Fix:** folded the workspace-apply into
+`_llm_cfg` itself (`pytest_create.py`) so no endpoint can forget it. Audit found the **same latent
+pattern in the wizard** — hardened `_session_llm_cfg` and routed suggest_atp/synthesize/coverage
+through it (`load_case`→analyze_atp was already safe). Memory: `pytest-creator-llm-config-bug`.
+
+**2. Prompt trims** (`pt_extract_sequence` −46%, `generate_steps` −51%, `generate_objectives`
+−16%). Dropped: the reviewer-facing traceability dump (sequence extraction), the raw selections
+(steps — the finalized objective already carries them), the duplicate `process_principles`, the
+raw `primary` dict, blank-line loop padding. **Removed a `(typically 4-10)` bullet-count anchor
+that contradicted `OBJECTIVE_DRAFTING_PROCESS.md`** ("not uniform") — plus the matching silent
+code caps (`bullets[:10]`, `ranked[:10]`, fallback `[:6]`, suggest/analyze selection caps).
+Ranking now covers all relevant candidates; input-pool caps (`candidates[:20]`) kept as legit
+token bounds.
+
+**3. Health check** (Configure page, by "key stored ✓"): `POST /api/wizard/llm_health` +
+`_health_ping` — minimal completion via the real path. Both vLLM models confirmed up (earlier
+500s were transient). Token badges relabelled `N in / M out (total)` (was ambiguous `17→179 tok`)
+via one shared `fmtTokens`. Memory: `llm-health-check-button`.
+
+**4. LLM Provenance + dry-run** (permanent portability feature). Every LLM panel gets a copyable,
+live-`Refresh` prompt preview via a `dry_run` flag that renders the prompt through the real path
+and returns it **without sending** — verified byte-identical to a real send + zero tokens. New
+`static/js/provenance.js`. Purpose: paste the exact prompt into a competing/free LLM. The
+debug-log is dev-only scaffolding; Provenance is its durable replacement. Memory:
+`llm-provenance-portability`.
+
+**Also:** created a **root `./run.sh`** thin wrapper (forwards to `ask-ck/CK-main/run.sh`) so the
+primary launcher is at the root next to `setup.sh`; README now has a `setup.sh` vs `run.sh`
+decision table.
+
+**Working tree (uncommitted):** `M` `ask-ck/CK-main/CK_server/{llm.py, models.py,
+routers/wizard.py, routers/pytest_create.py, static/index.html, static/styles.css,
+static/js/{generator,pytest,db-search,llm,llm-debug,main}.js}`, 4 prompt templates, `README.md`,
+`ask-ck/CK-main/SERVER-README.md`, `ask-ck/pytest-create/PLAN-pytest-creator.md`,
+`ask-ck/ck-facelift/PLAN-llm-observability.md`, this file. `??` `run.sh` (root wrapper),
+`ask-ck/CK-main/CK_server/static/js/provenance.js`.
+
+**Primary handoff:** the four features are complete + verified but UNCOMMITTED — commit at a clean
+point (suggest four commits, one per feature, or one grouped). Then the **actual pending goal**:
+retry the PyTest Creator **first LLM walkthrough** (T33234/T33233) on `local_llm`/`vllm-thinking`
+now that dispatch resolves correctly — that produces the Phase B milestone (first lint-clean
+generated script). Run the server with `./run.sh --bg`. See `HANDOFF.md` for the full uncommitted
+state.
+
+---

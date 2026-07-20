@@ -132,22 +132,23 @@ python3 -m pip install --user fastapi uvicorn jinja2 requests
 
 ## Running the Server
 
-The easiest way is to use the included helper script from the project root:
+The easiest way is the root `run.sh` (a thin wrapper that forwards to the real
+launcher at `ask-ck/CK-main/run.sh`; either path works):
 
 ```bash
 # With a real API key
-LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
+LLM_API_KEY=sk-... ./run.sh
 
 # Fast restart — prompt-free background start / stop+start
-./ask-ck/CK-main/run.sh --bg          # background, no prompts
-./ask-ck/CK-main/run.sh --restart     # --stop then --bg
-./ask-ck/CK-main/run.sh --stop        # stop the background server
+./run.sh --bg          # background, no prompts
+./run.sh --restart     # --stop then --bg
+./run.sh --stop        # stop the background server
 
 # Different port
-PORT=9000 ./ask-ck/CK-main/run.sh
+PORT=9000 ./run.sh
 
 # Extra uvicorn options (e.g. debug logging)
-./ask-ck/CK-main/run.sh --log-level debug
+./run.sh --log-level debug
 ```
 
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
@@ -265,11 +266,19 @@ licensed for that; the code path exists though it isn't surfaced in the UI.
 `auth_method: "local_llm"` calls the org's self-hosted vLLM endpoint (`http://vllm.ai.atlnz.lc/v1`, OpenAI-compatible). Two modes via the **Fast / Thinking** toggle on the Configure page (models `vllm-fast` / `vllm-thinking`).
 
 - **Key**: set it once on the Configure page (stored gitignored in `CK_server/secrets.local.json`; survives restarts and new sessions). Re-enter to update when it expires; leave blank to keep the stored key. For headless runs, `export LOCAL_LLM_KEY=...` works as a fallback. The key never leaves the server (not in sessions, responses, or the debug log).
-- This transport reports real token usage (`usage.prompt_tokens/completion_tokens`), so the LLM debug footer/badges show actual in→out counts.
+- This transport reports real token usage (`usage.prompt_tokens/completion_tokens`), so the LLM debug footer/badges show actual in / out counts.
+- **Health check** (next to the "key stored ✓" note): pings the *currently-selected* model with a minimal completion via the same real-call path (`POST /api/wizard/llm_health` → `_health_ping`), and reports `✓ up — <model> (<ms>) · N in / M out (total)` or a clean error. Distinguishes "my config is wrong" from "the backend is down" without spending a real synthesize. Provider-agnostic (works for any auth_method). Note: `vllm-thinking` reasons before replying, so even a trivial ping shows a large *output* count — that's the model's reasoning, and it's exactly the cost signal for comparing Fast vs. Thinking.
 
 ### LLM request observability
 
-Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. Grok CLI / agent bridge). Credentials are whitelisted out of records.
+Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge (`N in / M out (total)`) next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. Grok CLI / agent bridge). Credentials are whitelisted out of records. **The debug-log is development scaffolding**; the durable/portable equivalent is the Provenance block below.
+
+### LLM Provenance (portable prompts) + dry-run preview
+
+Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fit, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
+
+- **Refresh** re-invokes the panel's own endpoint with `dry_run: true`. The backend renders the prompt through the *real* context path and returns it **without sending** to the LLM — no tokens, not recorded to the debug-log. Because it reuses the real call path with one flag flipped, the previewed/copied prompt is **1-for-1** (byte-identical) with what a real send transmits — verified in-repo.
+- Mechanism: `dry_run` flag on `llm._call_llm_with_meta` (short-circuits before the send) + `run_prompt`; every Generator function (`synthesize_objectives/steps`, `suggest_relevant_*`, `analyze_atp_coverage`) and every PyTest endpoint accepts it and returns `{provenance: {prompt, provider, model, auth_method}}`. `SynthesisRequest` gained a `dry_run` field. The normal (non-dry) PyTest paths now also store the sent `prompt` + `response` in their step provenance.
 
 ## Accessing the Tool
 
@@ -477,6 +486,17 @@ Cross-reference higher-level project docs every session:
 - External `AGENTS.md` (access patterns and environment details, as referenced from root README)
 
 ---
+
+## Session Summary (2026-07-20, later — LLM-config bug, prompt trims, health check, provenance/dry-run)
+
+Four pieces of work (all **uncommitted** at session end — Terrence commits himself):
+
+1. **LLM-config bug (dangerous — fixed).** PyTest Creator LLM endpoints resolved `_llm_cfg` raw and only `load_case` applied the workspace login, so a stale/inactive session silently fell back to the default backend (`claude_agent`/`model=default`) instead of the configured `local_llm` — surfaced by the debug-log (a real T33233 `extract_sequence` recorded `auth=claude_agent`). Fixed by folding the workspace-apply into `_llm_cfg` (pytest_create.py) so every endpoint gets the right backend at dispatch. Audit found the **same latent bug in the wizard** (`_session_llm_cfg` + inline reads in suggest_atp/synthesize/coverage) — hardened `_session_llm_cfg` and routed all wizard LLM endpoints through it. `load_case`→analyze_atp was already safe.
+2. **Prompt trims.** `pt_extract_sequence.jinja` −46% (dropped the traceability dump), `generate_steps.jinja` −51% (dropped selections — the finalized objective already carries them), `generate_objectives.jinja` −16% (dropped duplicate `process_principles`, raw `primary` dict, blank-line padding). Removed a **`(typically 4-10)` bullet-count anchor** that contradicted `OBJECTIVE_DRAFTING_PROCESS.md` ("not uniform"), plus the matching silent code caps (`bullets[:10]`, `ranked[:10]`, fallback `[:6]`) and the suggest/analyze selection caps — ranking now covers all relevant candidates; input-pool caps (`candidates[:20]`) kept as legit token bounds.
+3. **Health check** (Configure page): `POST /api/wizard/llm_health` + `_health_ping` — minimal completion via the real path, reports `✓ up — <model> (ms) · N in / M out`. Both vLLM models confirmed healthy; earlier 500s were transient. Token badges relabelled from `17→179 tok` (ambiguous) to `N in / M out (total)` via a single shared `fmtTokens`.
+4. **LLM Provenance + dry-run** (see the section above): every LLM panel gets a copy-able, live-refreshable prompt preview via a `dry_run` flag that renders 1-for-1 without sending. New file `static/js/provenance.js`; `main.js?v=…` bumped to 7.
+
+Files touched: `llm.py`, `models.py`, `routers/{wizard,pytest_create}.py`, `static/index.html`, `static/js/{provenance(new),generator,pytest,db-search,llm,llm-debug,main}.js`, `static/styles.css`, 4 prompt templates. Memory: `pytest-creator-llm-config-bug`, `llm-health-check-button`, `llm-provenance-portability`.
 
 ## Session Summary (2026-07-13, later session — Ask CK facelift)
 
