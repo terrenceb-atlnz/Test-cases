@@ -725,9 +725,19 @@ _VEC_TABLES = {
 
 def _get_model():
     """Lazy-load the sentence-transformers model (CK_EMBED_MODEL, cached under
-    EMBED_MODEL_DIR / SENTENCE_TRANSFORMERS_HOME)."""
+    EMBED_MODEL_DIR / SENTENCE_TRANSFORMERS_HOME).
+
+    Ask CK is a stand-alone product: the embedding model is BUNDLED locally under
+    EMBED_MODEL_DIR and must load from disk with zero network access. We force
+    HuggingFace offline mode so sentence-transformers never contacts huggingface.co
+    — not to download, and not for the revision-check it otherwise does even when
+    the files are already cached. (Refreshing the model is a deliberate, offline
+    re-fetch step, never a runtime dependency.) Set these BEFORE the library is
+    imported, since the flags are read at import time."""
     global _model
     if _model is None:
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
         from sentence_transformers import SentenceTransformer
         cache = os.getenv("SENTENCE_TRANSFORMERS_HOME", str(EMBED_MODEL_DIR))
         _model = SentenceTransformer(EMBED_MODEL, cache_folder=cache)
@@ -755,10 +765,16 @@ def _vector_hits(entity: str, qvec: List[float], k: int = 200) -> List[Tuple[str
         return []
     vt, base, rowcol, idcol = _VEC_TABLES[entity]
     try:
+        # sqlite-vec KNN requires the LIMIT/k constraint to sit on the vec0 table
+        # in the SAME query level as MATCH — a JOIN with an outer ORDER BY/LIMIT is
+        # rejected ("A LIMIT or 'k = ?' constraint is required on vec0 knn queries")
+        # and would silently fall through the except below, disabling semantic
+        # search entirely. So do the KNN first (subquery), then join to hydrate ids.
         rows = get_connection().execute(
-            f"SELECT b.{idcol} AS id, v.distance AS dist FROM {vt} v "
-            f"JOIN {base} b ON b.{rowcol} = v.rowid "
-            f"WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?",
+            f"SELECT b.{idcol} AS id, knn.dist AS dist FROM "
+            f"(SELECT rowid AS rid, distance AS dist FROM {vt} "
+            f" WHERE embedding MATCH ? ORDER BY distance LIMIT ?) knn "
+            f"JOIN {base} b ON b.{rowcol} = knn.rid ORDER BY knn.dist",
             (_serialize_vec(qvec), k)).fetchall()
     except sqlite3.OperationalError:
         return []   # vec table not built yet

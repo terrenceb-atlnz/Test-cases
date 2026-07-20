@@ -1044,3 +1044,31 @@ generated script). Run the server with `./run.sh --bg`. See `HANDOFF.md` for the
 state.
 
 ---
+
+## Session Close / Handoff (2026-07-20b) — Strict DB-only Phase 1 + script-code + semantic embeddings
+
+> Supersedes the "DB-only search … NOT started" notes in the 2026-07-16 entry above — Phase 1 is now done + committed.
+
+**What landed (all committed + pushed this session):**
+- **Literal script source code** now in the DB: `build_script_index.py` → `scripts_sources.jsonl`
+  (830 files, 5,782 code chunks) → `build_db.py --fresh` fills `scripts.source_text` +
+  `script_chunks` + `chunks_fts`. `db.search_code` / `search_code_hybrid` return real code.
+- **Semantic embeddings**: `build_db.py --embed` → ~84k vectors across all 5 entities incl.
+  `vec_chunks`. `/health` → `vector_search:true, embeddings:83816`.
+- **Stand-alone embedding model**: bundled at `ask-ck/var/models/`, forced `HF_HUB_OFFLINE` in
+  `db.py` + `run.sh`. No external dependency but the org vLLM LLM (which is the tool's function).
+- **Strict DB-only runtime (Phase 1)**: `data.py` + `pytest_create.py` read every corpus/reference
+  from `db.*`; `main.py` fails fast without `ck.db`; **`tool/guard_db_only.py`** locks the invariant.
+- **Three latent bugs fixed**: embed `HAS_VEC` guard ran before the connection opened (`--embed`
+  never ran); sqlite-vec KNN issued as a JOIN → silently returned nothing (hybrid was keyword-only);
+  huggingface load-time ping.
+
+**Why ck.db is gitignored:** it's a derived, rebuildable cache (regenerates byte-identically from
+tracked source exports), not a source of truth. Rebuild: `python3 tool/build_db.py --fresh --verify`
+then `--embed`.
+
+**Next:** PLAN-db-only-search Phase 2 (fold local XML straight into the DB, retire the jsonl
+courier) + Phase 5 (prune legacy offline JSON tools, wire the guard into CI). Docs synced this
+session: README, SERVER-README, both DB plans, PROGRESS.
+
+---

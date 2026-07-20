@@ -412,13 +412,16 @@ def embed(batch: int = 64, limit=None):
     already match embeddings_meta, so re-runs are near-instant and a model switch
     (CK_EMBED_MODEL) auto-invalidates. Commits per batch."""
     import db
+    from datetime import datetime
+    # HAS_VEC is only resolved once a connection is opened (the extension probe
+    # lives in get_connection()); open it FIRST, then gate on the result. Checking
+    # db.HAS_VEC before this call always reads the import-time False and skips.
+    conn = db.get_connection()
     if not db.HAS_VEC:
         print("  sqlite-vec unavailable on this Python (enable_load_extension missing or "
               "extension load failed) — skipping --embed. Keyword search is unaffected; run "
               "--embed on a host where sqlite-vec loads (e.g. Linux, or with pysqlite3).")
         return
-    from datetime import datetime
-    conn = db.get_connection()
     _ensure_vec_schema(conn)
     model = db.EMBED_MODEL
     print(f"Embedding with {model} (batch={batch}"

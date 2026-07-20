@@ -450,14 +450,9 @@ def _lint_generated(sess: PtSession) -> dict:
             warnings.append("no self.passed()/self.failed() calls found in this file "
                             "(ok only if inherited main() asserts)")
 
-        # 3. Framework imports must exist in the surface index
-        surface = {}
-        surf_path = PT_DATA_DIR / "framework_surface.json"
-        if surf_path.exists():
-            try:
-                surface = json.load(open(surf_path, encoding="utf-8"))
-            except Exception:
-                surface = {}
+        # 3. Framework imports must exist in the surface index (from ck.db — the
+        #    single runtime source; no JSON read).
+        surface = dbx.get_json_doc("framework_surface") or {}
         if surface:
             for node in ast_mod.walk(tree):
                 if isinstance(node, ast_mod.ImportFrom) and node.module:

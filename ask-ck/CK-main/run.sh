@@ -80,6 +80,14 @@ echo
 
 export PYTHONPATH="$SCRIPT_DIR"
 
+# Stand-alone: the semantic-search embedding model is bundled under ask-ck/var/models/
+# and loads from disk. Force HuggingFace offline so the server never reaches out to
+# huggingface.co at runtime (not to download, not even for a revision check). Ask CK
+# depends on nothing external but its own LLM endpoint. (Refreshing the model is a
+# deliberate offline step, not a runtime dependency.)
+export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
+export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
+
 # Foreground or background? --bg/--restart force background with no prompt;
 # otherwise ask when interactive, default foreground.
 RUN_MODE="fg"

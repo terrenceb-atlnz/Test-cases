@@ -95,6 +95,18 @@ app.state.app_data = None
 @app.on_event("startup")
 async def startup_event():
     print("Loading data for server-backed drafting tool...")
+    # Strict DB-only: ck.db is the single runtime source of truth — there is no
+    # JSON fallback to silently diverge to. If it is missing/empty, fail fast with
+    # a clear, actionable message instead of booting into a broken half-state.
+    import db
+    chk = db.startup_check()
+    if not chk.get("ok"):
+        raise RuntimeError(
+            f"ck.db is not ready ({chk.get('error') or 'empty / no corpora'}) at "
+            f"{chk.get('db_path')}. The server reads all corpora from this database "
+            f"and has no JSON fallback. Build it first:\n"
+            f"    python3 tool/build_db.py --fresh --verify\n"
+            f"then (for semantic search)  python3 tool/build_db.py --embed")
     app.state.app_data = load_all_data()
     print("Data ready.")
 

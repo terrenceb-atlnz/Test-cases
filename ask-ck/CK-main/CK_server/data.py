@@ -9,15 +9,9 @@ Migrates patterns from:
 Loads the three databases + indices on server startup.
 """
 
-import json
-import os
 from typing import Dict, List, Any
 
 import db
-from paths import OBJECTIVE_DRAFTING_ROOT, PT_DATA_DIR
-
-# All "data/..." paths below resolve inside ask-ck/objective-drafting/
-BASE = str(OBJECTIVE_DRAFTING_ROOT)
 
 
 class _DbMap:
@@ -50,24 +44,6 @@ class _DbMap:
         except Exception:
             return False
 
-def load_json_safe(path: str) -> Any:
-    full = os.path.join(BASE, path)
-    if os.path.exists(full):
-        try:
-            return json.load(open(full, encoding="utf-8"))
-        except Exception as e:
-            print(f"Warning loading {path}: {e}")
-    return None
-
-def load_json_abs(full: str) -> Any:
-    """Like load_json_safe but takes an absolute path (for non-drafting silos)."""
-    if os.path.exists(full):
-        try:
-            return json.load(open(full, encoding="utf-8"))
-        except Exception as e:
-            print(f"Warning loading {full}: {e}")
-    return None
-
 def load_all_data() -> Dict[str, Any]:
     """Load the SMALL, frequently-joined references into RAM; back the large
     corpora (TestLink, ATP, scripts) with lazy db-backed maps (Commit B).
@@ -81,18 +57,17 @@ def load_all_data() -> Dict[str, Any]:
     print("  Loading lightweight references (corpora served from ck.db)...")
     data = {}
 
-    # Small references kept in RAM (heavily joined; ~3 MB total)
-    data["zephyr_master"] = {c["key"]: c for c in (load_json_safe("data/zephyr_master.json") or [])}
-    raw_cands = load_json_safe("data/candidates.json") or []
+    # Small references kept in RAM (heavily joined; ~3 MB total). Strict DB-only:
+    # these come from ck.db, NOT from the source JSON — the DB is the single
+    # runtime source of truth (PLAN-db-only-search Phase 1). Rebuild via
+    # `python3 tool/build_db.py --fresh`.
+    data["zephyr_master"] = {c["key"]: c for c in db.get_target_cases()}
+    raw_cands = db.all_candidates()
     data["candidates"] = raw_cands
-    data["candidates_dict"] = {c["key"]: c for c in raw_cands}
+    data["candidates_dict"] = {c["key"]: c for c in raw_cands if c.get("key")}
 
-    # Decisions (primary matches)
-    dec = {}
-    dec_dir = os.path.join(BASE, "data/decisions")
-    for f in sorted([f for f in os.listdir(dec_dir) if f.endswith(".json")]):
-        dec.update(json.load(open(os.path.join(dec_dir, f), encoding="utf-8")))
-    data["decisions"] = dec
+    # Decisions (primary matches) — from ck.db
+    data["decisions"] = db.get_decisions()
 
     # Large corpora — lazy db-backed lookups (never fully materialized).
     #   testlink       : {id -> case}      -> db.get_testlink_case
@@ -104,9 +79,9 @@ def load_all_data() -> Dict[str, Any]:
     data["test_id_desc"] = _DbMap(db.get_atp_test)
     data["scripts_index_by_id"] = _DbMap(db.get_script)
 
-    # PyTest Creator: framework surface + index meta stay small file-backed refs.
-    data["framework_surface"] = load_json_abs(str(PT_DATA_DIR / "framework_surface.json")) or {}
-    data["scripts_index_meta"] = load_json_abs(str(PT_DATA_DIR / "scripts_index.meta.json")) or {}
+    # PyTest Creator: framework surface + index meta — from ck.db json_docs.
+    data["framework_surface"] = db.get_json_doc("framework_surface") or {}
+    data["scripts_index_meta"] = db.get_json_doc("scripts_index_meta") or {}
 
     chk = db.startup_check()
     counts = chk.get("counts", {}) if chk.get("ok") else {}

@@ -66,13 +66,19 @@ This version replaces the original single-file static `index.html` approach.
   - Zephyr (45k XML cases + 410 API targets), TestLink historical, enriched ATPyLib, the script index
   - FTS5 keyword search (`db.search_*`) + optional sqlite-vec **hybrid/semantic** (`mode=keyword|hybrid|semantic`; degrades to keyword when the extension can't load)
   - Sessions (per-case + workspace LLM) with `llm_config` isolated in its own column
-- **The server no longer scans JSON at runtime.** The JSON/JSONL under
+  - Literal script **source code** + code chunks (`script_chunks` / `chunks_fts`) — `db.search_code` / `search_code_hybrid`
+  - ~84k semantic vectors across all corpora incl. code chunks; embedding model bundled under
+    `ask-ck/var/models/`, loads **fully offline** (`HF_HUB_OFFLINE`) — no external dependency
+- **Strict DB-only runtime (Phase 1, 2026-07-20):** the server reads corpora **only** from
+  `ck.db` — **zero runtime JSON**. `data.py` sources every reference (zephyr_master, candidates,
+  decisions, framework_surface, scripts_index_meta) from `db.*` getters; startup **fails fast**
+  if `ck.db` is missing (no JSON fallback). Enforced by **`tool/guard_db_only.py`** (fails if a
+  corpus JSON read reappears under `CK_server/`). The JSON/JSONL under
   `ask-ck/objective-drafting/data/` + `ask-ck/pytest-create/data/` is the rebuildable **build
-  input** for `tool/build_db.py`, not a runtime source. `data.py` keeps a few small references
-  in RAM (being migrated to the DB — see below).
-- **Direction — strict DB-only search** (planned, not started): `ck.db` becomes the sole
-  search/reference source, server reads zero JSON, originals ingest direct-to-DB. Roadmap +
-  testbox checklist: **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
+  input** for `tool/build_db.py` only. Remaining phases (retire local XML→jsonl courier, prune
+  legacy offline tools): **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
+  - **`ck.db` is gitignored** because it is a derived, rebuildable cache (regenerates
+    byte-identically from tracked source exports), not a source of truth — like a build artifact.
 
 **Hosting**:
 - Intended to run behind nginx on a local IP.
@@ -350,20 +356,24 @@ Access via your local IP / hostname that nginx serves.
 
 ## Data Sources Used
 
-The server reads from `ask-ck/objective-drafting/data/` (anchored via `CK_server/paths.py`):
-- `data/zephyr_master.json`
-- `data/candidates.json`
-- `data/decisions/*.json`
-- `data/zephyr_full/slim_index.json` + `zephyr_cases.jsonl`
-- `data/suites/test_id_description.json` (and enriched suites)
-- `data/suites/testlink_awp.json`
+**At runtime the server reads corpora ONLY from `ask-ck/var/ck.db`** via `db.py` — no JSON
+(enforced by `tool/guard_db_only.py`). The files below are the **build input** `tool/build_db.py`
+ingests into the DB; they are the rebuildable source, never read by the running server.
 
-Data is loaded on the server, so large files and growth are no longer a browser problem.
+Ingested from `ask-ck/objective-drafting/data/` (paths anchored via `CK_server/paths.py`):
+- `data/zephyr_full/zephyr_cases.jsonl` + `data/zephyr_master.json` (Zephyr XML + API targets)
+- `data/candidates.json`, `data/decisions/*.json`
+- `data/suites/test_id_description.json` (ATP, + enriched suites), `data/suites/testlink_awp.json`
 
-The **PyTest Creator** additionally reads `ask-ck/pytest-create/data/` (built out-of-band, see below):
-- `scripts_index.json` / `scripts_slim_index.json` — index of the three script databases
-- `framework_surface.json` — the `framework` library vocabulary
-- `scripts_index.meta.json` — build info + enrichment coverage
+Ingested from `ask-ck/pytest-create/data/` (built out-of-band, see below):
+- `scripts_index.json` — mechanical index of the three script databases
+- `scripts_sources.jsonl` — literal script **source code** + code chunks (→ `scripts.source_text`, `script_chunks`)
+- `framework_surface.json` — the `framework` library vocabulary (→ `json_docs`)
+- `scripts_index.meta.json` — build info + enrichment coverage (→ `json_docs`)
+
+Rebuild the DB after any of these change: `python3 tool/build_db.py --fresh --verify` then
+`python3 tool/build_db.py --embed` (semantic vectors). `scripts_sources.jsonl` is produced by
+`tool/build_script_index.py`.
 
 ## PyTest Creator (2026-07-14)
 

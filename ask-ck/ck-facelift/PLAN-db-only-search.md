@@ -1,5 +1,18 @@
 # PLAN — Strict DB-Only Search (retire JSON as a runtime/search source)
 
+> ## Status (read first)
+> **Phase 1 ✅ DONE 2026-07-20** — runtime is strictly DB-only. `data.py` + `pytest_create.py`
+> source every corpus/reference from `db.*`; `main.py` fails fast if `ck.db` is absent (no JSON
+> fallback); `tool/guard_db_only.py` fails if a corpus JSON read reappears under `CK_server/`.
+> Also landed the same day: literal script-code ingest (`scripts_sources.jsonl` → `script_chunks`
+> / `chunks_fts`, 5,782 chunks) and the full semantic embed pass (~84k vectors incl. `vec_chunks`),
+> with the embedding model bundled + loading fully offline. Three latent bugs fixed en route
+> (embed `HAS_VEC` guard checked before the connection opened → `--embed` never ran; sqlite-vec
+> KNN issued as a JOIN → silently returned nothing → hybrid was keyword-only; huggingface
+> load-time ping → forced `HF_HUB_OFFLINE`). **Remaining:** Phase 2 (fold local XML straight into
+> the DB, retire the `zephyr_cases.jsonl` courier), Phase 5 (prune legacy offline JSON tools +
+> add the greppable guard to CI). The runtime invariant below is now met and guarded.
+
 **Decision (2026-07-16):** `ck.db` becomes the **single source for all search and all
 runtime reference lookups**. The running server reads **zero JSON**. Original sources are
 ingested **directly into the DB**; JSON survives only as a **build-time courier for
@@ -38,29 +51,25 @@ So local originals lose their JSON entirely; remote originals keep a **thin buil
 
 ---
 
-## Current state (staged, uncommitted)
+## Current state (Phase 1 done 2026-07-20)
 
-Modified, not committed (Terrence commits):
-- `tool/extract_zephyr_xml.py` — Zephyr enrichment (details/testData/issues/attachments)
-- `tool/build_script_index.py` — scripts source_text + code chunks + sidecar
-- `ask-ck/CK-main/CK_server/schema.sql` — new columns, `script_chunks`, `chunks_fts`,
-  rewired `zephyr_fts` + triggers
-- `tool/build_db.py` — sidecar ingest + Zephyr issues/attachments + embed specs
-- `ask-ck/CK-main/CK_server/db.py` — `search_code`/`_hybrid`, `get_script_source/chunks`,
-  Zephyr issues/attachments
+The schema/ingest feature work (scripts source_text + code chunks in `build_script_index.py` /
+`build_db.py` / `schema.sql` / `db.py`; Zephyr enrichment in `extract_zephyr_xml.py`) is built and
+the DB rebuilt against it. The Phase-1 repoint below is **complete** — all six runtime JSON reads
+now go through `db.*`:
 
-Runtime JSON reads still present (the Phase-1 targets):
-
-| `data.py` / router read | File | Already in DB as |
+| `data.py` / router read | Was | Now |
 |---|---|---|
-| `zephyr_master` | `zephyr_master.json` | `zephyr_cases` `is_target=1` → `db.get_target_cases()` |
-| `candidates` / `_dict` | `candidates.json` | `candidates` table → `db.all_candidates()` |
-| `decisions` | `data/decisions/*.json` | `decisions` table → `db.get_decisions()` |
-| `framework_surface` | `framework_surface.json` | `json_docs` → `db.get_json_doc("framework_surface")` |
-| `scripts_index_meta` | `scripts_index.meta.json` | `json_docs` → `db.get_json_doc("scripts_index_meta")` |
-| `framework_surface` (again) | `framework_surface.json` | `pytest_create.py:419` — repoint too |
+| `zephyr_master` | `zephyr_master.json` | ✅ `db.get_target_cases()` (shape parity verified) |
+| `candidates` / `_dict` | `candidates.json` | ✅ `db.all_candidates()` |
+| `decisions` | `data/decisions/*.json` | ✅ `db.get_decisions()` |
+| `framework_surface` | `framework_surface.json` | ✅ `db.get_json_doc("framework_surface")` |
+| `scripts_index_meta` | `scripts_index.meta.json` | ✅ `db.get_json_doc("scripts_index_meta")` |
+| `framework_surface` (pytest_create validate) | `framework_surface.json` | ✅ `dbx.get_json_doc(...)` |
 
-All targets already have DB homes and getters. Phase 1 is a **repoint, not new schema**.
+Dead `load_json_safe`/`load_json_abs` removed from `data.py`; `main.py` fails fast without `ck.db`;
+`tool/guard_db_only.py` locks the invariant. Phase 1 was a **repoint, not new schema** — every
+target already had a DB home + getter.
 
 ---
 
