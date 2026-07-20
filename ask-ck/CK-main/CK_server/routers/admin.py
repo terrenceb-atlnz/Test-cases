@@ -1,90 +1,41 @@
 """Admin panel endpoints (hidden UI behind double-clicking CK's face).
 
-Local single-user convenience — reset session state, rebuild search vectors,
-rebuild the whole DB, and restart the server, without dropping to a terminal.
-The heavy rebuilds run as background subprocesses (tool/build_db.py) with a
-tiny in-memory job tracker polled by the panel. "Restart" works by touching a
-watched .py file so uvicorn's --reload picks it up (no supervisor needed).
+Local single-user convenience — reset session state and restart the server,
+without dropping to a terminal. "Restart" works by touching a watched .py file
+so uvicorn's --reload picks it up (no supervisor needed).
 
-SAFETY: these actions are powerful (DB rebuild, process restart). This is
-intended for a local, single-user instance bound to localhost. Do NOT expose
-this router on a shared/public deployment without adding auth.
+DB REBUILD IS DELIBERATELY ABSENT. ck.db is the permanent single source of truth,
+built once from the provided data; the courier/source files it was built from have
+been retired, so there is no rebuild path (and nothing may wipe/refill the DB from
+the UI). Sessions and the server process are the only mutable things here.
+
+SAFETY: these actions (process restart, session reset) are intended for a local,
+single-user instance bound to localhost. Do NOT expose this router on a
+shared/public deployment without adding auth.
 """
-import subprocess
-import threading
-import time
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 
 import db
-from paths import ASKCK_ROOT, DB_PATH
+from paths import DB_PATH
 
 router = APIRouter(tags=["admin"])
-
-REPO_ROOT = ASKCK_ROOT.parent
-BUILD_DB = REPO_ROOT / "tool" / "build_db.py"
-
-# --- tiny background-job tracker -----------------------------------------------
-# One job at a time for the heavy rebuilds; the panel polls /admin/job.
-_lock = threading.Lock()
-_job: Dict[str, Any] = {"name": None, "state": "idle", "started": None,
-                        "finished": None, "returncode": None, "tail": ""}
-
-
-def _run_job(name: str, args: list) -> None:
-    """Run tool/build_db.py <args> in a thread, capturing a short output tail."""
-    with _lock:
-        _job.update({"name": name, "state": "running", "started": time.time(),
-                     "finished": None, "returncode": None, "tail": ""})
-    try:
-        proc = subprocess.run(
-            ["python3", str(BUILD_DB), *args],
-            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=3600,
-        )
-        tail = ((proc.stdout or "") + (proc.stderr or ""))[-4000:]
-        with _lock:
-            _job.update({"state": "done" if proc.returncode == 0 else "failed",
-                         "finished": time.time(), "returncode": proc.returncode,
-                         "tail": tail})
-    except Exception as e:
-        with _lock:
-            _job.update({"state": "failed", "finished": time.time(),
-                         "returncode": -1, "tail": f"{type(e).__name__}: {e}"})
-
-
-def _start_job(name: str, args: list) -> bool:
-    """Start a job unless one is already running. True if started."""
-    with _lock:
-        if _job["state"] == "running":
-            return False
-    threading.Thread(target=_run_job, args=(name, args), daemon=True).start()
-    return True
 
 
 @router.get("/status")
 async def status():
-    """Panel header: DB readiness + current job state."""
+    """Panel header: DB readiness."""
     try:
         chk = db.startup_check()
     except Exception as e:
         chk = {"ok": False, "error": str(e)}
-    with _lock:
-        job = dict(_job)
-    return {"tool": "admin", "db": chk, "job": job, "db_path": str(DB_PATH)}
-
-
-@router.get("/job")
-async def job_status():
-    """Poll target for the panel while a rebuild runs."""
-    with _lock:
-        return dict(_job)
+    return {"tool": "admin", "db": chk, "db_path": str(DB_PATH)}
 
 
 @router.post("/reset-session")
 async def reset_session(body: dict):
-    """Clear session state without touching the process or DB.
+    """Clear session state without touching the process or DB corpora.
 
     body: {"scope": "case"|"workspace"|"all", "key": "<case key, for scope=case>"}
     """
@@ -113,28 +64,6 @@ async def reset_session(body: dict):
     except Exception as e:
         raise HTTPException(500, f"reset failed: {e}")
     return {"ok": True, "cleared": cleared, "scope": scope}
-
-
-@router.post("/rebuild-embeddings")
-async def rebuild_embeddings():
-    """Background: tool/build_db.py --embed (semantic search vectors)."""
-    if not _start_job("rebuild-embeddings", ["--embed"]):
-        raise HTTPException(409, "A rebuild job is already running.")
-    return {"ok": True, "started": "rebuild-embeddings"}
-
-
-@router.post("/rebuild-db")
-async def rebuild_db(body: Optional[dict] = None):
-    """Background: full DB re-ingest. tool/build_db.py --fresh --verify --sessions
-    (sessions re-imported so a fresh rebuild doesn't lose them); optional --embed.
-    """
-    body = body or {}
-    args = ["--fresh", "--verify", "--sessions"]
-    if body.get("embed"):
-        args.append("--embed")
-    if not _start_job("rebuild-db", args):
-        raise HTTPException(409, "A rebuild job is already running.")
-    return {"ok": True, "started": "rebuild-db", "args": args}
 
 
 @router.post("/restart")

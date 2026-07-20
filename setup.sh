@@ -324,38 +324,34 @@ except Exception as e:
 PYEOF
 then VEC_OK=1; else VEC_OK=0; fi
 
-# --- 4c. Build ck.db (gitignored — a fresh clone has none) ------------------
-echo "▶ Building ck.db from source data (tool/build_db.py --fresh --verify)"
-python3 tool/build_db.py --fresh --verify || {
-  echo "✗ Database build/verify failed. Ensure 'git lfs pull' materialized the corpora."; exit 1; }
-echo "▶ Importing existing session files into the DB"
-python3 tool/build_db.py --sessions
-
-# --- 4d. Optional semantic embeddings (downloads ~90 MB model from huggingface.co) ---
-if [ "$VEC_OK" = "1" ]; then
-  if [ -t 0 ]; then
-    read -r -p "Build semantic-search vectors now? (downloads ~90 MB model, few min CPU) [y/N] " EMB
-  else EMB="n"; echo "  (non-interactive — skipping embeddings; run later with --embed)"; fi
-  case "$EMB" in
-    [yY]|[yY][eE][sS])
-      echo "▶ Embedding (tool/build_db.py --embed)"
-      python3 tool/build_db.py --embed \
-        || echo "  ⚠ Embedding failed — is huggingface.co reachable? Internal networks may block it."
-      echo "     If blocked: pre-fetch all-MiniLM-L6-v2 into ask-ck/var/models/ and set SENTENCE_TRANSFORMERS_HOME."
-      ;;
-    *) echo "  Skipped. Build vectors later with:  python3 tool/build_db.py --embed" ;;
-  esac
-else
-  echo "  Skipping embeddings (sqlite-vec unavailable). Keyword search is fully functional."
+# --- 4c. Verify ck.db (SHIPPED via Git LFS — the permanent source of truth) --
+# ck.db was built ONCE from the original data and is committed via LFS, together
+# with its embeddings and the bundled offline model. `git lfs pull` (step 2)
+# already materialized it — there is NO build step. We only sanity-check it here.
+echo "▶ Verifying ck.db (shipped via Git LFS; not rebuilt)"
+if [ ! -s ask-ck/var/ck.db ]; then
+  echo "✗ ask-ck/var/ck.db is missing or empty. Run 'git lfs pull' to materialize it."; exit 1
+fi
+python3 - <<'PY' || { echo "✗ ck.db present but not readable/populated — check 'git lfs pull'."; exit 1; }
+import sys; sys.path.insert(0, "ask-ck/CK-main/CK_server")
+import db
+chk = db.startup_check()
+ok = chk.get("ok") and (chk.get("counts", {}).get("zephyr_cases", 0) > 0)
+print(f"  ck.db ready={chk.get('ok')} vectors={chk.get('vector_search')} "
+      f"embeddings={chk.get('embeddings')} counts={chk.get('counts')}")
+sys.exit(0 if ok else 1)
+PY
+if [ "$VEC_OK" != "1" ]; then
+  echo "  (sqlite-vec unavailable on this Python — semantic search degrades to keyword; the shipped vectors are still present.)"
 fi
 
 echo
 echo "✅ Setup complete."
 echo "   Virtual env: $VENV_DIR"
-echo "   Database:    ask-ck/var/ck.db (rebuild anytime: python3 tool/build_db.py --fresh)"
-echo "   Semantic:    python3 tool/build_db.py --embed   (needs sqlite-vec + the model)"
-echo "   NOTE: this activated the venv only for this script. To run tool/*.py"
-echo "         yourself later, activate it in your shell: source .venv/bin/activate"
+echo "   Database:    ask-ck/var/ck.db — shipped via Git LFS; permanent single source of"
+echo "               truth, built once. NOT rebuildable (source couriers retired)."
+echo "   NOTE: this activated the venv only for this script. To run the server or"
+echo "         tools yourself later, activate it: source .venv/bin/activate"
 echo
 
 # --- 5. Offer to launch -----------------------------------------------------

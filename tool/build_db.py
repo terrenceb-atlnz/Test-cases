@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
-"""Build ask-ck/var/ck.db from the extractor JSON/JSONL source of truth.
+"""ONE-SHOT constructor that built ask-ck/var/ck.db from the original source data.
 
-Idempotent full rebuild (Commit A — no embeddings; Stage D adds --embed). Streams
-the 54 MB zephyr_cases.jsonl line-by-line, executemany batches of 1000, one
-transaction per source, prints counts. The DB is a DERIVED cache — re-run any
-time after the extractors change: `python3 tool/build_db.py --fresh`.
+>>> HISTORICAL / PROVENANCE ONLY — DO NOT RUN AGAINST THE LIVE REPO. <<<
 
-Usage:
-    python3 tool/build_db.py [--fresh] [--verify]
+`ck.db` is now the PERMANENT single source of truth: it was built ONCE from the
+data provided, then committed to git (LFS). The courier/source files this script
+ingested (zephyr_cases.jsonl, testlink_awp.json, candidates.json, the script
+index/sidecar, …) have been RETIRED and deleted — so this script can no longer
+rebuild anything, and a stray `--fresh` must never be allowed to wipe the
+committed DB. This file is kept solely to document HOW the database was
+constructed. `--require-sources` (default on) makes every build path abort with a
+clear message when the sources are absent, which they now are.
 
-    --fresh    delete ck.db first (full clean rebuild)
-    --verify   after building, assert row counts vs sources + spot lookups
+To reconstruct from scratch you would first have to restore the original source
+exports (Zephyr XML export + testbox scripts + the API snapshots) — that is a
+deliberate, out-of-band act, not a routine operation and not part of the product.
 
-Source of truth (unchanged this pass):
+Original source layout (now retired):
     objective-drafting/data/zephyr_full/zephyr_cases.jsonl   (45,427 xml cases)
     objective-drafting/data/zephyr_master.json               (410 api-target)
     objective-drafting/data/suites/testlink_awp.json         (21,624 testlink)
     objective-drafting/data/suites/test_id_description.json  (10,157 atp tests)
-    pytest-create/data/scripts_index.json                    (830 scripts)
+    pytest-create/data/scripts_index.json + scripts_sources.jsonl (830 scripts)
     objective-drafting/data/candidates.json                  (candidates)
     objective-drafting/data/decisions/*.json                 (14 files)
     pytest-create/data/framework_surface.json, scripts_index.meta.json
@@ -583,8 +587,16 @@ def verify():
     return ok
 
 
+def _sources_present() -> bool:
+    """True only if the retired source couriers still exist on disk. After the
+    2026-07-20 teardown they do not, so a corpora (re)build cannot run."""
+    return (DATA_DIR / "zephyr_full" / "zephyr_cases.jsonl").exists()
+
+
 def main():
-    ap = argparse.ArgumentParser(description="Build ask-ck/var/ck.db from source JSON/JSONL.")
+    ap = argparse.ArgumentParser(
+        description="ONE-SHOT constructor of ask-ck/var/ck.db. Provenance only — "
+                    "the source couriers are retired; corpora rebuild is disabled.")
     ap.add_argument("--fresh", action="store_true", help="delete ck.db first (sessions preserved)")
     ap.add_argument("--sessions", action="store_true",
                     help="one-shot import of sessions/*.json into the DB (no corpora rebuild)")
@@ -593,7 +605,23 @@ def main():
     ap.add_argument("--batch", type=int, default=64, help="embedding batch size (--embed)")
     ap.add_argument("--limit", type=int, default=None, help="cap rows/entity (--embed; for testing)")
     ap.add_argument("--verify", action="store_true", help="assert counts + spot lookups after build")
+    ap.add_argument("--i-know-sources-are-gone", action="store_true",
+                    help="override the safety abort (ONLY after restoring the original source "
+                         "exports out-of-band; corpora rebuild would otherwise wipe the committed DB)")
     args = ap.parse_args()
+
+    # Corpora (re)build is a DELETE + re-ingest. ck.db is now the committed source
+    # of truth and the ingest sources are gone — refuse, loudly, unless the operator
+    # has explicitly restored sources and overrides. --embed/--sessions act on the
+    # EXISTING DB (not a rebuild) and are left alone.
+    if not (args.embed or args.sessions):
+        if not _sources_present() and not args.i_know_sources_are_gone:
+            sys.exit(
+                "REFUSING to rebuild: the source courier files are retired (ck.db is the\n"
+                "committed, permanent source of truth — see the module docstring). A rebuild\n"
+                "would DELETE ck.db and cannot repopulate it. If you have deliberately restored\n"
+                "the original source exports, re-run with --i-know-sources-are-gone.")
+
     if args.embed:
         # Embed into the existing DB; no corpora rebuild.
         embed(batch=args.batch, limit=args.limit)

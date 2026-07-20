@@ -330,7 +330,7 @@
     <div id="panel-admin" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">Admin</div>
-        <div class="section-description">Local maintenance — reset session state, rebuild search data, or restart the server without a terminal. <strong>Single-user / localhost only.</strong> Rebuilds run in the background; the server restart briefly drops the connection (the page reconnects).</div>
+        <div class="section-description">Local maintenance — reset session state or restart the server without a terminal. <strong>Single-user / localhost only.</strong> The server restart briefly drops the connection (the page reconnects). The database is the permanent source of truth and cannot be rebuilt from here.</div>
         <div id="admin-status" class="justification-note mb-2">Loading status…</div>
 
         <div class="section-heading" style="font-size:13px;margin-top:10px;">Session state</div>
@@ -340,19 +340,10 @@
           <button data-action="adminResetAll" class="btn btn-secondary btn-compact">Reset ALL sessions</button>
         </div>
 
-        <div class="section-heading" style="font-size:13px;margin-top:10px;">Search data</div>
-        <div class="compact-flex mb-2">
-          <button data-action="adminRebuildEmbeddings" class="btn btn-secondary btn-compact">Rebuild search vectors (embeddings)</button>
-          <button data-action="adminRebuildDb" class="btn btn-secondary btn-compact">Rebuild database (full re-ingest)</button>
-          <label class="justification-note"><input type="checkbox" id="admin-rebuild-embed"> also embed</label>
-        </div>
-
         <div class="section-heading" style="font-size:13px;margin-top:10px;">Server</div>
         <div class="compact-flex mb-2">
           <button data-action="adminRestart" class="btn btn-secondary btn-compact">Restart server (reload)</button>
         </div>
-
-        <pre id="admin-job-view" class="session-pre hidden" style="max-height:220px;"></pre>
       </div>
     </div>
 

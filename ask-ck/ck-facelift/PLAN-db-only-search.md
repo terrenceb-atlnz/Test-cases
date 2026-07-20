@@ -4,14 +4,28 @@
 > **Phase 1 ✅ DONE 2026-07-20** — runtime is strictly DB-only. `data.py` + `pytest_create.py`
 > source every corpus/reference from `db.*`; `main.py` fails fast if `ck.db` is absent (no JSON
 > fallback); `tool/guard_db_only.py` fails if a corpus JSON read reappears under `CK_server/`.
-> Also landed the same day: literal script-code ingest (`scripts_sources.jsonl` → `script_chunks`
-> / `chunks_fts`, 5,782 chunks) and the full semantic embed pass (~84k vectors incl. `vec_chunks`),
-> with the embedding model bundled + loading fully offline. Three latent bugs fixed en route
-> (embed `HAS_VEC` guard checked before the connection opened → `--embed` never ran; sqlite-vec
-> KNN issued as a JOIN → silently returned nothing → hybrid was keyword-only; huggingface
-> load-time ping → forced `HF_HUB_OFFLINE`). **Remaining:** Phase 2 (fold local XML straight into
-> the DB, retire the `zephyr_cases.jsonl` courier), Phase 5 (prune legacy offline JSON tools +
-> add the greppable guard to CI). The runtime invariant below is now met and guarded.
+> Also landed the same day: literal script-code ingest (5,782 chunks) and the full semantic embed
+> pass (~84k vectors), model bundled + loading fully offline; three latent bugs fixed.
+>
+> **FINAL STATE ✅ DONE 2026-07-20b — `ck.db` is the PERMANENT single source of truth.** Terrence's
+> decision superseded the "keep couriers as build input / remote snapshots" framing that the rest
+> of this doc (below) describes. What actually happened:
+> - `ck.db` (+ its ~84k vectors + the offline model) is **committed to the repo via Git LFS**. A
+>   fresh clone gets a populated, searchable DB with **no build step**.
+> - **All courier/intermediate source files were DELETED** — `zephyr_cases.jsonl`, `index.json`,
+>   `slim_index.json`, `zephyr_master.json`, `testlink_awp.json`, `test_id_description.json`+`.csv`,
+>   `candidates.json`, `decisions/*`, the ~120 `suite_*_enriched.json` + `all_test_suites.json`,
+>   `scripts_index.json`, `scripts_slim_index.json`, `scripts_sources.jsonl`,
+>   `scripts_index_enrich.jsonl`, `framework_surface.json`, `scripts_index.meta.json`. The one raw
+>   original kept is the Zephyr XML export (immutable provenance root).
+> - **No rebuild, no corpus APIs, no re-fetch.** `tool/build_db.py` is provenance-only and refuses
+>   to run (would delete the committed DB, can't repopulate). The admin panel's Rebuild-DB /
+>   Rebuild-embeddings actions were removed (endpoints + UI). `setup.sh` now *verifies* the shipped
+>   DB instead of building it.
+>
+> The Phase-2/3/4/5 material and the source-classification table below are **historical** — they
+> planned a gentler "eliminate local couriers, keep remote snapshots" path that the final decision
+> overtook. Kept for design context; the FINAL STATE above is what shipped.
 
 **Decision (2026-07-16):** `ck.db` becomes the **single source for all search and all
 runtime reference lookups**. The running server reads **zero JSON**. Original sources are
@@ -94,56 +108,85 @@ target already had a DB home + getter.
    steps/priority/status/labels + the new issues/attachments). Fix `_zephyr_row_to_case`
    if any master-only field is missing.
 
-### Phase 2 — Fold the LOCAL original (XML) directly into the DB  *(host-agnostic; XML is in-repo)*
-1. Turn `extract_zephyr_xml.py` into an importable parser (`parse_testcase`, `norm_script`
-   already are) and have `build_db.ingest_zephyr` **stream the XML** via `ET.iterparse`
-   straight into `zephyr_cases` — no `zephyr_cases.jsonl` write/read.
-2. `build_db` gains an `--xml PATH` (default to the in-repo export) and the jsonl becomes
-   optional/removed. Keep the XML as the immutable original.
-3. Retire `zephyr_cases.jsonl`, `index.json`, `slim_index.json` as pipeline inputs.
-
-### Phase 3 — Integrate the staged feature work  *(rides the same rebuild)*
-- scripts literal-code + Zephyr enrichment are already coded; they land in the Phase-4
-  rebuild. No extra work beyond making sure ingest order is right.
-
-### Phase 4 — Single coordinated rebuild + verification  *(spans testbox + API hosts — see checklist)*
-- One `python3 tool/build_db.py --fresh --verify`, then `--embed`.
-- Verify: server boots reading **only** the DB; every search endpoint 200; counts match;
-  scripts `search_code` returns chunks; Zephyr plain bodies + issues populated; `/health`
-  green; `grep` shows no runtime JSON reads.
-
-### Phase 5 — Prune + guard  *(host-agnostic)*
-- Remove/quarantine legacy JSON-consuming **offline** tools that are not the product
-  (`build_drafting_tool.py` — the retired single-file tool; `build_review_html.py`;
-  `build_refined_viewer.py`; `render_batches.py`; `draft_stub.py`). Move to `tool/legacy/`
-  or delete.
-- Delete dead artifacts with no reader (zephyr `index.json`, `slim_index.json`).
-- Add a tiny test that greps `CK_server/` for runtime JSON reads and fails if any exist.
-- Update `README` + `main.py` docstring (drop "single-file static approach" lineage).
-
 ---
 
-## TESTBOX / REMOTE-HOST CHECKLIST  *(do these when physically on the testbox / API host)*
+# Phase 2 — Retire the intermediate JSON couriers (SCOPED 2026-07-20)
 
-- [ ] On the testbox (`TESTBOX_HOME` reachable): run `python3 tool/build_script_index.py`
-      to produce the scripts **source + chunks** courier (`scripts_sources.jsonl`).
-- [ ] **Decide the scripts courier→DB mechanism** (deferred design choice): thin transport
-      file piped into `build_db` (never searched) vs. build the DB on the testbox and ship
-      the binary `.db` vs. remote DB write. Then wire it.
-- [ ] If fresh corpora wanted: re-pull TestLink / ATP / Zephyr-API where the APIs are
-      reachable, writing **directly into the DB** (or refresh the snapshot couriers).
-- [ ] Add the script sources into the DB (`source_text` + `script_chunks`).
-- [ ] Run the single `build_db --fresh --verify` then `--embed` (vectors incl. `vec_chunks`).
-- [ ] Confirm server boots DB-only and `search_code` / hybrid returns real code.
+**Goal.** Today `build_db.py` ingests from ~7 intermediate JSON/JSONL files. Some of those are
+*derived middle-men* over a raw original that lives right here; those can be **eliminated** —
+`build_db` reads the raw original directly. Others are the only local copy of a **remote** system's
+data; those cannot be eliminated (you can't ingest "straight from the API" on a host that can't
+reach the API), but they can be **honestly reclassified** as documented remote snapshots.
 
----
+This phase is about the **build** pipeline only. The runtime is already strictly DB-only (Phase 1);
+nothing here touches `CK_server/` request paths.
+
+## Source classification (the whole point of Phase 2)
+
+| Source | Raw original | Where | Courier today | Phase-2 action |
+|---|---|---|---|---|
+| Zephyr XML cases | `Zephyr-Database-*.xml` (125 MB) | **local, in-repo (LFS)** | `zephyr_cases.jsonl` (54M) | **ELIMINATE** — stream XML→DB directly |
+| Zephyr `index.json` / `slim_index.json` | — | in-repo | (already unused) | **DELETE** — dead, no reader |
+| Scripts source+chunks | `.py` files | **local NFS mount** (testbox) | `scripts_sources.jsonl` (35M) | **ELIMINATE** — `build_db` drives `build_script_index` in-process |
+| Scripts mechanical index | `.py` files | local mount | `scripts_index.json` (2.4M) | **ELIMINATE** — same in-process path |
+| Zephyr API targets | JIRA/Zephyr Scale API | **remote** (`extract_zephyr.py`, `JIRA_KEY`) | `zephyr_master.json` | **KEEP** as remote snapshot (relabel) |
+| TestLink | TestLink XML-RPC | **remote** (`extract_testlink.py`, `TESTLINK_DEVKEY`) | `testlink_awp.json` | **KEEP** as remote snapshot |
+| ATP descriptions | enriched-suites pipeline | remote/derived | `test_id_description.json` | **KEEP** as remote snapshot |
+| candidates / decisions | matching pipeline outputs | **derived here** (`build_candidates.py`) | `candidates.json`, `decisions/*.json` | **OPTIONAL** — could write straight to DB; low value, defer |
+
+So Phase 2's real deliverable: **the two local originals (Zephyr XML, scripts) ingest with no
+intermediate file.** The three remote snapshots stay, clearly documented as *"remote-source
+build snapshots — refresh by re-running the extractor where the API/host is reachable"*, never
+read at runtime (already guaranteed by `guard_db_only.py`).
+
+## Steps
+
+**2a. Zephyr XML direct-to-DB (host-agnostic — XML is in-repo).**
+- `extract_zephyr_xml.py` already exposes `parse_testcase(elem)` → normalized `rec` dict. Import it.
+- Rewrite `build_db.ingest_zephyr` to `ET.iterparse` the XML (keep `elem.clear()` for O(1) memory)
+  and feed each `rec` through the *existing* row-builder — byte-identical rows to the jsonl path.
+- `build_db` gains `--xml PATH` (default = the in-repo `Zephyr-Database-*.xml`); the `.jsonl`
+  becomes a fallback only if `--xml` is absent, then removed once proven.
+- **Verify:** `--fresh --verify` counts unchanged (45,427 xml + 410 api); a spot-diff of 20 case
+  rows (xml-direct vs old jsonl) is identical.
+
+**2b. Scripts direct-to-DB (needs the testbox NFS mount — present on the build host).**
+- `build_script_index.py` already produces records + chunks in-memory before it writes
+  `scripts_index.json` / `scripts_sources.jsonl`. Expose that as an importable
+  `build_records() -> (records, sources)` and have `build_db` call it directly, ingesting from
+  the returned objects instead of re-reading the two files.
+- Keep `build_script_index.py` runnable standalone (writing the files) for debugging, but
+  `build_db` no longer depends on the files existing.
+- **Verify:** `scripts` count 830, `script_chunks` 5,782, `search_code` returns real code.
+
+**2c. Relabel the remote snapshots (documentation + a guard, no code move).**
+- Add a `meta` row per remote source recording extractor + fetch time (already partly there via
+  `src_mtime:*`). Rename/clarify in `build_db --help` + SERVER-README: these three JSON files are
+  **remote-source snapshots**, refreshed by `extract_zephyr.py` / `extract_testlink.py` / the ATP
+  pipeline where reachable — build input only, never a runtime or search source.
+
+**2d. Delete dead artifacts.**
+- Remove `data/zephyr_full/index.json` + `slim_index.json` (no reader after 2a).
+- Retire the legacy offline tools that only ever consumed the old JSON (`build_drafting_tool.py`,
+  `build_review_html.py`, `build_refined_viewer.py`, `render_batches.py`, `draft_stub.py`) →
+  `tool/legacy/` or delete. Confirm none are imported by `CK_server/` or `build_db` first.
+
+**2e. (optional, defer) candidates/decisions to DB.** `build_candidates.py` could write rows to
+the `candidates` table instead of `candidates.json`. Low payoff (small files, derived here, already
+DB-backed at runtime); list as a nice-to-have, not blocking.
+
+## What Phase 2 does NOT do
+- It does **not** make the build runnable with zero files — the three remote snapshots remain
+  (that's a physics limit, not debt). "No source docs at all" is only achievable if the build
+  always runs where JIRA/TestLink/ATP are reachable; that's a separate operational decision.
+- It does **not** touch the runtime (Phase 1 already made that DB-only) or the schema.
 
 ## Risks / notes
-- **Shape parity** (Phase 1.6) is the main correctness risk — the RAM `zephyr_master.json`
-  dict and the DB row form must expose the same fields to consumers.
-- **XML streaming in build_db** (Phase 2) must keep `iterparse` + `elem.clear()` for O(1)
-  memory (the extractor already does this).
-- The **only** JSON that legitimately survives is the remote-source build courier; it must
-  be documented as build-input-only and excluded from any search code path.
-- Everything except the testbox/API steps is host-agnostic and can be built + verified on
-  the dev/server host against a local `--fresh` rebuild.
+- **Row parity** is the main risk in 2a/2b — the XML-direct and script-direct rows must be
+  byte-identical to today's. Mitigation: keep the existing row-builders; only change *where the
+  input dict comes from*, diff spot rows before deleting the couriers.
+- **iterparse memory**: keep `elem.clear()` (extractor already does).
+- **Build host must have the testbox NFS mount** for 2b (it does today — repo lives on it). If a
+  build ever runs off-testbox, 2b degrades to "scripts code empty" exactly as the sidecar-absent
+  path does now — non-fatal.
+- Everything except 2b is host-agnostic; 2a/2c/2d/2e verify on the dev/server host.

@@ -1,13 +1,13 @@
 // Admin panel — hidden maintenance controls, revealed by DOUBLE-clicking CK's
 // face (top-left sidebar logo). Single-click still goes Home; double-click opens
-// this panel. Reset session state, rebuild search data, or restart the server
-// without a terminal. Heavy rebuilds run server-side as background jobs; we poll
-// /api/admin/job and show a live tail. See routers/admin.py.
+// this panel. Reset session state or restart the server without a terminal.
+//
+// DB rebuild is intentionally absent: ck.db is the permanent single source of
+// truth (built once; source couriers retired), so nothing here can wipe/refill
+// corpora — only sessions and the server process are mutable. See routers/admin.py.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { goToPanel } from './nav.js';
-
-let _pollTimer = null;
 
 export function openAdminPanel() {
   goToPanel('panel-admin');
@@ -26,34 +26,9 @@ async function refreshAdminStatus() {
     const parts = Object.entries(c).map(([k, v]) => `${k}:${v}`).join(' · ');
     el.textContent = `DB ${db.ok ? 'ready' : 'NOT ready'} — ${parts || 'no counts'} · vectors ${vec}`
       + (db.embeddings != null ? ` · ${db.embeddings} embeddings` : '');
-    if (d.job && d.job.state && d.job.state !== 'idle') renderJob(d.job);
   } catch (e) {
     el.textContent = 'Status unavailable: ' + e;
   }
-}
-
-function renderJob(job) {
-  const view = document.getElementById('admin-job-view');
-  if (!view) return;
-  view.classList.remove('hidden');
-  const dur = job.started
-    ? Math.round(((job.finished || (Date.now() / 1000)) - job.started)) + 's'
-    : '';
-  view.textContent = `job: ${job.name || '-'} · ${job.state} ${dur}`
-    + (job.returncode != null ? ` · rc=${job.returncode}` : '')
-    + (job.tail ? `\n\n${job.tail}` : '');
-}
-
-function startPolling() {
-  if (_pollTimer) return;
-  _pollTimer = setInterval(async () => {
-    try {
-      const r = await fetch('/api/admin/job');
-      const job = await r.json();
-      renderJob(job);
-      if (job.state !== 'running') { clearInterval(_pollTimer); _pollTimer = null; refreshAdminStatus(); }
-    } catch (_) { clearInterval(_pollTimer); _pollTimer = null; }
-  }, 1500);
 }
 
 async function post(path, body) {
@@ -95,20 +70,6 @@ async function adminResetAll() {
   } catch (e) { alert('Reset failed: ' + e); }
 }
 
-// --- rebuilds (background) ----------------------------------------------------
-async function adminRebuildEmbeddings() {
-  if (!confirm('Rebuild semantic-search vectors?\nRuns build_db.py --embed in the background (downloads the model on first run; a few minutes CPU). Keyword search keeps working meanwhile.')) return;
-  try { await post('/rebuild-embeddings'); startPolling(); refreshAdminStatus(); }
-  catch (e) { alert('Could not start: ' + e); }
-}
-
-async function adminRebuildDb() {
-  const embed = !!document.getElementById('admin-rebuild-embed')?.checked;
-  if (!confirm(`Rebuild the ENTIRE database (full re-ingest of all corpora)${embed ? ' + embeddings' : ''}?\nThis is heavy and takes a while. Sessions are preserved. Runs in the background.`)) return;
-  try { await post('/rebuild-db', { embed }); startPolling(); refreshAdminStatus(); }
-  catch (e) { alert('Could not start: ' + e); }
-}
-
 // --- restart -----------------------------------------------------------------
 async function adminRestart() {
   if (!confirm('Restart the server?\nThe app reloads (dev server runs with --reload). The page will briefly lose connection and then reconnect.')) return;
@@ -122,6 +83,5 @@ async function adminRestart() {
 }
 
 registerActions({
-  adminResetCase, adminResetWorkspace, adminResetAll,
-  adminRebuildEmbeddings, adminRebuildDb, adminRestart,
+  adminResetCase, adminResetWorkspace, adminResetAll, adminRestart,
 });

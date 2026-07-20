@@ -4,6 +4,16 @@
 
 **Last Updated**: 2026-07-20 (by Claude)
 
+## Latest session (2026-07-20c) — ck.db is the PERMANENT single source of truth
+
+**`ck.db` committed to the repo via Git LFS; courier/source files deleted; rebuild removed. All pushed to main.**
+
+- **DB is now THE data, not a cache.** `ck.db` (412 MB) + its ~84k vectors + the bundled offline embedding model are committed via Git LFS (`.gitignore` un-ignores them; `/var/` rule anchored so it no longer shadows `ask-ck/var/`). A fresh clone gets a populated, semantically-searchable DB with **zero build step**.
+- **Couriers/intermediates DELETED** (148 files): `zephyr_cases.jsonl`, `index.json`, `slim_index.json`, `zephyr_master.json`, `testlink_awp.json`, `test_id_description.json`+`.csv`, `candidates.json`, `decisions/*` (14), ~120 `suite_*_enriched.json` + `all_test_suites.json`, `scripts_index.json`, `scripts_slim_index.json`, `scripts_sources.jsonl`, `scripts_index_enrich.jsonl`, `framework_surface.json`, `scripts_index.meta.json`. **Kept:** the raw Zephyr XML export (immutable provenance root).
+- **No rebuild / no APIs / no re-fetch.** `tool/build_db.py` is provenance-only and refuses to run (would delete the committed DB). Admin panel Rebuild-DB + Rebuild-embeddings removed (`routers/admin.py`, `admin.js`, `index.html`); reset-session + restart kept. `setup.sh` verifies the shipped DB instead of building it.
+- **Verified after teardown:** server boots + all searches (keyword/semantic/hybrid/code) work with couriers GONE; `/health` ok, vectors on, 83816 embeddings; guard green; `build_db --fresh` correctly refuses. Order was safe: committed+pushed+fsck-verified the DB *before* any deletion.
+- Docs synced: README, SERVER-README, this file, PLAN-db-only-search (final-state header). Memory: `db-is-permanent-source`.
+
 ## Latest session (2026-07-20b) — Strict DB-only Phase 1 + script-code + semantic embeddings
 
 **Read next for design:** `ask-ck/ck-facelift/PLAN-db-only-search.md` (Phase 1 now ✅). Committed this session.

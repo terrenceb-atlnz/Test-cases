@@ -60,25 +60,29 @@ This version replaces the original single-file static `index.html` approach.
 - **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) persists the workspace default to the sessions table (`id='_workspace_llm'`, migrated off `sessions/_workspace_llm.json` in the 2026-07-16 DB migration); load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session. `GET /api/wizard/llm_config` returns the persisted default (no secrets) so a cold page load shows the real status instead of "No credential".
 - Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
-**Data** (SQLite `ck.db`, migrated 2026-07-16):
-- All corpora + sessions are served from **`ask-ck/var/ck.db`** (gitignored; build/rebuild with
-  `python3 tool/build_db.py --fresh --verify`). `db.py` is the single access layer:
+**Data** (SQLite `ck.db` — the permanent single source of truth):
+- All corpora + sessions live in **`ask-ck/var/ck.db`**, **committed to the repo via Git LFS**
+  (with its ~84k vectors + the bundled offline embedding model). Built **once** from the provided
+  data; **NOT rebuildable** — a fresh clone gets the populated DB with no build step. `db.py` is
+  the single access layer:
   - Zephyr (45k XML cases + 410 API targets), TestLink historical, enriched ATPyLib, the script index
-  - FTS5 keyword search (`db.search_*`) + optional sqlite-vec **hybrid/semantic** (`mode=keyword|hybrid|semantic`; degrades to keyword when the extension can't load)
+  - FTS5 keyword search (`db.search_*`) + sqlite-vec **hybrid/semantic** (`mode=keyword|hybrid|semantic`; degrades to keyword if the extension can't load)
   - Sessions (per-case + workspace LLM) with `llm_config` isolated in its own column
   - Literal script **source code** + code chunks (`script_chunks` / `chunks_fts`) — `db.search_code` / `search_code_hybrid`
   - ~84k semantic vectors across all corpora incl. code chunks; embedding model bundled under
     `ask-ck/var/models/`, loads **fully offline** (`HF_HUB_OFFLINE`) — no external dependency
-- **Strict DB-only runtime (Phase 1, 2026-07-20):** the server reads corpora **only** from
-  `ck.db` — **zero runtime JSON**. `data.py` sources every reference (zephyr_master, candidates,
-  decisions, framework_surface, scripts_index_meta) from `db.*` getters; startup **fails fast**
-  if `ck.db` is missing (no JSON fallback). Enforced by **`tool/guard_db_only.py`** (fails if a
-  corpus JSON read reappears under `CK_server/`). The JSON/JSONL under
-  `ask-ck/objective-drafting/data/` + `ask-ck/pytest-create/data/` is the rebuildable **build
-  input** for `tool/build_db.py` only. Remaining phases (retire local XML→jsonl courier, prune
-  legacy offline tools): **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
-  - **`ck.db` is gitignored** because it is a derived, rebuildable cache (regenerates
-    byte-identically from tracked source exports), not a source of truth — like a build artifact.
+- **Strict DB-only runtime:** the server reads corpora **only** from `ck.db` — **zero runtime
+  JSON**. `data.py` sources every reference (zephyr_master, candidates, decisions,
+  framework_surface, scripts_index_meta) from `db.*` getters; startup **fails fast** if `ck.db`
+  is missing. Enforced by **`tool/guard_db_only.py`**.
+- **No rebuild / no source docs.** The intermediate courier/source files the DB was built from
+  (`zephyr_cases.jsonl`, `testlink_awp.json`, `test_id_description.*`, `candidates.json`,
+  `decisions/*`, the enriched-suite corpus, `scripts_index*.json` / `scripts_sources.jsonl`,
+  `framework_surface.json`) have been **deleted** — the DB is the only copy. `tool/build_db.py`
+  remains only as provenance of how the DB was constructed and **refuses to run** (it would
+  delete the committed DB and cannot repopulate it). The one raw original kept is the Zephyr XML
+  export, as an immutable provenance root. There are no corpus APIs and no re-fetch — the corpus
+  data is a fixed snapshot. See **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
 
 **Hosting**:
 - Intended to run behind nginx on a local IP.
@@ -159,11 +163,11 @@ PORT=9000 ./run.sh
 
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
 > server against the existing `ask-ck/var/ck.db` in seconds. `setup.sh` is for
-> first-time setup and DB **rebuilds** — it re-ingests every corpus (slow) and
-> prompts about embeddings. You only need `setup.sh` when the source data
-> changed or `ck.db` is missing; day-to-day, use `run.sh --bg` / `--restart`.
-> The server also runs with `--reload`, so **code edits hot-reload without any
-> restart** — you usually only need to restart for env/dependency changes.
+> first-time environment setup — venv/deps + `git lfs pull` to materialize the
+> committed DB, then a quick sanity-check (it does **not** rebuild the DB; the DB
+> is shipped). Day-to-day, use `run.sh --bg` / `--restart`. The server also runs
+> with `--reload`, so **code edits hot-reload without any restart** — you usually
+> only need to restart for env/dependency changes.
 
 ### Admin panel (in-page maintenance)
 
@@ -172,15 +176,14 @@ to open a hidden **Admin** panel. Local single-user convenience so you don't
 drop to a terminal. Actions (`/api/admin/*`, all confirmation-gated):
 - **Reset current case session** / **workspace LLM config** / **ALL sessions** —
   clears working session state only; corpora are never touched.
-- **Rebuild search vectors** (`build_db.py --embed`) / **Rebuild database**
-  (`--fresh --verify --sessions`, optional embed) — run as background jobs with a
-  live status tail (polled from `/api/admin/job`).
 - **Restart server** — touches a watched `.py` file so uvicorn's `--reload`
   reloads the app; the page reconnects after ~2s.
 
-> **Localhost/single-user only.** These actions rebuild data and restart the
-> process; do not expose `/api/admin/*` on a shared deployment without adding
-> auth.
+> **No DB rebuild here.** `ck.db` is the permanent, committed source of truth
+> (built once; source couriers retired), so the panel intentionally has no
+> rebuild/re-ingest action — nothing in the product can wipe or refill corpora.
+> **Localhost/single-user only** — do not expose `/api/admin/*` on a shared
+> deployment without adding auth.
 
 The script automatically:
 - Uses `python3`
