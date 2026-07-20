@@ -9,6 +9,7 @@ Per PROGRESS.md (High Priority #1) and SERVER-README.md:
   so confirmed state + selections survive restarts.
 """
 
+import time
 from fastapi import APIRouter, Depends, HTTPException, Body
 from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
@@ -34,6 +35,7 @@ from llm import (
     generate_coverage_gaps,
     check_claude_cli,
     check_grok_cli,
+    _health_ping,
 )
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from jinja2 import Environment, FileSystemLoader
@@ -1060,16 +1062,21 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
     q = body.get("q") or _build_atp_query(sess)
     candidates = _get_atp_candidates(q, data, limit=25)
 
-    # Call LLM for selection (respects session llm_config)
-    llm_cfg = {}
-    if hasattr(sess, "llm_config"):
-        llm_cfg = sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
-    suggestions = await run_in_threadpool(
+    # Call LLM for selection. _session_llm_cfg applies the workspace LLM at dispatch
+    # time so this respects the configured backend even if the session's persisted
+    # config is stale/inactive.
+    llm_cfg = _session_llm_cfg(sess)
+    dry_run = bool(body.get("dry_run"))
+    result = await run_in_threadpool(
         suggest_relevant_atp,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
         llm_config=llm_cfg,
+        dry_run=dry_run,
     )
+    if dry_run:
+        return _preview_from(result)
+    suggestions = result
 
     # Enrich with full source descriptions (not just LLM reason) for Step 3 UI
     test_id_desc = data.get("test_id_desc", {}) or {}
@@ -1101,9 +1108,33 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
 
 
 def _session_llm_cfg(sess: WizardSession) -> dict:
+    # Apply the workspace LLM login at dispatch time if this session has no active
+    # config of its own — otherwise a stale/inactive persisted config (or a session
+    # whose workspace login was applied after it was first loaded) would fall through
+    # to the LLM layer's default backend, silently using the wrong provider. load_case
+    # applies it once; centralizing here guarantees every LLM handler resolves the
+    # current workspace backend at call time. Same fix as pytest_create._llm_cfg.
+    if _apply_workspace_llm_if_needed(sess):
+        _mark_updated(sess)
+        _persist_session(sess)
     if hasattr(sess, "llm_config"):
         return sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
     return {}
+
+
+def _preview_from(result) -> dict:
+    """Shape a dry_run function result ({dry_run, prompt, ...}) into the standard
+    provenance-preview HTTP response. dry_run reuses the endpoint's real path so
+    the previewed prompt is 1-for-1 with what a real send would transmit."""
+    r = result if isinstance(result, dict) else {}
+    return {"provenance": {
+        "prompt": r.get("prompt", ""),
+        "provider": r.get("provider"),
+        "model": r.get("model"),
+        "auth_method": r.get("auth_method"),
+        "note": r.get("note"),
+        "dry_run": True,
+    }}
 
 
 @router.post("/suggest_testlink/{key}")
@@ -1141,13 +1172,18 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
                 "score": cand.get("score") or 0.5,
             })
             seen.add(cid)
-    suggestions = await run_in_threadpool(
+    dry_run = bool(body.get("dry_run"))
+    result = await run_in_threadpool(
         suggest_relevant_testlink,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
         llm_config=_session_llm_cfg(sess),
         case_title=case_title,
+        dry_run=dry_run,
     )
+    if dry_run:
+        return _preview_from(result)
+    suggestions = result
     # Enrich suggestions with full source descriptions for the UI merge
     by_id = {c.get("id"): c for c in candidates if c.get("id")}
     enriched = []
@@ -1194,13 +1230,18 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
         q_parts.append(sel.title or "")
     q = body.get("q") or " ".join(filter(None, q_parts))
     candidates = _search_zephyr_external(q, data, case_key=key, limit=30)
-    suggestions = await run_in_threadpool(
+    dry_run = bool(body.get("dry_run"))
+    result = await run_in_threadpool(
         suggest_relevant_zephyr,
         sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
         candidates,
         llm_config=_session_llm_cfg(sess),
         case_title=case_title,
+        dry_run=dry_run,
     )
+    if dry_run:
+        return _preview_from(result)
+    suggestions = result
     by_id = {c.get("id") or c.get("key"): c for c in candidates}
     # Rebuild rows then re-enrich so LLM-only hits still get full case bodies
     draft = []
@@ -1346,6 +1387,39 @@ async def get_llm_config():
     if am == "local_llm":
         safe["local_llm_key_set"] = bool(get_local_llm_key())
     return {"llm_config": safe}
+
+
+@router.post("/llm_health")
+async def llm_health():
+    """Ping the configured workspace LLM with a minimal completion to confirm it
+    is reachable and answering. Exercises the exact real-call path (config
+    resolution + credential + transport via _call_llm_with_meta), so it
+    distinguishes 'my config is wrong' from 'the backend is down', and the ping
+    is recorded in debug-log like any other call. Provider-agnostic: works for
+    whatever auth_method is active, not just local_llm.
+    """
+    cfg = _load_global_llm()
+    if not cfg or not _llm_is_active(cfg):
+        return {"ok": False, "reason": "not_configured",
+                "detail": "No active LLM configuration. Apply a provider on the Configure page first."}
+    llm_cfg = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+    t0 = time.monotonic()
+    # Tiny prompt through the same choke point every real call uses. run_prompt
+    # needs a template; use a throwaway one-liner rendered inline via a literal.
+    meta = await run_in_threadpool(
+        _health_ping, llm_cfg,
+    )
+    latency_ms = int((time.monotonic() - t0) * 1000)
+    if meta.get("error"):
+        return {"ok": False, "reason": "call_failed",
+                "auth_method": getattr(cfg, "auth_method", None),
+                "model": meta.get("model"), "latency_ms": latency_ms,
+                "detail": (meta.get("error_detail") or meta.get("content") or "LLM error")[:500]}
+    content = (meta.get("content") or "").strip()
+    return {"ok": True, "auth_method": getattr(cfg, "auth_method", None),
+            "provider": meta.get("provider"), "model": meta.get("model"),
+            "latency_ms": latency_ms, "reply": content[:80],
+            "usage": meta.get("usage")}
 
 
 @router.post("/set_llm_config")
@@ -1502,8 +1576,13 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
             "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first.",
         )
 
+    # Resolve config through _session_llm_cfg so the workspace LLM is applied at
+    # dispatch time (guards against a stale persisted config using the wrong backend).
+    llm_cfg = _session_llm_cfg(stored)
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
-    llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
+    if getattr(req, "dry_run", False):
+        preview = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg, dry_run=True)
+        return _preview_from(preview)
     # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
     # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
     result = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg)
@@ -1656,8 +1735,13 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
         s4["objective"] = client_obj
         stored.step4 = s4
 
+    llm_cfg = _session_llm_cfg(stored)  # applies workspace LLM at dispatch time
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
-    llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
+    if getattr(req, "dry_run", False):
+        preview = await run_in_threadpool(
+            synthesize_steps, session_dict, llm_config=llm_cfg,
+            objective=_session_objective(stored), dry_run=True)
+        return _preview_from(preview)
     try:
         result = await run_in_threadpool(
             synthesize_steps,
@@ -1707,8 +1791,8 @@ async def synthesize(req: SynthesisRequest):
             "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first. This gate is enforced server-side per the repeatable process.",
         )
 
+    llm_cfg = _session_llm_cfg(stored)  # applies workspace LLM at dispatch time
     session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
-    llm_cfg = session_dict.get("llm_config", {}) if isinstance(session_dict, dict) else {}
     result = await run_in_threadpool(synthesize_objectives_and_steps, session_dict, llm_config=llm_cfg)
 
     stored.step4 = {
@@ -1775,7 +1859,13 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     step5 = sess_dict.get("step5", {}) or {}
 
     # Gaps belong in Traceability and are LLM-generated at objective synthesis/export,
-    # not collected as a Step 3 form field.
+    # not collected as a Step 3 form field. Apply the workspace LLM at dispatch time
+    # when we have a real session object (may be a client-supplied req.session here),
+    # so the coverage-gaps call uses the configured backend, not the default.
+    if hasattr(stored, "llm_config") and _apply_workspace_llm_if_needed(stored):
+        _mark_updated(stored)
+        _persist_session(stored)
+        sess_dict["llm_config"] = stored.llm_config.dict() if hasattr(stored.llm_config, "dict") else stored.llm_config
     llm_cfg = sess_dict.get("llm_config", {}) if isinstance(sess_dict, dict) else {}
     if not (sess_dict.get("gaps") or "").strip():
         gaps_out = generate_coverage_gaps(sess_dict, llm_config=llm_cfg)

@@ -104,8 +104,44 @@ def _apply_workspace_llm(sess: PtSession) -> bool:
 
 
 def _llm_cfg(sess: PtSession) -> dict:
+    # Apply the workspace LLM login at dispatch time if this session has no
+    # active config of its own. Without this, an LLM endpoint would fall back to
+    # run_prompt's default backend (claude_agent/model=default) instead of the
+    # provider the user configured on the Configure page — silently sending the
+    # prompt to the wrong LLM. load_case applies it once, but a stale/inactive
+    # persisted config (or a session touched before the workspace login) would
+    # otherwise slip through. Centralized here so no endpoint can forget it,
+    # mirroring the wizard's per-call _apply_workspace_llm_if_needed.
+    if _apply_workspace_llm(sess):
+        _pt_persist(sess)
     cfg = sess.llm_config
     return cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+
+
+async def _dry_run(request: Request) -> bool:
+    """Read the optional dry_run flag from the request body (provenance preview).
+
+    dry_run means: render the exact prompt this endpoint would send, and return
+    it WITHOUT calling the LLM (no tokens). The Refresh button on a provenance
+    block reuses the endpoint's own handler with this flag set, so the previewed
+    prompt is 1-for-1 with what a real send transmits.
+    """
+    try:
+        body = await request.json()
+        return bool(body.get("dry_run"))
+    except Exception:
+        return False
+
+
+def _provenance_preview(meta: dict) -> dict:
+    """Shape a dry_run meta into the standard provenance-preview response."""
+    return {"provenance": {
+        "prompt": meta.get("prompt", ""),
+        "provider": meta.get("provider"),
+        "model": meta.get("model"),
+        "auth_method": meta.get("auth_method"),
+        "dry_run": True,
+    }}
 
 
 def _confirm(sess: PtSession, step_key: str) -> None:
@@ -595,16 +631,23 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
 async def extract_sequence(key: str, request: Request):
     data = _data(request)
     sess = _pt_get(key)
+    dry_run = await _dry_run(request)
     fields = _case_payload_fields(sess)
     if not fields["steps"]:
         raise HTTPException(409, "Refined case has no test steps to work from.")
+    # Sequence extraction runs off the authoritative inputs only (objective + Zephyr
+    # steps). Traceability context was deliberately dropped: it added ~35% of the
+    # prompt tokens as reviewer-facing prose (coverage-gap essays, empty section
+    # placeholders, workflow status) with no bearing on converting steps into an
+    # automatable sequence.
     meta = await run_in_threadpool(run_prompt, "pt_extract_sequence.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
         "objective": fields["objective"],
         "steps": fields["steps"],
-        "traceability": (sess.traceability or "")[:3000],
-    }, llm_config=_llm_cfg(sess))
+    }, llm_config=_llm_cfg(sess), dry_run=dry_run)
+    if dry_run:
+        return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     parsed = extract_json_block(meta.get("content", ""))
@@ -617,6 +660,7 @@ async def extract_sequence(key: str, request: Request):
     sess.step2 = {"sequence": sequence, "notes": notes,
                   "confirmed": False,
                   "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                                 "prompt": meta.get("prompt", ""),
                                  "response": meta.get("content", "")[:20000]}}
     _invalidate_from(sess, 2)
     _pt_persist(sess)
@@ -657,6 +701,7 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
     """Two-stage match: mechanical top-40 -> LLM coverage verdicts."""
     data = _data(request)
     sess = _pt_get(key)
+    dry_run = bool((body or {}).get("dry_run"))
     _require_confirmed(sess, "step2", "Script search")
     sequence = (sess.step2 or {}).get("sequence") or []
     user_inputs = body.get("user_inputs", "") or (sess.step3 or {}).get("user_inputs", "")
@@ -673,6 +718,15 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
         rec = (data.get("scripts_index_by_id") or {}).get(c["id"]) or {}
         candidates.append({**c, "case_descs": [tc["desc"] for tc in rec.get("test_cases", [])
                                                if tc.get("desc")][:12]})
+
+    if dry_run:
+        if not candidates:
+            return {"provenance": {"prompt": "", "note": "no mechanical candidates to match", "dry_run": True}}
+        meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
+            "case_key": key, "sequence": sequence,
+            "user_inputs": user_inputs, "candidates": candidates,
+        }, llm_config=_llm_cfg(sess), timeout=300, dry_run=True)
+        return _provenance_preview(meta)
 
     llm_matches = []
     if candidates:
@@ -733,6 +787,7 @@ async def script_source(request: Request, id: str,
 async def assess_fit(key: str, request: Request):
     data = _data(request)
     sess = _pt_get(key)
+    dry_run = await _dry_run(request)
     _require_confirmed(sess, "step3", "Fit assessment")
     sequence = (sess.step2 or {}).get("sequence") or []
     selections = (sess.step3 or {}).get("selections") or \
@@ -763,7 +818,9 @@ async def assess_fit(key: str, request: Request):
 
     meta = await run_in_threadpool(run_prompt, "pt_assess_fit.jinja", {
         "case_key": key, "sequence": sequence, "scripts": scripts_ctx,
-    }, llm_config=_llm_cfg(sess), timeout=300)
+    }, llm_config=_llm_cfg(sess), timeout=300, dry_run=dry_run)
+    if dry_run:
+        return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     parsed = extract_json_block(meta.get("content", ""))
@@ -774,7 +831,9 @@ async def assess_fit(key: str, request: Request):
                   "rationale": parsed.get("rationale", ""),
                   "per_step": parsed.get("per_step", []),
                   "confirmed": False,
-                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model")}}}
+                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                                 "prompt": meta.get("prompt", ""),
+                                 "response": meta.get("content", "")[:20000]}}
     _invalidate_from(sess, 4)
     _pt_persist(sess)
     return {k: sess.step4[k] for k in ("decision", "base_script", "rationale", "per_step")}
@@ -804,6 +863,7 @@ async def save_fit(key: str, body: dict = Body(...)):
 async def gather_fragments(key: str, request: Request):
     data = _data(request)
     sess = _pt_get(key)
+    dry_run = await _dry_run(request)
     _require_confirmed(sess, "step4", "Fragment gathering")
     sequence = (sess.step2 or {}).get("sequence") or []
     step4 = sess.step4 or {}
@@ -830,7 +890,9 @@ async def gather_fragments(key: str, request: Request):
         "case_key": key, "sequence": sequence,
         "decision": step4.get("decision"), "base_script": step4.get("base_script"),
         "per_step": step4.get("per_step", []), "scripts": scripts_ctx,
-    }, llm_config=_llm_cfg(sess), timeout=300)
+    }, llm_config=_llm_cfg(sess), timeout=300, dry_run=dry_run)
+    if dry_run:
+        return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     parsed = extract_json_block(meta.get("content", ""))
@@ -866,7 +928,10 @@ async def gather_fragments(key: str, request: Request):
                           "loc": loc, "code": code[:8000],
                           "maps_to": f.get("maps_to", []), "why": f.get("why", "")})
 
-    sess.step5 = {"fragments": fragments, "dropped": dropped, "confirmed": False}
+    sess.step5 = {"fragments": fragments, "dropped": dropped, "confirmed": False,
+                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                                 "prompt": meta.get("prompt", ""),
+                                 "response": meta.get("content", "")[:20000]}}
     _invalidate_from(sess, 5)
     _pt_persist(sess)
     return {"fragments": fragments, "dropped": len(dropped)}
@@ -894,6 +959,7 @@ async def save_fragments(key: str, body: dict = Body(...)):
 async def generate_script(key: str, request: Request, body: dict = Body(default={})):
     data = _data(request)
     sess = _pt_get(key)
+    dry_run = bool((body or {}).get("dry_run"))
     _require_confirmed(sess, "step2", "Generation")
     # steps 3-5 may legitimately be 'new script, no fragments'; require them
     # confirmed so the human explicitly reviewed the (possibly empty) reuse.
@@ -923,7 +989,9 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "fragments": fragments,
         "exemplar": exemplar[:12000],
         "framework_surface": _framework_surface_slice(data, extra_mods),
-    }, llm_config=_llm_cfg(sess), timeout=600)
+    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
+    if dry_run:
+        return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     blocks = _parse_generated_blocks(meta.get("content", ""))
@@ -937,7 +1005,9 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
                   "library": blocks["library"]},
         "iterations": prev.get("iterations", 0) + 1,
         "confirmed": False,
-        "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")}},
+        "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                       "prompt": meta.get("prompt", ""),
+                       "response": meta.get("content", "")[:20000]},
     }
     _invalidate_from(sess, 6)
     lint = _lint_generated(sess)
@@ -1117,6 +1187,7 @@ async def fix_script(key: str, request: Request):
     """LLM revision from the latest failed run (or lint errors); archives history."""
     _data(request)  # ensure server ready
     sess = _pt_get(key)
+    dry_run = await _dry_run(request)
     step6 = sess.step6 or {}
     if not (step6.get("files") or {}).get("test"):
         raise HTTPException(409, "No script to fix.")
@@ -1142,7 +1213,9 @@ async def fix_script(key: str, request: Request):
         "lint_errors": lint_errors,
         "results": parsed.get("cases", []),
         "log_excerpts": excerpts,
-    }, llm_config=_llm_cfg(sess), timeout=600)
+    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
+    if dry_run:
+        return _provenance_preview(meta)
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     blocks = _parse_generated_blocks(meta.get("content", ""))
