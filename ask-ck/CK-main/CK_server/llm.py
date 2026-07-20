@@ -413,17 +413,58 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             if provider == "grok":
                 headers["x-api-key"] = credential  # some Grok setups prefer this
 
+            # max_tokens covers the WHOLE completion. The org vLLM models are
+            # reasoning models: they spend completion tokens on hidden
+            # chain-of-thought (returned in message.reasoning_content) BEFORE
+            # emitting the answer in message.content. A small cap (the legacy
+            # 2000) is exhausted mid-reasoning, so the model stops with
+            # finish_reason="length" and content stays null; a moderate cap lets
+            # short answers through but truncates long structured ones (e.g. a
+            # 40-candidate match table) mid-JSON. Give reasoning models generous
+            # headroom so real answers complete.
+            max_out = 16000 if auth_method == "local_llm" else 2000
             payload = {
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.2,
-                "max_tokens": 2000,
+                "max_tokens": max_out,
             }
             endpoint = f"{base_url}/chat/completions"
             resp = requests.post(endpoint, headers=headers, json=payload, timeout=120)
             resp.raise_for_status()
             data = resp.json()
-            content = data["choices"][0]["message"]["content"]
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            content = message.get("content")
+            finish = choice.get("finish_reason")
+            # Reasoning models can leave content null when the answer was
+            # squeezed out by the reasoning budget. Distinguish the failure
+            # shapes so the debug log says WHY, instead of a cryptic
+            # "'NoneType' object is not subscriptable".
+            if not content:
+                if finish == "length":
+                    raise ValueError(
+                        "model hit the token cap during reasoning and returned no "
+                        f"answer (finish_reason=length, max_tokens={max_out}). "
+                        "Raise max_tokens or shorten the prompt."
+                    )
+                # A reasoning-only response (content empty, thoughts present):
+                # fall back to reasoning_content rather than fail outright.
+                content = message.get("reasoning_content") or ""
+                if not content:
+                    raise ValueError(
+                        f"provider returned an empty completion (finish_reason={finish})."
+                    )
+            # Non-empty BUT truncated at the cap: the answer (often JSON) is cut
+            # off mid-token. Downstream JSON parsing would then silently fail and
+            # degrade to a fallback that looks like "the LLM found nothing".
+            # Surface it as a real error so the cause is visible.
+            elif finish == "length":
+                raise ValueError(
+                    "model output was truncated at the token cap "
+                    f"(finish_reason=length, max_tokens={max_out}); the answer is "
+                    "incomplete. Raise max_tokens or reduce the prompt size."
+                )
 
             print(f"[LLM {provider.upper()} via {auth_method}] Provider: {base_url} model={model}")
             print("[LLM] Prompt (first 300):", prompt[:300])
@@ -1177,10 +1218,18 @@ def extract_json_block(content: str) -> Any:
             return json.loads(fenced.group(1).strip())
         except json.JSONDecodeError:
             pass
-    for opener, closer in (("[", "]"), ("{", "}")):
+    # Try whichever bracket type appears FIRST in the string. A top-level object
+    # like {"decision": ..., "per_step": [...]} contains a nested array; trying
+    # "[" unconditionally first would balance and return that inner per_step
+    # array instead of the outer object. Ordering by first-occurrence respects
+    # the outermost structure.
+    candidates = []
+    for opener, closer in (("{", "}"), ("[", "]")):
+        pos = content.find(opener)
+        if pos != -1:
+            candidates.append((pos, opener, closer))
+    for _, opener, closer in sorted(candidates):
         start = content.find(opener)
-        if start == -1:
-            continue
         depth = 0
         for i in range(start, len(content)):
             if content[i] == opener:
