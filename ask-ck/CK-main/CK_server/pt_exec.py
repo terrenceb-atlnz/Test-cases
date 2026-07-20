@@ -40,6 +40,104 @@ PROFILE_DEFAULTS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Framework read-only invariant
+# ---------------------------------------------------------------------------
+# The testbox framework dir (profile 'framework_path', default /home/st-art/framework)
+# is READ-ONLY for this project. Nothing here may write into it, edit a file under it,
+# or run a mutating command against it. If a framework file ever needs changing, it is
+# copied into the run workdir first and edited there — an explicit exception, never the
+# default path. These guards fail LOUDLY (RuntimeError) rather than let a mutation run.
+
+class FrameworkReadOnlyError(RuntimeError):
+    """Raised when a remote operation would write into the read-only framework dir."""
+
+
+def _framework_root(profile: dict) -> str:
+    fw = (profile.get("framework_path") or "/home/st-art/framework").rstrip("/")
+    return fw or "/home/st-art/framework"
+
+
+def _norm_remote(path: str) -> str:
+    """Normalize a POSIX remote path for prefix comparison (no FS access)."""
+    # collapse redundant separators / '.' and resolve '..' textually
+    parts: List[str] = []
+    for seg in str(path).replace("\\", "/").split("/"):
+        if seg in ("", "."):
+            continue
+        if seg == "..":
+            if parts:
+                parts.pop()
+            continue
+        parts.append(seg)
+    lead = "/" if str(path).startswith("/") else ""
+    return lead + "/".join(parts)
+
+
+def _assert_write_allowed(target: str, profile: dict) -> str:
+    """Guard a remote WRITE target: reject anything under the framework dir."""
+    fw = _norm_remote(_framework_root(profile))
+    t = _norm_remote(target)
+    if t == fw or t.startswith(fw + "/"):
+        raise FrameworkReadOnlyError(
+            f"Refusing to write to '{target}': the testbox framework dir '{fw}' is "
+            f"READ-ONLY for this project. Copy the file into the run workdir and edit "
+            f"there instead.")
+    return target
+
+
+# Mutating shell verbs whose target-under-framework we must reject in exec commands.
+_MUTATING_RX = re.compile(
+    r"""(?x)
+    (?:^|\s|&&|\|\||;)\s*
+    (?:sudo\s+(?:-\S+\s+)*)?                       # optional sudo prefix
+    (rm|mv|cp|touch|mkdir|rmdir|chmod|chown|chgrp|
+     ln|dd|truncate|tee|sed\s+-i|patch)\b
+    """)
+
+
+def _under_fw(path: str, fw: str) -> bool:
+    n = _norm_remote(path)
+    return n == fw or n.startswith(fw + "/")
+
+
+# copy/link verbs where the framework path is legitimately the READ-ONLY SOURCE
+# (first operand) and only the DESTINATION (last operand) is a write target.
+_SRC_DEST_VERBS = ("cp", "mv", "ln")
+
+
+def _assert_command_allowed(cmd: str, profile: dict) -> str:
+    """Guard a remote exec string: reject a mutating verb whose WRITE TARGET is under
+    the framework dir. Read-only references are allowed — `test -d <fw>`, `PYTHONPATH=<fw>`,
+    copying/symlinking FROM the framework (fw as source), and `ln -s <fw> <name>`
+    (pointing a workdir symlink AT the framework). Only a mutation whose destination
+    sits inside the framework dir is refused. Splits on &&/||/; so each sub-command is
+    judged on its own operands."""
+    fw = _norm_remote(_framework_root(profile))
+    for sub in re.split(r"&&|\|\||;", cmd):
+        sub = sub.strip()
+        if not sub or not _MUTATING_RX.search(sub):
+            continue
+        toks = re.findall(r"\S+", sub)
+        operands = [t for t in toks if not t.startswith("-")]  # drop flags
+        verb = next((t for t in toks if not t.startswith("-")), "")
+        fw_toks = [t for t in toks if _under_fw(t, fw)]
+        if not fw_toks:
+            continue
+        # For cp/mv/ln, the framework path as SOURCE (any operand except the last)
+        # is a read-only reference and allowed; only the last operand is the write
+        # destination. For all other verbs (rm/sed -i/touch/tee/dd/…) any framework
+        # operand is a mutation of the framework and is refused.
+        if verb in _SRC_DEST_VERBS and len(operands) >= 2:
+            dest = operands[-1]
+            if not _under_fw(dest, fw):
+                continue  # framework appears only as source — fine
+        raise FrameworkReadOnlyError(
+            f"Refusing remote command that writes under the READ-ONLY framework dir "
+            f"'{fw}': {sub!r}. Copy into the workdir and operate there instead.")
+    return cmd
+
+
 def load_profiles() -> Dict[str, dict]:
     if not SECRETS_TESTBOXES.exists():
         return {}
@@ -267,10 +365,14 @@ class RunManager:
         try:
             run["status"] = "uploading"
             on_update(run)
+            # Guard: the run workdir must never be under the read-only framework dir.
+            _assert_write_allowed(workdir, profile)
             client.exec_command(f"mkdir -p {workdir}")[1].channel.recv_exit_status()
             sftp = client.open_sftp()
             for fname, code in files.items():
-                with sftp.open(f"{workdir}/{fname}", "w") as f:
+                target = f"{workdir}/{fname}"
+                _assert_write_allowed(target, profile)   # never write into framework
+                with sftp.open(target, "w") as f:
                     f.write(code)
             sftp.close()
 
@@ -279,6 +381,7 @@ class RunManager:
             fw_parent = str(Path(profile.get("framework_path", "/home/st-art/framework")).parent)
             cmd = (f"cd {workdir} && ln -sfn {profile.get('framework_path')} framework && "
                    f"sudo -n PYTHONPATH={fw_parent} python3 ./{test_name} -s {setup_remote} -v")
+            _assert_command_allowed(cmd, profile)   # no mutation of the framework dir
             run["status"] = "running"
             run["command"] = cmd
             on_update(run)
