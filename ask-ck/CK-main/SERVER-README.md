@@ -357,26 +357,21 @@ location /ask-ck/ {
 
 Access via your local IP / hostname that nginx serves.
 
-## Data Sources Used
+## Data Source
 
-**At runtime the server reads corpora ONLY from `ask-ck/var/ck.db`** via `db.py` — no JSON
-(enforced by `tool/guard_db_only.py`). The files below are the **build input** `tool/build_db.py`
-ingests into the DB; they are the rebuildable source, never read by the running server.
+**There is exactly one data source: `ask-ck/var/ck.db`** (shipped via Git LFS). The server reads
+all corpora from it via `db.py` — no JSON, ever (enforced by `tool/guard_db_only.py`). It holds:
+Zephyr (45,427 XML cases + 410 API targets), TestLink historical (21,620), ATPyLib/ATP (10,157),
+the script index + literal source code / chunks (830 scripts / 5,782 chunks), candidates,
+decisions, the framework-surface vocabulary, per-case + workspace sessions, and ~84k semantic
+vectors — everything.
 
-Ingested from `ask-ck/objective-drafting/data/` (paths anchored via `CK_server/paths.py`):
-- `data/zephyr_full/zephyr_cases.jsonl` + `data/zephyr_master.json` (Zephyr XML + API targets)
-- `data/candidates.json`, `data/decisions/*.json`
-- `data/suites/test_id_description.json` (ATP, + enriched suites), `data/suites/testlink_awp.json`
-
-Ingested from `ask-ck/pytest-create/data/` (built out-of-band, see below):
-- `scripts_index.json` — mechanical index of the three script databases
-- `scripts_sources.jsonl` — literal script **source code** + code chunks (→ `scripts.source_text`, `script_chunks`)
-- `framework_surface.json` — the `framework` library vocabulary (→ `json_docs`)
-- `scripts_index.meta.json` — build info + enrichment coverage (→ `json_docs`)
-
-Rebuild the DB after any of these change: `python3 tool/build_db.py --fresh --verify` then
-`python3 tool/build_db.py --embed` (semantic vectors). `scripts_sources.jsonl` is produced by
-`tool/build_script_index.py`.
+`ck.db` is the **permanent single source of truth**, built once and committed. The intermediate
+source/courier files it was originally built from have been **retired and deleted** — there are no
+JSON/JSONL corpora on disk and **no rebuild step**. `tool/build_db.py` remains only as provenance
+of how the DB was constructed and refuses to run. The one raw original kept, purely as a provenance
+root (not read by anything), is the Zephyr XML export at
+`ask-ck/objective-drafting/data/zephyr_full/Zephyr-Database-*.xml`.
 
 ## PyTest Creator (2026-07-14)
 

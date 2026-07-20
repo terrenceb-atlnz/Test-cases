@@ -1,5 +1,11 @@
 # ATPyLib log-enrichment — resume state (paused 2026-06-22)
 
+> **⚠ Historical / superseded (2026-07-20).** This documents how the ATP suites were enriched.
+> The outputs it describes (`suite_*_enriched.json`, `all_test_suites.json`,
+> `test_id_description.json`/`.csv`) have been **retired and deleted** — the enriched ATP data now
+> lives in **`ask-ck/var/ck.db`** (`atp_tests`), the permanent single source of truth. Kept as a
+> record of the enrichment process only.
+
 ## Project Framing
 **See [../../README.md](../../README.md) for the authoritative framing.**
 

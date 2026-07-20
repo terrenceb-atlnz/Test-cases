@@ -1,6 +1,8 @@
 # Plan: Server-Backed Objective Drafting Tool (Restarted Iteration)
 
 > **Historical document (path note, 2026-07-13)**: this plan predates the repo restructure and the Ask CK rename. Paths herein map as follows: `drafting-tool/` → `ask-ck/CK-main/`; `drafting_server/` (or `server/`) → `ask-ck/CK-main/CK_server/`; root `data/` and `refined-cases/` → `ask-ck/objective-drafting/`. The implementation it describes is live — see `../CK-main/SERVER-README.md` and `PROGRESS.md` for current state, and `../ck-facelift/PLAN-facelift.md` for the multi-tool facelift.
+>
+> **Data-layer note (2026-07-20)**: this plan describes loading corpora from JSON files (`testlink_awp.json`, `zephyr_master`, `test_id_description.json`, `slim_index`, enriched suites, …). That is superseded — all corpora now live in **`ask-ck/var/ck.db`** (permanent single source of truth, shipped via LFS); those JSON couriers have been **deleted** and the server reads only the DB via `db.py`. Treat file-based data references below as historical.
 
 **Restart Note**: This iteration of the plan has been restarted per user direction. We are migrating away from the single-file static approach to a **server-backed architecture**. 
 

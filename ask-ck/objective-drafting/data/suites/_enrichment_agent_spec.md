@@ -1,3 +1,8 @@
+> **⚠ Historical / superseded (2026-07-20).** This agent spec produced the `suite_*_enriched.json`
+> files, which have since been **retired and deleted**; the enriched ATP data now lives in
+> **`ask-ck/var/ck.db`** (`atp_tests`), the permanent single source of truth. Kept as a record of
+> how the enrichment was performed.
+
 You are enriching ONE ATPyLib regression test suite for the "Test-cases" project.
 
 **Project context** (see [../README.md](../README.md)): The goal is to improve AWPTCM Manual Test Cases by deriving Objectives from TestLink history + enriched Automated Suites, and to record many-to-one Test Suite → Manual Case mappings. The enrichment interprets "what these Test Suites are testing FOR" to support fuzzy matching and Objective synthesis.

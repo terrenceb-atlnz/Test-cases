@@ -3,6 +3,14 @@
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
 > as milestones land (same convention as `ck-facelift/PLAN-facelift.md`).
 > Approved: 2026-07-14.
+>
+> **Data-layer note (2026-07-20)**: the script-index build described here
+> (`build_script_index.py` → `scripts_index.json` / `scripts_slim_index.json` /
+> `scripts_sources.jsonl` / `framework_surface.json` / `scripts_index_enrich.jsonl`) is now
+> **provenance-only**. Those files have been **deleted**; the script index, literal source code,
+> code chunks, and framework surface all live in **`ask-ck/var/ck.db`** (permanent single source of
+> truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
+> `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
 
 ## Status Checklist
 

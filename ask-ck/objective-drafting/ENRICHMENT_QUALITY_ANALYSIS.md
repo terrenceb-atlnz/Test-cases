@@ -1,5 +1,11 @@
 # Enrichment Quality Analysis + Schema Findings
 
+> **⚠ Historical / superseded (2026-07-20).** A quality analysis of the ATP enrichment corpus.
+> The files it analyzes (`suite_*_enriched.json`, `all_test_suites.json`,
+> `test_id_description.json`/`.csv`) have been **retired and deleted**; the enriched ATP data now
+> lives in **`ask-ck/var/ck.db`** (`atp_tests`), the permanent single source of truth. Kept as a
+> record of the enrichment quality findings.
+
 ## Summary
 **Script Quality: ✅ CONSISTENT**  
 **Data Quality: ⚠️ VARIES** (original suites have richer execution history)  
