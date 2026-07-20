@@ -1,18 +1,21 @@
-You are writing a complete, runnable Allied Telesis test script in Python 3 that implements
-a reviewed test-step sequence. The script MUST use the internal `framework` library
-(ATTestSet/ATTestCase) so its log output matches the ART harness format.
+You are completing a STANDARDIZED Allied Telesis test script. A fixed skeleton has
+already been generated from the reviewed step sequence. Your job is to FILL THE SLOTS
+marked `# >>> FILL ... <<<` (and replace the placeholder `output = ''` / `if False:`
+lines) with real device logic — NOT to restructure the script. Keep the frame exactly:
+the imports, the `TestSet` class, every `TestCase_<n>` class and its three `testCase*`
+attributes, the three logging-contract calls in each `main()`, and the `__main__`
+block are FIXED. Do not add, remove, reorder, or rename classes.
 
 ## Case
 Key: {{ case_key }} | Title: {{ case_title }}
 Output file name: {{ file_name }}
 
-## Required sequence (each entry becomes one TestCase, in order)
-{% for s in sequence %}
-{{ s.n }}. action: {{ s.action }}
-   verify: {{ s.verify }}
-{% endfor %}
+## The skeleton to fill (return this SAME structure, slots completed)
+```python
+{{ skeleton }}
+```
 
-## Reviewer-approved reusable fragments (real source from existing scripts — adapt, do not ignore)
+## Reviewer-approved reusable fragments (real source — adapt these into the FILL slots)
 {% for f in fragments %}
 ### From {{ f.source_id }} — {{ f.symbol }} (serves steps {{ f.maps_to | join(", ") }})
 Reviewer note: {{ f.why }}
@@ -21,30 +24,33 @@ Reviewer note: {{ f.why }}
 ```
 {% endfor %}
 
-## Style anchor: canonical ART test script structure
-```python
-{{ exemplar }}
-```
-
 ## Framework surface (relevant modules; call these — do not invent APIs)
 {% for mod, api in framework_surface.items() %}
 - {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
 {% endfor %}
 
-## Hard requirements (violating any of these makes the output unusable)
-1. `#!/usr/bin/python3` shebang; `import sys`; `from framework import ATTestSet, ATTestCase` (plus any other framework modules you actually use — ATDrivers, ATLibrary helpers, ATPackets are all allowed and encouraged where they fit).
-2. One `class TestSet(ATTestSet.TestSet)` with `FEATURES = ['ALL']`, an `init(self, setup)` declaring the topology via `setup.init_tb()/init_stk()/init_swi()/init_portlink()`, a `configure(self)` for one-time CLI config, and a `tear_down(self)` that restores the device state.
-3. One `class TestCase_<n>(ATTestCase.TestCase)` per sequence entry, in order, each with:
-   - `testCaseDesc` = one-line description derived from the entry's action
-   - `testCaseRef  = '{{ case_key }}'`
-   - `testCaseMethod` = the entry's action + verify text (may use += accumulation)
-   - `main(self)` that performs the action (CLI via `dut.mode(...)` / `dut.cmd(...)`, traffic via Scapy/tcpdump on the testbox) and asserts with `self.passed('reason')` / `self.failed('reason')`. Every main() must call at least one of them.
-4. Reach devices from a TestCase via `self.testSet.<name>` (e.g. `self.testSet.dutA`).
-5. `if __name__ == '__main__':` block that builds `ts = TestSet()`, calls `ts.add_testCase(TestCase_<n>())` for every case in order, then `ts.run(sys.argv)`.
-6. Adapt the approved fragments rather than writing everything fresh; keep their proven CLI commands and parsing. Match their code style (naming, logging with self.log()).
-7. No placeholder/pseudo code, no TODOs, no external pip dependencies beyond what the fragments/exemplar already use.
+## Rules for filling the slots (violating any makes the output unusable)
+1. **Keep the three logging-contract calls in every `main()`**, filling their content:
+   - `self.log('STEP <n>: ...')` — keep as the first line (the step start).
+   - Replace `output = ''` with the REAL observation the step verifies (device output
+     via `self.testSet.<dev>.cmd(...)`, a measurement, a packet capture, etc.), then
+     keep the `self.log('OBSERVED: ...')` line.
+   - Replace the `if False:` placeholder with the REAL verification condition, ending
+     in EXACTLY ONE non-empty `self.passed('<why>')` or `self.failed('<why>')`. Never
+     leave a `passed()`/`failed()` with an empty reason — it emits no log marker.
+2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
+   commands only; NEVER put `self.passed()`/`self.failed()` there.
+3. Reach devices from a TestCase via `self.testSet.<name>` (e.g. `self.testSet.swi_a`);
+   bind every device you use in `TestSet.init`.
+4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
+   parsing; don't discard them and write from scratch.
+5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
+   adding every TestCase in order then `ts.run(sys.argv)`.
+6. No placeholder/pseudo code, no TODOs, no leftover `# >>> FILL` markers, no
+   `output = ''` or `if False:` placeholders in the final output. No external pip deps
+   beyond what the fragments/exemplar already use.
 
 ## Output format
-Return the complete script in ONE fenced python block. If a companion library file is genuinely
-needed, return it in a SECOND fenced python block preceded by the line `LIBRARY: <filename>`.
-No other prose.
+Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python
+block. If a companion library file is genuinely needed, return it in a SECOND fenced
+python block preceded by the line `LIBRARY: <filename>`. No other prose.

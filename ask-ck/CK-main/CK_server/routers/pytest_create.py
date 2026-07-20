@@ -47,6 +47,10 @@ EXEMPLAR_ID = "art/6011_simul_fail/test-6011.1000.py"
 
 STEP_KEYS = ["step2", "step3", "step4", "step5", "step6", "step7", "step8"]
 
+# NOTE: generation no longer embeds a free-form exemplar script — it renders the
+# standardized skeleton (templates/pt_script_template.py.jinja) via _render_skeleton
+# and asks the LLM to fill its slots. See TEMPLATE-SPEC.md.
+
 _GROUP_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _()\-]{0,59}$")
 _NAME_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]{0,59}$")
 
@@ -382,6 +386,64 @@ def _parse_generated_blocks(content: str) -> Dict[str, Any]:
     return {"test_code": test_code, "library": library}
 
 
+from jinja2 import Environment as _J2Env, FileSystemLoader as _J2Loader
+
+_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+_skeleton_env = _J2Env(loader=_J2Loader(str(_TEMPLATES_DIR)))
+
+
+def _split_sequence(sequence: List[dict]) -> Tuple[List[dict], List[dict]]:
+    """Split a sequence into (setup_steps -> TestSet.configure, verify_steps -> TestCase).
+
+    A step is treated as suite SETUP (no pass/fail) when it carries no verification, or
+    is explicitly typed setup/precondition. Everything else is a verification step.
+    (The setup/verify distinction in extraction itself is a Part 2A refinement; this is
+    the conservative split until then.)"""
+    setup_steps, verify_steps = [], []
+    for s in sequence:
+        kind = (s.get("kind") or s.get("type") or "").lower()
+        verify = (s.get("verify") or "").strip()
+        is_setup = kind in ("setup", "precondition", "config") or (not verify and kind not in ("verify", "test"))
+        (setup_steps if is_setup else verify_steps).append(s)
+    # Renumber verification steps 1..N so TestCase_<n> is contiguous.
+    for i, s in enumerate(verify_steps, 1):
+        s["n"] = i
+    return setup_steps, verify_steps
+
+
+_SWI_RX = re.compile(r"\b(swi_[a-z])\b")
+_STK_RX = re.compile(r"\b(stk_[a-z])\b")
+_PORTLINK_RX = re.compile(r"port\s?link|init_portlink|\.port[A-Z]\b|portlink")
+
+
+def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[str], List[str], bool]:
+    """Data-driven topology: find swi_*/stk_* device names + portlink need referenced in
+    the sequence text and reused fragment code. Defaults to ['swi_a'] when none seen —
+    every case needs at least one switch. Names match the .setup [switch]/[stack]
+    sections (verified convention: swi_a/b/c…, stk_a…)."""
+    blob = " ".join((s.get("action", "") + " " + s.get("verify", "")) for s in sequence)
+    blob += " " + " ".join(f.get("code", "") for f in fragments)
+    switches = sorted(set(_SWI_RX.findall(blob))) or ["swi_a"]
+    stacks = sorted(set(_STK_RX.findall(blob)))
+    needs_portlink = bool(_PORTLINK_RX.search(blob))
+    return switches, stacks, needs_portlink
+
+
+def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
+                     extra_imports: List[str], fragments: Optional[List[dict]] = None) -> str:
+    """Render the standardized ART skeleton (fixed frame + FILL slots) for this case."""
+    setup_steps, verify_steps = _split_sequence(sequence)
+    if not verify_steps:  # never emit a zero-TestCase script
+        verify_steps = [dict(s, n=i + 1) for i, s in enumerate(sequence)]
+        setup_steps = []
+    switches, stacks, needs_portlink = _detect_topology(sequence, fragments or [])
+    tpl = _skeleton_env.get_template("pt_script_template.py.jinja")
+    return tpl.render(case_key=case_key, case_title=case_title,
+                      extra_imports=extra_imports or [],
+                      setup_steps=setup_steps, steps=verify_steps,
+                      switches=switches, stacks=stacks, needs_portlink=needs_portlink)
+
+
 def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
     """Bounded framework vocabulary for the generation prompt."""
     surface = data.get("framework_surface") or {}
@@ -438,17 +500,49 @@ def _lint_generated(sess: PtSession) -> dict:
             for req in ("testCaseDesc", "testCaseRef", "testCaseMethod"):
                 if req not in attrs | aug:
                     errors.append(f"structure: {c.name} missing {req}")
-            has_main = any(isinstance(n, ast_mod.FunctionDef) and n.name == "main" for n in c.body)
+            main_fn = next((n for n in c.body if isinstance(n, ast_mod.FunctionDef)
+                            and n.name == "main"), None)
             inherits_local = any(isinstance(b, ast_mod.Name) and b.id not in ("object",)
                                  and "TestCase" not in b.id for b in c.bases)
-            if not has_main and not inherits_local:
+            if main_fn is None and not inherits_local:
                 warnings.append(f"{c.name} has no main() (ok only if a base class provides it)")
+            # Template logging-contract conformance (TEMPLATE-SPEC.md C6, offline half):
+            # each TestCase.main() must log and end in exactly one NON-EMPTY pass/fail.
+            if main_fn is not None:
+                m_src = ast_mod.get_source_segment(code, main_fn) or ""
+                calls = [n for n in ast_mod.walk(main_fn) if isinstance(n, ast_mod.Call)]
+                def _is_self_call(n, meth):
+                    return (isinstance(n.func, ast_mod.Attribute) and n.func.attr == meth
+                            and isinstance(n.func.value, ast_mod.Name) and n.func.value.id == "self")
+                n_log = sum(1 for n in calls if _is_self_call(n, "log"))
+                verdicts = [n for n in calls if _is_self_call(n, "passed") or _is_self_call(n, "failed")]
+                # An assertion with an empty reason emits no log marker (framework
+                # guards on `if reason != ''`) — see LOGGING-CONTRACT.md.
+                empty_verdicts = [n for n in verdicts
+                                  if not n.args or (isinstance(n.args[0], ast_mod.Constant)
+                                                    and str(n.args[0].value).strip() == "")]
+                nonempty_verdicts = [n for n in verdicts if n not in empty_verdicts]
+                if n_log < 1:
+                    errors.append(f"contract: {c.name}.main() has no self.log() (needs step-start + observed)")
+                # Need at least one real determination; the standard if/else idiom has a
+                # passed() in one branch and failed() in the other (two textual verdicts,
+                # one per path) — that is correct, so require >=1, not ==1.
+                if not nonempty_verdicts:
+                    errors.append(f"contract: {c.name}.main() has no non-empty "
+                                  f"self.passed()/self.failed() determination")
+                if empty_verdicts:
+                    errors.append(f"contract: {c.name}.main() has {len(empty_verdicts)} empty "
+                                  f"self.passed()/self.failed() (empty reason emits no log marker)")
         src_tail = code[-600:]
         if "ts.run(sys.argv)" not in code and ".run(sys.argv)" not in src_tail:
             errors.append("structure: missing ts.run(sys.argv) __main__ entry")
         if "self.passed(" not in code and "self.failed(" not in code:
             warnings.append("no self.passed()/self.failed() calls found in this file "
                             "(ok only if inherited main() asserts)")
+        # Leftover template placeholders must not survive into a saved script.
+        for marker in (">>> FILL", "output = ''  # >>> replace", "if False:  # >>> replace"):
+            if marker in code:
+                errors.append(f"contract: unfilled template placeholder present ({marker!r})")
 
         # 3. Framework imports must exist in the surface index (from ck.db — the
         #    single runtime source; no JSON read).
@@ -970,21 +1064,30 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
 
     fragments = (sess.step5 or {}).get("fragments", [])
     extra_mods = []
+    extra_import_lines: List[str] = []
     for f in fragments:
         rec = (data.get("scripts_index_by_id") or {}).get(f["source_id"]) or {}
-        extra_mods += [m.replace("framework.", "").replace("ATPyLib.", "")
-                       for m in rec.get("imports", []) if m.startswith(("framework.", "ATPyLib."))]
+        for m in rec.get("imports", []):
+            if m.startswith(("framework.", "ATPyLib.")):
+                extra_mods.append(m.replace("framework.", "").replace("ATPyLib.", ""))
+            # surface real framework `from ... import` lines into the skeleton header
+            if m.startswith("framework.") and m not in ("framework.ATTestSet", "framework.ATTestCase"):
+                line = "from {} import {}".format(*m.rsplit(".", 1)) if "." in m else "import " + m
+                if line not in extra_import_lines:
+                    extra_import_lines.append(line)
 
-    exemplar_rec = (data.get("scripts_index_by_id") or {}).get(EXEMPLAR_ID)
-    exemplar = _read_source(exemplar_rec) if exemplar_rec else ""
+    sequence = (sess.step2 or {}).get("sequence", [])
+    # Topology (switches/stacks/portlinks) is detected from the sequence + fragments
+    # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
+    skeleton = _render_skeleton(key, _case_title(data, key), sequence,
+                                extra_import_lines, fragments)
 
     meta = await run_in_threadpool(run_prompt, "pt_generate_script.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
         "file_name": file_name,
-        "sequence": (sess.step2 or {}).get("sequence", []),
+        "skeleton": skeleton,
         "fragments": fragments,
-        "exemplar": exemplar[:12000],
         "framework_surface": _framework_surface_slice(data, extra_mods),
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
     if dry_run:

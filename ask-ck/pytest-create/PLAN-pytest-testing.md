@@ -163,6 +163,44 @@ middle that makes Part 3's conformance check mechanical.
   step shape. Inherently dynamic cases (like 6011) won't fit — acceptable; the three
   target cases are step-based. Flag if any target turns out to need dynamic generation.
 
+### 1.5 Inline source-provenance tags (code-review / troubleshooting aid)
+
+Every block of code inside a filled `main()` / `configure()` / `tear_down()` body is
+tagged **in-line at the point of use** with where it came from, so a reviewer hitting a
+broken block knows immediately whether it's reused real code (and exactly where to look
+for context) or LLM-generated (and by which model/when):
+
+- **Reused from a real script** — tag with the source db, id, and line range, taken
+  **mechanically from the fragment metadata** (`source_id` + `loc`), NOT self-reported
+  by the LLM:
+  - `# ART <suite/id> <lines xx-yy>`   e.g. `# ART 1363_ipv6/test-1363.1002.py 55-78`
+  - `# SVT <test name> <lines xx-yy>`
+  - `# legacy <test id> <lines xx-yy>`
+  (`source_id` is prefixed `art/`/`svt/`/`legacy/`, which maps 1:1 to the tag family;
+  `loc` gives the lines.)
+- **LLM-generated** (gap-fill with no source fragment) — tag with model + date:
+  - `# AI <model> <YYYY-MM-DD>`   e.g. `# AI claude-opus-4-8 2026-07-21`
+  (model comes from the generation provenance `step6.provenance.llm.model`; date is the
+  generation date — both server-side, not LLM self-report.)
+
+**Why:** on code review / troubleshooting, when a snippet is broken, the tag says where
+to search for the original context (real script + lines) or flags it as synthesised
+(which model, for regeneration/comparison). It also makes Part 3 criteria 2–3 (snippet
+reuse / order) **mechanically auditable in-place** — the tags ARE the reuse evidence.
+
+**Mechanism (how it's enforced, not just requested):**
+- The generate prompt instructs the LLM to emit a leading provenance comment on each
+  block and to copy the exact `# ART/SVT/legacy <id> <lines>` tag from the fragment
+  header it adapts (the prompt already labels each fragment with its `source_id` +
+  `loc`), and to tag any code it writes itself `# AI <model> <date>`.
+- Because tags derived from fragments are also known server-side, a **post-generation
+  pass verifies/corrects** them: reused blocks matched to a fragment get the
+  authoritative `source_id`+`loc` tag stamped (LLM can't fake or drift it); untagged or
+  unmatched blocks are stamped `# AI <model> <date>`. So provenance is trustworthy even
+  if the model mislabels.
+- Lint/judge check: every non-trivial block carries exactly one provenance tag; Part 3
+  criterion-2/3 scoring reads the tags directly.
+
 ---
 
 ## 2. Part 2 — does the current process actually work?
@@ -231,8 +269,8 @@ they're measured so nothing subjective creeps into what can be checked mechanica
 | # | Criterion | How measured | Scale |
 |---|-----------|--------------|-------|
 | 1 | Used the template | **Mechanical** — diff structure vs `pt_script_template.py.jinja` slots | exactly / partially / not at all |
-| 2 | Used the code snippets | **Mechanical** — match fragment code against output | exactly / partially / not at all |
-| 3 | Snippet order correct | **Mechanical** — fragment order vs sequence order | right / wrong |
+| 2 | Used the code snippets | **Mechanical** — match fragment code against output; corroborated by the inline `# ART/SVT/legacy <id> <lines>` provenance tags (§1.5) | exactly / partially / not at all |
+| 3 | Snippet order correct | **Mechanical** — fragment order vs sequence order (read from the inline provenance tags) | right / wrong |
 | 4 | Generated the missing steps | **Human** — quality of the gap-fill logic | exceptional / good / bad / not at all |
 | 5 | **Code executes** ⭐ | **tb470** — real run, exit code 0 (raw), + judge interpretation | yes / no |
 | 6 | **Logs each step as required** ⭐⭐ | **tb470 + parser** — `parse_framework_log` sees one PASS/FAIL block per step matching the logging contract (raw), + judge interpretation | yes / partial / no |
