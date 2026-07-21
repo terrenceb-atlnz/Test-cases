@@ -374,25 +374,29 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         })
         return meta
 
-    # HTTP timeout is a (connect, read) pair, not one scalar. The bug this
-    # replaces used a single hardcoded 120s that ignored the caller's `timeout`
-    # entirely: connecting to vLLM is fast, but the org models are REASONING
-    # models that emit a long message.reasoning_content phase BEFORE any bytes of
-    # the answer — a non-streaming call has nothing to reset the read clock, so a
-    # large ranking/synthesis prompt (e.g. ranking ~30 candidates) blew past 120s
-    # mid-reasoning and aborted with "Read timed out. (read timeout=120)". We now
-    # honor the caller's `timeout` as the READ budget with a short fixed connect,
-    # and floor the read budget generously for the reasoning vLLM path so those
-    # long-thinking calls complete. (A streaming transport that keeps the socket
-    # alive is the better structural fix — see SESSION_STATE handoff — but this
-    # removes the hard ceiling that was failing real calls today.)
+    # HTTP timeout is a (connect, read) pair, not one scalar. The org models are
+    # REASONING models that emit a long message.reasoning_content phase BEFORE the
+    # answer. The OpenAI-compatible path below now STREAMS (stream=True): with a
+    # streamed body, the `read` component is the max gap BETWEEN chunks, not a
+    # whole-response wall clock. vLLM emits reasoning_content deltas throughout the
+    # thinking phase, so the socket never goes silent — this is the structural fix
+    # for `vllm-thinking` timing out on the largest-output step (generate_script),
+    # which a static read ceiling could still be exceeded by (Part 2B: failed even
+    # at the 600s floor). See PLAN-pytest-testing §7.7.
+    #
+    # A single hardcoded 120s (the bug two fixes ago) ignored the caller's
+    # `timeout`; the interim fix honored it as a whole-response ceiling. With
+    # streaming the same (connect, read) pair now bounds connect + inter-chunk gap,
+    # which is generous headroom regardless of total generation length. The
+    # non-streamed Anthropic path below still treats `read` as the whole-response
+    # budget (it had no structural read-timeout failure — one harness-timeout
+    # outlier only).
     connect_timeout = 10
     read_timeout = timeout
-    # Floor the read budget for the reasoning vLLM path so long-thinking
-    # generation/ranking calls complete — but ONLY when the caller asked for a
-    # real (>=120s) budget. A deliberately short timeout (the health ping passes
-    # 30s and wants to fail fast on a dead backend) is respected as-is, not
-    # inflated to 600s.
+    # Floor the read budget for the reasoning vLLM path — but ONLY when the caller
+    # asked for a real (>=120s) budget. A deliberately short timeout (the health
+    # ping passes 30s and wants to fail fast on a dead backend) is respected as-is.
+    # Under streaming this floors the inter-chunk gap tolerance, not a total ceiling.
     if auth_method == "local_llm" and read_timeout >= 120:
         read_timeout = max(read_timeout, 600)
     http_timeout = (connect_timeout, read_timeout)
@@ -464,15 +468,66 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
                 "messages": messages,
                 "temperature": 0.2,
                 "max_tokens": max_out,
+                # STREAM the response. For reasoning models this keeps the socket
+                # alive through the (arbitrarily long) chain-of-thought phase, so
+                # the read timeout bounds the gap between chunks rather than the
+                # total generation time — the structural fix for vllm-thinking
+                # timing out on generate_script even at the 600s floor (§7.7).
+                "stream": True,
+                # Streamed OpenAI responses omit `usage` unless asked; without this
+                # the observability token badges (normalize_usage → prompt_tokens/
+                # completion_tokens) would go blank for every streamed call. vLLM
+                # honors include_usage and sends a final usage-only chunk.
+                "stream_options": {"include_usage": True},
             }
             endpoint = f"{base_url}/chat/completions"
-            resp = requests.post(endpoint, headers=headers, json=payload, timeout=http_timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            choice = (data.get("choices") or [{}])[0]
-            message = choice.get("message") or {}
-            content = message.get("content")
-            finish = choice.get("finish_reason")
+            # Accumulate the streamed deltas into the same (content, finish, usage)
+            # triplet the non-streamed path produced, so all the guards + the
+            # reconstructed raw_response below are byte-for-byte equivalent.
+            content_parts: list = []
+            reasoning_parts: list = []
+            finish = None
+            usage = None
+            with requests.post(endpoint, headers=headers, json=payload,
+                               timeout=http_timeout, stream=True) as resp:
+                resp.raise_for_status()
+                for line in resp.iter_lines(decode_unicode=True):
+                    if not line:
+                        continue  # SSE keep-alive / blank separator line
+                    if line.startswith("data:"):
+                        line = line[len("data:"):].strip()
+                    if line == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(line)
+                    except (ValueError, TypeError):
+                        continue  # SSE comment (":...") or partial frame — skip
+                    # The final include_usage chunk carries usage with empty choices.
+                    if chunk.get("usage"):
+                        usage = chunk["usage"]
+                    for ch in (chunk.get("choices") or []):
+                        delta = ch.get("delta") or {}
+                        if delta.get("content"):
+                            content_parts.append(delta["content"])
+                        if delta.get("reasoning_content"):
+                            reasoning_parts.append(delta["reasoning_content"])
+                        if ch.get("finish_reason"):
+                            finish = ch["finish_reason"]
+            content = "".join(content_parts)
+            reasoning_content = "".join(reasoning_parts)
+            # Reconstruct the non-streamed response shape so downstream (usage
+            # normalization, debug log, provenance) sees an identical structure.
+            data = {
+                "choices": [{
+                    "message": {"content": content, "reasoning_content": reasoning_content},
+                    "finish_reason": finish,
+                }],
+            }
+            if usage is not None:
+                data["usage"] = usage
+            message = data["choices"][0]["message"]
+            # `content` is "" (falsy) when nothing streamed — the guards below
+            # treat that identically to the non-streamed path's JSON `null`.
             # Reasoning models can leave content null when the answer was
             # squeezed out by the reasoning budget. Distinguish the failure
             # shapes so the debug log says WHY, instead of a cryptic

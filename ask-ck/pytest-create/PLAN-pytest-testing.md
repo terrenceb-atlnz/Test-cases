@@ -23,6 +23,18 @@
 >   `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI
 >   logged in but quota-exhausted (real 403) — omitted with reason, not silently
 >   dropped, per the plan's own instruction (§2 Phase 2B).
+> - ✅ **Streaming transport for the vLLM path** (the "fix #2" §7.7 flagged as the
+>   real structural fix, not yet built at Part 2B) — built + verified live
+>   2026-07-22b. The OpenAI-compatible call path now streams; the HTTP read
+>   timeout is an inter-chunk budget, not a whole-response ceiling, so
+>   `vllm-thinking` can no longer read-time-out on the largest-output step. See
+>   **§8 below**. (Token-processing-over-time comparison + infographic across
+>   both models in progress.)
+> - ✅ **Stale-`llm_config` re-sync (§7.3 root-cause fix)** — done 2026-07-22b, both
+>   routers. The active workspace default is now authoritative, so a session whose
+>   stale config is a headless CLI mode re-syncs instead of silently hitting the
+>   wrong backend; `_llm_is_active` left untouched. Unit-verified (8/8) + concurrency
+>   reviewed. See **§9 below**. (Pre-existing dual-instance session debt logged in §9.4.)
 > - ⏳ **Part 3a/3b** (judging + tb470 execution) — pending. Part 3b gated on
 >   `configs/tb470.setup` + a testbox profile (Terrence-side physical-topology
 >   prerequisite — see §5b).
@@ -672,3 +684,167 @@ across models as recorded — see §7.5. A fair input-cost comparison would need
 vLLM's plain `tok_in`; the raw fields for that computation are saved in every
 Claude row of the result files (`tok_in_cache_read`/`tok_in_cache_creation`),
 just not reduced to one number here.
+
+## 8. Session log — 2026-07-22b — streaming transport (the §7.7 structural fix), built + verified
+
+Implements the fix §7.7 named but left unbuilt: raising the static read timeout
+helped but couldn't cover a reasoning phase of arbitrary length, so
+`vllm-thinking` still read-timed-out on `generate_script` even at the 600s floor.
+Streaming is the structural fix. **Committed at session close; push to main pending (env lacks GitHub SSH auth).**
+
+### 8.1 What changed (`CK_server/llm.py`, OpenAI-compatible branch of `_call_llm_raw`)
+
+- The vLLM/OpenAI-compatible request now sets `stream: true` +
+  `stream_options: {include_usage: true}` and consumes the SSE body with
+  `requests.post(..., stream=True)` + `resp.iter_lines()`. Streamed `delta.content`
+  and `delta.reasoning_content` are accumulated, and the final `finish_reason` +
+  usage-only chunk are captured, into the **same `(content, finish, usage)`
+  triplet** the non-streamed path produced — so every downstream guard
+  (finish_reason=length, null→reasoning_content fallback, mid-JSON truncation) and
+  the observability token badges are byte-for-byte unchanged. A reconstructed
+  `raw_response` (`{choices:[{message:{content,reasoning_content},finish_reason}],
+  usage}`) keeps `normalize_usage` / debug-log / provenance identical.
+- **Why this is structural, not just a bigger ceiling:** with a streamed body the
+  `read` component of the `(connect, read)` timeout is the max gap *between chunks*,
+  not the whole-response wall clock. vLLM emits `reasoning_content` deltas
+  throughout the thinking phase, so the socket never goes silent — a reasoning pass
+  of *any* length completes as long as chunks keep flowing. The prior fix's static
+  600s ceiling could still be exceeded (§7.7: it was); this removes the ceiling
+  entirely.
+- The Anthropic native path is deliberately left non-streaming — it had no
+  structural read-timeout failure in Part 2B (one *harness*-timeout outlier only),
+  so its `read` component stays a whole-response budget. Streaming it later is a
+  consistency nicety, not a fix.
+- The `local_llm` read floor logic (`>=120 → max(.,600)`) is kept; under streaming
+  it now floors the inter-chunk-gap tolerance rather than a total ceiling, which is
+  generous headroom and harmless.
+
+### 8.2 Verified live against the real org vLLM
+
+- `vllm-fast`, trivial JSON ask: 1.0s, correct content, usage `46 in / 168 out` —
+  streaming parse + `include_usage` badges both work.
+- `vllm-thinking`, `generate_script`-scale prompt (max_tokens=32000): completed in
+  395.6s, `finish=stop`, 15,236-char script, usage populated — a call in the class
+  that failed at 600s in Part 2B now succeeds.
+- **Ceiling-gone proof:** `vllm-thinking`, large output, deliberately short **30s**
+  read timeout — ran **21+ minutes with no read-timeout error** (killed manually for
+  time, not by failure). Under the old whole-response semantics a 30s read timeout
+  aborts a multi-minute generation at ~30s; surviving 21 min proves the read budget
+  is now inter-chunk.
+
+### 8.3 Token-processing-over-time capture (in progress)
+
+Chunk-instrumented capture of the **identical** prompt through both models (same
+`max_tokens`, timeout, system) to isolate vLLM structure from model behavior.
+Streamed deltas carry no per-chunk token counts, so cumulative *chars* are recorded
+per chunk and converted to tokens via the authoritative final
+`usage.completion_tokens` ratio (axis labelled as derived, not per-token telemetry).
+
+- **`vllm-fast` baseline (complete):** 48.7s total; **first answer token at 21.3s**
+  (the first 21.3s emit only `reasoning_content`); reasoning 15,905 chars / answer
+  21,128 chars; 8,733 completion tokens; 8,731 chunks captured (~179/s).
+- **`vllm-thinking` (complete, same prompt):** 2,149s total (**35.8 min — 44× slower**),
+  `finish=length`, **0 answer characters emitted** — it spent the entire 32,000-token
+  budget on reasoning (29,137 reasoning tokens by usage) and hit the cap before ever
+  transitioning to the answer. `first_answer_token = none`.
+- **Two findings, both material:**
+  1. **`vllm-fast` is *also* a reasoning model** — both models reason and stream
+     `reasoning_content` throughout; the difference is reasoning-phase
+     *duration/volume*, not reasoning-vs-not. Same vLLM SSE structure for both. That
+     is exactly why a non-streaming call blows its read timeout during the
+     silent-to-the-answer window, and why streaming fixes the *transport* for both.
+  2. **Streaming fixes the transport, not the model's fitness.** The 35.8-min
+     `vllm-thinking` run *completed* only because streaming kept the socket alive (no
+     read-timeout — the old 600s ceiling would have aborted it), **but it produced no
+     answer**. So `vllm-thinking` is unfit for `generate_script`-scale generation:
+     it can burn the whole token budget on reasoning and emit nothing. This
+     *strengthens* the Part 2B recommendation — keep `vllm-fast` as the default;
+     streaming does not make the thinking model practical for large output.
+- **Infographic (both models' reasoning-vs-answer token curves on a shared token axis,
+  own time axes, with hover):** self-contained HTML at
+  `ask-ck/pytest-create/comparison/vllm_tokens.html`; also published as a Claude
+  artifact. Token axis is derived (streamed chars × each run's final `usage` ratio) —
+  labelled as such, not per-token telemetry.
+
+### 8.4 Still deferred
+
+Part 3a/3b. (The `wizard.py` twin of the stale-`llm_config` bug — §7.3 — is now
+fixed; see §9.)
+
+## 9. Session log — 2026-07-22b — stale-`llm_config` re-sync (the §7.3 root-cause fix, both routers)
+
+Fixes the root cause §7.3 documented but left unfixed in code (the pytest side was
+handled by a one-off data workaround, and the `wizard.py` twin was flagged and
+deferred). **Committed at session close; push to main pending (env lacks GitHub SSH auth).**
+
+### 9.1 Root cause (recap) and why the naive fix was avoided
+
+`_llm_is_active()` answers *"can this config drive synthesis?"* — for the headless
+CLI modes (`claude_code`/`claude_agent`/`grok_cli`) it returns True
+**unconditionally** (correct: there is no server-side key to verify). Both
+workspace-apply functions used `_llm_is_active(sess.llm_config)` as their **only**
+gate ("apply the workspace default only when the session config is inactive"), so a
+session whose *stale* config was a headless mode was judged active → never re-synced
+→ kept silently hitting the wrong backend forever (the real T33233 `suggest_scripts`
+→ `claude_agent`/Anthropic degrade in §7.3).
+
+`_llm_is_active` is called in ~8 places (status/`has_key`, `_load_global_llm` /
+`_save_global_llm` gating, health, both applies), so **changing it** would wrongly
+ripple into status reporting and workspace load/save. The fix therefore leaves
+`_llm_is_active` untouched and changes only the **apply** functions.
+
+### 9.2 The fix (`routers/wizard.py` + `routers/pytest_create.py`)
+
+Made the **active workspace default authoritative**: re-sync a session's config
+whenever the case has no active config **OR** its config diverges from the workspace
+default's backend. New helper `wizard._same_backend(a, b)` compares the
+dispatch-selecting fields only (`auth_method`/`provider`/`model`, ignoring
+credentials); `pytest_create` imports it. Both `_apply_workspace_llm_if_needed`
+(wizard) and `_apply_workspace_llm` (pytest) now read the workspace default first
+and return no-change only when the current config is active **and** `_same_backend`.
+
+**Why this is safe (proven, not assumed):** every write to a case's `llm_config`
+goes through `set_llm_config`, which *always* saves `cfg` as the workspace default
+**and** copies the same `cfg` onto the case session — there is **no code path** that
+gives a case a config that legitimately differs from the workspace default. So any
+divergence is staleness, never an intentional per-case override; there is nothing to
+protect. When the workspace default is inactive/absent, the apply returns no-change,
+so "the workspace login persists across cases" still holds. Also naturally handles a
+Fast↔Thinking switch (workspace flips to `vllm-thinking` → stale `vllm-fast` sessions
+re-sync).
+
+**Verified (unit-level, no vLLM):** stale `claude_agent` + `local_llm` workspace →
+re-syncs to `vllm-fast`; matching config → no change; divergent model
+(`vllm-thinking`) → re-syncs; empty config → applied; inactive/None workspace default
+→ untouched; `_same_backend` equal/model-diff/None spot-checks. 8/8 pass.
+
+### 9.3 Concurrency review (why the fix is race-safe)
+
+The apply's read→compare→write runs synchronously in the async handler body (no
+`await`/threadpool boundary inside), so it is atomic w.r.t. other coroutines; the
+only real parallelism is across threadpool threads, each with its own SQLite
+connection (`db.get_connection` is thread-local, WAL, `busy_timeout=5000`; session
+writes are one atomic `INSERT … ON CONFLICT DO UPDATE`).
+
+- **Different case sessions, concurrent apply** — safe: each writes its own row and
+  only *reads* the shared `_workspace_llm` row.
+- **Same case session, concurrent requests** — converges: whether they share the
+  cached object or one loads a fresh DB copy, **both write the same value** (the
+  workspace default), so ordering is irrelevant. The written value is deterministic
+  (not derived from the pre-read state), so no lost-update / TOCTOU.
+- **`set_llm_config` racing an apply** — improvement: the `_workspace_llm` upsert is
+  atomic (never a torn read); worst case an in-flight call uses the just-previous
+  default and self-corrects next call. The fix *guarantees* convergence where a
+  divergent "active" config previously re-synced never.
+- **Write-frequency cost** — bounded: one extra persist per divergent session, once,
+  then it matches and stops. Absorbed by WAL + `busy_timeout`.
+
+### 9.4 Pre-existing debt surfaced (NOT introduced by this fix): dual-instance sessions
+
+`sessions[key]` (in-memory) vs a fresh `_load_persisted(key)` copy can produce **two
+live object instances for one key** across concurrent requests; last-persist-wins can
+then drop the *other request's unrelated* state (e.g. a confirm flag). This is a
+general session-consistency gap independent of `llm_config` (which converges to the
+same value, so this fix neither creates nor worsens it). Proper closure would be a
+single-flight guard per session key, or a `updated_at`/version compare-and-swap on
+`db.save_session`. Left as tracked debt; not a blocker for the re-sync fix.

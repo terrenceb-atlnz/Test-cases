@@ -30,7 +30,7 @@ from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
     check_profile, parse_framework_log, failure_excerpts, run_manager,
 )
-from routers.wizard import _load_global_llm, _llm_is_active
+from routers.wizard import _load_global_llm, _llm_is_active, _same_backend
 
 router = APIRouter(tags=["pytest-creator"])
 
@@ -89,13 +89,21 @@ def _pt_get(key: str) -> PtSession:
 
 
 def _apply_workspace_llm(sess: PtSession) -> bool:
-    """Copy the workspace LLM login into this session when it has none active."""
-    if _llm_is_active(getattr(sess, "llm_config", None)):
+    """Re-sync this PyTest session's LLM config to the active workspace default.
+
+    Mirrors wizard._apply_workspace_llm_if_needed (see its docstring for the full
+    rationale): the active workspace default is the single source of truth, so we
+    re-sync whenever the session has no active config OR its config diverges from
+    the workspace default's backend — not only when it is inactive. This fixes the
+    bug (§7.3) where a stale headless-CLI config (`_llm_is_active` reports it active
+    unconditionally) could never re-sync and kept hitting the wrong backend."""
+    global_cfg = _load_global_llm()
+    if not global_cfg:
         return False
-    cfg = _load_global_llm()
-    if not cfg:
+    cur = getattr(sess, "llm_config", None)
+    if _llm_is_active(cur) and _same_backend(cur, global_cfg):
         return False
-    raw = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+    raw = global_cfg.dict() if hasattr(global_cfg, "dict") else global_cfg.model_dump()
     sess.llm_config = LLMConfig(**raw)
     return True
 

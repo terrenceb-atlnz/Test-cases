@@ -72,6 +72,17 @@ def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
     return False
 
 
+def _same_backend(a: Optional[LLMConfig], b: Optional[LLMConfig]) -> bool:
+    """True when two configs would hit the SAME LLM backend — compares the
+    dispatch-selecting fields (auth_method / provider / model) only, ignoring
+    credentials. Used to decide whether a case session's config still matches the
+    workspace default or is a stale leftover from a previous default."""
+    if not a or not b:
+        return False
+    f = lambda c, k: (getattr(c, k, None) or "").lower()
+    return all(f(a, k) == f(b, k) for k in ("auth_method", "provider", "model"))
+
+
 def _load_global_llm() -> Optional[LLMConfig]:
     """Load last-applied workspace LLM config (shared across all cases). Commit C:
     from the sessions table (id='_workspace_llm')."""
@@ -98,14 +109,30 @@ def _save_global_llm(cfg: LLMConfig) -> None:
 
 
 def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
-    """Copy workspace LLM into this case session when the case has no active config.
+    """Re-sync this case session's LLM config to the active workspace default.
 
     Returns True if the session was updated (caller should persist).
+
+    The active workspace default is the single source of truth: `set_llm_config`
+    always writes a case's config === the workspace default (there is no code path
+    that gives a case a config that legitimately differs), so any divergence is a
+    STALE leftover from a previous default, not an intentional per-case override.
+    We therefore re-sync whenever the case has no active config OR its config no
+    longer matches the workspace default's backend. This fixes the bug where a
+    session whose stale config was a headless CLI mode (claude_agent/claude_code/
+    grok_cli — which `_llm_is_active` reports active unconditionally, since there
+    is no server-side key to check) could NEVER re-sync and kept silently hitting
+    the wrong backend. `_llm_is_active` is intentionally left unchanged (it is also
+    used for status/`has_key` reporting, where headless=active is correct).
+
+    When there is no active workspace default we leave the session untouched, so
+    "the workspace login persists across cases" still holds.
     """
-    if _llm_is_active(getattr(sess, "llm_config", None)):
-        return False
     global_cfg = _load_global_llm()
     if not global_cfg:
+        return False
+    cur = getattr(sess, "llm_config", None)
+    if _llm_is_active(cur) and _same_backend(cur, global_cfg):
         return False
     # Fresh copy so case sessions do not share the same object instance
     raw = global_cfg.dict() if hasattr(global_cfg, "dict") else global_cfg.model_dump()

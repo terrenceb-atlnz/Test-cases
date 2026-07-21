@@ -1314,3 +1314,85 @@ streaming for vLLM (Option 2) — the data now shows it's not optional for
 vLLM-thinking) for all three cases; Part 3b (tb470 execution, criteria 5-6) —
 gated only on `configs/tb470.setup` (topology) + a stored PyTest Creator
 testbox profile, both Terrence-side.
+
+---
+
+## Session Close / Handoff — 2026-07-22b — vLLM streaming transport + stale-`llm_config` re-sync
+
+Two changes this session: (1) the streaming transport that Part 2B §7.7 named as
+the real structural fix for `vllm-thinking` read-timing-out on `generate_script`;
+(2) the §7.3 stale-`llm_config` root-cause fix in both routers. Committed at session
+close; push to main pending — this environment lacks GitHub SSH auth (Terrence to
+push). Terrence enabled auto commit+push on the end-of-session doc-sync this session.
+Full record:
+`ask-ck/pytest-create/PLAN-pytest-testing.md` §8 (streaming) + §9 (re-sync).
+
+- **`CK_server/llm.py` — OpenAI-compatible branch of `_call_llm_raw` now streams**
+  (`stream: true` + `stream_options: {include_usage: true}`). The SSE body is
+  consumed with `requests.post(..., stream=True)` + `iter_lines()`; streamed
+  `content`/`reasoning_content` deltas and the final `finish_reason`/usage chunk
+  are accumulated into the SAME `(content, finish, usage)` triplet the non-streamed
+  path built, and a reconstructed `raw_response` keeps `normalize_usage` /
+  debug-log / provenance identical. Every existing guard (finish_reason=length,
+  null→reasoning_content fallback, mid-JSON truncation) and the token badges are
+  unchanged.
+- **Why structural, not a bigger ceiling:** with a streamed body the `read`
+  component of the `(connect, read)` timeout bounds the gap BETWEEN chunks, not the
+  whole response. vLLM streams `reasoning_content` throughout the thinking phase, so
+  the socket never goes silent and a reasoning pass of any length completes. The
+  prior fix's static 600s floor could still be exceeded (§7.7: it was) — this
+  removes the ceiling. Anthropic native path left non-streaming (no such failure).
+- **Verified live (real org vLLM):** `vllm-fast` trivial ask 1.0s + correct
+  badges; `vllm-thinking` `generate_script`-scale prompt completed at 395.6s
+  (`finish=stop`); ceiling-gone proof — a `vllm-thinking` call with a deliberately
+  short 30s read timeout ran 21+ min with no read-timeout error (killed for time,
+  not failure), proving the read budget is now inter-chunk.
+- **Token-processing-over-time (in progress):** identical prompt through both
+  models, chunk-instrumented. `vllm-fast` baseline: 48.7s, first answer token at
+  21.3s (21s reasoning-only first), 8,733 completion tokens, 8,731 chunks. **Key
+  finding: `vllm-fast` is ALSO a reasoning model** — both reason and both stream
+  `reasoning_content`; the fast-vs-thinking difference is reasoning-phase
+  *duration/volume*, not reasoning-vs-not. Same vLLM SSE structure for both.
+  **`vllm-thinking` on the same prompt (complete): 2,149s (35.8 min, 44× slower),
+  `finish=length`, ZERO answer emitted** — spent the whole 32k-token budget on
+  reasoning (29,137 reasoning tokens), never transitioned to the answer. Streaming
+  fixed the transport (the 35.8-min call completed with no read-timeout; the 600s
+  ceiling would have aborted it) but NOT the model's fitness — `vllm-thinking` is
+  unfit for `generate_script`-scale generation, which strengthens the
+  vllm-fast-default call. Infographic (token curves over time, both models):
+  `ask-ck/pytest-create/comparison/vllm_tokens.html` + `vllm_tokens_data.json`
+  (also published as a Claude artifact).
+
+**Stale-`llm_config` re-sync (`routers/wizard.py` + `routers/pytest_create.py`) —
+the §7.3 root-cause fix, PLAN §9.**
+
+- **Root cause:** both workspace-apply functions gated only on `_llm_is_active`,
+  which reports the headless CLI modes (`claude_agent`/`claude_code`/`grok_cli`)
+  active **unconditionally** (correct — no server-side key to check). So a session
+  whose *stale* config was a headless mode was judged active → never re-synced to
+  the workspace default → kept silently hitting the wrong backend (the T33233
+  `suggest_scripts`→`claude_agent` degrade §7.3 hit).
+- **Fix:** the active workspace default is now authoritative. New helper
+  `wizard._same_backend(a,b)` compares the dispatch-selecting fields
+  (auth_method/provider/model, ignoring credentials); both
+  `_apply_workspace_llm_if_needed` (wizard) and `_apply_workspace_llm` (pytest, which
+  imports the helper) re-sync whenever the session config is inactive OR diverges
+  from the workspace default. `_llm_is_active` left untouched (its status/`has_key`
+  uses are correct as-is).
+- **Safe by construction:** `set_llm_config` is the only writer of a case's config
+  and always writes it === the workspace default, so no legitimate per-case
+  divergence exists to protect. When the workspace default is inactive/absent the
+  apply is a no-op, so "workspace login persists across cases" still holds.
+- **Verified:** unit-level, 8/8 (no vLLM) — stale `claude_agent` re-syncs, matching
+  config untouched, Fast↔Thinking divergence re-syncs, empty→applied, inactive
+  workspace→untouched, `_same_backend` spot-checks. Concurrency-reviewed (PLAN §9.3):
+  atomic within a coroutine, distinct sessions write distinct rows, same-session
+  writes converge to the same value; WAL + `busy_timeout` absorb the bounded
+  one-extra-write-per-divergent-session cost.
+- **Pre-existing debt surfaced (NOT introduced here), PLAN §9.4:** dual-instance
+  sessions — `sessions[key]` in-memory vs a fresh `_load_persisted` copy can produce
+  two live objects for one key under concurrency; last-persist-wins can drop the
+  *other* request's unrelated state (e.g. a confirm flag). Independent of
+  `llm_config` (which converges). Proper closure = single-flight per key or an
+  `updated_at`/version compare-and-swap on `db.save_session`. Logged, not blocking.
+- **Still deferred:** Part 3a/3b (the `wizard.py` twin bug is now fixed).
