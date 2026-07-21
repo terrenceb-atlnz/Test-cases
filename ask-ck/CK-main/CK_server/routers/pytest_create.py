@@ -422,6 +422,90 @@ def _parse_generated_blocks(content: str) -> Dict[str, Any]:
     return {"test_code": test_code, "library": library}
 
 
+# PLAN §1.5 — inline source-provenance tags. `db` on the scripts table is one of
+# art/svt/legacy and maps 1:1 to the tag family; `id` is "<db>/<suite_dir>/<file>".
+_PROVENANCE_TAG_FAMILY = {"art": "ART", "svt": "SVT", "legacy": "legacy"}
+_PROVENANCE_TAG_RX = re.compile(r"^\s*#\s*(ART|SVT|legacy|AI)\s+\S")
+# Model-echoed provenance attempts are not always a bare tag on the first line —
+# a reasoning model can restate the prompt's own instruction text first ("
+# Provenance tag for this fragment: # AI ... ") on a LATER leading comment line.
+# Any leading comment mentioning one of the tag families is scaffolding to strip,
+# not necessarily the authoritative tag itself (only the server's own re-stamp is).
+_PROVENANCE_ECHO_RX = re.compile(r"^\s*#.*\b(ART|SVT|legacy|AI)\b", re.IGNORECASE)
+
+
+def _fragment_tag(source_id: str, loc: Optional[Tuple[int, int]]) -> str:
+    """Mechanical `# ART <suite/file> <lines a-b>`-style tag for a reused fragment.
+
+    Derived entirely from indexed metadata (source_id + loc), never from LLM
+    self-report, so it cannot be faked or drift (PLAN §1.5)."""
+    db_kind, _, rest = (source_id or "").partition("/")
+    family = _PROVENANCE_TAG_FAMILY.get(db_kind, "legacy")
+    lines = f" lines {loc[0]}-{loc[1]}" if loc and loc[0] and loc[1] else ""
+    return f"# {family} {rest or source_id}{lines}"
+
+
+def _restamp_provenance(code: str, fragments: List[dict], model: str) -> str:
+    """Authoritative post-generation provenance pass (PLAN §1.5).
+
+    For each `TestCase_<n>` block, stamp the top of main() with the tag of
+    whichever fragment's `maps_to` includes step n (mechanical — matched by the
+    server-known step->fragment mapping, not by trusting anything the LLM
+    wrote). A step with no mapped fragment is stamped `# AI <model> <date>`
+    (gap-fill).
+
+    The model is asked to attempt its own tag (prompt rule 8) but compliance is
+    non-deterministic in both content AND shape — observed live: it can restate
+    the prompt's own instruction text as a leading comment instead of emitting a
+    bare tag ("Provenance tag for this fragment: # AI ... ") one or more lines
+    into main(), which a first-line-only check would miss and leave duplicated
+    alongside the real stamp. So the ENTIRE leading run of comment lines that
+    mention a tag family is stripped first, then exactly one authoritative tag
+    is inserted — trustworthy regardless of what shape the model produced."""
+    tag_by_step: Dict[int, str] = {}
+    for f in fragments:
+        tag = _fragment_tag(f.get("source_id", ""), f.get("loc"))
+        for n in f.get("maps_to") or []:
+            try:
+                tag_by_step[int(n)] = tag
+            except (TypeError, ValueError):
+                continue
+    gen_date = datetime.utcnow().strftime("%Y-%m-%d")
+    ai_tag = f"# AI {model or 'unknown'} {gen_date}"
+
+    lines = code.split("\n")
+    out: List[str] = []
+    current_class_n: Optional[int] = None
+    in_main = False
+    stamped_this_main = False
+    class_rx = re.compile(r"^class TestCase_(\d+)\b")
+    main_rx = re.compile(r"^\s+def main\(self\):\s*$")
+
+    for line in lines:
+        m = class_rx.match(line)
+        if m:
+            current_class_n = int(m.group(1))
+            in_main = False
+            stamped_this_main = False
+            out.append(line)
+            continue
+        if in_main and not stamped_this_main:
+            if _PROVENANCE_ECHO_RX.match(line):
+                # Part of the model's leftover provenance attempt — drop the
+                # whole line, keep scanning (there may be more before real code).
+                continue
+            indent = line[:len(line) - len(line.lstrip())] or "        "
+            tag = tag_by_step.get(current_class_n, ai_tag)
+            out.append(f"{indent}{tag}")
+            out.append(line)
+            stamped_this_main = True
+            continue
+        if main_rx.match(line):
+            in_main = True
+        out.append(line)
+    return "\n".join(out)
+
+
 from jinja2 import Environment as _J2Env, FileSystemLoader as _J2Loader
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
@@ -569,6 +653,12 @@ def _lint_generated(sess: PtSession) -> dict:
                 if empty_verdicts:
                     errors.append(f"contract: {c.name}.main() has {len(empty_verdicts)} empty "
                                   f"self.passed()/self.failed() (empty reason emits no log marker)")
+                # PLAN §1.5 — inline source-provenance tag conformance: the FIRST
+                # line inside main() must be a re-stamped `# ART/SVT/legacy/AI` tag.
+                body_lines = [ln for ln in m_src.splitlines()[1:] if ln.strip()]
+                if not body_lines or not _PROVENANCE_TAG_RX.match(body_lines[0]):
+                    errors.append(f"contract: {c.name}.main() missing a leading "
+                                  f"# ART/SVT/legacy/AI provenance tag (PLAN §1.5)")
         src_tail = code[-600:]
         if "ts.run(sys.argv)" not in code and ".run(sys.argv)" not in src_tail:
             errors.append("structure: missing ts.run(sys.argv) __main__ entry")
@@ -739,7 +829,21 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     # Steps must have content before they can be confirmed
     required_field = {2: "sequence", 3: "matches", 4: "decision",
                       5: "fragments", 6: "files", 7: "runs", 8: "validated"}[step]
-    if not content.get(required_field):
+    # Steps 3/5 (matches/fragments) are lists where an EMPTY list is a legitimate,
+    # already-run answer -- e.g. a `decision: new` Fit Decision with genuinely no
+    # reusable code correctly returns `fragments: []` (verified live on
+    # AWPTCM-T33235, Part 2B). A truthiness check on the list itself can't tell
+    # that apart from "the step never ran", so for these two check the STEP
+    # actually ran (the step's own LLM `provenance` is present) rather than
+    # whether the list happens to be non-empty. Steps with non-list required
+    # fields (sequence/decision/files/runs/validated) keep the truthiness check —
+    # those are never legitimately empty-but-complete.
+    if required_field in ("matches", "fragments"):
+        ran = bool(content.get("provenance")) or content.get(required_field) is not None
+        if not ran:
+            raise HTTPException(409, f"Nothing to confirm yet for step {step} "
+                                     f"(missing {required_field}).")
+    elif not content.get(required_field):
         raise HTTPException(409, f"Nothing to confirm yet for step {step} "
                                  f"(missing {required_field}).")
     _confirm(sess, step_key)
@@ -1118,14 +1222,23 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments)
 
+    llm_cfg = _llm_cfg(sess)
+    fragments_ctx = [{**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"))}
+                     for f in fragments]
     meta = await run_in_threadpool(run_prompt, "pt_generate_script.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
         "file_name": file_name,
         "skeleton": skeleton,
-        "fragments": fragments,
+        "fragments": fragments_ctx,
         "framework_surface": _framework_surface_slice(data, extra_mods),
-    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
+        "model_name": llm_cfg.get("model") or "unknown",
+        "gen_date": datetime.utcnow().strftime("%Y-%m-%d"),
+    }, llm_config=llm_cfg, timeout=600, dry_run=dry_run,
+       # This step emits a whole standardized script (real runs have hit
+       # ~35KB); the default 16000-token cap truncated a live generate on
+       # T33234 (Part 2B, 2026-07-22) — give it more completion headroom.
+       max_tokens=32000)
     if dry_run:
         return _provenance_preview(meta)
     if meta.get("error"):
@@ -1133,11 +1246,14 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     blocks = _parse_generated_blocks(meta.get("content", ""))
     if not blocks["test_code"]:
         raise HTTPException(502, "LLM returned no python code block.")
+    # PLAN §1.5 — authoritative re-stamp: server-known step->fragment mapping wins
+    # over anything the model self-reported, so provenance is trustworthy either way.
+    stamped_code = _restamp_provenance(blocks["test_code"], fragments, meta.get("model") or "")
 
     prev = sess.step6 or {}
     sess.step6 = {
         "naming": {"group": group, "name": name},
-        "files": {"test": {"name": file_name, "code": blocks["test_code"]},
+        "files": {"test": {"name": file_name, "code": stamped_code},
                   "library": blocks["library"]},
         "iterations": prev.get("iterations", 0) + 1,
         "confirmed": False,
@@ -1349,7 +1465,8 @@ async def fix_script(key: str, request: Request):
         "lint_errors": lint_errors,
         "results": parsed.get("cases", []),
         "log_excerpts": excerpts,
-    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
+    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
+       max_tokens=32000)  # emits a whole revised script — same size profile as generate
     if dry_run:
         return _provenance_preview(meta)
     if meta.get("error"):
@@ -1357,6 +1474,10 @@ async def fix_script(key: str, request: Request):
     blocks = _parse_generated_blocks(meta.get("content", ""))
     if not blocks["test_code"]:
         raise HTTPException(502, "LLM fix returned no python code block.")
+    # Re-stamp (PLAN §1.5): a fix pass can shift step content, so re-derive tags
+    # from the same fragment mapping rather than trust whatever survived the edit.
+    fix_fragments = (sess.step5 or {}).get("fragments", [])
+    stamped_code = _restamp_provenance(blocks["test_code"], fix_fragments, meta.get("model") or "")
 
     # Archive current iteration before replacing
     iteration = step6.get("iterations", 1)
@@ -1366,7 +1487,7 @@ async def fix_script(key: str, request: Request):
     (hist_dir / step6["files"]["test"]["name"]).write_text(
         step6["files"]["test"]["code"], encoding="utf-8")
 
-    step6["files"]["test"]["code"] = blocks["test_code"]
+    step6["files"]["test"]["code"] = stamped_code
     if blocks["library"]:
         step6["files"]["library"] = blocks["library"]
     step6["iterations"] = iteration + 1

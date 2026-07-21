@@ -256,7 +256,7 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False, system: str = "") -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False, system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
     """Instrumented wrapper around _call_llm_raw (same signature + `template`).
 
     Times the call, normalizes token usage from the raw response
@@ -283,7 +283,7 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     start = time.monotonic()
     meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
                          model=model, auth_method=auth_method, timeout=timeout,
-                         session_id=session_id, system=system)
+                         session_id=session_id, system=system, max_tokens=max_tokens)
     duration_ms = int((time.monotonic() - start) * 1000)
     meta["template"] = template
     meta["usage"] = llm_debug.normalize_usage(meta.get("auth_method", auth_method),
@@ -292,7 +292,7 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     return meta
 
 
-def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", system: str = "") -> Dict[str, Any]:
+def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
     Supports multiple login styles (chosen in the UI):
@@ -374,6 +374,29 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         })
         return meta
 
+    # HTTP timeout is a (connect, read) pair, not one scalar. The bug this
+    # replaces used a single hardcoded 120s that ignored the caller's `timeout`
+    # entirely: connecting to vLLM is fast, but the org models are REASONING
+    # models that emit a long message.reasoning_content phase BEFORE any bytes of
+    # the answer — a non-streaming call has nothing to reset the read clock, so a
+    # large ranking/synthesis prompt (e.g. ranking ~30 candidates) blew past 120s
+    # mid-reasoning and aborted with "Read timed out. (read timeout=120)". We now
+    # honor the caller's `timeout` as the READ budget with a short fixed connect,
+    # and floor the read budget generously for the reasoning vLLM path so those
+    # long-thinking calls complete. (A streaming transport that keeps the socket
+    # alive is the better structural fix — see SESSION_STATE handoff — but this
+    # removes the hard ceiling that was failing real calls today.)
+    connect_timeout = 10
+    read_timeout = timeout
+    # Floor the read budget for the reasoning vLLM path so long-thinking
+    # generation/ranking calls complete — but ONLY when the caller asked for a
+    # real (>=120s) budget. A deliberately short timeout (the health ping passes
+    # 30s and wants to fail fast on a dead backend) is respected as-is, not
+    # inflated to 600s.
+    if auth_method == "local_llm" and read_timeout >= 120:
+        read_timeout = max(read_timeout, 600)
+    http_timeout = (connect_timeout, read_timeout)
+
     # Real calls
     try:
         if provider == "claude":
@@ -385,13 +408,13 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             }
             payload = {
                 "model": model,
-                "max_tokens": 2000,
+                "max_tokens": max_tokens or 2000,
                 "temperature": 0.2,
                 "messages": [{"role": "user", "content": prompt}],
             }
             if system:
                 payload["system"] = system  # Anthropic: top-level field, not a message role
-            resp = requests.post(f"{base_url}/messages", headers=headers, json=payload, timeout=120)
+            resp = requests.post(f"{base_url}/messages", headers=headers, json=payload, timeout=http_timeout)
             resp.raise_for_status()
             data = resp.json()
             # Anthropic returns content as list of blocks
@@ -423,8 +446,12 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             # finish_reason="length" and content stays null; a moderate cap lets
             # short answers through but truncates long structured ones (e.g. a
             # 40-candidate match table) mid-JSON. Give reasoning models generous
-            # headroom so real answers complete.
-            max_out = 16000 if auth_method == "local_llm" else 2000
+            # headroom so real answers complete. Callers with unusually large
+            # expected output (e.g. pt_generate_script, which emits a whole
+            # standardized script) pass an explicit `max_tokens` override —
+            # confirmed necessary empirically: a real generate_script run hit
+            # finish_reason=length at the 16000 default (Part 2B, 2026-07-22).
+            max_out = max_tokens or (16000 if auth_method == "local_llm" else 2000)
             # A system message steers these reasoning models toward the terse,
             # JSON-only answer the callers want, and sharply curbs the runaway
             # chain-of-thought that otherwise burns the token budget (measured
@@ -439,7 +466,7 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
                 "max_tokens": max_out,
             }
             endpoint = f"{base_url}/chat/completions"
-            resp = requests.post(endpoint, headers=headers, json=payload, timeout=120)
+            resp = requests.post(endpoint, headers=headers, json=payload, timeout=http_timeout)
             resp.raise_for_status()
             data = resp.json()
             choice = (data.get("choices") or [{}])[0]
@@ -1176,7 +1203,7 @@ _JSON_SYSTEM_PROMPT = (
 
 def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional[Dict] = None,
                timeout: int = 180, dry_run: bool = False,
-               system: Optional[str] = None) -> Dict[str, Any]:
+               system: Optional[str] = None, max_tokens: Optional[int] = None) -> Dict[str, Any]:
     """Generic templated LLM call (used by the PyTest Creator + index enrichment).
 
     Renders templates/prompts/<template_name> with `context`, resolves the
@@ -1187,6 +1214,11 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
     system: system message. Defaults to a JSON-only steer (see
     _JSON_SYSTEM_PROMPT) since every current template asks for JSON; pass a
     different string to override, or "" to send none.
+
+    max_tokens: override the completion cap (default 16000 for local_llm /
+    2000 otherwise — see _call_llm_raw). Pass a larger value for callers whose
+    expected output is unusually large (e.g. pt_generate_script.jinja, which
+    emits a whole standardized script and can exceed the default cap).
 
     dry_run: render the prompt and return it WITHOUT sending (provenance
     preview). The template + context are exactly those a real call uses, so the
@@ -1206,6 +1238,7 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
         template=template_name,
         dry_run=dry_run,
         system=_JSON_SYSTEM_PROMPT if system is None else system,
+        max_tokens=max_tokens,
     )
     return meta
 

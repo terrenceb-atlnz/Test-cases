@@ -97,7 +97,7 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
         if False:  # >>> replace with the real verification condition <<<
             self.passed('{{ (step.verify | default('verification met')) | replace("'", "") }}')
         else:
-            self.failed('{{ (step.verify | default('verification not met')) | replace("'", "") }} — not yet implemented')
+            self.failed('{{ (step.verify | default('verification not met')) | replace("'", "") }}')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the

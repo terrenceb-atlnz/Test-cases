@@ -18,6 +18,7 @@ Output file name: {{ file_name }}
 ## Reviewer-approved reusable fragments (real source — adapt these into the FILL slots)
 {% for f in fragments %}
 ### From {{ f.source_id }} — {{ f.symbol }} (serves steps {{ f.maps_to | join(", ") }})
+Provenance tag for this fragment: `{{ f.tag }}`
 Reviewer note: {{ f.why }}
 ```python
 {{ f.code }}
@@ -53,6 +54,13 @@ Reviewer note: {{ f.why }}
 7. No placeholder/pseudo code, no TODOs, no `output = ''` or `if False:` placeholders
    left in the final output. No external pip deps beyond what the fragments/exemplar
    already use.
+8. **Provenance: as the FIRST line inside every `main()` you fill**, add a single
+   comment stating where that block's logic came from — copy the exact tag shown
+   above the fragment you adapted (`Provenance tag for this fragment: ...`) if you
+   reused one, or `# AI {{ model_name }} {{ gen_date }}` if you wrote the logic
+   yourself with no matching fragment. This is a best-effort signal only — the
+   server re-stamps every block's tag authoritatively from the real fragment
+   mapping afterward, so get it close but don't agonize over exactness.
 
 ## Output format
 Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python

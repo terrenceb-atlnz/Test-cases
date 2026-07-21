@@ -1162,3 +1162,155 @@ Haiku/Sonnet/Opus, logged per-case), then Part 3a (offline judging, criteria 1�
 T33233/T33234/T33235) and Part 3b (tb470 execution + log parsing, criteria 5–6, two
 LLM judges + human review) — the latter gated on creating `configs/tb470.setup` + a
 PyTest Creator testbox profile.
+
+## ✅ FIXED 2026-07-22 (partially) — vLLM read timeout on suggest_zephyr (from debug-log)
+
+**Update 2026-07-22:** Fix option 1 below (split connect/read timeout, raised
+read floor) is DONE — see `llm.py`, verified against real requests. **Fix
+option 2 (streaming) is NOT done and Part 2B's real model-matrix run found it
+is still needed**: `vllm-thinking` on `generate_script` (the largest-output
+step) still hit `Read timed out. (read timeout=600)` in 2 of 3 test cases even
+at the new 600s floor — a bigger static ceiling helps but a sufficiently long
+reasoning phase can still exceed any fixed number. See
+`ask-ck/pytest-create/PLAN-pytest-testing.md` §7.7 for the full data. The
+original symptom below is preserved for reference.
+
+## (historical symptom, root-caused above) vLLM read timeout on suggest_zephyr (from debug-log)
+
+**Symptom (last recorded LLM failure).** `sess-7y2z6q1y98w-mrs6n343.jsonl`, entry
+`2026-07-20T23:44:47Z`, endpoint `/api/wizard/suggest_zephyr/AWPTCM-T43865`
+(template `suggest_zephyr`), provider `openai/vllm-thinking` via `local_llm`.
+Ran **120,105 ms** then died with a **client-side read timeout** (no provider error
+body):
+
+```
+ERROR: LLM call failed (openai via local_llm):
+HTTPConnectionPool(host='vllm.ai.atlnz.lc', port=80):
+Read timed out. (read timeout=120)
+```
+
+**Root cause (working theory).** Not a prompt/model error — the request reached the
+vLLM host but no bytes returned within the 120 s socket read window. Consistent with
+[[vllm-reasoning-model-path]]: these org models are reasoning models that emit a long
+`reasoning_content` phase *before* any `content`. On a large ranking prompt (this one
+listed ~30 candidate Zephyr cases to rank down to 3–8) the reasoning phase alone
+exceeds 120 s, and a **non-streaming** call has nothing to reset the read clock → it
+hits the ceiling and aborts.
+
+**Fix options (do in `llm.py`, `local_llm`/vLLM path), most→least important:**
+1. Raise the **read** timeout for the vLLM path well above reasoning latency
+   (e.g. 300–600 s); split connect vs read timeouts rather than one value.
+2. **Stream** vLLM responses so token/reasoning deltas keep the socket alive and reset
+   the read clock (best structural fix).
+3. Optionally steer/cap reasoning length for ranking-style prompts where a short JSON
+   answer is expected.
+
+**Confirmed on a second endpoint (same error, same case).**
+`2026-07-20T23:55:15Z`, endpoint `/api/wizard/synthesize_objectives`
+(template `generate_objectives`), same provider `openai/vllm-thinking` via `local_llm`,
+ran **120,102 ms**, identical failure:
+
+```
+ERROR: LLM call failed (openai via local_llm):
+HTTPConnectionPool(host='vllm.ai.atlnz.lc', port=80):
+Read timed out. (read timeout=120)
+```
+
+So this is **not** specific to `suggest_zephyr` — it hits any large-prompt vLLM call
+(seen on **LLM suggest** and **Synthesize Objectives**, both on `AWPTCM-T43865`).
+Confirms the root cause is the shared 120 s read timeout / non-streaming path in
+`llm.py`, not one template.
+
+**Where to look:** [llm.py](ask-ck/CK-main/CK_server/llm.py) (timeout + request shape),
+shared by all vLLM calls. Reproduce against `AWPTCM-T43865` via either
+`suggest_zephyr` or `synthesize_objectives`.
+Note the `120000 ms` durations in the same log for other large-prompt calls — same
+class of failure, so a fix here likely helps `extract_sequence`/`suggest_scripts` too.
+
+## FIX NEXT SESSION — LLM button loading state (UI, all panels)
+
+**Ask.** Every LLM-triggering button needs a visible **button state change** on click so
+the user knows (a) the click registered and (b) a call is in flight / awaiting a
+response (loading / spinner / "Working…" / disabled-with-label — pick a consistent
+treatment). Right now a long call (see the vLLM timeout above — these can run 120 s+)
+gives no feedback, so the button looks dead.
+
+**Also (the important half).** While a call is in flight the button (and ideally sibling
+LLM actions on that panel) must be **disabled** so the user can't fire multiple LLM
+calls — accidentally or deliberately — against the same panel while waiting on a prior
+result. Re-enable on completion or error.
+
+**Scope.** Apply consistently across all LLM panels (the same set the provenance work
+touched — see [[llm-provenance-portability]]). One shared helper/pattern for
+in-flight → disabled+spinner → restore, rather than per-button one-offs.
+
+**Note.** This pairs with the vLLM timeout fix above — until reasoning-model calls are
+faster/streamed, the in-flight window is long, which makes the loading state and the
+double-call lockout more important, not less.
+
+## Session Close / Handoff (2026-07-22) — vLLM timeout fix (partial) + §1.5 provenance tags + Part 2B model matrix
+
+**All work this session is UNCOMMITTED — Terrence commits himself.** Full
+bug-by-bug log with rationale: `ask-ck/pytest-create/PLAN-pytest-testing.md` §7.
+
+- **vLLM read-timeout fix (Option 1 from the note above): DONE.** `llm.py`'s two
+  hardcoded `timeout=120` HTTP calls (which silently ignored every caller's
+  actual requested timeout) are now a `(connect=10, read=<caller's timeout>)`
+  split, with the `local_llm` read floor raised to 600s only when the caller
+  asked for ≥120s (the health-ping's 30s stays fast-failing). **Option 2
+  (streaming) is still needed** — see the Part 2B finding below.
+- **§1.5 inline source-provenance tags: BUILT** (`# ART/SVT/legacy <suite/file>
+  lines a-b` mechanical tags, or `# AI <model> <date>` gap-fill; authoritative
+  server-side re-stamp, never trusting LLM self-report). Verified on a real
+  live T33234 regenerate; found + fixed a real duplicate-tag bug along the way
+  (model echoed the prompt's own instruction text as a second comment line).
+  Also scrubbed a `— not yet implemented` string leaking from the skeleton's
+  placeholder `failed()` text.
+- **`max_tokens` threading:** found live (not assumed) that `generate_script`
+  hit `finish_reason=length` at the 16000-token default while verifying §1.5.
+  Threaded an optional `max_tokens` override end-to-end; `generate_script`/
+  `fix_script` now request 32000.
+- **Two more real pipeline-blocking bugs found + fixed** while setting up all
+  three target cases for Part 2B: (1) a session's stale `llm_config`
+  (leftover `claude_agent`) never re-syncs to the workspace default —
+  `_llm_is_active()` treats headless-CLI auth methods as unconditionally
+  active; same gap exists in `wizard.py`, deliberately NOT fixed there this
+  session (bigger blast radius, not blocking). (2) `confirm_step` rejected a
+  legitimate `fragments: []`/`matches: []` answer (Python falsy-checks an
+  empty list same as "never ran") — blocked the whole rest of the pipeline for
+  any case whose Fit Decision is genuinely "new, no reuse". Both fixed
+  narrowly, verified live against the real DB/vLLM.
+- **Part 2B built AND run for real** (`tool/pt_model_matrix.py`, new): 75 real
+  LLM calls (3 cases × 5 LLM-bearing steps × vLLM-fast/thinking + Claude
+  Haiku/Sonnet/Opus). Grok CLI verified logged in but genuinely
+  quota-exhausted (real 403) — logged as an omission per the plan's own
+  instruction, not silently skipped. Results committed at
+  `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`.
+  **Headline: `vllm-fast` is the clear reliability+latency winner (0/15
+  errors, fastest); `vllm-thinking` failed 3/15**, including
+  `generate_script` timing out even at the raised 600s floor in 2 of 3
+  cases — confirms streaming (fix option 2, not yet built) is the real
+  structural fix still needed for the thinking model on large-output steps.
+  Keyword-vs-LLM Step-3 search: one case showed full agreement with
+  mechanical rank; the other showed the LLM genuinely promoting a
+  better-matching script (misleading keyword vocabulary overlap between two
+  suite families) that the mechanical scorer under-ranked — real, useful
+  signal either way.
+- **Verified every LLM access path live before assuming any block** (a prior
+  turn had wrongly claimed several hard blocks from file-absence alone —
+  corrected after being challenged): vLLM key present + working, Claude
+  Haiku/Sonnet/Opus all reachable via `claude -p --model <alias>`, Grok
+  logged in but quota-exhausted, tb470 reachable (SSH/sudo/framework
+  confirmed) but `configs/tb470.setup` genuinely absent — the one real
+  remaining external block, Terrence-side (physical topology), per §5b.
+
+**Not done / explicitly deferred:** the `wizard.py` twin of the stale-`llm_config`
+bug (same root cause, not fixed there — bigger blast radius); the second
+standing note above (LLM button loading state, UI) — untouched this session;
+streaming for vLLM (Option 2) — the data now shows it's not optional for
+`vllm-thinking` at scale, recommend prioritizing it.
+
+**Next:** Part 3a (offline judging, criteria 1-4, two LLM judges: Claude Opus +
+vLLM-thinking) for all three cases; Part 3b (tb470 execution, criteria 5-6) —
+gated only on `configs/tb470.setup` (topology) + a stored PyTest Creator
+testbox profile, both Terrence-side.

@@ -1,6 +1,6 @@
 # PyTest Creator — Testing & Standardization Plan
 
-> **Status: IN PROGRESS (updated 2026-07-21b).** Author: Claude, at Terrence's direction.
+> **Status: IN PROGRESS (updated 2026-07-22).** Author: Claude, at Terrence's direction.
 > v2 folded in Terrence's answers to the four open questions (§5, RESOLVED) and the
 > corpus evidence gathered to settle them.
 > Purpose: upgrade the PyTest Creator process with a standardized code template,
@@ -14,8 +14,18 @@
 > - ✅ **Part 2A** (first real end-to-end walkthrough on T33234) — done 2026-07-21b;
 >   steps 1–6 verified against the live DB via the org vLLM, 3 vLLM-path bugs fixed.
 >   Full per-step record: **`PART2A-WALKTHROUGH.md`**.
-> - ⏳ **Part 2B** (keyword-vs-LLM + model matrix), **Part 3a/3b** (judging + tb470
->   execution) — pending. Part 3b gated on `configs/tb470.setup` + a testbox profile.
+> - ✅ **§1.5 inline source-provenance tagging** — done 2026-07-22 (was tracked as
+>   debt out of Part 2A); mechanical server-side re-stamp, verified on a real live
+>   T33234 generate. See **§6 below** for the full bug list found while building it.
+> - ✅ **Part 2B build** (comparison harness `tool/pt_model_matrix.py`) — done
+>   2026-07-22; keyword-vs-LLM + 5-model matrix (vLLM-fast/thinking, Claude
+>   Haiku/Sonnet/Opus) run live across all three target cases. Results:
+>   `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI
+>   logged in but quota-exhausted (real 403) — omitted with reason, not silently
+>   dropped, per the plan's own instruction (§2 Phase 2B).
+> - ⏳ **Part 3a/3b** (judging + tb470 execution) — pending. Part 3b gated on
+>   `configs/tb470.setup` + a testbox profile (Terrence-side physical-topology
+>   prerequisite — see §5b).
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
@@ -414,3 +424,251 @@ Enforced in code (added 2026-07-21):
 - `tool/guard_framework_readonly.py` — runnable check (15 cases) proving the guards
   block every framework mutation and allow the legit read/copy/run path. Run it
   alongside `tool/guard_db_only.py` before committing execution-path changes.
+
+## 7. Session log — 2026-07-22 — §1.5 build + Part 2B run: bugs found, fixed, decisions
+
+Continuing the plan after the vLLM read-timeout fix (SESSION_STATE.md handoff).
+Before starting: verified LLM access live rather than assuming from file absence —
+**Local LLM (vLLM) key is stored and works** (`secrets.local.json`), **Claude
+Haiku/Sonnet/Opus are all reachable headless** via `claude -p --model <alias>`,
+**Grok CLI is logged in but genuinely quota-exhausted** (real 403 from
+`cli-chat-proxy.grok.com`), and **tb470 is reachable** (SSH/sudo/framework all
+confirmed) but `configs/tb470.setup` genuinely does not exist yet (Terrence-side
+physical-topology prerequisite, per §5b — the only real remaining external block).
+
+### 7.1 §1.5 inline source-provenance tags — built and verified live
+
+Implemented exactly as designed in §1.5: `_fragment_tag()` derives a mechanical
+`# ART/SVT/legacy <suite/file> lines <a>-<b>` tag straight from indexed fragment
+metadata (`source_id`, `loc` — never LLM self-report); `_restamp_provenance()` is
+an authoritative post-generation pass that stamps the top of every
+`TestCase_<n>.main()` from the server-known step→fragment `maps_to` mapping,
+falling back to `# AI <model> <date>` for gap-fill steps. Wired into both
+`generate_script` and `fix_script`. Lint (`_lint_generated`) gained a conformance
+check: every `main()` must have a leading tag matching `# (ART|SVT|legacy|AI)`.
+
+**Bug found while verifying live (real T33234 regenerate, not a synthetic
+test):** the model does attempt its own provenance line (prompt rule 8 asks it
+to), but compliance is non-deterministic in *shape*, not just content — one real
+run echoed the prompt's own instruction text as a second leading comment line
+("`Provenance tag for this fragment: # AI vllm-fast 2026-07-21`") *below* the
+server's authoritative stamp, which a first-line-only dedup check missed,
+leaving two tag-looking lines per block. **Fixed:** `_restamp_provenance` now
+strips the ENTIRE leading run of comment lines matching a broader echo pattern
+(`# .*\b(ART|SVT|legacy|AI)\b`, case-insensitive, matched anywhere the model put
+it) before inserting exactly one authoritative tag. Re-verified on a fresh live
+regenerate of T33234: exactly 14 tags for 14 TestCases, zero duplicates, zero
+echo leaks, lint clean. Also fixed a smaller finding from the walkthrough while
+in this template: the skeleton's placeholder `failed()` string leaked
+**"— not yet implemented"** into real output (`pt_script_template.py.jinja`) —
+removed.
+
+### 7.2 `max_tokens` was never parameterized — generate_script hit the cap live
+
+Regenerating T33234 to verify §1.5 hit a REAL failure, not caused by my changes:
+`finish_reason=length` at the 16000-token default (a `generate_script` prompt
+emits a whole ~25-35KB script — larger than any other step). Root cause:
+`max_tokens` was hardcoded (`2000`/`16000` by auth_method) with **no override
+path at all** — `run_prompt`/`_call_llm_with_meta`/`_call_llm_raw` didn't accept
+it. **Fixed:** threaded an optional `max_tokens` param end-to-end (mirroring how
+`timeout` already works); `generate_script` and `fix_script` now request
+`max_tokens=32000` (both emit a whole script). Re-verified live: T33234
+regenerated clean at 91s → 76s across two runs, lint clean, 0 truncation errors.
+Unit-verified the override doesn't leak into other calls (health ping etc. keep
+their smaller defaults).
+
+### 7.3 Stale per-case `llm_config` never re-syncs to the workspace default
+
+Driving the pipeline for T33233 via raw HTTP (no browser `X-CK-Session`, this
+harness's own calls) hit `provider=claude auth_method=claude_agent
+model=default base_url=https://api.anthropic.com/v1` — NOT the configured
+workspace vLLM default — and `suggest_scripts` degraded to the mechanical
+`coverage: unknown` fallback for all 40 candidates (a real content failure, not
+a crash, so it was easy to miss).
+
+**Root cause:** `_llm_is_active()` (shared by wizard.py and pytest_create.py)
+treats `claude_agent`/`claude_code`/`grok_cli` as **unconditionally active** —
+by design, since headless CLI modes have no server-side credential to check.
+`_apply_workspace_llm()` only overwrites a session's `llm_config` when the
+existing one is judged inactive, so a session whose `llm_config` happens to be
+one of these headless modes (T33233's, left over from before Local LLM became
+the default) can **never** re-sync to the workspace default, even via
+`load_case`'s own per-call apply. This gap exists identically in `wizard.py` —
+not fixed there either, flagged for a future session, not fixed now (broader
+blast radius, not blocking today's work).
+
+There is also **no PyTest-Creator-side endpoint to reset a case's `llm_config`
+non-destructively** — `wizard.py`'s `/set_llm_config/{key}` writes to the
+Generator's separate `WizardSession` store, not `pt_sessions`; the only
+PyTest-side reset (`clear_session`) wipes the whole session (steps 2-8), an
+unacceptable loss just to fix one field. **Workaround used (not a code
+change):** loaded T33233's real `PtSession` via the app's own `db.load_session`/
+`PtSession`/`db.save_session` path, corrected only `llm_config` to the workspace
+default, then triggered the admin panel's `/api/admin/restart` (documented,
+safe, reload-based) to clear the in-process `pt_sessions` cache so the DB fix
+takes effect. Verified: `step2.confirmed` and all other state preserved,
+`llm_config` now `local_llm`/`vllm-fast`.
+
+**Suggested follow-up (not done, out of today's scope):** a PyTest-Creator
+`POST /api/pytest-create/reset_llm_config/{key}` that re-applies
+`_apply_workspace_llm` unconditionally (bypassing the `_llm_is_active` guard),
+mirroring what the admin panel does for whole-session reset but scoped to just
+this one field.
+
+### 7.4 `confirm_step` rejected legitimate empty-list answers (steps 3/5)
+
+Driving T33235 (whose Fit Decision correctly came back `decision: new` with
+zero reusable code) hit `confirm_step/5` returning
+`409 "Nothing to confirm yet for step 5 (missing fragments)"` even though step 5
+HAD run and correctly returned `{"fragments": []}` — a real, valid "no reuse"
+answer (`gather_fragments`'s own docstring elsewhere anticipates this case:
+"steps 3-5 may legitimately be 'new script, no fragments'"). **Root cause:**
+`confirm_step`'s gate was `if not content.get(required_field)`, and Python
+treats an empty list as falsy — indistinguishable from "the step never ran".
+This would block the ENTIRE rest of the pipeline for any case whose Fit
+Decision is genuinely "new" with no matching code (not a T33235-specific
+fluke — same shape would hit any similarly under-covered case). **Fixed:**
+for the two list-typed required fields (`matches` at step 3, `fragments` at
+step 5), the gate now checks the field is *present* (`is not None`) rather than
+truthy; other steps (`sequence`/`decision`/`files`/`runs`/`validated`) keep the
+original truthiness check since those are never legitimately empty-but-complete
+(`validated=False` in particular must stay strict). Verified live: T33235
+step 5 confirms cleanly now.
+
+### 7.5 Claude CLI token accounting is cache-skewed, not directly comparable to vLLM
+
+Building the Part 2B harness, `claude -p`'s reported `usage.input_tokens` for a
+~700-token real prompt came back as `10` — not an error, but an artifact of
+this CLI session's own long-running cache (`cache_read_input_tokens` in the
+tens of thousands from the session's own tooling/system-prompt context, which
+dwarfs the actual per-call prompt). **Not comparable to vLLM's `tok_in`** (vLLM
+has no such caching layer) without accounting for it. **Handled:** the harness
+records `tok_in`, `tok_in_cache_read`, and `tok_in_cache_creation` separately per
+Claude row so the eventual model-comparison read can normalize correctly instead
+of silently under-counting Claude's real input cost.
+
+### 7.6 Setup work needed before the matrix could run at all
+
+Part 2A only drove T33234 through the full pipeline; T33233 had only step 2
+done, T33235 had nothing confirmed. Since the model matrix needs all three
+target cases fully walked through steps 2-5 (so each step's `dry_run` prompt can
+be captured), both were driven through for real (vLLM-fast, the workspace
+default) before the matrix could start — this surfaced bugs 7.3 and 7.4 above,
+which would otherwise have stayed latent (T33234 alone never exercised the
+stale-config or empty-fragments paths).
+
+### Decisions made without stopping to ask (rationale, so they can be revisited)
+
+1. **Fixed 7.2/7.3/7.4 rather than only documenting them.** All three were
+   small, narrowly-scoped, evidence-backed (each reproduced live against the
+   real vLLM/DB before AND after the fix), and directly blocking the Part 2B
+   run requested this session — leaving them broken would have meant the
+   matrix couldn't run at all for 2 of 3 target cases. The wizard-side twin of
+   7.3 was explicitly NOT fixed (bigger blast radius, not blocking).
+2. **Result-file placement:** `ask-ck/pytest-create/comparison/<Group>/<CaseKey>/<step>.json`
+   — invented (no `generated/` dir exists yet to mirror), but follows the same
+   per-case-under-Group convention as `refined-cases/` and the planned
+   `generated/` layout per §5 decision 4. Committed, not gitignored (prompts/
+   outputs/tokens only, no credentials — matches the decision's own follow-on
+   item).
+3. **Harness bypasses router session-mutation entirely.** Rather than driving
+   each model through the real stepN endpoint (which would need 5x
+   save/confirm/invalidate cycles per step, repeatedly clobbering the reviewed
+   session state Part 3 needs), the harness captures the exact prompt once via
+   the endpoint's own `dry_run: true` (byte-identical to a real send, zero
+   session writes) then calls each model directly (`llm._call_llm_raw` for
+   vLLM, `claude -p --model <alias>` for Claude tiers). This keeps all three
+   cases' confirmed step 2-5 state intact for Part 3.
+
+### 7.7 Part 2B results — model matrix (75 real calls: 3 cases × 5 steps × 5 models)
+
+Full run: 71/75 completed, 4 real (non-silent) failures. Results committed at
+`ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`.
+
+**Per-model reliability + latency (successful calls only):**
+
+| Model | Errors | Avg latency | Max latency | Avg tok_out |
+|---|---|---|---|---|
+| vllm-fast | 0/15 | 40.0s | 124.1s | 7,024 |
+| vllm-thinking | **3/15** | 249.6s | 465.9s | 3,631 |
+| claude-haiku | 0/15 | 60.3s | 135.4s | 8,814 |
+| claude-sonnet | 0/15 | 87.8s | 248.5s | 9,565 |
+| claude-opus | 1/15 | 77.5s | 215.8s | 6,264 |
+
+**The 4 failures, all real and informative (none silent):**
+- `vllm-thinking` × `generate_script` — T33233 **and** T33234 both hit
+  `Read timed out. (read timeout=600)` — i.e. failed even at the RAISED 600s
+  floor from this session's earlier timeout fix. T33235's `generate_script`
+  on `vllm-thinking` DID complete, at 376.9s — so the model's reasoning-phase
+  length is highly variable, not a fixed multiple of prompt size, and
+  occasionally exceeds 600s outright on the largest-output step.
+- `vllm-thinking` × `suggest_scripts` — T33233 only (T33234/35's
+  `suggest_scripts` on `vllm-thinking` completed at 372.6s/366.2s). Same
+  failure mode.
+- `claude-opus` × `generate_script` — T33233 only, hit the **harness's own**
+  hardcoded 300s CLI subprocess timeout (`call_claude_cli`), not a product
+  bug — Opus's other 14 calls in the matrix all completed under 300s, and
+  T33234/T33235's Opus `generate_script` calls succeeded (169.6s / 215.8s), so
+  this reads as one slow outlier crossing a harness limit that was sized for
+  the *typical* case, not the worst case.
+
+**Conclusion — validates the plan's own hypothesis (SESSION_STATE.md handoff,
+"fix options... most→least important"):** raising the static read-timeout
+(fix #1, done this session) measurably helped but is **not sufficient** for
+`vllm-thinking` on the largest-output step. **Streaming (fix #2, NOT built)
+is the correct structural fix** — it would keep the socket alive through the
+reasoning phase regardless of its length, rather than requiring an
+ever-larger static ceiling that a sufficiently long reasoning pass can still
+exceed. Recommend prioritizing streaming for `vllm-thinking` specifically
+before relying on it for `generate_script`-scale prompts in production.
+
+**Model recommendation for PyTest Creator's default:** `vllm-fast` is the
+clear reliability + latency winner (0 errors, fastest by a wide margin) and
+was already the workspace default going into this session — this data
+confirms, rather than changes, that choice. `vllm-thinking`'s only
+justification per SERVER-README is `— tok` cost transparency for Fast vs.
+Thinking comparison, not a quality or reliability edge, and this matrix found
+no case where `vllm-thinking`'s output was needed over `vllm-fast`'s (both
+produced valid, lint-clean structures in Part 2A/this session's live runs).
+Among Claude tiers, Haiku was fastest and had zero errors; Opus/Sonnet cost
+much more latency per call for output that Part 3's judging (not yet run) is
+better positioned to assess for quality than raw token/latency stats can.
+
+### 7.8 Part 2B results — keyword-vs-LLM script search (Step 3)
+
+Captured from the real (non-matrix) `suggest_scripts` calls made while setting
+up T33233/T33235 for the matrix (§7.6) — these carry BOTH the mechanical
+top-40 rank (`score`) and the LLM's coverage verdict per candidate in one
+response, which the plan's own Phase 2B point 1 asks for directly.
+
+- **T33233 (Port Auto Negotiation → searching for MDI/MDI-X scripts):** the
+  LLM's kept/re-ranked order was **identical** to the mechanical top-5 by
+  score — full agreement, no promotion or demotion. All 18 LLM-kept
+  candidates verdicted `partial` (none `full`), all correctly in the
+  `legacy/5000_mdi_mdix/*` family.
+- **T33235 (Port Speed/Duplex/Polarity):** the LLM **genuinely re-ranked** —
+  it promoted `legacy/5703_Speed_Duplex_Polarity/test-5000.1001.py` and
+  `.../test-5000.1002.py` (the semantically-correct speed/duplex/polarity test
+  family) into the top 2, ahead of `5000_mdi_mdix/*` scripts that scored
+  higher on raw keyword overlap (MDI/MDI-X and Speed/Duplex/Polarity share a
+  lot of vocabulary — port, speed, duplex, cable, straight/cross — so keyword
+  scoring alone under-ranked the better-matching suite). 13 LLM-kept
+  candidates, all `partial`.
+
+**Conclusion:** this is exactly the "does the LLM promote genuinely better
+scripts or just reshuffle" question Phase 2B asked, answered with two
+concrete, opposite examples in the same run: **agreement when the vocabulary
+is unambiguous (T33233), real correction when keyword overlap is misleading
+(T33235).** Confirms the two-stage keyword→LLM design is earning its keep,
+not just adding latency for the same answer.
+
+### 7.9 Claude CLI token accounting caveat (see also §7.5)
+
+The model-comparison table above uses each model's own reported `tok_out`
+directly (output tokens are not cache-affected), but Claude's `tok_in` column
+was NOT included in the summary table above because it is not comparable
+across models as recorded — see §7.5. A fair input-cost comparison would need
+`tok_in + tok_in_cache_read + tok_in_cache_creation` for Claude rows against
+vLLM's plain `tok_in`; the raw fields for that computation are saved in every
+Claude row of the result files (`tok_in_cache_read`/`tok_in_cache_creation`),
+just not reduced to one number here.
