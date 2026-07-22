@@ -18,6 +18,8 @@ from pathlib import Path
 import json
 import os
 import re
+import sys
+import subprocess
 
 from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig
 from data import load_all_data
@@ -247,6 +249,67 @@ def _migrate_legacy_step4_to_step5(sess: WizardSession) -> bool:
         }
         return True
     return False
+
+
+def _refined_payload_path(key: str) -> Optional[Path]:
+    """Path to the on-disk drop-in zephyr_payload.json for a case, if it exists."""
+    if not key or not REFINED_DIR.exists():
+        return None
+    for p in REFINED_DIR.glob(f"*/{key}/zephyr_payload.json"):
+        return p
+    # Fallback for any deeper nesting of the group dir.
+    for p in REFINED_DIR.rglob("zephyr_payload.json"):
+        if p.parent.name == key:
+            return p
+    return None
+
+
+def _backfill_from_refined(sess: WizardSession) -> bool:
+    """Restore step4.objective + step5.testScript from the completed on-disk payload
+    when the persisted runtime session is missing them.
+
+    Cases refined before the runtime session captured step4/step5 (or whose session
+    was later cleared) are 'Complete' on disk (refined-cases/**/zephyr_payload.json)
+    yet load with empty synthesis views — the Generator shows "No objective yet" for
+    a case that is actually done. The zephyr_payload.json is the canonical Complete
+    artefact (guard_db_only explicitly allows reading it), so use it as the source of
+    truth to rehydrate the session. This also keeps a subsequent export/push from
+    overwriting the good payload with empty fallback content. Returns True if changed.
+    """
+    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
+    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
+    has_obj = bool((s4.get("objective") or "").strip())
+    has_steps = bool((s5.get("testScript") or {}).get("steps")
+                     or (s4.get("testScript") or {}).get("steps"))
+    if has_obj and has_steps:
+        return False  # session already carries the synthesis — nothing to do
+
+    path = _refined_payload_path(sess.key)
+    if not path:
+        return False
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[backfill] could not read {path}: {e}")
+        return False
+
+    inner = raw.get(sess.key) if isinstance(raw, dict) else None
+    if not isinstance(inner, dict):
+        # Tolerate a direct-inner shape ({objective, testScript} at top level).
+        inner = raw if (isinstance(raw, dict) and ("objective" in raw or "testScript" in raw)) else None
+    if not isinstance(inner, dict):
+        return False
+
+    changed = False
+    objective = (inner.get("objective") or "").strip()
+    if objective and not has_obj:
+        sess.step4 = {**s4, "objective": objective, "confirmed": True, "backfilled": True}
+        changed = True
+    ts = inner.get("testScript")
+    if isinstance(ts, dict) and (ts.get("steps")) and not has_steps:
+        sess.step5 = {**s5, "testScript": ts, "confirmed": True, "backfilled": True}
+        changed = True
+    return changed
 
 
 def get_data():
@@ -626,6 +689,11 @@ async def load_case(key: str, data=Depends(get_data)):
         if primary:
             sess.primary = {"m": primary.get("m"), "c": primary.get("c"), "w": primary.get("w")}
         sessions[key] = sess
+
+    # Rehydrate a Complete case whose runtime session lost step4/step5 from the
+    # canonical on-disk payload, so the UI reflects the finished objective + steps.
+    if _backfill_from_refined(sess):
+        _mark_updated(sess)
 
     # Carry over workspace LLM preference (last Apply / Login) so switching cases
     # does not reset provider / CLI mode back to empty defaults.
@@ -2040,3 +2108,61 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         saved_files=saved_files or None,
         message=export_message or None,
     )
+
+
+# Case keys are AWPTCM-Txxxx; validate before passing to the subprocess.
+_CASE_KEY_RE = re.compile(r"^AWPTCM-T\d+$")
+
+
+@router.post("/push_to_zephyr/{key}")
+async def push_to_zephyr(key: str, dry_run: bool = True):
+    """Push a Complete refined case to Zephyr via tool/upload_refined.py.
+
+    Shells out to the CLI (the single owner of Zephyr-write logic), which:
+      1. strips a leading '(N)'/'(...)' group from the test-case Name,
+      2. creates a NEW Zephyr version (e.g. 1.0 -> 2.0),
+      3. uploads objective + testScript onto the new (latest) version,
+      4. attaches traceability.md + web links.
+
+    The CLI loads JIRA_KEY from secrets.md itself — the server never handles the
+    token. The case must already be Exported (drop-in payload on disk under
+    refined-cases/). `dry_run=true` (default) previews with no writes.
+    """
+    if not _CASE_KEY_RE.match(key or ""):
+        raise HTTPException(status_code=400, detail="invalid case key")
+
+    repo_root = ASKCK_ROOT.parent           # .../Test-cases
+    cli = repo_root / "tool" / "upload_refined.py"
+    if not cli.is_file():
+        raise HTTPException(status_code=500, detail=f"upload tool not found: {cli}")
+
+    cmd = [
+        sys.executable, str(cli),
+        "--keys", key,
+        "--fix-title", "--new-version",
+        "--force", "--verify",
+        ("--dry-run" if dry_run else "--execute"),
+    ]
+
+    def _run():
+        return subprocess.run(
+            cmd, cwd=str(repo_root),
+            capture_output=True, text=True, timeout=180,
+        )
+
+    try:
+        proc = await run_in_threadpool(_run)
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="push to Zephyr timed out (180s)")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"failed to launch push: {e}")
+
+    # The CLI writes its human-readable log to stderr; combine for the UI.
+    output = (proc.stdout or "") + (proc.stderr or "")
+    return {
+        "key": key,
+        "dry_run": dry_run,
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "output": output.strip(),
+    }

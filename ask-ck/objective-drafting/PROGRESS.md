@@ -2,7 +2,23 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-22b (by Claude)
+**Last Updated**: 2026-07-22c (by Claude)
+
+## Latest session (2026-07-22c) — Push-to-Zephyr button + all 43 refined cases pushed to Zephyr v2.0
+
+**Focus: built a "Push to Zephyr" button in the Generator's export step (shells out to `tool/upload_refined.py`), added title-cleanup + version-2 handling, then pushed all 43 Complete cases to the live Zephyr Scale (Server/DC) instance and audited them for consistency. Uncommitted at write time; committing + pushing to main this session.**
+
+- **`tool/upload_refined.py` — new Zephyr-write capabilities:**
+  - `--fix-title`: strips a leading `(N)`/`(…)` group from the case **Name** (e.g. `(4) Auto MDI/MDI-X` → `Auto MDI/MDI-X`); name-only PUT.
+  - `--new-version`: **idempotent toward v2.0** — bumps 1.0→2.0 via the internal `POST /rest/tests/1.0/testcase/{id}/newversion` (reverse-engineered from a devtools HAR of the UI "New Version" → Accept), but does NOTHING if already at v2.0+ (never produces 3.0). New helpers `create_new_version` + `get_case_version_info`. Order per Terrence's spec: **fix-title → new-version → payload PUT** (atm PUT-by-key lands on the new latest version).
+  - **Attachment de-dup (replace semantics):** `attach_file` now deletes any existing same-named attachment before uploading (the API has no update; repeated pushes were accumulating duplicate `traceability.md`). New `get_attachments` + `delete_attachment` (DELETE → 204).
+  - **Looser link parser:** `parse_atpylib_links` now reads **un-backticked** ART suite IDs from the ATPyLib Cases section (most files author them in prose), filters year tokens (19xx/20xx), de-dupes per-suite, and skips a reviewed non-suite denylist (`1024`).
+  - **Repathed discovery** to `ask-ck/objective-drafting/refined-cases/` (was still on the pre-2026-07-13 root path → found 0 cases). Fixed the misleading `Summary: 0 ok` counter (success was only counted on the web-links branch).
+- **Server + UI:** new `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` (`routers/wizard.py`) shells out to the CLI — the **server never handles the JIRA token** (the CLI loads it from `secrets.md`). "Preview Push (dry-run)" + "Push to Zephyr" buttons in the Generator step-6 export actions (`static/js/generator.js` + `styles.css`).
+- **`_backfill_from_refined` (load fix, `routers/wizard.py`):** loading a previously-Complete case showed empty objective/steps because its runtime session in `ck.db` had empty step4/step5 (cases refined before the session captured them). Load now rehydrates step4/step5 from the canonical on-disk `zephyr_payload.json` (guard_db_only allows that read) and self-heals the DB session.
+- **Push does NOT export-first (important):** an early version re-exported the bundle before pushing, which **degraded** a backfilled case's `traceability.md` (the incomplete session lacks step1–3 selections). Removed — Push now operates on the canonical on-disk bundle; click **Export Repeatable Bundle** first if you edited. One case (T33241) was hit + fully repaired (restored file, re-attached, `2024` link re-added).
+- **Live outcome — all 43 Complete cases pushed + independently verified:** 43/43 at **v2.0**, 43/43 titles **clean** (32 had a `(N)` prefix stripped), 43/43 **exactly one** `traceability.md` (7 had duplicates, cleaned), **40** have ART web-links (3 have none — no ART IDs in their traceability.md, by design), step 0 is 39 identical + 4 intentionally richer (kept). Zephyr instance is Jira Server v9.4.3 / Adaptavist ATM; internal `tests/1.0` API accepts the Bearer PAT.
+- **Guards green** (`guard_db_only`, `guard_framework_readonly`).
 
 ## Latest session (2026-07-22b) — vLLM streaming transport + stale-`llm_config` re-sync
 

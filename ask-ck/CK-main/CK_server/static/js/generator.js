@@ -226,7 +226,11 @@ export function renderStepsResult() {
     <div class="synth-actions" id="steps-edit-actions"></div>
     <div class="synth-actions" id="steps-export-actions">
       <button type="button" data-action="exportBundle" class="btn btn-export">Export Repeatable Bundle</button>
+      <button type="button" data-action="pushToZephyr" data-args='[false]' class="btn btn-secondary">Preview Push (dry-run)</button>
+      <button type="button" data-action="pushToZephyr" data-args='[true]' class="btn btn-primary">Push to Zephyr</button>
     </div>
+    <div class="justification-note mt-2">Push uses the <strong>last exported bundle on disk</strong> (click <em>Export Repeatable Bundle</em> first if you've made edits). On the live Zephyr case it strips a leading <code>(N)</code> title group, ensures version 2.0, and uploads the objective + steps + traceability onto it. Run <em>Preview</em> first.</div>
+    <pre id="push-zephyr-output" class="push-output" style="display:none;"></pre>
     ${provenanceHtml}
   `;
   const prev = document.getElementById('finalized-objective-content');
@@ -592,6 +596,56 @@ async function exportBundle() {
   }
 }
 
+// Push the current Complete case to Zephyr (title fix + new version + payload)
+// by asking the server to shell out to tool/upload_refined.py. `execute=false`
+// runs a dry-run preview (no writes); `execute=true` performs the real push.
+async function pushToZephyr(execute) {
+  const key = S.currentKey || getActiveCaseKey();
+  if (!key) return alert('No case loaded. Load a Complete case first.');
+
+  if (execute) {
+    const ok = confirm(
+      `Push ${key} to the LIVE Zephyr server?\n\n`
+      + 'This will:\n'
+      + '  1. Strip a leading "(N)" group from the test-case title\n'
+      + '  2. Create a NEW version (e.g. 1.0 → 2.0)\n'
+      + '  3. Upload the objective + test steps onto the new version\n'
+      + '  4. Attach traceability.md + web links\n\n'
+      + 'Tip: run "Preview Push (dry-run)" first. Continue?'
+    );
+    if (!ok) return;
+  }
+
+  const out = document.getElementById('push-zephyr-output');
+  if (out) {
+    out.style.display = 'block';
+    out.textContent = execute ? 'Pushing to Zephyr…' : 'Previewing (dry-run, no writes)…';
+  }
+
+  try {
+    // NOTE: intentionally NO export-first here. Push operates on the canonical
+    // on-disk refined-case bundle (traceability.md + zephyr_payload.json). Re-
+    // exporting from the live session would DEGRADE those artefacts for any case
+    // whose session is incomplete (e.g. a Complete case rehydrated via backfill
+    // that carries only step4/step5, not the step1–3 selections). If you edited
+    // the objective/steps, click "Export Repeatable Bundle" first, then Push.
+    const res = await fetch(
+      `/api/wizard/push_to_zephyr/${encodeURIComponent(key)}?dry_run=${execute ? 'false' : 'true'}`,
+      { method: 'POST' }
+    );
+    const data = await res.json().catch(() => ({}));
+    const body = (data && data.output) ? data.output : `HTTP ${res.status}`;
+    const header = (data && data.ok === false)
+      ? `⚠ Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
+      : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
+    if (out) out.textContent = header + body;
+  } catch (e) {
+    if (out) out.textContent = 'Push failed: ' + e;
+  } finally {
+    recordLLMDebug(null);   // no LLM call in this path — clear the footer
+  }
+}
+
 async function clearCurrentSession() {
   if (!S.currentKey) S.currentKey = getActiveCaseKey();
   if (!S.currentKey) return alert('No case selected');
@@ -633,7 +687,7 @@ async function clearCurrentSession() {
 
 // Register this tool's data-action handlers.
 registerActions({
-  loadCase, confirmStep, clearCurrentSession,
+  loadCase, confirmStep, clearCurrentSession, pushToZephyr,
   exportBundle, synthesizeObjectives, startEditObjective,
   applyObjectiveEdits, cancelObjectiveEdits, confirmObjectives,
   synthesizeSteps, startEditSteps, applyStepEdits,

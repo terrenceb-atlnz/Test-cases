@@ -319,6 +319,11 @@ UI step numbers below are the visible 1–6 Generator labels.
 8. Click the teal **Export Repeatable Bundle** (appears after steps exist).
    - Produces: `traceability.md` (templated; **Gaps Noted** from LLM at synthesis/export), `AWPTCM-Txxxx-zephyr_payload.json` (exact Zephyr Scale shape), and session JSON (full provenance).
    - Auto-persists server-side to `ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/`.
+9. **Push to Zephyr** (2026-07-22c; buttons next to Export) — publishes the exported bundle to the live Zephyr case.
+   - **Preview Push (dry-run)** shows the exact plan with zero writes; **Push to Zephyr** performs it (with a confirm dialog).
+   - On the case, in order: strip a leading `(N)`/`(…)` group from the **Name** → ensure **version 2.0** (`POST /rest/tests/1.0/testcase/{id}/newversion`; idempotent — bumps 1.0→2.0, skips if already ≥2.0) → PUT objective+testScript (lands on the new latest version) → replace `traceability.md` attachment (no duplicates) → post ART web-links.
+   - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `tool/upload_refined.py`** (flags `--fix-title --new-version --force`); the server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
+   - **Loading a Complete case** rehydrates step4/step5 (objective+steps) from the on-disk `zephyr_payload.json` when the runtime session lacks them (`wizard._backfill_from_refined`), so previously-refined cases reflect correctly and can be pushed. The Zephyr instance is Jira Server / Adaptavist ATM; the internal `tests/1.0` API accepts the Bearer PAT.
 
 Tables are compact to fit on one page with no side-scroll. The Zephyr review contains only external cases (current Cases list entries, including the primary, are omitted).
 

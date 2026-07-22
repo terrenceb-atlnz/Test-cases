@@ -46,12 +46,13 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 
-from common import JIRA_BASE, SSL_CTX, need
+from common import JIRA_BASE, JIRA_PROJECT_ID, SSL_CTX, need
 
 
 def load_payload(path):
@@ -124,9 +125,49 @@ def clean_test_script_for_update(ts):
     return {"type": ts.get("type", "STEP_BY_STEP"), "steps": clean_steps}
 
 
+# A single leading parenthesised group at the very start of the title, e.g.
+# "(4) Auto MDI/MDI-X" or "(draft) Foo" -> the "(…) " prefix. Numeric-or-not per
+# Terrence's call (2026-07-22). Only the FIRST leading group is stripped; any
+# parentheses later in the title are left untouched.
+_LEADING_PAREN_RE = re.compile(r"^\s*\([^)]*\)\s*")
+
+
+def strip_leading_paren_group(name):
+    """Return (new_name, changed) with a single leading '(…)' group removed.
+
+    "(4) Auto MDI/MDI-X" -> ("Auto MDI/MDI-X", True)
+    "Auto MDI/MDI-X"     -> ("Auto MDI/MDI-X", False)
+    A title that is *only* a parenthesised group (e.g. "(4)") is left unchanged
+    rather than emptied, since Name is a required Zephyr field.
+    """
+    if not name:
+        return name, False
+    stripped = _LEADING_PAREN_RE.sub("", name, count=1)
+    if stripped and stripped != name:
+        return stripped, True
+    return name, False
+
+
+# ART suite/test IDs in the ATPyLib Cases section: 4-digit suite, optionally
+# dotted (1342.301.13) or wildcard (1346.*). Not preceded by a word char / dot /
+# hyphen so we don't pick up AWP-4341 TestLink numbers or fragments of longer ids.
+_ATP_ID_RX = re.compile(r"(?<![\w.-])(\d{4}(?:\.\d+)*|\d{4}\.\*)\b")
+# Bare 4-digit years seen in prose ("... in 2026 ...") are not suites.
+_YEAR_RX = re.compile(r"^(?:19|20)\d\d$")
+# 4-digit tokens that appear in prose but are NOT ART suites (reviewed 2026-07-22).
+# Extend as more false-positives are found.
+_NON_SUITE_IDS = {"1024"}
+
+
 def parse_atpylib_links(md_path):
-    """Parse the ATPyLib Cases section of traceability.md and return list of {url, description} for web links."""
-    import re
+    """Parse the ATPyLib Cases section of traceability.md → list of {url, description}.
+
+    Reads ART suite IDs from the '## ATPyLib Cases (Step 3|4)' section. IDs may be
+    backticked (`1342.301.13`) OR bare prose ('1351 suite covers ...') — both are
+    accepted, since most cases author them without backticks. Bare 4-digit years
+    (19xx/20xx) and a small reviewed non-suite denylist are skipped. Links are
+    per-suite (testSuiteId = first 4 digits) and de-duplicated by URL.
+    """
     if not os.path.isfile(md_path):
         return []
     try:
@@ -142,11 +183,18 @@ def parse_atpylib_links(md_path):
     section = m.group(1)
 
     links = []
-    # Find backticked IDs e.g. `1342.301.13` or `1346.*`
-    for match in re.finditer(r'`(\d{4}(?:\.\d+)*|\d{4}\.\*)`', section):
+    seen = set()
+    for match in _ATP_ID_RX.finditer(section):
         id_str = match.group(1)
-        suite_id = id_str[:4]
+        suite_id = id_str.split(".")[0]
+        if "." not in id_str and _YEAR_RX.match(id_str):
+            continue  # bare year, not a suite
+        if suite_id in _NON_SUITE_IDS:
+            continue  # reviewed non-suite false-positive
         url = f"http://intranet.atlnz.lc/systest/ATPyLib/regression/test_suite.php?testSuiteId={suite_id}"
+        if url in seen:
+            continue  # one link per suite
+        seen.add(url)
         if "." in id_str and not id_str.endswith("*"):
             parts = id_str.split(".")
             if len(parts) >= 3:
@@ -206,11 +254,19 @@ def parse_zephyr_links(md_path):
 
 
 def get_test_case_numeric_id(key, token):
-    """Get the internal numeric testCaseId using the internal tests API."""
+    """Get the internal numeric testCaseId (latest version) using the internal tests API.
+
+    Returns the numeric id, or None on any error (bad token, not found, network),
+    so callers can report cleanly instead of crashing.
+    """
     q = urllib.parse.quote(f'testCase.key = "{key}"')
     url = f"{JIRA_BASE}/rest/tests/1.0/testcase/search?archived=false&fields=id,key&maxResults=1&query={q}"
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token})
-    data = json.load(urllib.request.urlopen(req, context=SSL_CTX, timeout=30))
+    try:
+        data = json.load(urllib.request.urlopen(req, context=SSL_CTX, timeout=30))
+    except Exception as e:
+        print(f"  WARN: could not resolve numeric id for {key}: {e}", file=sys.stderr)
+        return None
     if data.get("results"):
         return data["results"][0]["id"]
     return None
@@ -353,13 +409,17 @@ def gj(path, token):
         raise RuntimeError(f"HTTP {e.code} for {path}: {body}") from e
 
 
-def put_case(key, objective=None, test_script=None, token=None, dry_run=True):
-    """PUT fields to the test case (objective + testScript).
+def put_case(key, objective=None, test_script=None, name=None, token=None, dry_run=True):
+    """PUT fields to the test case (name + objective + testScript).
 
+    Only the fields passed as non-None are included in the body, so this can be
+    used to update the title alone (name=...) or the payload alone.
     Returns (success: bool, status_or_error)
     """
     url = f"{JIRA_BASE}/rest/atm/1.0/testcase/{key}"
     body = {}
+    if name is not None:
+        body["name"] = name
     if objective is not None:
         body["objective"] = objective or ""
     if test_script is not None:
@@ -375,6 +435,8 @@ def put_case(key, objective=None, test_script=None, token=None, dry_run=True):
 
     if dry_run:
         print(f"  [DRY] PUT {url}", file=sys.stderr)
+        if "name" in body:
+            print(f"  name={body['name']!r}", file=sys.stderr)
         if "objective" in body:
             print(f"  objective len={len(body.get('objective', ''))}", file=sys.stderr)
         if "testScript" in body:
@@ -401,18 +463,203 @@ def put_case(key, objective=None, test_script=None, token=None, dry_run=True):
         return False, str(e)
 
 
+def fix_title(key, token, dry_run=True, current=None):
+    """Strip a leading '(…)' group from the case Name in Zephyr, if present.
+
+    GETs the current name (unless `current` is supplied), strips a single leading
+    parenthesised group, and PUTs the cleaned name only when it changed.
+    Returns (status, old_name, new_name) where status is one of:
+      "changed"   — name had a leading group; PUT issued (or dry-run previewed)
+      "unchanged" — no leading group; nothing sent
+      "no-name"   — could not read a current name
+      "error:..." — GET/PUT failed
+    """
+    if current is None:
+        current = fetch_case(key, token)
+    if not current:
+        return "no-name", None, None
+    old_name = (current.get("name") or "").strip()
+    if not old_name:
+        return "no-name", None, None
+    new_name, changed = strip_leading_paren_group(old_name)
+    if not changed:
+        return "unchanged", old_name, old_name
+    if dry_run:
+        print(f"  [DRY] would fix title: {old_name!r} -> {new_name!r}", file=sys.stderr)
+        return "changed", old_name, new_name
+    ok, info = put_case(key, name=new_name, token=token, dry_run=False)
+    if ok:
+        return "changed", old_name, new_name
+    return f"error:{info}", old_name, new_name
+
+
+# This process only ever takes a case to version 2.0 — never higher. See
+# create_new_version(): bump 1.0 -> 2.0, but if the case is already at 2.0 (or
+# beyond) do NOT create another version, so re-running never produces 3.0+.
+TARGET_MAJOR_VERSION = 2
+
+
+def get_case_version_info(key, token):
+    """Return {id, majorVersion, latestVersion, name} for the case's latest version.
+
+    Uses the internal tests API, which resolves a key to its latest version.
+    Returns None on any error / no result.
+    """
+    q = urllib.parse.quote(f'testCase.key = "{key}"')
+    url = (f"{JIRA_BASE}/rest/tests/1.0/testcase/search"
+           f"?archived=false&fields=id,key,name,majorVersion,latestVersion&maxResults=1&query={q}")
+    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+    try:
+        data = json.load(urllib.request.urlopen(req, context=SSL_CTX, timeout=30))
+    except Exception as e:
+        print(f"  WARN: could not read version info for {key}: {e}", file=sys.stderr)
+        return None
+    results = data.get("results") if isinstance(data, dict) else None
+    if not results:
+        return None
+    return results[0]
+
+
+def create_new_version(key, token, dry_run=True):
+    """Ensure the case is at version 2.0, creating it from 1.0 if needed.
+
+    On this Jira Server / Adaptavist ATM instance, the UI "New Version" button
+    (its Accept confirmation) clones the case into a new latest version via:
+
+        POST /rest/tests/1.0/testcase/{numericId}/newversion
+        body: {"id": <numericId>}
+        -> 201 {"key": "AWPTCM-Txxxx", "id": <newVersionNumericId>}
+
+    The numeric id changes but the key is stable and the new version becomes the
+    latest, so a subsequent atm/1.0 PUT *by key* lands objective/testScript on it.
+    Callers run: fix_title -> create_new_version -> put_case(objective, testScript).
+
+    IDEMPOTENT TOWARD 2.0 (per Terrence): this process only ever produces v2.0.
+      - currently v1  -> create a new version (becomes v2.0)
+      - already v2    -> do nothing (payload writes onto the existing v2.0)
+      - already v3+   -> do nothing + warn (can't downgrade; anomaly to flag)
+
+    Auth: Bearer PAT (same base as post_tracelinks). Returns (success, info) where
+    info is a dict describing what happened (action: created|skipped|dry-run).
+    """
+    info = get_case_version_info(key, token)
+    if not info:
+        return False, "could not resolve case/version info"
+    tc_id = info.get("id")
+    major = info.get("majorVersion")
+    if tc_id is None or major is None:
+        return False, f"missing id/majorVersion for {key}"
+
+    # Already at (or past) the target — never bump further.
+    if major >= TARGET_MAJOR_VERSION:
+        if major > TARGET_MAJOR_VERSION:
+            print(f"  WARN: {key} is already at v{major}.0 (> target v{TARGET_MAJOR_VERSION}.0); "
+                  f"not creating another version.", file=sys.stderr)
+        else:
+            print(f"  Already at v{major}.0 — no new version needed.", file=sys.stderr)
+        return True, {"action": "skipped", "id": tc_id, "major": major}
+
+    # major < target (i.e. v1) -> create a new version -> becomes v2.0
+    if dry_run:
+        print(f"  [DRY] would create v{major + 1}.0 via POST "
+              f"/rest/tests/1.0/testcase/{tc_id}/newversion  body={{\"id\": {tc_id}}}", file=sys.stderr)
+        return True, {"action": "dry-run", "id": tc_id, "target_major": major + 1}
+
+    url = f"{JIRA_BASE}/rest/tests/1.0/testcase/{tc_id}/newversion"
+    payload = {"id": tc_id}
+    data = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json;charset=UTF-8",
+        "Accept": "application/json, text/plain, */*",
+        "jira-project-id": str(JIRA_PROJECT_ID),
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    try:
+        req = urllib.request.Request(url, data=data, method="POST", headers=headers)
+        resp = urllib.request.urlopen(req, context=SSL_CTX, timeout=30)
+        status = getattr(resp, "status", 201)
+        new_id = None
+        try:
+            body = json.load(resp)
+            if isinstance(body, dict):
+                new_id = body.get("id")
+        except Exception:
+            pass
+        print(f"  Created v{major + 1}.0 (status {status}, new id {new_id})", file=sys.stderr)
+        return True, {"action": "created", "status": status, "new_id": new_id, "from_major": major}
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="replace")[:500]
+        except Exception:
+            pass
+        return False, f"HTTP {e.code}: {body}"
+    except Exception as e:
+        return False, str(e)
+
+
+def get_attachments(key, token):
+    """List attachments for a test case. Returns a list of dicts (id, filename, …) or []."""
+    url = f"{JIRA_BASE}/rest/atm/1.0/testcase/{key}/attachments"
+    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+    try:
+        data = json.load(urllib.request.urlopen(req, context=SSL_CTX, timeout=30))
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        print(f"  WARN: could not list attachments for {key}: {e}", file=sys.stderr)
+        return []
+
+
+def delete_attachment(att_id, token):
+    """Delete an attachment by numeric id. Returns (ok, status_or_error)."""
+    url = f"{JIRA_BASE}/rest/atm/1.0/attachments/{att_id}"
+    req = urllib.request.Request(url, method="DELETE",
+                                 headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+    try:
+        resp = urllib.request.urlopen(req, context=SSL_CTX, timeout=30)
+        return True, getattr(resp, "status", 200)
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="replace")[:300]
+        except Exception:
+            pass
+        return False, f"HTTP {e.code}: {body}"
+    except Exception as e:
+        return False, str(e)
+
+
 def attach_file(key, filepath, token, dry_run=True):
     """Upload a file (e.g. traceability.md) as an attachment to the test case.
 
-    Uses the /testcase/{key}/attachments endpoint.
+    REPLACE semantics: the attachments API has no update, and repeated pushes would
+    otherwise accumulate duplicate copies (it does not dedupe). So any existing
+    attachment with the SAME filename is deleted first, leaving exactly one, always
+    the current one. Uses the /testcase/{key}/attachments endpoint.
     Returns (success: bool, status_or_error)
     """
     url = f"{JIRA_BASE}/rest/atm/1.0/testcase/{key}/attachments"
     filename = os.path.basename(filepath)
 
+    existing_same = [a for a in get_attachments(key, token)
+                     if isinstance(a, dict) and a.get("filename") == filename and a.get("id") is not None]
+
     if dry_run:
-        print(f"  [DRY] Would POST attachment {filename} -> {url}", file=sys.stderr)
+        if existing_same:
+            print(f"  [DRY] would replace {len(existing_same)} existing '{filename}' "
+                  f"attachment(s), then upload 1", file=sys.stderr)
+        else:
+            print(f"  [DRY] Would POST attachment {filename} -> {url}", file=sys.stderr)
         return True, "dry-run"
+
+    # Remove existing same-named attachments so exactly one (fresh) copy remains.
+    for a in existing_same:
+        d_ok, d_info = delete_attachment(a["id"], token)
+        if d_ok:
+            print(f"  Removed old {filename} (id {a['id']})", file=sys.stderr)
+        else:
+            print(f"  WARN: could not remove old {filename} id {a['id']}: {d_info}", file=sys.stderr)
 
     try:
         import mimetypes
@@ -595,14 +842,26 @@ MORE INFO
                     help="Only POST web links via /rest/tests/1.0/tracelink/bulk/create (skip payload and attachment). Use with --force to override refined status.")
     ap.add_argument("--no-attach", action="store_true",
                     help="Skip attaching the traceability.md file to the test case")
+    ap.add_argument("--fix-title", action="store_true",
+                    help="Before uploading, strip a leading '(N)'/'(...)' group from the "
+                         "case Name in Zephyr, e.g. '(4) Auto MDI/MDI-X' -> 'Auto MDI/MDI-X'.")
+    ap.add_argument("--new-version", action="store_true",
+                    help="Ensure the case is at version 2.0 BEFORE uploading the payload, so "
+                         "objective+testScript land on v2.0. Bumps 1.0 -> 2.0; if already at 2.0 "
+                         "(or higher) it does NOT create another version (never produces 3.0+).")
     args = ap.parse_args()
 
     dry_run = not args.execute or args.dry_run
 
-    # Discover payloads (run from project root or tool/)
+    # Discover payloads (run from project root or tool/).
+    # Post-2026-07-13 restructure, refined-cases live under
+    # ask-ck/objective-drafting/refined-cases/; fall back to the pre-restructure
+    # root location for older checkouts.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(script_dir)  # copilot/Test-cases
-    base = os.path.join(root, "refined-cases")
+    base = os.path.join(root, "ask-ck", "objective-drafting", "refined-cases")
+    if not os.path.isdir(base):
+        base = os.path.join(root, "refined-cases")  # pre-restructure fallback
     pattern = os.path.join(base, "**", "zephyr_payload.json")
     paths = sorted(glob.glob(pattern, recursive=True))
 
@@ -693,6 +952,18 @@ MORE INFO
             continue
 
         if dry_run:
+            if args.fix_title:
+                t_status, old_name, new_name = fix_title(key, token, dry_run=True, current=current)
+                if t_status == "changed":
+                    print(f"  would fix title: {old_name!r} -> {new_name!r}", file=sys.stderr)
+                elif t_status == "unchanged":
+                    print(f"  title ok (no leading group): {old_name!r}", file=sys.stderr)
+                else:
+                    print(f"  title: {t_status} (could not read current name)", file=sys.stderr)
+            if args.new_version:
+                v_ok, v_info = create_new_version(key, token, dry_run=True)
+                if not v_ok:
+                    print(f"  new version: WOULD FAIL — {v_info}", file=sys.stderr)
             if do_payload:
                 print(f"  proposed: objective len={len(obj)}, steps={len(ts.get('steps', []))}", file=sys.stderr)
                 if status in ("refined", "partial"):
@@ -707,10 +978,39 @@ MORE INFO
             successes += 1
             continue
 
-        # Real execute path
+        # Real execute path.
+        # Order matters (Terrence's spec): strip the title first, then create the
+        # new version, then upload the payload so objective+testScript land on the
+        # new version.
         ok = True
-        if do_payload:
-            ok, info = put_case(key, obj, ts, token, dry_run=False)
+
+        if ok and args.fix_title:
+            t_status, old_name, new_name = fix_title(key, token, dry_run=False, current=current)
+            if t_status == "changed":
+                print(f"  Title fixed: {old_name!r} -> {new_name!r}", file=sys.stderr)
+            elif t_status == "unchanged":
+                print(f"  Title unchanged (no leading group): {old_name!r}", file=sys.stderr)
+            elif t_status == "no-name":
+                print("  Title: could not read current name (skipping fix)", file=sys.stderr)
+            else:
+                ok = False
+                failures += 1
+                print(f"  FAILED title fix: {t_status}", file=sys.stderr)
+                if not args.continue_on_error:
+                    break
+
+        if ok and args.new_version:
+            # create_new_version is idempotent toward v2.0 and logs what it did.
+            v_ok, v_info = create_new_version(key, token, dry_run=False)
+            if not v_ok:
+                ok = False
+                failures += 1
+                print(f"  FAILED new version: {v_info}", file=sys.stderr)
+                if not args.continue_on_error:
+                    break
+
+        if ok and do_payload:
+            ok, info = put_case(key, obj, ts, token=token, dry_run=False)
             if ok:
                 print(f"  OK payload (status {info})", file=sys.stderr)
             else:
@@ -735,8 +1035,6 @@ MORE INFO
                 for l in all_links:
                     desc = l.get("description") or l.get("title")
                     print(f"    {desc} -> {l['url']}", file=sys.stderr)
-                if not do_payload:
-                    successes += 1
             else:
                 print(f"  Set webLink(s) FAILED: {info2}", file=sys.stderr)
                 if not args.continue_on_error:
@@ -751,6 +1049,10 @@ MORE INFO
                 print(f"  VERIFY: objective~{len(after_obj)} chars, steps={len(after_steps)}", file=sys.stderr)
             except Exception as ve:
                 print(f"  VERIFY failed: {ve}", file=sys.stderr)
+
+        # Count one success per case that completed its requested actions cleanly.
+        if ok:
+            successes += 1
 
     print(f"\nSummary: {successes} ok, {failures} failed, {skipped} skipped, {already_present} already-present", file=sys.stderr)
     if dry_run:

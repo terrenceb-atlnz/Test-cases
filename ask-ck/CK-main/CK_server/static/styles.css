@@ -1089,6 +1089,19 @@ h2 {
   flex-wrap: wrap;
   align-items: center;
 }
+.push-output {
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--bg-secondary, #f6f8fa);
+  border: 1px solid var(--border-color, #d0d7de);
+  border-radius: 6px;
+}
 .synth-objective {
   font-size: 12px;
   line-height: 1.45;
