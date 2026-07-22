@@ -74,18 +74,26 @@ class AgentJobRegistry:
             job = q.popleft()
             return job.id, job.prompt, job.model
 
-    def deliver(self, job_id: str, content: str, error: bool, usage: Optional[dict] = None) -> bool:
+    def deliver(self, job_id: str, content: str, error: bool, usage: Optional[dict] = None,
+                total_cost_usd: Optional[float] = None) -> bool:
         """Browser posts a completion. Wakes the blocked caller. True if job existed.
 
-        `usage` is optional token accounting from the out-of-repo ck-agent (it may
-        adopt it later); when absent the result carries no usage key and the debug
-        log honestly shows "— tok" for this transport.
+        `usage` / `total_cost_usd` are optional token accounting the ck-agent lifts
+        from the Claude CLI's JSON envelope. When present they ride the result dict
+        in the exact shape llm_debug.normalize_usage expects (usage sub-dict +
+        top-level total_cost_usd), so the token badge + debug-log populate for this
+        transport; when absent the log honestly shows "— tok".
         """
         with self._lock:
             job = self._inflight.get(job_id)
             if not job:
                 return False
-        job.result = {"content": content, "error": bool(error), **({"usage": usage} if usage else {})}
+        job.result = {
+            "content": content,
+            "error": bool(error),
+            **({"usage": usage} if usage else {}),
+            **({"total_cost_usd": total_cost_usd} if total_cost_usd is not None else {}),
+        }
         job.event.set()
         return True
 

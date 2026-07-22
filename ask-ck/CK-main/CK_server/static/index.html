@@ -302,6 +302,20 @@
           <span id="llmHealthState" class="justification-note"></span>
         </div>
 
+        <div id="claudeAgentRow" class="radio-group hidden">
+          <span class="justification-note">Model:</span>
+          <label class="radio-label">
+            <input type="radio" name="claudeMode" value="haiku"> Haiku
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="claudeMode" value="sonnet" checked> Sonnet
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="claudeMode" value="opus"> Opus
+          </label>
+          <span class="justification-note">Runs as <code>claude --model &lt;name&gt;</code> on your own seat.</span>
+        </div>
+
         <div id="claudeAgentInstructions" class="instructions-panel hidden">
           <strong>Claude Code CLI — via your local agent (per-user, unshared)</strong><br><br>
           On a shared Ask CK page, the server never runs <code>claude</code>. Instead, a tiny agent on <strong>your own machine</strong> runs it against <strong>your own</strong> Claude login, brokered through this browser tab. Your seat is never shared with other users, and the server never sees your credentials.<br><br>

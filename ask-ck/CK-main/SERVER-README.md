@@ -238,13 +238,15 @@ The shared server queues a prompt job keyed to the browser's session id
 **Per-user setup:**
 1. On your own machine, install Claude Code (anthropic.com/claude-code); run `claude` → `/login`.
 2. Start the agent: `cd ask-ck/agent && ./run-agent.sh` (leave it running). See `ask-ck/agent/README.md`. To pin CORS to your server: `CK_AGENT_ORIGIN=http://ck-box.lan:8000 ./run-agent.sh`.
-3. In the UI (**LLM → Configure**): select **Claude Code CLI (my local machine)** → **Check my local agent** → **Apply / Login**.
+3. In the UI (**LLM → Configure**): select **Claude Code CLI (my local machine)** → pick a model (**Haiku / Sonnet / Opus**, default Sonnet) → **Check my local agent** → **Apply / Login**.
 
 Notes:
 - The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
 - Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.
+- **Model selection (2026-07-22d):** the Haiku/Sonnet/Opus radio row sets `llm_config.model`, which flows `job.model` → ck-agent → `claude --model <name>`. It's a live toggle (persists immediately, like the vLLM Fast/Thinking one); a model typed in the free-text field still overrides. Values are CLI aliases (`haiku`/`sonnet`/`opus`).
+- **Token usage + cost (2026-07-22d):** the ck-agent lifts `usage` + `total_cost_usd` from the `claude -p --output-format json` envelope and returns them from `/run`; the browser broker forwards them in the `/api/agent/result` POST; `registry.deliver()` stores them on the job result in the exact shape `llm_debug.normalize_usage` expects (usage sub-dict + top-level `total_cost_usd`), so token badges + the debug-log populate for this transport too. **Restart the ck-agent** after upgrading to enable this. When a transport reports nothing, the badge honestly shows "— tok" (never estimated).
 - Usage counts against each user's own Claude seat's limits. Keep the agent running and the tab open while working.
-- Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result`, `GET /api/agent/status?session=…`.
+- Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result` (accepts `usage` + `total_cost_usd`), `GET /api/agent/status?session=…`.
 
 ### Claude on the server host (single-user hosting only)
 
@@ -332,8 +334,8 @@ The process and output formats are identical to what is documented in `ask-ck/ob
 ## LLM Templating & Repeatability
 
 Prompt templates live in `CK_server/templates/prompts/`:
-- `generate_objectives.jinja` / `generate_steps.jinja` — synthesis
-- `generate_gaps.jinja` — Traceability gaps (synthesize/export only)
+- `generate_objectives.jinja` / `generate_steps.jinja` — synthesis. **(2026-07-22d)** `generate_objectives.jinja` no longer contains the gaps block, and `synthesize_objectives` no longer makes the gaps LLM call — Step 4 is a single self-contained objective call. Traceability gaps are decoupled to export time (below).
+- `generate_gaps.jinja` — Traceability gaps for `traceability.md`, generated **at export time only** (`generate_coverage_gaps`, called from `/api/wizard/export` when the session has no gaps yet). No longer part of objective synthesis.
 - `suggest_testlink.jinja` / `suggest_zephyr.jinja` / `suggest_atp.jinja` — pre-select assists
 - `analyze_atp_coverage.jinja` — ATP ranking only (no gaps paragraph)
 

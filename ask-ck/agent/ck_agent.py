@@ -64,13 +64,25 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
             data = json.loads(raw)
         except json.JSONDecodeError:
             data = None
+        usage = None
+        cost = None
         if isinstance(data, dict) and data.get("result") is not None:
             content = data["result"]
             if data.get("is_error"):
                 return {"content": f"ERROR: {str(content)[:500]}", "error": True}
+            # Forward the CLI envelope's token accounting so the shared server's
+            # debug-log + token badges populate for agent-brokered calls too
+            # (mirrors server-side claude_code, which keeps the same envelope).
+            usage = data.get("usage")
+            cost = data.get("total_cost_usd")
         else:
             content = raw
-        return {"content": content, "error": False}
+        result = {"content": content, "error": False}
+        if usage is not None:
+            result["usage"] = usage
+        if cost is not None:
+            result["total_cost_usd"] = cost
+        return result
     except subprocess.TimeoutExpired:
         return {"content": f"ERROR: claude CLI timed out after {timeout}s", "error": True}
     except Exception as e:  # noqa: BLE001 — surface anything as a clean error to the browser

@@ -43,7 +43,7 @@ export async function ckBrokerLoop() {
       const job = data.job;
       if (!job) continue;           // timed out with no work — poll again
       // Run it on the user's own local agent.
-      let content = '', error = false;
+      let content = '', error = false, usage = null, cost = null;
       try {
         const ares = await fetch(CK_AGENT_URL + '/run', {
           method: 'POST',
@@ -53,15 +53,18 @@ export async function ckBrokerLoop() {
         const ajson = await ares.json();
         content = ajson.content || '';
         error = !!ajson.error;
+        usage = ajson.usage || null;                                  // token accounting from the local CLI
+        cost = (ajson.total_cost_usd != null) ? ajson.total_cost_usd : null;
       } catch (e) {
         content = 'ERROR: local agent unreachable — is ck-agent running? ' + e;
         error = true;
       }
-      // Deliver the completion back to the shared server.
+      // Deliver the completion back to the shared server. Forwarding usage lets
+      // the token badge + debug-log populate for agent-brokered Claude calls.
       await fetch('/api/agent/result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: job.job_id, content, error }),
+        body: JSON.stringify({ job_id: job.job_id, content, error, usage, total_cost_usd: cost }),
       });
     } catch (e) {
       await new Promise(r => setTimeout(r, 2000));   // transient error — back off, keep going

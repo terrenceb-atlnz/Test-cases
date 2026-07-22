@@ -6,7 +6,7 @@ import './actions.js';           // side-effect: keydown + click dispatcher; exp
 import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
-import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode } from './llm.js';
+import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from './llm.js';
 import { ptManualSearch, ptFitEdited, ptProfileSelected } from './pytest.js';
 import { openAdminPanel } from './admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
@@ -62,6 +62,10 @@ document.querySelectorAll('input[name="llmAuthMethod"]').forEach((radio) => {
 // Live Fast/Thinking toggle — persists the mode immediately (no Apply click).
 document.querySelectorAll('input[name="localLlmMode"]').forEach((radio) => {
   radio.addEventListener('change', applyLocalLlmMode);
+});
+// Live Haiku/Sonnet/Opus toggle for the local Claude agent — persists immediately.
+document.querySelectorAll('input[name="claudeMode"]').forEach((radio) => {
+  radio.addEventListener('change', applyClaudeMode);
 });
 // Double-click CK's face → hidden Admin panel (single-click still goes Home,
 // via the logo's data-action="goToPanel"). dblclick fires after the click, so

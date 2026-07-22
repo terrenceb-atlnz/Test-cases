@@ -1396,3 +1396,51 @@ the §7.3 root-cause fix, PLAN §9.**
   `llm_config` (which converges). Proper closure = single-flight per key or an
   `updated_at`/version compare-and-swap on `db.save_session`. Logged, not blocking.
 - **Still deferred:** Part 3a/3b (the `wizard.py` twin bug is now fixed).
+
+---
+
+## Session Close / Handoff (2026-07-22d) — Claude-agent token reporting + model selector + Traceability-gaps decoupling
+
+**Two chunks of work, both committed this session.**
+
+### 1. Traceability gaps decoupled from Objective synthesis (commit `8503cea`)
+- `synthesize_objectives` (`llm.py`) was making a second LLM call (`generate_coverage_gaps`)
+  only to inject an "Automation gaps (Traceability context)" block into
+  `generate_objectives.jinja`. It didn't shape the declarative objective bullets, and
+  gaps are already generated independently at export time when `traceability.md` is
+  rendered. Removed the gaps block from the template AND the internal gaps call.
+- **Step 4 is now a single self-contained objective call**; dry-run preview == real send
+  byte-for-byte. `traceability.md` + its gaps unchanged (still built at `/api/wizard/export`).
+  Existing cases carry gaps on disk → unaffected. Prompted by a two-model comparison
+  where the extra gaps call was pure noise + tokens.
+
+### 2. "— tok" diagnosis → Claude-agent token usage + cost (this commit)
+- **Diagnosis (corrected):** the user compared two Objective runs — one badge showed
+  `937 in / 2,971 out`, the other "— tok". The debug-log (`CK_server/debug-log/`) proved
+  the first was **vLLM** (`local_llm`) and the second was **Claude via the agent bridge**
+  (`claude_agent`), which wasn't forwarding usage → `normalize_usage` returned `None` →
+  honest "— tok". (An earlier claim that the debug-log was empty was WRONG — a flaky
+  relative `cd` over the `/media/.../mnt` mount + a wrong template filter; the dir has 4
+  session files.) Both responses rendered fine — observability gap, not a truncation.
+- **Fix (4 files, all in-repo):** `ask-ck/agent/ck_agent.py` lifts `usage` +
+  `total_cost_usd` from the `claude -p --output-format json` envelope; `static/js/agent.js`
+  forwards them in `/api/agent/result`; `routers/agent_bridge.py` passes `total_cost_usd`;
+  `agent_jobs.py` `deliver()` stores both in the shape `normalize_usage` expects. Verified
+  with a simulated deliver (cache tokens fold into input; cost surfaces; no-usage → `None`).
+- **⚠ ck-agent runs on the USER's machine** — Terrence must restart it
+  (`cd ask-ck/agent && ./run-agent.sh`) for token reporting to take effect. Server + browser
+  changes are live on reload.
+
+### 3. Haiku / Sonnet / Opus model selector (this commit)
+- Mirrors the vLLM Fast/Thinking toggle: `claudeAgentRow` radios in `index.html` (shown only
+  for `claude_agent`, default Sonnet); `static/js/llm.js` wires Apply + live-persist toggle
+  (`applyClaudeMode`) + restore + status line; `main.js` binds the radios. Flows
+  `llm_config.model` → `job.model` → `claude --model <name>` (aliases haiku/sonnet/opus).
+  Free-text model field still overrides.
+
+### State
+- Guards green (`guard_db_only`, `guard_framework_readonly`); `/health` 200; Python + JS
+  syntax checked. Docs synced (README status row + LLM bullet, SERVER-README agent-bridge
+  section + template-roles, PROGRESS 2026-07-22d).
+- **Push caveat unchanged:** this environment has no GitHub SSH auth, so `git push` fails
+  (`Permission denied (publickey)`). Commits land locally; Terrence pushes `main`.

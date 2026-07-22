@@ -26,6 +26,12 @@ async function setLLMConfig() {
   // CLI subscription modes require no credential here
   if (model) body.model = model;
 
+  if (auth_method === 'claude_agent' && !model) {
+    // Haiku/Sonnet/Opus toggle picks the model unless an explicit one was typed.
+    const cm = document.querySelector('input[name="claudeMode"]:checked');
+    body.model = (cm && cm.value) || 'sonnet';
+  }
+
   if (auth_method === 'local_llm') {
     // Fast/Thinking toggle IS the model choice for the org vLLM.
     const mode = document.querySelector('input[name="localLlmMode"]:checked');
@@ -59,7 +65,8 @@ async function setLLMConfig() {
       ckBrokerLoop();  // ensure the broker is running (idempotent) so jobs get served
       const a = await probeLocalAgent();
       if (a.ok && a.claude_cli) {
-        alert("Claude (my local machine) enabled. Calls run through the ck-agent on YOUR machine against YOUR own Claude seat. Keep the agent running and this tab open.");
+        const cm = body.model ? ` — ${body.model} model` : '';
+        alert(`Claude (my local machine) enabled${cm}. Calls run through the ck-agent on YOUR machine against YOUR own Claude seat. Keep the agent running and this tab open.`);
       } else if (a.ok && !a.claude_cli) {
         alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude' -> /login, then retry.");
       } else {
@@ -129,6 +136,41 @@ export async function applyLocalLlmMode() {
   } catch (_) { /* leave prior state on a transient failure */ }
 }
 
+export async function applyClaudeMode() {
+  // Live Haiku/Sonnet/Opus toggle for the local Claude agent: persist the new
+  // model immediately (no Apply click). Only meaningful when claude_agent is the
+  // selected method. Stays quiet — this is an incidental toggle, not a login.
+  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value;
+  if (method !== 'claude_agent') return;
+  const cm = document.querySelector('input[name="claudeMode"]:checked');
+  const model = (cm && cm.value) || 'sonnet';
+
+  const key = S.currentKey || getActiveCaseKey();
+  const url = key
+    ? `/api/wizard/set_llm_config/${encodeURIComponent(key)}`
+    : '/api/wizard/set_llm_config';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: 'claude', auth_method: 'claude_agent', model }),
+    });
+    const data = await res.json();
+    if (data.llm_config) {
+      if (S.currentSession) S.currentSession.llm_config = data.llm_config;
+      window.lastLLMConfig = data.llm_config;
+      try {
+        localStorage.setItem('draftingLLMConfig', JSON.stringify({
+          provider: data.llm_config.provider,
+          auth_method: data.llm_config.auth_method,
+          model: data.llm_config.model || null,
+        }));
+      } catch (_) {}
+      updateLLMStatus(data.llm_config);
+    }
+  } catch (_) { /* leave prior state on a transient failure */ }
+}
+
 // --- Per-user local Claude agent (ck-agent on the USER's machine) -----------
 export function normalizeLLMConfig(config) {
   // Normalize server/session llm_config for status display.
@@ -166,7 +208,10 @@ export function updateLLMStatus(config) {
   } else {
     const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
     let m = ' (API key)';
-    if (am === 'claude_agent') m = ' (Claude — my local machine)';
+    if (am === 'claude_agent') {
+      const cm = c.model ? c.model.charAt(0).toUpperCase() + c.model.slice(1) : 'default';
+      m = ` (Claude — my local machine · ${cm})`;
+    }
     else if (am === 'claude_code') m = ' (Claude Code CLI)';
     else if (am === 'grok_cli') m = ' (Grok CLI subscription)';
     text = `Using ${p}${m}`;
@@ -191,7 +236,7 @@ function updateLLMDefaults() {
 
   const checked = document.querySelector('input[name="llmAuthMethod"]:checked');
   if (checked && checked.value === 'claude_agent') {
-    modelInput.placeholder = '(Claude CLI default)';
+    modelInput.placeholder = '(model set by Haiku/Sonnet/Opus toggle)';
   } else if (checked && checked.value === 'local_llm') {
     modelInput.placeholder = '(model set by Fast/Thinking toggle)';
   } else {
@@ -207,8 +252,10 @@ export function updateAuthMethodUI() {
   const agentInstr = document.getElementById('claudeAgentInstructions');
   const grokInstr = document.getElementById('grokCliInstructions');
   const localRow = document.getElementById('localLlmRow');
+  const claudeRow = document.getElementById('claudeAgentRow');
 
   if (localRow) localRow.classList.toggle('hidden', method !== 'local_llm');
+  if (claudeRow) claudeRow.classList.toggle('hidden', method !== 'claude_agent');
 
   if (method === 'claude_agent') {
     if (agentBtn) agentBtn.classList.remove('hidden');
@@ -275,6 +322,17 @@ export function restoreLLMUI() {
     r.checked = (r.value === method);
   }
 
+  if (method === 'claude_agent') {
+    // Restore the Haiku/Sonnet/Opus toggle from the saved model. Only override
+    // when the config carries one of the known aliases — a restore whose model
+    // is missing/"default" must NOT silently reset a chosen model.
+    if (c.model === 'haiku' || c.model === 'sonnet' || c.model === 'opus') {
+      document.querySelectorAll('input[name="claudeMode"]').forEach((r) => {
+        r.checked = (r.value === c.model);
+      });
+    }
+  }
+
   if (method === 'local_llm') {
     // Restore the Fast/Thinking toggle from the saved model (key field stays
     // blank — it is write-only; the key lives server-side). Only override the
@@ -295,9 +353,10 @@ export function restoreLLMUI() {
     }
   }
 
-  // Keep model field in sync when present (not for local_llm — its model is the toggle)
+  // Keep model field in sync when present (not for local_llm / claude_agent —
+  // their model is the toggle, not the free-text field)
   const modelInput = document.getElementById('llmModel');
-  if (modelInput && c.model && !modelInput.value && method !== 'local_llm') {
+  if (modelInput && c.model && !modelInput.value && method !== 'local_llm' && method !== 'claude_agent') {
     modelInput.value = c.model;
   }
 
@@ -342,4 +401,5 @@ export async function checkLlmHealth() {
 registerActions({
   setLLMConfig,
   checkLlmHealth,
+  applyClaudeMode,
 });
