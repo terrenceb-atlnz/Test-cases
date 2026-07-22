@@ -836,22 +836,24 @@ def _synthesis_context(session: Dict[str, Any], gaps_text: str = "") -> Dict[str
 
 
 def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = None, dry_run: bool = False) -> Dict[str, Any]:
-    """Wizard Step 4: gaps (Traceability) + objective HTML only.
+    """Wizard Step 4: objective HTML only (single LLM call).
 
     Does not generate testScript steps — that is Step 5 after the user finalizes objectives.
-    dry_run: render the objective prompt (using any gaps already on the session)
-    and return it without sending — provenance preview, no tokens.
+    Does not generate Traceability gaps — those belong to the Traceability artefact and are
+    generated at export time (traceability.md). Keeps the objective prompt self-contained.
+    dry_run: render the objective prompt and return it without sending — provenance preview,
+    no tokens (byte-identical to the real send).
     """
     rt = _resolve_llm_runtime(llm_config)
     if dry_run:
-        context = _synthesis_context(session, session.get("gaps") or "")
+        context = _synthesis_context(session)
         objective_prompt = render_prompt("generate_objectives.jinja", context)
         return {"dry_run": True, "prompt": objective_prompt,
                 "provider": rt["provider"], "model": rt["model"], "auth_method": rt["auth_method"]}
-    gaps_result = generate_coverage_gaps(session, llm_config=rt["cfg"])
-    gaps_text = gaps_result.get("gaps") or ""
-    session = {**session, "gaps": gaps_text}
-    context = _synthesis_context(session, gaps_text)
+    # Traceability gaps belong to the Traceability artefact (traceability.md), which is
+    # rendered at export time and generates its own gaps there. The objective prompt no
+    # longer consumes gaps, so we no longer make the extra generate_coverage_gaps call here.
+    context = _synthesis_context(session)
 
     objective_prompt = render_prompt("generate_objectives.jinja", context)
     obj_meta = _call_llm_with_meta(
@@ -868,20 +870,17 @@ def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = 
     structured = parse_llm_to_structured(obj_llm, context.get("case_key", "unknown"))
 
     provenance = {
-        "gaps_prompt": (gaps_result.get("provenance") or {}).get("gaps_prompt"),
-        "gaps_response": (gaps_result.get("provenance") or {}).get("gaps_response"),
         "objective_prompt": objective_prompt,
         "objective_response": obj_llm,
         "provider": obj_meta.get("provider", "unknown"),
         "auth_method": obj_meta.get("auth_method", "api_key"),
         "model": obj_meta.get("model", "default"),
-        "error": obj_meta.get("error", False) or (gaps_result.get("provenance") or {}).get("error", False),
+        "error": obj_meta.get("error", False),
         "phase": "objectives",
     }
 
     return {
         "objective": structured["objective"],
-        "gaps": gaps_text,
         "provenance": provenance,
     }
 

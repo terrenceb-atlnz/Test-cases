@@ -15,8 +15,5 @@ You are an expert test-case objective writer. Strict principles:
 {% endfor %}
 ## ATPyLib coverage (selected ART)
 {% for s in atp_selections %}- {{ s.id_or_key or s.id or s }}: {{ s.title or s.description or '' }}
-{% endfor %}{% if gaps %}
-## Automation gaps (Traceability context — do not restate as procedural steps)
-{{ gaps }}
-{% endif %}
+{% endfor %}
 Produce ONLY the HTML <ul> of artefact bullets for the objective. No other text.
