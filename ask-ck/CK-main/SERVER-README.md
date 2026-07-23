@@ -45,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — 1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD (placeholder panels)
   - **Test Composer** — 1. TBD (placeholder panel)
-  - **PyTest Creator** — 1. Cases (Complete cases only — those with refined payloads; selection independent of the Generator) / 2. Creator (placeholder; backend stub returns 501)
+  - **PyTest Creator** — full 7-step flow (2026-07-23): **1. Cases** (Open/Partial + Complete dropdowns, split by PyTest work state; partials auto-sorted to top; independent of the Generator) / **2. Sequence** / **3. Script Search** / **4. Fragments** / **5. Generate** / **6. Run** / **7. Validate**. (Former **4. Fit Decision** removed; internal `stepN` keys unchanged.) See the detailed **PyTest Creator** section below.
   - **Objective/Test Case Generator** — **1. Cases**, **2. TestLink**, **3. Zephyr**, **4. ATPyLib (scored)**, **5. Objectives (LLM)**, **6. Test Steps (LLM)**
 - Navigation: `goToPanel(panelId)` shows exactly one `.tool-panel` card; `goToStep()` wraps it for the Generator. **Visible step numbers (1–6) are display-only** — the internal scheme (`data-step` 0–5, panel ids `step-0..5`, session keys `step1..step5`, `confirm_step` domain ids 1–3) is unchanged and load-bearing.
 - Generator Cases panel: dual dropdowns — **Open / partial** (in-progress first) vs **Complete** (has `refined-cases/.../zephyr_payload.json`). Review steps 2–4 each have Search + Suggest with LLM toolbars.
@@ -288,7 +288,7 @@ Every LLM request (success or failure) is recorded to `CK_server/debug-log/<sess
 
 ### LLM Provenance (portable prompts) + dry-run preview
 
-Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fit, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
+Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
 
 - **Refresh** re-invokes the panel's own endpoint with `dry_run: true`. The backend renders the prompt through the *real* context path and returns it **without sending** to the LLM — no tokens, not recorded to the debug-log. Because it reuses the real call path with one flag flipped, the previewed/copied prompt is **1-for-1** (byte-identical) with what a real send transmits — verified in-repo.
 - Mechanism: `dry_run` flag on `llm._call_llm_with_meta` (short-circuits before the send) + `run_prompt`; every Generator function (`synthesize_objectives/steps`, `suggest_relevant_*`, `analyze_atp_coverage`) and every PyTest endpoint accepts it and returns `{provenance: {prompt, provider, model, auth_method}}`. `SynthesisRequest` gained a `dry_run` field. The normal (non-dry) PyTest paths now also store the sent `prompt` + `response` in their step provenance.
@@ -392,40 +392,68 @@ Allied Telesis framework test script. Full plan + progress tracker:
 1. **Cases** — pick a Complete case, Load Case & Continue.
 2. **Sequence** — LLM extracts a prescriptive sequence of automatable steps from the
    refined payload (traceability note skipped); edit rows, Save, Confirm.
-3. **Script Search** — mechanical scoring over the script index (top-40) + LLM
-   coverage verdicts (full/partial); free-text search box for manual digging;
-   tick selections, Confirm. `view` shows real source.
-4. **Fit Decision** — LLM recommends reuse / extend / new against the selected
-   scripts' actual TestSet/TestCase source; override the decision if needed, Confirm.
-5. **Fragments** — LLM proposes symbols; the server resolves them to real code by
-   indexed line ranges (invented symbols are dropped); untick unwanted, Confirm.
+   **Per-step carousel (2026-07-23):** Script Search and Fragments are now
+   page-within-a-page — one sequence step per screen, Prev/Next + a clickable step-pill
+   row (green ✓ = covered, yellow ✗ = gap). Each step has its own candidate/chosen tables.
+3. **Script Search** — per-step: mechanical scoring over the script index + LLM
+   coverage verdicts (full/partial) for the current step; free-text search box for
+   manual digging; Choose moves a candidate down into the step's Chosen table. Selections
+   are stored **per step** (`{stepN: [ids]}`) and flattened downstream. `view` shows real
+   source. Confirm. *(The former standalone whole-sequence LLM field was removed.)*
+4. **Fragments** — per-step, no cap: LLM proposes symbols per step and the server
+   resolves them to real code by indexed line ranges (invented symbols are dropped;
+   `maps_to` numbers that aren't real sequence steps are dropped too — 2026-07-23). Each
+   step shows a chosen/redundant accounting (green-outlined chosen, nested faint-red
+   redundant alternatives). An **assembled-artefact preview** (skeleton + selected
+   fragments slotted per step) sits above Save Selections; a verify step with **no**
+   fragment carries a positive `# ===== NO REUSE … =====` marker so gaps are visible by
+   presence, not silence (finding #7). `selections_fingerprint` stamps the gather so a
+   Step-3 change surfaces a stale-warning + re-gather prompt. Untick unwanted, Confirm.
    **Fragment source code comes from `ck.db`** (`scripts.source_text` via
    `db.get_script_source`) — the old script mount (`testsuites_art/` etc.) is retired
    and no longer read (2026-07-21; guarded by `tool/guard_db_only.py`).
-6. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
+   *(Former step 4 **Fit Decision** was **removed** 2026-07-23 — with the fixed skeleton
+   template the reuse/extend/new call no longer changes how the script is framed. Internal
+   `stepN` keys are unchanged, step5=fragments etc.; only the visible sidebar numbers shifted.)*
+5. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
    sequence (`templates/pt_script_template.py.jinja`), not a free-form compose
    (2026-07-21). Fixed frame: header, `TestSet(ATTestSet.TestSet)` with **data-driven
    `init`** (switches/stacks/portlink detected from the sequence + fragments),
    `configure()`/`tear_down()` (suite setup/cleanup — **no** pass/fail), one
    `TestCase_<n>` **per verification step** (each with the three `testCase*` attrs, a
    `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
-   and the `__main__` footer. The prompt (`pt_generate_script.jinja`) instructs the LLM
+   and the `__main__` footer.
+   **Step-kind taxonomy (2026-07-23):** the Sequence extractor classifies every step as
+   one of **setup / verify / physical / manual** (`_step_kind` is the single classifier;
+   `_split_sequence` is non-mutating). The skeleton branches on kind: `setup` →
+   `TestSet.configure()` (no pass/fail); `verify` → normal CLI-driven TestCase; `physical`
+   → a TestCase that **prompts the operator then polls `show interface … status` for the
+   port state change** (SVT 3009 `waitForReplugEvent` pattern — plug/unplug/hot-swap steps
+   are **in scope**, not skipped); `manual` → a TestCase with a `yesNo()` operator
+   confirmation (LED/seating checks the device can't self-report). `import time` /
+   `strtobool` / the `yesNo` helper are emitted only when a physical/manual step is present.
+   *(Physical classification only appears after re-running Sequence on a case with such
+   steps; legacy sequences with no `kind` default every step to `verify`.)*
+   The prompt (`pt_generate_script.jinja`) instructs the LLM
    to fill the FILL slots with the reused fragments + gap-fill and to keep the three
    logging-contract calls. The prompt also mandates **deleting** each `# >>> FILL … <<<`
    scaffolding comment once its slot is filled; because model compliance is
    non-deterministic, `_parse_generated_blocks` **also strips** any residual
    `>>> FILL/replace/remove` pure-comment lines server-side (`_strip_fill_markers`) so a
-   marker can never survive into a saved/linted/run script (2026-07-21). Reused code is
-   *intended* to be tagged inline with its origin (`# ART/SVT/legacy <id> <lines>`) and
-   gap-fill with `# AI <model> <date>` — note the Part 2A walkthrough found the model does
-   not yet emit these reliably (provenance tagging is prompted but not enforced; tracked
-   in `PART2A-WALKTHROUGH.md`). Edit the **Group / Script name**
+   marker can never survive into a saved/linted/run script (2026-07-21).
+   **Provenance re-stamp is now authoritative AND correct (2026-07-23):**
+   `_restamp_provenance` strips whatever the model self-reported and stamps each `main()`
+   from the server-known step→fragment mapping (`# ART/SVT/legacy <id> <lines>` for reused,
+   `# AI <model> <date>` for gap-fill). It now takes the `sequence` and remaps
+   original-step-number → `TestCase_<n>` class number before stamping — fixing a divergence
+   bug where a dropped setup step shifted the class numbers and the wrong fragment's tag was
+   stamped on the wrong TestCase. Edit the **Group / Script name**
    (`generated/<Group>/<Name>.py`), review/edit, **Lint** (py_compile + structure +
    framework-import + **template/logging-contract conformance**: each `main()` needs a
    `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
    FILL placeholders), **Save**, Confirm. See
    `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
-7. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
+6. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
    the `.setup`, **Check Connection**, **Run on Testbox**. The script + setup go over
    SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
    comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
@@ -433,10 +461,11 @@ Allied Telesis framework test script. Full plan + progress tracker:
    refuses any SFTP write or remote command that would mutate it (guarded by
    `tool/guard_framework_readonly.py`); copy a framework file into the run workdir to
    edit it. See the run-chain reference `ask-ck/test-composer/ART-EXECUTION-CHAIN.md`.
-8. **Validate** — Final Validation = run done + every case PASS + zero failures +
+7. **Validate** — Final Validation = run done + every case PASS + zero failures +
    exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
-   archived), which un-confirms steps 6-7 so the revision is re-reviewed and re-run.
-   On all-PASS, Confirm step 8; promotion into `testsuites_art/` stays manual.
+   archived), which un-confirms steps 5-6 (Generate/Run) so the revision is re-reviewed
+   and re-run — the fix path also re-stamps provenance with the corrected sequence remap.
+   On all-PASS, Confirm step 7; promotion into `testsuites_art/` stays manual.
 
 **Testboxes** (sidebar) — stored connection profiles (`tb_number` + IP minimum) kept
 in the gitignored `secrets.testboxes.json` (0600). Passwords are write-only; the API

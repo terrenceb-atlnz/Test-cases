@@ -64,9 +64,12 @@ export function onCaseSelectChange(sourceSel) {
 }
 
 function onPtCaseSelectChange(sourceSel) {
-  // PyTest Creator: single Complete-cases dropdown. Must never touch S.currentKey /
-  // #caseSel / the page header — those belong to the Generator's loaded case.
-  handleCasePairChange(null, null, sourceSel, (key, title) => {
+  // PyTest Creator: two dropdowns (Open/Partial + Complete), mutually exclusive like
+  // the Generator's pair. Must never touch S.currentKey / #caseSel / the page header —
+  // those belong to the Generator's loaded case.
+  const openSel = document.getElementById('ptCaseSelOpen');
+  const doneSel = document.getElementById('ptCaseSelDone');
+  handleCasePairChange(openSel, doneSel, sourceSel, (key, title) => {
     S.ptCase = { key: key, title: title };
     const s = document.getElementById('pt-selected-summary');
     if (s) s.textContent = key ? `Selected: ${key}` : '';
@@ -84,6 +87,49 @@ export function getActiveCaseKey() {
 }
 
 let _caseSelectListenersBound = false;
+
+// PyTest Creator's two dropdowns have their OWN data source: /api/pytest-create/pt_cases
+// splits the Generator-Complete cases by PyTest work state (Open/Partial vs Complete),
+// which the wizard's /cases endpoint doesn't know about. Independent of the Generator's
+// selection — never touches S.currentKey / the page header.
+export async function refreshPtCaseSelects() {
+  const openSel = document.getElementById('ptCaseSelOpen');
+  const doneSel = document.getElementById('ptCaseSelDone');
+  if (!openSel && !doneSel) return;
+  try {
+    const res = await fetch('/api/pytest-create/pt_cases');
+    if (!res.ok) return;
+    const d = await res.json();
+    const counts = d.counts || {};
+    const openLabel = document.getElementById('ptCaseSelOpenLabel');
+    const doneLabel = document.getElementById('ptCaseSelDoneLabel');
+    if (openLabel) {
+      const n = counts.in_progress != null ? counts.in_progress : '—';
+      const p = counts.partials != null ? counts.partials : 0;
+      openLabel.innerHTML = `Open/Partial <span class="case-count">(${n}${p ? `; ${p} in progress` : ''})</span>`;
+    }
+    if (doneLabel) doneLabel.innerHTML = `Complete <span class="case-count">(${counts.complete != null ? counts.complete : '—'})</span>`;
+
+    fillCaseSelect(openSel, (d.in_progress && d.in_progress.grouped) || [], 'Select open or partial case…');
+    fillCaseSelect(doneSel, (d.complete && d.complete.grouped) || [], 'Select completed case…');
+
+    // Restore the current PyTest selection into whichever dropdown now holds it.
+    const keep = S.ptCase.key;
+    if (keep) {
+      const inOpen = openSel && Array.from(openSel.options).some(o => o.value === keep);
+      const inDone = doneSel && Array.from(doneSel.options).some(o => o.value === keep);
+      if (inDone) { doneSel.value = keep; if (openSel) openSel.value = ''; }
+      else if (inOpen) { openSel.value = keep; if (doneSel) doneSel.value = ''; }
+      else {
+        S.ptCase = { key: null, title: null };
+        const s = document.getElementById('pt-selected-summary');
+        if (s) s.textContent = '';
+      }
+    }
+  } catch (e) {
+    /* offline — leave placeholders */
+  }
+}
 
 // Dynamic case lists: open/partial vs complete (from refined-cases + sessions)
 export async function refreshCaseSelects(preserveKey) {
@@ -112,21 +158,6 @@ export async function refreshCaseSelects(preserveKey) {
       fillCaseSelect(openSel, openGrouped, 'Select open or partial case…');
       fillCaseSelect(doneSel, doneGrouped, 'Select completed case…');
 
-      // PyTest Creator: Complete cases only (independent selection state)
-      const ptDoneSel = document.getElementById('ptCaseSelDone');
-      fillCaseSelect(ptDoneSel, doneGrouped, 'Select completed case…');
-      const ptDoneLabel = document.getElementById('ptCaseSelDoneLabel');
-      if (ptDoneLabel && doneLabel) ptDoneLabel.innerHTML = doneLabel.innerHTML;
-      if (S.ptCase.key) {
-        if (ptDoneSel && Array.from(ptDoneSel.options).some(o => o.value === S.ptCase.key)) {
-          ptDoneSel.value = S.ptCase.key;
-        } else {
-          S.ptCase = { key: null, title: null };
-          const s = document.getElementById('pt-selected-summary');
-          if (s) s.textContent = '';
-        }
-      }
-
       // Restore selection into the correct dropdown
       if (keep) {
         const inOpen = openSel && Array.from(openSel.options).some(o => o.value === keep);
@@ -150,15 +181,19 @@ export async function refreshCaseSelects(preserveKey) {
       openSel.appendChild(o);
     }
   }
+  // Keep the PyTest Creator dropdowns in sync on every general refresh.
+  await refreshPtCaseSelects();
 }
 
 export async function initCases() {
   const openSel = document.getElementById('caseSelOpen');
   const doneSel = document.getElementById('caseSelDone');
+  const ptOpenSel = document.getElementById('ptCaseSelOpen');
   const ptDoneSel = document.getElementById('ptCaseSelDone');
   if (!_caseSelectListenersBound) {
     if (openSel) openSel.addEventListener('change', () => onCaseSelectChange(openSel));
     if (doneSel) doneSel.addEventListener('change', () => onCaseSelectChange(doneSel));
+    if (ptOpenSel) ptOpenSel.addEventListener('change', () => onPtCaseSelectChange(ptOpenSel));
     if (ptDoneSel) ptDoneSel.addEventListener('change', () => onPtCaseSelectChange(ptDoneSel));
     _caseSelectListenersBound = true;
   }

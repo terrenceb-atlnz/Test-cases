@@ -2,7 +2,32 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-22d (by Claude)
+**Last Updated**: 2026-07-23 (by Claude)
+
+## Latest session (2026-07-23) — PyTest Creator UX revision + adversarial-review worklist (physical steps, provenance fix)
+
+**Focus: a large hands-on revision of the PyTest Creator while Terrence tested it, then a step-by-step pass through the T33233 adversarial-review worklist. All committed + pushed this session.**
+
+**UX / flow changes (steps 1–4):**
+- **1. Cases** split into **Open/Partial** + **Complete** dropdowns by PyTest work state; partials auto-sorted to top (`pt_cases` endpoint, `cases.js`).
+- **2. Sequence** shows current steps + the LLM's extracted execution order with **drag-and-drop reorder** and a static `from`/source column; the extractor now also classifies each step's **kind**.
+- **3. Script Search** rebuilt to a **per-step page-within-a-page carousel** (one step/screen, Prev/Next + green-✓/yellow-✗ step-pill nav); per-step candidate→chosen tables; selections stored per step (`{stepN:[ids]}`) and flattened downstream. Whole-sequence LLM field removed.
+- **4. Fit Decision REMOVED** (moot under the fixed skeleton); visible steps 5–8 renumbered 4–7, internal `stepN` keys unchanged.
+- **4. Fragments** rebuilt per-step, **no cap**, selected/not-selected split, chosen/redundant accounting (redundant nested faint-red under the chosen it duplicates), and a collapsible **assembled-artefact preview**.
+- **Generator load perf:** `load_case` was ~64s because it fired a blocking `analyze_atp_coverage` LLM call; removed it → ~2.4s (data-display only).
+- **Case hiding:** ART Limits Test + 4 ART Testsuites cases + Bootloader/GRUB Bootloader categories hidden from the Generator case lists (display-only, DB untouched).
+
+**Adversarial-review worklist (T33233) — went step-by-step:**
+- **#1 device-name reconciliation — DONE.** Bind the device names the reused fragments actually reference (`_detect_fragment_devices`); reconciliation note surfaced in preview + Generate prompt.
+- **#2 physical-step handling — DONE.** 4-kind taxonomy (**setup/verify/physical/manual**) in `pt_extract_sequence.jinja`; single `_step_kind()` classifier; `_split_sequence` made non-mutating. Template branches: physical → operator-prompt + poll-`show interface status` for the state change (**SVT 3009 `waitForReplugEvent`**), manual → `yesNo()`, setup → `configure()`, verify → normal. **Physical plug/unplug steps are in scope, not skipped.**
+- **#3 fragment quality — PARTIAL.** Cross-step dedupe already handled; **added `maps_to` phantom-step validation** (`_clean_maps`). Line-vs-class extraction + per-step cap deferred → `NEXT_SESSION_DECISIONS.md`.
+- **#4 provenance divergence — FIXED + unit-verified.** `_restamp_provenance` now takes the sequence and remaps original-step → `TestCase_<n>` class number before stamping; previously a dropped setup step shifted the numbering and the wrong fragment's tag landed on the wrong TestCase. Both call sites (generate + fix) pass the sequence.
+- **#5 guaranteed-fail default — no change needed;** lint already rejects `if False:`/`output=''`/`>>> FILL` in a saved script.
+- **#7 zero-reuse marker — ADDED.** Verify steps with no fragment carry a positive `# ===== NO REUSE … =====` in the preview (physical/manual excluded).
+
+**Open decisions for next session:** `NEXT_SESSION_DECISIONS.md` (repo root) — D1 fragment granularity, D2 per-step cap, D3 Py2 contamination.
+
+**Verification:** provenance remap unit test; all 4 step kinds render + `py_compile`; preview gap-marker test (1 NO-REUSE on the uncovered verify, none on physical); routers import clean; all jinja templates parse; guards green; `/health` 200.
 
 ## Latest session (2026-07-22d) — Claude-agent token reporting + Haiku/Sonnet/Opus selector + Traceability-gaps decoupling
 

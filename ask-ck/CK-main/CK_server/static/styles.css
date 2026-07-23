@@ -282,15 +282,142 @@ body {
   background: var(--bg-secondary, var(--bg-primary));
   z-index: 1;
 }
-/* Proportional columns that always sum to 100% (table-layout:fixed) */
+/* Proportional columns that always sum to 100% (table-layout:fixed).
+   5 cols now: [✓] Script | Cov | Why | view */
 .pt-match-table { width: 100%; }
 .pt-match-table th:nth-child(1), .pt-match-table td:nth-child(1) { width: 28px; text-align: center; }
-.pt-match-table th:nth-child(2), .pt-match-table td:nth-child(2) { width: 34%; }
+.pt-match-table th:nth-child(2), .pt-match-table td:nth-child(2) { width: 40%; }
 .pt-match-table th:nth-child(3), .pt-match-table td:nth-child(3) { width: 64px; }
-.pt-match-table th:nth-child(4), .pt-match-table td:nth-child(4) { width: 44px; text-align: right; }
-.pt-match-table th:nth-child(5), .pt-match-table td:nth-child(5) { width: auto; }
-.pt-match-table th:nth-child(6), .pt-match-table td:nth-child(6) { width: 52px; text-align: center; }
+.pt-match-table th:nth-child(4), .pt-match-table td:nth-child(4) { width: auto; }
+.pt-match-table th:nth-child(5), .pt-match-table td:nth-child(5) { width: 52px; text-align: center; }
 .pt-match-table td { word-break: break-word; overflow-wrap: anywhere; }
+
+/* Fragment accounting cards: chosen (green outline) with redundant alternatives
+   (faint red) nested directly beneath the chosen one they duplicate. */
+.pt-frag-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+.pt-frag-card-head { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.pt-frag-why { margin: 3px 0 2px 24px; }
+.pt-frag-card details { margin-left: 24px; }
+/* Chosen: green outline */
+.pt-frag-chosen { border-color: var(--status-success); border-left-width: 3px; }
+/* Redundant: faint red row, visually nested + connected to its chosen parent.
+   No red token exists in the palette (--status-low is grey), so use explicit reds
+   that read in both themes. */
+.pt-frag-redundant-wrap {
+  margin: -4px 0 8px 20px;
+  padding-left: 10px;
+  border-left: 2px dashed #ef4444;
+}
+.pt-frag-redundant-label { font-size: 11px; color: #ef4444; margin: 2px 0 4px; font-style: italic; }
+.pt-frag-redundant {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+/* Any selected card gets a subtle emphasis */
+.pt-frag-card.is-selected { box-shadow: inset 0 0 0 1px var(--status-success); }
+
+/* Assembled-artefact preview (collapsible; fixed-height scrollable code pane) */
+.pt-frag-preview {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary, transparent);
+}
+.pt-frag-preview-summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+/* The pane carries BOTH .session-pre and .pt-frag-preview-pre. .session-pre
+   (max-height:160px) is a single-class tie that wins on source order (it's later in
+   the file), so scope this under .pt-frag-preview (0,2,0) to beat it. */
+.pt-frag-preview .pt-frag-preview-pre {
+  /* ~4× the old 480px pane; clamped to the viewport so it never pushes the
+     Save/Confirm buttons off-screen on shorter displays. */
+  max-height: min(1920px, 80vh);
+  overflow: auto;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre;
+}
+
+/* Stale-fragments warning banner (Step 3 changed since the last gather) */
+.pt-frag-stale {
+  background: var(--status-medium-muted);
+  color: var(--status-medium);
+  border: 1px solid var(--status-medium);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+/* Per-step script-search blocks (Step 3 per-step picker) */
+.pt-step-block {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: var(--bg-secondary, transparent);
+}
+.pt-step-head { font-size: 13px; margin-bottom: 2px; }
+.pt-step-head .badge { margin-right: 6px; }
+.pt-step-verify { margin-bottom: 8px; }
+.pt-step-sub {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, var(--text-secondary));
+  margin: 6px 0 3px;
+}
+.pt-step-q { max-width: 220px; }
+
+/* Step-3 page-within-a-page navigator (coverage tally + Prev/Next + step pills) */
+.pt-stepnav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-secondary, transparent);
+}
+.pt-stepnav-btns { display: inline-flex; align-items: center; gap: 8px; }
+.pt-stepnav-pos { font-size: 12px; font-weight: 600; color: var(--text-secondary); min-width: 92px; text-align: center; }
+.pt-pill-row { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+/* Pills are <button>s. The base rule `button:not(.btn)` (specificity 0,1,1) would
+   otherwise paint them accent-blue; scoping under .pt-pill-row (0,2,1) beats it
+   regardless of source order — a bare `button.pt-pill-ok` only TIES (0,1,1) and the
+   later :not(.btn) rule then wins the tie. */
+.pt-pill-row button.pt-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  line-height: 1.6;
+  transition: filter 120ms;
+}
+/* ✓ covered — light green */
+.pt-pill-row button.pt-pill-ok {
+  background: var(--status-success-muted);
+  color: var(--status-success);
+  border-color: var(--status-success);
+}
+/* ✗ gap — yellow/amber */
+.pt-pill-row button.pt-pill-gap {
+  background: var(--status-medium-muted);
+  color: var(--status-medium);
+  border-color: var(--status-medium);
+}
+.pt-pill-row button.pt-pill-current { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+.pt-pill-row button.pt-pill:hover { filter: brightness(1.08); }
 .pt-match-table .cell-id { white-space: normal; }
 .pt-match-table .btn-compact { width: 100%; padding: 4px 4px; }
 
@@ -889,6 +1016,10 @@ button.secondary:not(.btn):hover {
 /* LLM observability: token badge next to the pressed LLM button + footer error tag */
 .llm-token-badge { margin-left: 6px; vertical-align: middle; }
 .llm-debug-error { color: var(--status-low, #ef4444); }
+
+/* PyTest Creator Step 2 — drag-to-reorder sequence rows */
+.pt-seq-handle:active { cursor: grabbing; }
+.pt-seq-row.pt-seq-drop-over { box-shadow: inset 0 2px 0 0 var(--status-success, #22c55e); }
 
 #theme-toggle {
   background: transparent;

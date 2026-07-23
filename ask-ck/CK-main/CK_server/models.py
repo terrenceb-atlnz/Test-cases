@@ -72,7 +72,8 @@ class PtSession(BaseModel):
       step2: {sequence: [{n, action, verify, zephyr_step_idx}], provenance, confirmed}
       step3: {matches: [{id, score, coverage, reason}], selections: [id...],
               user_inputs: str, confirmed}
-      step4: {decision: reuse|extend|new, base_script, per_step: [...], confirmed}
+      step4: RETIRED (Fit Decision). Kept as a field only so legacy sessions that
+             still carry a step4 dict deserialize; not produced or read anymore.
       step5: {fragments: [{source_id, symbol, loc, code, maps_to, why}], confirmed}
       step6: {naming: {group, name}, files: {test: {name, code}, library}, iterations,
               provenance, confirmed}

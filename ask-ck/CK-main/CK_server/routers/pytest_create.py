@@ -30,7 +30,10 @@ from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
     check_profile, parse_framework_log, failure_excerpts, run_manager,
 )
-from routers.wizard import _load_global_llm, _llm_is_active, _same_backend
+from routers.wizard import (
+    _load_global_llm, _llm_is_active, _same_backend,
+    _refined_complete_keys, _build_case_groups, _is_hidden_case,
+)
 
 router = APIRouter(tags=["pytest-creator"])
 
@@ -172,6 +175,83 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
 def _require_confirmed(sess: PtSession, step_key: str, what: str) -> None:
     if not (getattr(sess, step_key) or {}).get("confirmed"):
         raise HTTPException(409, f"{what} requires {step_key} to be confirmed first.")
+
+
+def _selected_script_ids(sess: PtSession) -> List[str]:
+    """Flattened, de-duped set of script ids chosen across all sequence steps in
+    step 3. Selections are stored per-step as {stepN: [id,...]}; the legacy flat-list
+    shape (pre per-step-picker sessions) is still accepted so old sessions don't break.
+    Preserves first-seen order for stable downstream context."""
+    sels = (sess.step3 or {}).get("selections")
+    out, seen = [], set()
+    if isinstance(sels, dict):
+        for ids in sels.values():
+            for sid in (ids or []):
+                if isinstance(sid, str) and sid and sid not in seen:
+                    seen.add(sid)
+                    out.append(sid)
+    elif isinstance(sels, list):  # legacy flat list
+        for sid in sels:
+            if isinstance(sid, str) and sid and sid not in seen:
+                seen.add(sid)
+                out.append(sid)
+    return out
+
+
+def _frag_key(f: dict) -> tuple:
+    """Stable identity of a fragment: (source_id, symbol)."""
+    return (f.get("source_id"), f.get("symbol"))
+
+
+def _selections_fingerprint(sess: PtSession) -> str:
+    """Order-independent fingerprint of the step-3 script selections. Fragments are
+    stamped with this at gather time; when it no longer matches the current selections,
+    the fragments are stale (Step 3 changed) and the UI prompts a re-gather."""
+    ids = sorted(set(_selected_script_ids(sess)))
+    return "|".join(ids)
+
+
+def _resolve_symbol_code(data: dict, source_id: str, symbol: str) -> Tuple[Optional[list], str]:
+    """Resolve one LLM-named symbol (TestSet / TestCase class / helper fn) to its real
+    source slice from ck.db. Returns (loc, code); code is '' if unresolvable (invented
+    symbol or missing script) so the caller can drop it."""
+    rec = (data.get("scripts_index_by_id") or {}).get(source_id)
+    if not rec:
+        return None, ""
+    loc, code = None, ""
+    if symbol == "TestSet" and rec.get("testset"):
+        loc = rec["testset"].get("loc")
+    else:
+        for c in rec.get("test_cases", []):
+            if c["class"] == symbol:
+                loc = c.get("loc")
+                break
+    if loc and loc[0]:
+        code = _read_source(rec, loc[0], loc[1] or loc[0] + 60)
+    elif any(h["name"] == symbol for h in rec.get("helpers", [])):
+        # helper functions: locate by regex (helpers carry no loc in the index)
+        src = _read_source(rec)
+        m = re.search(rf"^def {re.escape(symbol)}\b.*?(?=^def |^class |\Z)",
+                      src, re.DOTALL | re.MULTILINE)
+        code = m.group(0) if m else ""
+    return loc, code
+
+
+def _selected_fragments(sess: PtSession) -> List[dict]:
+    """The fragments the reviewer has SELECTED for generation. step5.fragments is the
+    full gathered pool (retained so the UI can show a selected/not-selected split);
+    step5.selected is the list of chosen {source_id, symbol} keys. Downstream Generate
+    reads ONLY the selected subset. Back-compat: a session with no `selected` key (or
+    an empty gather that legitimately has none) falls back to treating the whole pool
+    as selected, matching the old delete-on-save behavior."""
+    step5 = sess.step5 or {}
+    pool = step5.get("fragments") or []
+    if "selected" not in step5:
+        return list(pool)
+    sel = step5.get("selected") or []
+    sel_keys = {tuple(s) if isinstance(s, (list, tuple))
+                else (s.get("source_id"), s.get("symbol")) for s in sel}
+    return [f for f in pool if _frag_key(f) in sel_keys]
 
 
 # ---------------------------------------------------------------------------
@@ -453,14 +533,25 @@ def _fragment_tag(source_id: str, loc: Optional[Tuple[int, int]]) -> str:
     return f"# {family} {rest or source_id}{lines}"
 
 
-def _restamp_provenance(code: str, fragments: List[dict], model: str) -> str:
+def _restamp_provenance(code: str, fragments: List[dict], model: str,
+                        sequence: Optional[List[dict]] = None) -> str:
     """Authoritative post-generation provenance pass (PLAN §1.5).
 
     For each `TestCase_<n>` block, stamp the top of main() with the tag of
-    whichever fragment's `maps_to` includes step n (mechanical — matched by the
+    whichever fragment's `maps_to` includes that step (mechanical — matched by the
     server-known step->fragment mapping, not by trusting anything the LLM
     wrote). A step with no mapped fragment is stamped `# AI <model> <date>`
     (gap-fill).
+
+    CRITICAL MAPPING NOTE (finding #4): fragment `maps_to` uses ORIGINAL sequence
+    numbers, but the `TestCase_<n>` class numbers are the CONTIGUOUS 1..N produced by
+    `_split_sequence` after setup steps are dropped. When any setup step precedes a
+    verify step, the two number spaces DIVERGE (orig step 3 becomes TestCase_2, etc.),
+    so keying `maps_to` directly by the class number stamps the wrong fragment's tag.
+    We therefore build the SAME orig_n -> new_n remap the preview uses and translate
+    every fragment's `maps_to` into class-number space before stamping. When `sequence`
+    is None (legacy callers / no setup steps) we fall back to identity — correct exactly
+    when the numbers already coincide.
 
     The model is asked to attempt its own tag (prompt rule 8) but compliance is
     non-deterministic in both content AND shape — observed live: it can restate
@@ -470,14 +561,31 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str) -> str:
     alongside the real stamp. So the ENTIRE leading run of comment lines that
     mention a tag family is stripped first, then exactly one authoritative tag
     is inserted — trustworthy regardless of what shape the model produced."""
+    # Build orig_n -> class_n (TestCase number) remap — the same one the preview uses,
+    # so a fragment mapped to original step 3 stamps TestCase_2 when a setup step was
+    # dropped ahead of it, instead of mis-stamping whatever class happens to be #3.
+    orig_to_classn: Dict[int, int] = {}
+    if sequence:
+        tc_orig = [s for s in sequence if _step_kind(s) != "setup"] or list(sequence)
+        for new_i, s in enumerate(tc_orig, 1):
+            try:
+                orig_to_classn[int(s.get("n"))] = new_i
+            except (TypeError, ValueError):
+                continue
+
+    # tag_by_step is keyed by CLASS number (TestCase_<n>), which is what we match below.
     tag_by_step: Dict[int, str] = {}
     for f in fragments:
         tag = _fragment_tag(f.get("source_id", ""), f.get("loc"))
         for n in f.get("maps_to") or []:
             try:
-                tag_by_step[int(n)] = tag
+                orig_n = int(n)
             except (TypeError, ValueError):
                 continue
+            # Translate original step number -> class number. Identity when we have no
+            # sequence (numbers already coincide) or the step isn't in the remap.
+            class_n = orig_to_classn.get(orig_n, orig_n)
+            tag_by_step[class_n] = tag
     gen_date = datetime.utcnow().strftime("%Y-%m-%d")
     ai_tag = f"# AI {model or 'unknown'} {gen_date}"
 
@@ -520,56 +628,206 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _skeleton_env = _J2Env(loader=_J2Loader(str(_TEMPLATES_DIR)))
 
 
-def _split_sequence(sequence: List[dict]) -> Tuple[List[dict], List[dict]]:
-    """Split a sequence into (setup_steps -> TestSet.configure, verify_steps -> TestCase).
+# The four step kinds (extract_sequence classifies every step; see the prompt).
+#   setup    -> suite configure(), no pass/fail
+#   verify   -> a TestCase driven over CLI/traffic (default)
+#   physical -> a TestCase with the operator-prompt + wait-for-state-change pattern
+#   manual   -> a TestCase with a yesNo() operator confirmation
+_STEP_KINDS = ("setup", "verify", "physical", "manual")
 
-    A step is treated as suite SETUP (no pass/fail) when it carries no verification, or
-    is explicitly typed setup/precondition. Everything else is a verification step.
-    (The setup/verify distinction in extraction itself is a Part 2A refinement; this is
-    the conservative split until then.)"""
-    setup_steps, verify_steps = [], []
+
+def _step_kind(s: dict) -> str:
+    """The single source of truth for a step's kind (fixes the previously-triplicated
+    is_setup logic). Uses the extractor's explicit `kind` when present + valid; else
+    falls back for legacy sequences (no kind): a step with no verify text is `setup`,
+    otherwise `verify`."""
+    k = (s.get("kind") or s.get("type") or "").strip().lower()
+    if k in _STEP_KINDS:
+        return k
+    if k in ("precondition", "config"):
+        return "setup"
+    if k in ("test",):
+        return "verify"
+    # legacy / unclassified: verify-empty => setup, else verify
+    return "setup" if not (s.get("verify") or "").strip() else "verify"
+
+
+def _split_sequence(sequence: List[dict]) -> Tuple[List[dict], List[dict]]:
+    """Split into (setup_steps -> TestSet.configure, testcase_steps -> TestCase).
+    setup = kind 'setup'; everything else (verify/physical/manual) becomes a TestCase.
+    NON-MUTATING: returns fresh dicts with contiguous `n` on the TestCase steps; never
+    assigns onto the caller's objects (so preview and Generate can't drift via aliasing)."""
+    setup_steps, tc_steps = [], []
     for s in sequence:
-        kind = (s.get("kind") or s.get("type") or "").lower()
-        verify = (s.get("verify") or "").strip()
-        is_setup = kind in ("setup", "precondition", "config") or (not verify and kind not in ("verify", "test"))
-        (setup_steps if is_setup else verify_steps).append(s)
-    # Renumber verification steps 1..N so TestCase_<n> is contiguous.
-    for i, s in enumerate(verify_steps, 1):
-        s["n"] = i
-    return setup_steps, verify_steps
+        (setup_steps if _step_kind(s) == "setup" else tc_steps).append(dict(s))
+    for i, s in enumerate(tc_steps, 1):
+        s["n"] = i          # on the COPY, not the caller's dict
+    return setup_steps, tc_steps
 
 
 _SWI_RX = re.compile(r"\b(swi_[a-z])\b")
 _STK_RX = re.compile(r"\b(stk_[a-z])\b")
 _PORTLINK_RX = re.compile(r"port\s?link|init_portlink|\.port[A-Z]\b|portlink")
 
+# Device references in reused fragment code. ART scripts don't share ONE naming
+# convention (corpus: dutA×2571, dut×2199, swiSrc, swiDst, dutB, lp, swi, …), so the
+# skeleton must bind whatever names the SELECTED fragments actually use — otherwise the
+# reused code says `self.dut.cmd(...)` while init() only bound `swi_a` → AttributeError.
+# Two reference shapes cover it: `self.<name>.cmd/mode/...` and `x = self.testSet.<name>`.
+_FRAG_DEV_METHOD_RX = re.compile(r"self\.(\w+)\.(?:cmd|mode|reboot|portReset|configurePort|link|portA|portB)\b")
+_FRAG_DEV_TESTSET_RX = re.compile(r"self\.testSet\.(\w+)\b")
+# Names that match the shapes but are NOT devices (framework internals / common locals).
+_FRAG_DEV_DENY = frozenset({
+    "setup", "testSet", "stream", "log", "logFile", "result", "results",
+    "supported", "cycles", "plugIndex", "pluggableInfo", "platformName",
+})
+
+
+def _detect_fragment_devices(fragments: List[dict]) -> List[str]:
+    """The device names the reused fragment code references (so init() can bind them).
+    Filters framework internals + obvious non-devices; preserves first-seen order."""
+    seen: List[str] = []
+    have = set()
+    for f in (fragments or []):
+        code = f.get("code", "") or ""
+        for rx in (_FRAG_DEV_METHOD_RX, _FRAG_DEV_TESTSET_RX):
+            for name in rx.findall(code):
+                if (name in _FRAG_DEV_DENY or name in have
+                        or not name.isidentifier() or name.startswith("_")):
+                    continue
+                # crude device heuristic: switch/dut/lp/link vocabulary, or swi_*/stk_*
+                low = name.lower()
+                if not (any(t in low for t in ("dut", "swi", "remote", "link", "lp", "switch", "stk"))
+                        or _SWI_RX.match(name) or _STK_RX.match(name)):
+                    continue
+                have.add(name)
+                seen.append(name)
+    return seen
+
 
 def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[str], List[str], bool]:
-    """Data-driven topology: find swi_*/stk_* device names + portlink need referenced in
-    the sequence text and reused fragment code. Defaults to ['swi_a'] when none seen —
-    every case needs at least one switch. Names match the .setup [switch]/[stack]
-    sections (verified convention: swi_a/b/c…, stk_a…)."""
+    """Data-driven topology: the switch device names to bind in init(), stacks, and
+    whether a port link is needed. Prefers the device names the SELECTED fragments
+    actually reference (so the reused code resolves against init()); falls back to any
+    swi_*/stk_* seen in the sequence text, then to a sane default. Names must match the
+    .setup [switch]/[stack] sections — that reconciliation is surfaced to the reviewer/LLM
+    (see _fragment_device_note), since the real .setup is only chosen later at Run."""
     blob = " ".join((s.get("action", "") + " " + s.get("verify", "")) for s in sequence)
     blob += " " + " ".join(f.get("code", "") for f in fragments)
-    switches = sorted(set(_SWI_RX.findall(blob))) or ["swi_a"]
+    frag_devs = _detect_fragment_devices(fragments)
+    swi_literal = sorted(set(_SWI_RX.findall(blob)))
+    # Fragment device names first (they're what the reused code calls), then any literal
+    # swi_* from the text, else the default pair (most cases are DUT + link partner).
+    switches = frag_devs or swi_literal or ["dut", "lp"]
     stacks = sorted(set(_STK_RX.findall(blob)))
     needs_portlink = bool(_PORTLINK_RX.search(blob))
     return switches, stacks, needs_portlink
 
 
+def _fragment_device_note(fragments: List[dict], bound: List[str]) -> str:
+    """Reconciliation note for the artefact + Generate prompt: the device names the
+    reused fragments use and what init() binds, so the reviewer/LLM reconciles them
+    against the eventual .setup file (which defines the real [switch] names)."""
+    frag_devs = _detect_fragment_devices(fragments)
+    if not frag_devs:
+        return ""
+    return ("Reused fragments reference these device names: "
+            + ", ".join(frag_devs) + ". init() binds: " + ", ".join(bound)
+            + ". These MUST match the [switch]/[stack] sections of the .setup file used "
+              "at Run — rename to your .setup's device names where they differ.")
+
+
 def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                      extra_imports: List[str], fragments: Optional[List[dict]] = None) -> str:
-    """Render the standardized ART skeleton (fixed frame + FILL slots) for this case."""
+    """Render the standardized ART skeleton (fixed frame + FILL slots) for this case.
+    Each TestCase step carries a resolved `kind` (verify/physical/manual) so the template
+    renders the right main() pattern (CLI check vs operator-prompt-and-wait vs yesNo)."""
     setup_steps, verify_steps = _split_sequence(sequence)
     if not verify_steps:  # never emit a zero-TestCase script
         verify_steps = [dict(s, n=i + 1) for i, s in enumerate(sequence)]
         setup_steps = []
+    # Stamp the resolved kind on each rendered step (default 'verify' for TestCase steps).
+    for s in verify_steps:
+        rk = _step_kind(s)
+        s["kind"] = rk if rk in ("physical", "manual") else "verify"
     switches, stacks, needs_portlink = _detect_topology(sequence, fragments or [])
     tpl = _skeleton_env.get_template("pt_script_template.py.jinja")
     return tpl.render(case_key=case_key, case_title=case_title,
                       extra_imports=extra_imports or [],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink)
+
+
+def _assemble_fragment_preview(case_key: str, case_title: str, sequence: List[dict],
+                               extra_imports: List[str], fragments: List[dict]) -> str:
+    """The per-step ARTEFACT this Fragments step produces: the real Generate skeleton
+    with each verification step's SELECTED fragment code inserted as a reference block
+    inside its TestCase, and FILL markers left where the Generate LLM will gap-fill.
+
+    This is a pre-LLM preview — it shows how the reused pieces sit in the template
+    frame that Generate starts from (Generate then fills the FILL slots + adapts).
+    Fragment `maps_to` uses ORIGINAL sequence numbers, so we compute verify-step order
+    the same way _split_sequence does and map original-n -> TestCase_<new n>.
+    """
+    # _split_sequence is now non-mutating; the TestCase steps carry the original `n`
+    # too (we read it before the split's copy renumbered). Build the original-n list
+    # from the SAME classifier the split uses — one source of truth, no drift.
+    tc_orig = [s for s in sequence if _step_kind(s) != "setup"]
+    orig_ns = [s.get("n") for s in tc_orig] or [s.get("n") for s in sequence]
+
+    skeleton = _render_skeleton(case_key, case_title, sequence, extra_imports, fragments)
+
+    # Device-name reconciliation banner: the reused fragments reference device names
+    # (dut/remote/linkP/dutA/…) that must be reconciled against init()'s bindings and the
+    # eventual .setup file. Surface it at the top so the reviewer/LLM sees it (finding #1).
+    bound, _stk, _pl = _detect_topology(sequence, fragments)
+    dev_note = _fragment_device_note(fragments, bound)
+    banner = []
+    if dev_note:
+        banner = ["# ==== DEVICE NAMES — reconcile before running ====",
+                  *[f"#   {ln}" for ln in _wrap_comment(dev_note, 92)],
+                  "# =================================================", ""]
+
+    # Build per-TestCase reused-code blocks keyed by the new TestCase number, plus a
+    # class-number -> kind map so we can mark GENUINE gaps (finding #7): a verify step
+    # with no reused fragment must be signalled by PRESENCE ("NO REUSE — write from
+    # scratch"), not by the silent absence of a block. Physical/manual steps generate
+    # their own interactive pattern, so a missing fragment there is expected, not a gap.
+    by_newn: Dict[int, List[dict]] = {}
+    kind_by_newn: Dict[int, str] = {}
+    for new_i, orig_n in enumerate(orig_ns, 1):
+        src = next((s for s in tc_orig if s.get("n") == orig_n), None)
+        kind_by_newn[new_i] = _step_kind(src) if src else "verify"
+        for f in fragments:
+            if orig_n in (f.get("maps_to") or []):
+                by_newn.setdefault(new_i, []).append(f)
+
+    out_lines = list(banner)
+    class_rx = re.compile(r"^class TestCase_(\d+)\(")
+    for line in skeleton.split("\n"):
+        out_lines.append(line)
+        m = class_rx.match(line)
+        if m:
+            new_n = int(m.group(1))
+            frags_here = by_newn.get(new_n, [])
+            for f in frags_here:
+                tag = _fragment_tag(f.get("source_id", ""), f.get("loc"))
+                out_lines.append(f"    # ===== reused fragment for this step: {tag} =====")
+                for cl in (f.get("code") or "").split("\n"):
+                    out_lines.append(("    # " + cl) if cl else "    #")
+                out_lines.append("    # ===== end reused fragment =====")
+            if not frags_here and kind_by_newn.get(new_n) == "verify":
+                # Positive gap marker (finding #7) — the LLM will write this step from
+                # scratch; make that explicit so a reviewer sees the gap, not silence.
+                out_lines.append("    # ===== NO REUSE — no fragment covers this step; "
+                                 "Generate writes it from scratch =====")
+    return "\n".join(out_lines)
+
+
+def _wrap_comment(text: str, width: int) -> List[str]:
+    """Word-wrap a note into lines <= width for comment banners."""
+    import textwrap
+    return textwrap.wrap(text, width) or [text]
 
 
 def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
@@ -745,9 +1003,8 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
         "name": name,
         "saved_at": datetime.utcnow().isoformat(),
         "iterations": step6.get("iterations", 1),
-        "fit_decision": {k: (sess.step4 or {}).get(k) for k in ("decision", "base_script")},
         "fragments": [{k: f.get(k) for k in ("source_id", "symbol", "maps_to")}
-                      for f in (sess.step5 or {}).get("fragments") or []],
+                      for f in _selected_fragments(sess)],
         "llm": (step6.get("provenance") or {}).get("llm", {}),
     }
     (meta / "provenance.json").write_text(json.dumps(provenance, indent=2), encoding="utf-8")
@@ -781,6 +1038,67 @@ async def status(request: Request):
         "generated_scripts": generated,
         "message": ("Run tool/build_db.py --fresh to build the script index."
                     if not scripts_indexed else None),
+    }
+
+
+@router.get("/pt_cases")
+async def pt_cases(request: Request):
+    """Complete (Generator-exported) cases, split by PyTest Creator work state for the
+    two Cases dropdowns:
+      - complete:    step 8 (Final Validation) confirmed + validated in PyTest Creator
+      - in_progress: everything else (not yet fully validated here)
+    Both lists only contain cases with a refined zephyr_payload.json — i.e. cases the
+    PyTest Creator can actually load. Grouped by Zephyr folder leaf for optgroups.
+    """
+    data = _data(request)
+    zephyr = data.get("zephyr_master", {})
+    cands = data.get("candidates", []) or []
+    all_keys = [c["key"] for c in cands
+                if c.get("candidates") and c.get("key")
+                and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
+
+    complete_set = _refined_complete_keys()
+    refined_keys = [k for k in all_keys if k in complete_set]
+
+    try:
+        pt_prog = dbx.list_pt_progress()
+    except Exception as e:
+        print(f"Warning: reading pt session progress failed: {e}")
+        pt_prog = {}
+
+    done_keys = [k for k in refined_keys if (pt_prog.get(k) or {}).get("validated")]
+    open_keys = [k for k in refined_keys if k not in set(done_keys)]
+
+    # Partials-first ordering for the Open/Partial dropdown: cases whose PyTest work has
+    # actually started (a pt session with ≥1 confirmed step, but not yet validated) go in
+    # a single "In progress" optgroup at the TOP; every other not-yet-started case follows,
+    # grouped by Zephyr folder. Mirrors the Generator's Step-1 partials-on-top pattern.
+    def _num(k: str):
+        return k.split("-T")[-1] if "-T" in k else k
+
+    partial_keys = sorted(
+        [k for k in open_keys if (pt_prog.get(k) or {}).get("confirms", 0) > 0],
+        key=lambda k: (-(pt_prog.get(k) or {}).get("confirms", 0), _num(k)),
+    )
+    partial_set = set(partial_keys)
+    not_started_keys = [k for k in open_keys if k not in partial_set]
+
+    open_grouped = []
+    if partial_keys:
+        partial_cases = []
+        for k in partial_keys:
+            title = zephyr.get(k, {}).get("title", k)
+            conf = (pt_prog.get(k) or {}).get("confirms", 0)
+            hint = f" [{conf}/7 steps]" if conf else ""
+            partial_cases.append({"key": k, "title": f"{title}{hint}" if title else f"{k}{hint}"})
+        open_grouped.append({"label": f"In progress ({len(partial_cases)})", "cases": partial_cases})
+    open_grouped.extend(_build_case_groups(not_started_keys, zephyr))
+
+    return {
+        "in_progress": {"grouped": open_grouped},
+        "complete": {"grouped": _build_case_groups(done_keys, zephyr)},
+        "counts": {"in_progress": len(open_keys), "complete": len(done_keys),
+                   "partials": len(partial_keys)},
     }
 
 
@@ -838,9 +1156,9 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     required_field = {2: "sequence", 3: "matches", 4: "decision",
                       5: "fragments", 6: "files", 7: "runs", 8: "validated"}[step]
     # Steps 3/5 (matches/fragments) are lists where an EMPTY list is a legitimate,
-    # already-run answer -- e.g. a `decision: new` Fit Decision with genuinely no
-    # reusable code correctly returns `fragments: []` (verified live on
-    # AWPTCM-T33235, Part 2B). A truthiness check on the list itself can't tell
+    # already-run answer -- e.g. a case with genuinely no reusable code correctly
+    # returns `fragments: []` (verified live on AWPTCM-T33235, Part 2B). A truthiness
+    # check on the list itself can't tell
     # that apart from "the step never ran", so for these two check the STEP
     # actually ran (the step's own LLM `provenance` is present) rather than
     # whether the list happens to be non-empty. Steps with non-list required
@@ -991,19 +1309,97 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
     return {"matches": matches, "mechanical_considered": len(mech)}
 
 
+@router.post("/suggest_scripts_step/{key}/{step_n}")
+async def suggest_scripts_step(key: str, step_n: int, request: Request,
+                               body: dict = Body(default={})):
+    """Per-step LLM suggestion: rank scripts against ONE sequence step's action/verify.
+
+    Unlike the global suggest (which fans matches out across the whole sequence), this
+    scopes the LLM to a single step so a reviewer can fill a specific gap. Every returned
+    match is linked to this step by construction (covers_steps forced to [step_n]); the
+    frontend drops them into that step's candidate list. Not persisted to step3.matches —
+    the reviewer chooses per step and saves the whole map via save_matches.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    dry_run = bool((body or {}).get("dry_run"))
+    _require_confirmed(sess, "step2", "Per-step script search")
+    sequence = (sess.step2 or {}).get("sequence") or []
+    step = next((s for s in sequence if s.get("n") == step_n), None)
+    if not step:
+        raise HTTPException(404, f"No sequence step {step_n}.")
+    user_inputs = body.get("user_inputs", "") or ""
+
+    query_toks = _pt_tokens(step.get("action", "")) | _pt_tokens(step.get("verify", ""))
+    query_toks |= _pt_tokens(_case_title(data, key)) | _pt_tokens(user_inputs)
+    mech = _search_slim(data, query_toks, limit=20)
+    candidates = []
+    for c in mech:
+        rec = (data.get("scripts_index_by_id") or {}).get(c["id"]) or {}
+        candidates.append({**c, "case_descs": [tc["desc"] for tc in rec.get("test_cases", [])
+                                               if tc.get("desc")][:12]})
+    # Present the single step as a 1-entry sequence so the match template ranks against it.
+    one_seq = [{"n": step_n, "action": step.get("action", ""), "verify": step.get("verify", "")}]
+
+    if dry_run:
+        if not candidates:
+            return {"provenance": {"prompt": "", "note": "no mechanical candidates for this step", "dry_run": True}}
+        meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
+            "case_key": key, "sequence": one_seq,
+            "user_inputs": user_inputs, "candidates": candidates,
+        }, llm_config=_llm_cfg(sess), timeout=300, dry_run=True)
+        return _provenance_preview(meta)
+
+    llm_matches = []
+    if candidates:
+        meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
+            "case_key": key, "sequence": one_seq,
+            "user_inputs": user_inputs, "candidates": candidates,
+        }, llm_config=_llm_cfg(sess), timeout=300)
+        if not meta.get("error"):
+            parsed = extract_json_block(meta.get("content", ""))
+            valid_ids = {c["id"] for c in candidates}
+            llm_matches = [m for m in _parsed_list(parsed, "matches")
+                           if isinstance(m, dict) and m.get("id") in valid_ids
+                           and m.get("coverage") in ("full", "partial")]
+
+    mech_by_id = {c["id"]: c for c in mech}
+    # Force covers_steps to this step — every result is linked to it by construction.
+    matches = [{**mech_by_id.get(m["id"], {"id": m["id"]}), **m, "covers_steps": [step_n]}
+               for m in llm_matches]
+    return {"matches": matches, "mechanical_considered": len(mech), "step_n": step_n}
+
+
 @router.post("/save_matches/{key}")
 async def save_matches(key: str, body: dict = Body(...)):
-    """Store the reviewer's selected script ids + free-text inputs."""
+    """Store the reviewer's per-step script selections + free-text inputs.
+
+    `selections` is a per-step map {stepN(str): [script_id, ...]}. The same script
+    may appear under several steps (it covers several). Downstream (Fragments/Generate)
+    read the flattened unique id set via _selected_script_ids(); the per-step map is
+    the source of truth for the coverage view.
+    """
     sess = _pt_get(key)
     sels = body.get("selections")
-    if not isinstance(sels, list):
-        raise HTTPException(400, "Body must include 'selections' (list of script ids).")
-    sess.step3 = {**(sess.step3 or {}), "selections": sels,
+    if not isinstance(sels, dict):
+        raise HTTPException(400, "Body must include 'selections' (a {step: [ids]} map).")
+    # Normalize: string step keys, list-of-str ids, de-duped per step.
+    clean: Dict[str, list] = {}
+    for step_k, ids in sels.items():
+        if not isinstance(ids, list):
+            continue
+        seen, out = set(), []
+        for sid in ids:
+            if isinstance(sid, str) and sid and sid not in seen:
+                seen.add(sid)
+                out.append(sid)
+        clean[str(step_k)] = out
+    sess.step3 = {**(sess.step3 or {}), "selections": clean,
                   "user_inputs": body.get("user_inputs", (sess.step3 or {}).get("user_inputs", "")),
                   "confirmed": False}
     _invalidate_from(sess, 3)
     _pt_persist(sess)
-    return {"selections": sels}
+    return {"selections": clean}
 
 
 @router.get("/script_source")
@@ -1019,79 +1415,14 @@ async def script_source(request: Request, id: str,
 
 
 # ---------------------------------------------------------------------------
-# Step 4 — fit decision
+# Step 4 (Fit Decision) — RETIRED. Once generation moved to the fixed skeleton
+# template (templates/pt_script_template.py.jinja), the reuse/extend/new decision
+# no longer changed how the script was framed, so the whole step was removed
+# (assess_fit/save_fit endpoints + UI panel). The internal stepN keys are left
+# unchanged (fragments still live on step5, generate on step6, etc.) to avoid
+# churning the load-bearing numeric scheme; only the visible sidebar numbers
+# shifted down. gather_fragments now gates on step3 (see below).
 # ---------------------------------------------------------------------------
-
-@router.post("/assess_fit/{key}")
-async def assess_fit(key: str, request: Request):
-    data = _data(request)
-    sess = _pt_get(key)
-    dry_run = await _dry_run(request)
-    _require_confirmed(sess, "step3", "Fit assessment")
-    sequence = (sess.step2 or {}).get("sequence") or []
-    selections = (sess.step3 or {}).get("selections") or \
-        [m["id"] for m in (sess.step3 or {}).get("matches", [])[:3]]
-    if not selections:
-        raise HTTPException(409, "No scripts selected in step 3.")
-
-    scripts_ctx = []
-    match_by_id = {m["id"]: m for m in (sess.step3 or {}).get("matches", [])}
-    for sid in selections[:4]:
-        rec = _script_record(data, sid)
-        ts = rec.get("testset") or {}
-        ts_loc = ts.get("loc") or [1, 60]
-        testset_src = _read_source(rec, ts_loc[0], min(ts_loc[1] or ts_loc[0] + 60, ts_loc[0] + 90))
-        cases = rec.get("test_cases") or []
-        case_src = ""
-        if cases:
-            c0 = cases[0]
-            loc = c0.get("loc") or [1, 40]
-            case_src = _read_source(rec, loc[0], min(loc[1] or loc[0] + 40, loc[0] + 80))
-        scripts_ctx.append({
-            "id": sid,
-            "coverage": (match_by_id.get(sid) or {}).get("coverage", "unknown"),
-            "testset_src": testset_src,
-            "cases": [{"class": c["class"], "desc": c["desc"]} for c in cases[:15]],
-            "case_src": case_src,
-        })
-
-    meta = await run_in_threadpool(run_prompt, "pt_assess_fit.jinja", {
-        "case_key": key, "sequence": sequence, "scripts": scripts_ctx,
-    }, llm_config=_llm_cfg(sess), timeout=300, dry_run=dry_run)
-    if dry_run:
-        return _provenance_preview(meta)
-    if meta.get("error"):
-        raise HTTPException(502, meta.get("content", "LLM error"))
-    parsed = extract_json_block(meta.get("content", ""))
-    if not isinstance(parsed, dict) or parsed.get("decision") not in ("reuse", "extend", "new"):
-        raise HTTPException(502, "LLM fit decision unparseable.")
-    sess.step4 = {"decision": parsed["decision"],
-                  "base_script": parsed.get("base_script"),
-                  "rationale": parsed.get("rationale", ""),
-                  "per_step": parsed.get("per_step", []),
-                  "confirmed": False,
-                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
-                                 "prompt": meta.get("prompt", ""),
-                                 "response": meta.get("content", "")[:20000]}}
-    _invalidate_from(sess, 4)
-    _pt_persist(sess)
-    return {k: sess.step4[k] for k in ("decision", "base_script", "rationale", "per_step")}
-
-
-@router.post("/save_fit/{key}")
-async def save_fit(key: str, body: dict = Body(...)):
-    sess = _pt_get(key)
-    if body.get("decision") not in ("reuse", "extend", "new"):
-        raise HTTPException(400, "decision must be reuse|extend|new")
-    sess.step4 = {**(sess.step4 or {}),
-                  "decision": body["decision"],
-                  "base_script": body.get("base_script"),
-                  "rationale": body.get("rationale", (sess.step4 or {}).get("rationale", "")),
-                  "per_step": body.get("per_step", (sess.step4 or {}).get("per_step", [])),
-                  "confirmed": False}
-    _invalidate_from(sess, 4)
-    _pt_persist(sess)
-    return {"decision": body["decision"]}
 
 
 # ---------------------------------------------------------------------------
@@ -1103,15 +1434,18 @@ async def gather_fragments(key: str, request: Request):
     data = _data(request)
     sess = _pt_get(key)
     dry_run = await _dry_run(request)
-    _require_confirmed(sess, "step4", "Fragment gathering")
+    # Fit Decision (former step 4) was retired once generation moved to the fixed
+    # skeleton template: reuse/extend/new no longer changes how the script is framed,
+    # so fragments are gathered straight from the confirmed step-3 script selections.
+    _require_confirmed(sess, "step3", "Fragment gathering")
     sequence = (sess.step2 or {}).get("sequence") or []
-    step4 = sess.step4 or {}
-    selections = (sess.step3 or {}).get("selections") or []
-    if step4.get("base_script") and step4["base_script"] not in selections:
-        selections = [step4["base_script"]] + selections
+    selections = _selected_script_ids(sess)
 
+    # Offer the LLM ALL scripts the reviewer chose in step 3 (no cap — per-step
+    # selection can legitimately span many). scripts_ctx carries only symbol names +
+    # one-line descriptions (not source), so this stays cheap even for large selections.
     scripts_ctx = []
-    for sid in selections[:5]:
+    for sid in selections:
         rec = _script_record(data, sid)
         symbols = []
         ts = rec.get("testset")
@@ -1126,9 +1460,7 @@ async def gather_fragments(key: str, request: Request):
         scripts_ctx.append({"id": sid, "symbols": symbols})
 
     meta = await run_in_threadpool(run_prompt, "pt_gather_fragments.jinja", {
-        "case_key": key, "sequence": sequence,
-        "decision": step4.get("decision"), "base_script": step4.get("base_script"),
-        "per_step": step4.get("per_step", []), "scripts": scripts_ctx,
+        "case_key": key, "sequence": sequence, "scripts": scripts_ctx,
     }, llm_config=_llm_cfg(sess), timeout=300, dry_run=dry_run)
     if dry_run:
         return _provenance_preview(meta)
@@ -1136,58 +1468,184 @@ async def gather_fragments(key: str, request: Request):
         raise HTTPException(502, meta.get("content", "LLM error"))
     parsed = extract_json_block(meta.get("content", ""))
 
-    fragments, dropped = [], []
-    for f in _parsed_list(parsed, "fragments"):
-        if not isinstance(f, dict):
-            continue
-        rec = (data.get("scripts_index_by_id") or {}).get(f.get("source_id"))
-        if not rec:
-            dropped.append(f)
-            continue
-        loc, code = None, ""
-        if f.get("symbol") == "TestSet" and rec.get("testset"):
-            loc = rec["testset"].get("loc")
-        else:
-            for c in rec.get("test_cases", []):
-                if c["class"] == f.get("symbol"):
-                    loc = c.get("loc")
-                    break
-        if loc and loc[0]:
-            code = _read_source(rec, loc[0], loc[1] or loc[0] + 60)
-        elif any(h["name"] == f.get("symbol") for h in rec.get("helpers", [])):
-            # helper functions: locate by regex (helpers carry no loc in the index)
-            src = _read_source(rec)
-            m = re.search(rf"^def {re.escape(f['symbol'])}\b.*?(?=^def |^class |\Z)",
-                          src, re.DOTALL | re.MULTILINE)
-            code = m.group(0) if m else ""
-        if not code:
-            dropped.append(f)
-            continue
-        fragments.append({"source_id": f["source_id"], "symbol": f["symbol"],
-                          "loc": loc, "code": code[:8000],
-                          "maps_to": f.get("maps_to", []), "why": f.get("why", "")})
+    # New per-step schema: {steps:[{n, chosen:[{source_id, symbol, maps_to, why,
+    # redundant:[{source_id, symbol, why}]}]}]}. We resolve real code for EVERY symbol
+    # (chosen + redundant) into a flat fragment pool, and build a per-step `accounting`
+    # of chosen→[redundant] so the UI can nest the redundant alternatives under the
+    # chosen one they duplicate. `chosen` fragments default to selected; `redundant`
+    # ones live in the pool but start deselected.
+    fragments_by_key: Dict[tuple, dict] = {}   # de-duped resolved fragments (pool)
+    dropped = []
+    accounting: Dict[str, list] = {}           # {stepN(str): [ {chosen_key, redundant_keys:[...]} ]}
+    default_chosen: set = set()                # keys the LLM chose (auto-selected)
 
-    sess.step5 = {"fragments": fragments, "dropped": dropped, "confirmed": False,
+    # Valid step numbers for maps_to validation (finding #3): the LLM sometimes emits
+    # maps_to entries that aren't real sequence steps, which would then mis-drive the
+    # provenance remap and per-step preview slotting. Keep only numbers that exist.
+    valid_steps = {int(s["n"]) for s in sequence if str(s.get("n") or "").strip().isdigit()}
+
+    def _clean_maps(raw) -> list:
+        """Keep only maps_to entries that are real sequence step numbers (drop phantoms)."""
+        out = []
+        for n in raw or []:
+            try:
+                ni = int(n)
+            except (TypeError, ValueError):
+                continue
+            if (not valid_steps) or ni in valid_steps:
+                if ni not in out:
+                    out.append(ni)
+        return out
+
+    def _add_fragment(entry: dict, extra_steps: list) -> Optional[tuple]:
+        """Resolve one {source_id, symbol, why, maps_to?} to code + register it in the
+        pool. Returns its key, or None if unresolvable (dropped)."""
+        sid = entry.get("source_id")
+        sym = entry.get("symbol")
+        if not sid or not sym:
+            return None
+        key = (sid, sym)
+        # extra_steps come from the step loop (always a real n); merge with validated maps_to.
+        want_steps = _clean_maps((entry.get("maps_to") or []) + list(extra_steps))
+        if key in fragments_by_key:
+            # already resolved; merge any newly-seen (validated) steps into maps_to
+            existing = fragments_by_key[key]
+            for n in want_steps:
+                if n not in existing["maps_to"]:
+                    existing["maps_to"].append(n)
+            return key
+        loc, code = _resolve_symbol_code(data, sid, sym)
+        if not code:
+            dropped.append(entry)
+            return None
+        fragments_by_key[key] = {"source_id": sid, "symbol": sym, "loc": loc,
+                                 "code": code[:8000], "maps_to": want_steps,
+                                 "why": entry.get("why", "")}
+        return key
+
+    for st in _parsed_list(parsed, "steps"):
+        if not isinstance(st, dict):
+            continue
+        try:
+            n = int(st.get("n"))
+        except (TypeError, ValueError):
+            continue
+        step_entries = []
+        for ch in st.get("chosen") or []:
+            if not isinstance(ch, dict):
+                continue
+            ck = _add_fragment(ch, [n])
+            if not ck:
+                continue
+            default_chosen.add(ck)
+            red_keys = []
+            for rd in ch.get("redundant") or []:
+                if not isinstance(rd, dict):
+                    continue
+                rk = _add_fragment(rd, [n])   # redundant frags also resolve to real code
+                if rk:
+                    red_keys.append({"key": list(rk), "why": rd.get("why", "")})
+            step_entries.append({"chosen": list(ck), "redundant": red_keys})
+        if step_entries:
+            accounting[str(n)] = step_entries
+
+    fragments = list(fragments_by_key.values())
+
+    # Merge into any existing pool (a re-Gather adds to what's there without wiping the
+    # reviewer's selections). Freshly CHOSEN fragments default to selected; redundant
+    # ones are added to the pool but not auto-selected. Previously-made selections win.
+    prev = sess.step5 or {}
+    pool = list(prev.get("fragments") or [])
+    have = {_frag_key(f) for f in pool}
+    selected = list(prev.get("selected") or [])
+    sel_have = {tuple(s) if isinstance(s, (list, tuple)) else (s.get("source_id"), s.get("symbol"))
+                for s in selected}
+    added = 0
+    for f in fragments:
+        k = _frag_key(f)
+        if k not in have:
+            pool.append(f)
+            have.add(k)
+            added += 1
+        # auto-select only fragments the LLM CHOSE (not the redundant alternatives)
+        if k in default_chosen and k not in sel_have:
+            selected.append({"source_id": f["source_id"], "symbol": f["symbol"]})
+            sel_have.add(k)
+
+    # Merge accounting (new steps overwrite; old steps for untouched sequence numbers kept)
+    merged_acct = dict(prev.get("accounting") or {})
+    merged_acct.update(accounting)
+
+    sess.step5 = {"fragments": pool, "selected": selected, "dropped": dropped,
+                  "accounting": merged_acct, "confirmed": False,
+                  "selections_fingerprint": _selections_fingerprint(sess),
                   "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
                                  "prompt": meta.get("prompt", ""),
                                  "response": meta.get("content", "")[:20000]}}
     _invalidate_from(sess, 5)
     _pt_persist(sess)
-    return {"fragments": fragments, "dropped": len(dropped)}
+    return {"fragments": pool, "selected": selected, "accounting": merged_acct,
+            "added": added, "dropped": len(dropped),
+            "scripts_considered": len(selections)}
 
 
 @router.post("/save_fragments/{key}")
 async def save_fragments(key: str, body: dict = Body(...)):
-    """Reviewer keeps/removes fragments (list of {source_id, symbol} to keep)."""
+    """Persist the reviewer's SELECTED fragments (list of {source_id, symbol}).
+
+    The full gathered pool (step5.fragments) is retained so the UI keeps its
+    selected / not-selected split; only step5.selected changes. Generation reads the
+    selected subset via _selected_fragments. An empty `keep` means nothing selected
+    (a legitimate 'new script from scratch' outcome)."""
     sess = _pt_get(key)
-    keep = {(k.get("source_id"), k.get("symbol")) for k in body.get("keep", [])}
-    frags = [f for f in (sess.step5 or {}).get("fragments", [])
-             if (f["source_id"], f["symbol"]) in keep] if keep else \
-        (sess.step5 or {}).get("fragments", [])
-    sess.step5 = {**(sess.step5 or {}), "fragments": frags, "confirmed": False}
+    step5 = sess.step5 or {}
+    pool = step5.get("fragments") or []
+    pool_keys = {_frag_key(f) for f in pool}
+    selected = [{"source_id": k.get("source_id"), "symbol": k.get("symbol")}
+                for k in body.get("keep", [])
+                if (k.get("source_id"), k.get("symbol")) in pool_keys]
+    sess.step5 = {**step5, "selected": selected, "confirmed": False}
     _invalidate_from(sess, 5)
     _pt_persist(sess)
-    return {"fragments": frags}
+    return {"selected": selected, "pool": len(pool)}
+
+
+@router.post("/preview_fragments/{key}")
+async def preview_fragments(key: str, request: Request, body: dict = Body(default={})):
+    """The per-step ARTEFACT the Fragments step produces: the Generate skeleton with the
+    currently-selected fragments' code slotted per verification step (as reference
+    blocks), plus the FILL markers Generate will complete. A pre-LLM preview so the
+    reviewer sees how the reused pieces assemble before submitting to Generate.
+
+    Accepts an optional `keep` list ([{source_id, symbol}]) so the preview reflects LIVE
+    (unsaved) toggles; falls back to the persisted selection when omitted.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    pool = (sess.step5 or {}).get("fragments") or []
+    keep = body.get("keep")
+    if isinstance(keep, list) and keep:
+        want = {(k.get("source_id"), k.get("symbol")) for k in keep}
+        fragments = [f for f in pool if _frag_key(f) in want]
+    elif isinstance(keep, list):        # explicit empty selection
+        fragments = []
+    else:
+        fragments = _selected_fragments(sess)
+
+    # Same import surfacing Generate does, so the header reflects reality.
+    extra_import_lines: List[str] = []
+    for f in fragments:
+        rec = (data.get("scripts_index_by_id") or {}).get(f.get("source_id")) or {}
+        for m in rec.get("imports", []):
+            if m.startswith("framework.") and m not in ("framework.ATTestSet", "framework.ATTestCase"):
+                line = "from {} import {}".format(*m.rsplit(".", 1)) if "." in m else "import " + m
+                if line not in extra_import_lines:
+                    extra_import_lines.append(line)
+
+    sequence = (sess.step2 or {}).get("sequence") or []
+    preview = _assemble_fragment_preview(key, _case_title(data, key), sequence,
+                                         extra_import_lines, fragments)
+    return {"preview": preview, "selected_count": len(fragments)}
 
 
 # ---------------------------------------------------------------------------
@@ -1210,7 +1668,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     group, name = _validate_naming(group, name)
     file_name = f"{name}.py"
 
-    fragments = (sess.step5 or {}).get("fragments", [])
+    fragments = _selected_fragments(sess)   # only the reviewer-selected subset
     extra_mods = []
     extra_import_lines: List[str] = []
     for f in fragments:
@@ -1229,6 +1687,10 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments)
+    # Device-name reconciliation (finding #1): tell the LLM which names the reused
+    # fragments use vs what init() binds, so it renames rather than emitting AttributeErrors.
+    bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
+    device_note = _fragment_device_note(fragments, bound_devs)
 
     llm_cfg = _llm_cfg(sess)
     fragments_ctx = [{**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"))}
@@ -1239,6 +1701,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "file_name": file_name,
         "skeleton": skeleton,
         "fragments": fragments_ctx,
+        "device_note": device_note,
+        "bound_devices": bound_devs,
         "framework_surface": _framework_surface_slice(data, extra_mods),
         "model_name": llm_cfg.get("model") or "unknown",
         "gen_date": datetime.utcnow().strftime("%Y-%m-%d"),
@@ -1256,7 +1720,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         raise HTTPException(502, "LLM returned no python code block.")
     # PLAN §1.5 — authoritative re-stamp: server-known step->fragment mapping wins
     # over anything the model self-reported, so provenance is trustworthy either way.
-    stamped_code = _restamp_provenance(blocks["test_code"], fragments, meta.get("model") or "")
+    stamped_code = _restamp_provenance(blocks["test_code"], fragments,
+                                       meta.get("model") or "", sequence)
 
     prev = sess.step6 or {}
     sess.step6 = {
@@ -1484,8 +1949,10 @@ async def fix_script(key: str, request: Request):
         raise HTTPException(502, "LLM fix returned no python code block.")
     # Re-stamp (PLAN §1.5): a fix pass can shift step content, so re-derive tags
     # from the same fragment mapping rather than trust whatever survived the edit.
-    fix_fragments = (sess.step5 or {}).get("fragments", [])
-    stamped_code = _restamp_provenance(blocks["test_code"], fix_fragments, meta.get("model") or "")
+    fix_fragments = _selected_fragments(sess)
+    fix_sequence = (sess.step2 or {}).get("sequence") or []
+    stamped_code = _restamp_provenance(blocks["test_code"], fix_fragments,
+                                       meta.get("model") or "", fix_sequence)
 
     # Archive current iteration before replacing
     iteration = step6.get("iterations", 1)

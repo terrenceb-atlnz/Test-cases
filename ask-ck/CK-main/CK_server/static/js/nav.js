@@ -3,7 +3,7 @@ import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
 import { renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
-import { ptSession, renderPtFitPanel, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
+import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
 
 export function initSidebarAccordion() {
   const labels = Array.from(document.querySelectorAll('.sidebar .sidebar-section-label'));
@@ -90,7 +90,6 @@ export function goToPanel(panelId) {
   const ptRenderers = {
     'panel-pt-seq': renderPtSeqPanel,
     'panel-pt-search': renderPtSearchPanel,
-    'panel-pt-fit': renderPtFitPanel,
     'panel-pt-frag': renderPtFragPanel,
     'panel-pt-gen': renderPtGenPanel,
     'panel-pt-run': renderPtRunPanel,
@@ -144,11 +143,10 @@ export function updatePageHeader() {
     'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select a completed case to turn into a framework test script.' },
     'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },
     'panel-pt-search': { title: 'PyTest Creator', desc: 'Step 3: search the script databases for full/partial coverage, then confirm.' },
-    'panel-pt-fit': { title: 'PyTest Creator', desc: 'Step 4: decide reuse / extend / new, then confirm.' },
-    'panel-pt-frag': { title: 'PyTest Creator', desc: 'Step 5: gather reusable code fragments, then confirm.' },
-    'panel-pt-gen': { title: 'PyTest Creator', desc: 'Step 6: generate, name, lint and save the composite script, then confirm.' },
-    'panel-pt-run': { title: 'PyTest Creator', desc: 'Step 7: execute on a stored testbox and review the parsed log.' },
-    'panel-pt-validate': { title: 'PyTest Creator', desc: 'Step 8: final validation loop — fix with LLM until all cases PASS.' },
+    'panel-pt-frag': { title: 'PyTest Creator', desc: 'Step 4: gather reusable code fragments, then confirm.' },
+    'panel-pt-gen': { title: 'PyTest Creator', desc: 'Step 5: fill the skeleton template, name, lint and save the script, then confirm.' },
+    'panel-pt-run': { title: 'PyTest Creator', desc: 'Step 6: execute on a stored testbox and review the parsed log.' },
+    'panel-pt-validate': { title: 'PyTest Creator', desc: 'Step 7: final validation loop — fix with LLM until all cases PASS.' },
     'panel-pt-testbox': { title: 'PyTest Creator', desc: 'Manage stored testbox connections for the Run step.' }
   };
 

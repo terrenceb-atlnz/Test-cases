@@ -7,7 +7,7 @@ import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
 import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from './llm.js';
-import { ptManualSearch, ptFitEdited, ptProfileSelected } from './pytest.js';
+import { ptProfileSelected } from './pytest.js';
 import { openAdminPanel } from './admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
 import './provenance.js';        // side-effect: provRefresh/provCopy* actions (shared)
@@ -75,10 +75,6 @@ document.querySelectorAll('input[name="claudeMode"]').forEach((radio) => {
   if (logo) logo.addEventListener('dblclick', (e) => { e.preventDefault(); openAdminPanel(); });
 }
 {
-  const q = document.getElementById('pt-search-q');
-  if (q) q.addEventListener('keydown', (e) => { if (e.key === 'Enter') ptManualSearch(); });
-  const fit = document.getElementById('pt-fit-decision');
-  if (fit) fit.addEventListener('change', ptFitEdited);
   const prof = document.getElementById('pt-run-profile');
   if (prof) prof.addEventListener('change', function () { ptProfileSelected(this); });
 }

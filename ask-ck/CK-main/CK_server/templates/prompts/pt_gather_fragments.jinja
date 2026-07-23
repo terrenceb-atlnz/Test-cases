@@ -7,12 +7,6 @@ cover a required test-step sequence. You reference fragments by symbol — you n
    verify: {{ s.verify }}
 {% endfor %}
 
-## Fit decision (confirmed by reviewer)
-decision: {{ decision }} | base_script: {{ base_script or "none" }}
-{% for p in per_step %}
-- step {{ p.n }}: covered_by={{ p.covered_by or "(gap)" }} {{ p.gap }}
-{% endfor %}
-
 ## Available source symbols (from the selected scripts; class and function names with descriptions)
 {% for sc in scripts %}
 ### {{ sc.id }}
@@ -21,10 +15,34 @@ decision: {{ decision }} | base_script: {{ base_script or "none" }}
 {% endfor %}
 {% endfor %}
 
+## Task — per sequence step, with full accounting
+Work step by step through the sequence. For EACH step, find every symbol above that could
+serve it, then split them into:
+  • "chosen" — the fragment(s) actually worth reusing for that step. A step may need MORE
+    THAN ONE chosen fragment when they do genuinely different things (e.g. one configures,
+    one verifies) — include each. Do NOT collapse genuinely-different pieces into one.
+  • "redundant" — other symbols that ALSO cover the step but duplicate a chosen fragment
+    (same mechanic, near-identical variant). Attach each redundant symbol to the chosen
+    fragment it duplicates, with a one-line reason it is redundant to that specific choice.
+
+Cover every step you can with at least one chosen fragment. A step with no reusable symbol
+at all is a genuine gap — omit it (do not invent symbols).
+
 ## Rules (strict for repeatable output)
-- Propose the smallest set of fragments (TestCase classes, TestSet init/configure blocks, helper functions) that covers the sequence steps marked covered_by, plus any helper worth adapting for gap steps.
-- "symbol" must be an exact name from the lists above; "source_id" its script id. The server extracts the real code by line range — invented names will fail resolution and be dropped.
-- "maps_to" lists the sequence numbers (n) the fragment serves.
-- "why" = one sentence on what to keep or adapt.
-- Output JSON ONLY:
-{"fragments": [{"source_id": "art/....py", "symbol": "TestCase_2", "maps_to": [1,2], "why": "..."}]}
+- Every "symbol" must be an EXACT name from the lists above; "source_id" its script id.
+  The server extracts real code by line range — invented names are dropped.
+- A fragment may serve several steps: list them all in its "maps_to".
+- "why" on a chosen fragment = why it was SELECTED (what it does for the step, what to keep/adapt).
+- "why" on a redundant fragment = why it is REDUNDANT to the chosen fragment it hangs under
+  (state the selection reasoning first, then the duplication).
+- Output JSON ONLY, this shape:
+{"steps": [
+  {"n": 1, "chosen": [
+     {"source_id": "art/....py", "symbol": "TestCase_2", "maps_to": [1,2],
+      "why": "selected because ...",
+      "redundant": [
+        {"source_id": "art/....py", "symbol": "TestCase_5",
+         "why": "redundant to TestCase_2 because ..."}
+      ]}
+  ]}
+]}

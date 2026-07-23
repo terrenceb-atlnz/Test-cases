@@ -10,11 +10,18 @@ Convert this manual test case into a prescriptive sequence of automatable test s
 {% for s in steps %}{{ loop.index }}. {{ s.description }}{% if s.expectedResult %} → {{ s.expectedResult }}{% endif %}
 {% endfor %}
 ## Rules
-- Each entry = one concrete automatable action + its verification.
+- Each entry = one concrete action + its verification.
 - Split compound steps; merge redundant ones.
+- **Output the steps in RUNNABLE EXECUTION ORDER** — the order they must actually run on the device, not necessarily the order they appear above. Setup/configuration must precede the verifications that depend on it; dependencies come first. Manual test cases are often written for a human reader, not for a machine, so reordering is expected.
 - "action" = imperative device-level instruction (configure X, send Y, power-cycle, read 'show ...').
 - "verify" = the observable check proving it worked (exact CLI fields, packet fields, link state) — becomes self.passed()/self.failed() logic.
-- "zephyr_step_idx" = 1-based index of the source Zephyr step above.
-- Steps that can't be automated on a testbox (cable wiggling, visual LED checks): skip them, name them in "notes".
+- "zephyr_step_idx" = 1-based index of the source Zephyr step above (which manual step this came from). Always set it so the reordering is traceable; use the closest source step when merging or gap-filling.
+- **"kind"** = classify EVERY step as exactly one of:
+  - `setup` — configuration or precondition with no pass/fail check of its own (base config, enabling a feature, addressing). Becomes suite `configure()`, not a test case.
+  - `verify` — a normal automatable action + observable check driven over the CLI/traffic (the common case, the default).
+  - `physical` — REQUIRES a human to physically act on the hardware (insert/remove a pluggable, plug/unplug a cable, hot-swap), then the script waits for the resulting port state change (link up/down, pluggable detected) and continues. These are IN SCOPE — do NOT skip them. Model: prompt the operator, then poll `show interface <port> status` for the state transition (see the SVT 3009 Pluggable Qualifications `waitForReplugEvent`/`waitForHotswapEvent` pattern).
+  - `manual` — a visual/physical check the DEVICE CANNOT self-report (LED colour, physical seating), needing operator Y/N confirmation (`yesNo("Press Y when …")`).
+- For `physical`/`manual` steps, still write the action (the human instruction) and verify (the state change / confirmation to check) — they become real test cases with the interactive pattern, not skips.
+- If the execution order differs from the manual step order (reordering, splitting, or merging), state briefly in "notes" what you changed and why.
 - Output JSON ONLY, this shape:
-{"sequence": [{"n": 1, "action": "...", "verify": "...", "zephyr_step_idx": 1}], "notes": "anything skipped or assumed"}
+{"sequence": [{"n": 1, "action": "...", "verify": "...", "kind": "verify", "zephyr_step_idx": 1}], "notes": "anything assumed or reordered"}

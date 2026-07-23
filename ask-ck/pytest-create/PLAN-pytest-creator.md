@@ -22,6 +22,17 @@
 > 2–3 pending) with `TEMPLATE-SPEC.md` + `LOGGING-CONTRACT.md`; this tracker's Step-6 body below
 > describes the original free-compose approach (historical).
 
+> **Flow revision (2026-07-23)**: the visible flow is now **7 steps, not 8** — the former
+> **Step 4 (Fit Decision) was removed** (the fixed skeleton makes reuse/extend/new moot). Internal
+> `stepN` session keys are UNCHANGED (fragments still `step5`, generate `step6`, etc.); only the
+> sidebar numbers shifted. Script Search + Fragments are now **per-step carousels**; Cases split
+> into Open/Partial + Complete. The Sequence extractor classifies each step **setup/verify/physical/
+> manual**, and Generate emits an **operator-prompt + wait-for-state-change** pattern for physical
+> steps (SVT 3009) and `yesNo()` for manual — physical steps are in scope. Provenance re-stamping was
+> fixed to remap original-step → `TestCase_<n>` class number (a setup-drop divergence bug). Open
+> follow-ups (fragment granularity, Py2 contamination) live in `NEXT_SESSION_DECISIONS.md`.
+> The Step-6 checklist items below predate these changes; treat them as historical where they conflict.
+
 ## Status Checklist
 
 - [x] **Phase 0 — Plan tracker:** this file saved to `ask-ck/pytest-create/` (2026-07-14)

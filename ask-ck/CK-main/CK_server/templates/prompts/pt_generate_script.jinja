@@ -41,8 +41,13 @@ Reviewer note: {{ f.why }}
      leave a `passed()`/`failed()` with an empty reason — it emits no log marker.
 2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
    commands only; NEVER put `self.passed()`/`self.failed()` there.
-3. Reach devices from a TestCase via `self.testSet.<name>` (e.g. `self.testSet.swi_a`);
+3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %};
    bind every device you use in `TestSet.init`.
+{%- if device_note %}
+   DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
+   its device references (e.g. `self.dut` / `self.remote`) to the names init() binds above
+   so the code resolves — a name init() didn't bind is an AttributeError at runtime.
+{%- endif %}
 4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
    parsing; don't discard them and write from scratch.
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block

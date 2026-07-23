@@ -48,6 +48,35 @@ router = APIRouter()
 # In-memory sessions (replace with DB later). File persistence added for restart survival.
 sessions: Dict[str, WizardSession] = {}
 
+# Cases hidden from the Generator (and PyTest Creator) case lists — out of scope for
+# this tool. This is a DISPLAY filter only: the data stays untouched in ck.db (the
+# permanent source of truth), it just isn't offered for review. Remove an entry here
+# to surface a case/folder again.
+#   T44453  — "ART Limits Test"  (New Platform Template/ART Limits Test)
+#   T41263-6 — 1335_pbr / 1336_acl / 1344_qos / 5000_mdi_mdix (ART Testsuites folder)
+HIDDEN_CASE_KEYS = frozenset({
+    "AWPTCM-T44453",
+    "AWPTCM-T41263", "AWPTCM-T41264", "AWPTCM-T41265", "AWPTCM-T41266",
+})
+
+# Whole categories (Zephyr folders) hidden from the case lists — out of scope. Matched
+# by exact folder path, so every case in the folder is hidden regardless of its (non-
+# contiguous) test-id, and any future case added to the folder is hidden too.
+#   Bootloader (17) + GRUB Bootloader (8) = 25 cases
+HIDDEN_CASE_FOLDERS = frozenset({
+    "/New Platform Test (MASTER)/Bootloader",
+    "/New Platform Test (MASTER)/GRUB Bootloader",
+})
+
+
+def _is_hidden_case(key: str, folder: str = "") -> bool:
+    """A case is hidden from the lists if its key is explicitly hidden OR it lives in a
+    hidden folder. Display-only; ck.db is untouched."""
+    if key in HIDDEN_CASE_KEYS:
+        return True
+    f = (folder or "").rstrip("/")
+    return f in HIDDEN_CASE_FOLDERS
+
 # wizard.py lives in routers/ so go up one more level to the CK_server package root.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # NOTE: sessions (per-case + the '_workspace_llm' workspace default) live in ck.db
@@ -725,45 +754,19 @@ async def load_case(key: str, data=Depends(get_data)):
     # Step 2: relevance-ranked external Zephyr cross-refs only (omit current Cases list + primary)
     zrefs = _select_related_zephyr_refs(key, primary_case, sess, data, limit=8)
 
-    # === Pre-scored ATP candidates for Step 3 (ranking only; gaps are synthesis/export) ===
-    # Build query from case title + prior selections (same logic used by suggest)
+    # === Mechanically-scored ATP candidates for the ATPyLib review step ===
+    # Loading a case is STRICTLY DATA DISPLAY — no LLM. Previously this ran a blocking
+    # `analyze_atp_coverage` LLM call to pre-rank candidates for a review step the user
+    # hadn't navigated to yet, adding ~60s to every Load (the round-trip dominated,
+    # independent of case size). The ATPyLib review step has its own on-demand
+    # "Suggest with LLM" button for that ranking, so Load now returns the keyword-scored
+    # candidates instantly and the LLM ranking happens only when the user asks for it.
     atp_query = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
     atp_cands_raw = _get_atp_candidates(atp_query, data, limit=18)
 
-    # Run LLM ranking using real provider (no Step 3 gaps field).
-    llm_cfg = {}
-    if hasattr(sess, "llm_config"):
-        llm_cfg = sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
-    analysis = analyze_atp_coverage(
-        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
-        atp_cands_raw,
-        llm_config=llm_cfg
-    )
-
-    # Convert ranked results into the shape expected by the new table renderer (with score)
-    ranked = analysis.get("ranked", [])
     atp_candidates = []
     test_id_desc = data.get("test_id_desc", {}) or {}
-    for r in ranked:
-        rid = r.get("id")
-        # Full description from source data; short title for Title col; reason as justification
-        info = test_id_desc.get(rid, {}) or {}
-        full_desc = (info.get("description") or "").strip()
-        short_title, full_desc = _split_atp_title_description(full_desc, rid or "")
-        suite = info.get("suite_name", "")
-        reason = r.get("reason", "Relevant ATP coverage")
-        atp_candidates.append({
-            "id": rid,
-            "title": short_title,
-            "score": r.get("score", 0.5),
-            "suite": suite,
-            "justification": reason,
-            "description": full_desc or reason,
-            "source": "llm",
-        })
-
-    # Merge LLM ranked with keyword candidates (dedupe by id); keyword fills gaps
-    seen_ids = {c.get("id") for c in atp_candidates}
+    seen_ids = set()
     for c in atp_cands_raw:
         cid = c.get("id")
         if not cid or cid in seen_ids:
@@ -858,7 +861,9 @@ async def get_cases(data=Depends(get_data)):
     """
     cands = data.get("candidates", []) or []
     zephyr = data.get("zephyr_master", {})
-    all_keys = [c["key"] for c in cands if c.get("candidates") and c.get("key")]
+    all_keys = [c["key"] for c in cands
+                if c.get("candidates") and c.get("key")
+                and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
     complete_set = _refined_complete_keys()
     progress = _session_progress_map()

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/static/styles.css?v=26">
 </head>
 <body>
 <div class="layout">
@@ -94,25 +94,21 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         3. Script Search
       </div>
-      <div data-action="goToPanel" data-args='["panel-pt-fit"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-fit" data-pt-step="4">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-        4. Fit Decision
-      </div>
       <div data-action="goToPanel" data-args='["panel-pt-frag"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-frag" data-pt-step="5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        5. Fragments
+        4. Fragments
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-gen"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-gen" data-pt-step="6">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-        6. Generate
+        5. Generate
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-run"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-run" data-pt-step="7">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        7. Run
+        6. Run
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-validate"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-validate" data-pt-step="8">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        8. Validate
+        7. Validate
       </div>
       <div data-action="goToPanel" data-args='["panel-pt-testbox"]' role="button" tabindex="0" class="sidebar-nav-item" data-panel="panel-pt-testbox">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
@@ -202,11 +198,10 @@
               <li><b>1. Cases</b> — pick a Complete case and Load it (use <b>↻ Refresh list</b> after exporting new cases in the Generator).</li>
               <li><b>2. Sequence</b> — the LLM extracts a prescriptive sequence of automatable steps from the refined case; edit the rows, Save, then Confirm.</li>
               <li><b>3. Script Search</b> — search the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence; tick what to reuse, then Confirm.</li>
-              <li><b>4. Fit Decision</b> — decide whether the sequence fits an existing script (reuse / extend) or needs a new one; Confirm.</li>
-              <li><b>5. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
-              <li><b>6. Generate</b> — the LLM composes the script from fragments + gaps; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
-              <li><b>7. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
-              <li><b>8. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
+              <li><b>4. Fragments</b> — gather reusable code from the selected scripts (resolved to real source), untick what you don't want, then Confirm.</li>
+              <li><b>5. Generate</b> — the LLM fills the standardized skeleton template from the fragments + gap-fill; edit the Group/name, Lint, Save to <code>generated/&lt;Group&gt;/</code>, then Confirm.</li>
+              <li><b>6. Run</b> — pick a stored testbox (or add one under <b>Testboxes</b>), choose the .setup, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.</li>
+              <li><b>7. Validate</b> — Final Validation passes when every TestCase is PASS with zero failures. On failures, <b>Fix with LLM</b> loops back to Generate; promotion into <code>testsuites_art/</code> is manual.</li>
             </ol>
             <div style="margin-top:6px;">First-time setup: build the script index with <code>tool/build_script_index.py</code>, and add a testbox under the <b>Testboxes</b> sidebar item.</div>
           </div>
@@ -560,13 +555,17 @@
     <div id="panel-pt-cases" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">PyTest Creator — Cases</div>
-        <div class="section-description">Pick the completed case to generate pytest code for (only cases with a refined <code>zephyr_payload.json</code> are listed). Selection here is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator.</div>
+        <div class="section-description">Pick a case to generate pytest code for (only Generator-Complete cases with a refined <code>zephyr_payload.json</code> are listed). <b>Open/Partial</b> = PyTest work not yet fully validated; <b>Complete</b> = generated + validated here (step 8). Selection is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator or validating one here.</div>
         <div class="mt-2">
           <div class="compact-flex mb-1">
-            <label class="case-select-label" for="ptCaseSelDone" id="ptCaseSelDoneLabel">Complete</label>
-            <button data-action="ptRefreshCases" class="btn btn-compact" id="pt-refresh-btn" title="Re-scan refined-cases for newly completed cases">↻ Refresh list</button>
+            <label class="case-select-label" for="ptCaseSelOpen" id="ptCaseSelOpenLabel">Open/Partial</label>
+            <button data-action="ptRefreshCases" class="btn btn-compact" id="pt-refresh-btn" title="Re-scan refined-cases + PyTest sessions for updated case state">↻ Refresh list</button>
           </div>
-          <select id="ptCaseSelDone" class="form-select mb-1 case-select" data-bucket="complete">
+          <select id="ptCaseSelOpen" class="form-select mb-1 case-select" data-bucket="pt-open">
+            <option value="">Select open or partial case…</option>
+          </select>
+          <label class="case-select-label" for="ptCaseSelDone" id="ptCaseSelDoneLabel">Complete</label>
+          <select id="ptCaseSelDone" class="form-select mb-1 case-select" data-bucket="pt-complete">
             <option value="">Select completed case…</option>
           </select>
           <div class="compact-flex mb-2">
@@ -582,8 +581,9 @@
     <div id="panel-pt-seq" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 2. Sequence <span id="pt-badge-2" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Identify the prescriptive sequence of automatable test steps from the refined case, review/edit, then confirm.</div>
+        <div class="section-description">The refined case's test steps are shown first (the "before"). Extract Sequence asks the LLM to convert them into a prescriptive, runnable execution order (the "after") — the <b>from</b> column links each extracted row back to its source step so any re-sequencing is visible. Review/edit, then confirm.</div>
         <div id="pt-seq-case" class="mt-2 mb-2"></div>
+        <div id="pt-seq-refined" class="mb-3"></div>
         <div class="compact-flex mb-2">
           <button data-action="ptExtractSequence" class="btn btn-primary btn-compact" id="pt-seq-extract-btn">Extract Sequence (LLM)</button>
           <button data-action="ptSaveSequence" class="btn btn-compact">Save Edits</button>
@@ -599,80 +599,54 @@
     <div id="panel-pt-search" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 3. Script Search <span id="pt-badge-3" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Check the script databases (testsuites_art / svt_scripts / test_scripts) for scripts that do all, some, or none of the sequence. Two ways to find matches — a plain keyword search, or an LLM suggestion from the sequence. Tick the ones to carry forward, then confirm.</div>
+        <div class="section-description">Find reusable scripts <b>per sequence step</b> so it's clear every step is covered. Page through the steps; for each, use its own <b>Suggest (LLM)</b> or <b>keyword search</b> to find scripts and choose the ones to reuse. Each step shows a ✓ covered / ✗ gap status. Save, then confirm.</div>
 
-        <div class="pt-search-tools">
-          <div class="pt-search-box">
-            <div class="pt-search-box-title">Keyword search</div>
-            <div class="justification-note mb-1">Plain index search — no LLM. Matches script names, tags, and summaries.</div>
-            <div class="compact-flex">
-              <input id="pt-search-q" type="text" class="form-input form-input-search" placeholder="e.g. mdix polarity sfp">
-              <button data-action="ptManualSearch" class="btn btn-compact">Search</button>
-            </div>
-          </div>
+        <div id="pt-coverage-summary" class="mb-2"></div>
+        <div id="pt-steps-list"></div>
+        <span id="pt-search-status" class="justification-note"></span>
 
-          <div class="pt-search-box">
-            <div class="pt-search-box-title">LLM suggestion</div>
-            <div class="justification-note mb-1">Ranks the databases against your confirmed sequence and judges coverage. The guidance below is added to <em>this</em> request (and nudges pre-ranking) — use keywords, not sentences.</div>
-            <textarea id="pt-user-inputs" class="form-input pt-guidance" placeholder="Optional keyword guidance, e.g.  poe  x930  libSvt  ixia  copper-only"></textarea>
-            <div class="compact-flex mt-1">
-              <button data-action="ptSuggestScripts" class="btn btn-primary btn-compact" id="pt-suggest-btn">Suggest from Sequence (LLM)</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="pt-search-status" class="justification-note mb-2"></div>
-        <div id="pt-match-list" class="mt-2"></div>
-        <div id="pt-match-prov"></div>
         <div class="compact-flex mt-2">
           <button data-action="ptSaveMatches" class="btn btn-compact">Save Selections</button>
           <button data-action="ptConfirm" data-args='[3]' class="btn btn-compact">Confirm Step 3</button>
         </div>
-        <div id="pt-source-view" class="mt-2"></div>
+        <div id="pt-match-prov" class="mt-2"></div>
       </div>
     </div>
 
-    <!-- PyTest Creator: Step 4 — Fit Decision -->
-    <div id="panel-pt-fit" class="card tool-panel hidden">
-      <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 4. Fit Decision <span id="pt-badge-4" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Would the sequence fit cleanly into a selected script (reuse/extend), or is a new script needed?</div>
-        <div class="compact-flex mb-2">
-          <button data-action="ptAssessFit" class="btn btn-primary btn-compact" id="pt-fit-btn">Assess Fit (LLM)</button>
-          <label class="justification-note">Decision:</label>
-          <select id="pt-fit-decision" class="form-select" style="width:auto">
-            <option value="">—</option><option value="reuse">reuse</option>
-            <option value="extend">extend</option><option value="new">new</option>
-          </select>
-          <button data-action="ptSaveFit" class="btn btn-compact">Save</button>
-          <button data-action="ptConfirm" data-args='[4]' class="btn btn-compact">Confirm Step 4</button>
-        </div>
-        <div id="pt-fit-status" class="justification-note mb-2"></div>
-        <div id="pt-fit-result"></div>
-        <div id="pt-fit-prov"></div>
-      </div>
-    </div>
-
-    <!-- PyTest Creator: Step 5 — Fragments -->
+    <!-- PyTest Creator: Step 5 (internal) — Fragments — shown as "4. Fragments" -->
     <div id="panel-pt-frag" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 5. Fragments <span id="pt-badge-5" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Re-use real code from the selected scripts: the LLM proposes symbols; the server resolves them to actual source. Untick anything not worth carrying, then confirm.</div>
+        <div class="section-heading step-heading-row">PyTest Creator — 4. Fragments <span id="pt-badge-5" class="badge hidden">Confirmed</span></div>
+        <div class="section-description">Re-use real code from the selected scripts, reviewed <b>per sequence step</b>. <b>Gather Fragments (LLM)</b> proposes, for each step, the fragment(s) worth reusing (<b>green</b>) plus the redundant alternatives it was preferred over (<b>red, nested below</b>) — so the accounting of every candidate is visible. Page through the steps; tick a fragment to include it in Generate (untick a green one or tick a red one to override). Save, then confirm.</div>
         <div class="compact-flex mb-2">
           <button data-action="ptGatherFragments" class="btn btn-primary btn-compact" id="pt-frag-btn">Gather Fragments (LLM)</button>
-          <button data-action="ptSaveFragments" class="btn btn-compact">Save Kept Fragments</button>
-          <button data-action="ptConfirm" data-args='[5]' class="btn btn-compact">Confirm Step 5</button>
+          <span id="pt-frag-status" class="justification-note"></span>
         </div>
-        <div id="pt-frag-status" class="justification-note mb-2"></div>
+
+        <div id="pt-frag-coverage" class="mb-2"></div>
         <div id="pt-frag-list"></div>
-        <div id="pt-frag-prov"></div>
+
+        <details id="pt-frag-preview-block" class="pt-frag-preview mt-3">
+          <summary class="pt-frag-preview-summary">Assembled artefact preview <span class="justification-note">— the Generate skeleton with your selected fragments slotted per step (click to expand)</span></summary>
+          <div class="compact-flex mt-1 mb-1">
+            <button data-action="ptPreviewFragments" class="btn btn-compact" id="pt-frag-preview-btn">↻ Refresh preview</button>
+            <span id="pt-frag-preview-status" class="justification-note"></span>
+          </div>
+          <pre id="pt-frag-preview-code" class="session-pre pt-frag-preview-pre">Expand and click Refresh preview to assemble.</pre>
+        </details>
+
+        <div class="compact-flex mt-2">
+          <button data-action="ptSaveFragments" class="btn btn-compact">Save Selections</button>
+          <button data-action="ptConfirm" data-args='[5]' class="btn btn-compact">Confirm</button>
+        </div>
+        <div id="pt-frag-prov" class="mt-2"></div>
       </div>
     </div>
 
     <!-- PyTest Creator: Step 6 — Generate -->
     <div id="panel-pt-gen" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 6. Generate <span id="pt-badge-6" class="badge hidden">Confirmed</span></div>
+        <div class="section-heading step-heading-row">PyTest Creator — 5. Generate <span id="pt-badge-6" class="badge hidden">Confirmed</span></div>
         <div class="section-description">Generate the composite framework script (reused fragments + LLM for the gaps). Adjust the output naming, review/edit the code, lint, save, then confirm.</div>
         <div class="compact-flex mb-2">
           <label class="justification-note">Group:</label>
@@ -685,7 +659,7 @@
           <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM)</button>
           <button data-action="ptLintScript" class="btn btn-compact">Lint</button>
           <button data-action="ptSaveScript" class="btn btn-compact">Save to generated/</button>
-          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm Step 6</button>
+          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
@@ -701,7 +675,7 @@
     <!-- PyTest Creator: Step 7 — Run -->
     <div id="panel-pt-run" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 7. Run <span id="pt-badge-7" class="badge hidden">Confirmed</span></div>
+        <div class="section-heading step-heading-row">PyTest Creator — 6. Run <span id="pt-badge-7" class="badge hidden">Confirmed</span></div>
         <div class="section-description">Execute the confirmed script on a testbox. Pick a stored testbox (or add a new one), choose the .setup, run, and watch the parsed results.</div>
         <div class="compact-flex mb-2">
           <label class="justification-note">Testbox:</label>
@@ -713,7 +687,7 @@
         </div>
         <div class="compact-flex mb-2">
           <button data-action="ptRun" class="btn btn-primary btn-compact" id="pt-run-btn">Run on Testbox</button>
-          <button data-action="ptConfirm" data-args='[7]' class="btn btn-compact">Confirm Step 7</button>
+          <button data-action="ptConfirm" data-args='[7]' class="btn btn-compact">Confirm</button>
           <span id="pt-run-status" class="justification-note"></span>
         </div>
         <div id="pt-run-results" class="mb-2"></div>
@@ -724,7 +698,7 @@
     <!-- PyTest Creator: Step 8 — Validate -->
     <div id="panel-pt-validate" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading step-heading-row">PyTest Creator — 8. Validate <span id="pt-badge-8" class="badge hidden">Confirmed</span></div>
+        <div class="section-heading step-heading-row">PyTest Creator — 7. Validate <span id="pt-badge-8" class="badge hidden">Confirmed</span></div>
         <div class="section-description">Final Validation: latest run finished, every TestCase PASS, zero failures. On failures, loop back with an LLM fix; on all-PASS, confirm to close out.</div>
         <div class="compact-flex mb-2">
           <button data-action="ptValidate" class="btn btn-primary btn-compact">Run Final Validation</button>
@@ -779,6 +753,6 @@
   </main>
 </div>
 
-<script type="module" src="/static/js/main.js?v=7"></script>
+<script type="module" src="/static/js/main.js?v=24"></script>
 </body>
 </html>

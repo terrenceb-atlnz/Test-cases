@@ -1444,3 +1444,50 @@ the §7.3 root-cause fix, PLAN §9.**
   section + template-roles, PROGRESS 2026-07-22d).
 - **Push caveat unchanged:** this environment has no GitHub SSH auth, so `git push` fails
   (`Permission denied (publickey)`). Commits land locally; Terrence pushes `main`.
+
+## Session Close / Handoff (2026-07-23) — PyTest Creator UX revision + adversarial-review worklist
+
+### Focus
+A large hands-on revision of the **PyTest Creator** while Terrence tested it live, then a
+step-by-step pass through the **T33233 adversarial-review worklist**. This session's earlier
+`## State` note at line ~1408 (2026-07-22d) is not superseded — this is additive.
+
+### What shipped
+**Flow / UX (steps 1–4):**
+- 1. Cases → **Open/Partial + Complete** dropdowns (split by PyTest work state; partials on top).
+- 2. Sequence → current steps + LLM execution order, **drag-and-drop reorder**, static source
+  column, and per-step **kind** classification.
+- 3. Script Search → **per-step carousel** (one step/screen, Prev/Next + green-✓/yellow-✗ step
+  pills); per-step candidate→chosen tables; selections stored `{stepN:[ids]}`, flattened downstream.
+- **4. Fit Decision REMOVED** (moot under the fixed skeleton); visible 5–8 → 4–7; internal
+  `stepN` keys unchanged (step5=fragments etc.).
+- 4. Fragments → per-step, **no cap**, selected/not-selected split, chosen/redundant accounting
+  (redundant nested faint-red), collapsible assembled-artefact preview.
+- Generator `load_case` slow-load fixed (dropped a blocking `analyze_atp_coverage` LLM call:
+  ~64s → ~2.4s). Bootloader/GRUB + 5 named cases hidden from Generator lists (display-only).
+
+**Adversarial-review worklist (T33233):**
+- #1 device-name reconciliation — DONE.
+- #2 physical-step handling — DONE (setup/verify/physical/manual; physical → operator-prompt +
+  wait-for-state-change SVT 3009 pattern; manual → yesNo; `_split_sequence` non-mutating).
+- #3 fragment quality — PARTIAL (dedupe already done; **added `maps_to` phantom-step validation**;
+  line-vs-class + cap deferred).
+- #4 provenance divergence — **FIXED + unit-verified** (`_restamp_provenance` remaps original-step →
+  `TestCase_<n>` class number; both generate + fix call sites pass the sequence).
+- #5 guaranteed-fail default — no change needed (lint already rejects the sentinels).
+- #7 zero-reuse marker — ADDED (NO REUSE on uncovered verify steps).
+
+### Open decisions (next session)
+`NEXT_SESSION_DECISIONS.md` (repo root): **D1** fragment granularity (whole-class vs render-time
+`main()`-trim vs method-level index — the last bumps the never-rebuild-`ck.db` invariant), **D2**
+per-step cap (Terrence said no cap — keep unless a real dump is seen), **D3** Py2/old-framework
+contamination (recommend soft-warn banner). Resume by getting D1/D2/D3 answers, implement in one pass.
+NOTE: physical classification only appears after **re-running Sequence** on a case with plug/unplug
+steps; legacy sequences default every step to `verify`.
+
+### State
+- Guards green (`guard_db_only`, `guard_framework_readonly`); `/health` 200; Python + JS +
+  jinja syntax checked; provenance remap + preview gap-marker unit-tested. Docs synced
+  (README status row + PyTest section, SERVER-README PyTest flow + step-kind/provenance notes,
+  PROGRESS 2026-07-23).
+- `ck.db` invariant intact — no runtime JSON reads, no courier files, no rebuild path added.
