@@ -29,9 +29,19 @@
 > into Open/Partial + Complete. The Sequence extractor classifies each step **setup/verify/physical/
 > manual**, and Generate emits an **operator-prompt + wait-for-state-change** pattern for physical
 > steps (SVT 3009) and `yesNo()` for manual — physical steps are in scope. Provenance re-stamping was
-> fixed to remap original-step → `TestCase_<n>` class number (a setup-drop divergence bug). Open
-> follow-ups (fragment granularity, Py2 contamination) live in `NEXT_SESSION_DECISIONS.md`.
+> fixed to remap original-step → `TestCase_<n>` class number (a setup-drop divergence bug).
 > The Step-6 checklist items below predate these changes; treat them as historical where they conflict.
+>
+> **Fragment resolver + Py2 (2026-07-27, D1/D3 — the follow-ups formerly in the now-deleted
+> `NEXT_SESSION_DECISIONS.md`, resolved)**: `_resolve_symbol_code` now bounds symbols by exact
+> index `loc` (`_resolve_end`: `loc[1]` → next-unit-start−1 → `loc_total`), replacing a blind
+> `loc[0]+60` that mis-captured ~18% of legacy `test_case` entries; helpers resolve by real `loc`.
+> Py2 legacy fragments are deterministically modernized via stdlib `lib2to3` at resolve time
+> (`_translate_py2`; `translated` ⇒ guaranteed valid Py3 via `expandtabs(8)` + `ast` self-verify;
+> untranslatable ships as-is with a ⚠ banner + a conditional Generate-prompt steer; provenance
+> gets a `(py2→py3)` suffix). D2 (per-step fragment cap) resolved as **keep no cap**. Rationale in
+> memory `d1-fragment-resolver-boundaries` / `d3-py2-fragment-translation`; details in SERVER-README
+> Step-4 and PROGRESS 2026-07-27.
 
 ## Status Checklist
 

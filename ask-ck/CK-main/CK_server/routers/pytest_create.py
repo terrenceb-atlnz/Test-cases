@@ -50,6 +50,93 @@ EXEMPLAR_ID = "art/6011_simul_fail/test-6011.1000.py"
 
 STEP_KEYS = ["step2", "step3", "step4", "step5", "step6", "step7", "step8"]
 
+# ---------------------------------------------------------------------------
+# Py2 → Py3 fragment translation (D3, 2026-07-27)
+# ---------------------------------------------------------------------------
+# A reused fragment can come from a Python-2 / pre-`framework` legacy script (60
+# scripts / 342 symbols in the corpus expose such fragments). If its code reaches
+# the Generate prompt untouched, the model — steered by the prompt's "keep their
+# proven CLI/parsing" rule — tends to PRESERVE the Py2 idioms. Lint only
+# py_compile()s the RESULT (after a full re-generate) and cannot catch runtime-only
+# tells (.iteritems()/.has_key()/basestring are valid Py3 syntax that fails at
+# runtime on the testbox). So we translate the fragment code DETERMINISTICALLY, at
+# resolve time, BEFORE it ever reaches Generate.
+#
+# stdlib `lib2to3` (not hand-rolled regex) because it is a real Py2 parser: it
+# translates what it can and fails LOUDLY (ParseError) on what it can't, instead of
+# silently mistranslating. On a ParseError we ship the ORIGINAL fragment + a
+# soft-warn (banner in the preview, a modernize-when-adapting line in the prompt),
+# never a broken half-translation.
+
+# Py2 / old-idiom tells. Detection is cheap and only gates whether we ATTEMPT a
+# translation — the authority on whether code is really Py2 is lib2to3's parser.
+_PY2_TELLS = re.compile(
+    r"(^[ \t]*print[ \t]+[^(=]"          # print statement (not print(), not print =)
+    r"|^[ \t]*print[ \t]*$"              # bare `print`
+    r"|except[ \t]+[\w.]+[ \t]*,[ \t]*\w+[ \t]*:"   # except X, e:
+    r"|\.iteritems\(|\.iterkeys\(|\.itervalues\("
+    r"|\.has_key\("
+    r"|\bxrange\("
+    r"|\bbasestring\b"
+    r"|^[ \t]*raise[ \t]+\w+[ \t]*,)",   # raise X, msg
+    re.MULTILINE,
+)
+
+
+def _has_py2_tells(code: str) -> bool:
+    return bool(code) and bool(_PY2_TELLS.search(code))
+
+
+def _translate_py2(code: str, name: str = "fragment") -> Tuple[str, str]:
+    """Deterministically modernize a Py2 code fragment to Py3 via lib2to3.
+
+    Returns (new_code, status) where status is one of:
+      - "translated"  : lib2to3 parsed it and produced (possibly changed) Py3.
+      - "clean"       : no Py2 tells to begin with (caller usually skips this path).
+      - "parse_error" : lib2to3 could not parse it — ORIGINAL code returned unchanged
+                        (caller must soft-warn, never ship a broken translation).
+      - "unavailable" : lib2to3 import failed (very old/stripped runtime) — original
+                        returned; caller soft-warns.
+
+    Never raises: any failure degrades to returning the original code + a status the
+    caller can act on. lib2to3 wants a trailing newline and a name for error messages.
+    """
+    if not _has_py2_tells(code):
+        return code, "clean"
+    try:
+        from lib2to3 import refactor
+    except Exception:
+        return code, "unavailable"
+    try:
+        # Normalize indentation FIRST. Py2 legacy source frequently mixes tabs and
+        # spaces (Py2 tolerated it; Py3's tokenizer rejects it as "inconsistent use of
+        # tabs and spaces"). lib2to3 fixes SYNTAX but preserves the original mixed
+        # indentation, so without this the translated code still fails ast.parse /
+        # py_compile. expandtabs(8) applies Python's own tab-stop rule (found by the
+        # adversarial test: 9/85 translations were invalid Py3 for exactly this reason).
+        norm = "\n".join(ln.expandtabs(8) for ln in code.split("\n"))
+        fixers = refactor.get_fixers_from_package("lib2to3.fixes")
+        tool = refactor.RefactoringTool(fixers)
+        out = str(tool.refactor_string(norm + "\n", name))
+        # refactor_string re-emits the (added) trailing newline; strip the one we added
+        # back off so we don't accrete blank lines across re-gathers.
+        if out.endswith("\n") and not code.endswith("\n"):
+            out = out[:-1]
+        # Self-verify: the whole POINT is a valid-Py3 fragment. If lib2to3 "succeeded"
+        # but the result still doesn't parse as Py3 (partial-grammar edge cases), do NOT
+        # claim "translated" — degrade to parse_error so the caller ships the original +
+        # soft-warns, never a fragment that lies about being modernized.
+        try:
+            import ast as _ast
+            _ast.parse(out)
+        except SyntaxError:
+            return code, "parse_error"
+        return out, "translated"
+    except Exception:
+        # ParseError (the ~5% lib2to3 can't handle) or any refactor failure: keep the
+        # original, let the caller soft-warn. Fail-loud-here == degrade-safely-there.
+        return code, "parse_error"
+
 # NOTE: generation no longer embeds a free-form exemplar script — it renders the
 # standardized skeleton (templates/pt_script_template.py.jinja) via _render_skeleton
 # and asks the LLM to fill its slots. See TEMPLATE-SPEC.md.
@@ -211,30 +298,93 @@ def _selections_fingerprint(sess: PtSession) -> str:
     return "|".join(ids)
 
 
-def _resolve_symbol_code(data: dict, source_id: str, symbol: str) -> Tuple[Optional[list], str]:
+def _unit_starts(rec: dict) -> List[int]:
+    """Sorted 1-based start lines of every indexed unit (testset + test_cases +
+    helpers) in a script record. Used to derive a symbol's END when the index only
+    carries its start (loc[1] is null) — the next unit's start bounds it."""
+    starts: List[int] = []
+    ts = rec.get("testset") or {}
+    if isinstance(ts, dict) and (ts.get("loc") or [None])[0]:
+        starts.append(ts["loc"][0])
+    for c in rec.get("test_cases") or []:
+        loc = c.get("loc")
+        if loc and loc[0]:
+            starts.append(loc[0])
+    for h in rec.get("helpers") or []:
+        loc = h.get("loc")
+        if loc and loc[0]:
+            starts.append(loc[0])
+    return sorted(set(starts))
+
+
+def _resolve_end(rec: dict, start: int, declared_end: Optional[int]) -> int:
+    """The authoritative END line for a unit starting at `start` (D1, 2026-07-27).
+
+    Fallback chain (all derivable from the index alone; no ck.db rebuild):
+      1. declared_end (loc[1]) when the index carries it   — ART/SVT common path.
+      2. next unit's start - 1                              — 573/650 legacy null-end.
+      3. loc_total (last unit in file)                      —  77/650 legacy null-end.
+      4. clamped bound (start + 60)                         — defensive; 0 in corpus.
+
+    Replaces the old blind `loc[0] + 60`, which over/under-captured 650 legacy
+    test_case symbols (~18% of all test_case entries) and drove prompt bloat +
+    context skew. Every branch here is exact structural data, not a guess.
+    """
+    if declared_end and declared_end >= start:
+        return declared_end
+    nxt = next((s for s in _unit_starts(rec) if s > start), None)
+    if nxt:
+        return nxt - 1
+    loc_total = rec.get("loc_total")
+    if isinstance(loc_total, int) and loc_total >= start:
+        return loc_total
+    return start + 60  # defensive only — unreachable on the current corpus
+
+
+def _resolve_symbol_code(data: dict, source_id: str, symbol: str,
+                         translate_py2: bool = True) -> Tuple[Optional[list], str, str]:
     """Resolve one LLM-named symbol (TestSet / TestCase class / helper fn) to its real
-    source slice from ck.db. Returns (loc, code); code is '' if unresolvable (invented
-    symbol or missing script) so the caller can drop it."""
+    source slice from ck.db.
+
+    Returns (loc, code, py2_status):
+      - loc        : [start, end] with the END resolved via `_resolve_end` (D1), so a
+                     null index end is bounded exactly, not by a blind +60.
+      - code       : '' if unresolvable (invented symbol / missing script) so the
+                     caller can drop it; otherwise the real source, Py2→Py3-modernized
+                     when `translate_py2` and the fragment carried Py2 idioms (D3).
+      - py2_status : 'clean' | 'translated' | 'parse_error' | 'unavailable' — lets the
+                     caller annotate provenance (`(py2→py3)`) or soft-warn on an
+                     untranslatable Py2 fragment. Always 'clean' when code is ''.
+    """
     rec = (data.get("scripts_index_by_id") or {}).get(source_id)
     if not rec:
-        return None, ""
-    loc, code = None, ""
+        return None, "", "clean"
+    loc: Optional[list] = None
     if symbol == "TestSet" and rec.get("testset"):
-        loc = rec["testset"].get("loc")
+        loc = (rec["testset"] or {}).get("loc")
     else:
         for c in rec.get("test_cases", []):
             if c["class"] == symbol:
                 loc = c.get("loc")
                 break
-    if loc and loc[0]:
-        code = _read_source(rec, loc[0], loc[1] or loc[0] + 60)
-    elif any(h["name"] == symbol for h in rec.get("helpers", [])):
-        # helper functions: locate by regex (helpers carry no loc in the index)
-        src = _read_source(rec)
-        m = re.search(rf"^def {re.escape(symbol)}\b.*?(?=^def |^class |\Z)",
-                      src, re.DOTALL | re.MULTILINE)
-        code = m.group(0) if m else ""
-    return loc, code
+        else:
+            for h in rec.get("helpers", []):
+                if h["name"] == symbol:
+                    loc = h.get("loc")
+                    break
+
+    if not (loc and loc[0]):
+        return loc, "", "clean"
+
+    start = loc[0]
+    end = _resolve_end(rec, start, loc[1] if len(loc) > 1 else None)
+    loc = [start, end]
+    code = _read_source(rec, start, end)
+
+    py2_status = "clean"
+    if translate_py2 and code:
+        code, py2_status = _translate_py2(code, f"{source_id}::{symbol}")
+    return loc, code, py2_status
 
 
 def _selected_fragments(sess: PtSession) -> List[dict]:
@@ -522,15 +672,20 @@ _PROVENANCE_TAG_RX = re.compile(r"^\s*#\s*(ART|SVT|legacy|AI)\s+\S")
 _PROVENANCE_ECHO_RX = re.compile(r"^\s*#.*\b(ART|SVT|legacy|AI)\b", re.IGNORECASE)
 
 
-def _fragment_tag(source_id: str, loc: Optional[Tuple[int, int]]) -> str:
+def _fragment_tag(source_id: str, loc: Optional[Tuple[int, int]],
+                  py2_translated: bool = False) -> str:
     """Mechanical `# ART <suite/file> <lines a-b>`-style tag for a reused fragment.
 
     Derived entirely from indexed metadata (source_id + loc), never from LLM
-    self-report, so it cannot be faked or drift (PLAN §1.5)."""
+    self-report, so it cannot be faked or drift (PLAN §1.5). When the fragment's
+    code was mechanically modernized Py2→Py3 (D3), a `(py2→py3)` suffix marks it so a
+    reviewer tracing the block back to its source lines knows it is NOT byte-identical
+    to those lines — it was translated, not copied verbatim."""
     db_kind, _, rest = (source_id or "").partition("/")
     family = _PROVENANCE_TAG_FAMILY.get(db_kind, "legacy")
     lines = f" lines {loc[0]}-{loc[1]}" if loc and loc[0] and loc[1] else ""
-    return f"# {family} {rest or source_id}{lines}"
+    suffix = " (py2→py3)" if py2_translated else ""
+    return f"# {family} {rest or source_id}{lines}{suffix}"
 
 
 def _restamp_provenance(code: str, fragments: List[dict], model: str,
@@ -576,7 +731,8 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
     # tag_by_step is keyed by CLASS number (TestCase_<n>), which is what we match below.
     tag_by_step: Dict[int, str] = {}
     for f in fragments:
-        tag = _fragment_tag(f.get("source_id", ""), f.get("loc"))
+        tag = _fragment_tag(f.get("source_id", ""), f.get("loc"),
+                            f.get("py2_translated", False))
         for n in f.get("maps_to") or []:
             try:
                 orig_n = int(n)
@@ -811,8 +967,14 @@ def _assemble_fragment_preview(case_key: str, case_title: str, sequence: List[di
             new_n = int(m.group(1))
             frags_here = by_newn.get(new_n, [])
             for f in frags_here:
-                tag = _fragment_tag(f.get("source_id", ""), f.get("loc"))
+                tag = _fragment_tag(f.get("source_id", ""), f.get("loc"),
+                                    f.get("py2_translated", False))
                 out_lines.append(f"    # ===== reused fragment for this step: {tag} =====")
+                # D3 soft-warn: a Py2 fragment lib2to3 could NOT translate ships as-is;
+                # surface it so the reviewer/LLM knows to modernize rather than copy.
+                if f.get("py2_flagged"):
+                    out_lines.append("    # ===== ⚠ PYTHON 2 — could not auto-modernize; "
+                                     "translate idioms (print/except/iteritems) when adapting =====")
                 for cl in (f.get("code") or "").split("\n"):
                     out_lines.append(("    # " + cl) if cl else "    #")
                 out_lines.append("    # ===== end reused fragment =====")
@@ -1514,13 +1676,19 @@ async def gather_fragments(key: str, request: Request):
                 if n not in existing["maps_to"]:
                     existing["maps_to"].append(n)
             return key
-        loc, code = _resolve_symbol_code(data, sid, sym)
+        loc, code, py2_status = _resolve_symbol_code(data, sid, sym)
         if not code:
             dropped.append(entry)
             return None
         fragments_by_key[key] = {"source_id": sid, "symbol": sym, "loc": loc,
                                  "code": code[:8000], "maps_to": want_steps,
-                                 "why": entry.get("why", "")}
+                                 "why": entry.get("why", ""),
+                                 # D3 provenance/soft-warn signals:
+                                 #  translated  → code is modernized Py3 (tag gets (py2→py3))
+                                 #  py2_flagged → Py2 fragment lib2to3 could NOT translate;
+                                 #                ship original + banner + prompt steer
+                                 "py2_translated": py2_status == "translated",
+                                 "py2_flagged": py2_status in ("parse_error", "unavailable")}
         return key
 
     for st in _parsed_list(parsed, "steps"):
@@ -1693,8 +1861,14 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     device_note = _fragment_device_note(fragments, bound_devs)
 
     llm_cfg = _llm_cfg(sess)
-    fragments_ctx = [{**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"))}
+    fragments_ctx = [{**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"),
+                                                f.get("py2_translated", False))}
                      for f in fragments]
+    # D3: Py2 fragments that lib2to3 could NOT auto-modernize ship as-is; steer the
+    # model to translate their idioms (only present when such a fragment is selected,
+    # so clean cases pay no extra prompt weight). Translated fragments are already Py3
+    # and need no steer.
+    py2_flagged = any(f.get("py2_flagged") for f in fragments)
     meta = await run_in_threadpool(run_prompt, "pt_generate_script.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
@@ -1703,6 +1877,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "fragments": fragments_ctx,
         "device_note": device_note,
         "bound_devices": bound_devs,
+        "py2_flagged": py2_flagged,
         "framework_surface": _framework_surface_slice(data, extra_mods),
         "model_name": llm_cfg.get("model") or "unknown",
         "gen_date": datetime.utcnow().strftime("%Y-%m-%d"),

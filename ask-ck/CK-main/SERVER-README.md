@@ -412,6 +412,24 @@ Allied Telesis framework test script. Full plan + progress tracker:
    **Fragment source code comes from `ck.db`** (`scripts.source_text` via
    `db.get_script_source`) — the old script mount (`testsuites_art/` etc.) is retired
    and no longer read (2026-07-21; guarded by `tool/guard_db_only.py`).
+   **Resolver boundaries (2026-07-27, D1):** `_resolve_symbol_code` bounds every symbol
+   (TestSet / TestCase class / helper fn) by its exact index `loc` — `_resolve_end`
+   falls back to *next-unit-start − 1*, then `loc_total`, replacing a blind `loc[0]+60`
+   that over/under-captured ~18% of `test_case` entries (all in the `legacy` DB, whose
+   index carries a null `loc[1]`). Helper symbols resolve by their real `loc` too (the
+   former stop-at-next-`def` regex mis-sliced nested defs). One resolver, not per-DB —
+   `db.py` already normalizes all three script DBs to one schema. No `ck.db` rebuild.
+   **Py2→Py3 fragment translation (2026-07-27, D3):** a reused fragment from a Python-2
+   legacy script is deterministically modernized at resolve time via stdlib `lib2to3`
+   (`_translate_py2`). A `status="translated"` result **is guaranteed valid Py3** —
+   `expandtabs(8)` fixes Py2 tab/space mixing and an `ast.parse` self-check degrades a
+   still-invalid result to `parse_error` (ship the original, never a broken half-fix).
+   Untranslatable Py2 code ships as-is with a ⚠ PYTHON 2 preview banner **and** a
+   *conditional* modernize rule injected into `pt_generate_script.jinja` (present only
+   when a `py2_flagged` fragment is selected — zero prompt weight otherwise). Translated
+   blocks carry a `(py2→py3)` provenance-tag suffix so a reviewer knows the code is not
+   byte-identical to the cited source lines. (Old-framework/pre-`framework` idioms are a
+   separate, fuzzier set left to the reviewer — `lib2to3` addresses Py2 syntax only.)
    *(Former step 4 **Fit Decision** was **removed** 2026-07-23 — with the fixed skeleton
    template the reuse/extend/new call no longer changes how the script is framed. Internal
    `stepN` keys are unchanged, step5=fragments etc.; only the visible sidebar numbers shifted.)*

@@ -50,6 +50,13 @@ Reviewer note: {{ f.why }}
 {%- endif %}
 4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
    parsing; don't discard them and write from scratch.
+{%- if py2_flagged %}
+   PYTHON 3 REQUIRED: one or more reused fragments (marked `⚠ PYTHON 2`) use Python 2
+   idioms this project no longer runs. When you adapt them, TRANSLATE to Python 3 —
+   `print x` → `print(x)`, `except X, e:` → `except X as e:`, `.iteritems()` → `.items()`,
+   `.has_key(k)` → `k in`, `xrange` → `range`, `basestring` → `str`. The final script
+   MUST be valid Python 3; keep the fragment's logic, modernize its syntax.
+{%- endif %}
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.
 6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment

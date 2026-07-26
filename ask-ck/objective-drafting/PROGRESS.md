@@ -2,7 +2,42 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-23 (by Claude)
+**Last Updated**: 2026-07-27 (by Claude)
+
+## Latest session (2026-07-27) — PyTest Creator D1/D3: fragment resolver boundaries + Py2→Py3 pre-translation
+
+**Focus: resolved the three open PyTest Creator decisions (D1/D2/D3, from the now-deleted
+`NEXT_SESSION_DECISIONS.md`), then implemented D1+D3 and adversarially tested them against the
+live `ck.db`. Uncommitted at write time — Terrence commits himself.** All decision rationale is
+preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-translation`).
+
+- **D2 — keep no cap (no code).** The chosen/redundant split already surfaces LLM dumps without
+  hiding them, and only SELECTED fragments reach the Generate prompt, so a display cap wouldn't
+  help the token/context concern.
+- **D1 — hardened the single fragment resolver (`routers/pytest_create.py`).** The framing in the
+  review ("whole-class vs main()-trim vs method-index") was ART-only; corpus measurement showed
+  ~423/830 scripts aren't ART-class-shaped and the real defect was the **blind `loc[0]+60` fallback**
+  firing on **650/3517 test_case entries (~18%, ALL legacy)**. New `_resolve_end()` boundary chain:
+  exact `loc[1]` → next-unit-start−1 (573/650) → `loc_total` (77/650) → clamp. Also: helper symbols
+  now resolve via their **real `loc`** (dropped the fragile stop-at-next-`def` regex that mis-sliced
+  nested defs). Rejected per-library resolvers — `db.py` already normalized all 3 DBs to one schema.
+  **No `ck.db` rebuild, no schema change.**
+- **D3 — deterministic Py2→Py3 pre-translation (`routers/pytest_create.py` + `pt_generate_script.jinja`).**
+  60 legacy scripts expose 342 reusable symbols with Py2 idioms; the Generate prompt had NO
+  modernization rule and Rule 4 actively steered the model to *preserve* them; lint can't catch
+  runtime-only tells (`.iteritems()`/`.has_key()`). New `_translate_py2()` via stdlib **`lib2to3`**
+  (a real Py2 parser — translates what it can, fails loud on what it can't). Hardened so
+  `status=="translated"` **guarantees valid Py3**: `expandtabs(8)` normalization (Py2 tab/space
+  mixing) + a self-verify `ast.parse` that degrades to `parse_error` (ship original) if the result
+  still isn't Py3. Fragments carry `py2_translated`/`py2_flagged`; provenance tags get `(py2→py3)`;
+  the preview shows a ⚠ PYTHON 2 banner and the Generate prompt gets a **conditional** modernize rule
+  (present only when a flagged fragment is selected — zero prompt weight otherwise).
+- **Adversarial testing found + fixed a real defect:** 9/85 translations were invalid Py3 due to
+  Py2 tab/space mixing lib2to3 preserves → fixed at source (see above). Final: 27 checks green
+  (unit + integration); **6,193 symbols resolved across the whole corpus with zero exceptions**;
+  both known ParseError files ship originals verbatim; the conditional prompt steer verified on/off.
+- **Guards green** (`guard_db_only`, `guard_framework_readonly`); server boots, `/health` 200.
+  `NEXT_SESSION_DECISIONS.md` deleted (all three decisions closed; rationale lives in memory).
 
 ## Latest session (2026-07-23) — PyTest Creator UX revision + adversarial-review worklist (physical steps, provenance fix)
 

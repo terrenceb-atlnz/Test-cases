@@ -1491,3 +1491,49 @@ steps; legacy sequences default every step to `verify`.
   (README status row + PyTest section, SERVER-README PyTest flow + step-kind/provenance notes,
   PROGRESS 2026-07-23).
 - `ck.db` invariant intact — no runtime JSON reads, no courier files, no rebuild path added.
+
+## Session Close / Handoff (2026-07-27) — PyTest Creator D1/D3: fragment resolver + Py2→Py3 pre-translation
+
+### Focus
+Resolved the three open PyTest Creator decisions (D1/D2/D3) interactively, one at a time, each
+grounded in real `ck.db` corpus measurement; then implemented D1+D3 and adversarially tested
+them. The 2026-07-23 entry above is not superseded — this is additive. Uncommitted at write
+time (Terrence commits himself; this environment also has no GitHub SSH auth).
+
+### Decisions (rationale preserved in memory, since NEXT_SESSION_DECISIONS.md was deleted)
+- **D2 — keep no cap** (no code): chosen/redundant split surfaces dumps; only SELECTED fragments
+  reach the Generate prompt, so a display cap doesn't help the token/context concern.
+- **D1 — one hardened resolver, not per-library.** The review's "whole-class vs main()-trim vs
+  method-index" framing was ART-only; ~423/830 scripts aren't ART-class-shaped and the real
+  defect was the blind `loc[0]+60` fallback (fires on 650/3517 `test_case` entries, ~18%, ALL
+  legacy). New `_resolve_end`: exact `loc[1]` → next-unit-start−1 (573) → `loc_total` (77) →
+  clamp. Helpers now use their real `loc` (dropped the nested-def-mis-slicing regex). `db.py`
+  already normalizes all 3 DBs to one schema, so no per-DB dispatch. No `ck.db` rebuild.
+- **D3 — deterministic Py2→Py3 via stdlib `lib2to3`** at resolve time (`_translate_py2`), chosen
+  over an LLM prompt-steer (deterministic) and over regex (lib2to3 is a real Py2 parser that
+  fails loud). Hardened so `status=="translated"` GUARANTEES valid Py3: `expandtabs(8)` (Py2
+  tab/space mixing) + `ast.parse` self-verify that degrades to `parse_error` (ship original).
+  Untranslatable → ⚠ preview banner + conditional Generate-prompt modernize rule (present only
+  when a `py2_flagged` fragment is selected). Translated blocks carry a `(py2→py3)` provenance
+  suffix. Scope: Py2 syntax only; old-framework idioms deferred.
+
+### Files touched
+- `routers/pytest_create.py` — `_has_py2_tells`/`_translate_py2`, `_unit_starts`/`_resolve_end`,
+  rewritten `_resolve_symbol_code` (now returns `(loc, code, py2_status)`), `_fragment_tag` +
+  `(py2→py3)`, py2 flags into the fragment pool, preview banner, generate `py2_flagged` context.
+- `templates/prompts/pt_generate_script.jinja` — conditional Py3-required rule after Rule 4.
+- Deleted `NEXT_SESSION_DECISIONS.md` (all three decisions closed).
+
+### Adversarial testing
+Found + fixed a real defect: 9/85 translations were invalid Py3 due to Py2 tab/space mixing
+lib2to3 preserves → fixed at source. Final: **27 checks green** (unit + integration);
+**6,193 symbols resolved across the whole corpus, zero exceptions, zero empties**; both known
+ParseError files ship originals verbatim; conditional prompt steer verified on (423 chars) / off.
+
+### State
+- Guards green (`guard_db_only`, `guard_framework_readonly`); server boots, `/health` 200
+  (830 scripts, 83816 embeddings). `ck.db` invariant intact — no runtime JSON, no courier
+  files, no rebuild path added. Memory added: `d1-fragment-resolver-boundaries`,
+  `d3-py2-fragment-translation`.
+- **Follow-ups still open:** PyTest Creator Part 3a/3b (offline judging + real tb470 execution),
+  gated on `configs/tb470.setup` + a stored testbox profile (Terrence-side prereq).
