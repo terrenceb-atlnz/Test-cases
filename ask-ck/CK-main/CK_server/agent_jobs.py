@@ -16,10 +16,11 @@ from typing import Dict, Optional, Deque, Tuple
 
 
 class _Job:
-    __slots__ = ("id", "prompt", "model", "event", "result", "created")
+    __slots__ = ("id", "session_id", "prompt", "model", "event", "result", "created")
 
-    def __init__(self, prompt: str, model: str):
+    def __init__(self, session_id: str, prompt: str, model: str):
         self.id = uuid.uuid4().hex
+        self.session_id = session_id      # owning browser session — enforced on deliver
         self.prompt = prompt
         self.model = model
         self.event = threading.Event()
@@ -43,7 +44,7 @@ class AgentJobRegistry:
 
         Returns {content, error}. On timeout returns an error dict (never raises).
         """
-        job = _Job(prompt, model)
+        job = _Job(session_id, prompt, model)
         with self._lock:
             self._queues.setdefault(session_id, deque()).append(job)
             self._inflight[job.id] = job
@@ -75,8 +76,13 @@ class AgentJobRegistry:
             return job.id, job.prompt, job.model
 
     def deliver(self, job_id: str, content: str, error: bool, usage: Optional[dict] = None,
-                total_cost_usd: Optional[float] = None) -> bool:
+                total_cost_usd: Optional[float] = None, session_id: Optional[str] = None) -> bool:
         """Browser posts a completion. Wakes the blocked caller. True if job existed.
+
+        `session_id`, when provided, MUST match the job's owning session — otherwise the
+        deliver is rejected (returns False). This stops a caller from posting a result for
+        another session's in-flight job by guessing/observing its job_id (adversarial-review
+        finding: the bridge previously keyed delivery on job_id alone).
 
         `usage` / `total_cost_usd` are optional token accounting the ck-agent lifts
         from the Claude CLI's JSON envelope. When present they ride the result dict
@@ -88,6 +94,8 @@ class AgentJobRegistry:
             job = self._inflight.get(job_id)
             if not job:
                 return False
+            if session_id is not None and job.session_id != session_id:
+                return False   # job belongs to a different session — refuse
         job.result = {
             "content": content,
             "error": bool(error),

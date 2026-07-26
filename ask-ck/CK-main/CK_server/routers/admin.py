@@ -48,16 +48,21 @@ async def reset_session(body: dict):
                 raise HTTPException(400, "scope=case needs a case key")
             if key:
                 db.delete_session("wizard", key)
-                db.delete_session("pytest", key)
+                db.delete_session("pt", key)   # PT sessions use kind "pt" (see db._session_id), not "pytest"
                 cleared.append(f"session:{key}")
         if scope in ("workspace", "all"):
             db.delete_session("wizard", "_workspace_llm")
             cleared.append("workspace_llm")
         if scope == "all":
-            # Wipe every wizard/pytest session row (leaves corpora untouched).
-            for kind in ("wizard", "pytest"):
-                for k in list((db.list_session_progress() or {}).keys()):
-                    db.delete_session(kind, k)
+            # Wipe every wizard AND pytest session row (leaves corpora untouched).
+            # Wizard and PT sessions live under different kinds ("wizard" vs "pt") and
+            # different progress maps — the old code iterated only the wizard map with
+            # kind "pytest", so it deleted nothing on the PT side and mis-kinded the
+            # wizard side. Enumerate each from its own map with its own kind.
+            for k in list((db.list_session_progress() or {}).keys()):
+                db.delete_session("wizard", k)
+            for k in list((db.list_pt_progress() or {}).keys()):
+                db.delete_session("pt", k)
             cleared.append("all_sessions")
     except HTTPException:
         raise

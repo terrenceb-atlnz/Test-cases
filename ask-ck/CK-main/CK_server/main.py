@@ -32,6 +32,7 @@ This replaces the old single-file static approach.
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
 import sys
@@ -54,6 +55,25 @@ from routers.admin import router as admin_router
 import llm as _llm
 
 app = FastAPI(title="Ask CK (Server-Backed)")
+
+# CORS lockdown (adversarial-review finding: no CORS meant any origin could drive the
+# /api/agent/* broker + other endpoints from a victim's browser on a shared deployment).
+# The app serves its own frontend SAME-ORIGIN, so cross-origin browser access is not needed
+# by design. Default to a restrictive localhost allowlist; a named deployment can widen it
+# via CK_ALLOWED_ORIGINS (comma-separated), mirroring the ck-agent's CK_AGENT_ORIGIN pattern.
+_default_origins = [
+    "http://localhost:8000", "http://127.0.0.1:8000",
+    "http://localhost", "http://127.0.0.1",
+]
+_env_origins = [o.strip() for o in os.environ.get("CK_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+_allowed_origins = _env_origins or _default_origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allowed_origins,
+    allow_credentials=False,            # no cookies/credentials are used cross-origin
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")

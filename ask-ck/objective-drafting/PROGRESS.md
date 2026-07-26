@@ -4,6 +4,74 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27d) — Adversarial-review batch 2: path-traversal + auth
+
+**Focus: triaged the next batch from `ADVERSARIAL-REVIEW-BACKLOG.md` — the 4 confirmed
+security items (path-traversal + agent-bridge auth + CORS). Verified each vs live code, fixed,
+tested in-process only (no testbox/network — honoring a CrowdStrike constraint). Uncommitted.**
+
+- **Library-filename traversal (HIGH)** — `_persist_generated_files` validated only
+  `Path(name).stem` (strips dirs) but wrote the raw `lib["name"]`, so `../../evil.py` escaped
+  the generated dir. Fix: validate the full basename (`.py` + `_NAME_RX`) before building the
+  path + assert the resolved parent == the script dir.
+- **Export case_key traversal (HIGH)** — `export()` built `REFINED_DIR/group/case_key` from the
+  client-supplied session key with no validation. Fix: `_CASE_KEY_RE` check at the TOP of the
+  handler (before the LLM gaps call / payload validation / any write) + a resolved-path-under-
+  refined-cases defense. Also closes the `wizard.py:1936/1939` export-gate findings. *(Caught my
+  own ordering bug via the new test — the guard was initially placed after the validation early-
+  return; moved it to the top.)*
+- **Agent-bridge job ownership (HIGH)** — `deliver_result` accepted any `job_id` with no session
+  check. Fix: `_Job` now stores its owning `session_id`; `deliver()` rejects a mismatched
+  `session_id`; `/next` + `/result` bind to the authoritative `X-CK-Session` header (query param
+  is legacy fallback).
+- **CORS absent (HIGH)** — no CORSMiddleware, so any origin could drive `/api/agent/*` on a shared
+  deployment. Fix: `CORSMiddleware` locked to a localhost allowlist, widenable via
+  `CK_ALLOWED_ORIGINS`; `allow_credentials=False`, methods GET/POST.
+- **Tests:** +8 in-process regression tests (`tests/test_security_batch2.py`) → **38/38 green**,
+  guards green, `/health` 200. Backlog doc rows struck; ~41 candidates remain (next themes: the
+  llm.py JSON-parser cluster (correctness), confirm_step invalidation cascade, run_status stale).
+
+## Latest session (2026-07-27c) — Full adversarial review (14 domains) + top-cluster security fixes
+
+**Focus: ran a full orchestrated adversarial review of the whole Ask-CK app (14 risk domains ->
+3-skeptic verification -> synthesis), paused before synthesis to triage, then fixed the confirmed
+critical/high cluster. Uncommitted at write time — Terrence commits himself.**
+
+- **Review workflow** (`askck-adversarial-review`, run `wf_f53aa173-a88`): 14 domain reviewers
+  produced **62 candidate findings** (2 critical / 21 high / 19 medium / 20 low); adversarial
+  verification (3 refuting skeptics each, majority-real survives) ran to ~50% then was paused for
+  triage. Priority weighting: security > data-integrity > correctness > robustness.
+- **6 confirmed top-cluster fixes implemented + tested** (each verified against live code first):
+  1. **SSH command injection (CRITICAL)** — `body["setup"]` flowed unvalidated
+     (`pytest_create.py`) then UNQUOTED into the remote exec string (`pt_exec.py`). Fix: reject
+     shell-metachar setup paths (400) **and** `shlex.quote()` every interpolated exec component.
+  2. **Framework-guard bypass (CRITICAL)** — `_assert_command_allowed`'s verb denylist ignored
+     redirection (`>`), inline interpreters (`python -c`), command substitution (`$()`/backticks),
+     `rsync`/`install`, and `cp --target-directory`. Fix: refuse those shapes whenever the sub-command
+     touches the framework dir; handle `-t`/`--target-directory` dest. (7 new bypasses blocked, all
+     3 legit commands still pass; guard harness still green.)
+  3. **Stored XSS (HIGH)** — the objective HTML is rendered raw via `innerHTML` and was never
+     sanitized server-side. Fix: new stdlib `html_sanitize.py` allowlist sanitizer (tags-only, no
+     attributes, drops script/style), applied at EVERY objective store point (synthesize/save/confirm/
+     backfill/export). No JS changed — frontend renders the now-safe HTML.
+  4. **Secret leak (HIGH)** — `llm_config.api_key`/`token` were serialized to the browser
+     (`GET /session`, ~8 wizard session responses, `set_llm_config` echo) and written to the on-disk
+     exported `*-session.json`. Fix: `redact_llm_config`/`safe_session_dict` in `models.py`, applied
+     to all browser + disk session serializations (server-side store keeps the real key).
+  5. **Admin reset never cleared PT sessions (HIGH)** — deleted with kind `"pytest"` but PT sessions
+     use kind `"pt"` (`db._session_id`); the `scope=all` loop also only iterated wizard keys. Fixed.
+  6. **Export destroyed a real first step (HIGH)** — unconditional `steps[0]` overwrite with the
+     traceability note. Fix: prepend the note when `steps[0]` is a genuine step; only overwrite when
+     it's already the note or blank.
+- **Tests:** +16 regression tests (`tests/test_security_fixes.py`, `test_export_note_and_admin.py`)
+  → **30/30 green**, both guards green, `/health` 200, redaction + setup-rejection verified live via
+  TestClient.
+- **Remaining ~45 candidate findings preserved** to `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`
+  for a later triage pass (marked "verify before fixing" — the review's own gate refuted ~⅓ of
+  candidates). Notable still-open: LLM JSON-parser greedy-regex bugs (`llm.py`, ~5 findings), the
+  agent-bridge job-ownership/CORS gap, `confirm_step` invalidation cascade, a couple more path-traversal
+  candidates (export case_key, library filename).
+
 ## Latest session (2026-07-27b) — Backlog reconciliation + 4 open items cleared + adversarial review
 
 **Focus: reconciled the stale §5/§8/§9 backlog against live code (5 items were already shipped),

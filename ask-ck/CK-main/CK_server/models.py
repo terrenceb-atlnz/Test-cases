@@ -45,6 +45,43 @@ class LLMConfig(BaseModel):
     base_url: Optional[str] = None
     model: Optional[str] = None
 
+
+# Secret fields on llm_config that must NEVER be serialized to the browser or to disk.
+_LLM_SECRET_FIELDS = ("api_key", "token")
+
+
+def redact_llm_config(cfg: Any) -> Any:
+    """Return a copy of an llm_config dict with secret fields masked to a bool-ish marker.
+    Mirrors the /llm_config `has_key` convention: callers learn whether a credential is
+    present without receiving it. Accepts a dict (mutates a copy) or passes through None."""
+    if not isinstance(cfg, dict):
+        return cfg
+    out = dict(cfg)
+    for f in _LLM_SECRET_FIELDS:
+        if f in out and out[f]:
+            out[f] = None
+            out[f + "_set"] = True
+    return out
+
+
+def safe_session_dict(sess: Any) -> dict:
+    """Serialize a WizardSession/PtSession (or dict) for return to the browser or writing
+    to disk, with llm_config secrets redacted. Use this ANYWHERE a full session is exposed
+    outside the server — GET /session, wizard step responses, the exported *-session.json.
+    The raw api_key/token stay only in the server-side session store."""
+    if hasattr(sess, "dict"):
+        d = sess.dict()
+    elif hasattr(sess, "model_dump"):
+        d = sess.model_dump()
+    elif isinstance(sess, dict):
+        d = dict(sess)
+    else:
+        return {}
+    if isinstance(d.get("llm_config"), dict):
+        d["llm_config"] = redact_llm_config(d["llm_config"])
+    return d
+
+
 class WizardSession(BaseModel):
     key: str  # AWPTCM-Txxxx
     primary: Optional[Dict] = None

@@ -11,6 +11,7 @@ Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-crea
 
 import json
 import re
+import shlex
 import threading
 import time
 from datetime import datetime
@@ -92,8 +93,22 @@ _MUTATING_RX = re.compile(
     (?:^|\s|&&|\|\||;)\s*
     (?:sudo\s+(?:-\S+\s+)*)?                       # optional sudo prefix
     (rm|mv|cp|touch|mkdir|rmdir|chmod|chown|chgrp|
-     ln|dd|truncate|tee|sed\s+-i|patch)\b
+     ln|dd|truncate|tee|sed\s+-i|patch|
+     rsync|install|mktemp|chattr|setfacl|shred|link)\b
     """)
+
+# Shapes that can write/execute WITHOUT a recognizable mutating verb — these bypass a
+# verb denylist entirely, so they are refused outright whenever the framework path is
+# referenced anywhere in the sub-command:
+#   - output/append redirection ( > file, >> file )   → writes an arbitrary target
+#   - an inline interpreter that can open() files      ( python/perl/ruby/sh -c … )
+# Command substitution and backticks are ALSO refused whenever the sub-command touches
+# the framework, since their contents aren't parsed by this guard.
+_REDIRECT_RX = re.compile(r">>?")
+_INTERP_EXEC_RX = re.compile(
+    r"(?:^|\s|&&|\|\||;|\|)\s*(?:sudo\s+(?:-\S+\s+)*)?"
+    r"(?:python[0-9.]*|perl|ruby|bash|sh|zsh|node|awk)\b[^|;&]*\s-c\b")
+_CMD_SUBST_RX = re.compile(r"\$\(|`")
 
 
 def _under_fw(path: str, fw: str) -> bool:
@@ -114,21 +129,48 @@ def _assert_command_allowed(cmd: str, profile: dict) -> str:
     sits inside the framework dir is refused. Splits on &&/||/; so each sub-command is
     judged on its own operands."""
     fw = _norm_remote(_framework_root(profile))
-    for sub in re.split(r"&&|\|\||;", cmd):
+    # Split on pipes too, so a piped stage (e.g. `... | tee <fw>/f`) is judged on its own.
+    for sub in re.split(r"&&|\|\||;|\|", cmd):
         sub = sub.strip()
-        if not sub or not _MUTATING_RX.search(sub):
+        if not sub:
+            continue
+        touches_fw = any(_under_fw(t, fw) for t in re.findall(r"\S+", sub)) or (fw in sub)
+
+        # (A) Verb-less write/exec shapes that a denylist can't see. If this sub-command
+        # references the framework AND contains a redirection, an inline interpreter -c,
+        # or a command substitution, refuse it — we cannot prove it's read-only.
+        if touches_fw and (
+            _REDIRECT_RX.search(sub) or _INTERP_EXEC_RX.search(sub) or _CMD_SUBST_RX.search(sub)
+        ):
+            raise FrameworkReadOnlyError(
+                f"Refusing remote command that may write/execute against the READ-ONLY "
+                f"framework dir '{fw}' via redirection/interpreter/substitution: {sub!r}.")
+
+        if not _MUTATING_RX.search(sub):
             continue
         toks = re.findall(r"\S+", sub)
         operands = [t for t in toks if not t.startswith("-")]  # drop flags
         verb = next((t for t in toks if not t.startswith("-")), "")
         fw_toks = [t for t in toks if _under_fw(t, fw)]
+        # A `-t DIR` / `--target-directory=DIR` destination is a flag, not a positional —
+        # so a framework path can hide there and evade the "last operand" dest check.
+        tgt_dir = None
+        for i, t in enumerate(toks):
+            if t in ("-t", "--target-directory") and i + 1 < len(toks):
+                tgt_dir = toks[i + 1]
+            elif t.startswith("--target-directory="):
+                tgt_dir = t.split("=", 1)[1]
+        if tgt_dir and _under_fw(tgt_dir, fw):
+            raise FrameworkReadOnlyError(
+                f"Refusing remote command whose --target-directory writes under the "
+                f"READ-ONLY framework dir '{fw}': {sub!r}.")
         if not fw_toks:
             continue
         # For cp/mv/ln, the framework path as SOURCE (any operand except the last)
         # is a read-only reference and allowed; only the last operand is the write
         # destination. For all other verbs (rm/sed -i/touch/tee/dd/…) any framework
         # operand is a mutation of the framework and is refused.
-        if verb in _SRC_DEST_VERBS and len(operands) >= 2:
+        if verb in _SRC_DEST_VERBS and len(operands) >= 2 and not tgt_dir:
             dest = operands[-1]
             if not _under_fw(dest, fw):
                 continue  # framework appears only as source — fine
@@ -367,7 +409,7 @@ class RunManager:
             on_update(run)
             # Guard: the run workdir must never be under the read-only framework dir.
             _assert_write_allowed(workdir, profile)
-            client.exec_command(f"mkdir -p {workdir}")[1].channel.recv_exit_status()
+            client.exec_command(f"mkdir -p {shlex.quote(workdir)}")[1].channel.recv_exit_status()
             sftp = client.open_sftp()
             for fname, code in files.items():
                 target = f"{workdir}/{fname}"
@@ -379,8 +421,16 @@ class RunManager:
             # framework resolves via the box's symlink; PYTHONPATH covers boxes
             # where the symlink lives elsewhere (profile framework_path parent).
             fw_parent = str(Path(profile.get("framework_path", "/home/st-art/framework")).parent)
-            cmd = (f"cd {workdir} && ln -sfn {profile.get('framework_path')} framework && "
-                   f"sudo -n PYTHONPATH={fw_parent} python3 ./{test_name} -s {setup_remote} -v")
+            fw_path = profile.get("framework_path") or "/home/st-art/framework"
+            # Every interpolated component is shell-quoted: test_name/case_key are already
+            # regex-constrained upstream, but `setup_remote` can be a client-supplied
+            # "explicit remote path" (pytest_create.py) — quoting it here is the primary
+            # defense against command injection through the -s argument. PYTHONPATH must
+            # stay OUTSIDE the quote (it's a VAR=val prefix to the command, not an argument).
+            cmd = (f"cd {shlex.quote(workdir)} && "
+                   f"ln -sfn {shlex.quote(fw_path)} framework && "
+                   f"sudo -n PYTHONPATH={shlex.quote(fw_parent)} python3 "
+                   f"./{shlex.quote(test_name)} -s {shlex.quote(setup_remote)} -v")
             _assert_command_allowed(cmd, profile)   # no mutation of the framework dir
             run["status"] = "running"
             run["command"] = cmd

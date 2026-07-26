@@ -21,7 +21,8 @@ import re
 import sys
 import subprocess
 
-from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig
+from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig, safe_session_dict, redact_llm_config
+from html_sanitize import sanitize_objective_html
 from data import load_all_data
 import db
 from llm import (
@@ -332,7 +333,9 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
     changed = False
     objective = (inner.get("objective") or "").strip()
     if objective and not has_obj:
-        sess.step4 = {**s4, "objective": objective, "confirmed": True, "backfilled": True}
+        # Sanitize on backfill too — legacy on-disk bundles predate objective sanitization.
+        sess.step4 = {**s4, "objective": sanitize_objective_html(objective),
+                      "confirmed": True, "backfilled": True}
         changed = True
     ts = inner.get("testScript")
     if isinstance(ts, dict) and (ts.get("steps")) and not has_steps:
@@ -795,7 +798,7 @@ async def load_case(key: str, data=Depends(get_data)):
     atp_candidates.sort(key=lambda c: (-float(c.get("score") or 0), str(c.get("id") or "")))
 
     return {
-        "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        "session": safe_session_dict(sess),   # redacts llm_config secrets
         "testlink_candidates": tl_cands,
         "zephyr_refs": zrefs,
         "atp_candidates": atp_candidates[:12],
@@ -1419,7 +1422,7 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     _persist_session(sess)
 
     return {
-        "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        "session": safe_session_dict(sess),   # redacts llm_config secrets
         "can_synthesize": _can_synthesize(sess)
     }
 
@@ -1630,7 +1633,7 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         "llm_config": safe_config,
     }
     if sess:
-        result["session"] = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
+        result["session"] = safe_session_dict(sess)   # redacts llm_config secrets
     return result
 
 def _session_key_from_req(req: SynthesisRequest) -> str:
@@ -1680,10 +1683,13 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
     # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
     result = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg)
 
-    # Store objective phase only; clear prior "confirmed" so user re-reviews after re-synth
+    # Store objective phase only; clear prior "confirmed" so user re-reviews after re-synth.
+    # Sanitize the LLM-produced objective HTML before storage — it is rendered raw via
+    # innerHTML, and the LLM builds it from corpus text the user didn't author (stored-XSS
+    # defense — adversarial-review finding).
     prev4 = stored.step4 if isinstance(stored.step4, dict) else {}
     stored.step4 = {
-        "objective": result.get("objective"),
+        "objective": sanitize_objective_html(result.get("objective") or ""),
         "provenance": result.get("provenance"),
         "confirmed": False,
         "confirmed_at": None,
@@ -1706,7 +1712,7 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
         "phase": "objectives",
         "synthesized": result,
         "can_synthesize_steps": _can_synthesize_steps(stored),
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 
@@ -1721,6 +1727,9 @@ async def save_objective(key: str, body: dict = Body(default={})):
     objective = (body.get("objective") or "").strip()
     if not objective:
         raise HTTPException(400, "objective HTML is required")
+    # Sanitize before storage: the objective is rendered raw via innerHTML, so strip any
+    # non-allowlisted tags/attributes (stored-XSS defense — adversarial-review finding).
+    objective = sanitize_objective_html(objective)
     s4 = dict(stored.step4 or {})
     s4["objective"] = objective
     # Edits invalidate prior confirm until re-confirmed
@@ -1738,7 +1747,7 @@ async def save_objective(key: str, body: dict = Body(default={})):
     return {
         "message": "Objective saved" + (" and confirmed" if s4.get("confirmed") else ""),
         "can_synthesize_steps": _can_synthesize_steps(stored),
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 
@@ -1752,7 +1761,7 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
     sessions[key] = stored
     s4 = dict(stored.step4 or {})
     if body.get("objective"):
-        s4["objective"] = (body.get("objective") or "").strip()
+        s4["objective"] = sanitize_objective_html((body.get("objective") or "").strip())
     if not (s4.get("objective") or "").strip():
         raise HTTPException(400, "No objective to confirm. Run Objective Synthesis first.")
     s4["confirmed"] = True
@@ -1763,7 +1772,7 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
     return {
         "message": "Objectives confirmed — proceed to Step 5 (Test Step Synthesis).",
         "can_synthesize_steps": True,
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 
@@ -1793,7 +1802,7 @@ async def save_steps(key: str, body: dict = Body(default={})):
     _persist_session(stored)
     return {
         "message": "Steps saved",
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 
@@ -1825,7 +1834,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
         client_obj = ((req.session.get("step4") or {}).get("objective") or "").strip()
     if client_obj and client_obj != _session_objective(stored):
         s4 = dict(stored.step4 or {})
-        s4["objective"] = client_obj
+        s4["objective"] = sanitize_objective_html(client_obj)
         stored.step4 = s4
 
     llm_cfg = _session_llm_cfg(stored)  # applies workspace LLM at dispatch time
@@ -1851,7 +1860,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     }
     # Keep a combined view on step4 for older clients (objective + steps mirror)
     s4 = dict(stored.step4 or {})
-    s4["objective"] = result.get("objective") or s4.get("objective")
+    s4["objective"] = sanitize_objective_html(result.get("objective") or "") or s4.get("objective")
     s4["testScript"] = result.get("testScript")
     stored.step4 = s4
 
@@ -1866,7 +1875,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     return {
         "phase": "steps",
         "synthesized": result,
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 
@@ -1912,7 +1921,7 @@ async def synthesize(req: SynthesisRequest):
     return {
         "phase": "combined",
         "synthesized": result,
-        "session": stored.dict() if hasattr(stored, "dict") else stored.model_dump(),
+        "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
 @router.post("/export", response_model=ExportResponse)
@@ -1948,6 +1957,14 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         sess_dict = getattr(stored, "model_dump", lambda: {})()
 
     case_key = key or sess_dict.get("key", "unknown")
+    # SECURITY (adversarial-review finding): case_key becomes a directory component of the
+    # on-disk export path, so a value like '../../etc/x' would escape refined-cases/.
+    # Validate it against the canonical AWPTCM-Txxxx shape at the TOP of the handler —
+    # before the LLM gaps call, payload validation, or any write — so a traversal key is
+    # a clean 400 and never reaches a file-system operation.
+    if not _CASE_KEY_RE.match(case_key or ""):
+        raise HTTPException(400, f"Refusing to export: invalid case key '{case_key}'. "
+                                 f"Expected AWPTCM-Txxxx.")
     step4 = sess_dict.get("step4", {}) or {}
     step5 = sess_dict.get("step5", {}) or {}
 
@@ -1983,13 +2000,25 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     )
     steps = list(test_script.get("steps", []))
     note_desc = build_traceability_note(sess_dict)
+    # The first step must be the server-built traceability note. Previously this
+    # UNCONDITIONALLY overwrote steps[0] — destroying a genuine first verification step
+    # whenever the stored testScript didn't already begin with the note (e.g. a manually
+    # edited or backfilled testScript). Only overwrite when steps[0] IS already the note
+    # (regenerate it) or is blank; otherwise PREPEND the note so no real step is lost.
+    _NOTE_PREFIX = "Note: Related ART Tests linked in Traceability"
     if steps:
-        steps[0] = {"description": note_desc, "expectedResult": steps[0].get("expectedResult", "") if isinstance(steps[0], dict) else ""}
+        first = steps[0] if isinstance(steps[0], dict) else {}
+        first_desc = (first.get("description") or "").strip()
+        if first_desc.startswith(_NOTE_PREFIX) or not first_desc:
+            steps[0] = {"description": note_desc, "expectedResult": first.get("expectedResult", "")}
+        else:
+            steps.insert(0, {"description": note_desc, "expectedResult": ""})
     else:
         steps = [{"description": note_desc, "expectedResult": ""}]
     test_script = {"type": "steps", "steps": steps}
 
     objective = (step4.get("objective") if isinstance(step4, dict) else None) or "<ul><li>Objective not yet synthesized</li></ul>"
+    objective = sanitize_objective_html(objective)   # defense-in-depth on the exported artefact
 
     # Derive art_string for payload if not present (repeatable from selections)
     if not sess_dict.get("art_string"):
@@ -2060,13 +2089,11 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         print(f"[export] Jinja render error, fallback: {e}")
         traceability_md = f"# Traceability & Supporting Data for {case_key}\n\n## Primary\n{primary}\n\n## Gaps\n{gaps}\n\n## ART String\n{art_string}\n"
 
-    # Full session out for audit/provenance (repeatable)
-    if hasattr(stored, "dict"):
-        session_out = stored.dict()
-    elif isinstance(stored, dict):
-        session_out = stored
-    else:
-        session_out = getattr(stored, "model_dump", lambda: stored)()
+    # Full session out for audit/provenance (repeatable). REDACTED: this is written to
+    # {case_key}-session.json under refined-cases/ (and returned to the browser), so the
+    # llm_config api_key/token must be masked — otherwise a credential lands on disk in a
+    # directory that can be committed. The live server-side session keeps the real key.
+    session_out = safe_session_dict(stored if not isinstance(stored, dict) else stored)
 
     # Primary destination: write drop-in artefacts under refined-cases/ (server path).
     # Browser downloads are intentional only if the client asks; default UX is server-side only.
@@ -2113,8 +2140,22 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             wrote_bundle=False,
         )
 
+    # SECURITY (adversarial-review finding): case_key comes from the client-supplied
+    # session and is used as a directory component of the on-disk write path, so a value
+    # like '../../etc/x' would escape refined-cases/. Validate it against the canonical
+    # AWPTCM-Txxxx shape before ANY filesystem write. (push_to_zephyr already does this;
+    # the export write path did not.)
+    # (case_key was already validated against _CASE_KEY_RE at the top of the handler.)
+    # Resolve the target dir and confirm it stays inside refined-cases/ BEFORE the write
+    # try-block (whose broad `except Exception` would otherwise soften a 400 into a
+    # "failed to write" message). Defends against a manipulated folder-derived `group`.
+    _export_group = _get_refined_group(case_key, data)
+    _export_target = REFINED_DIR / _export_group / case_key
+    if REFINED_DIR.resolve() not in _export_target.resolve().parents:
+        raise HTTPException(400, "Refusing to export outside refined-cases/.")
+
     try:
-        group = _get_refined_group(case_key, data)
+        group = _export_group
         # Post-restructure (2026-07-13) refined-cases live under
         # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor
         # from paths.py, matching _get_refined_group and _refined_complete_keys.

@@ -22,7 +22,7 @@ import py_compile
 import re
 import tempfile
 
-from models import PtSession, LLMConfig
+from models import PtSession, LLMConfig, safe_session_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from llm import run_prompt, extract_json_block
 import db as dbx   # aliased: several functions here have a `db` filter parameter
@@ -1146,9 +1146,20 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
     written.append(str(script_path))
     lib = files.get("library")
     if lib and lib.get("code"):
-        lib_path = script_path.parent / lib["name"]
-        if not _NAME_RX.match(Path(lib["name"]).stem):
-            raise HTTPException(400, "Invalid library file name.")
+        # Validate the FULL library filename before building any path. The old check
+        # looked only at Path(name).stem — which strips directory + extension — so a name
+        # like '../../evil.py' passed (stem 'evil') while the raw name was still used to
+        # build the write path, escaping the generated dir (adversarial-review finding).
+        raw_name = lib.get("name") or ""
+        stem = Path(raw_name).name                      # drop any directory component
+        if not stem.endswith(".py"):
+            raise HTTPException(400, "Library file name must end with .py")
+        if not _NAME_RX.match(stem[:-3]):               # base (sans .py) must be safe
+            raise HTTPException(400, "Invalid library file name (letters/digits/-_ only).")
+        lib_path = script_path.parent / stem            # basename only — never the raw name
+        # Belt-and-suspenders: the resolved path must stay inside the script's own dir.
+        if lib_path.parent.resolve() != script_path.parent.resolve():
+            raise HTTPException(400, "Library file must be written alongside the script.")
         lib_path.write_text(lib["code"], encoding="utf-8")
         written.append(str(lib_path))
 
@@ -1284,7 +1295,7 @@ async def load_case(key: str, request: Request):
     _pt_persist(sess)
     fields = _case_payload_fields(sess)
     return {
-        "session": sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        "session": safe_session_dict(sess),   # redacts llm_config secrets
         "case_title": _case_title(data, key),
         "group_display": _group_display(sess.group),
         "objective": fields["objective"],
@@ -1296,7 +1307,7 @@ async def load_case(key: str, request: Request):
 @router.get("/session/{key}")
 async def get_session(key: str):
     sess = _pt_get(key)
-    return {"session": sess.dict() if hasattr(sess, "dict") else sess.model_dump()}
+    return {"session": safe_session_dict(sess)}   # redacts llm_config secrets
 
 
 @router.post("/clear_session/{key}")
@@ -1337,7 +1348,7 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     _confirm(sess, step_key)
     _invalidate_from(sess, step)
     _pt_persist(sess)
-    return {"session": sess.dict() if hasattr(sess, "dict") else sess.model_dump()}
+    return {"session": safe_session_dict(sess)}   # redacts llm_config secrets
 
 
 # ---------------------------------------------------------------------------
@@ -2012,6 +2023,13 @@ async def run_script(key: str, body: dict = Body(...)):
     if setup in (profile.get("setups") or {}):
         setup_remote = profile["setups"][setup]
     elif setup:
+        # Explicit remote path (not a named profile setup). This value is interpolated
+        # into the remote SSH command, so reject anything that isn't a plausible path —
+        # no shell metacharacters, whitespace, or quotes. `pt_exec` also shell-quotes it
+        # (defense in depth), but rejecting here gives a clear 400 instead of a silently
+        # mangled path. Allows POSIX path chars + dot/dash/underscore.
+        if not re.fullmatch(r"[A-Za-z0-9_./\-]+", setup):
+            raise HTTPException(400, "Invalid setup path: only letters, digits, '_', '.', '/', '-' allowed.")
         setup_remote = setup  # explicit remote path
     elif profile.get("setups"):
         setup_remote = next(iter(profile["setups"].values()))
