@@ -12,21 +12,21 @@ session entry in PROGRESS.md. The items below are the REMAINING backlog for a la
 | Sev | Category | Location | Summary |
 |-----|----------|----------|---------|
 | ~~high~~ FIXED | authorization | `agent_bridge.py:38` | ✅ 2026-07-27d — deliver now enforces X-CK-Session job ownership; /next + /result bind to the header. |
-| high | correctness | `llm.py:1347` | extract_json_block's depth counter counts brackets inside JSON string values, so valid JSON with a brace/bracket in a string silently returns None. |
-| high | correctness | `llm.py:1329` | The code-fence regex `(?:json)?` + non-greedy body captures the FIRST fenced block even when it is illustrative non-JSON, and the brace-scan fallback then latches onto braces inside that pseudocode, s |
+| ~~high~~ FIXED | correctness | `llm.py:1347` | ✅ 2026-07-27e — routed through the hardened string-aware extract_json_block (single shared extractor). |
+| ~~high~~ FIXED | correctness | `llm.py:1329` | ✅ 2026-07-27e — routed through the hardened string-aware extract_json_block (single shared extractor). |
 | ~~high~~ FIXED | cors-missing | `main.py:56` | ✅ 2026-07-27d — CORSMiddleware added, locked to a localhost allowlist (CK_ALLOWED_ORIGINS to widen). |
 | high | correctness | `pt_script_template.py.jinja:108` | Step action/verify text is embedded into single-quoted Python string literals sanitized only with replace("'",""), so an embedded newline or trailing backslash produces a SyntaxError-broken skeleton. |
 | ~~high~~ FIXED | path-traversal | `pytest_create.py:1150` | ✅ 2026-07-27d — full library filename validated (basename + .py + _NAME_RX) before the path is built; resolved-dir check added. |
 | high | correctness | `pytest_create.py:1097` | The lint placeholder-survival check misses the physical-step verification marker `if want in output:  # >>> replace with the real verification condition <<<`, so an unfilled tautological verdict passe |
 | ~~high~~ FIXED | path-traversal | `wizard.py:2122` | ✅ 2026-07-27d — case_key validated against _CASE_KEY_RE at the top of export() (before any LLM/write); resolved-target-under-refined-cases check added. Also closes the `wizard.py:1936/1939` export-gate findings (a bogus/traversal key now 400s early). |
 | high | state-machine | `wizard.py:1381` | Wizard confirm_step for steps 1-3 has no invalidation cascade, so re-confirming an earlier DB review with changed selections leaves step4 (objective) and step5 (testScript) still marked confirmed from |
-| medium | authorization | `agent_bridge.py:18` | GET /api/agent/next accepts the session id as a plain query parameter instead of binding it to the request's X-CK-Session, so any caller can claim another session's queued prompt jobs. |
+| ~~medium~~ FIXED | authorization | `agent_bridge.py:18` | ✅ 2026-07-27d — /next now binds to the X-CK-Session header (query param is legacy fallback only). |
 | medium | correctness | `db.py:816` | Hybrid RRF merge drops pinned keep_ids: _rrf_merge sorts all rows by fused score and truncates to limit, so a kept pool item that scores low can be silently removed — violating the 'keep_ids always re |
 | medium | robustness | `db.py:821` | HAS_VEC only means 'extension loaded', not 'embeddings exist', so on a keyword-only-built DB every hybrid search needlessly loads and runs the sentence-transformer model before discarding an empty vec |
 | medium | correctness | `llm.py:428` | The Anthropic (native) path never checks stop_reason, so a response truncated at the max_tokens cap (default 2000) is accepted as complete, unlike the OpenAI path which raises on finish_reason=length. |
 | medium | robustness | `llm.py:425` | The Anthropic path has no empty-content guard: a response with no text blocks (e.g. only thinking blocks or an empty content array) returns content='' with error unset, unlike the OpenAI path. |
-| medium | correctness | `llm.py:618` | parse_llm_to_structured uses a greedy `\[\s*\{.*\}\s*\]` regex that spans across two arrays or into trailing prose containing '}' and ']', producing invalid JSON and dropping all steps. |
-| medium | correctness | `llm.py:1218` | analyze_atp_coverage's greedy `\{.*\}` regex latches onto prose braces before the real object, so parsing fails and it silently discards the LLM ranking for a keyword fallback. |
+| ~~medium~~ FIXED | correctness | `llm.py:618` | ✅ 2026-07-27e — routed through the hardened string-aware extract_json_block (single shared extractor). |
+| ~~medium~~ FIXED | correctness | `llm.py:1218` | ✅ 2026-07-27e — routed through the hardened string-aware extract_json_block (single shared extractor). |
 | medium | correctness | `llm.py:941` | synthesize_steps drops the LLM's first verification step whenever its description merely contains the substring 'Traceability' or 'Note:', which can delete a legitimate step. |
 | medium | missing-auth | `main.py:261` | The server binds 0.0.0.0 (all interfaces) with no authentication on push_to_zephyr, so any host on the LAN can trigger live Zephyr writes using the server-side token. |
 | medium | host-key-verification | `pt_exec.py:281` | paramiko AutoAddPolicy disables SSH host-key verification for every connection, so a MITM on the testbox network can impersonate the testbox and capture the SSH session (and password, if auth=password |
@@ -41,7 +41,7 @@ session entry in PROGRESS.md. The items below are the REMAINING backlog for a la
 | low | resource-leak | `agent_jobs.py:111` | AgentJobRegistry.gc() is defined but never invoked anywhere, so _queues and _session_seen grow without bound across the lifetime of the process. |
 | low | robustness | `db.py:54` | The thread-local read-write WAL connection is safe today only because all db.* calls run on the event-loop thread; the design's stated safety (per-thread conns) does not actually prevent WAL write rac |
 | low | robustness | `generator.js:480` | confirmStep fetches /api/wizard/confirm_step without a res.ok check and blindly assigns data.session to S.currentSession, so an error response clobbers the in-memory session with undefined and silentl |
-| low | correctness | `llm.py:1013` | _parse_suggest_id_list shares the same greedy `\[\s*\{.*\}\s*\]` pattern, failing on two arrays or trailing prose with brackets before falling back to bare-id regex. |
+| ~~low~~ FIXED | correctness | `llm.py:1013` | ✅ 2026-07-27e — routed through the hardened string-aware extract_json_block (single shared extractor). |
 | low | robustness | `llm.py:494` | resp.iter_lines(decode_unicode=True) can split a multi-byte UTF-8 sequence across chunk boundaries, corrupting streamed content with replacement chars. |
 | low | robustness | `provenance.js:75` | provRefresh fetches the dry-run provenance endpoint without checking res.ok, so an HTTP 400/500 error body is parsed as a normal response and silently rendered as '(empty)' instead of surfacing the er |
 | low | correctness | `pt_generate_script.jinja:54` | The conditional Py2 rule tells the model that Py2 fragments are 'marked ⚠ PYTHON 2', but that marker is only emitted inside the skeleton (via _render_skeleton line 976), NOT in the 'Reviewer-approved  |

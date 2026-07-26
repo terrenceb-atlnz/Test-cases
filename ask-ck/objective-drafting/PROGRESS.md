@@ -4,6 +4,30 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27e) — Adversarial-review batch 3: llm.py JSON-parser cluster
+
+**Focus: the correctness cluster from the backlog — 5 llm.py JSON-parse sites that silently
+dropped LLM results. Verified each vs live code, unified them behind one robust extractor.
+Committed + pushed this session (after the security batches landed at `1340d9b`).**
+
+- **Root cause (shared across 5 findings):** ad-hoc greedy regexes (`\[\s*\{.*\}\s*\]`,
+  `\{.*\}`) and a brace-depth counter that counted `{`/`}`/`[`/`]` **inside JSON string
+  values**. Result: valid JSON with a bracket in a string, a prose brace before the real
+  object, a nested array inside an object, or an illustrative non-JSON code fence would all
+  silently return None / drop all steps / discard the ranking.
+- **Fix:** hardened the single shared `extract_json_block` (`llm.py`) — it now (a) tries EVERY
+  ```json fence in order and accepts the first that parses, (b) scans for a balanced structure
+  that is **string-and-escape-aware** (brackets inside `"..."` ignored), and (c) walks opener
+  positions **left-to-right across both bracket types** so the outermost structure wins (an
+  object with a nested array no longer returns the inner array). Repointed the 4 ad-hoc sites
+  (`parse_llm_to_structured`, `_parse_suggest_id_list`, `analyze_atp_coverage`, and the two
+  in-function regexes) at it; `_parse_suggest_id_list` also accepts an object-wrapped array.
+- **Caught my own design bug via the tests:** the first cut walked all `{` positions before any
+  `[`, so a nested object was returned instead of its containing array — fixed by scanning by
+  position across both types.
+- **Tests:** +10 unit tests (`tests/test_llm_json_extractor.py`, no network) → **48/48 green**,
+  guards green, `/health` 200. Backlog rows struck (5 llm.py + the agent_bridge:18 fold-in).
+
 ## Latest session (2026-07-27d) — Adversarial-review batch 2: path-traversal + auth
 
 **Focus: triaged the next batch from `ADVERSARIAL-REVIEW-BACKLOG.md` — the 4 confirmed

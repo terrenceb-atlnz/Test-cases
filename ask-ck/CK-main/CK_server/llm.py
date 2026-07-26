@@ -611,20 +611,19 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
         if marker:
             cleaned = cleaned[marker.start():]
 
-    # Try JSON first (for steps prompt which requests JSON array)
+    # Try JSON first (for steps prompt which requests JSON array). Use the shared
+    # string-aware extractor rather than a greedy `\[\s*\{.*\}\s*\]` regex, which spanned
+    # across two arrays / into trailing prose and dropped all steps (adversarial-review).
     steps = []
     try:
-        # Look for a JSON array in the output
-        json_match = re.search(r'\[\s*\{.*\}\s*\]', cleaned, re.DOTALL)
-        if json_match:
-            parsed = json.loads(json_match.group(0))
-            if isinstance(parsed, list):
-                for item in parsed:
-                    if isinstance(item, dict) and "description" in item:
-                        steps.append({
-                            "description": item.get("description", "").strip(),
-                            "expectedResult": item.get("expectedResult", "")
-                        })
+        parsed = extract_json_block(cleaned)
+        if isinstance(parsed, list):
+            for item in parsed:
+                if isinstance(item, dict) and "description" in item:
+                    steps.append({
+                        "description": item.get("description", "").strip(),
+                        "expectedResult": item.get("expectedResult", "")
+                    })
     except Exception:
         pass
 
@@ -1010,16 +1009,18 @@ def _parse_suggest_id_list(content: str, id_patterns: Optional[List[str]] = None
     """Parse LLM JSON array of {id, reason}; optional regex fallbacks for bare IDs."""
     suggestions: List[Dict[str, str]] = []
     try:
-        json_match = re.search(r'\[\s*\{.*\}\s*\]', content or "", re.DOTALL)
-        if json_match:
-            parsed = json.loads(json_match.group(0))
-            if isinstance(parsed, list):
-                for item in parsed:
-                    if isinstance(item, dict) and item.get("id"):
-                        suggestions.append({
-                            "id": str(item.get("id", "")).strip(),
-                            "reason": item.get("reason", "LLM selected as relevant"),
-                        })
+        parsed = extract_json_block(content or "")   # shared string-aware extractor
+        # The suggest prompt asks for a JSON array; if the model wrapped it in an object
+        # (e.g. {"suggestions": [...]}), accept the first list value inside.
+        if isinstance(parsed, dict):
+            parsed = next((v for v in parsed.values() if isinstance(v, list)), None)
+        if isinstance(parsed, list):
+            for item in parsed:
+                if isinstance(item, dict) and item.get("id"):
+                    suggestions.append({
+                        "id": str(item.get("id", "")).strip(),
+                        "reason": item.get("reason", "LLM selected as relevant"),
+                    })
     except Exception as e:
         print(f"[LLM suggest] JSON parse failed: {e}")
 
@@ -1214,10 +1215,11 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
         )
         content = meta.get("content", "")
 
-        # Parse the JSON response
-        json_match = re.search(r'\{.*\}', content, re.DOTALL)
-        if json_match:
-            parsed = json.loads(json_match.group(0))
+        # Parse the JSON response via the shared string-aware extractor (a greedy
+        # `\{.*\}` regex latched onto a prose brace before the real object and dropped
+        # the whole ranking — adversarial-review finding).
+        parsed = extract_json_block(content)
+        if isinstance(parsed, dict):
             # No backend truncation: the prompt now asks for every genuinely
             # relevant candidate, ranked. The scrollable table shows them in order
             # (a UI "show more" can page through) — capping here would silently
@@ -1319,40 +1321,95 @@ def _health_ping(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
     )
 
 
+def _scan_balanced_json(content: str, opener: str, closer: str, start: int) -> Optional[Any]:
+    """Scan from `start` for a balanced opener..closer run, IGNORING opener/closer
+    characters that appear inside a JSON string literal (and honoring backslash escapes).
+    Returns the parsed value, or None if nothing balanced/valid is found from `start`.
+
+    This is the correctness fix for the old depth counter, which counted braces/brackets
+    inside string values — so valid JSON like {"x": "a } b"} closed early and failed.
+    """
+    depth = 0
+    in_str = False
+    escaped = False
+    for i in range(start, len(content)):
+        ch = content[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == opener:
+            depth += 1
+        elif ch == closer:
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(content[start:i + 1])
+                except json.JSONDecodeError:
+                    return None
+    return None
+
+
 def extract_json_block(content: str) -> Any:
     """Best-effort extraction of the first JSON object/array from LLM output.
 
-    Handles ```json fences and leading prose. Returns None when nothing parses.
+    Robust against: ```json fences (tries EACH fenced block, not just the first, since an
+    LLM may emit an illustrative non-JSON fence before the real one); leading/trailing prose;
+    and braces/brackets INSIDE string values (string-aware balanced scan). Returns None when
+    nothing parses. This is the single shared extractor — all JSON-bearing LLM parsers route
+    through it rather than ad-hoc greedy regexes (adversarial-review finding cluster).
     """
     if not content:
         return None
-    fenced = re.search(r"```(?:json)?\s*(.+?)```", content, re.DOTALL)
-    if fenced:
+    # 1) Try every fenced block in order; accept the first that actually parses as JSON.
+    for m in re.finditer(r"```(?:json)?\s*(.+?)```", content, re.DOTALL):
+        body = m.group(1).strip()
         try:
-            return json.loads(fenced.group(1).strip())
+            return json.loads(body)
         except json.JSONDecodeError:
-            pass
-    # Try whichever bracket type appears FIRST in the string. A top-level object
-    # like {"decision": ..., "per_step": [...]} contains a nested array; trying
-    # "[" unconditionally first would balance and return that inner per_step
-    # array instead of the outer object. Ordering by first-occurrence respects
-    # the outermost structure.
-    candidates = []
-    for opener, closer in (("{", "}"), ("[", "]")):
-        pos = content.find(opener)
-        if pos != -1:
-            candidates.append((pos, opener, closer))
-    for _, opener, closer in sorted(candidates):
-        start = content.find(opener)
-        depth = 0
-        for i in range(start, len(content)):
-            if content[i] == opener:
-                depth += 1
-            elif content[i] == closer:
-                depth -= 1
-                if depth == 0:
-                    try:
-                        return json.loads(content[start:i + 1])
-                    except json.JSONDecodeError:
-                        break
+            # Fenced block wasn't pure JSON (e.g. a pseudocode example) — try to extract a
+            # balanced structure from within it before moving on.
+            got = _extract_first_balanced(body)
+            if got is not None:
+                return got
+    # 2) No usable fence — scan the whole content for the OUTERMOST structure, choosing
+    #    whichever bracket type opens first (an object with a nested array must not return
+    #    the inner array).
+    return _extract_first_balanced(content)
+
+
+def _extract_first_balanced(content: str) -> Any:
+    """Return the first balanced {..} or [..] that parses as JSON, scanning by POSITION
+    left-to-right across BOTH bracket types. Walking every opener of one type before the
+    other could return a nested object (inside a later array) instead of that array; by
+    position order the outer structure — whose opener comes first — is tried first.
+    A string-aware scan is used so brackets inside string values don't mislead."""
+    openers = {"{": "}", "[": "]"}
+    # Collect every opener position (both types), skipping ones inside string literals.
+    positions = []
+    in_str = escaped = False
+    for i, ch in enumerate(content):
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch in openers:
+            positions.append(i)
+    for pos in positions:
+        opener = content[pos]
+        got = _scan_balanced_json(content, opener, openers[opener], pos)
+        if got is not None:
+            return got
     return None
