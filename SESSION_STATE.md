@@ -1444,6 +1444,9 @@ the §7.3 root-cause fix, PLAN §9.**
   section + template-roles, PROGRESS 2026-07-22d).
 - **Push caveat unchanged:** this environment has no GitHub SSH auth, so `git push` fails
   (`Permission denied (publickey)`). Commits land locally; Terrence pushes `main`.
+  > **Superseded (2026-07-27):** this was **Mac-seat-specific**, not a repo property. The
+  > Linux seat pushes to `main` fine (verified `1478952`). Don't treat "can't push" as a
+  > standing caveat — check the seat.
 
 ## Session Close / Handoff (2026-07-23) — PyTest Creator UX revision + adversarial-review worklist
 
@@ -1497,8 +1500,9 @@ steps; legacy sequences default every step to `verify`.
 ### Focus
 Resolved the three open PyTest Creator decisions (D1/D2/D3) interactively, one at a time, each
 grounded in real `ck.db` corpus measurement; then implemented D1+D3 and adversarially tested
-them. The 2026-07-23 entry above is not superseded — this is additive. Uncommitted at write
-time (Terrence commits himself; this environment also has no GitHub SSH auth).
+them. The 2026-07-23 entry above is not superseded — this is additive. Committed + pushed to
+`main` this session (`1478952`). NOTE: `git push` works from this (Linux) seat — the earlier
+"no GitHub SSH auth" caveat in prior entries was Mac-seat-specific, not a property of the repo.
 
 ### Decisions (rationale preserved in memory, since NEXT_SESSION_DECISIONS.md was deleted)
 - **D2 — keep no cap** (no code): chosen/redundant split surfaces dumps; only SELECTED fragments
