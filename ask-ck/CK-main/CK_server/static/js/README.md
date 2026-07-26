@@ -19,7 +19,7 @@ graph evaluates.
 | `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` / `X-CK-Panel` (side-effect) |
 | `state.js` | Shared mutable `S` state object (see below) |
 | `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
-| `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs` |
+| `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs`, `showStatus` (in-page `.status-banner` helper) |
 | `tables.js` | Candidate-table renderers shared by Generator + DB-search |
 | `generator.js` | Objective / Test Case Generator wizard |
 | `llm.js` | LLM Configure panel + status |

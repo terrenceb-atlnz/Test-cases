@@ -2,8 +2,12 @@
 
 **Generated 2026-07-27c** from the paused full-review workflow (`askck-adversarial-review`, run `wf_f53aa173-a88`).
 62 candidate findings across 14 risk domains; verification was ~50% complete when paused.
-**The top critical/high cluster (6 fixes) was implemented + tested this session** — see the
-session entry in PROGRESS.md. The items below are the REMAINING backlog for a later triage pass.
+
+**Progress (as of 2026-07-27e):** three fix batches landed + committed —
+**c** (6 security/integrity), **d** (path-traversal + agent-bridge auth + CORS), **e** (5 llm.py
+JSON-parser). **10 rows below are struck (`~~…~~ FIXED`); 35 remain.** Commits `1340d9b` (c+d),
+`a1608d5` (e). Per-batch detail in PROGRESS.md (sessions 27c/27d/27e) and SERVER-README → *Security
+Posture*. The items below are the REMAINING backlog for a later triage pass.
 
 > Status legend: these are *candidate* findings. Some carry a majority-real verdict from the
 > partial verification; others are unverified. **Verify each against live code before fixing** —

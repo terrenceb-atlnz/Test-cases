@@ -1541,3 +1541,41 @@ ParseError files ship originals verbatim; conditional prompt steer verified on (
   `d3-py2-fragment-translation`.
 - **Follow-ups still open:** PyTest Creator Part 3a/3b (offline judging + real tb470 execution),
   gated on `configs/tb470.setup` + a stored testbox profile (Terrence-side prereq).
+
+---
+
+## Session Close / Handoff (2026-07-27c–e — full adversarial review + security/correctness fixes + test suite)
+
+**Theme:** ran a full 14-domain adversarial review of the whole Ask-CK app, then triaged and fixed
+the confirmed critical/high findings in batches. All committed + pushed to `main`
+(`3ab0474`, `1340d9b`, `a1608d5`). All verification was **in-process only** (FastAPI TestClient,
+inert payloads) — no live Zephyr writes, no testbox SSH, no outbound network (a deliberate
+constraint this session).
+
+**What shipped:**
+- **Backlog reconciliation + 4 quality items** (`3ab0474`): reconciled the stale PROGRESS backlog;
+  in-page error/status banners; export refuse-to-write hardening (`wrote_bundle`, stale-bundle-aware);
+  `/process` heading-anchor fix (deduped slugs); **first backend test suite** (`tests/`, `pytest.ini`,
+  `requirements-dev.txt`, `tool/run_tests.sh`).
+- **10 security/integrity fixes** (`1340d9b`): SSH command injection (validate + `shlex.quote`),
+  framework-guard bypass (redirection/interpreter/subst/`rsync`/`install`/`cp -t`), stored XSS (new
+  `html_sanitize.py` applied at every objective store point), secret leak (`redact_llm_config`/
+  `safe_session_dict` — `api_key`/`token` no longer reach the browser or the on-disk `*-session.json`),
+  admin-reset wrong session-kind (`pytest`→`pt`), export step-0 overwrite (prepend not clobber),
+  library-filename + export `case_key` path-traversal, agent-bridge job-ownership (session-bound),
+  CORS lockdown.
+- **5 correctness fixes** (`a1608d5`): unified the `llm.py` JSON-parse sites behind one string-aware
+  `extract_json_block` (greedy-regex + braces-in-strings silent-drop bugs gone).
+
+**State at close:** working tree clean; **48 tests green**; `guard_db_only` + `guard_framework_readonly`
+green; `/health` 200 (830 scripts, 83816 embeddings). `ck.db` invariant intact — no runtime JSON, no
+courier files, no rebuild path, still LFS-committed.
+
+**Open for next session** (from `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`, ~40 candidates,
+**verify before fixing**): the state-machine/correctness cluster (`confirm_step` invalidation cascade,
+run_status stale-after-restart, dual-session-instance divergence, `synthesize_steps` first-step drop),
+two `_restamp_provenance` provenance issues, and a robustness tail. Two **medium security** items are
+intentionally *accepted* for the localhost/single-user model (0.0.0.0-bind no-auth; SSH `AutoAddPolicy`)
+— treat as a conscious "accept or harden" decision, not a silent change. The paused review workflow can
+be resumed (`resumeFromRunId wf_f53aa173-a88`) to finish verification + full synthesis. PyTest Creator
+Part 3a/3b still gated on `configs/tb470.setup`.

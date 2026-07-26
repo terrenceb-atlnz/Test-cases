@@ -514,9 +514,11 @@ ask-ck/
 ## 8. Technical Debt & Known Issues
 
 ### Technical Debt
-- LLM parsing still regex/JSON fallback — could use stricter structured output later.
+- LLM JSON parsing hardened 2026-07-27e (single string-aware `extract_json_block`); a fully
+  structured-output contract is still a future nicety, but the greedy-regex silent-drop bugs are gone.
 - Full zephyr_cases.jsonl not fully indexed for search (keyword scan + slim_index scoring only).
-- No automated tests (no CI). `requirements.txt` now exists (`ask-ck/CK-main/`).
+- **Test suite exists** (`tests/`, 48 tests via `PYTHONNOUSERSITE=1 .venv/bin/pytest` or
+  `./tool/run_tests.sh`; dev deps in `requirements-dev.txt`). Still **no CI runner** (`.github/workflows`).
 - zrefs scoring ~1.5s over 45k slim_index — acceptable but not optimized.
 - ~~load_case still runs ATP LLM ranking (latency)~~ — **fixed 2026-07-23** (removed from Load; on-demand only). gaps no longer on load (good).
 - ~~`tool/` scripts not yet verified against the 2026-07-13 restructure paths~~ — **done** (`upload_refined.py` repathed + used to push 43 cases).

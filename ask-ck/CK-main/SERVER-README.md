@@ -543,6 +543,55 @@ by a server restart are marked `stale` on the next load_case.
 - Session state is file-persisted under `CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.
 
+## Security Posture (hardened 2026-07-27c–e)
+
+Ask CK is designed for **localhost / single-user** use (a shared multi-tenant deployment is
+explicitly out of contract — see *Known Issues*). A full adversarial review (2026-07-27) hardened
+the boundaries so untrusted/LLM-derived input can't escape its lane even so:
+
+- **No secrets to the browser or disk.** `llm_config.api_key`/`token` are redacted from every
+  session serialized to the client and from the exported `*-session.json` (`models.redact_llm_config`
+  / `safe_session_dict`). The real key lives only in the server-side session store; the vLLM key
+  stays in gitignored `secrets.local.json` (never in a session at all). `GET /…/session/{key}` and
+  all wizard step responses return redacted configs.
+- **Objective HTML is sanitized server-side.** The Generator objective is rendered raw via
+  `innerHTML`, so `html_sanitize.sanitize_objective_html` (stdlib allowlist — tags only, no
+  attributes, drops `script`/`style`) runs at **every** objective store point (synthesize / save /
+  confirm / backfill / export). Defends against stored XSS from prompt-injected or garbage corpus text.
+- **PyTest run command is injection-safe.** The `-s <setup>` remote path is metachar-validated at the
+  `/run` endpoint and every interpolated component of the SSH exec string is `shlex.quote`d
+  (`pt_exec.py`). The **framework-read-only guard** (`_assert_command_allowed`) refuses redirection
+  (`>`), inline interpreters (`python -c`), command substitution, `rsync`/`install`, and
+  `cp --target-directory` whenever the framework dir is referenced — not just a verb denylist.
+- **No path traversal on writes.** The export `case_key` is validated against `^AWPTCM-T\d+$` at the
+  top of the handler (before any write), and generated library filenames are validated as a bare
+  basename — so neither can escape `refined-cases/` or `generated/`.
+- **Agent-bridge is session-bound.** Broker jobs carry their owning `X-CK-Session`; `/api/agent/result`
+  rejects a `job_id` that belongs to a different session, and `/next` binds to the header (query param
+  is a legacy fallback). **CORS** is locked to a localhost allowlist (`CK_ALLOWED_ORIGINS` to widen).
+
+Still deliberately *accepted* for the single-user model (documented, not bugs): the server binds
+`0.0.0.0` with no auth, and paramiko uses `AutoAddPolicy` (no SSH host-key verification). Harden these
+before any shared/exposed deployment.
+
+## Testing
+
+A backend test suite lives at the repo-root `tests/` (pytest, in-process `TestClient` — no mocks,
+no network, no testbox). Run it with the venv interpreter:
+
+```bash
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q        # 48 tests
+./tool/run_tests.sh                            # guards + pytest, one command (CI-shaped)
+```
+
+`PYTHONNOUSERSITE=1` is required so an older fastapi/starlette in `~/.local` can't shadow the venv's.
+Coverage centers on the security/correctness fixes (validator + export gate, the JSON extractor, the
+framework guard, HTML sanitizer, secret redaction, path-traversal guards, agent-bridge ownership,
+CORS) plus the `/process` page. Dev-only deps (`pytest`, `httpx`) are in
+`ask-ck/CK-main/requirements-dev.txt` (the runtime `requirements.txt` stays lean). There is **no CI
+runner yet** (`.github/workflows`) — running `./tool/run_tests.sh` before a commit is the current gate.
+The two invariant guards (`tool/guard_db_only.py`, `tool/guard_framework_readonly.py`) run as part of it.
+
 ## Relation to the Approved Plan
 
 See `ask-ck/objective-drafting/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `ask-ck/ck-facelift/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
@@ -589,6 +638,26 @@ Cross-reference higher-level project docs every session:
 - External `AGENTS.md` (access patterns and environment details, as referenced from root README)
 
 ---
+
+## Session Summary (2026-07-27c–e — full adversarial review + 15 security/correctness fixes + test suite)
+
+A full 14-domain adversarial review (workflow `wf_f53aa173-a88`; 62 candidate findings) drove three
+fix batches, all committed + pushed (`1340d9b`, `a1608d5`) with in-process regression tests (no live
+Zephyr / no testbox exercised):
+
+- **Batch 1 (security/integrity):** SSH command injection, framework-guard bypass, stored XSS
+  (new `html_sanitize.py`), secret leak (new `redact_llm_config`/`safe_session_dict` in `models.py`),
+  admin-reset wrong session-kind, export step-0 overwrite.
+- **Batch 2 (path-traversal + auth):** library-filename traversal, export `case_key` traversal,
+  agent-bridge job-ownership (session-bound `deliver`), CORS lockdown.
+- **Batch 3 (correctness):** unified 5 `llm.py` JSON-parse sites behind one string-aware
+  `extract_json_block` (fixes silent result-dropping from greedy regexes / braces-in-strings).
+
+Also this session (earlier): reconciled the stale backlog + cleared 4 quality items (in-page error
+banners, export refuse-to-write hardening, `/process` anchor fix), and stood up the **first backend
+test suite** (`tests/`, now 48 tests). See the **Security Posture** and **Testing** sections above,
+`ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md` (remaining ~40 candidate findings, verify before
+fixing), and `PROGRESS.md` for the per-batch detail.
 
 ## Session Summary (2026-07-20, later — LLM-config bug, prompt trims, health check, provenance/dry-run)
 

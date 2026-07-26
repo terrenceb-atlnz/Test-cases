@@ -1,5 +1,11 @@
 # PyTest Creator — Testing & Standardization Plan
 
+> **Security note (2026-07-27):** the adversarial review hardened files this plan covers —
+> `pt_exec.py` (SSH exec now `shlex`-quoted + framework-guard extended to redirection/interpreter/
+> `rsync`/`install`/`cp -t`) and `routers/pytest_create.py` (`/run` `setup` path metachar-validated;
+> generated library filename traversal fixed). See SERVER-README → *Security Posture* and
+> `ADVERSARIAL-REVIEW-BACKLOG.md`. No change to the flow/phases below.
+>
 > **Status: IN PROGRESS (updated 2026-07-22).** Author: Claude, at Terrence's direction.
 > v2 folded in Terrence's answers to the four open questions (§5, RESOLVED) and the
 > corpus evidence gathered to settle them.
