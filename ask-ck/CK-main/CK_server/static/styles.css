@@ -1151,6 +1151,27 @@ h2 {
   font-size: 12px;
   color: var(--text-secondary);
 }
+/* In-page status banner (success / warning / error) — replaces console-only + alert-only
+   surfacing for export/synthesis outcomes. Theme-aware via design tokens. */
+.status-banner {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-default);
+  border-left-width: 4px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  white-space: pre-wrap;
+}
+.status-banner .status-title { font-weight: 600; color: var(--text-primary); }
+.status-banner ul { margin: 6px 0 0 1.1rem; }
+.status-banner li { margin: 2px 0; }
+.status-banner.is-success { border-left-color: #16a34a; }
+.status-banner.is-warning { border-left-color: #d97706; }
+.status-banner.is-error   { border-left-color: #dc2626; }
+.status-banner.is-busy    { border-left-color: var(--border-default); }
 .atp-toolbar {
   display: flex;
   gap: 6px;

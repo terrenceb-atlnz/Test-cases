@@ -18,3 +18,29 @@ export function escapeHtml(str) {
 export function dataArgs(...args) {
   return escapeHtml(JSON.stringify(args));
 }
+
+/**
+ * Render a persistent, readable status banner into the element with id `elId`.
+ * Replaces console-only / alert-only surfacing so synthesis/export/run failures are
+ * visible in-page (backlog: Error/loading UX). Content is escaped; `items` render as a list.
+ *
+ * @param {string} elId  target element id (a <div class="status-banner">)
+ * @param {'success'|'warning'|'error'|'busy'|'clear'} kind
+ * @param {string} title one-line summary
+ * @param {string[]} [items] optional detail lines (e.g. validation issues)
+ */
+export function showStatus(elId, kind, title, items) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (kind === 'clear') {
+    el.className = 'status-banner hidden';
+    el.innerHTML = '';
+    return;
+  }
+  el.className = 'status-banner is-' + kind;
+  let html = '<span class="status-title">' + escapeHtml(title || '') + '</span>';
+  if (Array.isArray(items) && items.length) {
+    html += '<ul>' + items.map(function(i){ return '<li>' + escapeHtml(String(i)) + '</li>'; }).join('') + '</ul>';
+  }
+  el.innerHTML = html;
+}

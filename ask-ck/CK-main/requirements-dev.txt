@@ -1,0 +1,8 @@
+# Development-only dependencies (NOT needed to run the Ask CK server).
+# Install with:  pip install -r ask-ck/CK-main/requirements-dev.txt
+# The runtime deps live in requirements.txt; keep this file for test/CI tooling only.
+
+-r requirements.txt
+
+pytest>=8            # test runner for tests/  (run: .venv/bin/pytest -q tests)
+httpx>=0.27          # required by FastAPI TestClient for in-process endpoint tests

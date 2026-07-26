@@ -109,3 +109,7 @@ class ExportResponse(BaseModel):
     saved_to: Optional[str] = None
     saved_files: Optional[List[str]] = None
     message: Optional[str] = None
+    # True only when the drop-in bundle (the artefact that makes a case "Complete") was
+    # actually written. False when hard validation issues blocked the write — the client
+    # must surface `validation.issues` and NOT treat the case as Complete.
+    wrote_bundle: bool = False

@@ -151,21 +151,63 @@ async def process_page():
         except Exception:
             pass
 
+    def _base_slug(text: str) -> str:
+        """URL-safe heading base (lowercase, spaces→-, drop punctuation)."""
+        s = text.strip().lower()
+        s = re.sub(r'[^\w\s-]', '', s)
+        s = re.sub(r'\s+', '-', s)
+        return s.strip('-')
+
+    # GitHub-style *unique* heading ids: a slug repeated in the doc gets -1, -2, … so no two
+    # <h2> share an id (the source doc repeats "## Zephyr Cross-References (Step 3)" verbatim).
+    # A single shared counter is walked in document order and consumed by BOTH the h2-id pass
+    # and the nav-slug discovery, so the nav always links to the id its heading actually gets.
+    _slug_counts: dict = {}
+    def _unique_slug(text: str) -> str:
+        base = _base_slug(text)
+        n = _slug_counts.get(base, 0)
+        _slug_counts[base] = n + 1
+        return base if n == 0 else f"{base}-{n}"
+
+    # Discover the doc's own process-step headings ("## Step N: …") BEFORE HTML-escaping/replacing,
+    # so the in-page nav links to real heading anchors that exist on THIS page — not to wizard
+    # panels (which have no hash routing) and not by fragile full-heading-text ids. These are the
+    # *process* steps (Objective / testScript / Zephyr / ATPyLib), a different numbering from the
+    # UI's display-only Generator step labels — so we never conflate the two.
+    #
+    # Walk ALL h2 headings in document order through the SAME _unique_slug counter used by the
+    # h2-id pass below (also document order), capturing the slug assigned to each "Step N:" head.
+    # This guarantees nav slug == heading id even after de-duplication.
+    step_headings = []  # [(label, slug)]
+    _nav_counts: dict = {}
+    def _nav_slug(text: str) -> str:
+        base = _base_slug(text)
+        n = _nav_counts.get(base, 0)
+        _nav_counts[base] = n + 1
+        return base if n == 0 else f"{base}-{n}"
+    for m in re.finditer(r'^##\s+(.*)$', content, flags=re.MULTILINE):
+        heading = m.group(1).strip()
+        slug = _nav_slug(heading)
+        if re.match(r'^Step\s+\d+:', heading):
+            step_headings.append((heading, slug))
+
     # Simple markdown-to-HTML for headings, lists, links (no extra deps)
     html = content
     html = re.sub(r'^# (.*)$', r'<h1>\1</h1>', html, flags=re.MULTILINE)
-    html = re.sub(r'^## (.*)$', r'<h2 id="\1">\1</h2>', html, flags=re.MULTILINE)
+    html = re.sub(r'^## (.*)$', lambda m: f'<h2 id="{_unique_slug(m.group(1))}">{m.group(1)}</h2>', html, flags=re.MULTILINE)
     html = re.sub(r'^### (.*)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
     html = re.sub(r'^- (.*)$', r'<li>\1</li>', html, flags=re.MULTILINE)
     html = re.sub(r'(<li>.*</li>\n?)+', lambda m: '<ul>' + m.group(0) + '</ul>', html)
     html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', html)
     html = html.replace('\n\n', '<p></p>').replace('\n', '<br />')
 
-    # Add wizard deep link anchors and note
-    html = html.replace('Step 1', '<a href="/#step-1">Step 1</a>')
-    html = html.replace('Step 2', '<a href="/#step-2">Step 2</a>')
-    html = html.replace('Step 3', '<a href="/#step-3">Step 3</a>')
-    html = html.replace('Step 4', '<a href="/#step-4">Step 4 (Synthesis)</a>')
+    # Build the top nav from the headings actually present in the doc (label + real in-page anchor).
+    if step_headings:
+        nav_step_links = ' |\n        '.join(
+            f'<a href="#{slug}">{label.split(":")[0].strip()}</a>' for label, slug in step_headings
+        )
+    else:
+        nav_step_links = ''
 
     page = f"""
     <!doctype html>
@@ -184,10 +226,7 @@ async def process_page():
     <body>
       <div class="nav">
         <a href="/">← Back to Wizard</a> |
-        <a href="#Step 1">Step 1</a> |
-        <a href="#Step 2">Step 2</a> |
-        <a href="#Step 3">Step 3</a> |
-        <a href="#Step 4">Step 4 (Synthesis)</a>
+        {nav_step_links}
       </div>
       <div>{html}</div>
       <p style="margin-top:2rem; font-size:0.9em; color:#6b7280;">

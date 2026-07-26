@@ -132,13 +132,17 @@ All new server code lives under `ask-ck/CK-main/CK_server/`.
 
 ## Installation / Dependencies
 
-From the project root:
+Install the pinned dependency set (FastAPI, uvicorn, Jinja2, requests, python-multipart,
+pydantic, …) from `requirements.txt` — this is the supported way; the old ad-hoc
+`pip install fastapi uvicorn jinja2 requests` line understated what the server needs:
 
 ```bash
-python3 -m pip install --user fastapi uvicorn jinja2 requests
+pip install -r ask-ck/CK-main/requirements.txt
 ```
 
-(If using a real LLM provider you may need additional packages such as `litellm` or the official SDK.)
+`setup.sh` does this for you inside a repo-local `.venv` (see root `README.md` → Getting
+Started). If using a real LLM provider you may need additional packages such as `litellm`
+or the official SDK.
 
 ## Running the Server
 

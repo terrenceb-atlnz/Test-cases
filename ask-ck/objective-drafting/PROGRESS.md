@@ -4,6 +4,47 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27b) — Backlog reconciliation + 4 open items cleared + adversarial review
+
+**Focus: reconciled the stale §5/§8/§9 backlog against live code (5 items were already shipped),
+then implemented all four genuinely-open items and ran a 3-reviewer adversarial pass that found +
+fixed 4 real defects. Uncommitted at write time — Terrence commits himself.**
+
+- **Backlog reconciled (§5a/§5b/§8/§9).** Verified live: `requirements.txt` exists, load_case ATP
+  latency already fixed, `tool/` scripts already repathed, `ask-ck/` tracked+LFS, E2E smokes
+  superseded by Part 2A/2B → all moved to a struck **§5a Resolved**. SERVER-README's stale manual
+  `pip install` line repointed to `requirements.txt`.
+- **Item 3 — Process-page label drift (`main.py`).** `/process` no longer emits broken `/#step-N`
+  wizard deep-links or a `#Step N` nav bar that matched nothing. It now links the nav to the doc's
+  own `## Step N:` headings via GitHub-style slug ids that exist on the page. **Adversarial fix:**
+  the repeated `## Zephyr Cross-References (Step 3)` heading (×4) was producing duplicate `id`s
+  (pre-existing, but the slug change kept it) → added a shared document-order dedup counter
+  (`-1`/`-2`/…) consumed by BOTH the h2-id pass and the nav-slug discovery, so nav slug == heading id
+  is guaranteed (verified: 19 h2s, identical order, 0 duplicate ids).
+- **Item 2 — Output-generation hardening (`wizard.py::export`, `models.py`).** Export now **refuses
+  to write the drop-in bundle** (the artefact that marks a case Complete) when the payload fails hard
+  validation — previously it printed the issues and wrote anyway. New `ExportResponse.wrote_bundle`
+  flag. **Adversarial fix:** the blocked message is now **stale-bundle-aware** — if a prior successful
+  export left a bundle on disk the case is STILL Complete (and Push-to-Zephyr uses that older bundle),
+  so it no longer falsely claims "NOT Complete"; wording scoped to "no drop-in bundle written to
+  refined-cases/" (gaps/llm_config DB persistence before validation is real and acknowledged).
+- **Item 1 — Error/loading UX (`generator.js`, `dom-helpers.js`, `index.html`, `styles.css`).** New
+  shared `showStatus()` helper + `.status-banner` (success/warning/error/busy, theme-aware, escaped).
+  Export + both LLM synthesis steps now surface outcomes **in-page** (busy spinner text, blocked
+  reasons as a readable issue list, advisory warnings) instead of `alert()`/`console.warn` only.
+  **Adversarial fix:** `#export-status` moved from generated HTML into static `index.html` so status
+  calls can never silently no-op. **Reviewer cleared XSS** (title + items both escaped; validation
+  issues are static server strings). `main.js?v=` 24→26.
+- **Item 4 — Automated tests + CI (new `tests/`, `pytest.ini`, `requirements-dev.txt`, `tool/run_tests.sh`).**
+  First test suite: 14 tests (validator branch coverage, `/export` refuse-to-write via TestClient,
+  `/process` anchor correctness). Dev-only deps (`pytest`, `httpx`) in `requirements-dev.txt` (runtime
+  `requirements.txt` stays lean). `tool/run_tests.sh` runs guards + pytest in one command (the
+  `guard_*.py` idiom). Run: `PYTHONNOUSERSITE=1 .venv/bin/pytest -q` or `./tool/run_tests.sh`.
+- **Adversarial review (3 parallel reviewers, findings verified before fixing):** duplicate-id
+  (fixed), stale-bundle message (fixed), export-status silent-no-op (hardened), XSS (cleared, no
+  defect), unescaped nav label (latent-only, trusted file, noted). All guards green, 14/14 tests
+  green, `/health` 200, 0 duplicate ids on `/process`.
+
 ## Latest session (2026-07-27) — PyTest Creator D1/D3: fragment resolver boundaries + Py2→Py3 pre-translation
 
 **Focus: resolved the three open PyTest Creator decisions (D1/D2/D3, from the now-deleted
@@ -303,28 +344,52 @@ ask-ck/
 
 ## 5. What Is Not Yet Implemented (Priorities)
 
-### High Priority (Next Session Focus)
-1. **Manual E2E smoke on the facelift** — S  
-   - Browser pass: Generator Load → confirm 2/3/4 → synthesize 5/6 → export; Apply/Login from Configure panel; PyTest Cases isolation; theme toggle on new panels. (Automated checks passed: boot, endpoints, served HTML, JS syntax.)
-2. **Output generation hardening** — M  
-   - Edge cases: empty selections, thin ATP, re-export after edit; stricter pre-write validation vs real `refined-cases` exemplars; confirm first-step note + Gaps quality.
-3. **Real CLI smoke on full UI path** — S (0.25–0.5 session)  
-   - Grok + Claude live synthesis; Claude Team previously often only faked CLI.
-4. **Error handling + loading UX** — M  
-   - load_case ATP rank can be slow (LLM); clearer spinners/timeouts; surface synthesis/export errors in-page.
+> **Backlog reconciled 2026-07-27** against the live code — several long-standing rows
+> were already shipped and had gone stale. See **§5a Resolved since 2026-07-13** for the
+> struck items (kept for auditability); §5b is the genuinely-open backlog.
 
-### Medium Priority
-- **Design first real step of a new tool** (likely PyTest Creator → Creator, or Zephyr Templating → Info) (M).
-- `tool/` scripts (e.g. `upload_refined.py`, extract/build scripts) — verify/repath for `ask-ck/objective-drafting/` layout (S).
-- Process Reference page: full markdown + deep links; its hardcoded "Step 1..4" anchor text now drifts from the 1–6 sidebar labels (S–M).
-- `requirements.txt` / pyproject + simple setup (S).
+### 5a. Resolved since 2026-07-13 (verified live 2026-07-27)
+- ~~**Manual E2E smoke on the facelift** / **Real CLI smoke on full UI path**~~ — **superseded.**
+  The facelift has been in production use for weeks, and PyTest Creator Part 2A/2B drove a
+  real end-to-end walkthrough on live vLLM (fast + thinking) **and** Claude Haiku/Sonnet/Opus
+  (75 real LLM calls). The Generator flow + Configure-panel login are exercised every session.
+- ~~**load_case ATP rank is slow (LLM)**~~ — **fixed** (2026-07-23). The blocking
+  `analyze_atp_coverage` LLM call was removed from Load ([`wizard.py`](../CK-main/CK_server/routers/wizard.py) ~L757);
+  Load is now keyword-scored + instant (~64s → ~2.4s), LLM ranking is on-demand via the
+  ATPyLib step's "Suggest with LLM" button.
+- ~~**Repath/verify `tool/` scripts** (`upload_refined.py` etc.)~~ — **done.** `upload_refined.py`
+  is fully on the `ask-ck/objective-drafting/refined-cases/` layout and was used to push all
+  43 Complete cases to live Zephyr (2026-07-22c).
+- ~~**`requirements.txt` / setup**~~ — **exists** at `ask-ck/CK-main/requirements.txt`. (The
+  SERVER-README's manual `pip install fastapi uvicorn …` prose was stale and has been repointed.)
+- ~~**`ask-ck/` tree untracked / LFS patterns unconfirmed**~~ (was a §8 Known Issue) —
+  **obsolete.** 285 files tracked under `ask-ck/`; `data/zephyr_full/*.xml` resolves `filter: lfs`
+  and is LFS-listed.
+
+### 5b. Open backlog
+
+**Genuinely open — user-facing / quality** — *all four DONE 2026-07-27b (see the session entry above)*:
+1. ~~**Error handling + loading UX**~~ — **DONE.** In-page `.status-banner` on export + both LLM
+   synthesis steps (`showStatus`); load_case latency was already fixed (§5a).
+2. ~~**Output generation hardening**~~ — **DONE.** Export refuses to write a bundle that fails hard
+   validation (`wrote_bundle` flag; stale-bundle-aware messaging). *Remaining nice-to-have: broaden
+   validator exemplar coverage (thin ATP, empty selections) — low priority.*
+3. ~~**Process Reference page label drift**~~ — **DONE.** Nav links the doc's own `## Step N:`
+   headings via deduped slug ids; broken `/#step-N` / `#Step N` anchors removed.
+4. ~~**Automated tests + CI**~~ — **PARTLY DONE.** First test suite exists (`tests/`, 14 tests,
+   `pytest.ini`, `requirements-dev.txt`, `tool/run_tests.sh`). *Remaining: a `.github/workflows` CI
+   job to run `tool/run_tests.sh` on push — deferred (no CI runner wired for this repo yet).*
+
+**Feature work (not "polish")**
+- **Design first real step of a new tool** — M (Test Composer, or Zephyr Templating → Info).
+- **PyTest Creator Part 3a/3b** — offline LLM judging + first real tb470 execution; gated
+  on `configs/tb470.setup` + a stored testbox profile (Terrence-side physical prereq).
 - Server-side indexing for full jsonl/suites search quality (M).
 
 ### Lower / Future
 - Hash routing / deep links (refresh currently lands on Generator Cases) (S–M).
 - Multi-user auth (L).
 - Advanced LLM (critique loop, few-shot from past refined cases) (L).
-- Automated tests + CI (M).
 - One-command nginx setup (S–M).
 
 ---
@@ -359,34 +424,35 @@ ask-ck/
 ### Technical Debt
 - LLM parsing still regex/JSON fallback — could use stricter structured output later.
 - Full zephyr_cases.jsonl not fully indexed for search (keyword scan + slim_index scoring only).
-- No automated tests / requirements.txt.
+- No automated tests (no CI). `requirements.txt` now exists (`ask-ck/CK-main/`).
 - zrefs scoring ~1.5s over 45k slim_index — acceptable but not optimized.
-- load_case still runs ATP LLM ranking (latency); gaps no longer on load (good).
-- `tool/` scripts not yet verified against the 2026-07-13 restructure paths.
+- ~~load_case still runs ATP LLM ranking (latency)~~ — **fixed 2026-07-23** (removed from Load; on-demand only). gaps no longer on load (good).
+- ~~`tool/` scripts not yet verified against the 2026-07-13 restructure paths~~ — **done** (`upload_refined.py` repathed + used to push 43 cases).
 
 ### Known Issues / Limitations
 - Shared multi-tenant server pooling one CLI login is unsupported (per-user local host intended).
 - Grok CLI may still emit preamble; stripping helps but is imperfect.
-- GitHub: large sources must stay LFS in **all** history commits (use `git lfs migrate` if reintroducing big files). The `ask-ck/` tree is currently **untracked** — first commit after restructure should confirm LFS patterns still match the moved `data/zephyr_full/` files.
-- `/process` page anchor text ("Step 1..4") predates the 1–6 sidebar renumber; links were never live (no hash routing).
+- GitHub: large sources must stay LFS in **all** history commits (use `git lfs migrate` if reintroducing big files). ~~The `ask-ck/` tree is currently **untracked**~~ — **now tracked** (285 files; `data/zephyr_full/*.xml` resolves `filter: lfs` and is LFS-listed).
+- `/process` page anchor text ("Step 1..4") predates the 1–6 sidebar renumber; links were never live (no hash routing). *(Still open — see §5b item 3.)*
 - Some older session JSON may still hold stale Step 3 gap text; synth/export overwrites for Traceability.
 
 ---
 
 ## 9. Prioritized Backlog with Effort Estimates
 
+*(Reconciled 2026-07-27; the 4 quality items cleared 2026-07-27b — this table lists only open work.)*
+
 | Priority | Item | Effort | Notes |
 |----------|------|--------|-------|
-| High | Manual E2E smoke of facelift (browser) | S | Generator flow + Configure panel + PyTest isolation |
-| High | Output generation hardening | M | Post gaps-at-synth validation |
-| High | Real Grok+Claude E2E UI smoke | S | Provenance + refined-cases check |
-| High | Error/loading UX | M | Especially load_case + synthesize |
-| Medium | First real new-tool step (design + build) | M | PyTest Creator or Zephyr Templating |
-| Medium | Repath/verify `tool/` scripts | S | upload_refined.py etc. |
-| Medium | Process page + deep links | S–M | Fix step-label drift |
-| Medium | requirements.txt / setup | S | |
-| Medium | Full data indexing | M | |
-| Low | Hash routing, tests/CI, multi-user, advanced LLM | M–L | |
+| Medium | First real new-tool step (design + build) | M | Test Composer or Zephyr Templating |
+| Medium | PyTest Creator Part 3a/3b | M | Offline judging + tb470 exec; gated on `configs/tb470.setup` |
+| Medium | Full data indexing | M | zephyr_cases.jsonl search quality |
+| Low | CI job for `tool/run_tests.sh` | S | Test suite exists; just needs a `.github/workflows` runner |
+| Low | Validator exemplar breadth | S | Thin ATP / empty-selection edge cases in `validate_zephyr_payload` |
+| Low | Hash routing, multi-user, advanced LLM, nginx one-command | M–L | |
+
+**DONE 2026-07-27b:** Error/loading UX (in-page banners), Output-gen hardening (export refuse-to-write
++ `wrote_bundle`), Process-page drift (deduped heading-anchor nav), first automated test suite (14 tests).
 
 **Completed this session (2026-07-13, Claude)**:
 - Repo restructure support: `paths.py` + repath of data.py / wizard.py / main.py / run.sh (boot-verified)  

@@ -1,7 +1,7 @@
 // Objective / Test Case Generator wizard.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
-import { escapeHtml } from './dom-helpers.js';
+import { escapeHtml, showStatus } from './dom-helpers.js';
 import { renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
 import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
@@ -490,7 +490,7 @@ async function confirmStep(step) {
 
 async function synthesizeObjectives() {
   if (!S.currentSession) return alert('Load a case and confirm steps 2–4 first.');
-  const btnNote = 'Synthesizing objectives (LLM)…';
+  showStatus('objective-status', 'busy', 'Synthesizing objectives (LLM)… this can take a while on the Thinking model.');
   try {
     const res = await fetch('/api/wizard/synthesize_objectives', {
       method: 'POST',
@@ -503,11 +503,12 @@ async function synthesizeObjectives() {
     }
     const data = await res.json();
     S.currentSession = data.session;
+    showStatus('objective-status', 'clear');
     renderObjectiveResult();
     updateUI();
     goToStep(4);
   } catch (e) {
-    alert('Objective synthesis failed: ' + e);
+    showStatus('objective-status', 'error', 'Objective synthesis failed: ' + e);
   } finally {
     recordLLMDebug(document.getElementById('obj-synth-btn'));
   }
@@ -520,6 +521,7 @@ async function synthesizeSteps() {
     goToStep(4);
     return;
   }
+  showStatus('steps-status', 'busy', 'Synthesizing test steps (LLM)… this can take a while on the Thinking model.');
   try {
     const res = await fetch('/api/wizard/synthesize_steps', {
       method: 'POST',
@@ -533,14 +535,19 @@ async function synthesizeSteps() {
     const data = await res.json();
     S.currentSession = data.session;
     const synth = data.synthesized || {};
-    if (synth.validation && synth.validation.valid === false) {
-      console.warn('Steps validation issues:', synth.validation.issues);
+    const v = synth.validation || {};
+    if (v.valid === false) {
+      showStatus('steps-status', 'warning',
+        'Steps synthesized, but validation flagged issues to review before export:',
+        (v.issues && v.issues.length) ? v.issues : ['validation failed']);
+    } else {
+      showStatus('steps-status', 'clear');
     }
     renderStepsResult();
     updateUI();
     goToStep(5);
   } catch (e) {
-    alert('Test step synthesis failed: ' + e);
+    showStatus('steps-status', 'error', 'Test step synthesis failed: ' + e);
   } finally {
     recordLLMDebug(document.getElementById('steps-synth-btn'));
   }
@@ -553,6 +560,7 @@ export async function synthesize() {
 
 async function exportBundle() {
   if (!S.currentSession) return;
+  showStatus('export-status', 'busy', 'Exporting… (rendering bundle + coverage gaps)');
   try {
     const res = await fetch('/api/wizard/export', {
       method: 'POST',
@@ -565,32 +573,38 @@ async function exportBundle() {
     }
     const data = await res.json();
     const v = data.validation || {};
-    if (v.valid === false) {
-      console.warn('Export validation issues:', v.issues);
+
+    // Backend now REFUSES to write the drop-in bundle when hard validation issues exist
+    // (a broken bundle must not silently promote a case to Complete). Use the server's
+    // message as the headline — it is stale-bundle-aware (a case exported before is STILL
+    // Complete on disk even though THIS export wrote nothing), so we must not hard-code
+    // "NOT Complete" here. Show the issues list below it. Do NOT refresh the dropdown.
+    if (data.wrote_bundle === false) {
+      const headline = data.message
+        ? data.message.split('\n')[0]
+        : 'Export blocked — no bundle written.';
+      showStatus('export-status', 'error', headline,
+        (v.issues && v.issues.length) ? v.issues : ['validation failed']);
+      return;
     }
 
-    // Primary behaviour: server writes drop-in artefacts under refined-cases/.
-    // No browser Downloads prompts (those were leftover convenience, not the intended path).
     const savedTo = data.saved_to || ('refined-cases/<Group>/' + (S.currentKey || 'case'));
     const files = (data.saved_files && data.saved_files.length)
       ? data.saved_files.join(', ')
       : 'traceability.md, zephyr_payload.json, ' + (S.currentKey || 'case') + '-session.json';
-    let msg = 'Export complete — saved on the server (not browser Downloads).\n\n'
-      + 'Path:\n  ' + savedTo + '/\n\n'
-      + 'Files:\n  ' + files + '\n\n'
-      + 'These are drop-in for the refined-cases layout and upload tooling.';
-    if (data.message && !data.saved_to) {
-      msg = data.message;
-    }
-    if (v.valid === false) {
-      msg += '\n\nValidation reported issues (see browser console).';
-    }
-    alert(msg);
+
+    // Wrote successfully. Advisory warnings (if any) shown as a warning banner, else success.
+    const warnings = (v.warnings && v.warnings.length) ? v.warnings : null;
+    showStatus('export-status', warnings ? 'warning' : 'success',
+      'Export complete — saved on the server at ' + savedTo + '/ (' + files + '). '
+      + 'Drop-in for refined-cases + upload tooling.'
+      + (warnings ? ' Advisory warnings:' : ''),
+      warnings);
 
     // Case may have moved into Complete — refresh dual dropdowns
     try { await refreshCaseSelects(S.currentKey); } catch (_) {}
   } catch (e) {
-    alert('Export failed: ' + e);
+    showStatus('export-status', 'error', 'Export failed: ' + e);
   } finally {
     recordLLMDebug(null);   // export synthesizes coverage-gaps (LLM) — footer only
   }

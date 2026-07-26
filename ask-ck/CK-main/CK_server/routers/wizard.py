@@ -2073,6 +2073,46 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     saved_to = None
     saved_files: List[str] = []
     export_message = ""
+    wrote_bundle = False
+
+    # HARDENING (backlog: output-generation): the drop-in bundle is exactly what marks a case
+    # "Complete" (refined-cases/**/zephyr_payload.json). If the payload fails hard validation,
+    # refuse to write it — a silently-broken bundle promoting a case to Complete is the failure
+    # mode this guards. Warnings do NOT block (they're advisory). The client is handed the
+    # validation detail so it can show WHY nothing was written.
+    if not validation.get("valid"):
+        issues = validation.get("issues") or ["unknown validation failure"]
+        # Be precise about state (adversarial-review findings): the guard only prevents
+        # WRITING a new/overwritten drop-in bundle — it does not remove one already on disk.
+        # A case that was exported successfully before is STILL Complete (Complete is keyed
+        # off refined-cases/**/zephyr_payload.json existing), and push_to_zephyr operates on
+        # that on-disk bundle. So don't claim "NOT Complete" unconditionally; say what's true.
+        stale_bundle_exists = _refined_payload_path(case_key) is not None
+        if stale_bundle_exists:
+            complete_note = (
+                "A previously-exported bundle is still on disk, so this case remains marked "
+                "Complete and Push-to-Zephyr would use that OLDER bundle. This export did NOT "
+                "overwrite it. Fix the issues and re-export to refresh it."
+            )
+        else:
+            complete_note = "No bundle was written, so the case is NOT marked Complete."
+        export_message = (
+            "Export blocked — the payload did not pass validation, so no drop-in bundle was "
+            "written to refined-cases/. " + complete_note + " Issues:\n  - "
+            + "\n  - ".join(issues)
+        )
+        print(f"[export] BLOCKED for {case_key} (stale_bundle={stale_bundle_exists}): {issues}")
+        return ExportResponse(
+            traceability_md=traceability_md,
+            zephyr_payload=zephyr_payload,
+            session_json=session_out,
+            validation=validation,
+            saved_to=None,
+            saved_files=None,
+            message=export_message,
+            wrote_bundle=False,
+        )
+
     try:
         group = _get_refined_group(case_key, data)
         # Post-restructure (2026-07-13) refined-cases live under
@@ -2097,6 +2137,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             saved_to = str(target_dir.relative_to(ASKCK_ROOT.parent))
         except ValueError:
             saved_to = str(target_dir)
+        wrote_bundle = True
         export_message = f"Saved drop-in bundle to {saved_to}/"
         print(f"[export] {export_message}")
     except Exception as e:
@@ -2112,6 +2153,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         saved_to=saved_to,
         saved_files=saved_files or None,
         message=export_message or None,
+        wrote_bundle=wrote_bundle,
     )
 
 
