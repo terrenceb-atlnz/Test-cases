@@ -782,13 +782,17 @@ def _vector_hits(entity: str, qvec: List[float], k: int = 200) -> List[Tuple[str
 
 
 def _rrf_merge(keyword_rows: List[dict], vector_hits: List[Tuple[str, float]],
-               id_key: str, hydrate, limit: int, k: int = 60) -> List[dict]:
+               id_key: str, hydrate, limit: int, k: int = 60,
+               keep_ids: Optional[set] = None) -> List[dict]:
     """Reciprocal Rank Fusion of a keyword result list and a vector hit list.
 
     Keyword rows keep their formula scores; vector-only rows are hydrated via
     `hydrate(id, cos_sim)` and scored min(0.95, 0.35 + 0.5*cos_sim) with a
     'Semantic match (cos N.NN)' justification (source='search') so the app.js
-    merge keeps working. Ordering is by fused RRF."""
+    merge keeps working. Ordering is by fused RRF.
+
+    `keep_ids` are pinned: always returned (re-scored) regardless of where they fuse,
+    matching the keyword layer's contract."""
     rrf: Dict[str, float] = {}
     kw_by_id: Dict[str, dict] = {}
     for rank, row in enumerate(keyword_rows):
@@ -813,11 +817,29 @@ def _rrf_merge(keyword_rows: List[dict], vector_hits: List[Tuple[str, float]],
             row["source"] = "search"
         row["rrf"] = round(score, 6)
         merged.append(row)
-    return merged[:limit]
+    # Pinned rows (the client's current pool) must ALWAYS come back, re-scored — that is
+    # the keep_ids contract the keyword layer implements with a two-pass emit
+    # (search_testlink:476-485). This used to be a plain `merged[:limit]`, so a kept item
+    # that fused low was silently dropped from the pool the moment the user re-searched.
+    # Mirror the keyword layer: emit pinned first, then fill with the rest up to `limit`.
+    keep_ids = keep_ids or set()
+    if not keep_ids:
+        return merged[:limit]
+    out = [r for r in merged if r.get(id_key) in keep_ids]
+    seen = {r.get(id_key) for r in out}
+    fresh = 0
+    for r in merged:
+        if r.get(id_key) in seen:
+            continue
+        out.append(r)
+        fresh += 1
+        if fresh >= limit:
+            break
+    return out
 
 
 def _hybrid(entity: str, q: str, keyword_rows: List[dict], id_key: str,
-            hydrate, limit: int) -> List[dict]:
+            hydrate, limit: int, keep_ids: Optional[set] = None) -> List[dict]:
     if not HAS_VEC or not (q or "").strip():
         return keyword_rows
     try:
@@ -828,7 +850,7 @@ def _hybrid(entity: str, q: str, keyword_rows: List[dict], id_key: str,
     hits = _vector_hits(entity, qvec, k=200)
     if not hits:
         return keyword_rows
-    return _rrf_merge(keyword_rows, hits, id_key, hydrate, limit)
+    return _rrf_merge(keyword_rows, hits, id_key, hydrate, limit, keep_ids=keep_ids)
 
 
 def search_zephyr_hybrid(q: str, case_key: str = "", exclude_keys: Optional[set] = None,
@@ -850,7 +872,7 @@ def search_zephyr_hybrid(q: str, case_key: str = "", exclude_keys: Optional[set]
                 "description": r["title"], "status": r["status"],
                 "has_objective": bool(r["has_objective"]), "num_steps": r["num_steps"],
                 "labels": _json(r["labels"], [])}
-    return _hybrid("zephyr", q, kw, "key", hydrate, limit)
+    return _hybrid("zephyr", q, kw, "key", hydrate, limit, keep_ids=keep_ids)
 
 
 def search_testlink_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[dict]:
@@ -862,7 +884,7 @@ def search_testlink_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 
             return None
         return {"id": r["id"], "title": r["title"] or "",
                 "description": r["summary"] or r["title"] or "", "snippet": r["title"] or ""}
-    return _hybrid("testlink", q, kw, "id", hydrate, limit)
+    return _hybrid("testlink", q, kw, "id", hydrate, limit, keep_ids=keep_ids)
 
 
 def search_atp_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[dict]:
@@ -875,7 +897,7 @@ def search_atp_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -
         short_title, full_desc = _split_atp_title_description(r["description"] or "", tid)
         return {"id": r["tid"], "description": full_desc, "title": short_title,
                 "suite": r["suite_name"] or ""}
-    return _hybrid("atp", q, kw, "id", hydrate, limit)
+    return _hybrid("atp", q, kw, "id", hydrate, limit, keep_ids=keep_ids)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

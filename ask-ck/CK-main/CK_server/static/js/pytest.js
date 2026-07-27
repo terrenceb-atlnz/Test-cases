@@ -1017,9 +1017,17 @@ async function ptPollRun(runId) {
   ptRenderRuns();
   document.getElementById('pt-run-log').textContent = d.log_tail || '';
   ptStatusEl('pt-run-status').textContent = `Run ${runId}: ${d.run.status}`;
-  if (['done', 'error', 'stale'].includes(d.run.status)) {
+  // Stop on a terminal status, OR when the server says nothing is running for this
+  // case — a run orphaned by a restart would otherwise poll forever. The server now
+  // re-marks those 'stale' (_sweep_stale_runs), so this is belt-and-braces against any
+  // other way `active` and `status` can disagree.
+  if (['done', 'error', 'stale'].includes(d.run.status) || d.active === false) {
     clearInterval(ptRunPoll);
     ptRunPoll = null;
+    if (d.active === false && !['done', 'error', 'stale'].includes(d.run.status)) {
+      ptStatusEl('pt-run-status').textContent =
+        `Run ${runId}: interrupted (no longer running on the server)`;
+    }
   }
 }
 

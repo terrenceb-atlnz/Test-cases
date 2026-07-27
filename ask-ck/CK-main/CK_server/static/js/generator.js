@@ -491,15 +491,35 @@ async function confirmStep(step) {
   else if (step === 2) body = { selections: chosenSelections('zephyr') };
   else if (step === 3) body = { selections: chosenSelections('atp') };
 
-  const res = await fetch(`/api/wizard/confirm_step/${S.currentKey}/${step}`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-  S.currentSession = data.session;
+  let data;
+  try {
+    const res = await fetch(`/api/wizard/confirm_step/${encodeURIComponent(S.currentKey)}/${step}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    // Without this check an error response was assigned straight into state:
+    // `S.currentSession = data.session` set it to undefined, silently wiping the
+    // in-memory session while the UI carried on as if the confirm had worked.
+    data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+  } catch (e) {
+    alert(`Confirm failed: ${e.message || e}`);
+    return;
+  }
+  // Only adopt a payload that actually carries a session, so a malformed 200 cannot
+  // clobber it either.
+  if (data && data.session) S.currentSession = data.session;
   updateUI();
-  if (data.can_synthesize) alert('All reviews confirmed. Go to Step 5 (Objective Synthesis).');
+  // Batch A: confirming with CHANGED selections invalidates the downstream objective
+  // and steps. Say so — otherwise the badges flip to "Stale" with no explanation.
+  const inv = data && data.invalidated;
+  if (inv && (inv.step4 || inv.step5)) {
+    alert('Selections changed — the objective and test steps no longer match them.\n'
+        + 'They are kept but marked Stale; re-synthesize or re-confirm them.');
+  } else if (data && data.can_synthesize) {
+    alert('All reviews confirmed. Go to Step 5 (Objective Synthesis).');
+  }
 }
 
 async function synthesizeObjectives() {

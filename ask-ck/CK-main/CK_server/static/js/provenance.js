@@ -80,7 +80,12 @@ async function provRefresh() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...p.bodyFn(), dry_run: true }),
     });
-    const d = await res.json();
+    // An error body is JSON too, so parsing alone proves nothing: a 400/404/500 used
+    // to fall through and render as a green "(empty)" success, discarding the
+    // actionable `detail`. Same idiom as admin.js:41 — the throw lands in the catch
+    // below, which already styles the status red and leaves ok=false for the flash.
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.detail || ('HTTP ' + res.status));
     const prov = d.provenance || d;
     p.prompt = prov.prompt || '';
     p.provider = prov.provider || p.provider;

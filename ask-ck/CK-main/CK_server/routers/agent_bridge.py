@@ -14,12 +14,21 @@ from agent_jobs import registry
 router = APIRouter(tags=["agent-bridge"])
 
 
+# Browser session ids are short generated tokens; anything longer is not a real tab.
+_MAX_SESSION_ID_LEN = 128
+
+
 def _resolve_session(header_session: str, param_session: str) -> str:
     """Prefer the per-tab X-CK-Session header (set by the browser's fetch wrapper) as
     the authoritative session identity; fall back to an explicit param only when the
     header is absent. This binds job claim/deliver to the requesting tab's own session
-    instead of an arbitrary caller-supplied value (adversarial-review finding)."""
-    return (header_session or param_session or "").strip()
+    instead of an arbitrary caller-supplied value (adversarial-review finding).
+
+    The value is still client-supplied and becomes a dict key in the job registry, so
+    cap its length — an unbounded header would let a caller pin arbitrarily large keys
+    in memory between gc runs."""
+    value = (header_session or param_session or "").strip()
+    return value[:_MAX_SESSION_ID_LEN]
 
 
 @router.get("/next")

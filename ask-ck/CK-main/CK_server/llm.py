@@ -426,6 +426,35 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             for block in data.get("content", []):
                 if block.get("type") == "text":
                     content += block.get("text", "")
+            # Mirror the OpenAI branch's guards (see below). Without them this path
+            # reported success for two real failures: an empty content array (or one
+            # holding only thinking blocks) returned content="" with error unset, and a
+            # response truncated at the max_tokens cap was accepted as complete — so
+            # downstream JSON parsing failed and looked like "the LLM found nothing".
+            stop_reason = data.get("stop_reason")
+            cap = max_tokens or 2000
+            if not content:
+                if stop_reason == "max_tokens":
+                    raise ValueError(
+                        "model hit the token cap during reasoning and returned no "
+                        f"answer (stop_reason=max_tokens, max_tokens={cap}). "
+                        "Raise max_tokens or shorten the prompt."
+                    )
+                # Thinking-only response: prefer its text over failing outright.
+                content = "".join(
+                    b.get("thinking", "") or b.get("text", "")
+                    for b in data.get("content", []) if b.get("type") != "text"
+                )
+                if not content:
+                    raise ValueError(
+                        f"provider returned an empty completion (stop_reason={stop_reason})."
+                    )
+            elif stop_reason == "max_tokens":
+                raise ValueError(
+                    "model output was truncated at the token cap "
+                    f"(stop_reason=max_tokens, max_tokens={cap}); the answer is "
+                    "incomplete. Raise max_tokens or reduce the prompt size."
+                )
             print(f"[LLM CLAUDE via {auth_method}] model={model}")
             print("[LLM CLAUDE] Prompt (first 300):", prompt[:300])
             print("[LLM CLAUDE] Response (first 300):", content[:300], "...")

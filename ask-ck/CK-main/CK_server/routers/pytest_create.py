@@ -259,6 +259,31 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
         sess.step8 = {**sess.step8, "validated": False}
 
 
+_LIVE_RUN_STATUSES = ("queued", "connecting", "uploading", "running")
+
+
+def _sweep_stale_runs(sess: PtSession) -> bool:
+    """Re-mark runs orphaned by a server restart as 'stale'. Returns True if changed.
+
+    A run row persists its last status, but the process that owned it does not survive
+    a restart. This sweep used to live only inside load_case, so the polling endpoint
+    (run_status) kept reporting the persisted 'running' forever — the UI spinner never
+    resolved for anyone who did not reload the case first. Shared so every reader of
+    step7.runs sees the same truth.
+    """
+    runs = (sess.step7 or {}).get("runs") or []
+    if not runs:
+        return False
+    changed = False
+    for r in runs:
+        if r.get("status") in _LIVE_RUN_STATUSES and not run_manager.is_running(sess.key):
+            r["status"] = "stale"
+            changed = True
+    if changed:
+        sess.step7 = {**sess.step7, "runs": runs}
+    return changed
+
+
 def _collapse_step_text(step: dict) -> dict:
     """Collapse whitespace in a sequence step's action/verify text (in place).
 
@@ -1361,14 +1386,7 @@ async def load_case(key: str, request: Request):
     if not sess:
         group, payload, trace = _find_refined_case(key)
         sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
-    # Mark runs orphaned by a restart
-    runs = (sess.step7 or {}).get("runs") or []
-    for r in runs:
-        if r.get("status") in ("queued", "connecting", "uploading", "running") \
-                and not run_manager.is_running(key):
-            r["status"] = "stale"
-    if runs:
-        sess.step7 = {**sess.step7, "runs": runs}
+    _sweep_stale_runs(sess)
     changed = _apply_workspace_llm(sess)
     pt_sessions[key] = sess
     _pt_persist(sess)
@@ -2166,6 +2184,10 @@ async def run_script(key: str, body: dict = Body(...)):
 @router.get("/run_status/{key}/{run_id}")
 async def run_status(key: str, run_id: str, tail: int = 40):
     sess = _pt_get(key)
+    # Re-mark restart-orphaned runs here too, not just in load_case — otherwise this
+    # endpoint reports the persisted 'running' forever and the UI polls indefinitely.
+    if _sweep_stale_runs(sess):
+        _pt_persist(sess)
     runs = (sess.step7 or {}).get("runs") or []
     run = next((r for r in runs if r.get("run_id") == run_id), None)
     if not run:

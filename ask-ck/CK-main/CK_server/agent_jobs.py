@@ -37,6 +37,7 @@ class AgentJobRegistry:
         self._inflight: Dict[str, _Job] = {}           # job_id -> job awaiting a result
         self._session_seen: Dict[str, float] = {}      # session_id -> last poll time
         self._max_idle = max_idle_seconds
+        self._last_gc = time.time()
 
     # --- producer side (LLM caller thread) ---------------------------------
     def submit(self, session_id: str, prompt: str, model: str, timeout: int) -> dict:
@@ -70,10 +71,30 @@ class AgentJobRegistry:
         with self._lock:
             self._session_seen[session_id] = time.time()
             q = self._queues.get(session_id)
-            if not q:
-                return None
-            job = q.popleft()
-            return job.id, job.prompt, job.model
+            if q is not None and not q:
+                # Drop the empty deque rather than leaving an entry keyed by a
+                # client-supplied session header.
+                self._queues.pop(session_id, None)
+            job = q.popleft() if q else None
+        # gc() existed but had ZERO call sites, so _queues/_session_seen grew for the
+        # lifetime of the process, keyed by an unvalidated header. Drive it from the
+        # long-poll (the one call that runs continuously), rate-limited so it costs
+        # nothing per request. Outside the lock — gc() takes it itself.
+        self._maybe_gc()
+        if job is None:
+            return None
+        return job.id, job.prompt, job.model
+
+    def _maybe_gc(self) -> None:
+        """Run gc() at most once per half-idle-window."""
+        interval = max(60, self._max_idle // 2)
+        now = time.time()
+        with self._lock:
+            due = (now - self._last_gc) >= interval
+            if due:
+                self._last_gc = now
+        if due:
+            self.gc()
 
     def deliver(self, job_id: str, content: str, error: bool, usage: Optional[dict] = None,
                 total_cost_usd: Optional[float] = None, session_id: Optional[str] = None) -> bool:
