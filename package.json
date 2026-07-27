@@ -5,11 +5,16 @@
   "description": "Playwright E2E harness for Ask-CK (sparingly-run golden-path gate). See ask-ck/ck-facelift/PLAN-playwright-e2e.md.",
   "type": "module",
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report e2e/.report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0"
+    "@playwright/test": "^1.62.0",
+    "@testing-library/dom": "^10.4.1",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.10"
   }
 }

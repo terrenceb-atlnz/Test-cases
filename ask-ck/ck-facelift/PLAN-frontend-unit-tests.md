@@ -1,8 +1,81 @@
 # PLAN — Frontend unit tests (Vitest + Testing Library, jsdom tier)
 
-**Status:** NOT STARTED — design agreed, parked for review. No code, no deps installed yet.
-**Captured:** 2026-07-27 (by Claude, from a design discussion with Terrence).
-**Decision on tool is settled (see below); implementation is future work pending Terrence's go-ahead.**
+**Status:** ✅ BUILT + PASSING (2026-07-27) — 34 tests / 3 spec files green in ~1.5s.
+Tests live in top-level `js-tests/` (separate from the module tree, by decision). Run `npm test`.
+
+## What was built (2026-07-27)
+
+- Deps (devDeps in the shared `package.json`): `vitest`, `jsdom`, `@testing-library/dom`.
+- `vitest.config.js` — `environment: 'jsdom'`, `include: ['js-tests/**/*.spec.js']`.
+- `package.json` scripts: `"test": "vitest run"`, `"test:watch": "vitest"`.
+- `js-tests/helpers/fixture-dom.js` — `mountFromIndex(...ids)` lifts REAL container markup out
+  of `index.html` into jsdom; **throws if an id is missing** (drift-detection — proven by a
+  dedicated test). `resetDom()` clears the DOM + the `window.*` candidate buses between specs.
+- `js-tests/dom-helpers.spec.js` (15) — `setButtonBusy` (disable/spinner/label-stash/restore/
+  double-click guard/null-safe), `flashButtonDone` (is-done/is-error + auto-clear via fake
+  timers), `showStatus` (kind class + HTML escaping + clear), `escapeHtml`/`truncateText`.
+- `js-tests/tables.spec.js` (10) — the three render fns: row-per-candidate, **hides
+  already-chosen ids** (E2E-proven), all-chosen note, empty state, HTML-escaping, chosen-table
+  insertion order, + the fixture drift-detection test.
+- `js-tests/chosen.spec.js` (9) — `chooseByIds` (append/dedup/**delta growth**/synthesized
+  record/falsy-id skip), `restoreChosenFromSelections` (order-sort / list-order fallback /
+  non-array tolerance), `chosenSelections` payload shape.
+
+Failure output verified human-readable: failing test name + Expected/Received diff + source
+frame with the offending line marked (the reason Vitest was chosen over Jasmine for this tier).
+
+## KNOWN SCOPE GAP — the merge functions are not yet unit-tested
+
+`mergeTestLinkCandidates` / `mergeZephyrCandidates` / `mergeATPCandidates` (`db-search.js`) hold
+the dedup + description-preference + score-re-sort logic, but they are **module-private (not
+exported)**. Testing them in isolation needs EITHER a one-line `export` added to `db-search.js`
+(a production change — deliberately NOT made while this work was uncommitted) OR testing them
+through the exported search handlers with a stubbed `fetch`. **Decision deferred to Terrence.**
+Their *observable outcome* (merged results render in the top table, sorted) is already covered
+indirectly by the Playwright golden-path + the `tables.js` render specs.
+
+## Glue (was deferred — now decided)
+
+`npm test` added to the shared `package.json`. Whether to also chain it into `tool/run_tests.sh`
+beside pytest+guards for a single gate: **still open** — the two commands (`npm test`, `pytest`)
+run independently today.
+
+---
+
+### Original "READY TO BUILD" notes (retained)
+
+**Captured:** 2026-07-27 (by Claude, from a design discussion with Terrence). Updated same day
+after the Playwright E2E landed (commit `4f990ea`) — this layer is now derived FROM that
+known-good reference (see "Derived from the E2E" below).
+
+## Build decisions settled (2026-07-27)
+
+1. **Tool:** Vitest + jsdom + `@testing-library/dom` (rationale unchanged, below).
+2. **Fixture DOM:** **extract real fragments from `index.html`** into jsdom per-spec (NOT
+   hand-written stubs). A container-id rename in `index.html` then breaks the spec — desirable
+   drift-detection, same discipline as the E2E's grounded selectors. A small helper reads
+   `static/index.html`, slices the needed container(s) by id, and injects into `document.body`.
+3. **First spec:** `dom-helpers.js` (`setButtonBusy` / `flashButtonDone` / `showStatus`) — zero
+   fixtures needed, pure DOM, regression-locks THIS session's LLM-button UX work, and is the
+   fastest path to a green spec that demonstrates Vitest+TL output quality.
+
+## Derived from the E2E (known-good reference → cheap exhaustive unit coverage)
+
+The Playwright golden-path (`PLAN-playwright-e2e.md`, `e2e/golden-path.spec.js`) proved these
+behaviours against the real app. The Vitest layer re-asserts the same logic exhaustively in
+jsdom (every kind, every dedup/merge edge) with no browser/server:
+
+| E2E ground truth (proven) | Vitest unit spec (jsdom, no server) |
+|---|---|
+| Choosing grows the chosen table by the DELTA ticked; in-progress cases pre-load chosen rows | `chosen.js` `chooseSelected(kind)` moves checked → chosen bus; `restoreChosenFromSelections` seeds pre-existing. Assert counts/dedup on pure `S.` state. |
+| Search results land in the TOP table, MERGED not replaced | `mergeTestLinkCandidates`/`Zephyr`/`ATP` (`db-search.js`) — feed two batches, assert dedup + pool re-score. |
+| Top table HIDES already-chosen candidates | `tables.js` render fns filter against `chosenIdSet` — assert a chosen id is absent from rendered top-table HTML. |
+| Export banner flips to `is-error` + block headline | `showStatus('export-status','error',…)` → `status-banner is-error` + escaped title. |
+| Buttons show busy→done feedback (this session) | `setButtonBusy`/`flashButtonDone` — the FIRST spec. |
+
+**Original tool-decision + scope notes retained below.**
+
+---
 
 ---
 
