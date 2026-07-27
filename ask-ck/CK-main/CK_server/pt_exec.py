@@ -10,6 +10,7 @@ Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-crea
 """
 
 import json
+import os
 import re
 import shlex
 import threading
@@ -320,6 +321,26 @@ def failure_excerpts(text: str, parsed: Dict[str, Any], context: int = 15,
 def _connect(profile: dict):
     import paramiko
     client = paramiko.SSHClient()
+    # Trust-on-first-use, not trust-anything. Loading the operator's known_hosts FIRST
+    # means a testbox we have seen before is PINNED: if its host key changes — which is
+    # what a MITM on the lab network looks like — paramiko raises instead of silently
+    # accepting the impostor. AutoAddPolicy still handles genuinely new hosts, so no
+    # existing profile breaks and there is no prompt to answer.
+    #
+    # This matters because the connection is OUTBOUND to a testbox across the lab
+    # network: its exposure is independent of the web UI being single-user on localhost.
+    # A MITM otherwise receives the SFTP-uploaded test files and the `sudo` command
+    # stream, plus a reusable credential whenever the profile uses password auth.
+    #
+    # Opt out with CK_SSH_TRUST_ANY=1 (e.g. a reimaged testbox whose key legitimately
+    # changed — better still, remove its stale known_hosts line).
+    if os.getenv("CK_SSH_TRUST_ANY") != "1":
+        try:
+            client.load_system_host_keys()
+        except Exception as e:
+            # A malformed/unreadable known_hosts must not block a run; we simply fall
+            # back to today's accept-anything behaviour rather than failing the connect.
+            print(f"Warning: could not load known_hosts ({e}); host keys unpinned.")
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     kwargs = {
         "hostname": profile["host"],

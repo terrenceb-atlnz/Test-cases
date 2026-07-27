@@ -570,9 +570,29 @@ the boundaries so untrusted/LLM-derived input can't escape its lane even so:
   rejects a `job_id` that belongs to a different session, and `/next` binds to the header (query param
   is a legacy fallback). **CORS** is locked to a localhost allowlist (`CK_ALLOWED_ORIGINS` to widen).
 
-Still deliberately *accepted* for the single-user model (documented, not bugs): the server binds
-`0.0.0.0` with no auth, and paramiko uses `AutoAddPolicy` (no SSH host-key verification). Harden these
-before any shared/exposed deployment.
+**Network posture (revised 2026-07-27g).** The server still has **no authentication** — that part of
+the single-user model is unchanged and remains the reason not to expose it. What changed is that the
+defaults now *match* that model instead of quietly contradicting it:
+
+- **Binds `127.0.0.1` by default** (`run.sh`, and the `__main__` entrypoint). Exposure is now a
+  deliberate `HOST=0.0.0.0 ./ask-ck/CK-main/run.sh`. Previously the default was `0.0.0.0`, so a
+  documented "localhost" tool was in fact LAN-reachable — verified live during the review: an
+  unauthenticated `POST /api/wizard/push_to_zephyr/{key}` answered 200 from the box's LAN address.
+  `dry_run` is a plain query param defaulting `true`, so flipping it is one character; CORS is not a
+  mitigation (it constrains browsers, not `curl`) and the UI's `confirm()` is client-side only.
+- **`push_to_zephyr` no longer hardcodes `--force`.** It did, which disabled `upload_refined.py`'s own
+  last safety net (*"already appears refined in Zephyr — SKIP"*) on **every** push, so any push could
+  overwrite an already-refined live case. Force is now opt-in per request (`?force=true`); the UI does
+  not send it.
+- **SSH host keys are pinned trust-on-first-use.** `load_system_host_keys()` runs before
+  `AutoAddPolicy`, so a *known* testbox whose key changes — what a MITM looks like — now raises instead
+  of being silently accepted. New hosts still connect with no prompt. Escape hatch for a legitimately
+  reimaged box: `CK_SSH_TRUST_ANY=1`. This item never really fitted the "localhost" rationale anyway:
+  the connection is **outbound** to a lab testbox, so its exposure is independent of the web UI being
+  single-user.
+
+Still accepted, unchanged: **no authentication on any endpoint.** Add auth (and TLS) before any
+shared or exposed deployment — `HOST=0.0.0.0` alone is not a safe configuration.
 
 ## Testing
 

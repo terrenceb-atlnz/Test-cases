@@ -2,20 +2,18 @@
 
 > ## ✅ COMPLETE — historical record (closed 2026-07-27g)
 >
-> **All 62 candidate findings are adjudicated.** Every real defect is fixed; the only items
-> not actioned are the two accepted-risk security rows in §4, which need an owner decision
-> rather than a patch. This file is now a `ck-facelift` historical record — the reasoning
-> behind each verdict, kept so a future session does not re-investigate settled ground.
+> **All 62 candidate findings are resolved.** Nothing is outstanding. This file is now a
+> `ck-facelift` historical record — the reasoning behind each verdict, kept so a future
+> session does not re-investigate settled ground.
 >
 > | | |
 > |---|---|
 > | Candidates raised | 62 across 14 risk domains |
-> | **Fixed** | **29** — 10 in batches c/d/e, 19 in batches A–D |
+> | **Fixed** | **31** — 10 in batches c/d/e, 19 in batches A–D, 2 accepted-risk items (§4) |
 > | **Dismissed as not-real** | **31** — 17 in the original partial pass, 14 in the completion pass |
-> | **Owner decision (§4)** | **2** — documented accepted risks, deliberately not patched |
 > | Unadjudicated | **0** |
-> | Commits | `1340d9b` `a1608d5` (c/d/e) · `6b50f80` `40ec299` `ba69e22` `be9149d` (A–D) · `e54fdd2` (data) |
-> | Test suite | 48 → **174** pytest · 47 → **72** Vitest |
+> | Commits | `1340d9b` `a1608d5` (c/d/e) · `6b50f80` `40ec299` `ba69e22` `be9149d` (A–D) · `e54fdd2` (data) · `4a9e0d6` (§4) |
+> | Test suite | 48 → **190** pytest · 47 → **72** Vitest |
 >
 > *Plus 2 defects found by skeptics while refuting other claims (§1, "Found while refuting") —
 > not among the original 62.*
@@ -29,8 +27,8 @@ survives). That run was **paused at ~50% verification**, leaving 35 rows unadjud
 (run `wf_f4fcd274-366`, 40 agents): one verifier per file-cluster reading live code, then a
 dedicated refuting skeptic per confirmed finding, then synthesis. Outcome: **21 survived,
 14 dismissed** (10 refuted at verify, 4 killed by the skeptic), 0 unclear. Of the 21
-survivors, **19 were fixed** across four themed batches; the remaining 2 are the
-accepted-risk security rows in §4.
+survivors, **19 were fixed** across four themed batches; the remaining 2 were the
+documented accepted-risk security rows, taken to the owner and since actioned (§4).
 
 > **Why dismissals are recorded rather than deleted.** A dismissed row is not "unchecked" — it
 > is a finding that was traced against live code and shown to be unreachable or misread.
@@ -42,7 +40,7 @@ accepted-risk security rows in §4.
 ## 1. Fixed — completion pass (batches A–D, 2026-07-27g)
 
 19 findings, each verified against live code before fixing, each with regression tests.
-(The other two survivors are the owner-decision rows in §4.) Severities shown are the
+(The other two survivors are the accepted-risk rows, actioned separately in §4.) Severities shown are the
 **post-verification** re-assessment, which sometimes differs from how the row was filed —
 see the last method note in §5.
 
@@ -167,20 +165,26 @@ never entered this table.
 
 ---
 
-## 4. Open — owner decision required
+## 4. Accepted risks — reviewed and actioned (2026-07-27g)
 
-Not defects to fix unilaterally: both are **documented accepted risks**
-(`README.md:145`, `SERVER-README.md:573-575`, `SESSION_STATE.md:1578`). The completion pass
-surfaced two facts the original acceptance did not account for.
+Both were **documented accepted risks** (`README.md:145`, `SERVER-README.md:573-575`,
+`SESSION_STATE.md:1578`), so neither was fixed unilaterally. Taken to the owner with two
+facts the original acceptance did not account for; **all three actions approved and
+implemented** (`4a9e0d6`).
 
-| Location | Accepted risk | What the review added |
-|----------|---------------|-----------------------|
-| `main.py:261` | server binds `0.0.0.0` with no auth — justified by the localhost/single-user model | **`push_to_zephyr` hardcodes `--force`**, which strips `upload_refined.py`'s own "already refined, skip" protection. An unauthenticated LAN caller can overwrite cases the CLI would refuse, spending a `JIRA_KEY` they do not hold. |
-| `pt_exec.py:281` | paramiko `AutoAddPolicy`, no host-key verification | **This does not inherit the localhost rationale.** The connection is *outbound* to a lab testbox, so its exposure is independent of the web UI being single-user. Two items were bundled under one justification and the second does not follow. |
+| Location | Accepted risk | What the review added | Action taken |
+|----------|---------------|-----------------------|--------------|
+| `main.py:261` / `run.sh:70` | server binds `0.0.0.0` with no auth — justified by the localhost/single-user model | Verified **live**: the box was reachable on its LAN IP and an unauthenticated `POST /api/wizard/push_to_zephyr/{key}` returned 200. `dry_run` is a plain query param defaulting `true`; CORS does not constrain `curl`, and the UI `confirm()` is client-side only | **Binds `127.0.0.1` by default.** LAN exposure is now an explicit `HOST=0.0.0.0`. Also fixed the `__main__` entrypoint, whose module path had been dead since the 2026-07-13 restructure |
+| `wizard.py` push handler | *(not previously identified)* | **`--force` was hardcoded**, disabling `upload_refined.py:947`'s own "already appears refined in Zephyr — SKIP" guard on **every** push. The UI had no way not to force, so that protection was dead code and any push could overwrite an already-refined live case | **Force is opt-in per request** (`?force=true`); the UI does not send it |
+| `pt_exec.py:281` | paramiko `AutoAddPolicy`, no host-key verification anywhere in the repo | **The localhost rationale does not apply.** The connection is *outbound* to a lab testbox, so exposure is independent of the web UI being single-user. Two items had been bundled under one justification and the second did not follow | **`load_system_host_keys()` before the policy** — a known testbox is pinned, so a changed key raises instead of being accepted. New hosts still connect with no prompt; `CK_SSH_TRUST_ANY=1` to opt out |
 
-Cheap partial hardening, if wanted, without reopening the accept:
-- default `HOST` to `127.0.0.1` in `run.sh` and `main.py` so `0.0.0.0` becomes an explicit opt-in
-- `client.load_system_host_keys()` before `set_missing_host_key_policy` — trust-on-first-use, no operator friction, no break to existing setups
+**Still accepted, unchanged: there is no authentication on any endpoint.** These changes
+align the defaults with the documented single-user model; they do not make the server safe
+to expose. Add auth (and TLS) before any shared deployment.
+
+Regression tests: `tests/test_security_hardening_batch_e.py` (14), including that the CLI-side
+protection `--force` would bypass still exists, that the UI does not send `force`, and that
+`known_hosts` loads *before* the policy (the ordering is the whole fix).
 
 ---
 

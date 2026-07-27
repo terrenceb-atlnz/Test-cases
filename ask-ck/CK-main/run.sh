@@ -9,7 +9,7 @@
 #   ./ask-ck/CK-main/run.sh --restart       # --stop then --bg (fast restart)
 #   LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
 #   PORT=9000 ./ask-ck/CK-main/run.sh
-#   HOST=127.0.0.1 ./ask-ck/CK-main/run.sh
+#   HOST=0.0.0.0 ./ask-ck/CK-main/run.sh   # EXPOSE ON THE LAN — see the note below
 #
 # A plain restart needs ONLY this script — it starts against the existing
 # ask-ck/var/ck.db in seconds. setup.sh is for first-time setup / DB rebuilds
@@ -67,7 +67,17 @@ fi
 # Sensible defaults - real use required (no MOCK). Provide LLM_API_KEY or use CLI logins (grok login / claude /login)
 : "${LLM_API_KEY:=}"
 : "${PORT:=8000}"
-: "${HOST:=0.0.0.0}"
+# Bind to loopback by DEFAULT. Ask-CK has no authentication of any kind, and several
+# endpoints have real-world side effects — most sharply
+# POST /api/wizard/push_to_zephyr/{key}?dry_run=false, which spends the server's own
+# JIRA_KEY to overwrite live Zephyr cases. On 0.0.0.0 any host on the LAN could drive
+# that with a one-line curl (CORS does not apply to non-browser clients).
+#
+# The documented model has always been "localhost / single user"; this makes the DEFAULT
+# match that contract. Exposing the server on the network is still supported — it is now
+# a deliberate opt-in rather than what you get by accident:
+#     HOST=0.0.0.0 ./ask-ck/CK-main/run.sh
+: "${HOST:=127.0.0.1}"
 
 echo "🚀 Starting Ask CK (server-backed) - real LLM only"
 echo "   LLM_API_KEY=${LLM_API_KEY:-'(not set - use grok_cli or claude_code)'}"

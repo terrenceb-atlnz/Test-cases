@@ -2376,7 +2376,7 @@ _CASE_KEY_RE = re.compile(r"^AWPTCM-T\d+$")
 
 
 @router.post("/push_to_zephyr/{key}")
-async def push_to_zephyr(key: str, dry_run: bool = True):
+async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False):
     """Push a Complete refined case to Zephyr via tool/upload_refined.py.
 
     Shells out to the CLI (the single owner of Zephyr-write logic), which:
@@ -2388,6 +2388,10 @@ async def push_to_zephyr(key: str, dry_run: bool = True):
     The CLI loads JIRA_KEY from secrets.md itself — the server never handles the
     token. The case must already be Exported (drop-in payload on disk under
     refined-cases/). `dry_run=true` (default) previews with no writes.
+
+    `force=false` (default) leaves the CLI's "already appears refined in Zephyr — SKIP"
+    protection in place. Pass force=true only to deliberately overwrite a case that has
+    already been refined upstream.
     """
     if not _CASE_KEY_RE.match(key or ""):
         raise HTTPException(status_code=400, detail="invalid case key")
@@ -2397,11 +2401,18 @@ async def push_to_zephyr(key: str, dry_run: bool = True):
     if not cli.is_file():
         raise HTTPException(status_code=500, detail=f"upload tool not found: {cli}")
 
+    # `--force` used to be hardcoded here, which silently disabled the CLI's own last
+    # safety net (upload_refined.py:947 — "SKIP: already appears refined in Zephyr…
+    # Use --force to overwrite"). The UI had no way NOT to force, so that protection was
+    # dead code in practice and any push could overwrite an already-refined live case.
+    # It is now opt-in per request; without it the CLI skips cases it judges already
+    # refined, which is the tool's designed behaviour.
     cmd = [
         sys.executable, str(cli),
         "--keys", key,
         "--fix-title", "--new-version",
-        "--force", "--verify",
+        "--verify",
+        *(["--force"] if force else []),
         ("--dry-run" if dry_run else "--execute"),
     ]
 

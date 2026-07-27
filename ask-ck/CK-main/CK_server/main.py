@@ -13,15 +13,15 @@ Run with the helper script (recommended):
   ./drafting-tool/run.sh
 
   # Examples
-  LLM_API_KEY=sk-... ./drafting-tool/run.sh
-  PORT=9000 ./drafting-tool/run.sh
+  LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
+  PORT=9000 ./ask-ck/CK-main/run.sh
 
-Or manually from the project root:
-  LLM_API_KEY=sk-... PYTHONPATH=drafting-tool python3 -m uvicorn drafting_server.main:app --host 0.0.0.0 --port 8000 --reload
+Or manually from ask-ck/CK-main:
+  LLM_API_KEY=sk-... python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
 
-Or cd into the server directory:
-  cd drafting-tool/drafting_server
-  LLM_API_KEY=sk-... PYTHONPATH=. python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+The server binds LOOPBACK by default: it has no authentication, and push_to_zephyr can
+spend the server's own JIRA_KEY against live cases. Exposing it on the network is a
+deliberate opt-in (HOST=0.0.0.0 ./ask-ck/CK-main/run.sh) — see the note in run.sh.
 Behind nginx (copy nginx.conf.example to appropriate location).
 
 Note: MOCK/demo removed. Use real credentials or local CLI logins (grok login --oauth / claude /login).
@@ -299,4 +299,13 @@ async def health():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("drafting_tool.drafting_server.main:app", host="0.0.0.0", port=8000, reload=True)
+    # Loopback by default — Ask-CK has no auth and push_to_zephyr can spend the server's
+    # JIRA_KEY against live cases; see the note in run.sh. Override deliberately with
+    # CK_HOST=0.0.0.0 (run.sh's HOST does the same for the normal launch path).
+    # NOTE: the module path here was stale ("drafting_tool.drafting_server.main:app" has
+    # not existed since the 2026-07-13 restructure), so this block could only ever have
+    # raised on import. Corrected to the real app path.
+    uvicorn.run("CK_server.main:app",
+                host=os.getenv("CK_HOST", "127.0.0.1"),
+                port=int(os.getenv("PORT", "8000")),
+                reload=True)
