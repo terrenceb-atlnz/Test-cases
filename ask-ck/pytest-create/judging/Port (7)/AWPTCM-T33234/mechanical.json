@@ -2,13 +2,13 @@
   "case_key": "AWPTCM-T33234",
   "script": {
     "name": "Port_Auto_MDI_MDI_test.py",
-    "chars": 24625,
+    "chars": 24982,
     "generated_by": {
       "provider": "openai",
       "model": "vllm-fast",
       "auth_method": "local_llm"
     },
-    "iterations": 12,
+    "iterations": 13,
     "lint_ok": true
   },
   "inputs": {
@@ -29,21 +29,21 @@
       "findings": []
     },
     "2_snippets_used": {
-      "verdict": "partially",
-      "tags_matched": "9/12",
-      "ignored_reuse": [
-        "TestCase_11",
-        "TestCase_13"
-      ],
+      "verdict": "exactly",
+      "tags_matched": "10/10",
+      "avg_code_overlap": 0.01,
+      "overlap_note": "low overlap == adapted, not absent; see per_step. Judges assess adaptation quality (criterion 4).",
+      "ignored_reuse": [],
+      "setup_mapped_note": "15 fragment->step mapping(s) target setup steps ([1, 2, 7, 11, 13]); they land in TestSet.configure() and carry no TestCase tag, so C2/C3 do not grade them",
       "per_step": [
         {
           "testcase": "TestCase_1",
-          "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220",
+          "expected_tag": "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216",
           "actual_tag": "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216",
-          "tag_matches": false,
+          "tag_matches": true,
           "is_gap_fill": false,
-          "code_overlap": 0.015,
-          "duplicate_tag_lines": 1
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_2",
@@ -79,7 +79,7 @@
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.021,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_6",
@@ -88,7 +88,7 @@
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.0,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_7",
@@ -97,7 +97,7 @@
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.021,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_8",
@@ -106,7 +106,7 @@
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.0,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_9",
@@ -115,7 +115,7 @@
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.0,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_10",
@@ -124,15 +124,15 @@
           "tag_matches": null,
           "is_gap_fill": true,
           "code_overlap": null,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_11",
-          "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 209-271",
+          "expected_tag": null,
           "actual_tag": "# AI vllm-fast 2026-07-27",
-          "tag_matches": false,
-          "is_gap_fill": false,
-          "code_overlap": 0.021,
+          "tag_matches": null,
+          "is_gap_fill": true,
+          "code_overlap": null,
           "duplicate_tag_lines": 1
         },
         {
@@ -146,12 +146,12 @@
         },
         {
           "testcase": "TestCase_13",
-          "expected_tag": "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216",
+          "expected_tag": null,
           "actual_tag": "# AI vllm-fast 2026-07-27",
-          "tag_matches": false,
-          "is_gap_fill": false,
-          "code_overlap": 0.0,
-          "duplicate_tag_lines": 1
+          "tag_matches": null,
+          "is_gap_fill": true,
+          "code_overlap": null,
+          "duplicate_tag_lines": 2
         },
         {
           "testcase": "TestCase_14",
@@ -160,13 +160,14 @@
           "tag_matches": null,
           "is_gap_fill": true,
           "code_overlap": null,
-          "duplicate_tag_lines": 1
+          "duplicate_tag_lines": 2
         }
       ]
     },
     "3_snippet_order": {
-      "verdict": "wrong",
+      "verdict": "right",
       "expected": [
+        "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220",
         "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220",
@@ -174,9 +175,7 @@
         "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 209-271",
         "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236",
-        "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 209-271",
-        "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220",
-        "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216"
+        "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220"
       ],
       "actual": [
         "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216",
@@ -187,9 +186,7 @@
         "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 209-271",
         "# SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236",
-        "# AI vllm-fast 2026-07-27",
-        "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220",
-        "# AI vllm-fast 2026-07-27"
+        "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220"
       ]
     },
     "6_logging_contract_offline": {

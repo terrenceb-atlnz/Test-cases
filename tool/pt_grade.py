@@ -288,12 +288,27 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
 
     expected_tag_by_class: Dict[int, str] = {}
     frag_by_class: Dict[int, dict] = {}
+    setup_mapped: List[int] = []
     for f in fragments:
         tag = _fragment_tag(f.get("source_id", ""), f.get("loc"), f.get("py2_translated", False))
         for n in f.get("maps_to") or []:
             try:
-                cls_n = orig_to_class.get(int(n), int(n))
+                orig_n = int(n)
             except (TypeError, ValueError):
+                continue
+            # A fragment may legitimately map to a SETUP step, which has no TestCase — its
+            # code lands in TestSet.configure(), not a main(). The old fallback
+            # (`orig_to_class.get(n, n)`) then treated the ORIGINAL STEP NUMBER as a CLASS
+            # number, inventing an expectation against an unrelated TestCase.
+            #
+            # Measured on T33234 (2026-07-28): 15 of 41 mappings misresolved this way, e.g.
+            # setup steps 11 and 13 were attributed to TestCase_11/TestCase_13 — which then
+            # read as "a fragment was available and the model ignored it". That produced a
+            # spurious C2 "partially 9/12" AND a spurious C3 "wrong", i.e. two graded
+            # regressions that were pure measurement error. Skip these instead of guessing.
+            cls_n = orig_to_class.get(orig_n)
+            if cls_n is None:
+                setup_mapped.append(orig_n)
                 continue
             expected_tag_by_class[cls_n] = tag
             frag_by_class[cls_n] = f
@@ -367,6 +382,13 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
     # mismatch to the grader, so it appeared in neither total. Name it explicitly.
     ignored_reuse = [p["testcase"] for p in per_step
                      if p["expected_tag"] and str(p["actual_tag"] or "").startswith("# AI")]
+    # Fragments mapped to SETUP steps are not gradeable here (their code goes to
+    # TestSet.configure(), which has no provenance tag). Reported so the skip is visible —
+    # silently dropping them is what the old class-number fallback effectively hid.
+    setup_note = (f"{len(setup_mapped)} fragment->step mapping(s) target setup steps "
+                  f"({sorted(set(setup_mapped))}); they land in TestSet.configure() and "
+                  f"carry no TestCase tag, so C2/C3 do not grade them"
+                  if setup_mapped else "")
 
     if tag_total == 0:
         c2 = {"verdict": "n-a", "reason": "no fragment maps to any TestCase", "per_step": per_step}
@@ -388,13 +410,16 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
               "tags_matched": f"{tag_ok}/{tag_total}", "avg_code_overlap": avg,
               "overlap_note": "low overlap == adapted, not absent; see per_step. "
                               "Judges assess adaptation quality (criterion 4).",
-              "ignored_reuse": ignored_reuse, "per_step": per_step}
+              "ignored_reuse": ignored_reuse, "setup_mapped_note": setup_note,
+              "per_step": per_step}
     elif tag_ok:
         c2 = {"verdict": "partially", "tags_matched": f"{tag_ok}/{tag_total}",
-              "ignored_reuse": ignored_reuse, "per_step": per_step}
+              "ignored_reuse": ignored_reuse, "setup_mapped_note": setup_note,
+              "per_step": per_step}
     else:
         c2 = {"verdict": "not at all", "tags_matched": f"0/{tag_total}",
-              "ignored_reuse": ignored_reuse, "per_step": per_step}
+              "ignored_reuse": ignored_reuse, "setup_mapped_note": setup_note,
+              "per_step": per_step}
 
     # C3 — do the reused fragments appear in sequence order?
     expected_order = [expected_tag_by_class[n] for n in sorted(expected_tag_by_class)]
@@ -565,6 +590,8 @@ def print_report(r: dict) -> None:
     # The sharpest C2 signal, and it used to be invisible inside the tags ratio: a
     # reviewer-approved fragment was available for this step and the model wrote its own
     # code anyway. Say so plainly.
+    if c2.get("setup_mapped_note"):
+        print(f"       - note: {c2['setup_mapped_note']}")
     ign = c2.get("ignored_reuse") or []
     if ign:
         print(f"       - IGNORED REUSE ({len(ign)}): a fragment was mapped but the code is "

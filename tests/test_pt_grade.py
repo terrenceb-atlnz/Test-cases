@@ -269,3 +269,56 @@ def test_no_caveats_on_a_clean_confirmed_case():
     payload = {"step5": {"confirmed": True}, "step6": {
         "confirmed": True, "provenance": {"llm": {"model": "vllm-fast"}}}}
     assert pt_grade._caveats(payload) == []
+
+
+# --- setup-step fragment mappings must not be mis-attributed to a TestCase -------------
+
+def test_fragment_mapped_to_setup_step_is_not_attributed_to_a_testcase():
+    """A fragment may map to a SETUP step, which has no TestCase — its code lands in
+    `TestSet.configure()`.
+
+    The old fallback `orig_to_class.get(n, n)` treated the ORIGINAL step number as a CLASS
+    number when the step wasn't a verify step, inventing an expectation against an
+    unrelated TestCase. Measured on T33234 (2026-07-28): 15 of 41 mappings misresolved,
+    with setup steps 11 and 13 attributed to TestCase_11/TestCase_13 — which read as "a
+    fragment was available and the model ignored it" and produced a spurious C2
+    "partially 9/12" plus a spurious C3 "wrong". Two graded regressions, both pure
+    measurement error.
+    """
+    import sys, pathlib
+    repo = pathlib.Path(__file__).resolve().parents[1]
+    for p in (repo / "tool",):
+        if str(p) not in sys.path:
+            sys.path.insert(0, str(p))
+
+    # sequence: steps 1,2 are setup; 3,4,5 are verify -> TestCase_1.._3
+    sequence = [
+        {"n": 1, "action": "base config", "verify": "", "kind": "setup"},
+        {"n": 2, "action": "more config", "verify": "", "kind": "setup"},
+        {"n": 3, "action": "check a", "verify": "a", "kind": "verify"},
+        {"n": 4, "action": "check b", "verify": "b", "kind": "verify"},
+        {"n": 5, "action": "check c", "verify": "c", "kind": "verify"},
+    ]
+    verify = [s for s in sequence if s["kind"] != "setup"]
+    orig_to_class = {int(s["n"]): i for i, s in enumerate(verify, 1)}
+    assert orig_to_class == {3: 1, 4: 2, 5: 3}
+
+    # A fragment mapped to setup step 2 must NOT become an expectation for TestCase_2.
+    assert orig_to_class.get(2) is None, "setup step 2 has no TestCase"
+    # the buggy fallback would have produced class 2 here:
+    assert orig_to_class.get(2, 2) == 2, "pins the old (wrong) fallback behaviour"
+
+    # And a real verify mapping still resolves.
+    assert orig_to_class.get(4) == 2
+
+
+def test_grader_reports_skipped_setup_mappings():
+    """Silently dropping them is what the old fallback effectively hid — the skip must be
+    stated, or a reader cannot tell 'no fragment' from 'fragment not gradeable here'."""
+    import pathlib
+    src = (pathlib.Path(__file__).resolve().parents[1] / "tool" / "pt_grade.py").read_text()
+    assert "setup_mapped" in src, "the skipped mappings are not tracked"
+    assert "setup_mapped_note" in src, "the skip is not reported"
+    assert "orig_to_class.get(orig_n, orig_n)" not in src, (
+        "the class-number fallback is back — a setup-mapped fragment will be "
+        "mis-attributed to an unrelated TestCase again")

@@ -34,6 +34,7 @@
       "avg_code_overlap": 0.036,
       "overlap_note": "low overlap == adapted, not absent; see per_step. Judges assess adaptation quality (criterion 4).",
       "ignored_reuse": [],
+      "setup_mapped_note": "",
       "per_step": [
         {
           "testcase": "TestCase_1",
