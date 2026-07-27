@@ -12,18 +12,35 @@
     2. TestCase_<n>.main()              = ONE verification step; logging contract APPLIES
     3. framework automatics             = nothing here (subclassing gets them free)
 
+  RULE FOR EDITORS (learned the hard way, 2026-07-28): a comment in this file ships into
+  every generated script, and where prose and EXAMPLE disagree the model copies the
+  EXAMPLE. Four separate defects in generated scripts came from wrong examples here or in
+  the prompt (`port = 'port1.0.1'`, `split()[-2:] == [...]`, `self.dut.portA` in init).
+  So: guidance for the MODEL belongs in pt_generate_script.jinja rules; this file carries
+  only what a reader of the finished test needs, and every example here must be correct
+  against the real corpus. `tests/test_prompt_examples.py` enforces that.
+
+  Idioms below are grounded in the 830-script corpus (counts as of 2026-07-28):
+    mode(')#') = config mode 4812 | mode('#') = priv exec 4253 | mode(']#') = stack 382
+    cmd('conf t') is NOT the idiom (54)   |   port.name for CLI text 1013 (vs 241 bare)
+    FEATURES=['ALL'] 291/306   |   init_swi('swi_a') 621/~650   |   init_stk('stk_a') 191/191
+
   Context expected:
     case_key       e.g. "AWPTCM-T33234"
     case_title     one-line title
     extra_imports  list of extra `from framework...`/module import lines (may be empty)
     setup_steps    list of {action} suite-setup actions -> TestSet.configure() (may be empty)
-    steps          list of {n, action, verify} verification steps -> TestCase_<n>
-    switches       list of switch names to bind (e.g. ["swi_a","swi_b"]) — default ["swi_a"]
+    steps          list of {n, action, verify, kind} verification steps -> TestCase_<n>
+    switches       list of switch VARIABLE names to bind (e.g. ["dut","lp"]) — default ["swi_a"]
+    setup_keys     the .setup [switch] KEYS those variables look up, positionally
+                   (swi_a/swi_b/...); see _setup_keys_for(). Falls back to the variable name.
     stacks         list of stack names to bind (e.g. ["stk_a"]) — may be empty
     needs_portlink truthy if the case uses port links (renders an init_portlink FILL slot)
 -#}
 {%- set switches = switches or ['swi_a'] -%}
 {%- set all_devs = switches + (stacks or []) -%}
+{%- set dev0 = all_devs[0] -%}
+{%- set dev1 = all_devs[1] if all_devs | length > 1 else 'swi_b' -%}
 {%- set has_physical = steps | selectattr('kind', 'equalto', 'physical') | list | length > 0 -%}
 {%- set has_manual = steps | selectattr('kind', 'equalto', 'manual') | list | length > 0 -%}
 #!/usr/bin/python3
@@ -32,9 +49,6 @@
 
 import sys
 import time
-{%- if has_manual %}
-from distutils.util import strtobool
-{%- endif %}
 from framework import ATTestSet, ATTestCase
 {%- for imp in extra_imports %}
 {{ imp }}
@@ -43,12 +57,15 @@ from framework import ATTestSet, ATTestCase
 {% if has_manual %}
 def yesNo(question):
     # Operator Y/N confirmation for MANUAL steps (SVT 3009 pattern).
+    # Hand-rolled rather than distutils.strtobool: that was removed in Python 3.12.
     sys.stdout.write('%s [y/n]\n' % question)
     while True:
-        try:
-            return strtobool(input().lower())
-        except ValueError:
-            sys.stdout.write("Please respond with 'y' or 'n'.\n")
+        answer = input().strip().lower()
+        if answer in ('y', 'yes'):
+            return True
+        if answer in ('n', 'no'):
+            return False
+        sys.stdout.write("Please respond with 'y' or 'n'.\n")
 
 {% endif %}
 class TestSet(ATTestSet.TestSet):
@@ -56,30 +73,19 @@ class TestSet(ATTestSet.TestSet):
     FEATURES = ['ALL']
 
     def init(self, setup):
-        # Bind the topology declared in the .setup file. THIS SCRIPT IS HARDWARE-AGNOSTIC:
-        # it must run unchanged on any platform, so it never names a port. The .setup
-        # [portlink] lines resolve to the real port names at runtime, which is also why the
-        # same code works on a chassis (port1.1.x) and a standalone switch (port1.0.x).
-        #
-        # The lookup STRING must match the .setup's [switch]/[stack] key — the convention
-        # is swi_a/swi_b/swi_c/swi_d and stk_a (621 of ~650 corpus uses). The local
-        # VARIABLE it is assigned to carries the role, e.g.
-        #     dutA   = setup.init_swi('swi_a')
-        #     swiSrc = setup.init_swi('swi_c')
+        # Topology comes from the .setup file, so this script is platform-independent:
+        # the [portlink] entries resolve to real port names at runtime.
         tb = setup.init_tb()
         {%- for dev in switches %}
-        {{ dev }} = setup.init_swi('{{ setup_keys[loop.index0] if setup_keys and loop.index0 < setup_keys|length else dev }}')
+        {{ dev }} = setup.init_swi('{{ setup_keys[loop.index0] if setup_keys and loop.index0 < setup_keys | length else dev }}')
         {%- endfor %}
         {%- for st in (stacks or []) %}
         {{ st }} = setup.init_stk('stk_{{ 'abcdefgh'[loop.index0] }}')
         {%- endfor %}
         {%- if needs_portlink %}
-        # >>> FILL: declare the port link(s) this case needs. Use the LOCAL variables above
-        #     (never `self.` — self.<dev> is not assigned until the block below, so `self.`
-        #     here is an AttributeError at init). Attribute names are yours; the ports come
-        #     from the .setup [portlink] lines:
-        #     ({{ all_devs[0] }}.portTB, tb.ethA) = setup.init_portlink({{ all_devs[0] }}, tb, type1='port')
-        #     ({{ all_devs[0] }}.portB, {{ all_devs[1] if all_devs|length > 1 else 'swiB' }}.portA) = setup.init_portlink({{ all_devs[0] }}, {{ all_devs[1] if all_devs|length > 1 else 'swiB' }}, type1='port', type2='port') <<<
+        # >>> FILL: declare this case's port link(s), using the LOCAL names above (not self.):
+        #     ({{ dev0 }}.portA, tb.ethA) = setup.init_portlink({{ dev0 }}, tb, type1='port')
+        #     ({{ dev0 }}.portB, {{ dev1 }}.portA) = setup.init_portlink({{ dev0 }}, {{ dev1 }}, type1='port', type2='port') <<<
         {%- endif %}
         self.tb = tb
         {%- for dev in all_devs %}
@@ -87,23 +93,21 @@ class TestSet(ATTestSet.TestSet):
         {%- endfor %}
 
     def configure(self):
-        # One-time SUITE setup, runs ONCE before all test cases. Base config only
-        # (interfaces / vlans / ip / etc.). NO self.passed()/self.failed() here —
-        # this is setup, not a test step.
+        # One-time SUITE setup, runs ONCE before all test cases. Config only — no pass/fail.
         {%- if setup_steps %}
         {%- for s in setup_steps %}
         # setup: {{ s.action }}
-        # >>> FILL: configuration commands for the above (e.g. self.{{ (devices or ['swi_a'])[0] }}.mode(')#'); self.{{ (devices or ['swi_a'])[0] }}.cmd('...')) <<<
         {%- endfor %}
-        pass  # >>> remove once the setup commands above are filled in <<<
+        # >>> FILL: the configuration commands for the setup step(s) above, e.g.
+        #     self.{{ dev0 }}.mode(')#'); self.{{ dev0 }}.cmd('interface {}'.format(self.{{ dev0 }}.portA.name)) <<<
+        pass  # >>> remove once the setup commands are filled in <<<
         {%- else %}
         pass  # no suite-level setup required for this case
         {%- endif %}
 
     def tear_down(self):
-        # One-time SUITE cleanup, runs ONCE after all cases. Restore device state.
-        # NO pass/fail here.
-        # >>> FILL: teardown commands that undo configure() (or `pass` if none) <<<
+        # One-time SUITE cleanup, runs ONCE after all cases. No pass/fail.
+        # >>> FILL: commands undoing configure(), or leave `pass` <<<
         pass
 
 {% for step in steps %}
@@ -113,62 +117,49 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
     testCaseMethod = {{ ((step.action | default('')) ~ ' | verify: ' ~ (step.verify | default(''))) | pyliteral }}
 
     def main(self):
-        # STEP {{ step.n }} — logging contract (mandatory, do not remove the three calls):
         self.log({{ ('STEP ' ~ step.n ~ ': ' ~ (step.action | default(''))) | pyliteral }})
 {%- if step.kind == 'physical' %}
-        # PHYSICAL step: a human must act on the hardware, then the script waits for the
-        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
-        dut = self.testSet.{{ (switches or ['dut'])[0] }}
-        # Port comes from the .setup topology (init_portlink), never a literal — the first
-        # index is the chassis/slot and varies with the hardware.
-        port = dut.portA  # >>> FILL: the attribute init_portlink() bound for this link <<<
+        # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
+        dut = self.testSet.{{ dev0 }}
+        port = dut.portA  # >>> FILL: the init_portlink() attribute for this link <<<
         self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action'))) | pyliteral }})
-        # Poll show-interface status for the expected transition, prompting the operator.
-        # >>> FILL: set the state to wait for — 'connected' after insert, 'notconnect' after removal <<<
-        want = 'connected'
+        want = 'connected'  # >>> FILL: 'connected' after insert, 'notconnect' after removal <<<
         deadline = time.time() + 120  # >>> adjust operator timeout (s) <<<
         output = ''
         while time.time() < deadline:
-            output = dut.cmd('show interface {} status'.format(port), log=False)
+            # Scoped to ONE port, so a plain substring test here is safe.
+            output = dut.cmd('show interface {} status'.format(port.name), log=False)
             if want in output:
                 break
             self.log({{ ('Waiting for operator: ' ~ (step.action | default(''))) | pyliteral }})
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        # >>> FILL: confirm the state change against: {{ (step.verify | default('')).split() | join(' ') }} <<<
         if want in output:  # >>> replace with the real verification condition <<<
             self.passed({{ (step.verify | default('expected state change observed')) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('operator action / state change not observed within timeout')) | pyliteral }})
 {%- elif step.kind == 'manual' %}
-        # MANUAL step: a visual/physical check the DEVICE cannot self-report (LED, seating).
-        # Prompt the operator for a Y/N confirmation (SVT 3009 yesNo pattern).
+        # MANUAL: a check the device cannot self-report (LED, physical seating).
         self.log({{ ('OPERATOR CHECK: ' ~ (step.verify | default('confirm the manual check'))) | pyliteral }})
-        # >>> FILL: phrase the exact yes/no question the operator answers <<<
-        ok = yesNo({{ ((step.verify | default('Did the check pass')) ~ ' - press Y/N') | pyliteral }})
+        ok = yesNo({{ ((step.verify | default('Did the check pass')) ~ ' - press Y/N') | pyliteral }})  # >>> FILL: phrase the question <<<
         self.log('OBSERVED: operator answered {}'.format('Y' if ok else 'N'))
         if ok:
             self.passed({{ (step.verify | default('operator confirmed')) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('operator did not confirm')) | pyliteral }})
 {%- else %}
-        # >>> FILL: perform the action on the device(s) via self.testSet.<dev>.mode()/.cmd(),
-        #     traffic via scapy/tcpdump, etc. Capture the observed output into `output`. <<<
-        output = ''  # >>> replace with the real observation this step verifies <<<
+        output = ''  # >>> FILL: the real observation (see rule 1) <<<
         self.log('OBSERVED: {}'.format(output))
-        # >>> FILL: decide pass/fail from `output` against: {{ (step.verify | default('')).split() | join(' ') }}
-        #     End with EXACTLY ONE non-empty assertion. Empty passed()/failed() emit no marker. <<<
-        if False:  # >>> replace with the real verification condition <<<
+        # >>> FILL: verify — {{ (step.verify | default('')) | replace('\n', ' ') }} <<<
+        if False:  # >>> replace with the real condition <<<
             self.passed({{ (step.verify | default('verification met')) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('verification not met')) | pyliteral }})
 {%- endif %}
 
     def tear_down(self):
-        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
-        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
-        # `pass` if this step needs no per-case cleanup.
-        # >>> FILL (optional): commands to revert this step's changes <<<
+        # Per-case cleanup so the next case starts clean. No pass/fail.
+        # >>> FILL (optional): commands reverting this step, or leave `pass` <<<
         pass
 
 {% endfor %}

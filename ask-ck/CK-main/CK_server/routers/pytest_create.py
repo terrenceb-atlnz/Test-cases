@@ -87,6 +87,61 @@ def _has_py2_tells(code: str) -> bool:
     return bool(code) and bool(_PY2_TELLS.search(code))
 
 
+# Stdlib modules REMOVED in the Python 3 versions a testbox actually runs. A generated
+# script is executed by the TESTBOX's `python3`, not this server's — tb470 is on 3.13.5
+# (2026-07-28) while this seat is on 3.10, so an import that resolves here can be a hard
+# ImportError there. `py_compile` cannot catch it: compiling proves syntax, never that a
+# module exists. That combination is how the skeleton shipped
+# `from distutils.util import strtobool` — valid syntax, compiles clean on 3.10, and
+# guaranteed to crash on import on any 3.12+ testbox before a single test ran.
+#
+# Keys are the removal version; values are (module, replacement) so the error can say what
+# to do instead. Deliberately limited to real removals, not deprecations.
+_REMOVED_STDLIB = {
+    "3.12": [
+        ("distutils", "packaging / hand-rolled (strtobool: parse 'y'/'n' yourself)"),
+        ("imp", "importlib"),
+        ("asynchat", "asyncio"),
+        ("asyncore", "asyncio"),
+        ("smtpd", "aiosmtpd"),
+    ],
+    "3.13": [
+        ("telnetlib", "the framework's own console driver (ATDrivers)"),
+        ("cgi", "urllib.parse / email"),
+        ("cgitb", "traceback"),
+        ("pipes", "shlex / subprocess"),
+        ("crypt", "hashlib / passlib"),
+        ("nntplib", "n/a"),
+        ("sndhdr", "n/a"),
+        ("spwd", "n/a"),
+    ],
+}
+
+
+def _removed_stdlib_imports(tree) -> List[str]:
+    """Errors for imports of stdlib modules removed in a Python the testbox may run."""
+    import ast as _a
+    flat = {mod: (ver, repl)
+            for ver, mods in _REMOVED_STDLIB.items() for mod, repl in mods}
+    out: List[str] = []
+    for node in _a.walk(tree):
+        names: List[str] = []
+        if isinstance(node, _a.Import):
+            names = [a.name for a in node.names]
+        elif isinstance(node, _a.ImportFrom) and node.module and node.level == 0:
+            names = [node.module]
+        for name in names:
+            root = name.split(".")[0]
+            if root in flat:
+                ver, repl = flat[root]
+                out.append(
+                    f"imports: `{name}` — the stdlib `{root}` module was REMOVED in "
+                    f"Python {ver}, and the testbox runs the script with its own python3 "
+                    f"(tb470 is on 3.13). This compiles here but is an ImportError there. "
+                    f"Use {repl} instead.")
+    return out
+
+
 def _translate_py2(code: str, name: str = "fragment") -> Tuple[str, str]:
     """Deterministically modernize a Py2 code fragment to Py3 via lib2to3.
 
@@ -151,13 +206,22 @@ _NAME_RX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]{0,59}$")
 
 def _pt_persist(sess: PtSession) -> None:
     """Commit C: persist to ck.db (kind='pt'); llm_config split into its own
-    column by db.save_session. The pt-{key}.json file stays as frozen backup."""
+    column by db.save_session. The pt-{key}.json file stays as frozen backup.
+
+    Failures are RAISED, not printed (2026-07-28). Swallowing them into a `print` meant an
+    endpoint returned 200 while the work never reached the DB — the caller then had no way
+    to know, and the documented workaround was "never trust the 200". A lost generate costs
+    a multi-minute LLM round trip, so it must fail loudly.
+    """
     sess.updated_at = datetime.utcnow()
     try:
         data = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
         dbx.save_session("pt", sess.key, data)
     except Exception as e:
-        print(f"Warning: failed to persist pt session {sess.key}: {e}")
+        print(f"ERROR: failed to persist pt session {sess.key}: {e}")
+        raise HTTPException(
+            500, f"Could not save PyTest session {sess.key} to the database: {e}. "
+                 f"Your work was NOT saved — retry, and check the server log.")
 
 
 def _pt_load(key: str) -> Optional[PtSession]:
@@ -170,8 +234,43 @@ def _pt_load(key: str) -> Optional[PtSession]:
     return None
 
 
+def _pt_session_updated_at(key: str) -> Optional[str]:
+    """The DB's `updated_at` for this session, without loading the whole payload."""
+    try:
+        row = dbx.get_connection().execute(
+            "SELECT updated_at FROM sessions WHERE id=?", (f"pt-{key}",)).fetchone()
+        return row[0] if row else None
+    except Exception:
+        return None
+
+
 def _pt_get(key: str) -> PtSession:
-    sess = pt_sessions.get(key) or _pt_load(key)
+    """The live session, preferring whichever copy is NEWER — memory or the DB.
+
+    The in-memory cache used to win unconditionally, which silently destroyed work
+    (2026-07-28). `pt_sessions` is per-process, so a second server instance — a leftover
+    `--reload` worker, or the 24-day-old process found running beside this one — holds its
+    own copy from whenever it last served that case. A request routed there is answered
+    from that stale copy AND re-persists it, overwriting a newer generate that had already
+    committed. Symptom: an endpoint returns 200 with correct new data, and a later read
+    shows the OLD script, which reads exactly like "the write never landed".
+
+    Comparing `updated_at` against the DB costs one indexed lookup and makes the DB
+    authoritative whenever it is ahead, so a stale instance can no longer clobber.
+    """
+    cached = pt_sessions.get(key)
+    if cached is not None:
+        db_stamp = _pt_session_updated_at(key)
+        mem_stamp = cached.updated_at.isoformat() if cached.updated_at else None
+        if db_stamp and (mem_stamp is None or db_stamp > mem_stamp):
+            fresh = _pt_load(key)
+            if fresh is not None:
+                print(f"[pt] {key}: DB copy is newer than this process's cache "
+                      f"({db_stamp} > {mem_stamp}); reloading to avoid overwriting it")
+                pt_sessions[key] = fresh
+                return fresh
+        return cached
+    sess = _pt_load(key)
     if not sess:
         raise HTTPException(404, "PyTest Creator session not found. Call load_case first.")
     pt_sessions[key] = sess
@@ -1512,6 +1611,33 @@ def _lint_generated(sess: PtSession) -> dict:
                     f"the .setup topology (e.g. `port = dut.portA` bound by "
                     f"init_portlink), since chassis platforms and a populated-slot x950 "
                     f"use port1.1.x")
+
+        # 2b. Imports the TESTBOX's python3 will not have. The script runs there, not here.
+        errors.extend(_removed_stdlib_imports(tree))
+
+        # 2c. `startswith(port)` when selecting a port's row from a per-port table.
+        # `'port1.0.1'` is a prefix of `'port1.0.10'`, so this silently reads the WRONG
+        # row whenever the table lists both. The correct test is the first token
+        # (`line.split()[:1] == [port]`).
+        #
+        # A WARNING, not an error: the generated code usually scopes the show command to a
+        # single port, so today's output has one row and the prefix match happens to work.
+        # It is a latent break that a reviewer widening the command would trigger.
+        #
+        # Mechanical because prose did not hold (2026-07-28): rule 4d names the antipattern
+        # explicitly and the model still emitted `line.strip().startswith(port.name)` — its
+        # example showed the `next()` generator form while the model was writing a `for`
+        # loop, so the guidance did not transfer across code shapes. Both forms are now in
+        # the prompt AND checked here.
+        for _i, _line in enumerate(code.splitlines(), 1):
+            if _line.lstrip().startswith("#"):
+                continue
+            if re.search(r"\.startswith\(\s*(?:self\.)?[\w.]*\bport\w*(?:\.name)?\s*[,)]",
+                         _line):
+                warnings.append(
+                    f"line {_i}: `startswith(port…)` selects a port's row by PREFIX, so "
+                    f"'port1.0.1' also matches 'port1.0.10' — compare the first token "
+                    f"instead (`line.split()[:1] == [port]`): {_line.strip()[:60]}")
 
         # 3. Framework imports must exist in the surface index (from ck.db — the
         #    single runtime source; no JSON read).

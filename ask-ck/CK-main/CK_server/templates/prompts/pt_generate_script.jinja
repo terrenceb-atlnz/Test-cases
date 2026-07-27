@@ -46,6 +46,29 @@ Reviewer note: {{ f.why }}
    commands only; NEVER put `self.passed()`/`self.failed()` there.
 3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %};
    bind every device you use in `TestSet.init`.
+3b. **HOUSE IDIOMS — use these, they are what the 830-script corpus does.** The counts are
+   why; do not substitute your own equivalents.
+   - **Enter config mode with `dev.mode(')#')`** (4,812 uses), NOT `dev.cmd('conf t')`
+     (54). `mode()` sets the prompt the console waits for: `')#'` = `(config)#`,
+     `'#'` = privileged exec (4,253), `']#'` = a stack member (382). Getting back to
+     exec is `dev.mode('#')`.
+   - **A port object is not its name.** Use `port.name` for CLI text (1,013 uses vs 241
+     passing the object bare) — the object also carries `.up()`, `.down()`, `.speed`,
+     `get_ipv4_addr()`.
+   - The canonical interface-config block, verbatim shape from the corpus:
+     ```python
+     dev = self.testSet.{{ bound_devices[0] if bound_devices else 'dut' }}
+     dev.mode(')#')
+     dev.cmd('interface {}'.format(dev.portA.name))
+     dev.cmd('<the interface-level command>')
+     output = dev.cmd('show ...')
+     ```
+   - `cmd()` accepts `log=False` (real kwarg: `cmd(command, timeOut, maxWait, interval,
+     log, debug, retry)`) — use it for noisy polling only.
+3c. **The script runs on the TESTBOX's `python3`, not this server's.** tb470 is on
+   **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
+   though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,
+   `cgi`, `pipes`, `crypt`, `asyncore`/`asynchat`/`smtpd`. The lint rejects these.
 {%- if device_note %}
    DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
    its device references (e.g. `self.dut` / `self.remote`) to the names init() binds above
@@ -114,9 +137,16 @@ Reviewer note: {{ f.why }}
    Index from the END, not a fixed column: `show ecofriendly`'s optional `Name` column
    shifts the middle fields (`port1.0.1 Port 1 lpi lpi` splits to 5 tokens,
    `port1.0.2 lpi lpi` to 3), but `Configured`/`Status` are always the last two.
-   Match the port name EXACTLY — `line.startswith(port)` also matches `port1.0.10` when
-   `port` is `port1.0.1`, silently reading the wrong row. Compare the first token
-   (`l.split()[:1] == [port]`) as shown above.
+   Match the port name EXACTLY — **never `startswith`**. `line.startswith(port)` also
+   matches `port1.0.10` when `port` is `port1.0.1`, silently reading the wrong row. Compare
+   the FIRST TOKEN. This holds in every code shape, not just the `next()` form above — if
+   you write a loop, it is still the first token:
+   ```python
+   for line in output.splitlines():
+       if line.split()[:1] == [port]:        # NOT line.startswith(port)
+           ...
+           break
+   ```
    Same rule for any `show` whose output covers more than the port under test.
 {%- endif %}
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
