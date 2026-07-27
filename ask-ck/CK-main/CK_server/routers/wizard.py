@@ -33,6 +33,7 @@ from llm import (
     suggest_relevant_testlink,
     suggest_relevant_zephyr,
     build_traceability_note,
+    _is_traceability_note,
     validate_zephyr_payload,
     analyze_atp_coverage,
     generate_coverage_gaps,
@@ -2154,11 +2155,10 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # whenever the stored testScript didn't already begin with the note (e.g. a manually
     # edited or backfilled testScript). Only overwrite when steps[0] IS already the note
     # (regenerate it) or is blank; otherwise PREPEND the note so no real step is lost.
-    _NOTE_PREFIX = "Note: Related ART Tests linked in Traceability"
     if steps:
         first = steps[0] if isinstance(steps[0], dict) else {}
         first_desc = (first.get("description") or "").strip()
-        if first_desc.startswith(_NOTE_PREFIX) or not first_desc:
+        if _is_traceability_note(first_desc) or not first_desc:
             steps[0] = {"description": note_desc, "expectedResult": first.get("expectedResult", "")}
         else:
             steps.insert(0, {"description": note_desc, "expectedResult": ""})

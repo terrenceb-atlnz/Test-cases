@@ -99,19 +99,19 @@ class TestSet(ATTestSet.TestSet):
 
 {% for step in steps %}
 class TestCase_{{ step.n }}(ATTestCase.TestCase):
-    testCaseDesc = {{ (step.action | default('') ) | tojson }}
+    testCaseDesc = {{ (step.action | default('') ) | pyliteral }}
     testCaseRef = '{{ case_key }}'
-    testCaseMethod = {{ ((step.action | default('')) ~ ' | verify: ' ~ (step.verify | default(''))) | tojson }}
+    testCaseMethod = {{ ((step.action | default('')) ~ ' | verify: ' ~ (step.verify | default(''))) | pyliteral }}
 
     def main(self):
         # STEP {{ step.n }} — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP {{ step.n }}: {{ (step.action | default('')) | replace("'", "") }}')
+        self.log({{ ('STEP ' ~ step.n ~ ': ' ~ (step.action | default(''))) | pyliteral }})
 {%- if step.kind == 'physical' %}
         # PHYSICAL step: a human must act on the hardware, then the script waits for the
         # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.{{ (switches or ['dut'])[0] }}
         port = 'portX.Y.Z'  # >>> FILL: the target port (must exist in the .setup) <<<
-        self.log('OPERATOR: {{ (step.action | default('perform the physical action')) | replace("'", "") }}')
+        self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action'))) | pyliteral }})
         # Poll show-interface status for the expected transition, prompting the operator.
         # >>> FILL: set the state to wait for — 'connected' after insert, 'notconnect' after removal <<<
         want = 'connected'
@@ -121,36 +121,36 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
             output = dut.cmd('show interface {} status'.format(port), log=False)
             if want in output:
                 break
-            self.log('Waiting for operator: {{ (step.action | default('')) | replace("'", "") }}')
+            self.log({{ ('Waiting for operator: ' ~ (step.action | default(''))) | pyliteral }})
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        # >>> FILL: confirm the state change against: {{ (step.verify | default('')) | replace("'", "") }} <<<
+        # >>> FILL: confirm the state change against: {{ (step.verify | default('')).split() | join(' ') }} <<<
         if want in output:  # >>> replace with the real verification condition <<<
-            self.passed('{{ (step.verify | default('expected state change observed')) | replace("'", "") }}')
+            self.passed({{ (step.verify | default('expected state change observed')) | pyliteral }})
         else:
-            self.failed('{{ (step.verify | default('operator action / state change not observed within timeout')) | replace("'", "") }}')
+            self.failed({{ (step.verify | default('operator action / state change not observed within timeout')) | pyliteral }})
 {%- elif step.kind == 'manual' %}
         # MANUAL step: a visual/physical check the DEVICE cannot self-report (LED, seating).
         # Prompt the operator for a Y/N confirmation (SVT 3009 yesNo pattern).
-        self.log('OPERATOR CHECK: {{ (step.verify | default('confirm the manual check')) | replace("'", "") }}')
+        self.log({{ ('OPERATOR CHECK: ' ~ (step.verify | default('confirm the manual check'))) | pyliteral }})
         # >>> FILL: phrase the exact yes/no question the operator answers <<<
-        ok = yesNo('{{ (step.verify | default('Did the check pass')) | replace("'", "") }} - press Y/N')
+        ok = yesNo({{ ((step.verify | default('Did the check pass')) ~ ' - press Y/N') | pyliteral }})
         self.log('OBSERVED: operator answered {}'.format('Y' if ok else 'N'))
         if ok:
-            self.passed('{{ (step.verify | default('operator confirmed')) | replace("'", "") }}')
+            self.passed({{ (step.verify | default('operator confirmed')) | pyliteral }})
         else:
-            self.failed('{{ (step.verify | default('operator did not confirm')) | replace("'", "") }}')
+            self.failed({{ (step.verify | default('operator did not confirm')) | pyliteral }})
 {%- else %}
         # >>> FILL: perform the action on the device(s) via self.testSet.<dev>.mode()/.cmd(),
         #     traffic via scapy/tcpdump, etc. Capture the observed output into `output`. <<<
         output = ''  # >>> replace with the real observation this step verifies <<<
         self.log('OBSERVED: {}'.format(output))
-        # >>> FILL: decide pass/fail from `output` against: {{ (step.verify | default('')) | replace("'", "") }}
+        # >>> FILL: decide pass/fail from `output` against: {{ (step.verify | default('')).split() | join(' ') }}
         #     End with EXACTLY ONE non-empty assertion. Empty passed()/failed() emit no marker. <<<
         if False:  # >>> replace with the real verification condition <<<
-            self.passed('{{ (step.verify | default('verification met')) | replace("'", "") }}')
+            self.passed({{ (step.verify | default('verification met')) | pyliteral }})
         else:
-            self.failed('{{ (step.verify | default('verification not met')) | replace("'", "") }}')
+            self.failed({{ (step.verify | default('verification not met')) | pyliteral }})
 {%- endif %}
 
     def tear_down(self):

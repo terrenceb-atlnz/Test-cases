@@ -659,6 +659,20 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
 # Canonical first testScript step. Full TL/Zephyr/ART mappings live only in
 # traceability.md — they do not belong in the Zephyr payload note.
 MINIMAL_TRACEABILITY_NOTE = "Note: Related ART Tests linked in Traceability."
+# The stable prefix of the note (the constant ends in '.', but a stored/edited step may
+# not, and export appends detail after it). Single source for every "is this THE note?"
+# test — the literal was previously spelled out in three places.
+TRACEABILITY_NOTE_PREFIX = "Note: Related ART Tests linked in Traceability"
+
+
+def _is_traceability_note(description: str) -> bool:
+    """True only for the canonical server-injected first step.
+
+    Anchored on purpose: an unanchored 'Traceability' / 'Note:' substring test matches
+    legitimate verification steps ("Verify Traceability of the ART logs...") and silently
+    deletes them.
+    """
+    return (description or "").strip().startswith(TRACEABILITY_NOTE_PREFIX)
 
 
 def build_traceability_note(session: Dict[str, Any] = None) -> str:
@@ -714,7 +728,7 @@ def validate_zephyr_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         issues.append("testScript.steps must be a list with the traceability note + at least one verification step")
     else:
         first_desc = (steps[0] or {}).get("description", "") or ""
-        if not first_desc.strip().startswith("Note: Related ART Tests linked in Traceability"):
+        if not _is_traceability_note(first_desc):
             issues.append("First test step must be the server-generated traceability note starting with 'Note: Related ART Tests linked in Traceability'")
         if "Traceability" not in first_desc:
             issues.append("First test step must reference 'Traceability'")
@@ -937,10 +951,16 @@ def synthesize_steps(
     note_desc = build_traceability_note(session)
     note_step = {"description": note_desc, "expectedResult": ""}
     llm_steps = steps_struct.get("testScript", {}).get("steps", []) or []
-    if llm_steps and (
-        "Note:" in llm_steps[0].get("description", "")
-        or "Traceability" in llm_steps[0].get("description", "")
-    ):
+    # Drop a note the model echoed back despite being told not to generate one — but
+    # ONLY when it really is that note. This used to be an unanchored substring test
+    # ("Note:" in ... or "Traceability" in ...), and "Traceability" is domain vocabulary
+    # the prompt itself uses, so a legitimate first step like "Verify Traceability of the
+    # ART logs to the test report" or "Note: ensure the DUT is powered first" was silently
+    # DELETED (dropped before note_step is prepended, so lost outright). Nothing catches
+    # it: validate_zephyr_payload only needs >=2 steps and >=1 non-note step, so the case
+    # exports to Zephyr a step short with no warning. Anchor on the canonical note, the
+    # way the validator already does (validate_zephyr_payload, :717).
+    if llm_steps and _is_traceability_note(llm_steps[0].get("description", "")):
         llm_steps = llm_steps[1:]
     final_steps = [note_step] + llm_steps
 

@@ -259,6 +259,23 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
         sess.step8 = {**sess.step8, "validated": False}
 
 
+def _collapse_step_text(step: dict) -> dict:
+    """Collapse whitespace in a sequence step's action/verify text (in place).
+
+    The skeleton renderer now emits these via `| pyliteral`, so a newline or backslash
+    can no longer break the generated Python. This is the belt-and-braces half: step text is
+    single-line prose by nature, and a stray newline from the Sequence <textarea> (or an
+    LLM extraction) still renders as an awkward multi-line comment and inflates the
+    generate prompt. Normalizing at the WRITE path keeps every downstream consumer —
+    skeleton, prompt, traceability — working from clean single-line text.
+    """
+    for field in ("action", "verify"):
+        val = step.get(field)
+        if isinstance(val, str):
+            step[field] = " ".join(val.split())
+    return step
+
+
 def _require_confirmed(sess: PtSession, step_key: str, what: str) -> None:
     if not (getattr(sess, step_key) or {}).get("confirmed"):
         raise HTTPException(409, f"{what} requires {step_key} to be confirmed first.")
@@ -665,11 +682,41 @@ def _parse_generated_blocks(content: str) -> Dict[str, Any]:
 _PROVENANCE_TAG_FAMILY = {"art": "ART", "svt": "SVT", "legacy": "legacy"}
 _PROVENANCE_TAG_RX = re.compile(r"^\s*#\s*(ART|SVT|legacy|AI)\s+\S")
 # Model-echoed provenance attempts are not always a bare tag on the first line —
-# a reasoning model can restate the prompt's own instruction text first ("
-# Provenance tag for this fragment: # AI ... ") on a LATER leading comment line.
-# Any leading comment mentioning one of the tag families is scaffolding to strip,
-# not necessarily the authoritative tag itself (only the server's own re-stamp is).
-_PROVENANCE_ECHO_RX = re.compile(r"^\s*#.*\b(ART|SVT|legacy|AI)\b", re.IGNORECASE)
+# a reasoning model can restate the prompt's own instruction text first
+# ("# Provenance tag for this fragment: # AI ...") on a LATER leading comment line.
+# Both shapes are scaffolding to strip; only the server's own re-stamp is authoritative.
+#
+# This used to be `^\s*#.*\b(ART|SVT|legacy|AI)\b` — any leading comment MENTIONING a
+# family word. Those words are ordinary domain vocabulary here, so a real rationale
+# comment ("# SVT 3009 replug pattern: poll until the operator reseats the module",
+# "# legacy CLI parsing retained: this firmware has no 'show pluggable detail'") was
+# silently deleted from the saved and executed script. Now we match only the two shapes
+# a provenance echo actually takes:
+#   1. the bare tag itself           -> _PROVENANCE_TAG_RX  (# ART suite/file lines a-b)
+#   2. the prompt's instruction text -> "provenance tag" / "provenance:" phrasing
+_PROVENANCE_ECHO_PHRASE_RX = re.compile(r"^\s*#.*\bprovenance\b\s*(tag|:)", re.IGNORECASE)
+# The tag SHAPE that _fragment_tag emits: `# <FAMILY> <path/file.py>[ lines a-b]`, or
+# `# AI <model> <YYYY-MM-DD>`. Deliberately stricter than _PROVENANCE_TAG_RX (which is a
+# loose lint check at :1164 and must keep its current meaning): it requires a
+# file-like token or a lines/date suffix, so "# SVT 3009 replug pattern: poll until..."
+# — prose that merely opens with a family word — is NOT treated as a tag.
+_PROVENANCE_ECHO_TAG_RX = re.compile(
+    r"^\s*#\s*(?:"
+    r"(?:ART|SVT|legacy)\s+\S*\.py\b"          # # ART suite/file.py [lines a-b]
+    r"|(?:ART|SVT|legacy|AI)\s+\S+\s+lines\s+\d+"   # ...explicit line range
+    r"|AI\s+\S+\s+\d{4}-\d{2}-\d{2}\s*$"       # # AI <model> <date>
+    r")",
+    re.IGNORECASE,
+)
+# Cap the leading run we are willing to strip. A genuine echo is 1-2 lines; anything
+# longer is the model's own documentation.
+_PROVENANCE_ECHO_MAX_LINES = 2
+
+
+def _is_provenance_echo(line: str) -> bool:
+    """True for a model-emitted provenance tag/restatement, not for real commentary."""
+    return bool(_PROVENANCE_ECHO_TAG_RX.match(line)
+                or _PROVENANCE_ECHO_PHRASE_RX.match(line))
 
 
 def _fragment_tag(source_id: str, loc: Optional[Tuple[int, int]],
@@ -738,9 +785,20 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
                 orig_n = int(n)
             except (TypeError, ValueError):
                 continue
-            # Translate original step number -> class number. Identity when we have no
-            # sequence (numbers already coincide) or the step isn't in the remap.
-            class_n = orig_to_classn.get(orig_n, orig_n)
+            # Translate original step number -> class number.
+            if orig_to_classn:
+                # A step missing from the remap is a SETUP step — it has no TestCase of
+                # its own (it folds into the suite's configure()). Falling back to
+                # identity here mapped it onto whichever class happens to share its
+                # number and OVERWROTE that class's correct tag (last write wins), so
+                # the authoritative provenance line pointed a reviewer at the wrong
+                # source script. Skip it instead — matching what the preview path does.
+                class_n = orig_to_classn.get(orig_n)
+                if class_n is None:
+                    continue
+            else:
+                # Legacy callers pass no sequence; the two number spaces coincide.
+                class_n = orig_n
             tag_by_step[class_n] = tag
     gen_date = datetime.utcnow().strftime("%Y-%m-%d")
     ai_tag = f"# AI {model or 'unknown'} {gen_date}"
@@ -750,6 +808,7 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
     current_class_n: Optional[int] = None
     in_main = False
     stamped_this_main = False
+    stripped_echoes = 0
     class_rx = re.compile(r"^class TestCase_(\d+)\b")
     main_rx = re.compile(r"^\s+def main\(self\):\s*$")
 
@@ -759,12 +818,14 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
             current_class_n = int(m.group(1))
             in_main = False
             stamped_this_main = False
+            stripped_echoes = 0   # the cap is per-TestCase, not per-file
             out.append(line)
             continue
         if in_main and not stamped_this_main:
-            if _PROVENANCE_ECHO_RX.match(line):
+            if stripped_echoes < _PROVENANCE_ECHO_MAX_LINES and _is_provenance_echo(line):
                 # Part of the model's leftover provenance attempt — drop the
                 # whole line, keep scanning (there may be more before real code).
+                stripped_echoes += 1
                 continue
             indent = line[:len(line) - len(line.lstrip())] or "        "
             tag = tag_by_step.get(current_class_n, ai_tag)
@@ -782,6 +843,24 @@ from jinja2 import Environment as _J2Env, FileSystemLoader as _J2Loader
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _skeleton_env = _J2Env(loader=_J2Loader(str(_TEMPLATES_DIR)))
+
+
+def _pyliteral(value) -> str:
+    """Render a value as a correctly-escaped Python string literal.
+
+    The skeleton's step-text slots used to be hand-quoted and sanitized with
+    replace("'",""), so a newline or trailing backslash in reviewer-typed text produced
+    an UNCOMPILABLE skeleton (shown as-is on the preview path, and fed to the model as
+    the structure to copy on the generate path).
+
+    `repr` rather than `| tojson`: both escape correctly, but tojson HTML-escapes the
+    apostrophe (`port\\u0027s`), and these files exist to be read by a human reviewer.
+    repr gives `"the port's state"` — same runtime value, legible diff.
+    """
+    return repr("" if value is None else str(value))
+
+
+_skeleton_env.filters["pyliteral"] = _pyliteral
 
 
 # The four step kinds (extract_sequence classifies every step; see the prompt).
@@ -1385,6 +1464,7 @@ async def extract_sequence(key: str, request: Request):
     notes = _parsed_field(parsed, "notes", "")
     for i, s in enumerate(sequence):
         s["n"] = i + 1
+        _collapse_step_text(s)
     sess.step2 = {"sequence": sequence, "notes": notes,
                   "confirmed": False,
                   "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
@@ -1404,6 +1484,7 @@ async def save_sequence(key: str, body: dict = Body(...)):
         raise HTTPException(400, "Body must include a non-empty 'sequence' list.")
     for i, s in enumerate(sequence):
         s["n"] = i + 1
+        _collapse_step_text(s)
     sess.step2 = {**(sess.step2 or {}), "sequence": sequence, "confirmed": False}
     _invalidate_from(sess, 2)
     _pt_persist(sess)
