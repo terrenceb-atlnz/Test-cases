@@ -110,7 +110,9 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
         # PHYSICAL step: a human must act on the hardware, then the script waits for the
         # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.{{ (switches or ['dut'])[0] }}
-        port = 'portX.Y.Z'  # >>> FILL: the target port (must exist in the .setup) <<<
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA  # >>> FILL: the attribute init_portlink() bound for this link <<<
         self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action'))) | pyliteral }})
         # Poll show-interface status for the expected transition, prompting the operator.
         # >>> FILL: set the state to wait for — 'connected' after insert, 'notconnect' after removal <<<

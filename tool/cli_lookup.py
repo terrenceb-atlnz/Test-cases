@@ -97,31 +97,134 @@ def search(query: str, limit: int = 10,
     return out
 
 
+# Feature names a test engineer writes -> the command tree that implements them, plus the
+# words to look for in sample output. `detect_commands()` matches literal command strings,
+# so a feature described in PROSE has no lexical path to its commands: "EcoMode", "LPI" and
+# "EEE" appear nowhere inside the command name `ecofriendly lpi`. No amount of matcher
+# tuning bridges that — hence this table.
+#
+# Found via criterion-4 judging (2026-07-28): four steps across T33233/T33234 said
+# "Enable EcoMode on the port" / "lpi disable on <port>" and verified with `show
+# interface`. The `ecofriendly` tree — including `show ecofriendly`, whose per-port
+# `Configured`/`Status` table is the only output that actually proves LPI is off — was
+# harvested and present in ck.db the whole time, and never reached the prompt.
+#
+# Deliberately small and hand-curated: each entry is a feature whose CLI name a reader
+# would not guess from the prose. Add entries as real cases surface them; do NOT try to
+# auto-derive it, because a wrong alias injects confidently-wrong grounding, which is
+# worse than none (see the `show interface eth1` regression).
+FEATURE_ALIASES: Dict[str, dict] = {
+    "ecofriendly": {
+        # `ecofriendly` is the PROPER CLI terminology (Terrence, 2026-07-28). "EcoMode" is
+        # SLANG — it appears in Zephyr case prose and in conversation, never in the CLI.
+        # That asymmetry is the whole point of this table: slang must be RECOGNISED on the
+        # input side so a case that says "Enable EcoMode" still gets grounded, while the
+        # `commands` values below are real CLI only, so slang can never reach a generated
+        # script. `test_slang_never_reaches_generated_code` pins that direction.
+        "prose": ["ecomode", "eco mode", "eco-mode", "ecofriendly", "eco friendly",
+                  "eco-friendly", "lpi", "low power idle", "low-power idle",
+                  "energy efficient ethernet", "energy-efficient ethernet", "eee",
+                  "802.3az", "green ethernet"],
+        "commands": ["ecofriendly lpi", "show ecofriendly"],
+        # What to look for in a sample output to know the field is present.
+        #
+        # `lpi` is DEPRECATED terminology (Terrence, 2026-07-28) — it survives in exactly
+        # one command name (`ecofriendly lpi`, the only spelling the CLI accepts) and as
+        # the `Configured`/`Status` VALUE in `show ecofriendly` on the standalone switch
+        # families (x530/x930/x950/x330/x540-560/gs970emx/ie220-560/x320 — 14 of them)
+        # AND on the chassis families, so it is the value string across the board.
+        # Modern diagnostics say EEE instead (`show platform port` prints `EEE Admin
+        # Status`). Deprecated-as-terminology does NOT make it wrong as the string a
+        # parser must match, so it stays here: TestLink cases are several years old and
+        # almost unanimously say LPI, and they are the corpus reused fragments come from.
+        "output_terms": ["ecofriendly", "lpi", "energy efficient"],
+        # On the `show interface` variant that prints `current/configured ecofriendly lpi`:
+        # it covers x8100/x908gen2/x908gen3 and uses `port1.1.x`. Both traits track
+        # CHASSIS vs standalone, NOT firmware age — x908gen3 is a current platform (x8100
+        # is the old one in that generational family), and an x950 with a populated card
+        # slot uses `port1.1.x` too, so the naming is a runtime hardware property rather
+        # than a per-model one. Relevance ranking deliberately still prefers this variant
+        # on an ecofriendly step, because it is the one that actually SHOWS the field.
+        # The port-naming question is handled where it belongs — port names come from the
+        # .setup topology, never hardcoded — not by second-guessing variant choice here.
+    },
+}
+
+
+def feature_commands(text: str) -> tuple:
+    """Commands + output terms for features `text` names in PROSE rather than by command.
+
+    Returns `(commands, output_terms)`. Complements `detect_commands()`, which is purely
+    lexical over command names; this is the semantic half. Both are needed — a step can
+    name the command, the feature, or (usually) some of each.
+    """
+    low = " " + re.sub(r"\s+", " ", text.lower()) + " "
+    cmds: List[str] = []
+    terms: List[str] = []
+    for spec in FEATURE_ALIASES.values():
+        for phrase in spec["prose"]:
+            # word-boundary match so 'eee' doesn't fire inside 'seee'/'IEEE', and 'lpi'
+            # doesn't fire inside a longer token
+            if re.search(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])", low):
+                cmds += [c for c in spec["commands"] if c not in cmds]
+                terms += [t for t in spec["output_terms"] if t not in terms]
+                break
+    return cmds, terms
+
+
 def prompt_block(commands: List[str], product: Optional[str] = None,
                  max_output_lines: int = 14,
-                 conn: Optional[sqlite3.Connection] = None) -> str:
+                 conn: Optional[sqlite3.Connection] = None,
+                 feature_terms: Optional[List[str]] = None) -> str:
     """Render a compact grounding block for injection into the generate prompt.
 
     Deliberately terse: syntax lines plus a trimmed real sample output per command. The
     generate prompt is already ~24k chars, so this must add signal, not bulk. Sample
     output is what stops the model inventing `speed=1000`, so it is never dropped in
     favour of more syntax.
+
+    `feature_terms` are the feature words the step is actually about (from
+    `feature_commands()`). They only break ties toward a variant that DOES show the
+    field — see the selection comment below.
     """
     c = conn or _conn()
+    terms = [t.lower() for t in (feature_terms or [])]
     parts: List[str] = []
     for name in commands:
         variants = lookup(name, product, c)
         if not variants:
             continue
         # Pick the variant the MOST PRODUCT FAMILIES share, not the longest sample.
-        # `show interface` has 7 variants: switch families print `Interface port1.0.1`,
+        # `show interface` has 8 variants: switch families print `Interface port1.0.1`,
         # but the TQ wireless APs print `Interface eth1` and the virtual appliances
         # `eth0`. Selecting by length handed the model the 927-char TQ router-interface
         # sample, and a re-extraction duly emitted `show interface eth1` for a switch
         # port test. Breadth of support is the better proxy for "the normal case";
         # length breaks the tie so an equally-shared variant with richer output wins.
-        v = max(variants, key=lambda x: (len(x["products"]),
-                                         len(x["sample_output"] or "")))
+        #
+        # RELEVANCE FIRST (2026-07-28): breadth alone silently hid the field under test.
+        # `show interface` DOES report LPI — `current ecofriendly lpi` / `configured
+        # ecofriendly lpi` — but only on 3 families (x8100, x908gen2/3), so the
+        # 14-family variant won and shipped output with NO EEE field. The model was then
+        # told to "match these formats exactly, do NOT invent output tokens", which left
+        # asserting on link state as almost the only move — grounding steering the model
+        # INTO the false green the criterion-4 judges caught. So when the step is about a
+        # feature, a variant whose output actually mentions it outranks a broader one
+        # that omits it. Ordering the key this way (relevance, then breadth, then length)
+        # keeps the `eth1` fix intact: with no feature terms, or when no variant mentions
+        # them, this degrades exactly to the previous behaviour.
+        # Relevance is graded, not boolean: `show ecofriendly` has a 10-family variant
+        # whose ports are ALL `off`, so it mentions the feature (the "Energy efficient"
+        # header) while demonstrating none of it. The 3 richer variants each show 7 `lpi`
+        # rows — the enabled state an assertion has to recognise. Counting term hits
+        # prefers the output that actually exercises the field; breadth still decides
+        # between equally-demonstrative variants.
+        def _rank(x: dict) -> tuple:
+            out_low = (x["sample_output"] or "").lower()
+            hits = sum(out_low.count(t) for t in terms) if terms else 0
+            return (hits, len(x["products"]), len(x["sample_output"] or ""))
+
+        v = max(variants, key=_rank)
         chunk = [f"### {v['command']}"]
         for s in v["syntax"][:4]:
             chunk.append(f"    {s}")
@@ -135,9 +238,36 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
                     fams = ", ".join(other["products"][:6]) or "?"
                     chunk.append(f"    (on {fams}: {'; '.join(other['syntax'][:2])})")
         if v["sample_output"]:
-            lines = v["sample_output"].split("\n")[:max_output_lines]
+            all_lines = v["sample_output"].split("\n")
+            lines = all_lines[:max_output_lines]
+            # Never trim away the field the step is about. `current ecofriendly lpi` sits
+            # ~line 10 of that variant, so a tighter budget could drop the exact line
+            # relevance-selection just chose — the reference would then look like proof
+            # the field does not exist.
+            if terms:
+                kept = {id(x) for x in lines}
+                for ln in all_lines[max_output_lines:]:
+                    if any(t in ln.lower() for t in terms) and id(ln) not in kept:
+                        lines.append(ln)
             chunk.append("  real output:")
             chunk += [f"    {ln}" for ln in lines]
+            # If the chosen variant shows the feature but others do NOT, say so. The
+            # field is genuinely family-specific (LPI in `show interface`: 3 families of
+            # 8), and a model told to match formats exactly should know the assertion may
+            # need the feature-specific `show` command on other hardware.
+            if terms and len(variants) > 1:
+                out_low = (v["sample_output"] or "").lower()
+                if any(t in out_low for t in terms):
+                    missing = [x for x in variants
+                               if not any(t in (x["sample_output"] or "").lower()
+                                          for t in terms)
+                               and x["sample_output"]]
+                    if missing:
+                        fams = ", ".join(
+                            f for x in missing[:4] for f in x["products"][:2])
+                        chunk.append(
+                            f"    (NOTE: this field is family-specific — not printed on "
+                            f"{fams}…; prefer the feature-specific show command there)")
         parts.append("\n".join(chunk))
     if not parts:
         return ""

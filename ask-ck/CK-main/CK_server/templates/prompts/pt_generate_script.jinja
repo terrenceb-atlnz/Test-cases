@@ -66,13 +66,50 @@ Reviewer note: {{ f.why }}
    `current duplex full, current speed 1000, current polarity mdix`; `show interface
    status` prints aligned COLUMNS (`a-full`, `a-1000`, `connected`/`notconnect`).
    Machine-style tokens (`speed=1000`, `duplex=full`, `state=up`) DO NOT EXIST and make
-   the test fail on working hardware. Ports are `port1.0.1`, never `1/0/1` or `portA`
-   unless a bound device attribute provides that name. If the reference does not show
-   the output you need, assert on a substring you can see in it — do not guess a format.
-   **A port name is CLI TEXT, never a Python identifier.** `port1.0.1` may appear only
-   inside a string (`dut.cmd('interface port1.0.1')`); writing it as an attribute —
-   `self.dut.port1.0.1` — is a SyntaxError. Reach ports through the bound device object
-   or a string variable (`port = 'port1.0.1'`), exactly as the skeleton's init() does.
+   the test fail on working hardware. AW+ port names have the form `portX.Y.Z`, never
+   `1/0/1`. If the reference does not show the output you need, assert on a substring you
+   can see in it — do not guess a format.
+   **A port name is CLI TEXT, never a Python identifier.** It may appear only inside a
+   string (`dut.cmd('interface {}'.format(port))`); writing it as an attribute —
+   `self.dut.port1.0.1` — is a SyntaxError.
+   **NEVER HARDCODE A PORT NAME.** Take it from the .setup topology via the attribute
+   `init_portlink()` bound in `TestSet.init` (`port = dut.portA`), the way the corpus does
+   (10,578 bound-attribute uses vs 125 literals). The FIRST index is the chassis/slot, so
+   a literal `'port1.0.1'` is simply wrong on chassis platforms (x8100, x908gen2,
+   x908gen3) and on an x950 whose card slot is populated — those use `port1.1.x`. It is a
+   runtime property of the hardware, not something you can infer from the case text.
+4c. **ASSERT ON THE FEATURE UNDER TEST, not merely that the link survived.** If the step
+   enables/disables a feature, the `passed()`/`failed()` condition must read that
+   feature's own reported state. Checking only `Link is UP` after disabling a feature
+   passes whenever the disable SILENTLY FAILS — a false green, and the single most common
+   defect found in review. Use the feature's own show command from the reference above
+   (EcoMode/LPI/EEE → `show ecofriendly`, whose per-port `Configured`/`Status` columns
+   prove it). `Configured` = the config you applied, `Status` = what the port is doing
+   now: after the `no` form, `Configured` must read `off` — asserting the feature is
+   still `Configured` after disabling contradicts the step. `Status` may lag
+   `Configured` (peer hasn't negotiated), so use `Configured` for "did the command take"
+   and `Status` only for operational state. Link stability may be an EXTRA assertion, never the
+   only one. Enter interface config mode before applying an interface-level command —
+   a global-mode `ecofriendly lpi` configures nothing.
+4d. **PARSE THE ROW FOR YOUR PORT — a bare substring test is a false green.** Per-port
+   tables (`show ecofriendly`, `show interface status`) print one row per port, so
+   `if 'off' in output:` is True whenever ANY port reads `off` — including when the
+   command under test did nothing. Select the line for the port first, then test that
+   line's field:
+   ```python
+   row = next((l for l in output.splitlines() if l.split()[:1] == [port]), None)
+   if row is None:
+       self.failed('port {} missing from show ecofriendly output'.format(port))
+   elif row.split()[-2:] == ['off', 'off']:   # Configured, Status
+       self.passed(...)
+   ```
+   Index from the END, not a fixed column: `show ecofriendly`'s optional `Name` column
+   shifts the middle fields (`port1.0.1 Port 1 lpi lpi` splits to 5 tokens,
+   `port1.0.2 lpi lpi` to 3), but `Configured`/`Status` are always the last two.
+   Match the port name EXACTLY — `line.startswith(port)` also matches `port1.0.10` when
+   `port` is `port1.0.1`, silently reading the wrong row. Compare the first token
+   (`l.split()[:1] == [port]`) as shown above.
+   Same rule for any `show` whose output covers more than the port under test.
 {%- endif %}
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.

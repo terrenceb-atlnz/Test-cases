@@ -97,6 +97,54 @@ asserts only `Link is UP`, never that LPI is off — a false green whenever the 
 silently fails), and assertions weaker than the step demands. These are *semantic* defects
 the mechanical criteria cannot catch, which is exactly what criterion 4 is for.
 
+> ### ✅ RESOLVED 2026-07-28 — the LPI/EcoMode false green
+>
+> Terrence's diagnosis: *"the command isn't `lpi disable`, it's a whole `ecomode` CLI
+> command tree that wasn't passed."* Correct — AW+ calls it **`ecofriendly`**, the tree was
+> in `ck.db` all along, and **two** defects kept it out of the prompt:
+>
+> 1. **`detect_commands()` is purely lexical**, so a feature named in PROSE has no path to
+>    its commands: "EcoMode"/"LPI"/"EEE" appear nowhere inside `ecofriendly lpi`. Fixed with
+>    a hand-curated `FEATURE_ALIASES` table (`tool/cli_lookup.py`).
+> 2. **Variant selection hid the field.** `prompt_block()` preferred the `show interface`
+>    variant with the most product families; only one of eight prints
+>    `current ecofriendly lpi`. So three of the four steps were grounded on authoritative
+>    output with **no** EEE field *while being told to match it exactly and invent nothing* —
+>    the grounding steered the model INTO the false green. Fixed with graded relevance
+>    ranking (+ the family-specific NOTE, + never trimming the feature line away).
+>
+> **Result:** T33233 went from 2 gap-fill blocks (`bad×11, good×1`) to **zero**; T33234 from
+> **12 of 12** (`bad×63, good×9`) to **1 of 14**, and its fragment selection from 0/7 to
+> 11/23 (answering §4 Q1 — it was the vague sequence, not a selection bug). Both lint clean,
+> C1/C2/C3/C6 all best-grade. Generated code now runs `show ecofriendly` and parses the row
+> for the port under test, asserting `Configured`/`Status` instead of link state.
+>
+> **Terminology, from Terrence — recorded because it was got wrong twice in the fixing:**
+> - `ecofriendly` is the proper CLI name; **"ecomode" is slang**. Slang is recognised on the
+>   INPUT side only and never emitted (TestLink/Zephyr authors write it).
+> - **`lpi` is deprecated terminology** (modern diagnostics say EEE — `show platform port`
+>   prints `EEE Admin Status`). It stays first-class anyway: it is the only spelling the
+>   config command accepts, it is the live `Configured`/`Status` value in `show ecofriendly`,
+>   and **TestLink cases are several years old and almost unanimously say LPI** — and
+>   TestLink is the corpus reused fragments come from.
+> - The `show interface` variant printing `current ecofriendly lpi` covers
+>   x8100/x908gen2/x908gen3 and uses `port1.1.x`. Both traits track **chassis vs standalone,
+>   NOT firmware age** — x908gen3 is current (x8100 is the old one in that generational
+>   family), and **an x950 with a populated card slot also uses `port1.1.x`**. Port naming is
+>   therefore a RUNTIME hardware property, which is why the fix is "take the port from the
+>   `.setup` topology", not "infer it from the platform". An earlier draft of this work called
+>   that variant "legacy output on old families"; that was wrong.
+>
+> **Also fixed:** the skeleton seeded `port = 'portX.Y.Z'` and the generate prompt explicitly
+> instructed *"a string variable (`port = 'port1.0.1'`)"* — the origin of hardcoded ports.
+> Both now bind from the topology (the corpus does: 10,578 bound attributes vs 125 literals),
+> with a comment-aware lint **warning** as a backstop (warning, not error: a deliberately
+> invalid literal fed to a negative test is legitimate). It caught 3 real hardcodes on a
+> regeneration, so the defect is live and model-dependent.
+>
+> Tests: `tests/test_cli_feature_grounding.py` (23), incl. a load-bearing guard that the
+> `show interface eth1` regression stays fixed — the fix for *that* is what caused defect 2.
+
 ---
 
 ## 3. Bugs and regressions found this session

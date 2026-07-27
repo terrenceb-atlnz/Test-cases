@@ -1,0 +1,151 @@
+{
+  "case_key": "AWPTCM-T33234",
+  "script": {
+    "name": "Port_Auto_MDI_MDI_test.py",
+    "chars": 16324,
+    "generated_by": {
+      "provider": "openai",
+      "model": "vllm-fast",
+      "auth_method": "local_llm"
+    },
+    "iterations": 6,
+    "lint_ok": true
+  },
+  "inputs": {
+    "sequence_steps": 13,
+    "verify_steps": 12,
+    "fragments_selected": 0,
+    "fragments_pool": 7,
+    "fit_decision": "new"
+  },
+  "caveats": [
+    "step6 (generate) is NOT confirmed"
+  ],
+  "criteria": {
+    "1_template_used": {
+      "verdict": "exactly",
+      "testcase_classes": 12,
+      "verify_steps": 12,
+      "findings": []
+    },
+    "2_snippets_used": {
+      "verdict": "n-a",
+      "reason": "no fragments selected (decision: new)",
+      "per_step": []
+    },
+    "3_snippet_order": {
+      "verdict": "n-a",
+      "reason": "no fragments to order",
+      "expected": [],
+      "actual": []
+    },
+    "6_logging_contract_offline": {
+      "verdict": "yes",
+      "conformant": "12/12",
+      "note": "offline half only \u2014 the on-hardware half needs a real tb470 run (parse_framework_log over the run log); Part 3b is blocked.",
+      "per_testcase": [
+        {
+          "testcase": "TestCase_1",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_2",
+          "ok": true,
+          "n_log": 4,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_3",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_4",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_5",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_6",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_7",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_8",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_9",
+          "ok": true,
+          "n_log": 4,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_10",
+          "ok": true,
+          "n_log": 4,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_11",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_12",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        }
+      ]
+    }
+  },
+  "blocked": {
+    "4_gap_fill_quality": "LLM judges + human review (not mechanical)",
+    "5_code_executes": "BLOCKED \u2014 needs a real tb470 run; configs/tb470.setup does not exist yet (physical topology prerequisite)",
+    "6_logging_on_hardware": "BLOCKED \u2014 same tb470 prerequisite"
+  }
+}

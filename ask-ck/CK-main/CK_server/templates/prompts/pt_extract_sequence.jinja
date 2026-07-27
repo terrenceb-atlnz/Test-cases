@@ -42,6 +42,21 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   verify written that way produces a test that fails on working hardware. If the
   reference does not show the field you need, describe the check in plain words instead
   of inventing a format.
+- **Verify the FEATURE UNDER TEST, not just that the link survived.** When a step
+  enables or disables a feature, the check must read that feature's own state. `show
+  interface` reports link/duplex/speed/polarity, so asserting only `Link is UP` after
+  disabling a feature passes whenever the disable SILENTLY FAILS — the exact false green
+  this rule exists to stop. Use the feature's own show command when the reference lists
+  one (e.g. EcoMode/LPI/EEE → `show ecofriendly`, whose per-port `Configured`/`Status`
+  columns prove the state). Link stability may be an ADDITIONAL assertion, never the only
+  one.
+  **`Configured` reflects the CONFIG you applied; `Status` reflects what the port is
+  doing now.** So after enabling, `Configured` must read the feature (`lpi`); after
+  disabling with the `no` form, `Configured` must read `off` — asserting the feature is
+  still `Configured` after disabling it contradicts the very thing the step verifies.
+  `Status` may legitimately lag `Configured` (a port can read `Configured=lpi,
+  Status=off` when the peer has not negotiated it), so assert `Configured` for "did the
+  command take" and `Status` only when the step is about the operational state.
 - **Every command ARGUMENT must come from the reference's syntax line.** `speed` accepts
   only `{10|100|1000|2500|5000|10000|40000|100000}` — a value outside that set (e.g.
   `speed 2000`) is rejected by the CLI parser, so the port is never configured and the

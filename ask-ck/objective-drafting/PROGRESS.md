@@ -2,7 +2,53 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-27 (by Claude)
+**Last Updated**: 2026-07-28 (by Claude)
+
+## Latest session (2026-07-28) — two "model defects" that were both OUR bugs
+
+**Focus: the two items left open at the end of 27h. Both turned out to be defects in our own
+tooling rather than LLM quality — the reported diagnosis was wrong in each case.**
+
+- **`framework.ATLibrary` was NOT a hallucinated import.** `ATLibrary` is a real framework
+  package; the **lint** was broken. `framework_surface` is keyed by module path
+  (`ATLibrary.ATTools`, `ATLibrary.__init__`), so a package never has a bare key and a plain
+  membership test rejected **every** package import — `from framework.ATDrivers import
+  ATSwitch` included. `ATDrivers` passed only because it sat in a hardcoded allowlist despite
+  being structurally identical. Now resolves packages from the index; the allowlist is gone
+  (all 6 exempted names are real keys). T33235 lints clean with **code unchanged**. The
+  review's suggested fix — ground the prompt's import surface — would have taught the model to
+  avoid writing valid Python. `90e83ef`.
+- **The LPI/EcoMode false green was a resourcing gap, exactly as Terrence said.** The
+  `ecomode` tree was never passed to the prompt; AW+ calls it **`ecofriendly`** and it was in
+  `ck.db` all along. Two defects: (1) `detect_commands()` is purely lexical, so prose
+  ("EcoMode"/"LPI"/"EEE") has no path to `ecofriendly lpi` → added `FEATURE_ALIASES`; (2)
+  worse, variant selection preferred the most-shared `show interface` variant, and only 1 of 8
+  prints `current ecofriendly lpi` — so 3 of the 4 steps were grounded on output with **no**
+  EEE field *while told to match it exactly and invent nothing*. **The grounding steered the
+  model into the false green.** Graded relevance ranking fixes it.
+- **Graded result:** T33233 2 gap-fill blocks (`bad×11, good×1`) → **0**; T33234 **12 of 12**
+  (`bad×63, good×9`) → **1 of 14**; T33234 fragments 0/7 → **11/23** (answering the old
+  "is selection broken?" question — no, the sequence was too vague to match on). Both lint
+  clean, C1/C2/C3/C6 best-grade. Scripts now run `show ecofriendly` and parse the row for the
+  port under test, asserting `Configured`/`Status`.
+- **Terminology corrections from Terrence, worth carrying forward:** `ecofriendly` is the
+  proper CLI name and "ecomode" is slang (recognised on input, never emitted); **`lpi` is
+  deprecated** (modern diagnostics say EEE) but stays first-class because it is the only
+  spelling the config command accepts, it is the live `show ecofriendly` value, and
+  **TestLink cases are years old and almost unanimously say LPI** — and TestLink is where
+  reused fragments come from. And **`port1.1.x` is not legacy**: it tracks chassis vs
+  standalone (x908gen3 is current), and an **x950 with a populated card slot uses it too**, so
+  port naming is a runtime hardware property.
+- **Port names now come from the `.setup` topology.** The skeleton seeded
+  `port = 'portX.Y.Z'` and the prompt literally instructed `port = 'port1.0.1'` — the origin
+  of hardcoded ports, wrong on any chassis. Both fixed (corpus: 10,578 bound attributes vs 125
+  literals), plus a comment-aware lint warning that caught 3 real hardcodes on a regeneration.
+- **Tests 208 → 250** (+19 import-lint, +23 feature-grounding), 72 Vitest, both guards green.
+  Judging artifacts consolidated back under `judging/Port (7)/`.
+- **Still open:** T33234 TestCase_8 (unrelated to LPI — configures the partner's
+  `polarity mdi` but never the local `polarity auto`; judges near-unanimous). And
+  `prompt_block(product=...)` exists but is never passed, so variant choice is still inferred
+  from breadth rather than the real DUT — needs a `platform` field on the testbox profile.
 
 ## Latest session (2026-07-27h) — CLI grounding: the generator was starved, not stupid
 

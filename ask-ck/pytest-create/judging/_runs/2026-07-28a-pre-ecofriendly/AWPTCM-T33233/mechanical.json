@@ -2,20 +2,20 @@
   "case_key": "AWPTCM-T33233",
   "script": {
     "name": "Port_Auto_Negotiation_test.py",
-    "chars": 19465,
+    "chars": 21306,
     "generated_by": {
       "provider": "openai",
       "model": "vllm-fast",
       "auth_method": "local_llm"
     },
-    "iterations": 5,
+    "iterations": 3,
     "lint_ok": true
   },
   "inputs": {
-    "sequence_steps": 10,
-    "verify_steps": 10,
-    "fragments_selected": 18,
-    "fragments_pool": 49,
+    "sequence_steps": 12,
+    "verify_steps": 11,
+    "fragments_selected": 16,
+    "fragments_pool": 48,
     "fit_decision": "new"
   },
   "caveats": [
@@ -24,14 +24,14 @@
   "criteria": {
     "1_template_used": {
       "verdict": "exactly",
-      "testcase_classes": 10,
-      "verify_steps": 10,
+      "testcase_classes": 11,
+      "verify_steps": 11,
       "findings": []
     },
     "2_snippets_used": {
       "verdict": "exactly",
-      "tags_matched": "10/10",
-      "avg_code_overlap": 0.043,
+      "tags_matched": "9/9",
+      "avg_code_overlap": 0.036,
       "overlap_note": "low overlap == adapted, not absent; see per_step. Judges assess adaptation quality (criterion 4).",
       "per_step": [
         {
@@ -54,15 +54,6 @@
         },
         {
           "testcase": "TestCase_3",
-          "expected_tag": "# legacy 5704_Private_MIB/test-5704.9999-Private-Trap.py lines 48-142",
-          "actual_tag": "# legacy 5704_Private_MIB/test-5704.9999-Private-Trap.py lines 48-142",
-          "tag_matches": true,
-          "is_gap_fill": false,
-          "code_overlap": 0.053,
-          "duplicate_tag_lines": 1
-        },
-        {
-          "testcase": "TestCase_4",
           "expected_tag": "# legacy tools/Validation/IPv6_Scenario/Special_test_scripts/interace_flap_test.py",
           "actual_tag": "# legacy tools/Validation/IPv6_Scenario/Special_test_scripts/interace_flap_test.py",
           "tag_matches": true,
@@ -71,25 +62,25 @@
           "duplicate_tag_lines": 1
         },
         {
-          "testcase": "TestCase_5",
-          "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 507-593",
-          "actual_tag": "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 507-593",
+          "testcase": "TestCase_4",
+          "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py lines 186-259",
+          "actual_tag": "# legacy 5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py lines 186-259",
           "tag_matches": true,
           "is_gap_fill": false,
-          "code_overlap": 0.044,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_5",
+          "expected_tag": "# legacy 8003_x8100/test-9999.083.py",
+          "actual_tag": "# legacy 8003_x8100/test-9999.083.py",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.04,
           "duplicate_tag_lines": 1
         },
         {
           "testcase": "TestCase_6",
-          "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857",
-          "actual_tag": "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857",
-          "tag_matches": true,
-          "is_gap_fill": false,
-          "code_overlap": 0.044,
-          "duplicate_tag_lines": 1
-        },
-        {
-          "testcase": "TestCase_7",
           "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 341-430",
           "actual_tag": "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 341-430",
           "tag_matches": true,
@@ -98,7 +89,7 @@
           "duplicate_tag_lines": 1
         },
         {
-          "testcase": "TestCase_8",
+          "testcase": "TestCase_7",
           "expected_tag": "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
           "actual_tag": "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
           "tag_matches": true,
@@ -107,7 +98,7 @@
           "duplicate_tag_lines": 1
         },
         {
-          "testcase": "TestCase_9",
+          "testcase": "TestCase_8",
           "expected_tag": "# SVT libSvt/portCoToCsv.py",
           "actual_tag": "# SVT libSvt/portCoToCsv.py",
           "tag_matches": true,
@@ -116,12 +107,30 @@
           "duplicate_tag_lines": 1
         },
         {
-          "testcase": "TestCase_10",
+          "testcase": "TestCase_9",
           "expected_tag": "# legacy 5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py lines 958-1034",
           "actual_tag": "# legacy 5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py lines 958-1034",
           "tag_matches": true,
           "is_gap_fill": false,
           "code_overlap": 0.017,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_10",
+          "expected_tag": null,
+          "actual_tag": "# AI vllm-fast 2026-07-27",
+          "tag_matches": null,
+          "is_gap_fill": true,
+          "code_overlap": null,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_11",
+          "expected_tag": null,
+          "actual_tag": "# AI vllm-fast 2026-07-27",
+          "tag_matches": null,
+          "is_gap_fill": true,
+          "code_overlap": null,
           "duplicate_tag_lines": 1
         }
       ]
@@ -131,10 +140,9 @@
       "expected": [
         "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
         "# legacy 8003_x8100/test-9999.083.py",
-        "# legacy 5704_Private_MIB/test-5704.9999-Private-Trap.py lines 48-142",
         "# legacy tools/Validation/IPv6_Scenario/Special_test_scripts/interace_flap_test.py",
-        "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 507-593",
-        "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857",
+        "# legacy 5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py lines 186-259",
+        "# legacy 8003_x8100/test-9999.083.py",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 341-430",
         "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
         "# SVT libSvt/portCoToCsv.py",
@@ -143,10 +151,9 @@
       "actual": [
         "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
         "# legacy 8003_x8100/test-9999.083.py",
-        "# legacy 5704_Private_MIB/test-5704.9999-Private-Trap.py lines 48-142",
         "# legacy tools/Validation/IPv6_Scenario/Special_test_scripts/interace_flap_test.py",
-        "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 507-593",
-        "# legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857",
+        "# legacy 5000_mdi_mdix/test-5000.0007-FiberSFP_1G.py lines 186-259",
+        "# legacy 8003_x8100/test-9999.083.py",
         "# legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 341-430",
         "# legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py",
         "# SVT libSvt/portCoToCsv.py",
@@ -155,7 +162,7 @@
     },
     "6_logging_contract_offline": {
       "verdict": "yes",
-      "conformant": "10/10",
+      "conformant": "11/11",
       "note": "offline half only \u2014 the on-hardware half needs a real tb470 run (parse_framework_log over the run log); Part 3b is blocked.",
       "per_testcase": [
         {
@@ -209,7 +216,7 @@
         {
           "testcase": "TestCase_7",
           "ok": true,
-          "n_log": 4,
+          "n_log": 2,
           "n_verdicts": 2,
           "n_nonempty": 2,
           "why": []
@@ -225,13 +232,21 @@
         {
           "testcase": "TestCase_9",
           "ok": true,
-          "n_log": 2,
+          "n_log": 4,
           "n_verdicts": 2,
           "n_nonempty": 2,
           "why": []
         },
         {
           "testcase": "TestCase_10",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_11",
           "ok": true,
           "n_log": 2,
           "n_verdicts": 2,

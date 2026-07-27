@@ -1166,10 +1166,23 @@ def _cli_reference_for_text(text: str, product: Optional[str] = None,
         return ""
     try:
         cmds = cli_lookup.detect_commands(text)
+        # Features named in PROSE have no lexical path to their command tree, so the
+        # literal matcher misses them entirely (2026-07-28). Four steps across
+        # T33233/T33234 said "Enable EcoMode on the port" / "lpi disable on <port>" and
+        # got either nothing or — worse — a grounded `show interface` variant with no EEE
+        # field at all, while being told to match the reference exactly and invent
+        # nothing. That steered them into asserting link state only: a false green
+        # whenever the disable silently fails, which is what criterion 4 flagged. The
+        # `ecofriendly` tree was in ck.db the whole time.
+        feat_cmds, feat_terms = cli_lookup.feature_commands(text)
+        cmds = cmds + [c for c in feat_cmds if c not in cmds]
         if not cmds:
             return ""
+        # feature_terms also steers VARIANT choice: `show interface` reports LPI on only
+        # 3 of 8 families, so breadth alone shipped the variant that omits it.
         return cli_lookup.prompt_block(cmds, product,
-                                       max_output_lines=max_output_lines)
+                                       max_output_lines=max_output_lines,
+                                       feature_terms=feat_terms)
     except Exception as e:                       # never fail the step over grounding
         print(f"[pt] CLI reference unavailable: {e}")
         return ""
@@ -1398,6 +1411,40 @@ def _lint_generated(sess: PtSession) -> dict:
         for marker in (">>> FILL", "output = ''  # >>> replace", "if False:  # >>> replace"):
             if marker in code:
                 errors.append(f"contract: unfilled template placeholder present ({marker!r})")
+
+        # Hardcoded port names (2026-07-28). The FIRST index of an AW+ port name is the
+        # chassis/slot, so a literal `'port1.0.1'` is wrong on chassis platforms (x8100,
+        # x908gen2, x908gen3) AND on an x950 whose card slot is populated — those use
+        # `port1.1.x`. It is a runtime property of the hardware, not something the case
+        # text implies, so it must come from the .setup topology via the attribute
+        # `init_portlink()` binds. The corpus agrees overwhelmingly: 10,578 bound-attribute
+        # uses vs 125 literals (and those are mostly negative-test inputs).
+        #
+        # A WARNING, not an error: `invalidIfRangeList.append('port1.0.1')` is a legitimate
+        # literal — a deliberately invalid name fed to a negative test. The reviewer
+        # decides; the check exists so a hardcode is never silent.
+        # Match the port name anywhere inside a string literal, not just when it fills the
+        # whole literal — `dut.cmd('interface port1.1.3')` is just as hardcoded as
+        # `port = 'port1.0.1'`, and anchoring on the quotes missed it.
+        #
+        # Comments are skipped: prose ABOUT port naming is not a hardcode, and the check
+        # otherwise flags the skeleton's own guidance comment where it quotes an example
+        # (it did exactly that on first run — a warning against its own advice).
+        _port_literal_rx = re.compile(
+            r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""")
+        for _i, _line in enumerate(code.splitlines(), 1):
+            if _line.lstrip().startswith("#"):
+                continue
+            # Find literals first, THEN drop trailing comments — splitting on '#' first
+            # would corrupt a string that legitimately contains one.
+            for m in _port_literal_rx.finditer(_line):
+                if "#" in _line[:m.start()]:
+                    continue                     # the match sits in a trailing comment
+                warnings.append(
+                    f"port name hardcoded as {m.group(0)} at line {_i} — take it from "
+                    f"the .setup topology (e.g. `port = dut.portA` bound by "
+                    f"init_portlink), since chassis platforms and a populated-slot x950 "
+                    f"use port1.1.x")
 
         # 3. Framework imports must exist in the surface index (from ck.db — the
         #    single runtime source; no JSON read).

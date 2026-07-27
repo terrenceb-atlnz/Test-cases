@@ -1,0 +1,224 @@
+{
+  "case_key": "AWPTCM-T33233",
+  "case_title": "Port - Auto Negotiation",
+  "criterion": "4 \u2014 generated the missing steps (gap-fill quality)",
+  "scale": [
+    "exceptional",
+    "good",
+    "bad",
+    "not at all"
+  ],
+  "judges": [
+    "claude-opus",
+    "vllm-fast#1",
+    "vllm-fast#2",
+    "vllm-fast#3",
+    "vllm-fast#4",
+    "vllm-fast#5"
+  ],
+  "judged_at": "2026-07-27T04:08:16+00:00",
+  "gap_fill_blocks": 2,
+  "total_testcases": 11,
+  "results": [
+    {
+      "testcase": "TestCase_10",
+      "step_n": 11,
+      "action": "Enable EcoMode on the port.",
+      "verify": "Run `show interface` to confirm EcoMode is active and link remains `connected` with stable negotiated parameters.",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 22637,
+          "tok_in": 2,
+          "tok_out": 1401,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The block attempts the right shape (enable EcoMode, then re-run `show interface` and assert on the result) but every switch-facing detail is fabricated. `energy efficient ethernet` is not an AlliedWare Plus command \u2014 EEE/EcoMode is enabled with `eee`/`ecofriendly lpi` from interface config, and the code never even enters interface config for port1 (the `dut.mode(')#')` / `dut.mode('#')` calls are nonsense and never select the port). The pass condition matches `'eco'` inside `show interface` output, but AW+ `show interface` does not report EcoMode status (that lives in `show eee`/`show ecofriendly`), so the assertion checks a string that will never appear, and it ignores the required 'stable negotiated parameters' entirely.",
+          "concrete_problem": "The enable command is invalid and the port is never entered, so EcoMode is not actually configured; the verification then keys on 'eco' in `show interface` output, a string that does not appear there, making the check test the wrong thing.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 12835,
+          "tok_in": 808,
+          "tok_out": 2281,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code fails to enter interface configuration mode to apply the EcoMode command, instead issuing a global command that lacks proper syntax and context. The verification relies on a fragile substring match for 'eco' and completely ignores the requirement to check for stable negotiated parameters, making it highly prone to false positives.",
+          "concrete_problem": "Missing interface context for the EcoMode command and overly weak substring verification that ignores negotiated parameter stability.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 10915,
+          "tok_in": 808,
+          "tok_out": 1941,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code applies the EcoMode command without specifying the target port, materially deviating from the step's requirement to enable it on a specific interface. The verification relies on a fragile substring match for 'eco' in the output, failing to confirm stable negotiated parameters and risking false positives or negatives.",
+          "concrete_problem": "Applies command without port context and uses weak substring match for verification",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 14484,
+          "tok_in": 808,
+          "tok_out": 2577,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code attempts to enable EcoMode but omits the port specifier in the CLI command, which would likely fail or apply globally rather than per-port. The verification is too weak, relying on fragile substring matches for 'connected' and 'eco' while completely ignoring the requirement to verify stable negotiated parameters, making it prone to false positives.",
+          "concrete_problem": "Missing port argument in the enable command and overly fragile substring verification that ignores negotiated parameter checks.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 10984,
+          "tok_in": 808,
+          "tok_out": 1953,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code applies the EEE command without entering the specific interface configuration context, likely causing a CLI error or misapplication. The verification relies on a weak substring match for 'connected' and 'eco', completely ignoring the requirement to check for stable negotiated parameters and failing to properly parse the interface status.",
+          "concrete_problem": "Weak substring verification for 'eco' and 'connected' instead of parsing actual interface status and EEE state; also missing interface context for the configuration command.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 10646,
+          "tok_in": 808,
+          "tok_out": 1891,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly issues the `energy efficient ethernet` CLI command to enable EcoMode and verifies the interface status by checking for 'connected' and 'eco' in the `show interface` output. The commands and substring checks are plausible for an Allied Telesis switch and directly address the step's core requirements. It provides a functional verification suitable for an auto-generated script, though it does not explicitly parse or validate stable negotiated parameters.",
+          "concrete_problem": "Verification relies on simple substring matching rather than explicitly validating stable negotiated parameters, and the log message incorrectly references STEP 10 instead of Step 11.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 2,
+          "majority": "bad",
+          "majority_share": "4/5",
+          "stable": false,
+          "votes": [
+            "bad",
+            "bad",
+            "bad",
+            "bad",
+            "good"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_11",
+      "step_n": 12,
+      "action": "Disable EcoMode on the port.",
+      "verify": "Run `show interface` to confirm EcoMode is inactive and link remains `connected` with stable negotiated parameters.",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 7970,
+          "tok_in": 2,
+          "tok_out": 305,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The step asks to disable EcoMode, but the code runs `no energy efficient ethernet`, which disables EEE (802.3az) \u2014 a different power feature from EcoMode on Allied Telesis switches. Worse, the verification is a false-green trap: it passes when 'eco' is absent from `show interface` output, but that command's normal output never contains the string 'eco' regardless of EcoMode state, so the check succeeds even if EcoMode were still active. It also never verifies 'stable negotiated parameters' (speed/duplex) as the step requires.",
+          "concrete_problem": "The pass condition `'eco' not in output.lower()` is trivially satisfied because `show interface` output does not report EcoMode status, making the assertion incapable of detecting whether EcoMode is actually disabled \u2014 a guaranteed false green.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 13436,
+          "tok_in": 810,
+          "tok_out": 2386,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The verification logic is too weak, relying on a fragile substring check for 'eco' that likely does not appear in the standard output and fails to verify stable negotiated parameters. Additionally, the CLI command omits the port argument and uses a suspicious mode-switching syntax, making it prone to false positives or execution failures on actual hardware.",
+          "concrete_problem": "Verification relies on a fragile substring match for 'eco' instead of parsing actual EEE status, and the disable command omits the port argument.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 10409,
+          "tok_in": 810,
+          "tok_out": 1846,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code uses an incorrect CLI command (`no energy efficient ethernet`) without entering interface configuration mode, which is required for port-specific settings on Allied Telesis switches. The verification is overly weak, only checking for the substring 'connected' and the absence of 'eco', while completely ignoring the requirement to verify stable negotiated parameters. This superficial check could easily pass while the feature remains broken or unchanged.",
+          "concrete_problem": "Incorrect CLI syntax/context for disabling port-specific EcoMode and overly weak verification that ignores stable negotiated parameters.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 13741,
+          "tok_in": 810,
+          "tok_out": 2440,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code attempts to disable EcoMode but uses Cisco-style CLI syntax without entering the correct interface configuration context. The verification relies on a weak substring match for 'connected' and the absence of 'eco', completely ignoring the requirement to verify stable negotiated parameters. This superficial check could easily pass while the feature is actually broken.",
+          "concrete_problem": "Uses incorrect CLI syntax and performs a weak string-match verification that ignores required state checks.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 10681,
+          "tok_in": 810,
+          "tok_out": 1895,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code verifies EcoMode status using a flaky substring check ('eco' not in output.lower()) rather than parsing the actual EEE status from the interface output. It also fails to verify the 'stable negotiated parameters' requirement specified in the step.",
+          "concrete_problem": "Verifies EcoMode status using a weak substring check ('eco' not in output) instead of parsing the actual EEE status, and ignores the requirement to check negotiated parameters.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 11854,
+          "tok_in": 810,
+          "tok_out": 2103,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code issues a global CLI command instead of entering interface configuration mode to target the specific port, which is a material deviation from the required action. Verification is superficial, relying on simple substring checks for 'connected' and the absence of 'eco', which fails to confirm the actual EcoMode state or stable negotiated parameters. This approach could easily pass while the port configuration remains unchanged or broken.",
+          "concrete_problem": "Uses a global CLI command instead of interface-specific configuration, and verification relies on weak substring matching rather than checking actual EcoMode status and negotiated parameters.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 1,
+          "majority": "bad",
+          "majority_share": "5/5",
+          "stable": true,
+          "votes": [
+            "bad",
+            "bad",
+            "bad",
+            "bad",
+            "bad"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    }
+  ]
+}

@@ -1214,3 +1214,89 @@ Workaround used: `./run.sh --restart` around any external write, then verify `up
 from a fresh connection — never trust the 200. Fix candidates: drop/refresh the
 thread-local cache, and make `_pt_persist` surface failures instead of printing. Related
 to the §9.4 dual-instance debt but worse, because it presents as success.
+
+---
+
+## §12 — Feature grounding: the LPI/EcoMode false green (2026-07-28)
+
+Closes the criterion-4 defect from §11: *"verification that checks link state but never the
+feature under test."* Terrence identified the cause — the whole `ecomode` CLI command tree
+was never passed to the prompt. It is **`ecofriendly`** in AW+, it was in `ck.db` all along,
+and two independent defects kept it out.
+
+### 12.1 Two defects, not one
+
+1. **`detect_commands()` is purely lexical.** A feature named in PROSE has no path to its
+   commands: "EcoMode", "LPI" and "EEE" appear nowhere inside `ecofriendly lpi`. No matcher
+   tuning bridges that, so `FEATURE_ALIASES` (`tool/cli_lookup.py`) maps feature prose →
+   command tree + the output terms that prove the field. Hand-curated deliberately: a wrong
+   alias injects confidently-wrong grounding, which is worse than none.
+2. **Variant selection hid the field under test — the sharp one.** `prompt_block()` preferred
+   the variant with the most product families; only one of eight `show interface` variants
+   prints `current ecofriendly lpi`. Three of the four affected steps were therefore grounded
+   on authoritative output with **no** EEE field *while being told "match these formats
+   exactly, do NOT invent output tokens"* — so asserting on link state was nearly the only
+   move left. **The grounding steered the model into the false green.** Fixed with graded
+   relevance ranking (count term hits, then breadth, then length), a family-specific NOTE
+   when the chosen variant shows a field others omit, and a guarantee that the feature line
+   is never trimmed away by `max_output_lines`.
+
+Note the coupling: defect 2 is the same failure mode as the earlier `show interface eth1`
+regression, and the fix for *that* one (prefer most-shared) is what caused this one. The
+eth1 guard in `tests/test_cli_feature_grounding.py` is load-bearing.
+
+### 12.2 Result (graded, same judge panel as the baseline)
+
+| | before | after |
+|---|---|---|
+| T33233 gap-fill blocks | 2 of 11 (`bad×11, good×1`) | **0** — every TestCase reuses real code |
+| T33234 gap-fill blocks | **12 of 12** (`bad×63, good×9`) | **1 of 14** (`bad×5, good×1`) |
+| T33234 fragments selected | 0 of 7 | **11 of 23** |
+| lint / C1 / C2 / C3 / C6 | — | clean / exactly / exactly / right / yes (both) |
+
+T33234's 12→1 collapse also answers the §4 open question "is the LLM right that none of its
+7 fragments are reusable?" — it was the vague sequence starving script-search, not a
+selection bug. The one surviving block (TestCase_8, step 9) is unrelated to LPI: the judges
+are near-unanimous that it configures the partner's `polarity mdi` but never sets the local
+port to `polarity auto`. Real signal, still open.
+
+Generated code now enters interface config mode, runs `show ecofriendly`, selects the row for
+the port under test and asserts `Configured`/`Status` — not link state.
+
+### 12.3 Terminology (from Terrence) — recorded because it was got wrong twice
+
+- **`ecofriendly` is the proper CLI name; "ecomode" is slang.** Slang is recognised on the
+  INPUT side only and never emitted, because TestLink/Zephyr authors write it.
+- **`lpi` is deprecated terminology** — modern diagnostics say EEE (`show platform port`
+  prints `EEE Admin Status`), and `lpi` survives in exactly one command name. It stays
+  first-class regardless: it is the only spelling the config command accepts, it is the live
+  `Configured`/`Status` value in `show ecofriendly`, and **TestLink cases are several years
+  old and almost unanimously say LPI** — TestLink being the corpus reused fragments come
+  from. Deprecated-as-terminology does not make a string wrong to match on.
+- **`port1.1.x` is not "legacy".** The `show interface` variant printing
+  `current ecofriendly lpi` covers x8100/x908gen2/x908gen3 and uses `port1.1.x`; both traits
+  track **chassis vs standalone, not firmware age**. x908gen3 is current (x8100 is the old
+  one in that generational family), and **an x950 with a populated card slot also uses
+  `port1.1.x`**. Port naming is a RUNTIME hardware property. An earlier draft of this work
+  called that variant "deprecated output on old families" — wrong on both counts.
+
+### 12.4 Port names come from the topology
+
+The skeleton seeded `port = 'portX.Y.Z'` and the generate prompt explicitly instructed *"a
+string variable (`port = 'port1.0.1'`)"* — the origin of hardcoded ports, and wrong on any
+chassis or populated-slot x950. Both now bind from the `.setup` topology via the attribute
+`init_portlink()` binds, matching the corpus (**10,578** bound-attribute uses vs **125**
+literals, and those are mostly negative-test inputs).
+
+Backed by a comment-aware lint **warning** — warning, not error, because a deliberately
+invalid literal fed to a negative test is legitimate; the reviewer decides. It caught 3 real
+hardcodes on a regeneration, so the defect is live and model-dependent rather than fixed by
+prompt guidance alone. (First cut of the check flagged the skeleton's own guidance comment
+where it quoted an example — a warning against its own advice; comments are now skipped.)
+
+### 12.5 Not addressed
+
+`prompt_block(product=...)` exists but both call sites pass `product=None`, so variant choice
+is still inferred from breadth rather than the DUT. Threading the real platform through would
+make grounding hardware-accurate; it needs a `platform` field on the testbox profile
+(`secrets.testboxes.json` currently has no profiles). Deferred by decision, not oversight.
