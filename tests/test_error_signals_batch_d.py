@@ -231,3 +231,42 @@ def test_run_status_sweeps_too():
     run_status = src.split("async def run_status(", 1)[1].split("async def", 1)[0]
     assert "_sweep_stale_runs" in run_status, (
         "run_status still reports the persisted status without re-checking staleness")
+
+
+# --- llm.py streaming: SSE encoding (found while REFUTING backlog llm.py:494) ----
+def test_sse_stream_is_decoded_as_utf8():
+    """The streamed vLLM path must not mojibake non-ASCII content.
+
+    SSE is Content-Type: text/event-stream, and requests maps any "text" type to
+    ISO-8859-1, so decode_unicode built a latin-1 decoder: "port — 1 µs" arrived as
+    "port â 1 Âµs". It corrupts silently (no replacement char) and the result is still
+    valid JSON, so it flowed into the stored objective/steps and on to Zephyr.
+
+    The filed finding (chunk-boundary splitting) was refuted — the incremental decoder
+    handles split sequences fine, as the second half of this test shows. The real bug
+    was the codec, found by the skeptic while disproving the narrower claim.
+    """
+    import codecs
+    import pathlib
+
+    sample = "Verify port — 1 µs ✓"
+    raw = sample.encode("utf-8")
+
+    # The old behaviour, for the record.
+    latin = codecs.getincrementaldecoder("ISO-8859-1")(errors="replace").decode(raw)
+    assert latin != sample, "premise check: latin-1 really does corrupt this"
+
+    # The fix.
+    assert codecs.getincrementaldecoder("utf-8")(errors="replace").decode(raw) == sample
+
+    # And the originally-filed concern is genuinely a non-issue: an incremental utf-8
+    # decoder reassembles a sequence split across chunk boundaries.
+    dec = codecs.getincrementaldecoder("utf-8")(errors="replace")
+    chunked = "".join(dec.decode(raw[i:i + 3]) for i in range(0, len(raw), 3))
+    assert chunked == sample
+
+    src = (pathlib.Path(__file__).resolve().parents[1]
+           / "ask-ck" / "CK-main" / "CK_server" / "llm.py").read_text(encoding="utf-8")
+    stream_block = src.split("stream=True", 1)[1].split("iter_lines", 1)[0]
+    assert 'resp.encoding = "utf-8"' in stream_block, (
+        "the SSE stream no longer pins utf-8 — non-ASCII output will mojibake")

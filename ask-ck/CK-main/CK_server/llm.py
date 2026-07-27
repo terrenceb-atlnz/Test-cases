@@ -520,6 +520,17 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             with requests.post(endpoint, headers=headers, json=payload,
                                timeout=http_timeout, stream=True) as resp:
                 resp.raise_for_status()
+                # SSE responses are Content-Type: text/event-stream, and requests'
+                # get_encoding_from_headers maps ANY "text" type to ISO-8859-1 (RFC 2616
+                # default) — so decode_unicode below would build a latin-1 decoder and
+                # mojibake every non-ASCII byte: "port — 1 µs" arrives as "port â 1 Âµs".
+                # It corrupts silently (no replacement char) and the result is still
+                # valid JSON, so it flows through into the stored objective/steps and on
+                # to Zephyr. Em-dashes and micro signs are routine in this output.
+                # Found by a skeptic while refuting the narrower chunk-boundary claim
+                # (backlog llm.py:494 — that one really is a non-issue; the incremental
+                # decoder handles split sequences correctly).
+                resp.encoding = "utf-8"
                 for line in resp.iter_lines(decode_unicode=True):
                     if not line:
                         continue  # SSE keep-alive / blank separator line

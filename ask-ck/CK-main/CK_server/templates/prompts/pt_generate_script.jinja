@@ -17,7 +17,7 @@ Output file name: {{ file_name }}
 
 ## Reviewer-approved reusable fragments (real source — adapt these into the FILL slots)
 {% for f in fragments %}
-### From {{ f.source_id }} — {{ f.symbol }} (serves steps {{ f.maps_to | join(", ") }})
+### From {{ f.source_id }} — {{ f.symbol }} (serves steps {{ f.maps_to | join(", ") }}){% if f.py2_flagged %} ⚠ PYTHON 2{% endif %}
 Provenance tag for this fragment: `{{ f.tag }}`
 Reviewer note: {{ f.why }}
 ```python

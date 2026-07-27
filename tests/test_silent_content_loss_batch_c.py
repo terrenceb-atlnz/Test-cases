@@ -250,3 +250,29 @@ def test_echo_strip_is_capped():
             "        self.log('x')\n")
     out = _restamp_provenance(code, [], "m", sequence=None)
     assert "e/f.py" in out, "strip ran past the cap"
+
+
+# --- pt_generate_script.jinja:54 — the Py2 marker the model was told to look for --
+def test_py2_marker_reaches_the_generate_prompt():
+    """Rule 4 tells the model Py2 fragments are 'marked ⚠ PYTHON 2' — so they must be.
+
+    The marker was only ever emitted inside the SKELETON (_render_skeleton), never in
+    the prompt's 'Reviewer-approved fragments' section, so the rule pointed at something
+    the model could not see and the steer was inert.
+    """
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader(str(_TEMPLATES / "prompts")))
+    out = env.get_template("pt_generate_script.jinja").render(
+        fragments=[
+            {"source_id": "legacy/a.py", "symbol": "f1", "maps_to": [1],
+             "tag": "# legacy a.py", "why": "w", "code": "print 1", "py2_flagged": True},
+            {"source_id": "art/b.py", "symbol": "f2", "maps_to": [2],
+             "tag": "# ART b.py", "why": "w", "code": "print(1)", "py2_flagged": False},
+        ],
+        py2_flagged=True, case_key="T1", case_title="t", steps=[], skeleton="",
+        device_note="", framework_surface={}, exemplar="", switches=[],
+    )
+    headings = [l for l in out.splitlines() if l.startswith("### From")]
+    assert "⚠ PYTHON 2" in headings[0], "flagged fragment carries no marker"
+    assert "⚠ PYTHON 2" not in headings[1], "clean fragment was wrongly marked"
