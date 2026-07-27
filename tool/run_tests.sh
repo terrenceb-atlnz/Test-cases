@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Run the Ask CK backend test suite + the invariant guards, the same way CI would.
-# Uses the repo-local .venv and blocks ~/.local from shadowing the venv's fastapi.
+# Run the Ask CK test suite + invariant guards, the same way CI would:
+#   1. invariant guards (db-only, framework-read-only)
+#   2. backend unit tests (pytest, in-process — no network/LLM)
+#   3. frontend unit tests (Vitest + jsdom — no browser/server/LLM)
+# The Playwright E2E is NOT part of this gate — it is sparingly-run (npm run e2e).
 #
 #   ./tool/run_tests.sh
 #
@@ -29,6 +32,19 @@ if [[ ! -x "$PYTEST" ]]; then
   exit 2
 fi
 PYTHONNOUSERSITE=1 "$PYTEST" -q
+
+echo
+echo "== frontend units (vitest/jsdom) =="
+if ! command -v npm >/dev/null 2>&1; then
+  echo "SKIPPED: npm not on PATH — install Node to run the frontend unit layer." >&2
+elif [[ ! -d node_modules/vitest ]]; then
+  # Fail loudly rather than skip: a partial gate that silently omits a whole
+  # layer reads as "all green" when it isn't.
+  echo "ERROR: frontend deps not installed. Run: npm install" >&2
+  exit 2
+else
+  npm test --silent
+fi
 
 echo
 echo "ALL GREEN"

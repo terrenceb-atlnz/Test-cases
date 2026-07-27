@@ -24,21 +24,27 @@ Tests live in top-level `js-tests/` (separate from the module tree, by decision)
 Failure output verified human-readable: failing test name + Expected/Received diff + source
 frame with the offending line marked (the reason Vitest was chosen over Jasmine for this tier).
 
-## KNOWN SCOPE GAP — the merge functions are not yet unit-tested
+## Merge-function coverage — CLOSED (2026-07-27)
 
-`mergeTestLinkCandidates` / `mergeZephyrCandidates` / `mergeATPCandidates` (`db-search.js`) hold
-the dedup + description-preference + score-re-sort logic, but they are **module-private (not
-exported)**. Testing them in isolation needs EITHER a one-line `export` added to `db-search.js`
-(a production change — deliberately NOT made while this work was uncommitted) OR testing them
-through the exported search handlers with a stubbed `fetch`. **Decision deferred to Terrence.**
-Their *observable outcome* (merged results render in the top table, sorted) is already covered
-indirectly by the Playwright golden-path + the `tables.js` render specs.
+`mergeTestLinkCandidates` / `mergeZephyrCandidates` / `mergeATPCandidates` (`db-search.js`) were
+made `export` (a one-line, behaviour-preserving change — they were already called internally;
+exporting alters nothing at runtime) so they can be unit-tested directly, avoiding a brittle
+fetch-stubbed handler round-trip. `js-tests/merge.spec.js` (13 tests) covers dedup, score
+re-sort (desc), the longer-description preference, default scores (TL/Zephyr 0.6, ATP 0.5),
+no-id skip, the `precheckIds` → chosen-bus path, and the ATP "keep higher LLM score but refresh
+richer desc" special case.
 
-## Glue (was deferred — now decided)
+## Glue — DONE (2026-07-27)
 
-`npm test` added to the shared `package.json`. Whether to also chain it into `tool/run_tests.sh`
-beside pytest+guards for a single gate: **still open** — the two commands (`npm test`, `pytest`)
-run independently today.
+`npm test` was chained into `tool/run_tests.sh` (step 3, after guards + pytest) → a SINGLE gate
+runs all three cheap layers. Verified green together: guards + 48 pytest + 47 Vitest, exit 0.
+The script FAILS LOUDLY (exit 2) if npm is present but `node_modules/vitest` is missing — a
+partial gate that silently drops a layer would falsely read "all green". Skips with a warning
+only if npm itself is absent. The Playwright E2E stays OUT of this gate (sparingly-run,
+`npm run e2e`).
+
+Current suite total: **47 Vitest tests / 5 spec files** (dom-helpers, tables, chosen, merge,
++ fixture drift-detection).
 
 ---
 

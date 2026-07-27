@@ -22,8 +22,9 @@ function mountSuggestProvenance(mountId, panelId, endpoint) {
   mount.innerHTML = renderProvenanceBlock(panelId);
 }
 
-/** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason). */
-function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+/** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason).
+ *  Exported for unit tests (js-tests/merge.spec.js); the app calls it internally. */
+export function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
   const existing = window.currentATP || [];
   const byId = {};
   existing.forEach(c => { if (c && c.id) byId[c.id] = { ...c }; });
@@ -63,7 +64,7 @@ function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } 
   if (precheckIds && precheckIds.length) chooseByIds('atp', precheckIds);
 }
 
-function mergeTestLinkCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+export function mergeTestLinkCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
   const existing = window.currentTestLink || [];
   const byId = {};
   existing.forEach(c => { if (c && c.id) byId[c.id] = { ...c }; });
@@ -92,7 +93,7 @@ function mergeTestLinkCandidates(incoming, { precheckIds = null, source = 'searc
   if (precheckIds && precheckIds.length) chooseByIds('testlink', precheckIds);
 }
 
-function mergeZephyrCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
+export function mergeZephyrCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
   const existing = window.currentZephyr || [];
   const byKey = {};
   existing.forEach(c => {
