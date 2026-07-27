@@ -32,6 +32,15 @@ Convert this manual test case into a prescriptive sequence of automatable test s
 - Each entry = one concrete action + its verification.
 - Split compound steps; merge redundant ones.
 - **Output the steps in RUNNABLE EXECUTION ORDER** — the order they must actually run on the device, not necessarily the order they appear above. Setup/configuration must precede the verifications that depend on it; dependencies come first. Manual test cases are often written for a human reader, not for a machine, so reordering is expected.
+- **NEVER NAME A LITERAL PORT.** Write "the test port", "the partner port", or `<port>` —
+  never `port1.0.1`. The generated script is HARDWARE-AGNOSTIC: it takes port names from the
+  `.setup` file's `[portlink]` section at run time, so the same script runs on a standalone
+  switch (`port1.0.x`) and on a chassis or a populated-slot x950 (`port1.1.x`) unchanged.
+  A literal here does not break the verdict logic, but it is copied verbatim into the
+  script's `testCaseDesc`, its `STEP n:` log line and its pass/fail reason — so the run
+  report claims a port the test never touched, and a reviewer reads a portable script as
+  hardware-specific. Measured 2026-07-28: 59% of sequence steps named a literal, producing
+  94 such lines across two scripts with nothing to flag them.
 - "action" = imperative device-level instruction (configure X, send Y, power-cycle, read 'show ...').
 - "verify" = the observable check proving it worked (exact CLI fields, packet fields, link state) — becomes self.passed()/self.failed() logic.
 {%- if cli_reference %}
@@ -42,6 +51,12 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   verify written that way produces a test that fails on working hardware. If the
   reference does not show the field you need, describe the check in plain words instead
   of inventing a format.
+{%- endif %}
+- **Machine-style output tokens never exist, reference or not.** `speed=1000`,
+  `duplex=full`, `state=up` are not AW+ output in any release; a verify written that way
+  fails on working hardware. When you have no sample of a command's output, describe the
+  check in plain words rather than inventing a layout — a prose check a human can read is
+  strictly better than a fabricated field a machine will mis-assert.
 - **Verify the FEATURE UNDER TEST, not just that the link survived.** When a step
   enables or disables a feature, the check must read that feature's own state. `show
   interface` reports link/duplex/speed/polarity, so asserting only `Link is UP` after
@@ -57,13 +72,36 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   `Status` may legitimately lag `Configured` (a port can read `Configured=lpi,
   Status=off` when the peer has not negotiated it), so assert `Configured` for "did the
   command take" and `Status` only when the step is about the operational state.
-- **Every command ARGUMENT must come from the reference's syntax line.** `speed` accepts
-  only `{10|100|1000|2500|5000|10000|40000|100000}` — a value outside that set (e.g.
-  `speed 2000`) is rejected by the CLI parser, so the port is never configured and the
-  step tests nothing. When a step calls for an UNSUPPORTED or mismatched setting, pick a
-  REAL value the hardware may not support on that media (e.g. `2500` or `10000` on a
-  1G copper port), or force a mismatch against the partner — never an invented number.
-{%- endif %}
+- **Every command ARGUMENT must come from the command's documented syntax.** A value outside
+  the documented set (e.g. `speed 2000`) is rejected by the CLI parser, so the port is
+  never configured and the step tests NOTHING while appearing to.
+  `speed` has THREE forms, and they are not interchangeable:
+  ```
+  speed {10|100|1000|2500|5000|10000|40000|100000}          # FORCE this speed
+  speed auto [10] [100] [1000] [2500] [5000] [10000] ...     # NEGOTIATE, advertising only
+                                                             # the listed rates (all if none)
+  no speed                                                   # back to default
+  ```
+  So "set the port to 1000" is `speed 1000` (forced, no autonegotiation) while "autoneg
+  advertising only 1000" is `speed auto 1000` — a step that says *auto* and emits the bare
+  numeric form is testing the opposite of what it claims. Same distinction for `duplex`.
+  When a step calls for an UNSUPPORTED or mismatched setting, use a REAL value from the set
+  that the media may not support, or force a mismatch against the partner — never an
+  invented number. Do NOT assert which speeds a given port supports: that is a hardware
+  property the CLI reference does not state, so express the expectation in plain words
+  ("link should not come up if the partner cannot match") rather than as a fixed verdict.
+- **HALF DUPLEX IS IMPOSSIBLE AT 1 Gig AND ABOVE.** Physical constraint, not a CLI one, so
+  no reference page states it — the `duplex` page lists `{auto|full|half}` unconditionally
+  on the products that support half duplex at all. `speed 1000` + `duplex half` therefore
+  cannot link at half duplex, and a step asserting "link comes up at 1000/half" is a FALSE
+  RED on correct hardware. Pair `half` only with 10 or 100. (Some product families omit
+  `half` entirely — their page reads `{auto|full}`.)
+- **KEEP THE SOURCE STEP'S QUALIFIERS.** When a Zephyr step says "where supported", "as
+  applicable", "if present" or "on the media type", that conditionality IS the requirement —
+  it is how the author expressed a matrix that varies by hardware. Dropping it turns a
+  conditional check into an unconditional assertion and manufactures a failure on hardware
+  the case never claimed to cover. Either carry the condition into the verify text, or split
+  into the specific combinations you can actually assert.
 - "zephyr_step_idx" = 1-based index of the source Zephyr step above (which manual step this came from). Always set it so the reordering is traceable; use the closest source step when merging or gap-filling.
 - **"kind"** = classify EVERY step as exactly one of:
   - `setup` — configuration or precondition with no pass/fail check of its own (base config, enabling a feature, addressing). Becomes suite `configure()`, not a test case.

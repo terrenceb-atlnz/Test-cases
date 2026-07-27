@@ -55,6 +55,21 @@ def _sample_rows(command: str, prefix: str = "port"):
 
 ECO_ROWS = _sample_rows("show ecofriendly")
 needs_eco = pytest.mark.skipif(not ECO_ROWS, reason="show ecofriendly not harvested")
+def _has_command(command: str) -> bool:
+    """Is this command present in the harvest at all (with sample output)?"""
+    if not DB.exists():
+        return False
+    try:
+        c = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+        return c.execute(
+            "SELECT COUNT(*) FROM cli_commands WHERE command=? "
+            "AND sample_output IS NOT NULL", (command,)).fetchone()[0] > 0
+    except sqlite3.OperationalError:
+        return False
+
+
+needs_showif = pytest.mark.skipif(not _has_command("show interface"),
+                                  reason="`show interface` not harvested")
 
 
 # --- the row-selection example ---------------------------------------------------------
@@ -436,3 +451,150 @@ def test_self_assignments_precede_the_portlink_slot():
     assert slot > assign, (
         "the portlink FILL slot precedes the self.<dev> assignments again — a model that "
         "uses the attribute form there produces an AttributeError at init")
+
+
+# --- audit round 2: rules must not vanish, and CLI claims must be verifiable ------------
+
+def test_anti_false_green_rules_survive_without_cli_grounding():
+    """The sharpest structural finding. Rules 4b/4c/4d — 6,480 chars including "NEVER
+    HARDCODE A PORT NAME", "ASSERT ON THE FEATURE UNDER TEST" and "PARSE THE ROW FOR YOUR
+    PORT" — were ALL wrapped in `{% if cli_reference %}`. None of them depend on CLI
+    grounding, yet for any case whose text names no harvested command (physical replug,
+    reboot, traffic/throughput) the generator was asked to fill a port-bearing skeleton with
+    every anti-false-green rule removed.
+
+    Only guidance that literally quotes the injected samples may stay conditional.
+    """
+    import jinja2
+    env = jinja2.Environment()
+    env.filters["pyliteral"] = repr
+    tpl = env.from_string(GENERATE.read_text())
+    must_hold = ["NEVER HARDCODE A PORT NAME",
+                 "ASSERT ON THE FEATURE UNDER TEST",
+                 "PARSE THE ROW FOR YOUR PORT",
+                 "A port name is CLI TEXT"]
+    for cli in ("## REAL CLI REFERENCE ...", ""):
+        out = tpl.render(case_key="K", case_title="t", file_name="f.py", skeleton="...",
+                         fragments=[], framework_surface={}, cli_reference=cli,
+                         bound_devices=["dut"], device_note="", py2_flagged=False,
+                         model_name="m", gen_date="d")
+        for rule in must_hold:
+            assert rule in out, (
+                f"rule {rule!r} disappears when cli_reference={'set' if cli else 'EMPTY'} — "
+                f"it does not depend on grounding and must be unconditional")
+
+
+def test_extract_prompt_rules_survive_without_cli_grounding():
+    """Same defect in the step-2 prompt, where CLI fabrication ORIGINATES."""
+    import jinja2
+    tpl = jinja2.Environment().from_string(EXTRACT.read_text())
+    for cli in ("## REF", ""):
+        out = tpl.render(objective="o", steps=[{"description": "d", "expectedResult": "e"}],
+                         cli_reference=cli, case_key="K", case_title="t")
+        for rule in ("FEATURE UNDER TEST", "NEVER NAME A LITERAL PORT",
+                     "Machine-style output tokens never exist", "COVERAGE IS MANDATORY"):
+            assert rule in out, f"{rule!r} vanishes without grounding"
+
+
+@needs_showif
+def test_prompt_distinguishes_current_from_configured():
+    """`show interface` prints BOTH lines and they mean different things. The prompt named
+    only `current …`, steering a "did the command take" check at the negotiated value — a
+    false RED whenever the link is down or still negotiating."""
+    src = GENERATE.read_text()
+    assert "configured" in src.lower() and "current" in src.lower()
+    assert "configured …" in src or "configured ..." in src or "`configured" in src, \
+        "the prompt does not mention the `configured` line at all"
+    assert "FALSE RED" in src, "the prompt does not explain why asserting `current` is wrong"
+
+
+def test_prompt_does_not_assert_an_unverified_down_state_token():
+    """The prompt claimed `show interface status` prints `connected`/`notconnect`. The
+    harvest contains `connected` and `disabled` — `notconnect` appears ZERO times. Asserting
+    a token the reference never shows is the same class of error as inventing output."""
+    import sqlite3 as _s
+    if not DB.exists():
+        pytest.skip("ck.db absent")
+    c = _s.connect(f"file:{DB}?mode=ro", uri=True)
+    try:
+        outs = [r[0] or "" for r in c.execute(
+            "SELECT sample_output FROM cli_commands WHERE command='show interface status' "
+            "AND sample_output IS NOT NULL")]
+    except _s.OperationalError:
+        pytest.skip("cli_commands absent")
+    corpus = "\n".join(outs)
+    src = GENERATE.read_text()
+    # whatever tokens the prompt states as fact must actually occur in the reference
+    for tok in ("connected", "disabled"):
+        if f"`{tok}`" in src:
+            assert tok in corpus, f"prompt states `{tok}` but the harvest never shows it"
+    # and it must tell the model to derive the down state rather than assume one
+    assert "ABSENCE of the up state" in src or "not in row" in src, \
+        "the prompt should prefer asserting absence of the up state over guessing a token"
+
+
+def test_speed_rule_covers_every_documented_form():
+    """`speed` has three forms and the prompt declared one set exhaustive, dropping
+    `speed auto`. `speed 1000` FORCES; `speed auto 1000` NEGOTIATES advertising only 1000 —
+    a step that says "auto" and emits the bare numeric form tests the opposite."""
+    import json as _j
+    import sqlite3 as _s
+    if not DB.exists():
+        pytest.skip("ck.db absent")
+    c = _s.connect(f"file:{DB}?mode=ro", uri=True)
+    try:
+        rows = [r[0] for r in c.execute(
+            "SELECT syntax FROM cli_commands WHERE command='speed'")]
+    except _s.OperationalError:
+        pytest.skip("cli_commands absent")
+    forms = {f for r in rows for f in _j.loads(r or "[]")}
+    assert any("auto" in f for f in forms), "no `speed auto` form in the harvest"
+    src = EXTRACT.read_text()
+    assert "speed auto" in src, "the prompt omits the `speed auto` form"
+    assert "no speed" in src, "the prompt omits the `no speed` form"
+
+
+def test_lint_rejects_every_placeholder_marker_not_just_three():
+    """The check tested ">>> FILL" plus two EXACT lines, letting `>>> remove` and
+    `>>> adjust` ship into saved, lint-green, executable artefacts — instructions addressed
+    to the model, sitting next to verdicts a human is meant to trust."""
+    src = (REPO / "ask-ck" / "CK-main" / "CK_server" / "routers"
+           / "pytest_create.py").read_text()
+    assert 'for marker in (">>> FILL"' not in src, \
+        "the three-special-case placeholder check is back"
+    assert 'if ">>>" in _line' in src, "the generic `>>>` check is missing"
+    # every marker the skeleton emits must be caught by the generic rule
+    skel = SKELETON.read_text()
+    for marker in re.findall(r">>>\s*\w+", skel):
+        assert ">>>" in marker
+
+
+def test_extract_prompt_encodes_the_half_duplex_physical_constraint():
+    """Half duplex is impossible at 1 Gig and above — a PHYSICAL constraint no CLI page
+    states, so the harvest cannot supply it: the `duplex` page reads `{auto|full|half}`
+    unconditionally on every product that supports half duplex at all.
+
+    Observed 2026-07-28: the extractor emitted "configure speed 1000 and duplex half …
+    confirm Link is UP and current duplex half, current speed 1000" — a false RED on correct
+    hardware. After the rule, half is paired only with 10/100.
+    """
+    src = EXTRACT.read_text()
+    low = src.lower()
+    assert "half duplex is impossible" in low, "the constraint is not stated"
+    assert "1 gig" in low or "1000" in src, "the threshold is not given"
+    # and the reason it cannot come from the docs must be recorded, or someone will
+    # 'simplify' it away as redundant with the CLI reference
+    assert "no reference page states it" in low or "not a cli one" in low
+
+
+def test_extract_prompt_requires_keeping_source_qualifiers():
+    """"where supported" / "as applicable" IS the requirement — it is how a case author
+    expresses a matrix that varies by hardware. Dropping it turns a conditional check into
+    an unconditional assertion and manufactures failures on hardware the case never
+    claimed to cover. That is exactly how the 1000/half assertion appeared."""
+    src = EXTRACT.read_text()
+    assert "KEEP THE SOURCE STEP'S QUALIFIERS" in src
+    # collapse whitespace: the prompt wraps, so a two-word phrase can straddle a newline
+    flat = re.sub(r"\s+", " ", src)
+    for q in ("where supported", "as applicable"):
+        assert q in flat, f"the rule does not name the {q!r} qualifier"

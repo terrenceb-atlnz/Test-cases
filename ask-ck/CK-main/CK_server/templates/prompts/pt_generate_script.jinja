@@ -99,13 +99,30 @@ Reviewer note: {{ f.why }}
 {%- endif %}
 {%- if cli_reference %}
 4b. **NEVER invent CLI output.** Match assertions to the REAL CLI REFERENCE above,
-   character for character. Real `show interface` prints prose like
-   `current duplex full, current speed 1000, current polarity mdix`; `show interface
-   status` prints aligned COLUMNS (`a-full`, `a-1000`, `connected`/`notconnect`).
-   Machine-style tokens (`speed=1000`, `duplex=full`, `state=up`) DO NOT EXIST and make
-   the test fail on working hardware. AW+ port names have the form `portX.Y.Z`, never
-   `1/0/1`. If the reference does not show the output you need, assert on a substring you
-   can see in it — do not guess a format.
+   character for character. Machine-style tokens (`speed=1000`, `duplex=full`,
+   `state=up`) DO NOT EXIST and make the test fail on working hardware. AW+ port names
+   have the form `portX.Y.Z`, never `1/0/1`. If the reference does not show the output you
+   need, assert on a substring you can see in it — do not guess a format.
+   **`show interface` prints TWO lines per attribute, and they mean different things:**
+   ```
+   current duplex full, current speed 1000, current polarity mdix
+   configured duplex auto, configured speed auto, configured polarity auto
+   ```
+   `configured …` is what you SET; `current …` is what the port NEGOTIATED. To verify a
+   command took effect, assert on `configured …`. Asserting `current speed 1000` after
+   `speed 1000` is a FALSE RED whenever the link is down or still negotiating — `current`
+   legitimately differs from `configured`, and on a down port there is no current speed at
+   all. Assert `current …` only when the step is about the negotiated/operational result.
+   **`show interface status` prints aligned COLUMNS** (`a-full`, `a-1000`, and a state).
+   Take the state token FROM THE REFERENCE for the command you are running: the harvested
+   output shows `connected` and `disabled`, and other platforms/states use other spellings.
+   Rather than guess a down-state token, prefer asserting the ABSENCE of the up state
+   (`'connected' not in row`) — that is correct whatever the down spelling turns out to be.
+{%- endif %}
+4b-ii. **These hold whether or not a CLI reference was injected above.** Never emit
+   machine-style output tokens (`speed=1000`, `state=up`); AW+ port names are `portX.Y.Z`,
+   never `1/0/1`; and if you cannot see the exact output format, assert on the plainest
+   substring you are sure of rather than guessing a layout.
    **A port name is CLI TEXT, never a Python identifier.** It may appear only inside a
    string (`dut.cmd('interface {}'.format(port))`); writing it as an attribute —
    `self.dut.port1.0.1` — is a SyntaxError.
@@ -176,7 +193,6 @@ Reviewer note: {{ f.why }}
            break
    ```
    Same rule for any `show` whose output covers more than the port under test.
-{%- endif %}
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.
 6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment

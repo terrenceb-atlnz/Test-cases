@@ -1549,9 +1549,22 @@ def _lint_generated(sess: PtSession) -> dict:
             warnings.append("no self.passed()/self.failed() calls found in this file "
                             "(ok only if inherited main() asserts)")
         # Leftover template placeholders must not survive into a saved script.
-        for marker in (">>> FILL", "output = ''  # >>> replace", "if False:  # >>> replace"):
-            if marker in code:
-                errors.append(f"contract: unfilled template placeholder present ({marker!r})")
+        #
+        # Generic on purpose (2026-07-28). This used to test three special cases —
+        # ">>> FILL" plus two EXACT lines — which let every other marker through:
+        # `pass  # >>> remove once …`, `# >>> adjust operator timeout (s) <<<`, and a
+        # `# >>> replace …` sitting on any line other than the two spelled out. Those are
+        # instructions addressed to the MODEL, so shipping them into a saved, lint-green,
+        # executable artefact leaves a human reading `# >>> replace with the real
+        # verification condition` next to a verdict that may well be the placeholder.
+        # `>>>` appears in no legitimate Python line the skeleton produces, so match it
+        # directly and quote the offending line.
+        for _i, _line in enumerate(code.splitlines(), 1):
+            if ">>>" in _line:
+                errors.append(
+                    f"contract: unfilled template placeholder on line {_i} — every `>>>` "
+                    f"marker is an instruction to you and must be deleted once the slot is "
+                    f"filled: {_line.strip()[:80]}")
 
         # `self.<dev>` used in init() BEFORE the assignment block (2026-07-28). A real bug
         # in the first generated scripts: `init_portlink(self.dut, ...)` ran three lines
