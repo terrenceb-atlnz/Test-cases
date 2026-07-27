@@ -163,7 +163,16 @@ PORT=9000 ./run.sh
 
 # Extra uvicorn options (e.g. debug logging)
 ./run.sh --log-level debug
+
+# Expose on the LAN — DELIBERATE OPT-IN (see Security Posture: there is no auth)
+HOST=0.0.0.0 ./run.sh
 ```
+
+> **The server binds `127.0.0.1` by default (changed 2026-07-27g).** It has no
+> authentication and `push_to_zephyr` can spend the shared `JIRA_KEY` against live
+> cases, so loopback is the safe default and matches the documented single-user
+> model. `HOST=0.0.0.0` still works but is now an explicit choice — and is not by
+> itself a safe configuration. Browse via `localhost`, not the bind address.
 
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
 > server against the existing `ask-ck/var/ck.db` in seconds. `setup.sh` is for
@@ -197,14 +206,14 @@ The script automatically:
 ### Manual equivalent
 
 ```bash
-LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000 --reload
+LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Alternative (cd into the server dir):
 
 ```bash
 cd ask-ck/CK-main/CK_server
-LLM_API_KEY=sk-... PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000
+LLM_API_KEY=sk-... PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
 ```
 
 **Environment variables for LLM**:
@@ -350,6 +359,14 @@ After the LLM returns text, `llm.py` parses/normalizes and export uses `template
 **Note**: MOCK/demo mode has been removed. Real LLM (CLI login preferred) is required. Edit templates to refine style without code changes.
 
 ## Hosting Behind nginx
+
+> ⚠ **The shipped examples are plain `listen 80` reverse proxies with NO TLS and NO auth,
+> and Ask-CK itself has no authentication.** Following this section as-is publishes an
+> unauthenticated tool that can spend the shared `JIRA_KEY` against live Zephyr cases to
+> anyone who can reach the host. Do not use it for a shared deployment until
+> `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` lands (that plan replaces these
+> examples with TLS + auth in Phase 3). For local single-user use, you do not need nginx
+> at all — `run.sh` on loopback is the supported path.
 
 Copy the example:
 
@@ -543,11 +560,17 @@ by a server restart are marked `stale` on the next load_case.
 - Session state is file-persisted under `CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.
 
-## Security Posture (hardened 2026-07-27c–e)
+## Security Posture (hardened 2026-07-27c–g)
 
 Ask CK is designed for **localhost / single-user** use (a shared multi-tenant deployment is
-explicitly out of contract — see *Known Issues*). A full adversarial review (2026-07-27) hardened
-the boundaries so untrusted/LLM-derived input can't escape its lane even so:
+explicitly out of contract — see *Known Issues*, and the multi-user plan at
+`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`). A full adversarial review (2026-07-27)
+hardened the boundaries so untrusted/LLM-derived input can't escape its lane even so.
+
+> **Review closed 2026-07-27g.** All 62 candidate findings are resolved: 31 fixed, 31 dismissed
+> as not-real after tracing them against live code. The full record — including *why* each
+> dismissal is not a bug, so they are not re-raised — is
+> `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`.
 
 - **No secrets to the browser or disk.** `llm_config.api_key`/`token` are redacted from every
   session serialized to the client and from the exported `*-session.json` (`models.redact_llm_config`
@@ -569,6 +592,40 @@ the boundaries so untrusted/LLM-derived input can't escape its lane even so:
 - **Agent-bridge is session-bound.** Broker jobs carry their owning `X-CK-Session`; `/api/agent/result`
   rejects a `job_id` that belongs to a different session, and `/next` binds to the header (query param
   is a legacy fallback). **CORS** is locked to a localhost allowlist (`CK_ALLOWED_ORIGINS` to widen).
+
+### Data-integrity + correctness hardening (2026-07-27g, batches A–D)
+
+The completion pass fixed 19 further findings. The ones that change observable behaviour:
+
+- **Export writes only authoritative, confirmed, consistent state.** `/export` resolves the session
+  server-side ONLY (404 if absent — it no longer falls back to the client's copy, which let a stale
+  tab resurrect a deleted session), requires all three DB reviews confirmed (400 otherwise, matching
+  every sibling synthesis endpoint), and writes the bundle atomically — staged to `.tmp` then
+  `os.replace`d, with `zephyr_payload.json` **last** so the Complete marker is the final commit point.
+- **Changing an upstream review invalidates downstream work.** `confirm_step` on steps 1–3 with
+  *different* selections now un-confirms the objective and marks the test steps stale (amber
+  "⚠ Stale — selections changed" badges); re-confirming the same shortlist does not. Previously both
+  stayed green and export produced a bundle whose payload contradicted its own traceability.md.
+  Backfilled Complete cases are marked confirmed from the on-disk bundle so legacy re-exports still work.
+- **No blocking work on the event loop.** All seven search/LLM call sites now use `run_in_threadpool`.
+  The sharpest was `export`'s coverage-gaps call: in `claude_agent` mode it was a *guaranteed* 180s
+  self-deadlock (the blocked loop cannot serve the `/api/agent/result` POST that would release it).
+  The embedding model is warmed on a daemon thread at startup (~7s in the background) so the first
+  hybrid search no longer pays a ~16s cold load. Opt out with `CK_NO_EMBED_WARMUP=1`.
+- **Generated content is no longer silently dropped or corrupted.** The traceability-note strip is
+  anchored (an unanchored `"Traceability" in …` was deleting legitimate first steps, and the payload
+  validator passed it, so cases exported a step short with no warning); the skeleton renderer escapes
+  step text via a `pyliteral` filter (typed newlines/backslashes used to produce an **uncompilable**
+  skeleton); provenance tags no longer mis-attribute setup-mapped fragments; and the provenance-echo
+  strip matches the tag shape rather than any comment mentioning ART/SVT/legacy/AI.
+- **Errors are reported as errors.** The Claude branch now guards empty and truncated responses like
+  the OpenAI branch; the two frontend `fetch`es that lacked `res.ok` no longer render an HTTP error as
+  a green success (or wipe the in-memory session); `keep_ids` are pinned through the hybrid RRF merge;
+  restart-orphaned testbox runs are re-marked stale by the polling endpoint, not only on case load.
+- **Streamed LLM output is UTF-8.** SSE is `text/event-stream`, and `requests` maps any `text` type to
+  ISO-8859-1 — so every non-ASCII byte on the live vLLM streaming path was mojibaked (`port — 1 µs`
+  → `port â 1 Âµs`), silently and as valid JSON, flowing into stored objectives and on to Zephyr.
+  `resp.encoding` is now pinned before iterating.
 
 **Network posture (revised 2026-07-27g).** The server still has **no authentication** — that part of
 the single-user model is unchanged and remains the reason not to expose it. What changed is that the
@@ -609,16 +666,21 @@ Three test layers, one regular gate (established 2026-07-27). Design: `ask-ck/ck
 **1. Backend units** — repo-root `tests/` (pytest, in-process `TestClient` — no mocks, network, or
 testbox). Coverage centers on the security/correctness fixes (validator + export gate, the JSON
 extractor, the framework guard, HTML sanitizer, secret redaction, path-traversal guards,
-agent-bridge ownership, CORS) plus the `/process` page. `PYTHONNOUSERSITE=1` is required so an older
+agent-bridge ownership, CORS) plus the `/process` page. The 2026-07-27g batches added suites for
+export authority, event-loop blocking, silent content loss, error signals and the network hardening
+— several are **structural** rather than example-based (an AST sweep asserting no async handler
+calls a blocking function unwrapped; source assertions that a guard still precedes the state write),
+so they catch the *next* regression, not only the one filed. `PYTHONNOUSERSITE=1` is required so an older
 fastapi/starlette in `~/.local` can't shadow the venv's. Dev deps (`pytest`, `httpx`) in
 `ask-ck/CK-main/requirements-dev.txt` (runtime `requirements.txt` stays lean).
 
-**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 47
+**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 72
 tests). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
 (`setButtonBusy`/`flashButtonDone`/`showStatus`), the table renderers (`tables.js`), the
 chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.js` `merge*`, made
-`export` for this). DOM fixtures are lifted from the **real `index.html`** and the helper throws if a
-container id is missing — drift-detection, the same "ground selectors in the real DOM" discipline as
+`export` for this), plus the 2026-07-27g guards: the Step 4/5 "Stale" badge precedence and the
+`res.ok` error guards. DOM fixtures are lifted from the **real `index.html`** and the helper throws if
+a container id is missing — drift-detection, the same "ground selectors in the real DOM" discipline as
 the E2E. Node dev deps in `package.json`.
 
 **3. E2E (sparingly-run, NOT in the regular gate)** — repo-root `e2e/` (Playwright, one Chromium
@@ -628,7 +690,7 @@ path — a green export needs synthesized objective+steps, so the honest asserti
 outcome). Run on demand, e.g. pre-release; it starts/reuses the server via `run.sh`.
 
 ```bash
-./tool/run_tests.sh        # THE GATE: guards + pytest (48) + Vitest (47), one command
+./tool/run_tests.sh        # THE GATE: guards + pytest (190) + Vitest (72), one command
 PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
@@ -662,7 +724,7 @@ LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
 PORT=9000 ./ask-ck/CK-main/run.sh
 
 # Manual start (project root)
-LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 0.0.0.0 --port 8000 --reload
+LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
 
 # Test synthesis directly (Python)
 cd ask-ck/CK-main/CK_server
@@ -686,6 +748,36 @@ Cross-reference higher-level project docs every session:
 - External `AGENTS.md` (access patterns and environment details, as referenced from root README)
 
 ---
+
+## Session Summary (2026-07-27g — adversarial review CLOSED: 19 fixes in 4 batches + network hardening)
+
+Finished the verification that was paused at ~50% in 27c. Re-fired it over the 35 unadjudicated
+rows (`wf_f4fcd274-366`, 40 agents: one verifier per file-cluster against live code, then a
+refuting skeptic per confirmed finding). **21 survived, 14 dismissed**; 19 survivors fixed across
+four themed batches, the two accepted-risk security rows taken to Terrence and actioned.
+
+- **A `6b50f80` — export authority.** `/export` no longer accepts a client-supplied session (404),
+  gates on the three DB reviews (400), invalidates stale downstream work on a changed selection,
+  and writes the bundle atomically with the Complete marker last. Migration guard so the 43
+  existing bundles stay re-exportable.
+- **B `40ec299` — event-loop blocking.** Seven sites wrapped (the review named three; an AST sweep
+  found four more, incl. `load_case`). Killed a *guaranteed* 180s `claude_agent` self-deadlock;
+  added a background model warmup (cold load measured 16.2s, not the estimated 8.5s).
+- **C `ba69e22` — silent content loss.** Anchored the traceability-note strip (it was deleting real
+  verification steps that then exported as "valid"), replaced 13 fragile jinja slots with a
+  `pyliteral` filter, fixed setup-step provenance mis-attribution, tightened the provenance-echo regex.
+- **D `be9149d` — error signals.** Claude empty/truncated guards, two missing `res.ok` checks,
+  `keep_ids` pinning through the RRF merge, stale run-status sweep, the never-called `gc()`.
+- **Security `6eaa43e`.** Loopback by default, `--force` no longer hardcoded on `push_to_zephyr`
+  (it was disabling the CLI's own "already refined — SKIP" guard on every push), SSH host keys
+  pinned trust-on-first-use. Verified live: LAN address now refused, localhost serves 200.
+- **Data `e54fdd2`.** `AWPTCM-T37861` shipped invalid JSON (a `\'` escape) since its first commit —
+  the only one of 43. One backslash removed; all 43 now pass the export gate.
+
+Two defects were found by skeptics **while refuting** other claims: the SSE latin-1 mojibake (the
+most consequential correctness bug of the pass) and the inert Py2 prompt marker. Tests 48 → 190
+pytest / 47 → 72 Vitest. Backlog closed as a historical record; multi-user auth + per-case locking
+captured in `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`.
 
 ## Session Summary (2026-07-27c–e — full adversarial review + 15 security/correctness fixes + test suite)
 

@@ -1,6 +1,8 @@
 # PLAN — Frontend unit tests (Vitest + Testing Library, jsdom tier)
 
-**Status:** ✅ BUILT + PASSING (2026-07-27) — 34 tests / 3 spec files green in ~1.5s.
+**Status:** ✅ BUILT + PASSING — **72 tests / 6 spec files** green in ~1.5s (was 34/3 at capture;
+47/5 after the merge specs; grew again 2026-07-27g with `stale-badges.spec.js` and
+`error-guards.spec.js` from the adversarial-review batches).
 Tests live in top-level `js-tests/` (separate from the module tree, by decision). Run `npm test`.
 
 ## What was built (2026-07-27)

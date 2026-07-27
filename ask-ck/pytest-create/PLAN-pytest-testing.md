@@ -6,6 +6,17 @@
 > generated library filename traversal fixed). See SERVER-README → *Security Posture* and
 > `ADVERSARIAL-REVIEW-BACKLOG.md`. No change to the flow/phases below.
 >
+> **Follow-on (2026-07-27g, review closed):** four further changes touch this plan's surface, all
+> behaviour-preserving for the documented flow — (a) the skeleton renderer escapes step text via a
+> `pyliteral` filter, so a reviewer-typed newline or trailing backslash can no longer produce an
+> **uncompilable** skeleton (it previously reached both the preview UI and the generate prompt);
+> (b) `_restamp_provenance` no longer mis-attributes a setup-mapped fragment's tag to the wrong
+> `TestCase`, and no longer deletes reviewer rationale comments that merely mention ART/SVT/legacy/AI;
+> (c) restart-orphaned testbox runs are re-marked stale by `run_status`, not only by `load_case`, so
+> the UI stops polling a dead run; (d) SSH host keys are pinned trust-on-first-use in `_connect`
+> (`CK_SSH_TRUST_ANY=1` to opt out). Sequence step text is also whitespace-collapsed at both write
+> paths.
+>
 > **Status: IN PROGRESS (updated 2026-07-22).** Author: Claude, at Terrence's direction.
 > v2 folded in Terrence's answers to the four open questions (§5, RESOLVED) and the
 > corpus evidence gathered to settle them.

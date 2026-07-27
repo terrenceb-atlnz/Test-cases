@@ -143,7 +143,7 @@ Authoritative process: **`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.m
 | **LLM: Claude agent tokens + model** | **2026-07-22d:** the per-user Claude agent (`claude_agent`) now **reports token usage + cost** — the ck-agent lifts `usage`/`total_cost_usd` from the `claude -p --output-format json` envelope and the browser forwards it through `/api/agent/result` (`deliver()` → `normalize_usage`), so the badge shows real `N in / M out` instead of "— tok" (a transport that reports nothing still shows "— tok" honestly). Added a **Haiku / Sonnet / Opus** model selector for that mode (radio row, live-persist, default Sonnet) that runs as `claude --model <name>` on your own seat. **Restart your ck-agent** to pick up token reporting. Also this session: the Generator's **Objective synthesis no longer makes the Traceability-gaps LLM call** — gaps belong to `traceability.md` and are generated at export time, so Step 4 is now a single self-contained call. |
 | **Admin + fast restart** | **2026-07-20:** hidden **admin panel** (double-click CK's face) — reset sessions + restart server. (DB rebuild was removed once `ck.db` became the permanent, committed source of truth.) Fast restart via `run.sh --bg` / `--restart`. Localhost/single-user. |
 | **Security posture** | **Hardened 2026-07-27 (full adversarial review):** server-side objective-HTML sanitizer (stored-XSS), `llm_config` secret redaction from all browser/disk serializations, `shlex`-quoted + metachar-validated SSH run command, extended framework-read-only guard (redirection/interpreter/`rsync`/`install`/`cp -t`), path-traversal guards on export `case_key` + generated filenames, session-bound agent-bridge, CORS lockdown. **Network defaults corrected 2026-07-27g:** binds `127.0.0.1` (LAN exposure is now an explicit `HOST=0.0.0.0`), `push_to_zephyr` no longer hardcodes `--force` (it was disabling the CLI's own "already refined — skip" guard on every push), and SSH host keys are pinned trust-on-first-use. Designed for **localhost/single-user** — there is still **no authentication**. Multi-user identity + per-case session locking is planned in [`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`](ask-ck/ck-facelift/PLAN-auth-and-case-locking.md); its Phase 1 also closes a concurrency bug that is live today (two tabs on one case silently overwrite each other). See SERVER-README → *Security Posture*; the review is closed and recorded in `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`. |
-| **Testing** | **Three-layer suite + one gate (2026-07-27).** **Backend:** `tests/` — 48 pytest in-process tests (no mocks/network/testbox) covering the validator, export gate, JSON extractor, framework guard, sanitizer, secret redaction, traversal guards, agent-bridge, CORS, `/process`. **Frontend units:** `js-tests/` — 47 Vitest + jsdom tests (no browser/server/LLM) covering the DOM/button-feedback helpers, table renderers, chosen-list machinery, and candidate-merge logic; DOM fixtures are lifted from the real `index.html` (drift-detecting). **E2E:** `e2e/` — one Playwright golden-path test driving the real app (boot → load → search → choose → export-gate), **run sparingly** via `npm run e2e` — NOT in the regular gate. **Regular gate:** `./tool/run_tests.sh` runs guards + pytest + `npm test` (Vitest) in one command. Dev deps: `ask-ck/CK-main/requirements-dev.txt` (Python) + `package.json` (Node). No CI runner yet. |
+| **Testing** | **Three-layer suite + one gate (2026-07-27).** **Backend:** `tests/` — 190 pytest in-process tests (no mocks/network/testbox) covering the validator, export gate, JSON extractor, framework guard, sanitizer, secret redaction, traversal guards, agent-bridge, CORS, `/process`, plus the 2026-07-27g batches (export authority, event-loop blocking, silent content loss, error signals, network hardening) — several **structural** (an AST sweep proving no async handler calls a blocking function unwrapped), so they catch the next regression rather than only the one filed. **Frontend units:** `js-tests/` — 72 Vitest + jsdom tests (no browser/server/LLM) covering the DOM/button-feedback helpers, table renderers, chosen-list machinery, and candidate-merge logic; DOM fixtures are lifted from the real `index.html` (drift-detecting). **E2E:** `e2e/` — one Playwright golden-path test driving the real app (boot → load → search → choose → export-gate), **run sparingly** via `npm run e2e` — NOT in the regular gate. **Regular gate:** `./tool/run_tests.sh` runs guards + pytest + `npm test` (Vitest) in one command. Dev deps: `ask-ck/CK-main/requirements-dev.txt` (Python) + `package.json` (Node). No CI runner yet. |
 | **Data layer (SQLite `ck.db`)** | **Migration complete (2026-07-16), committed A–D:** corpora + sessions served from `ask-ck/var/ck.db` (FTS5 keyword + sqlite-vec hybrid/semantic). See `ask-ck/ck-facelift/PLAN-db-migration.md`. |
 | **Strict DB-only search** | **2026-07-20:** literal script-code + all semantic vectors ingested (~84k embeddings incl. code chunks); embedding model bundled + loads offline. Runtime is now strictly DB-only — server reads **zero** corpus JSON, enforced by `tool/guard_db_only.py`, startup fails fast without `ck.db`. Fixed 3 latent bugs (embed guard never ran; sqlite-vec KNN silently returned nothing; huggingface load-time ping). See `ask-ck/ck-facelift/PLAN-db-only-search.md`. |
 
@@ -202,14 +202,21 @@ Turns a **Complete** case (one exported by the Generator above) into a runnable 
 6. **Run** — pick a stored testbox (or add one under **Testboxes**), choose the `.setup`, and run it over SSH; results are parsed into per-TestCase PASS/FAIL.
 7. **Validate** — Final Validation passes when every TestCase is PASS with zero failures. On failures, **Fix with LLM** loops back to Generate; promotion into `testsuites_art/` is manual.
 
-First-time setup — build the script index (re-run when the script repos change), and add a testbox under the **Testboxes** sidebar item:
+Add a testbox under the **Testboxes** sidebar item. No index build is needed.
 
-```bash
-cd tool
-./build_script_index.py --mechanical-only    # AST scan of the 3 script DBs + framework surface
-./enrich_script_index.py --limit 100          # optional resumable LLM tagging (uses the workspace CLI login)
-./build_script_index.py                       # rebuild with enrichment merged
-```
+> ⚠ **Historical — the script-index build is no longer a setup step.** The script index, literal
+> source code, code chunks and framework surface all live in **`ask-ck/var/ck.db`** (the permanent
+> single source of truth, shipped via Git LFS), and the PyTest Creator reads only the DB via
+> `db.py`. The scripts below remain in `tool/` as **provenance of how the index was built**; their
+> JSON outputs have been deleted and running them is not part of setting up or using the tool.
+> See `ask-ck/pytest-create/PLAN-pytest-creator.md` (data-layer note).
+>
+> ```bash
+> cd tool
+> ./build_script_index.py --mechanical-only    # historical: AST scan of the 3 script DBs
+> ./enrich_script_index.py --limit 100         # historical: resumable LLM tagging
+> ./build_script_index.py                      # historical: merge enrichment
+> ```
 
 Stored testboxes live in the gitignored `secrets.testboxes.json` (passwords write-only; passwordless sudo on the box required).
 

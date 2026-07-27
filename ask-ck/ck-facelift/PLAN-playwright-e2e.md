@@ -108,7 +108,8 @@ test the whole app as it actually runs, but it's reserved for the seams.
   ([[db-is-permanent-source]], [[db-only-single-source]]); a CI checkout **must** `git lfs`
   pull or corpora are empty and the journey has no cases. (Verified 2026-07-27: 380 cases
   present locally, `/api/wizard/cases` returns counts.)
-- **Port 8000** — server binds `0.0.0.0:8000`; a stale instance causes
+- **Port 8000** — server binds `127.0.0.1:8000` (was `0.0.0.0`; changed 2026-07-27g — the E2E is
+  unaffected, it targets `http://localhost:8000`); a stale instance causes
   `[Errno 98] Address already in use`. The harness must start cleanly (use `./run.sh --restart`
   or ensure no prior instance) and tear down after.
 - **Server start** — `./run.sh --bg`; wait for `/health` → 200 before driving the browser.

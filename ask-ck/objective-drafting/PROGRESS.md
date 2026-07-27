@@ -4,6 +4,70 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27g) — adversarial review CLOSED (19 fixes, 4 batches) + network hardening + multi-user plan
+
+**Focus: finish the verification that was paused at ~50% in 27c, fix everything real that it
+found, then take the two accepted-risk security items to a decision. All committed + pushed to
+`main` (11 commits, `6b50f80`→`94b98cf`).**
+
+- **Re-fired the paused verification** over exactly the 35 unadjudicated rows (`wf_f4fcd274-366`,
+  40 agents, ~19 min, 1.9M tokens): one verifier per file-cluster reading live code, then a
+  dedicated refuting skeptic per confirmed finding. **21 survived, 14 dismissed** (10 refuted at
+  verify, 4 killed by the skeptic), 0 unclear. The original run's script was gone (prior session,
+  no `.claude/workflows/`), so this was a fresh workflow over the recorded rows — nothing lost,
+  only the verdicts were missing.
+- **Batch A `6b50f80` — export authority.** `/export` resolved the session client-side on a
+  fallback (a stale tab could resurrect a deleted session and re-mark a case Complete), had no
+  confirm gate, never invalidated downstream work when selections changed, and wrote the Complete
+  marker before the most failure-prone write. All four fixed. **Migration guard:**
+  `_backfill_from_refined` now marks the three reviews confirmed from the on-disk bundle, or the
+  new gate would have 400ed every legacy re-export — verified across all 43 bundles.
+- **Batch B `40ec299` — event-loop blocking.** The review named three blocking search handlers;
+  an **AST sweep found four more**, incl. `load_case` (runs on every case load). Seven wrapped.
+  The sharpest was `export`'s coverage-gaps call: a *guaranteed* 180s self-deadlock in
+  `claude_agent` mode, then a misleading "your ck-agent didn't respond". Cold model load measured
+  **16.2s**, not the estimated 8.5s → warmed on a daemon thread at startup.
+- **Batch C `ba69e22` — silent content loss.** Anchored the traceability-note strip (unanchored
+  `"Traceability" in …` was DELETING real verification steps, and the payload validator passed
+  them, so cases exported a step short with no warning); replaced 13 fragile jinja slots with a
+  `pyliteral` filter (a typed newline produced an **uncompilable** skeleton, shown to the user and
+  fed to the model as the structure to copy); fixed setup-step provenance mis-attribution;
+  tightened the provenance-echo regex. **The review's suggested fix for that last one did not
+  work** — `_PROVENANCE_TAG_RX` is a loose lint check that also matches prose; caught by the tests.
+- **Batch D `be9149d` — error signals.** Claude empty/truncated response guards (mirroring the
+  OpenAI branch), the two frontend `fetch`es missing `res.ok` (one rendered an HTTP error as a
+  *green success*, the other wiped the in-memory session), `keep_ids` pinning through the RRF
+  merge, the stale run-status sweep, and the never-called `gc()`.
+- **Security `6eaa43e` — the two accepted-risk items, decided by Terrence.** Verified live first:
+  the box answered on its LAN IP and an unauthenticated `push_to_zephyr` returned 200. Now binds
+  `127.0.0.1` by default (LAN exposure is an explicit `HOST=0.0.0.0`); `--force` is no longer
+  hardcoded (it was disabling `upload_refined.py`'s own "already refined — SKIP" guard on *every*
+  push); SSH host keys pinned trust-on-first-use. Confirmed after: LAN refused, localhost 200,
+  SKIP fires by default and is still overridable with `?force=true`.
+- **Data `e54fdd2`.** `AWPTCM-T37861` ("POE - lldp max power and cli power") shipped invalid JSON —
+  a Python-style `\'` escape — since its first commit; the only one of 43. One backslash removed;
+  all 43 now pass the export gate (was 42/43).
+- **Two defects found by skeptics WHILE REFUTING**, not on the original list: the SSE latin-1
+  mojibake (`text/event-stream` → requests defaults ISO-8859-1, so every non-ASCII byte on the live
+  vLLM path corrupted silently as valid JSON, flowing into stored objectives and on to Zephyr —
+  the most consequential correctness bug of the pass) and an inert Py2 prompt marker.
+- **Backlog closed** as a `ck-facelift` historical record: 62 candidates → 31 fixed, 31 dismissed,
+  0 outstanding. Dismissals kept **with their refutation reasoning** so they are not re-raised.
+- **New plan (no code): `ck-facelift/PLAN-auth-and-case-locking.md`.** Terrence chose real
+  multi-user as the end-state and added a hard requirement: a per-case session lockout so
+  concurrent overwrites are impossible in *both* tools. Phase 1 (locking) is sequenced first and
+  is **not** gated on auth — the concurrency bug is live today: session writes are unconditional
+  whole-blob upserts keyed by case with no owner (`db.py:918`, 32 write paths), so two tabs on one
+  case silently destroy each other's work. Six decisions deferred to next session, notably where
+  identity comes from (likely an org/IT call).
+- **Tests 48 → 190 pytest, 47 → 72 Vitest.** Several are structural rather than example-based (an
+  AST sweep asserting no async handler calls a blocking function unwrapped; source assertions that
+  a guard precedes the state write), so they catch the *next* regression. Also fixed test fixtures
+  that were leaking throwaway sessions into `ck.db`, and removed two stray rows from earlier runs.
+- **Invariants:** `guard_db_only` + framework-RO green, `/health` 200, no corpus/JSON/rebuild
+  changes. Note the repo gate is currently red from **`tests/test_cli_docs.py`** — untracked
+  in-progress CLI-docs work by another stream, failing independently of everything above.
+
 ## Latest session (2026-07-27f) — LLM-button UX feedback + a 3-layer test suite
 
 **Focus: (1) the reported LLM-button UX gaps, then (2) a full front-to-back automated-test

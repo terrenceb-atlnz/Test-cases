@@ -1580,6 +1580,12 @@ intentionally *accepted* for the localhost/single-user model (0.0.0.0-bind no-au
 be resumed (`resumeFromRunId wf_f53aa173-a88`) to finish verification + full synthesis. PyTest Creator
 Part 3a/3b still gated on `configs/tb470.setup`.
 
+> *Superseded by the 2026-07-27g entry: the backlog is CLOSED (62 candidates → 31 fixed / 31
+> dismissed / 0 open) and the two "accepted" security items were actioned. Two corrections to the
+> text above — the paused workflow was **not** resumable across sessions (the completion pass ran a
+> fresh workflow over the recorded rows), and `pytest_create.py:1097` ("first-step drop" cluster
+> member) was **refuted**, not fixed.*
+
 ## Session Close / Handoff (2026-07-27f) — LLM-button UX + a 3-layer automated-test suite
 
 Two threads this session, both committed + pushed to `main` (`4f990ea`→`e871caa`; tree clean,
@@ -1619,3 +1625,74 @@ chose: E2E first as a **known-good reference**, then the unit layer derived from
 **Still open / next:** no CI runner yet (`.github/workflows`) — the gate is run-before-commit
 discipline; a second E2E that reaches a *green* export (pre-seed or LLM-intercept) is parked in the
 E2E plan; the adversarial-review backlog (35 candidates) is untouched this session.
+
+> *Superseded by the 2026-07-27g entry below: the 35-candidate backlog was verified and closed
+> (19 fixed across four batches, 14 dismissed), and the test counts here (48/47) are now 190/72.*
+
+---
+
+## Session Close / Handoff (2026-07-27g) — adversarial review CLOSED + network hardening + multi-user plan
+
+**Scope.** Finished the verification paused at ~50% in 27c, fixed everything real it found, took
+the two accepted-risk security items to a decision, and captured the multi-user end-state as a
+plan. 11 commits, `6b50f80`→`94b98cf`, all pushed to `main`.
+
+### The verification
+Re-fired over exactly the 35 unadjudicated rows (`wf_f4fcd274-366`, 40 agents, ~19 min, 1.9M
+tokens): one verifier per file-cluster against live code, then a dedicated refuting skeptic per
+confirmed finding, then synthesis. **21 survived, 14 dismissed** (10 refuted at verify, 4 killed by
+the skeptic), 0 unclear. The original run (`wf_f53aa173-a88`) was not resumable — prior session, no
+saved script — so this was a fresh workflow over the recorded rows. Nothing was lost; only the
+verdicts were missing.
+
+### What shipped
+| Commit | Batch | Substance |
+|---|---|---|
+| `6b50f80` | A — export authority | client-session fallback removed (404), `_can_synthesize` gate (400), downstream invalidation with amber "Stale" badges, atomic bundle write with the Complete marker last. Migration guard so the 43 existing bundles stay re-exportable |
+| `40ec299` | B — event-loop blocking | 7 sites wrapped (review named 3; an AST sweep found 4 more incl. `load_case`), a *guaranteed* 180s `claude_agent` self-deadlock killed, background model warmup (cold load measured 16.2s vs the estimated 8.5s) |
+| `ba69e22` | C — silent content loss | anchored traceability-note strip, `pyliteral` filter on 13 jinja slots, setup-step provenance fix, tightened echo regex |
+| `be9149d` | D — error signals | Claude empty/truncated guards, 2 missing `res.ok`, `keep_ids` pinning, stale run-status sweep, dead `gc()` |
+| `e54fdd2` | data | `AWPTCM-T37861`'s unparseable bundle (one `\'`) — 42/43 → 43/43 pass the export gate |
+| `6eaa43e` | security | loopback default, `--force` de-hardcoded, SSH host keys pinned |
+| `94b98cf` | plan | multi-user auth + per-case locking (no code) |
+
+`d35f061` also landed a small PyTest step-label UX change whose tests had been committed separately
+by a parallel stream — committed so the tree and the suite agreed.
+
+### Things worth remembering
+- **The finding lists were incomplete more than once.** Batch B named three blocking sites; a
+  mechanical AST sweep found seven. Prefer a sweep over the filed list wherever the defect has a
+  machine-checkable shape, and leave the sweep behind as a test.
+- **A suggested fix was wrong.** Batch C's row proposed reusing `_PROVENANCE_TAG_RX`; it is a loose
+  lint check that also matches prose, so it deleted the same comments it was meant to save. The
+  tests caught it, inspection did not.
+- **Skeptics found two defects while refuting.** The SSE latin-1 mojibake — `text/event-stream`
+  makes `requests` default to ISO-8859-1, so every non-ASCII byte on the live vLLM streaming path
+  corrupted *silently* and as valid JSON, into stored objectives and on to Zephyr — was the most
+  consequential correctness bug of the pass, and it came from an agent disproving a narrower claim.
+- **A security test had started passing for the wrong reason.** Batch A's confirm gate ran before
+  the path-traversal guard, so the traversal test hit the confirm-gate 400 and never exercised the
+  guard it names. Ordering fixed; both tests now pin the *reason*, not just the status code.
+- **Test fixtures were leaking into `ck.db`** (cleared memory but not the persisted row). Fixed, and
+  two stray rows from earlier runs removed.
+
+### The security decision
+Both remaining items were *documented accepted risks*, so they went to Terrence rather than being
+fixed unilaterally. Verified live first: the box answered on its LAN IP and an unauthenticated
+`POST /push_to_zephyr` returned 200. The new fact the acceptance had not covered — **`--force` was
+hardcoded**, disabling `upload_refined.py`'s own "already refined — SKIP" guard on every push — plus
+the observation that the "localhost" rationale never fitted the SSH item (that connection is
+*outbound* to a lab testbox). All three actions approved and implemented; verified after: LAN
+refused, localhost 200, SKIP fires by default and is still overridable with `?force=true`.
+
+### Next session
+- **Six open decisions in `ck-facelift/PLAN-auth-and-case-locking.md`** (deferred deliberately),
+  notably D1: where identity comes from. Likely an org/IT call, which is why Phase 1 (locking) is
+  sequenced first and does not depend on it.
+- **Phase 1 is the live one.** The concurrency bug does not need a second user — two tabs on one
+  case silently overwrite each other today (`db.py:918` is an unconditional whole-blob upsert keyed
+  by case with no owner; 32 write paths reach it).
+- **The repo gate is currently red** from `tests/test_cli_docs.py` — untracked in-progress CLI-docs
+  work from another stream (`tool/harvest_cli_docs.py`, `tool/cli_lookup.py`), failing independently
+  of everything above. My layers: 190 pytest / 72 Vitest green.
+- Still no CI runner (`.github/workflows`); the gate remains run-before-commit discipline.
