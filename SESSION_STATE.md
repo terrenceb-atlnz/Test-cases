@@ -1776,9 +1776,11 @@ Each found by checking output rather than trusting the change:
    product families share. *Caveat on "commands are standard across devices": the command is,
    but sample OUTPUT is family-specific, and picking the wrong family is silent.*
 3. `self.dut.port1.0.1` — a SyntaxError; a CLI port name used as a Python attribute. Fixed.
-4. **OPEN:** a hallucinated `framework.ATLibrary` import keeps T33235's `lint_ok` false. The
+4. ~~**OPEN:** a hallucinated `framework.ATLibrary` import keeps T33235's `lint_ok` false. The
    existing lint catches it correctly; the prompt's import guidance needs the same treatment
-   the CLI grounding got.
+   the CLI grounding got.~~ **CLOSED 2026-07-28 — the diagnosis above is wrong on both
+   counts.** The import is valid (`ATLibrary` is a real framework package) and the lint did
+   **not** catch it correctly — the lint was the bug. See the 2026-07-28 session entry.
 
 ### Product debt found (not fixed)
 

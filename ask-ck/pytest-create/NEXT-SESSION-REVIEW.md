@@ -101,14 +101,14 @@ the mechanical criteria cannot catch, which is exactly what criterion 4 is for.
 
 ## 3. Bugs and regressions found this session
 
-### Regressions the CLI grounding itself caused — 3 fixed, 1 open
+### Regressions the CLI grounding itself caused — all 4 fixed (row 4 closed 2026-07-28)
 
 | # | Regression | Status |
 |---|---|---|
 | 1 | `speed 2000` — an invented value. The prompt showed valid syntax but never said arguments must come *from* it. | **Fixed** — explicit argument rule; now emits `speed 2500 (unsupported on 1G copper)`. |
 | 2 | `show interface eth1` — `prompt_block()` picked the **longest** sample output, which was the TQ wireless AP's *router* interface, not a switch port. | **Fixed** — prefers the variant the most product families share. |
 | 3 | `self.dut.port1.0.1` — a **SyntaxError**; the model used a CLI port name as a Python attribute. | **Fixed** — "port names are CLI text, never identifiers" rule. |
-| 4 | `framework.ATLibrary` — a hallucinated import; the existing lint correctly rejects it, so **T33235's `lint_ok` is False**. | **OPEN** — the import surface needs the same grounding treatment the CLI got. |
+| 4 | `framework.ATLibrary` — recorded as a hallucinated import that the lint "correctly rejects", so **T33235's `lint_ok` was False**. | **Fixed 2026-07-28 — and the diagnosis was wrong.** `ATLibrary` is a *real* framework package; the **lint** was broken, not the script. `framework_surface` is keyed by module path (`ATLibrary.ATTools`, `ATLibrary.__init__`) so a package never has a bare key — a membership test rejected **every** package import. `from framework.ATDrivers import ATSwitch`, a very common real import, was silently an error too; `ATDrivers` passed only because it sat in a hardcoded allowlist despite being *structurally identical* to `ATLibrary`. The check now resolves packages from the index and the allowlist is gone (all 6 exempted names are real keys). T33235 re-lints **0 errors / 0 warnings, script code unchanged**; `lint_ok` corrected in `mechanical.json`. +19 tests (`tests/test_framework_import_lint.py`). |
 | 5 | `pt_judge.py --out` **skipped** cases with zero gap-fill blocks, leaving the previous run's `criterion4.json` in place. T33235 kept a 13:43 file claiming 7 judged blocks hours after regeneration made it 0. A stale artifact that looks current is worse than none, since the next session compares against it. | **Fixed** — a no-gap-fill case now overwrites with an explicit `gap_fill_blocks: 0` record. |
 
 ### Coverage regression that prompted the gate
@@ -148,8 +148,11 @@ as success.
    T33233 selected 16/48 and T33235 9/14. Previously it had no `selected` key at all, so
    the back-compat fallback treated all 7 as selected — hence C2 `exactly` → `n-a`. Is the
    LLM right that none are reusable, or is this a selection bug?
-2. **T33235's `framework.ATLibrary` import** — needs the import surface grounded, or a
-   prompt rule listing the real framework modules.
+2. ~~**T33235's `framework.ATLibrary` import** — needs the import surface grounded, or a
+   prompt rule listing the real framework modules.~~ **RESOLVED 2026-07-28 — no grounding
+   needed.** The import was valid; the lint was wrong (see row 4 above). Grounding the
+   prompt here would have taught the model to *avoid writing correct Python*, which is
+   why the fix went into the check instead.
 3. **`speed 2500` on 1G copper** as the "unsupported speed" choice — plausible, but you'd
    know whether that's right for this DUT.
 4. **T33234's polarity matrix is now 2 entries, not 4.** Both paths *are* covered (one

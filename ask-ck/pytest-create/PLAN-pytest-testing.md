@@ -1185,9 +1185,22 @@ Each was caught by checking output rather than trusting the change:
    command is, but sample OUTPUT is family-specific, and picking wrong is silent.)
 3. **`self.dut.port1.0.1`** — a SyntaxError; the model used a CLI port name as a Python
    attribute. Fixed with a "port name is CLI TEXT, never an identifier" rule.
-4. **`framework.ATLibrary` — STILL OPEN.** A hallucinated import; the existing lint
-   correctly rejects it, so T33235's `lint_ok` is False. Not a grounding regression
-   (the import surface is a separate prompt section) but it blocks a clean run.
+4. **`framework.ATLibrary` — FIXED 2026-07-28, and it was not a hallucination.** The
+   import is valid: `ATLibrary` is a real framework package. The **lint** was wrong.
+   `framework_surface` is keyed by module path only (`ATLibrary.ATTools`,
+   `ATLibrary.__init__`), so a package never appears as a bare key — a plain membership
+   test rejected every package import, and `from framework.ATDrivers import ATSwitch`
+   was equally an error. `ATDrivers` passed *only* because it was hardcoded in an
+   allowlist, though the index shape for the two packages is identical. The check now
+   resolves packages from the index (`<pkg>.__init__` / dotted-key prefix) and the
+   allowlist is deleted — all six formerly-exempt names are genuine keys, so they pass
+   on the data. T33235 re-lints clean (0 errors, 0 warnings) with **no change to the
+   generated code**; `mechanical.json` `lint_ok` corrected to True. Covered by
+   `tests/test_framework_import_lint.py` (19 tests), including a source guard against a
+   new allowlist and an AST check that the live helper accepts the same set.
+   *Takeaway: a lint that rejects valid code reads exactly like a model defect — the
+   "hallucination" label was assumed from the error text, never checked against the
+   framework tree.*
 
 ### 11.8 Product debt found: writes can silently not persist
 

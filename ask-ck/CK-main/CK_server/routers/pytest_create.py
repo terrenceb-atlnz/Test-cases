@@ -1401,20 +1401,39 @@ def _lint_generated(sess: PtSession) -> dict:
 
         # 3. Framework imports must exist in the surface index (from ck.db — the
         #    single runtime source; no JSON read).
+        #
+        #    The surface is keyed by MODULE path only ("ATLibrary.ATTools",
+        #    "ATLibrary.__init__") — a package never appears as a bare key. So membership
+        #    alone rejects every legitimate package import: `from framework import
+        #    ATLibrary` and even `from framework.ATDrivers import ATSwitch` were both
+        #    errors (2026-07-28). `ATDrivers` only ever passed because it sat in a
+        #    hardcoded allowlist, though it is structurally identical to `ATLibrary`.
+        #    That misdiagnosed a real import as "a hallucinated framework.ATLibrary" and
+        #    held T33235's lint red. Resolve packages from the index instead of listing
+        #    them by hand, so the check follows the data.
         surface = dbx.get_json_doc("framework_surface") or {}
         if surface:
+            packages = {k.rsplit(".", 1)[0] for k in surface if "." in k}
+
+            def _known(name: str) -> bool:
+                """True if `name` names a module or a package inside the surface."""
+                return (name in surface
+                        or name.replace(".", "/") in surface
+                        or name in packages
+                        or f"{name}.__init__" in surface)
+
             for node in ast_mod.walk(tree):
                 if isinstance(node, ast_mod.ImportFrom) and node.module:
                     mod = node.module
                     if mod.startswith("framework."):
                         short = mod[len("framework."):]
-                        if short not in surface and short.replace(".", "/") not in surface:
+                        if not _known(short):
                             errors.append(f"imports: framework module '{short}' not found in framework_surface")
                     elif mod == "framework":
+                        # Importing a submodule/package off the `framework` package: the
+                        # imported name is itself the module path.
                         for a in node.names:
-                            if a.name not in ("ATTestSet", "ATTestCase", "ATDrivers", "ATPackets",
-                                              "Setup", "ATTestTag", "ATTagFilter") \
-                                    and a.name not in surface:
+                            if not _known(a.name):
                                 errors.append(f"imports: framework.{a.name} not found in framework_surface")
 
     lib = files.get("library")

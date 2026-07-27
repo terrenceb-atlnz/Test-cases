@@ -9,7 +9,8 @@
       "auth_method": "local_llm"
     },
     "iterations": 3,
-    "lint_ok": false
+    "lint_ok": true,
+    "lint_note": "Re-linted 2026-07-28 after fixing the framework-import check. The two errors (`framework.ATLibrary not found in framework_surface`) were a LINT bug, not a hallucinated import: the surface is keyed by module path, so packages have no bare key and every package import was rejected; ATDrivers passed only via a hardcoded allowlist. Script code UNCHANGED \u2014 0 errors, 0 warnings."
   },
   "inputs": {
     "sequence_steps": 6,

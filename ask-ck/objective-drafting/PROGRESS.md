@@ -46,7 +46,12 @@ time of writing — see the commit that follows.**
   eth1` (the block picked the LONGEST sample, which was a TQ wireless *router* interface ->
   now prefers the variant most families share); `self.dut.port1.0.1` (a SyntaxError — a CLI
   port name used as a Python attribute -> added a "port names are CLI text" rule).
-  **Still open:** a hallucinated `framework.ATLibrary` import keeps T33235's lint red.
+  ~~**Still open:** a hallucinated `framework.ATLibrary` import keeps T33235's lint red.~~
+  **CLOSED 2026-07-28 — it was a lint bug, not a hallucination.** `ATLibrary` is a real
+  framework package; the import check tested bare-name membership against a surface keyed
+  by module path, so *every* package import was rejected (`from framework.ATDrivers import
+  ATSwitch` too) and `ATDrivers` passed only via a hardcoded allowlist. Check now resolves
+  packages from the index; T33235 lints clean with the generated code unchanged.
 - **Product debt found:** the server can return **HTTP 200 while the write never reaches
   `ck.db`** — thread-local SQLite connections go stale after an external write, and
   `_pt_persist` swallows the failure into a `print`. Cost real debugging time; workaround is
