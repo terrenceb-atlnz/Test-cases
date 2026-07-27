@@ -819,7 +819,9 @@ async def load_case(key: str, data=Depends(get_data)):
     # "Suggest with LLM" button for that ranking, so Load now returns the keyword-scored
     # candidates instantly and the LLM ranking happens only when the user asks for it.
     atp_query = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
-    atp_cands_raw = _get_atp_candidates(atp_query, data, limit=18)
+    # Off the event loop — see search_testlink. This one runs on EVERY case load, so a
+    # cold model here stalls the very first thing a user does.
+    atp_cands_raw = await run_in_threadpool(_get_atp_candidates, atp_query, data, limit=18)
 
     atp_candidates = []
     test_id_desc = data.get("test_id_desc", {}) or {}
@@ -1029,7 +1031,9 @@ async def search_atp(q: str = "", keep_ids: str = "", mode: str = "", data=Depen
     Returns short title + full description (no mid-sentence truncation).
     """
     keep = {s for s in (keep_ids or "").split(",") if s}
-    cands = _get_atp_candidates(q, data, limit=20, keep_ids=keep, mode=mode)
+    # Off the event loop — see search_testlink.
+    cands = await run_in_threadpool(
+        _get_atp_candidates, q, data, limit=20, keep_ids=keep, mode=mode)
     return {
         "results": [
             {
@@ -1106,7 +1110,12 @@ async def search_testlink(q: str = "", keep_ids: str = "", mode: str = "", data=
     vectors are available, else keyword). keep_ids: comma-separated pool ids,
     always returned re-scored against `q`."""
     keep = {s for s in (keep_ids or "").split(",") if s}
-    return {"results": _search_testlink(q, data, limit=20, keep_ids=keep, mode=mode)}
+    # Off the event loop: a hybrid search runs sentence-transformer inference inline,
+    # and the FIRST one after a restart also constructs the model from disk (measured
+    # 16.2s; ~20ms warm). On the loop that stalls every other request — including the
+    # agent-bridge long-poll the LLM call sites are already careful to protect.
+    return {"results": await run_in_threadpool(
+        _search_testlink, q, data, limit=20, keep_ids=keep, mode=mode)}
 
 
 @router.get("/search_zephyr")
@@ -1116,8 +1125,10 @@ async def search_zephyr(q: str = "", case_key: str = "", keep_ids: str = "",
     hybrid|semantic (default hybrid when vectors are available, else keyword).
     keep_ids: comma-separated pool keys, always returned re-scored against `q`."""
     keep = {s for s in (keep_ids or "").split(",") if s}
-    return {"results": _search_zephyr_external(q, data, case_key=case_key, limit=20,
-                                               keep_ids=keep, mode=mode)}
+    # Off the event loop — see search_testlink.
+    return {"results": await run_in_threadpool(
+        _search_zephyr_external, q, data, case_key=case_key, limit=20,
+        keep_ids=keep, mode=mode)}
 
 
 def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
@@ -1210,7 +1221,8 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
 
     # Build smart query and retrieve candidates
     q = body.get("q") or _build_atp_query(sess)
-    candidates = _get_atp_candidates(q, data, limit=25)
+    # Off the event loop — see search_testlink.
+    candidates = await run_in_threadpool(_get_atp_candidates, q, data, limit=25)
 
     # Call LLM for selection. _session_llm_cfg applies the workspace LLM at dispatch
     # time so this respects the configured backend even if the session's persisted
@@ -1301,7 +1313,8 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
         str((sess.primary or {}).get("w") or ""),
         str((sess.primary or {}).get("m") or ""),
     ]))
-    candidates = _search_testlink(q, data, limit=30)
+    # Off the event loop — see search_testlink.
+    candidates = await run_in_threadpool(_search_testlink, q, data, limit=30)
     # Also include load-time candidates for this case if present (full TL descriptions)
     testlink = data.get("testlink", {}) or {}
     cdata = data.get("candidates_dict", {}).get(key) or {}
@@ -1379,7 +1392,8 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
     for sel in (sess.step1.selections or [])[:6]:
         q_parts.append(sel.title or "")
     q = body.get("q") or " ".join(filter(None, q_parts))
-    candidates = _search_zephyr_external(q, data, case_key=key, limit=30)
+    # Off the event loop — see search_testlink.
+    candidates = await run_in_threadpool(_search_zephyr_external, q, data, case_key=key, limit=30)
     dry_run = bool(body.get("dry_run"))
     result = await run_in_threadpool(
         suggest_relevant_zephyr,
@@ -2103,7 +2117,17 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         sess_dict["llm_config"] = stored.llm_config.dict() if hasattr(stored.llm_config, "dict") else stored.llm_config
     llm_cfg = sess_dict.get("llm_config", {}) if isinstance(sess_dict, dict) else {}
     if not (sess_dict.get("gaps") or "").strip():
-        gaps_out = generate_coverage_gaps(sess_dict, llm_config=llm_cfg)
+        # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
+        # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
+        #
+        # This was the one LLM call site in the router that omitted the wrap, and in
+        # claude_agent mode it is a guaranteed self-deadlock, not just a stall:
+        # _call_claude_agent -> registry.submit() blocks on threading.Event.wait(180s),
+        # and the event is only set when the browser POSTs to /api/agent/result — which
+        # the blocked event loop cannot serve. The export hangs for the full 180s and
+        # then reports "local Claude agent did not respond in time", blaming the user's
+        # ck-agent for a deadlock the server caused.
+        gaps_out = await run_in_threadpool(generate_coverage_gaps, sess_dict, llm_config=llm_cfg)
         sess_dict["gaps"] = gaps_out.get("gaps") or ""
         # Persist onto authoritative session when available
         if stored is not None and hasattr(stored, "gaps"):

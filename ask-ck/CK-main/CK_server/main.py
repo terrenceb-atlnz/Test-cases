@@ -37,6 +37,8 @@ import uvicorn
 import os
 import sys
 import re
+import threading
+import time
 
 # Ensure we can import sibling modules when run from project root
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -129,6 +131,25 @@ async def startup_event():
             f"then (for semantic search)  python3 tool/build_db.py --embed")
     app.state.app_data = load_all_data()
     print("Data ready.")
+
+    # Warm the sentence-transformer in the BACKGROUND so the first hybrid search does
+    # not pay the cold load (measured 16.2s from disk; ~20ms per encode once warm).
+    # The searches themselves now run via run_in_threadpool, so a cold load no longer
+    # blocks the event loop — but it still stalls whoever typed first. Warming on a
+    # daemon thread keeps boot fast (important for --reload and the E2E webServer) and
+    # costs nothing if the user never searches. Opt out with CK_NO_EMBED_WARMUP=1.
+    if db.HAS_VEC and os.getenv("CK_NO_EMBED_WARMUP") != "1":
+        def _warm():
+            try:
+                t0 = time.perf_counter()
+                db._get_model()
+                print(f"Embedding model warm ({time.perf_counter() - t0:.1f}s).")
+            except Exception as e:
+                # Never fatal: hybrid search degrades to keyword, and the lazy load
+                # still runs on first use if this failed for a transient reason.
+                print(f"Warning: embedding-model warmup failed ({e}); "
+                      f"first semantic search will load it inline.")
+        threading.Thread(target=_warm, name="embed-warmup", daemon=True).start()
 
 app.include_router(wizard_router, prefix="/api/wizard")
 app.include_router(zephyr_tool_router, prefix="/api/zephyr-tool")
