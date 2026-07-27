@@ -4,6 +4,70 @@
 
 **Last Updated**: 2026-07-28 (by Claude)
 
+## Latest session (2026-07-28b) — the prompts were the defect, ~14 fixes, venv on 3.13
+
+**Focus: "prioritize improving the prompts, the judges are a symptom not the cause"
+(Terrence). Confirmed emphatically — every defect found this session came from our own
+guidance or measurement, none from model weakness. 12 commits, `ed419aa`→`86993e8`.**
+
+- **The governing lesson: where prose and an EXAMPLE disagree, the model copies the
+  EXAMPLE.** An example in a prompt is not documentation, it is the specification the model
+  implements. Four separate defects in generated scripts came from wrong examples in our own
+  files. `tests/test_prompt_examples.py` now EXECUTES each prompt example against real
+  harvested CLI output, so a wrong one fails in milliseconds with zero tokens spent — the
+  two worst bugs below were pure data checks.
+- **Two guaranteed-wrong-on-hardware defects.** (1) Rule 3b bound `port = dev.portA` (a
+  `SwitchPort`) while rule 4d compared `[port]` against a string token — never matches, so
+  every `show ecofriendly` step was a **false RED on every run**. Two rules disagreeing with
+  each other. (2) Rule 4d's example had `if/elif` and no `else`, so the silent-failure case —
+  precisely what rule 4c exists to catch — wrote **no verdict at all** and scored as a pass:
+  a false green inside the anti-false-green rule.
+- **The structural one, worst thing found all session.** Rules 4b/4c/4d — 6,480 chars
+  including "NEVER HARDCODE A PORT NAME", "ASSERT ON THE FEATURE UNDER TEST" and "PARSE THE
+  ROW FOR YOUR PORT" — were ALL inside `{% if cli_reference %}`. None depend on grounding.
+  So for any case naming no harvested command (physical replug, reboot, traffic) the
+  generator got a port-bearing skeleton with **every false-green guard removed**.
+- **Skeleton deep dive** (Terrence: "reduce what's needed, clarify every portion, root
+  assumptions in truth"): **39% smaller** (22,833→14,150 chars on a 14-step case; the 3-line
+  idiom example had been emitted once per TestCase, ~49% of each block comment). Assumptions
+  verified against the 830-script corpus — `mode(')#')` is the config idiom (4,812 uses) not
+  `cmd('conf t')` (69); `port.name` for CLI text (1,013 vs 241). Wrong ones fixed: a
+  `{{ devices }}` variable that was **never passed** (silent fallback every render), and
+  `.down()`/`.speed` attributed to `SwitchPort` when they are `ATTestBox.Eth` methods
+  (`dev.portA.speed = 1000` does not even raise — it creates a dead attribute).
+- **`distutils.strtobool` in the skeleton was a LIVE break, not latent** — removed in Python
+  3.12, and tb470 runs **3.13.5**, so every manual-step script would have `ImportError`ed on
+  the target before running a test. `py_compile` cannot catch a missing module. Generalised
+  into a lint over stdlib modules removed in 3.12/3.13.
+- **A manual step could discard an entire testbox run.** `yesNo()` called bare `input()`
+  while the runner never writes to stdin → 30-minute block; the timeout then `raise`d
+  *before* writing stdout, throwing away every PASS/FAIL already produced. Both halves fixed.
+- **The "returns 200 but the write never lands" debt was never a lost write.** `_pt_get`
+  preferred a per-process cache over the DB, so a stale instance answered *and re-persisted*,
+  overwriting newer work. Found a **24-day-old `drafting_server` process** on :8991 from a
+  directory that no longer exists — killed. `_pt_get` now reloads when the DB is newer;
+  `_pt_persist` raises instead of printing.
+- **Measurement bug that invented two regressions.** `pt_grade` resolved a fragment's
+  `maps_to` to a TestCase number, falling back to the raw step number for non-verify steps —
+  but fragments legitimately map to SETUP steps. 15 of 41 mappings misresolved, so T33234's
+  reported C2 "partially" / C3 "wrong" were **pure measurement error**: both are clean.
+- **Domain rules the docs cannot supply.** The re-extracted sequence asserted "speed 1000 +
+  duplex half … Link is UP" — **half duplex is impossible at ≥1 Gig**, a physical constraint
+  no CLI page states. Compound cause: the source Zephyr step said "where supported" and the
+  extractor dropped the qualifier. Both rules added; 1G+half assertions 1→0.
+- **Environment: venv moved to Python 3.13.14 to match the testbox** (`032f521`), following
+  the procedure already in `PLAN-backend-module-split.md` Part 0. `setup.sh` had two real
+  bugs — `ensure_python` tried bare `python3` FIRST despite claiming newest-first (3.10 here
+  while 3.13 was installed), and an existing venv meeting the floor is reused and never
+  upgraded. Both fixed; the rationale is documented in README/requirements/SERVER-README.
+- **Prevention mechanism** (`tests/_prose.py`): four times this session a check fired on its
+  own advice text. Now encoded as `code_lines` / `flat` / `code_fences` with the four
+  historical cases regression-locked.
+- **Tests 208 → 295 pytest** + 72 Vitest, both guards green, `/health` ok on 3.13 with all
+  83,816 embeddings. Every prompt fix verified by regeneration, not only by test.
+- **Still open:** T33234 TestCase_8 (configures the partner's `polarity mdi` but never the
+  local `polarity auto`; judges 5 bad / 1 good). Part 3b still blocked on `configs/tb470.setup`.
+
 ## Latest session (2026-07-28) — two "model defects" that were both OUR bugs
 
 **Focus: the two items left open at the end of 27h. Both turned out to be defects in our own
@@ -513,6 +577,10 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 - **Strict DB-only runtime (Phase 1 DONE).** `data.py` + `pytest_create.py` source every corpus/reference from `db.*`; dead `load_json_safe`/`load_json_abs` removed; `main.py` **fails fast** if `ck.db` absent; **`tool/guard_db_only.py`** fails if a corpus JSON read reappears under `CK_server/` (verified it catches a regression).
 - **Three latent bugs fixed:** (1) `build_db.py embed()` checked `db.HAS_VEC` before opening the connection that sets it → `--embed` had never run. (2) `db._vector_hits` ran the sqlite-vec KNN as a JOIN → sqlite-vec rejects it → error swallowed → semantic/hybrid silently returned keyword-only. (3) huggingface load-time ping (above).
 - Docs synced (README, SERVER-README, both DB plans). ck.db gitignored = derived rebuildable cache (documented rationale).
+  > **Superseded (2026-07-20b):** that last clause is no longer true — `ck.db` became the
+  > **permanent, committed** source of truth (Git LFS, un-ignored, NOT rebuildable; the
+  > courier build inputs were deleted and `build_db.py` refuses to run). Left in place
+  > because dated entries are frozen; see the newer entries above and `db-is-permanent-source`.
 
 ## Latest session (2026-07-20) — LLM observability + Local LLM + admin panel + fast restart
 

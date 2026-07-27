@@ -17,6 +17,18 @@
 > (`CK_SSH_TRUST_ANY=1` to opt out). Sequence step text is also whitespace-collapsed at both write
 > paths.
 >
+> **Update 2026-07-28b — the prompts were the defect.** §12 records the ecofriendly
+> grounding; a fan-out audit then found ~14 more, ALL in our own guidance or measurement:
+> two guaranteed-false-RED examples (a port OBJECT compared to a string token; an
+> `if/elif` with no `else`), and — worst — rules 4b/4c/4d were entirely inside
+> `{% if cli_reference %}`, so every anti-false-green guard vanished for cases naming no
+> harvested command. The skeleton was reduced 39%, its assumptions re-grounded in the
+> 830-script corpus, and `distutils.strtobool` removed (a LIVE ImportError on the 3.13
+> testbox). A manual step could discard an entire run. `pt_grade` mis-attributed
+> setup-mapped fragments, so T33234's reported C2/C3 regressions were measurement error —
+> both are clean. Governing rule now: **where prose and an EXAMPLE disagree, the model
+> copies the example**, so `tests/test_prompt_examples.py` executes them against real data.
+>
 > **Status: IN PROGRESS (updated 2026-07-22).** Author: Claude, at Terrence's direction.
 > v2 folded in Terrence's answers to the four open questions (§5, RESOLVED) and the
 > corpus evidence gathered to settle them.

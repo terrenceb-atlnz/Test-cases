@@ -1802,3 +1802,150 @@ thread-local cache; make `_pt_persist` surface failures.
   next-session comparison via `tool/pt_compare_runs.py --against`.
 - **Part 3b (criteria 5-6) still blocked** on `configs/tb470.setup` (Terrence-side physical
   topology). Note the corrected path: `/home/st-art/st-art/configs/`, NOT under `framework/`.
+
+## Session Close / Handoff (2026-07-28b) — the prompts were the defect
+
+**Started from:** the two items left open by 27h (`framework.ATLibrary` lint red, and the
+criterion-4 "checks link state but never the feature under test" false green). Terrence then
+set the direction: *"prioritize improving the prompts, the judges are a symptom not the
+cause."* That turned out to be exactly right.
+
+12 commits, `ed419aa`→`86993e8`, all pushed.
+
+### The finding that shaped everything else
+
+**Every defect this session came from our own guidance or measurement — none from model
+quality.** And the mechanism was consistent enough to state as a rule:
+
+> Where a prompt's prose and its code EXAMPLE disagree, the model implements the EXAMPLE.
+
+Four defects in generated scripts traced directly to wrong examples in our own files, so an
+example is not documentation — it is the spec. `tests/test_prompt_examples.py` now executes
+each prompt example against real harvested CLI output from `ck.db`; the two worst bugs below
+were pure data checks that would have failed in milliseconds for zero tokens.
+
+### The two that were guaranteed wrong on working hardware
+
+1. Rule 3b bound `port = dev.portA` (an `ATSwitch.SwitchPort`) while rule 4d compared
+   `[port]` to a token from `split()`. An object never equals a string, so `row` was always
+   `None` and **every `show ecofriendly` step failed on every run**. Two rules disagreeing
+   with each other, each defensible alone.
+2. Rule 4d's worked example had `if/elif` and no `else`. The "command silently failed" case —
+   the exact thing rule 4c exists to catch — therefore wrote **no verdict at all**, which the
+   framework scores as a pass. A false green nested inside the anti-false-green rule.
+
+### The structural one
+
+Rules 4b/4c/4d — 6,480 chars, 91 lines, including *NEVER HARDCODE A PORT NAME*, *ASSERT ON
+THE FEATURE UNDER TEST* and *PARSE THE ROW FOR YOUR PORT* — were all wrapped in
+`{% if cli_reference %}`. None of them depend on CLI grounding. So for any case whose text
+names no harvested command (physical replug, reboot, traffic/throughput) the generator was
+handed a port-bearing skeleton with **every guard against a false green removed**. The step-2
+prompt had the same defect. Both now render every critical rule with grounding empty.
+
+### Skeleton deep dive (reduce / clarify / root in truth)
+
+39% smaller — 22,833 → 14,150 chars on a 14-step case. The 3-line idiom example had been
+emitted **once per TestCase** (14 verbatim copies; ~49% of each block was comment). Guidance
+for the MODEL now lives in the prompt rules; the skeleton carries only what a reader of the
+finished test needs — a distinction that matters because skeleton comments ship into every
+artefact, and one of them caused 3 false lint warnings by quoting a port.
+
+Assumptions verified against the 830-script corpus rather than assumed: `FEATURES=['ALL']`
+291/306, `init_swi('swi_a')` 621/~650, `init_stk('stk_a')` 191/191, `Switch.cmd(log=)` real.
+Wrong ones fixed:
+- `mode(')#')` is the config-mode idiom (**4,812** uses); `cmd('conf t')` is not (**69**).
+  Nothing had ever explained it, which is why a judge called `mode(')#')` "nonsense".
+- `port.name` for CLI text (**1,013** vs 241 bare) — was left to chance.
+- `{{ devices }}` in the `configure()` example was **never passed**, so it silently fell back
+  to `swi_a` every render and never named the real device.
+- `.down()` / `.speed` were attributed to `SwitchPort`; they belong to `ATTestBox.Eth`.
+  `dev.portA.speed = 1000` does not raise — it creates a dead Python attribute and the
+  device is never configured.
+- All 14 `| default(...)` filters were DEAD: Jinja fires `default()` only on *undefined*, not
+  on `''`, so an empty `verify` rendered `self.passed('')` — and an empty reason emits no log
+  marker, making the step invisible in results.
+- `stk_b` rendered `init_stk('stk_a')` — a positional rewrite of a name that was already a
+  valid `.setup` key.
+
+### Two whole-run failures
+
+- **`distutils.strtobool` was a LIVE break.** Removed in Python 3.12; tb470 runs **3.13.5**.
+  Every manual-step script would have `ImportError`ed on the target before running a test.
+  `py_compile` proves syntax, never that a module exists — which is how it shipped. Now a
+  lint over stdlib modules removed in 3.12/3.13.
+- **A manual step could discard an entire run.** `yesNo()` called bare `input()` while the
+  runner never writes to stdin → 30-minute block. The timeout then `raise`d *before* writing
+  stdout, throwing away every PASS/FAIL already produced. Both halves fixed; `yesNo` is now
+  `select`-bounded and fails only its own step.
+
+### The data-loss debt, root-caused
+
+"Returns HTTP 200 but the write never reaches `ck.db`" was **never a lost write**. A
+controlled generate-then-read passed. `_pt_get` preferred a per-process cache over the DB, so
+an instance with a warm stale copy answered a request **and re-persisted it**, overwriting
+newer committed work — indistinguishable from a lost write from outside. Found a **24-day-old
+`drafting_server` process** still answering on :8991 from a module directory that no longer
+exists; killed it. `_pt_get` now reloads when the DB is newer; `_pt_persist` raises instead
+of printing into the void.
+
+### A measurement bug that invented two regressions
+
+`pt_grade` resolved a fragment's `maps_to` step to a TestCase number, falling back to the raw
+step number when the step was not a verify step — but fragments legitimately map to SETUP
+steps, whose code goes to `TestSet.configure()`. 15 of 41 mappings misresolved. So T33234's
+reported **C2 "partially" and C3 "wrong" were pure measurement error**; both are clean
+(exactly 10/10, right). A metric I had built on top of that mapping ("ignored reuse") looked
+like a finding and dissolved on inspection — worth distrusting new metrics until their inputs
+are verified.
+
+### Domain rules the CLI docs cannot supply
+
+The re-extracted sequence asserted *"configure speed 1000 + duplex half … confirm Link is UP
+and current duplex half, current speed 1000"*. **Half duplex is impossible at 1 Gig and
+above** — a physical constraint no reference page states, since the `duplex` page reads
+`{auto|full|half}` unconditionally wherever half is supported at all. Compound cause: the
+**source Zephyr step** said "half and full duplex WHERE SUPPORTED" and the extractor dropped
+the qualifier. Both rules added (the constraint, and "keep the source step's qualifiers");
+1G+half assertions 1 → 0, and `(where supported by the …)` is now carried through.
+
+Also corrected: three CLI claims of mine that the harvest disproves — `show interface` prints
+**both** `current …` and `configured …` (asserting `current` after a config command is a
+false RED while negotiating); `show interface status` shows `connected` and **`disabled`**,
+while `notconnect` appears **zero** times yet I had stated it as fact; and `speed` has
+**three** forms, so a step saying "auto" that emits the bare numeric form tests the opposite.
+
+### Environment: Python 3.13.14
+
+Moved the venv to match the testbox (`032f521`), following the procedure already written in
+`PLAN-backend-module-split.md` Part 0 — suite green on 3.13 *first*, then rename. `.venv313`
+was missing `sentence-transformers` (already in `requirements.txt`), which would have booted
+fine and silently degraded to keyword-only search. A venv is **not relocatable**: every
+console script hardcodes its build path, so `.venv/bin/pytest` died with "bad interpreter"
+after the rename — the documented recipe now includes the fix-up step.
+
+`setup.sh` had two real bugs: `ensure_python` tried bare `python3` **first** despite a comment
+claiming newest-first (3.10 here while 3.13 was installed, so a fresh run would have rebuilt
+on 3.10), and an existing venv meeting the floor is reused and **never upgraded**. Both fixed;
+it now reports the mismatch with the full upgrade recipe.
+
+### Prevention mechanism (Terrence's request)
+
+Four times this session a check fired on its own advice text: the port lint on its guidance
+comment, and three of my own tests matching words rather than meaning (one missed a phrase
+that wrapped across a newline). `tests/_prose.py` encodes the rules as functions —
+`code_lines` / `flat` / `code_fences` — the existing checks were refactored onto it so it is
+load-bearing, and all four historical cases are regression-locked. Memory:
+`checks-must-not-match-their-own-advice`, `prompt-examples-are-the-spec`.
+
+### State at close
+
+- **295 pytest + 72 Vitest** green on Python 3.13.14; `guard_db_only` + framework-RO green;
+  `/health` ok with sqlite-vec loaded and all 83,816 embeddings.
+- `ck.db` still the permanent LFS-committed source of truth — no rebuild, no couriers, no
+  corpus API. The CLI tables remain an externally-sourced reference, not a corpus rebuild.
+- Every prompt fix verified by **regeneration**, not only by test.
+- **Open:** T33234 TestCase_8 (configures the partner's `polarity mdi` but never the local
+  `polarity auto`; judges 5 bad / 1 good). Part 3b still blocked on `configs/tb470.setup`
+  (`/home/st-art/st-art/configs/`). `PLAN-backend-module-split.md` is committed but
+  unimplemented — its own conclusion is that Part A (perf/correctness) outranks the split.

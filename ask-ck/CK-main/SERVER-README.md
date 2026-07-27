@@ -742,7 +742,7 @@ outcome). Run on demand, e.g. pre-release; it starts/reuses the server via `run.
 
 ```bash
 ./tool/run_tests.sh        # THE GATE: guards + pytest (190) + Vitest (72), one command
-PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (295 tests, Python 3.13)
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```
