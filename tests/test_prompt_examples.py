@@ -26,6 +26,9 @@ import sqlite3
 
 import pytest
 
+# Shared helpers so a check cannot fire on its own advice text — see tests/_prose.py
+from _prose import code_fences, code_lines, flat
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
 TPL = REPO / "ask-ck" / "CK-main" / "CK_server" / "templates"
 GENERATE = TPL / "prompts" / "pt_generate_script.jinja"
@@ -146,20 +149,28 @@ def test_prompt_does_not_demonstrate_a_two_column_positional_check():
 
 def test_no_prompt_or_skeleton_seeds_a_literal_port_name():
     """A literal port is wrong on chassis platforms and on a populated-slot x950, and the
-    guidance is where the hardcode originated (`port = 'port1.0.1'`)."""
+    guidance is where the hardcode originated (`port = 'port1.0.1'`).
+
+    Scans `code_lines()` — which drops jinja comments, `#` comments and docstrings, i.e.
+    every place a port literal is an EXPLANATION rather than a defect. The first cut of
+    this check needed a bespoke jinja-strip plus a "does the line contain the word never"
+    heuristic; see tests/_prose.py for why that class of workaround is now a shared helper.
+    """
     literal = re.compile(r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""")
-    for f in (GENERATE, EXTRACT, SKELETON):
-        src = f.read_text()
-        # Strip jinja comment blocks `{# ... #}`: they never render, and the skeleton's
-        # editor note deliberately NAMES the historical antipatterns so they stay fixed.
-        src = re.sub(r"\{#-?.*?-?#\}", "", src, flags=re.S)
-        for i, ln in enumerate(src.splitlines(), 1):
-            # prose may NAME the antipattern while explaining it; code examples may not.
-            # `port1.0.1 Port 1 lpi lpi` is quoted CLI OUTPUT, not a python literal
-            is_sample = re.search(r"`port\d+\.\d+\.\d+ [\w ]+`", ln)
-            if literal.search(ln) and not is_sample and not re.search(
-                    r"never|not\b|wrong|instead of|antipattern|NOT\b|no longer|SyntaxError", ln):
-                pytest.fail(f"{f.name}:{i} seeds a literal port name: {ln.strip()[:90]}")
+    # Two file kinds, two notions of "code":
+    #   * a PROMPT is prose with embedded ```python fences — its code is the fences, and
+    #     its prose legitimately names the antipattern to forbid it.
+    #   * the SKELETON is a Python template — its code is every non-comment line.
+    # Using one helper for both is what made the first cut fail: it read the prompt's
+    # explanatory bullets as code.
+    for f in (GENERATE, EXTRACT):
+        for block in code_fences(f.read_text()):
+            for ln in code_lines(block):
+                if literal.search(ln):
+                    pytest.fail(f"{f.name} example seeds a literal port: {ln.strip()[:90]}")
+    for ln in code_lines(SKELETON.read_text()):
+        if literal.search(ln):
+            pytest.fail(f"{SKELETON.name} seeds a literal port name: {ln.strip()[:90]}")
 
 
 def test_skeleton_init_cannot_use_self_before_assignment():
@@ -598,3 +609,38 @@ def test_extract_prompt_requires_keeping_source_qualifiers():
     flat = re.sub(r"\s+", " ", src)
     for q in ("where supported", "as applicable"):
         assert q in flat, f"the rule does not name the {q!r} qualifier"
+
+
+# --- the prevention mechanism itself ----------------------------------------------------
+
+def test_prose_helpers_survive_the_four_historical_self_match_cases():
+    """Regression-lock `tests/_prose.py` against the exact four failures that motivated it.
+
+    Four times in one session a check fired on its own advice text before it was recognised
+    as a class: the port lint on its guidance comment, an `self.passed(...)` assertion on the
+    sentence forbidding it, a `distutils` assertion on the docstring explaining its absence,
+    and a phrase lookup that missed text wrapped across a newline.
+    """
+    # 1. a guidance comment quoting the antipattern is NOT code
+    assert "port1.0.1" not in "\n".join(
+        code_lines("# a hardcoded 'port1.0.1' is wrong on chassis\ny = 2\n"))
+    # 2. prose forbidding a construct is not the construct
+    prompt = "Never write `self.passed(...)` literally.\n```python\nself.passed('why')\n```"
+    assert not any("self.passed(...)" in b for b in code_fences(prompt))
+    # 3. a docstring explaining an avoided import is not an import (one-line AND multi-line)
+    for doc in ('def f():\n    """avoid distutils.strtobool: gone in 3.12."""\n    x = 1\n',
+                'def f():\n    """avoid\n    distutils here."""\n    x = 1\n'):
+        assert "distutils" not in "\n".join(code_lines(doc))
+    # 4. a phrase that wraps is still present
+    assert "as applicable" in flat('names "as\n  applicable" among them')
+    # and the helpers must still SEE a real defect
+    assert "port1.0.1" in "\n".join(code_lines("port = 'port1.0.1'\n"))
+
+
+def test_prose_helper_is_actually_used_by_the_checks_here():
+    """A helper nobody calls prevents nothing. If these assertions ever fail, the checks
+    have drifted back to raw-string matching and the four failures can recur."""
+    src = pathlib.Path(__file__).read_text()
+    assert "from _prose import" in src
+    for fn in ("code_lines(", "code_fences(", "flat("):
+        assert fn in src, f"{fn} is imported but never used"
