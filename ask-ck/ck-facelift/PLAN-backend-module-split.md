@@ -1,7 +1,7 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28): commits 1-2 of 11 DONE.** A1 shipped as `4578030` (with the
-> pre-existing `pt_cases` blocker split into `0c06586`); A2 followed. **Next: A3.** Read
+> **Status (2026-07-28): commits 1-3 of 11 DONE.** A1 shipped as `4578030` (with the
+> pre-existing `pt_cases` blocker split into `0c06586`); A2 and A3 followed. **Next: A4** (logging + dead code). Read
 > *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
 > by measurement, and it changes how the consolidation commits (7-9) should be approached.
 > A2 added two more corrections of its own; see its section.
@@ -499,7 +499,10 @@ doing all the commits suggested in A and B. Improving this code flow is importan
 1. **✅ `4578030` `perf(generator): defer all three data steps off case load`** — A1. Came in at
    10 files / +972-261, well beyond the "delete the scan" estimate; see *What A1 taught*.
 2. **✅ `perf(wizard): serve app.state.app_data instead of reloading per request`** — A2.
-3. **← NEXT.** `fix(wizard): confirm_step silently dropped malformed selections` — A3.
+3. **✅ `fix(wizard): confirm_step silently dropped malformed selections`** — A3. Shipped with
+   `_parse_selections` (validates before mutating; 400 naming index + field), the three
+   near-identical branches collapsed to one path, and the invalid-step guard moved to the top.
+   +25 tests, mutation-checked (accepting a partial payload fails 7). **Original notes:**
    Targets `wizard.py:1459/1468/1476` (three `except Exception: pass` blocks that drop the
    whole selection list, then set `confirmed = True` and report `can_synthesize: true`).
    Collapse the three near-identical step branches while there; the only real differences are
@@ -633,7 +636,7 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 3-11 remain.** Next is **A3**. Read *What A1 taught* first — one of this plan's
+**Commits 4-11 remain.** Next is **A4**. Read *What A1 taught* first — one of this plan's
 stated expectations was falsified by measurement, and it changes how the consolidation commits
 (7-9 especially) should be approached.
 

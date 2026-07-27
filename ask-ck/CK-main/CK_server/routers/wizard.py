@@ -1459,13 +1459,85 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
     }
 
 
+def _selection_problem(exc: Exception) -> str:
+    """One short, actionable line describing why a Selection failed to build."""
+    errors = getattr(exc, "errors", None)
+    if callable(errors):
+        try:
+            parts = []
+            for d in list(exc.errors())[:3]:
+                loc = ".".join(str(x) for x in (d.get("loc") or ())) or "?"
+                parts.append(f"{loc}: {d.get('msg')}")
+            if parts:
+                return ", ".join(parts)
+        except Exception:
+            pass
+    return f"{type(exc).__name__}: {exc}"[:160]
+
+
+def _parse_selections(raw: Any, step: int) -> List[Selection]:
+    """Validate one step's `selections` payload, or 400 explaining what was wrong.
+
+    This used to be `except Exception: pass`, repeated once per step. That was a
+    silent data-loss bug, not merely lax input handling: a single malformed entry
+    made the WHOLE list-comprehension raise, the assignment never happened, the
+    session silently kept its PREVIOUS selections — and then the handler set
+    `confirmed = True` and returned `can_synthesize: true` regardless. The user was
+    told the confirm succeeded, then synthesized an objective against selections
+    they had just replaced. Same family as 9afdf97's silent session data-loss bug.
+
+    Rejecting the whole payload (rather than keeping the good entries) is deliberate:
+    a partial confirm is exactly the silent divergence being fixed. Nothing is
+    mutated before this returns, so a 400 leaves the session untouched.
+
+    Cannot fire on the normal UI path: chosen.js `toEntry` always supplies
+    `id_or_key` and a `title` that falls back to the id, and the browser sends only
+    those four fields. The frontend already surfaces `detail` via
+    `alert("Confirm failed: …")`.
+    """
+    if not isinstance(raw, list):
+        raise HTTPException(
+            400, f"step {step}: 'selections' must be a list, got "
+                 f"{type(raw).__name__}. Nothing was confirmed.")
+
+    parsed: List[Selection] = []
+    problems: List[str] = []
+    for i, item in enumerate(raw):
+        if not isinstance(item, dict):
+            problems.append(f"[{i}] expected an object, got {type(item).__name__}")
+            continue
+        try:
+            parsed.append(Selection(**item))
+        except Exception as e:
+            problems.append(f"[{i}] {_selection_problem(e)}")
+
+    if problems:
+        shown = "; ".join(problems[:5])
+        more = f" (+{len(problems) - 5} more)" if len(problems) > 5 else ""
+        raise HTTPException(
+            400, f"step {step}: {len(problems)} of {len(raw)} selection(s) are invalid, "
+                 f"so NOTHING was confirmed and the step's previous selections are "
+                 f"unchanged. {shown}{more}")
+    return parsed
+
+
 @router.post("/confirm_step/{key}/{step}")
 async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     """Store user selections + set the confirmed flag for the step.
     This is the explicit confirmation action required by the repeatable process
     (see OBJECTIVE_DRAFTING_PROCESS.md Step 1 user-review pause + SERVER-README).
     Selections are captured server-side for use in templated LLM prompts.
+
+    The three steps were three near-identical branches; they are one path now. The
+    only real per-step differences are step 1's `none_selected` and step 3's
+    `art_string`, both kept verbatim below.
     """
+    if step not in (1, 2, 3):
+        # Checked FIRST: previously this lived in a trailing `else`, so an invalid
+        # step fell past every branch before 400ing. Harmless as written, but it put
+        # the guard after the work it guards.
+        raise HTTPException(400, "Invalid step")
+
     sess = sessions.get(key) or _load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Call load_case first.")
@@ -1475,32 +1547,22 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     # harmless re-confirm of the same shortlist (see _invalidate_downstream below).
     _before = _selection_fingerprint(sess, step)
 
+    # Validate BEFORE mutating anything, so a rejected payload cannot leave the
+    # session half-updated or wrongly marked confirmed.
+    new_selections = (_parse_selections(body["selections"], step)
+                      if "selections" in body else None)
+
+    state = getattr(sess, f"step{step}")
+    if new_selections is not None:
+        state.selections = new_selections
     if step == 1:
-        # TestLink + Decisions — the most important gate
-        if "selections" in body:
-            try:
-                sess.step1.selections = [Selection(**s) for s in body["selections"]]
-            except Exception:
-                pass
-        sess.step1.none_selected = bool(body.get("none", False))
-        sess.step1.confirmed = True
-        sess.step1.confirmed_at = datetime.utcnow()
-    elif step == 2:
-        if "selections" in body:
-            try:
-                sess.step2.selections = [Selection(**s) for s in body["selections"]]
-            except Exception:
-                pass
-        sess.step2.confirmed = True
-        sess.step2.confirmed_at = datetime.utcnow()
-    elif step == 3:
-        if "selections" in body:
-            try:
-                sess.step3.selections = [Selection(**s) for s in body["selections"]]
-            except Exception:
-                pass
-        sess.step3.confirmed = True
-        sess.step3.confirmed_at = datetime.utcnow()
+        # Only step 1 reads `none`; the browser never sends it (generator.js
+        # confirmStep posts `selections` only), so this serves API callers.
+        state.none_selected = bool(body.get("none", False))
+    state.confirmed = True
+    state.confirmed_at = datetime.utcnow()
+
+    if step == 3:
         # Gaps are LLM-generated at synthesis/export for Traceability — not user-edited in Step 3
         if "art_string" in body:
             sess.art_string = body.get("art_string", "")
@@ -1509,8 +1571,6 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
             ids = [s.id_or_key for s in sess.step3.selections if s.id_or_key]
             if ids:
                 sess.art_string = " + ".join(ids[:8])
-    else:
-        raise HTTPException(400, "Invalid step")
 
     # STATE (adversarial-review finding wizard.py:1381): confirming an upstream DB
     # review only ever set flags forward — it never invalidated the objective (step4)
