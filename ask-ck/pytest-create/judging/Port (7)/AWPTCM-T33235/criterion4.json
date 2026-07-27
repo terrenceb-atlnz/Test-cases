@@ -1,0 +1,272 @@
+{
+  "case_key": "AWPTCM-T33235",
+  "case_title": "(3) Port - Fixed port Speed",
+  "criterion": "4 \u2014 generated the missing steps (gap-fill quality)",
+  "scale": [
+    "exceptional",
+    "good",
+    "bad",
+    "not at all"
+  ],
+  "judges": [
+    "claude-opus",
+    "vllm-fast"
+  ],
+  "judged_at": "2026-07-27T01:43:22+00:00",
+  "gap_fill_blocks": 7,
+  "total_testcases": 7,
+  "results": [
+    {
+      "testcase": "TestCase_1",
+      "step_n": 1,
+      "action": "Configure interface <port> speed 1000 duplex full.",
+      "verify": "Parse 'show interface <port>' output: speed=1000, duplex=full, state=up. Send Scapy/tcpdump traffic and verify count>0 with zero errors. self.passed() if all match, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 8270,
+          "tok_in": 2,
+          "tok_out": 314,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code issues the config commands and calls show interface, but it verifies against literal strings 'speed=1000', 'duplex=full', 'state=up' that do not appear in real Allied Telesis 'show interface' output (which uses formats like 'Speed 1000 Mbps', 'Full-duplex', 'administrative state UP'). It also entirely omits the required Scapy/tcpdump traffic test (count>0, zero errors), so half the mandated verification is missing. Because the match strings will essentially never be present, the switch could be perfectly configured and the test would still fail \u2014 and conversely it never actually validates data-plane traffic.",
+          "concrete_problem": "Verification matches on fabricated output tokens ('speed=1000' etc.) that don't occur in real AT switch output, and the mandatory Scapy/tcpdump traffic-count/zero-error check is absent entirely.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 9674,
+          "tok_in": 1001,
+          "tok_out": 1719,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code configures the interface and checks the show interface output, but completely omits the required Scapy/tcpdump traffic generation and error count verification. It also relies on hardcoded string matches like 'speed=1000' that are highly unlikely to appear in actual switch CLI output, making the verification weak. Consequently, it tests too weakly and misses a core part of the step's intent.",
+          "concrete_problem": "Omits the Scapy/tcpdump traffic verification and uses unrealistic string matching for CLI output parsing.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_2",
+      "step_n": 2,
+      "action": "Configure interface <port> speed 100 duplex full.",
+      "verify": "Parse 'show interface <port>' output: speed=100, duplex=full, state=up. Send Scapy/tcpdump traffic and verify count>0. self.passed() if all match, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 9466,
+          "tok_in": 2,
+          "tok_out": 331,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code issues the config commands and reads 'show interface', but it only does about half the required verification and matches on the wrong strings. It never sends Scapy/tcpdump traffic nor checks count>0 \u2014 a mandatory half of the step's verification is simply missing. Worse, it greps the raw output for literal 'speed=100', 'duplex=full', 'state=up', which is not the format an Allied Telesis 'show interface' produces (real output reads like 'Speed 100Mbps', 'Duplex: full', 'link state up'), so the match will fail on a correctly-working switch and never pass on a broken one.",
+          "concrete_problem": "The traffic-count verification (Scapy/tcpdump, count>0) is entirely absent, and the speed/duplex/state check matches literal 'key=value' strings that don't appear in real AT switch output \u2014 so the assertion tests neither the right format nor the full intent.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 11843,
+          "tok_in": 985,
+          "tok_out": 2106,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code configures the interface and checks the CLI output, but completely omits the mandatory Scapy/tcpdump traffic verification step. It also relies on hardcoded port names and expects exact substrings like 'speed=100' in the CLI output, which is highly unrealistic for actual switch outputs. As a result, the test could pass while the port fails to handle actual traffic, making it a materially weaker verification.",
+          "concrete_problem": "Missing Scapy/tcpdump traffic verification and unrealistic CLI string matching",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_3",
+      "step_n": 3,
+      "action": "Configure interface <port> speed 10 duplex full.",
+      "verify": "Parse 'show interface <port>' output: speed=10, duplex=full, state=up. Send Scapy/tcpdump traffic and verify count>0. self.passed() if all match, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 9764,
+          "tok_in": 2,
+          "tok_out": 347,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The block configures speed/duplex and reads 'show interface', but it verifies against literal substrings 'speed=10', 'duplex=full', 'state=up' that no Allied Telesis switch emits \u2014 real CLI output uses formats like 'Speed 10' / 'full-duplex' / interface 'up' with different spacing and casing, so this check will essentially never match real output. Critically, it entirely omits the required traffic verification (Send Scapy/tcpdump traffic and verify count>0), so a core half of the step's intent is unimplemented. Because the parse strings can't match real output, the test would fail even on a working switch, and the traffic path that could catch a broken port is absent.",
+          "concrete_problem": "Verification matches on invented substrings ('speed=10', 'duplex=full', 'state=up') that don't correspond to real 'show interface' output, and the mandatory Scapy/tcpdump traffic count>0 check is missing entirely.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 11240,
+          "tok_in": 978,
+          "tok_out": 2019,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code correctly issues the interface configuration commands but completely omits the required Scapy/tcpdump traffic generation and verification step. It relies on naive substring matching for the CLI output and passes the prompt's instruction text as the pass/fail message, resulting in weak verification that could easily pass while the actual link or traffic path is broken.",
+          "concrete_problem": "Omits the required Scapy/tcpdump traffic verification and relies on naive string matching for CLI output instead of parsing actual link state.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_4",
+      "step_n": 4,
+      "action": "Configure interface <port> speed 100 duplex half.",
+      "verify": "Parse 'show interface <port>' output: speed=100, duplex=half, state=up. Send Scapy/tcpdump traffic and verify count>0. self.passed() if all match, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 14997,
+          "tok_in": 2,
+          "tok_out": 809,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "It issues plausible-looking config commands and then greps the show-interface output, so it attempts the config half of the step. But it matches on literal tokens 'speed=100'/'duplex=half'/'state=up' that no Allied Telesis 'show interface' emits (real output is prose like 'Speed 100Mbps, half-duplex'), so the check will almost never match real hardware, and it entirely omits the required Scapy/tcpdump traffic send and count>0 assertion. Half the mandated verification is simply absent and the other half keys on fabricated strings.",
+          "concrete_problem": "The Scapy/tcpdump traffic send and count>0 verification is completely missing, and the string matches ('speed=100' etc.) do not correspond to real switch output \u2014 so the test can pass while the feature is broken or fail while it works.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 15405,
+          "tok_in": 985,
+          "tok_out": 2771,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code correctly configures the interface and checks the CLI output for the specified strings, but it completely omits the required Scapy/tcpdump traffic generation and count verification. Additionally, it copies the step's instructions verbatim into the self.passed() and self.failed() messages instead of reporting actual test results, making it a materially weaker and incorrect implementation.",
+          "concrete_problem": "Omits the required Scapy/tcpdump traffic verification step and copies the prompt instructions into the pass/fail messages.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_5",
+      "step_n": 5,
+      "action": "Configure interface <port> speed 2500 duplex full (unsupported).",
+      "verify": "Parse 'show interface <port>' output: state=down or mismatch reported. Verify no traffic passes. self.passed() if link down, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 18268,
+          "tok_in": 2,
+          "tok_out": 932,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "It sets the interface to the unsupported speed 2500/full and brings it up, which is the right action, but the verification hinges on finding the literal substrings 'state=down' or 'mismatch' in the CLI output. AlliedWare Plus 'show interface' output does not print those tokens verbatim (it reports link state as 'link state: down' / 'administratively down' etc.), so the match will essentially never fire \u2014 meaning the test always takes the else/failed() branch and never genuinely reflects link state. It also completely omits the required 'verify no traffic passes' check.",
+          "concrete_problem": "The pass/fail decision matches on literal strings ('state=down', 'mismatch') that do not appear in real AT 'show interface' output, so the assertion does not actually detect link-down state and the mandated no-traffic verification is missing entirely.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 12737,
+          "tok_in": 940,
+          "tok_out": 2288,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the unsupported speed/duplex configuration and verifies the expected failure state by checking the show interface output for 'state=down' or 'mismatch'. It accurately implements the step's intent to confirm the link remains down when an unsupported configuration is applied. The CLI commands and state checks are plausible for an Allied Telesis environment.",
+          "concrete_problem": "Hardcoded port identifier '1/0/1' instead of referencing a test-case variable, which reduces reusability but does not break the core logic.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_6",
+      "step_n": 6,
+      "action": "Remove and re-insert cable/SFP on <port>.",
+      "verify": "Monitor 'show interface <port>' state: transitions down then up. Verify speed config remains fixed. self.passed() if state transitions correctly and config retained, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 18369,
+          "tok_in": 2,
+          "tok_out": 1048,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The step calls for a physical cable/SFP remove-and-reinsert, but the code substitutes an administrative `shutdown`/`no shutdown` \u2014 a materially weaker action that never exercises physical link/SFP re-detection or re-negotiation, so the feature under test could be broken while this still passes. It also only samples `show interface` once after the bounce and checks for a final `state=up`, never confirming the required down-then-up transition, and it hardcodes `speed=1000` even though this is a generic fixed-speed test. The matched strings `state=up`/`speed=1000` are not plausible AlliedWare Plus `show interface` output either.",
+          "concrete_problem": "Uses admin `shutdown`/`no shutdown` instead of a physical replug prompt and only verifies a final up state, so it neither performs the step's action nor confirms the down\u2192up transition \u2014 a classic false green.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 16387,
+          "tok_in": 931,
+          "tok_out": 2914,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly substitutes the physical cable removal with a software shutdown/no-shutdown sequence, which is standard for automated link-flap testing. It verifies the interface returns to an up state and checks for a fixed speed value, capturing the core intent. However, it hardcodes the port name instead of using a test parameter, and uses string matches that likely do not match actual Allied Telesis CLI output formats, which could cause verification failures on real hardware.",
+          "concrete_problem": "Hardcodes port name and uses non-standard string matches for AT CLI output, risking verification failure on real hardware.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_7",
+      "step_n": 7,
+      "action": "Execute 'show interface <port>' and 'show status'.",
+      "verify": "Parse CLI output to confirm speed, duplex, and link state fields exactly match configured fixed values. self.passed() if exact match, else self.failed().",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 9273,
+          "tok_in": 2,
+          "tok_out": 344,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code issues the two commands and self.passed()/self.failed() on the right branches, so the shape is correct, but the substance is wrong. Allied Telesis CLI ('show interface') renders fields as human-readable text (e.g. 'Speed 1000', 'link state up', 'Duplex: full') across multiple lines, not as machine tokens like 'speed=1000', 'duplex=full', 'state=up'; those literal substrings will essentially never appear, so the assertion fails on a perfectly good switch and, conversely, hard-codes 1000/full/up instead of comparing against the case's configured fixed values. This can produce a false red on a working port and does not truly verify 'exactly match configured fixed values'.",
+          "concrete_problem": "The matched substrings 'speed=1000'/'duplex=full'/'state=up' do not match real AT 'show interface' output format and hard-code the expected values rather than comparing to the configured fixed speed/duplex/link state.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 10195,
+          "tok_in": 890,
+          "tok_out": 1810,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code hardcodes expected values ('speed=1000', 'duplex=full', 'state=up') instead of dynamically reading the configured fixed values from the test setup. Additionally, the string format does not match typical Allied Telesis CLI output, making the verification unreliable and likely to fail on real hardware or pass incorrectly if the output happens to contain those exact substrings.",
+          "concrete_problem": "Hardcoded expected values and incorrect CLI output format strings instead of dynamically matching configured fixed values.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    }
+  ]
+}

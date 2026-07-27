@@ -41,9 +41,15 @@
 >   stale config is a headless CLI mode re-syncs instead of silently hitting the
 >   wrong backend; `_llm_is_active` left untouched. Unit-verified (8/8) + concurrency
 >   reviewed. See **§9 below**. (Pre-existing dual-instance session debt logged in §9.4.)
-> - ⏳ **Part 3a/3b** (judging + tb470 execution) — pending. Part 3b gated on
+> - 🔄 **Part 3a — mechanical half DONE** 2026-07-27 (`tool/pt_grade.py` + 21 tests):
+>   criteria 1-3 and the offline half of 6, graded for all three cases. T33235's script
+>   was generated this session (it had none). **C1 + C6-offline clean across all three.**
+>   Results: `judging/Port (7)/<CaseKey>/mechanical.json`. See **§10 below**. Remaining:
+>   criterion 4 (the two LLM judges + human review) and regenerating T33233, which is
+>   stale + wrong-backend and blocked behind its unconfirmed step5 (§10.6).
+> - ⏳ **Part 3b** (tb470 execution, criteria 5-6) — still blocked on
 >   `configs/tb470.setup` + a testbox profile (Terrence-side physical-topology
->   prerequisite — see §5b).
+>   prerequisite — see §5b; note the **corrected configs path** there).
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
@@ -372,7 +378,8 @@ run (now unblocked — tb470 is live).
 2. **Testbox access** → **tb470 is live this session** (device on u5; sudo + framework
    verified). Part 3b is in scope now, not deferred.
 3. **Quality judging** → **both** mechanical and judged. Judged criteria graded by
-   **two LLM judges: Claude Opus + vLLM-thinking**, then a **human holistic review**
+   **two LLM judges: Claude Opus + ~~vLLM-thinking~~ vLLM-***fast***** (CHANGED
+   2026-07-27, Terrence's call — see §10.1), then a **human holistic review**
    over both judges' grades and the real per-script log (§3, "Judging process").
 4. **Results layout** → results committed, organized **per test case, the same way
    objective-drafting does** (`refined-cases/<Group>/AWPTCM-Txxxx/…`). The generated
@@ -409,8 +416,12 @@ ART runs depend on host-side config files that our tool does NOT generate — th
   config.cfg. **To be verified empirically on the first real tb470 run (Part 2A/3b)** —
   if the direct run complains about a missing config.cfg, generate it; if it only needs
   the `.setup`, config.cfg is out of scope for our path.
+- **⚠ PATH CORRECTION (verified live 2026-07-27):** the `configs/` dir is **NOT** under
+  `/home/st-art/framework` — that dir has no `configs/` at all. The real location is
+  **`/home/st-art/st-art/configs/`** (473 `.setup` files). Every `configs/<hostname>.setup`
+  reference above should be read against that path.
 - **State on tb470 now:** `configs/` has other testboxes' `.setup` files but **neither
-  `tb470.setup` nor `tb470.cfg` exists yet.** Both are Terrence-side prerequisites
+  `tb470.setup` nor `tb470.cfg` exists yet** (re-verified 2026-07-27). Both are Terrence-side prerequisites
   (topology = physical wiring) before Part 3b can run. The tool generates the test
   SCRIPT only; setup/config are environment inputs.
 - **SVT setup utilities** (`svt_scripts/.../setupSwi.py`, `libSvt/libSvtSetup.py`) are
@@ -854,3 +865,169 @@ general session-consistency gap independent of `llm_config` (which converges to 
 same value, so this fix neither creates nor worsens it). Proper closure would be a
 single-flight guard per session key, or a `updated_at`/version compare-and-swap on
 `db.save_session`. Left as tracked debt; not a blocker for the re-sync fix.
+
+## 10. Session log — 2026-07-27 — Part 3a kickoff: the mechanical grader
+
+Starting Part 3 (grading). This session built the mechanical half — criteria 1-3 and the
+offline half of 6 — and corrected three things the plan itself had wrong.
+
+### 10.1 Judges CHANGED: Claude Opus + vLLM-**fast** (was Opus + vLLM-thinking)
+
+§5 decision-3 settled on Opus + vllm-thinking ("the theoretical best of each family").
+**Terrence changed this to Opus + vllm-fast on 2026-07-27.** Rationale: §8.3 measured
+`vllm-thinking` burning its entire 32,000-token budget on reasoning and emitting **zero
+answer characters** on a generate-scale prompt. Judging prompts are much smaller, so the
+failure was not certain to recur — but vllm-fast had 0 errors across the whole Part 2B
+matrix, and a judge that can return nothing is a poor judge.
+
+**Known trade-off, recorded rather than glossed:** vllm-fast is also the *generator's*
+default model, so one judge now shares the generator's model. That is a weaker
+independent check than the original cross-family pairing intended. The human holistic
+review (unchanged) is what carries the independence.
+
+### 10.2 Doc corrections found by checking the live system
+
+- **tb470 `configs/` path was wrong** — see the correction note in §5b. It is
+  `/home/st-art/st-art/configs/` (473 `.setup` files), not under `framework/`.
+- **`tb470.setup` still does not exist** — re-verified. **Part 3b stays blocked**;
+  Part 3a does not depend on it.
+
+### 10.3 T33235 generated (it had no script at all)
+
+Part 3 needs three scripts; T33235's session stopped at step 5 with `decision: new` and
+**zero fragments** — the pure gap-fill case, and the most interesting one for criterion 4.
+Generated on vllm-fast: 70s, lint-clean, 7 TestCases for 7 verify steps.
+
+**Criterion-4 defect to put in front of the judges:** its step 6 is a *physical*
+hot-insert/hot-remove step, and the model rendered it as `shutdown` / `no shutdown` — a
+link bounce, **not** a real cable/SFP removal. Physical steps are meant to prompt and wait
+for a state change. The script was left exactly as generated so the judging surfaces this
+rather than hiding it behind a manual fix.
+
+### 10.4 The grader — `tool/pt_grade.py`
+
+Reads the generated script + confirmed step2/step5 state straight from `ck.db` and emits a
+per-case report. **It imports the server's own `_step_kind` / `_fragment_tag` /
+`_frag_key` rather than reimplementing them**, so a change to generation can never leave
+grading silently measuring something else. No LLM, no network, no hardware.
+
+Four things it gets right that a naive version does not — each one a real wrong answer
+caught against the live sessions, now pinned by `tests/test_pt_grade.py` (21 tests):
+
+1. **Grades the reviewer-SELECTED fragment subset, not the whole pool.** T33233 has 13
+   selected out of 41 gathered; grading the pool expects tags for fragments the model was
+   never shown, producing a bogus "not at all". (A *missing* `selected` key still means
+   "all of them" — the documented back-compat path, and why T33234's 7 legitimately
+   grade 14/14.)
+2. **Distinguishes STALE provenance from model failure.** If none of a script's stamped
+   tags name a currently-selected fragment, the script predates a later step5 change. That
+   is drift, not the model ignoring its snippets, and it now reports `stale` with an
+   instruction to regenerate — instead of blaming the generator for a reviewer's edit.
+3. **Does not downgrade correctly ADAPTED reuse.** T33234 stamps 14/14 correct tags at an
+   average literal line overlap of **0.012** — because the model rewrote each fragment
+   into the template's bound device names and the mandatory logging contract. Verbatim
+   copying was never the goal (§1.4 leaves `main()` bodies free), so overlap is *reported*
+   for the judges to interpret but does not move the verdict.
+4. **Reads the FIRST tag in each `main()`.** `_restamp_provenance` guarantees the
+   authoritative tag is inserted first, so a later model echo cannot fool the grade.
+
+It also emits **caveats** — step5/step6 unconfirmed, step6 invalidated, or generated by a
+headless-CLI `model='default'` — so no verdict is ever read at face value off a stale or
+unreviewed artifact.
+
+### 10.5 Results (criteria 1-3 + 6-offline, all three cases)
+
+Artifacts: `ask-ck/pytest-create/judging/Port (7)/<CaseKey>/mechanical.json`.
+
+| Case | C1 template | C2 snippets | C3 order | C6 logging (offline) |
+|---|---|---|---|---|
+| T33233 | **exactly** (12/12) | **stale** — regenerate | n-a | **yes** (12/12) |
+| T33234 | **exactly** (14/14) | **exactly** (tags 14/14, overlap 0.012) | **right** | **yes** (14/14) |
+| T33235 | **exactly** (7/7) | n-a (zero fragments) | n-a | **yes** (7/7) |
+
+**C1 and C6-offline are clean across all three** — the Part 1 template plus the lint
+conformance check are doing exactly what they were built to do: every TestCase carries the
+three `testCase*` attrs, a `STEP <n>:` start log, an `OBSERVED:` evidence log, and a
+non-empty verdict, with `__main__` adding every case in order.
+
+### 10.6 Two findings worth acting on
+
+1. **T33233's script is stale AND was generated by the wrong backend**
+   (`claude_agent`/`model=default`, 2026-07-22) — so it is not comparable to the two
+   vllm-fast scripts. It **cannot be regenerated until step5 is confirmed** (the router
+   correctly refuses: *"Generation requires step5 to be confirmed first"*). That is a
+   human-review gate, so it is Terrence's call, not something to bypass. **T33234's step5
+   is likewise unconfirmed.**
+2. **`_restamp_provenance` echo-strip has a residual gap** (distinct from the one §7.1
+   fixed). It strips the leading *contiguous* run of comment lines, so an echo the model
+   places *below* real code survives — observed on **all 7** of T33235's TestCases
+   (`# Provenance tag for this fragment: AI vllm-fast 2026-07-27` sitting under a
+   `self.log()`). Cosmetic only: the authoritative tag is still present and first, and the
+   grader reads the first tag. T33233/T33234 (which have real fragments to anchor the
+   instruction) are unaffected. **Not fixed this session** — it is a display wart in the
+   generator, not a grading defect, and fixing it mid-grading would change the artifacts
+   being graded.
+
+### 10.7 Step numbering: internal keys ≠ UI numbers (gate messages fixed)
+
+Terrence spotted that the 409 quoted in §10.6 — *"Generation requires step5 to be
+confirmed first"* — is a **typo in the product**, not just in this doc. The internal
+`stepN` session keys and the numbers on screen diverged when the old step 4 (Fit
+Decision) was folded into Fragments:
+
+| Internal key | UI panel (badge id) |
+|---|---|
+| `step2` | 2. Sequence (`pt-badge-2`) |
+| `step3` | 3. Script Search (`pt-badge-3`) |
+| `step4` | *(folded into Fragments; no panel)* |
+| **`step5`** | **4. Fragments** (`pt-badge-5`) |
+| **`step6`** | **5. Generate** (`pt-badge-6`) |
+| `step7` | 6. Run (`pt-badge-7`) |
+| `step8` | 7. Validate (`pt-badge-8`) |
+
+So the message told a user blocked on **Fragments** that "step5" needed confirming — and
+`step5` is the number the UI prints on **Generate**, i.e. it named the very step they were
+trying to run. Maximally confusing.
+
+**Fixed:** one `_STEP_UI_LABEL` map + `_step_label()` (accepts either a `stepN` key or the
+bare int from the URL, and degrades to the raw value rather than raising inside an error
+path). All 7 `_require_confirmed` call sites and both `confirm_step` messages route
+through it. Verified live:
+
+- `Generation requires '4. Fragments' to be confirmed first.`
+- `Execution requires '5. Generate' to be confirmed first.`
+- `Nothing to confirm yet for '6. Run' (missing runs).`
+
+`tests/test_pt_step_labels.py` (7 tests) pins it, including one that **parses the real
+`index.html`** and asserts every panel heading matches the code's label — so a future
+renumber breaks a test instead of silently reintroducing wrong messages.
+
+### 10.8 T33233 regenerated — all three cases now clean
+
+Terrence confirmed T33233's Fragments (13 of 41) mid-session, which opened the gate; it
+regenerated on **vllm-fast** (iteration 2, 29,881 chars, lint-clean). All three scripts
+are now same-backend comparable, and **C2 went stale → EXACTLY** (tags 10/10, order
+right). Updated `mechanical.json` written for all three.
+
+| Case | C1 template | C2 snippets | C3 order | C6 logging (offline) |
+|---|---|---|---|---|
+| T33233 | exactly (12/12) | **exactly** (10/10, overlap 0.057) | **right** | yes (12/12) |
+| T33234 | exactly (14/14) | exactly (14/14, overlap 0.012) | right | yes (14/14) |
+| T33235 | exactly (7/7) | n-a (zero fragments) | n-a | yes (7/7) |
+
+**Every mechanical criterion now passes on every case.** Criterion 4 (the two judges) is
+what remains offline.
+
+Correction to §10.6's second finding: the duplicate-tag wart is **not** specific to
+zero-fragment cases — T33233's regenerate reproduced it on all 10 fragment-backed blocks.
+Still cosmetic (the authoritative tag is first and the grader reads that), still unfixed.
+
+### 10.9 Remaining for Part 3
+
+- ~~Confirm step5 on T33233~~ — DONE, regenerated on vllm-fast (§10.8). **T33234's
+  Fragments gate is still unconfirmed** (its script is already vllm-fast, so this is a
+  review-hygiene gap, not a comparability one).
+- **Criterion 4** — the two LLM judges (Opus + vllm-fast) over the gap-fill logic, then
+  the human holistic review. The T33235 physical-step defect (§10.3) is the known one to
+  watch for.
+- **Criteria 5-6 on hardware** — still blocked on `tb470.setup`.

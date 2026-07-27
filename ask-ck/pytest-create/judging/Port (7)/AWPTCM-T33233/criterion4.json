@@ -1,0 +1,92 @@
+{
+  "case_key": "AWPTCM-T33233",
+  "case_title": "Port - Auto Negotiation",
+  "criterion": "4 \u2014 generated the missing steps (gap-fill quality)",
+  "scale": [
+    "exceptional",
+    "good",
+    "bad",
+    "not at all"
+  ],
+  "judges": [
+    "claude-opus",
+    "vllm-fast"
+  ],
+  "judged_at": "2026-07-27T01:40:26+00:00",
+  "gap_fill_blocks": 2,
+  "total_testcases": 12,
+  "results": [
+    {
+      "testcase": "TestCase_11",
+      "step_n": 11,
+      "action": "Where platform/media support it, enable EcoMode (e.g., 'ecofriendly lpi') on the DUT port over an established Auto-negotiated link, then read 'show interface portX.Y.Z status' and 'show ecofriendly' over a short soak.",
+      "verify": "EcoMode/LPI reports as enabled, link remains 'up' and stable (no flaps / no error-counter increments), and negotiated speed/duplex are unchanged.",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 9777,
+          "tok_in": 2,
+          "tok_out": 356,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The block enters config mode, applies 'ecofriendly lpi' on a hardcoded 'portA' (not the DUT's real port variable), soaks 5s, and greps the combined status/ecofriendly output. The verification is far too weak: it passes on any output containing the substrings 'enabled' AND 'up' anywhere while merely lacking the literal 'error', so it never confirms LPI is enabled *on this port*, never checks link stability/no-flaps, and \u2014 critically \u2014 never captures the pre-change speed/duplex to prove they are 'unchanged'. It could easily go green while the negotiated speed/duplex silently changed or the link flapped and re-established during the soak.",
+          "concrete_problem": "The 'unchanged speed/duplex' and 'no flaps / no error-counter increments' requirements are never actually verified \u2014 there is no before/after comparison and no counter read; a naive substring match ('enabled'+'up', no 'error') can pass while the feature is broken.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 12505,
+          "tok_in": 985,
+          "tok_out": 2248,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code attempts to enable EcoMode but verifies the state too weakly, completely omitting the explicit requirement to confirm that negotiated speed and duplex remain unchanged. It also fails to properly monitor for link flaps or error-counter increments, relying instead on a naive single-snapshot substring check for the word 'error'. This approach could easily produce a false pass if the link briefly drops or counters increment outside the exact moment of capture.",
+          "concrete_problem": "Verification omits speed/duplex unchanged check and uses a naive string match for 'error' instead of actual counter/flap monitoring.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_12",
+      "step_n": 12,
+      "action": "Disable EcoMode ('no ecofriendly lpi') on the same Auto-negotiated port and re-read 'show interface portX.Y.Z status' and 'show ecofriendly'.",
+      "verify": "EcoMode/LPI reports as disabled, link remains 'up' and stable with the same negotiated speed/duplex, confirming EcoMode toggling does not disrupt the auto-negotiated link.",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 14190,
+          "tok_in": 2,
+          "tok_out": 742,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "It does issue 'no ecofriendly lpi' and re-reads 'show interface ... status' and 'show ecofriendly', so the action is roughly right. But the verification is a loose substring scan ('disabled' AND 'up' AND not 'error') over the concatenated output, which never captures the pre-toggle speed/duplex nor compares it \u2014 the core requirement of 'same negotiated speed/duplex' is untested. 'disabled'/'up' can match unrelated fields/other ports, so the check verifies far less than the step demands.",
+          "concrete_problem": "It never records the baseline negotiated speed/duplex before the toggle and never compares it afterward, so the link could renegotiate to a different speed/duplex (or the wrong port could read 'up') and the step would still report pass \u2014 a false green.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast",
+          "model": "vllm-fast",
+          "latency_ms": 11925,
+          "tok_in": 963,
+          "tok_out": 2119,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code hardcodes the interface name as 'portA', which is not standard Allied Telesis syntax and ignores the dynamically determined port from earlier test steps. It also fails to verify the critical requirement that the link remains stable with the 'same negotiated speed/duplex', relying only on a weak substring check for 'disabled' and 'up'. This makes the verification materially weaker than specified and highly prone to false positives.",
+          "concrete_problem": "Hardcoded interface name 'portA' and missing verification of negotiated speed/duplex stability.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "agree",
+      "human_verdict": null,
+      "human_note": null
+    }
+  ]
+}
