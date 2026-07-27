@@ -41,7 +41,10 @@ accepted-risk security rows in §4.
 
 ## 1. Fixed — completion pass (batches A–D, 2026-07-27g)
 
-21 findings, each verified against live code before fixing, each with regression tests.
+19 findings, each verified against live code before fixing, each with regression tests.
+(The other two survivors are the owner-decision rows in §4.) Severities shown are the
+**post-verification** re-assessment, which sometimes differs from how the row was filed —
+see the last method note in §5.
 
 ### Batch A — export authority (`6b50f80`)
 *One theme: the bundle that MARKS A CASE COMPLETE could be written from state that never authorized it.*
@@ -134,6 +137,12 @@ and export destroying a real first step.
 
 Traced against live code and shown to be unreachable, misread, or already prevented.
 **Do not re-raise without new evidence.**
+
+*(15 rows for 14 dismissed findings — `wizard.py:1936` appears here as a duplicate framing
+of the batch-A export row, and in §1 as the row that was actually fixed.)*
+
+*(15 rows for 14 dismissed findings — `wizard.py:1936` appears once here as a duplicate
+framing of the batch-A export row and once in §1 as the row that was actually fixed.)*
 
 | Location | Filed as | Why it is not real |
 |----------|----------|--------------------|
