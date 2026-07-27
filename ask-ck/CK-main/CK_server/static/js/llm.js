@@ -4,6 +4,7 @@ import { S } from './state.js';
 import { getActiveCaseKey } from './cases.js';
 import { ckBrokerLoop, probeLocalAgent } from './agent.js';
 import { fmtTokens } from './llm-debug.js';
+import { setButtonBusy, flashButtonDone } from './dom-helpers.js';
 
 async function setLLMConfig() {
   // Case is optional: without one the config is saved as the workspace default
@@ -372,11 +373,13 @@ export async function checkLlmHealth() {
   // firing a real synthesize. Provider-agnostic; the ping is recorded in debug-log.
   const btn = document.getElementById('llmHealthBtn');
   const out = document.getElementById('llmHealthState');
+  if (!setButtonBusy(btn, true, { label: 'Pinging…' })) return;   // guard double-click
   if (out) { out.textContent = '⏳ pinging…'; out.style.color = ''; }
-  if (btn) btn.disabled = true;
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/llm_health', { method: 'POST' });
     const d = await res.json();
+    ok = !!d.ok;
     if (out) {
       if (d.ok) {
         const tok = d.usage ? ` · ${fmtTokens(d.usage)}` : '';
@@ -393,7 +396,8 @@ export async function checkLlmHealth() {
   } catch (e) {
     if (out) { out.textContent = `✗ request failed — ${e.message || e}`; out.style.color = 'var(--status-low, #ef4444)'; }
   } finally {
-    if (btn) btn.disabled = false;
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
   }
 }
 

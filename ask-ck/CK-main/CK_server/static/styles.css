@@ -684,6 +684,47 @@ body {
   pointer-events: none;
 }
 
+/* Async/LLM button feedback: pressed → spinner-while-busy → ✓/✗ flash.
+   Set via setButtonBusy()/flashButtonDone() in dom-helpers.js. */
+@keyframes ck-spin { to { transform: rotate(360deg); } }
+
+.ck-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ck-spin 700ms linear infinite;
+  vertical-align: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* No spin for motion-sensitive users — keep a static ring so busy is still shown. */
+  .ck-spinner { animation: none; }
+}
+
+/* Busy: a disabled button keeps pointer-events:none, but we still want the
+   pressed look. Full opacity (not the 0.5 dim) so the spinner reads clearly. */
+.btn.is-busy:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+.btn.is-busy {
+  filter: brightness(0.94);
+}
+
+/* Success / failure flash after completion (auto-cleared after ~1.2s). */
+.btn.is-done {
+  background: var(--status-ok, #16a34a) !important;
+  border-color: var(--status-ok, #16a34a) !important;
+  color: #fff !important;
+}
+.btn.is-error {
+  background: var(--status-err, #dc2626) !important;
+  border-color: var(--status-err, #dc2626) !important;
+  color: #fff !important;
+}
+
 /* Legacy button support for existing onclicks */
 button:not(.btn) {
   background: var(--accent-primary);

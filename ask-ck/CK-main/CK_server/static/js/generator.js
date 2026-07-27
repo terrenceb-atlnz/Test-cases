@@ -1,7 +1,7 @@
 // Objective / Test Case Generator wizard.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
-import { escapeHtml, showStatus } from './dom-helpers.js';
+import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from './dom-helpers.js';
 import { renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
 import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
@@ -490,7 +490,10 @@ async function confirmStep(step) {
 
 async function synthesizeObjectives() {
   if (!S.currentSession) return alert('Load a case and confirm steps 2–4 first.');
+  const btn = document.getElementById('obj-synth-btn');
+  if (!setButtonBusy(btn, true, { label: 'Synthesizing…' })) return;   // guard double-click
   showStatus('objective-status', 'busy', 'Synthesizing objectives (LLM)… this can take a while on the Thinking model.');
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/synthesize_objectives', {
       method: 'POST',
@@ -507,10 +510,13 @@ async function synthesizeObjectives() {
     renderObjectiveResult();
     updateUI();
     goToStep(4);
+    ok = true;
   } catch (e) {
     showStatus('objective-status', 'error', 'Objective synthesis failed: ' + e);
   } finally {
-    recordLLMDebug(document.getElementById('obj-synth-btn'));
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
+    recordLLMDebug(btn);
   }
 }
 
@@ -521,7 +527,10 @@ async function synthesizeSteps() {
     goToStep(4);
     return;
   }
+  const btn = document.getElementById('steps-synth-btn');
+  if (!setButtonBusy(btn, true, { label: 'Synthesizing…' })) return;   // guard double-click
   showStatus('steps-status', 'busy', 'Synthesizing test steps (LLM)… this can take a while on the Thinking model.');
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/synthesize_steps', {
       method: 'POST',
@@ -546,10 +555,13 @@ async function synthesizeSteps() {
     renderStepsResult();
     updateUI();
     goToStep(5);
+    ok = true;
   } catch (e) {
     showStatus('steps-status', 'error', 'Test step synthesis failed: ' + e);
   } finally {
-    recordLLMDebug(document.getElementById('steps-synth-btn'));
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
+    recordLLMDebug(btn);
   }
 }
 
@@ -560,7 +572,10 @@ export async function synthesize() {
 
 async function exportBundle() {
   if (!S.currentSession) return;
+  const btn = this instanceof HTMLElement ? this : null;   // clicked Export button
+  if (!setButtonBusy(btn, true, { label: 'Exporting…' })) return;   // guard double-click
   showStatus('export-status', 'busy', 'Exporting… (rendering bundle + coverage gaps)');
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/export', {
       method: 'POST',
@@ -601,11 +616,14 @@ async function exportBundle() {
       + (warnings ? ' Advisory warnings:' : ''),
       warnings);
 
+    ok = true;
     // Case may have moved into Complete — refresh dual dropdowns
     try { await refreshCaseSelects(S.currentKey); } catch (_) {}
   } catch (e) {
     showStatus('export-status', 'error', 'Export failed: ' + e);
   } finally {
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
     recordLLMDebug(null);   // export synthesizes coverage-gaps (LLM) — footer only
   }
 }

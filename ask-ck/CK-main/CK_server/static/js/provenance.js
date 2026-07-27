@@ -8,7 +8,7 @@
 // prompt only — no tokens). Because the preview reuses the real call path with a
 // flag flipped, the previewed/copied prompt is 1-for-1 with a real send.
 import { registerActions } from './actions.js';
-import { escapeHtml } from './dom-helpers.js';
+import { escapeHtml, setButtonBusy, flashButtonDone } from './dom-helpers.js';
 
 // panelId -> { endpoint, body, prompt, response, provider, model, auth_method }
 const provByPanel = {};
@@ -67,10 +67,13 @@ function setStatus(panelId, msg, isErr) {
 
 async function provRefresh() {
   const el = this;  // dispatcher calls fn.apply(el, args) — el is `this`
+  const btn = el instanceof HTMLElement ? el : null;
   const panelId = el.getAttribute('data-prov-panel');
   const p = provByPanel[panelId];
   if (!p) return;
+  if (!setButtonBusy(btn, true, { label: 'Rendering…' })) return;   // guard double-click
   setStatus(panelId, '⏳ rendering…');
+  let ok = false;
   try {
     const res = await fetch(p.endpointFn(), {
       method: 'POST',
@@ -88,8 +91,12 @@ async function provRefresh() {
     const copyBtn = document.querySelector(`[data-action="provCopyPrompt"][data-prov-panel="${CSS.escape(panelId)}"]`);
     if (copyBtn) copyBtn.disabled = !(p.prompt && p.prompt.length);
     setStatus(panelId, p.prompt ? `✓ ${p.prompt.length} chars (not sent)` : (prov.note || 'empty'));
+    ok = true;
   } catch (e) {
     setStatus(panelId, `✗ ${e.message || e}`, true);
+  } finally {
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
   }
 }
 

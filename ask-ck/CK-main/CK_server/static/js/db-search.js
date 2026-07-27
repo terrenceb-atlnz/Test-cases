@@ -10,6 +10,7 @@ import { S } from './state.js';
 import { renderStepTables } from './tables.js';
 import { chooseByIds } from './chosen.js';
 import { recordLLMDebug } from './llm-debug.js';
+import { setButtonBusy, flashButtonDone } from './dom-helpers.js';
 import { registerProvenance, renderProvenanceBlock } from './provenance.js';
 
 // Mount a suggest panel's provenance block (transient — suggests persist nothing,
@@ -163,6 +164,9 @@ async function suggestTestLinkWithLLM() {
   }
   const qEl = document.getElementById('tlSearchQ');
   const q = (qEl && qEl.value || '').trim();
+  const btn = document.getElementById('tl-suggest-llm-btn');
+  if (!setButtonBusy(btn, true, { label: 'Suggesting…' })) return;   // guard double-click
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/suggest_testlink/' + encodeURIComponent(S.currentKey), {
       method: 'POST',
@@ -185,10 +189,13 @@ async function suggestTestLinkWithLLM() {
     }));
     const ids = rows.map(r => r.id).filter(Boolean);
     mergeTestLinkCandidates(rows, { precheckIds: ids, source: 'llm' });
+    ok = true;
   } catch (e) {
     alert('Suggest TestLink with LLM failed: ' + e);
   } finally {
-    recordLLMDebug(document.getElementById('tl-suggest-llm-btn'));
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
+    recordLLMDebug(btn);
     mountSuggestProvenance('tl-prov', 'panel-tl', '/api/wizard/suggest_testlink/');
   }
 }
@@ -230,6 +237,9 @@ async function suggestZephyrWithLLM() {
   }
   const qEl = document.getElementById('zephyrSearchQ');
   const q = (qEl && qEl.value || '').trim();
+  const btn = document.getElementById('zp-suggest-llm-btn');
+  if (!setButtonBusy(btn, true, { label: 'Suggesting…' })) return;   // guard double-click
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/suggest_zephyr/' + encodeURIComponent(S.currentKey), {
       method: 'POST',
@@ -253,10 +263,13 @@ async function suggestZephyrWithLLM() {
     }));
     const ids = rows.map(r => r.key).filter(Boolean);
     mergeZephyrCandidates(rows, { precheckIds: ids, source: 'llm' });
+    ok = true;
   } catch (e) {
     alert('Suggest Zephyr with LLM failed: ' + e);
   } finally {
-    recordLLMDebug(document.getElementById('zp-suggest-llm-btn'));
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
+    recordLLMDebug(btn);
     mountSuggestProvenance('zephyr-prov', 'panel-zephyr', '/api/wizard/suggest_zephyr/');
   }
 }
@@ -297,6 +310,9 @@ async function suggestATPWithLLM() {
   }
   const qEl = document.getElementById('atpSearchQ');
   const q = (qEl && qEl.value || '').trim();
+  const btn = document.getElementById('atp-suggest-llm-btn');
+  if (!setButtonBusy(btn, true, { label: 'Suggesting…' })) return;   // guard double-click
+  let ok = false;
   try {
     const res = await fetch('/api/wizard/suggest_atp/' + encodeURIComponent(S.currentKey), {
       method: 'POST',
@@ -320,10 +336,13 @@ async function suggestATPWithLLM() {
     }));
     const ids = rows.map(r => r.id).filter(Boolean);
     mergeATPCandidates(rows, { precheckIds: ids, source: 'llm' });
+    ok = true;
   } catch (e) {
     alert('Suggest with LLM failed: ' + e);
   } finally {
-    recordLLMDebug(document.getElementById('atp-suggest-llm-btn'));
+    setButtonBusy(btn, false);
+    flashButtonDone(btn, ok);
+    recordLLMDebug(btn);
     mountSuggestProvenance('atp-prov', 'panel-atp', '/api/wizard/suggest_atp/');
   }
 }

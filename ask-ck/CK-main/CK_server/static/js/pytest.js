@@ -1,7 +1,7 @@
 // PyTest Creator: the full 8-step gated flow.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
-import { dataArgs, escapeHtml } from './dom-helpers.js';
+import { dataArgs, escapeHtml, setButtonBusy, flashButtonDone } from './dom-helpers.js';
 import { refreshCaseSelects } from './cases.js';
 import { goToPanel } from './nav.js';
 import { recordLLMDebug } from './llm-debug.js';
@@ -24,12 +24,19 @@ let ptRunPoll = null;          // setInterval handle while a run is active
 
 const PT_API = '/api/pytest-create';
 
+// `opts` may carry two non-fetch fields, stripped before the request:
+//   btn       — the triggering button; gets busy spinner + disable + ✓/✗ flash
+//   busyLabel — label shown in the button while in flight (default 'Working…')
+// The busy guard also stops a second click from stacking a duplicate LLM call.
 async function ptApi(path, opts = {}, statusEl = null) {
+  const { btn = null, busyLabel, ...fetchOpts } = opts;
+  if (btn && !setButtonBusy(btn, true, { label: busyLabel || 'Working…' })) return null;
   if (statusEl) statusEl.textContent = 'Working…';
+  let ok = false;
   try {
     const r = await fetch(PT_API + path, Object.assign({
       headers: { 'Content-Type': 'application/json' },
-    }, opts));
+    }, fetchOpts));
     const d = await r.json().catch(() => ({}));
     if (!r.ok) {
       const msg = d.detail || `HTTP ${r.status}`;
@@ -38,11 +45,14 @@ async function ptApi(path, opts = {}, statusEl = null) {
       return null;
     }
     if (statusEl) statusEl.textContent = '';
+    ok = true;
     return d;
   } catch (e) {
     if (statusEl) statusEl.textContent = '⚠ ' + e;
     else alert('PyTest Creator: ' + e);
     return null;
+  } finally {
+    if (btn) { setButtonBusy(btn, false); flashButtonDone(btn, ok); }
   }
 }
 
@@ -284,9 +294,8 @@ function ptRemoveSeqRow(i) {
 async function ptExtractSequence() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-seq-extract-btn');
-  btn.disabled = true;
-  const d = await ptApi(`/extract_sequence/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-seq-status'));
-  btn.disabled = false;
+  const d = await ptApi(`/extract_sequence/${S.ptCase.key}`,
+    { method: 'POST', btn, busyLabel: 'Extracting…' }, ptStatusEl('pt-seq-status'));
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
@@ -527,12 +536,11 @@ async function ptSuggestStep(stepN) {
   if (!ptRequireCase()) return;
   const btn = document.getElementById(`pt-suggest-step-${stepN}`);
   const st = document.getElementById(`pt-step-status-${stepN}`);
-  if (btn) btn.disabled = true;
   const d = await ptApi(`/suggest_scripts_step/${S.ptCase.key}/${stepN}`, {
     method: 'POST',
     body: JSON.stringify({ user_inputs: '' }),
+    btn, busyLabel: 'Suggesting…',
   }, st);
-  if (btn) btn.disabled = false;
   recordLLMDebug(btn);
   if (!d) return;
   _ptAddCands(stepN, d.matches || []);
@@ -775,12 +783,10 @@ async function ptPreviewFragments() {
   const btn = document.getElementById('pt-frag-preview-btn');
   const codeEl = document.getElementById('pt-frag-preview-code');
   const st = document.getElementById('pt-frag-preview-status');
-  if (btn) btn.disabled = true;
-  if (st) st.textContent = 'Assembling…';
   const d = await ptApi(`/preview_fragments/${S.ptCase.key}`, {
     method: 'POST', body: JSON.stringify({ keep: _ptFragKeepList() }),
+    btn, busyLabel: 'Assembling…',
   }, st);
-  if (btn) btn.disabled = false;
   if (!d) return;
   if (codeEl) codeEl.textContent = d.preview || '(empty)';
   if (st) st.textContent = `${d.selected_count} selected fragment(s) slotted into the skeleton.`;
@@ -792,9 +798,8 @@ function _ptBindFragUI() { _ptFragUIBound = true; /* reserved for future delegat
 async function ptGatherFragments() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-frag-btn');
-  btn.disabled = true;
-  const d = await ptApi(`/gather_fragments/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-frag-status'));
-  btn.disabled = false;
+  const d = await ptApi(`/gather_fragments/${S.ptCase.key}`,
+    { method: 'POST', btn, busyLabel: 'Gathering…' }, ptStatusEl('pt-frag-status'));
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
@@ -864,16 +869,14 @@ function ptRenderLint(lint) {
 async function ptGenerateScript() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-gen-btn');
-  btn.disabled = true;
-  ptStatusEl('pt-gen-status').textContent = 'Generating (this can take a few minutes)…';
   const d = await ptApi(`/generate_script/${S.ptCase.key}`, {
     method: 'POST',
     body: JSON.stringify({
       group: document.getElementById('pt-gen-group').value.trim(),
       name: document.getElementById('pt-gen-name').value.trim(),
     }),
+    btn, busyLabel: 'Generating…',
   }, ptStatusEl('pt-gen-status'));
-  btn.disabled = false;
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
@@ -1052,10 +1055,8 @@ async function ptValidate() {
 async function ptFixScript() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-fix-btn');
-  btn.disabled = true;
-  ptStatusEl('pt-validate-status').textContent = 'Asking LLM for a fix (this can take a few minutes)…';
-  const d = await ptApi(`/fix_script/${S.ptCase.key}`, { method: 'POST' }, ptStatusEl('pt-validate-status'));
-  btn.disabled = false;
+  const d = await ptApi(`/fix_script/${S.ptCase.key}`,
+    { method: 'POST', btn, busyLabel: 'Fixing…' }, ptStatusEl('pt-validate-status'));
   // Awaited (unlike the other handlers): this handler navigates to panel-pt-gen
   // below, and the record must be filed under THIS panel before currentPanel changes.
   await recordLLMDebug(btn);

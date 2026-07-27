@@ -44,3 +44,66 @@ export function showStatus(elId, kind, title, items) {
   }
   el.innerHTML = html;
 }
+
+/**
+ * Put an LLM/async button into (or out of) its in-flight "busy" state.
+ *
+ * Busy (on=true): shows a pressed style, replaces the label with an animated
+ * spinner + a working message, and disables the button so a second click while
+ * the request is in flight is a no-op (prevents stacked LLM calls). The original
+ * label is stashed on the element and restored when on=false.
+ *
+ * Idempotent: calling with on=true twice keeps the FIRST stashed label, so a
+ * stray double-invoke never captures the spinner markup as the "original".
+ * Returns true when it transitioned into busy from idle, false if it was already
+ * busy — callers can use this to bail out of a double-triggered handler.
+ *
+ * @param {HTMLElement|null} btn
+ * @param {boolean} on
+ * @param {{label?: string}} [opts]  label = working message (default 'Working…')
+ * @returns {boolean} true if this call started a new busy state
+ */
+export function setButtonBusy(btn, on, opts) {
+  if (!btn) return false;
+  if (on) {
+    if (btn.dataset.busy === '1') return false;   // already in flight — guard
+    btn.dataset.busy = '1';
+    btn.dataset.busyLabel = btn.innerHTML;        // stash original (glyphs + text)
+    const msg = (opts && opts.label) || 'Working…';
+    btn.classList.add('is-busy');
+    btn.classList.remove('is-done', 'is-error');
+    btn.setAttribute('aria-busy', 'true');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ck-spinner" aria-hidden="true"></span>'
+      + '<span class="ck-busy-label">' + escapeHtml(msg) + '</span>';
+    return true;
+  }
+  if (btn.dataset.busy !== '1') return false;      // not busy — nothing to undo
+  delete btn.dataset.busy;
+  if (btn.dataset.busyLabel != null) {
+    btn.innerHTML = btn.dataset.busyLabel;
+    delete btn.dataset.busyLabel;
+  }
+  btn.classList.remove('is-busy');
+  btn.removeAttribute('aria-busy');
+  btn.disabled = false;
+  return false;
+}
+
+/**
+ * Briefly flash a completed async button green (✓) or red (✗) so success/failure
+ * is visible on the button itself, not only in a status banner. Non-blocking:
+ * the class auto-clears after ~1.2s. Safe to call right after setButtonBusy(off).
+ *
+ * @param {HTMLElement|null} btn
+ * @param {boolean} ok  true → success flash, false → error flash
+ */
+export function flashButtonDone(btn, ok) {
+  if (!btn) return;
+  const cls = ok ? 'is-done' : 'is-error';
+  btn.classList.remove('is-done', 'is-error');
+  // reflow so re-adding the same class restarts the CSS transition
+  void btn.offsetWidth;
+  btn.classList.add(cls);
+  window.setTimeout(function () { btn.classList.remove(cls); }, 1200);
+}
