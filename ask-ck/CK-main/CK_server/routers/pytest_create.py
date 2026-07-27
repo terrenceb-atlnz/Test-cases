@@ -1853,6 +1853,18 @@ async def status(request: Request):
     }
 
 
+def _pt_cases_index() -> Tuple[set, Dict[str, dict]]:
+    """(complete_keys, per-case PyTest progress) — the two blocking reads pt_cases
+    needs, paired for a single threadpool hop and named so the event-loop AST
+    invariant can see what is dispatched (a lambda would hide them)."""
+    try:
+        pt_prog = dbx.list_pt_progress()
+    except Exception as e:
+        print(f"Warning: reading pt session progress failed: {e}")
+        pt_prog = {}
+    return _refined_complete_keys(), pt_prog
+
+
 @router.get("/pt_cases")
 async def pt_cases(request: Request):
     """Complete (Generator-exported) cases, split by PyTest Creator work state for the
@@ -1869,14 +1881,13 @@ async def pt_cases(request: Request):
                 if c.get("candidates") and c.get("key")
                 and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
-    complete_set = _refined_complete_keys()
+    # Off the event loop: _refined_complete_keys rglob's the whole refined-cases tree
+    # and list_pt_progress hits ck.db. Both were bare here — the same blocking-work-in-
+    # an-async-handler bug batch B fixed for the LLM/search sites, missed because the
+    # invariant's _BLOCKING list only covered LLM round-trips and embedding entry
+    # points, not pure filesystem/DB reads. Widening that list surfaced this.
+    complete_set, pt_prog = await run_in_threadpool(_pt_cases_index)
     refined_keys = [k for k in all_keys if k in complete_set]
-
-    try:
-        pt_prog = dbx.list_pt_progress()
-    except Exception as e:
-        print(f"Warning: reading pt session progress failed: {e}")
-        pt_prog = {}
 
     done_keys = [k for k in refined_keys if (pt_prog.get(k) or {}).get("validated")]
     open_keys = [k for k in refined_keys if k not in set(done_keys)]
