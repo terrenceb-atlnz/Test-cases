@@ -113,7 +113,17 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
 - **Target style** = testsuites_art anatomy: `TestSet(ATTestSet.TestSet)` with `init(setup)/configure()/tear_down()`; `TestCase_N(ATTestCase.TestCase)` with `testCaseDesc/testCaseRef/testCaseMethod` + `main()` asserting via `self.passed()/self.failed()`; `__main__` does `ts.add_testCase(...)`, `ts.run(sys.argv)`; invoked `sudo python3 test-X.Y.py -s <topology>.setup -v`. Framework log format: timestamped lines, `>> test-<name>` / `TEST_CASE_*` header blocks, `PASS:` / `!!FAIL:` lines, `<< test-<name>: RESULT (numPassed: p numFailed: f)` footers; log named after the script basename.
 - **Script databases (no index exists):** `testsuites_art/` (189 tests + 52 `library_*.py`; ignore vendored `1371_trex_traffic_tests/trex_libs/`), `svt_scripts/` (~70 real scripts + `libSvt/`; ignore vendored `3009_pluggable_qualifications/Python-3.9.19/`), `test_scripts/` (~828 py, mixed vintage; `6901–6914`/`TestSuite/` ATPyLib-training dirs are canonical templates).
 - **Framework source** readable at `DeviceSkrips/framework/` on this mount; runtime symlink `/home/st-art/framework` exists only on real testboxes.
-- **Patterns to mirror (verified line refs):** wizard session persistence `wizard.py:115-149`, confirm gates `wizard.py:1348+`, mechanical scoring `wizard.py:291-409` (`_score_zephyr_candidate` at 316), suggest flow `wizard.py:1165+`, complete-case resolution `_refined_complete_keys` `wizard.py:740`. LLM CLI invocation in `llm.py` (`render_prompt`, `_call_llm_with_meta`; hardcoded 180s subprocess timeouts at `llm.py:131,186`). Secrets convention: `.gitignore` ignores `secrets.*`; loader precedent `tool/upload_refined.py::_find_secrets_file()`. paramiko 2.9.3 is installed.
+- **Patterns to mirror:** wizard session persistence (`_persist_session`/`_load_persisted`),
+  confirm gates (`confirm_step`), suggest flow (`suggest_*` endpoints), complete-case
+  resolution (`_refined_complete_keys`). For mechanical scoring mirror **`db.search_*` +
+  `db._relevance_score`**, NOT the wizard — its private `_score_zephyr_candidate` was deleted
+  in `4578030` (see *Matching/scoring* below). LLM CLI invocation in `llm.py` (`render_prompt`,
+  `_call_llm_with_meta`; hardcoded 180s subprocess timeouts). Secrets convention: `.gitignore`
+  ignores `secrets.*`; loader precedent `tool/upload_refined.py::_find_secrets_file()`.
+  paramiko 2.9.3 is installed.
+  > Line numbers were deliberately dropped here (2026-07-28): they were labelled "verified"
+  > but had drifted, and `wizard.py` shrank ~170 lines in `4578030`. Grep the symbol — a stale
+  > line ref is worse than none, because it reads as authoritative.
 
 ### User decisions
 
@@ -178,7 +188,33 @@ Use `request.app.state.app_data`, not wizard's per-request `load_all_data()` ine
 `pt_extract_sequence.jinja` (objective + steps, skip traceability step 0 → sequence JSON), `pt_match_scripts.jinja` (sequence + top-40 slim candidates + user inputs → coverage verdicts), `pt_assess_fit.jinja` (→ reuse/extend/new + per-step mapping), `pt_gather_fragments.jinja` (→ fragment refs, no code in output), `pt_generate_script.jinja` (sequence + resolved fragment code + one ART exemplar + one ATPyLib-training template as style anchors + framework contract rules + a relevant slice of `framework_surface.json` so the model can use the full library — drivers, ATLibrary helpers, packet builders — not just the base classes; required elements: `ATTestSet.TestSet`/`ATTestCase.TestCase` subclassing, per-case desc/ref/method with `testCaseRef = '{key}'`, `ts.run(sys.argv)`; filename from the user-confirmed `<Group>/<Name>.py` → fenced python), `pt_fix_script.jinja` (code + parsed failures + bounded log excerpts → revised files), `enrich_script_index.jinja` (indexer).
 
 ### Matching/scoring (steps 3–4)
-Two-stage like the wizard: mechanical scoring first, LLM on a bounded top-40. Adapt `_zephyr_tokens`/`_specific_tokens`/`_score_zephyr_candidate` (wizard.py:298-409): tokenize sequence actions + title; weight feature_tags 12/token, suite_dir leaf 10, summary+title substring 6; require one specific signal; `_PT_GENERIC_TOKENS` stoplist ("test", "verify", "check", "switch", "port"…).
+Two-stage: mechanical scoring first, LLM on a bounded top-40.
+
+> **UPDATED 2026-07-28 (`4578030`) — do NOT copy the wizard's old bespoke scorer.**
+> This section used to say "adapt `_zephyr_tokens`/`_specific_tokens`/`_score_zephyr_candidate`
+> (wizard.py:298-409)". **`_score_zephyr_candidate` no longer exists.** It was deleted: it
+> hand-rolled a 45k-row full-corpus Python scan that cost a measured 2.7 s bare on the event
+> loop, and its output was ~81 % score-ties broken alphabetically by title. `db.search_zephyr`
+> already did the same job via FTS + the shared `db._relevance_score`.
+>
+> **Mirror `db.search_*` + `db._relevance_score` instead** (`db.py:143`), which is the single
+> source of truth for keyword relevance across all four corpora and is FTS-backed. If PyTest
+> matching needs a domain heuristic the shared scorer lacks, add it there as an **opt-in
+> parameter** — the pattern `area_words` established (`db.py:143`, defaults to `()`, only
+> `search_zephyr` opts in, so other callers are provably unchanged). Never fork a private
+> scorer into a router; that fork is exactly what was just removed.
+>
+> Two hard-won lessons worth inheriting: (1) a binary specific/generic stoplist cannot express
+> "too common to rank on, but still real area signal" — for a case titled "Port - Auto
+> Negotiation", stripping "port"/"auto" left a single token and an arbitrary result order;
+> (2) don't pre-filter the query before handing it to `db.search_*` — it does its own
+> specific/generic split and needs the raw words. The rule: **the caller decides which TEXT is
+> relevant, `db` decides how to WEIGHT it.**
+
+Still applicable: tokenize sequence actions + title; weight feature_tags 12/token, suite_dir
+leaf 10, summary+title substring 6; require one specific signal; `_PT_GENERIC_TOKENS` stoplist
+("test", "verify", "check", "switch", "port"…) — noting that a stoplist alone has the
+single-token failure mode described above.
 
 ### Testbox profiles + secrets
 Store at `Test-cases/secrets.testboxes.json` (auto-covered by existing `secrets.*` gitignore rule; discovery per `upload_refined.py::_find_secrets_file()`):

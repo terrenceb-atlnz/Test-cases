@@ -140,7 +140,14 @@ Pattern for all four searches — **FTS retrieves, Python re-scores with the exi
 1. Tokenize with existing regexes (+ hyphen split), drop `_ZREF_GENERIC_TOKENS` as today.
 2. FTS MATCH with OR-of-tokens + prefix variants (`tok*`); rank by weighted `bm25()`; fetch top ~200 rowids. BM25 weights approximate current heuristics (scripts `tags_text:12, dir_text:10, title/summary:6, docstring:2`; zephyr `key:5,title:4,folder:3,objective:2,steps:1`; testlink `id:5,title:4,summary:2,steps:1`; atp `tid:5,description:2,suite_name:2`).
 3. Re-score retrieved rows with **unchanged** logic: `min(0.95, 0.4+0.1*hits)` testlink (wizard.py:977), `0.4+0.12*hits` zephyr (:1025), `0.45+0.1*hits` ATP (:1136), `_score_script_candidate` 12/10/6 weights verbatim (pytest_create.py:278) — scores and justification strings bit-identical wherever recall overlaps.
-4. Keep zephyr title-stem dedup + exclusion set as post-filters. `_score_zephyr_candidate` (wizard.py:317) keeps its scoring verbatim, fed by `rank_zephyr_candidates` FTS pre-filter (~500 rows instead of 45k iteration).
+4. ~~Keep zephyr title-stem dedup + exclusion set as post-filters. `_score_zephyr_candidate` (wizard.py:317) keeps its scoring verbatim, fed by `rank_zephyr_candidates` FTS pre-filter (~500 rows instead of 45k iteration).~~ **NEVER LANDED — now moot.**
+   > **Item 4 never landed, and is now moot (2026-07-28, `4578030`).** The FTS pre-filter was
+   > built for the *search endpoints*, but the Generator's Step-2 default view kept iterating
+   > all 45k rows through `_score_zephyr_candidate` — the exact "45k iteration" this item set
+   > out to remove — for another year of commits, bare on the event loop at a measured 2.7s per
+   > case load. Rather than bolt the pre-filter on, `_score_zephyr_candidate` was **deleted**
+   > and that path now uses `search_zephyr` (already FTS + the shared `_relevance_score`), with
+   > the one load-bearing heuristic ported in as `area_words`. Items 1-3 stand as built.
 
 Known delta (document in commit message): no mid-word substring recall (`egotiation` won't match; `negot*` will). Hybrid semantic search compensates.
 

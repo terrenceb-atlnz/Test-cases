@@ -60,6 +60,14 @@
 - Aggressive compaction of tables (cell padding 2-3px, input widths 70-100px, section/card margins 8px, font 10-11px) was required to make multi-row selection UIs fit on one page without side-scroll or excessive vertical space.
 - Removing verbose labels like "Action:" from human-readable step output, combined with clean <ol> + Expected, significantly improves scannability of synthesized results.
 - Dynamic case list + server-enriched load_case (testlink_candidates, zephyr_refs) + session restoration logic closes the loop on "review previous work" use case.
+  > **Superseded 2026-07-28 (`4578030`):** the "server-enriched load_case" half was reversed.
+  > Enriching the load response meant building candidate pools for review panels the user had
+  > not opened, which caused two incidents — a ~60s LLM prefetch for Step 3, then a 2.7s 45k-row
+  > scan for Step 2 running on the event loop. `load_case` now returns session + title only;
+  > each step fetches its own pool on first open via `GET /step_candidates/{key}/{step}`.
+  > The *session restoration* half of this lesson still holds and is why chosen rows still
+  > render instantly at load. **Generalized lesson: pre-loading data for a panel the user has
+  > not navigated to is a cost with no user, and it hides latency where nobody is looking.**
 - Keeping demo overrides (T33234 pre-fills) isolated in JS loadCase + searchATP makes it easy to generalize later.
 
 ## New Insights from 2026-07-03 Session — Replacing Fictional Claude Auth with Headless CLI Mode

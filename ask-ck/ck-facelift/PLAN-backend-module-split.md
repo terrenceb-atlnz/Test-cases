@@ -1,6 +1,11 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status:** PLANNED, nothing implemented. Written 2026-07-28 from a full read of all
+> **Status (2026-07-28): commit 1 of 11 DONE + pushed.** A1 shipped as `4578030`, with the
+> pre-existing `pt_cases` blocker split into `0c06586`. Commits 2-11 are still planned. Read
+> *What A1 taught* below before starting commit 2 — one of this plan's core assumptions was
+> falsified and it changes how the rest should be approached.
+>
+> **Original status line, kept for context:** PLANNED, nothing implemented. Written 2026-07-28 from a full read of all
 > 2439 lines; revised the same day after the "all data steps must load identically"
 > decision, which replaced an optimize-the-scan approach with delete-the-scan.
 > **11 commits, all in scope.** Part A (perf/correctness) is independent of Part B (the
@@ -207,22 +212,56 @@ than add a pattern.
 
 ---
 
+## What A1 taught — read before commit 2
+
+A1 is the only commit in this plan that has actually been executed, so it is the only
+evidence about how good the plan's reasoning is. Three corrections that apply to the
+remaining ten commits:
+
+1. **"Use the shared implementation instead of the bespoke one" is a hypothesis, not a
+   conclusion.** This plan asserted, in Risks, *"expect the change to be an improvement, not a
+   regression to defend."* That was **wrong**. Swapping the bespoke Step-2 scorer for
+   `db.search_zephyr` silently dropped the best cross-ref for the Generator's flagship case
+   type out of the results entirely. The bespoke code was worse on average AND better in a
+   specific way that mattered, and only measurement found it. **Every remaining commit that
+   consolidates two implementations into one needs a before/after comparison on real data, not
+   a green test suite.** Part B commits 7-9 are all of that shape.
+
+2. **"Mechanical, no behaviour change" is a claim to verify, not to assert.** Part B's commits
+   are described as "import-only motion". A1's supposedly-mechanical query builder introduced
+   two real behaviour changes (leaking analyst prose into ranking; double-filtering that
+   starved a downstream tier). Neither was caught by the 295-test suite — both needed
+   hand-inspection of actual output. Budget for that on each extraction.
+
+3. **Widening an invariant finds bugs; expect them and keep them separate.** Adding three names
+   to `_BLOCKING` immediately surfaced a genuine pre-existing offender in a file this plan
+   never mentioned (`pytest_create.pt_cases`). It shipped as its own commit, `0c06586`, before
+   A1 — the pattern to repeat. Related: a `lambda` passed to `run_in_threadpool` satisfies the
+   runtime requirement while hiding the call from that AST check. **Always dispatch a named
+   function.** Two helpers exist for this now: `wizard._cases_index`, `pytest_create._pt_cases_index`.
+
+A fourth, smaller one: **A1 came in far larger than planned** (10 files, +972/−261, spanning
+backend, frontend, and two new test suites, versus "delete the scan and call the existing
+function"). The estimates for commits 2-11 should be read as lower bounds.
+
 ## Part A — perf + correctness (independent of the split; do first)
 
 Individually testable, no file *moves* (A1 does delete ~160 lines and touches the frontend).
 **Land these before touching structure** so Part B stays a pure no-behaviour-change refactor.
 
-### A1. Defer all three data steps off case load ✅ WRITTEN 2026-07-28 (test gate pending)
+### A1. Defer all three data steps off case load ✅ SHIPPED as `4578030` (+ `0c06586`)
 
-> **Implemented, not yet gated.** Code is written across `wizard.py`, `db.py`,
-> `static/js/{generator,nav}.js`, `static/index.html`, and
-> `tests/test_event_loop_blocking_batch_b.py`. The pytest gate was deliberately NOT run
-> — a parallel stream was mid-work running `pytest tests/test_prompt_examples.py` and
-> had `ck.db` modified; concurrent runs write throwaway session keys and trip the known
-> stale-connection bug. **Run the gate before committing.**
+> **Done, gated, pushed.** `4578030` — 10 files, +972/−261. The pre-existing `pt_cases`
+> blocker that widening `_BLOCKING` exposed shipped first as `0c06586`, verified green in an
+> isolated worktree so the split is bisectable. Gate at the staged state: guards OK,
+> 295 pytest, 85 Vitest; Playwright 15/15 (14 new + the golden path).
 >
 > **Result: step 2 went 2708 ms → 175 ms mean (15×), and all three steps together are
-> ~235 ms — none of it at case load, none of it on the event loop.**
+> ~235 ms — none of it at case load, none of it on the event loop.** Confirmed on the live
+> server: `/health` answers in 3-215 ms while a step-2 fetch is in flight.
+>
+> Both new test suites were **mutation-checked** rather than assumed: removing the fetch-once
+> memo fails 3 tests, removing the search-clobber guard fails 1.
 >
 > | | before | after |
 > |---|---|---|
@@ -434,10 +473,12 @@ Each commit is independently revertable and leaves the suite green.
 doing all the commits suggested in A and B. Improving this code flow is important."*).
 
 **Part A (do first, in order):**
-1. `perf(generator): defer all three data steps off case load` — A1. The largest commit in
-   Part A: backend + frontend + ~160 deleted lines. Everything else in A is small by
-   comparison, so land this while attention is on it.
-2. `perf(wizard): serve app.state.app_data instead of reloading per request` — A2.
+- **0. ✅ `0c06586` `fix(pytest-create): pt_cases blocked the event loop on two reads`** — not
+  in the original plan; surfaced by A1 widening `_BLOCKING`, shipped ahead of it so each commit
+  stays green on its own.
+1. **✅ `4578030` `perf(generator): defer all three data steps off case load`** — A1. Came in at
+   10 files / +972-261, well beyond the "delete the scan" estimate; see *What A1 taught*.
+2. **← NEXT.** `perf(wizard): serve app.state.app_data instead of reloading per request` — A2.
 3. `fix(wizard): confirm_step silently dropped malformed selections` — A3.
 4. `chore(wizard): logging, dead code, pydantic v2` — A5 + the non-`utcnow` half of A4.
 5. `fix(wizard): tz-aware timestamps` — A4's `utcnow` half, **its own commit**: `ck.db` holds
@@ -527,25 +568,34 @@ Manual checklist (per user preference — no Playwright), after Part A and after
 
 ## Critical files
 
-- `ask-ck/CK-main/CK_server/routers/wizard.py` — the subject. Hot spots: `:813` (3.8 s
-  block), `:402-404` (per-request reload), `:1457-1482` (silent swallow), `:2023-2371`
-  (350-line `export`), `:2375` (`_CASE_KEY_RE`, misplaced)
-- `ask-ck/CK-main/CK_server/routers/pytest_create.py` — `:33-36` the 6 private imports to
-  kill; `:280` the duplicated `_apply_workspace_llm`; `:583,1799` the correct
-  `app.state.app_data` pattern to copy
+Line numbers below were **re-verified after `4578030`** (wizard.py is now 2436 lines). They
+drift on every commit — grep the symbol rather than trusting the number, and re-verify this
+block when it next goes stale. A confidently-wrong line ref is worse than no line ref.
+
+- `ask-ck/CK-main/CK_server/routers/wizard.py` — the subject. Remaining hot spots:
+  `:402` `get_data` (per-request reload → **A2**), `:1459/1468/1476` the three silent
+  `except Exception` swallows in `confirm_step` (→ **A3**), `:2021` `export` (350 lines,
+  → commit 11), `:2372` `_CASE_KEY_RE` (misplaced, used ~320 lines earlier).
+  New in A1 and now the reference pattern: `:753` `_STEP_BUILDERS`, `:761` `step_candidates`,
+  `:815` `_cases_index` (named-helper threadpool dispatch).
+- `ask-ck/CK-main/CK_server/routers/pytest_create.py` — `:33` the 6 private `routers.wizard`
+  imports to kill (→ commit 8); `:280` the duplicated `_apply_workspace_llm`; `:1856`
+  `_pt_cases_index`; `:583,1799` the correct `app.state.app_data` pattern A2 should copy
 - `ask-ck/CK-main/CK_server/main.py` — `:132` builds `app_data`; `:154` mounts the router
   (unchanged by the split if `__init__.py` still exports `router`)
 - `ask-ck/CK-main/CK_server/data.py` — `:47` `load_all_data`, `:57,88-93` the per-call prints
-- `ask-ck/CK-main/CK_server/models.py` — `:98,102` untyped `step4`/`step5`; `:90` `WizardSession`
-- `ask-ck/CK-main/CK_server/db.py` — `:313` `iter_zephyr_slim` (the 45k scan source, **deleted
-  by A1**); `:489` `search_zephyr` (the FTS replacement Step 2 adopts); `:143`
-  `_relevance_score` (the shared scorer; where any load-bearing heuristic gets ported);
-  `:123` the duplicate `_ZREF_GENERIC_TOKENS` that becomes the single copy
-- `ask-ck/CK-main/CK_server/static/js/nav.js` — `:64,102` `goToPanel`/`goToStep`, where A1's
-  per-panel first-visit fetch hook lands
-- `ask-ck/CK-main/CK_server/static/js/generator.js` — `:27` the `load_case` call; `:45-47` the
-  three payload assignments A1 removes; `:71` the stale `analyze_atp_coverage` comment to delete
-- `tests/conftest.py` — check for the startup event before A2
+- `ask-ck/CK-main/CK_server/models.py` — `:98,102` untyped `WizardSession.step4`/`step5`
+  (→ commit 6); `:131,132` the same on `PtSession`, which that commit should probably cover too
+- `ask-ck/CK-main/CK_server/db.py` — `:123` `_ZREF_GENERIC_TOKENS` (still duplicated in
+  wizard; Part B consolidates), `:147` `_AREA_WORDS` (**new in A1**), `:150`
+  `_relevance_score` with its opt-in `area_words` tier — **the place any future scoring
+  heuristic goes**, never a router — `:520` `search_zephyr`. `iter_zephyr_slim` is gone.
+- `ask-ck/CK-main/CK_server/static/js/generator.js` — `loadStepCandidates` and the
+  `_stepFetched` memo (A1's deferred-load core); `nav.js` `goToStep` holds the first-visit hook
+- `tests/conftest.py` — `:32` uses `with TestClient(...)`, so startup DOES run and
+  `app.state.app_data` is populated. **A2's main risk is already cleared.**
+- `js-tests/step-candidates.spec.js`, `e2e/deferred-step-load.spec.js` — A1's regression net;
+  both mutation-checked. `e2e/pages/generator.page.js` owns all E2E selectors.
 - `tests/test_export_gate.py:38`, `tests/test_export_authority_batch_a.py:29`,
   `tests/test_security_hardening_batch_e.py:80` — the internal imports that constrain commit 8
 - `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` — owns the `sessions`-dict concurrency
@@ -554,9 +604,14 @@ Manual checklist (per user preference — no Playwright), after Part A and after
 
 ## Handover state
 
-**Done in the authoring session (2026-07-28):** the review, all measurements above, and
-Part 0's `.venv313` build. Nothing in Part A or B is implemented — **no source file was
-edited**; the only new file is this plan.
+**Done 2026-07-28 (all pushed to `origin/main`):** the review, all measurements, Part 0's
+venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split out and verified
+green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
+the staged state; Playwright 15/15. Docs synced in the follow-up commit.
+
+**Commits 2-11 remain.** Next is **A2**. Read *What A1 taught* first — one of this plan's
+stated expectations was falsified by measurement, and it changes how the consolidation commits
+(7-9 especially) should be approached.
 
 **Decisions taken (do not re-litigate):**
 - Defer **all three** data steps off case load; uniform startup behaviour across steps is a
@@ -566,28 +621,35 @@ edited**; the only new file is this plan.
   accepted, with a before-snapshot for review.
 - All 11 commits (Part A + Part B) are in scope, including the full route split.
 
-**Commit-1 pre-flight — COMPLETE as of 2026-07-28 (all verified, nothing had moved):**
-- Part 0 done by a parallel stream (`032f521`); `.venv` is 3.13.14. See Part 0.
-- **`wizard.py` untouched** — still 2439 lines, no uncommitted changes, last modified by
-  pre-session commit `6eaa43e`. Same for `db.py`, `data.py`, `static/js/`. **Every line
-  number cited in this plan is still valid** (spot-checked `:402`, `:813`, `:1457-1482`,
-  `:2375`).
-- Both perf bugs re-measured on 3.13 and still present (Context section, 3.13 column).
-- **Step-2 ranking baseline captured:** 10 cases / 10 distinct folder leaves / 80 refs →
-  `/tmp/claude-1971/step2-ranking-baseline.json`, generated by
-  `/tmp/claude-1971/snapshot_step2_ranking.py`. Both live in session scratch, so **if the
-  session ended, regenerate** — the script is self-contained, read-only, documents its own
-  invocation, and reproduces the same baseline from any unlanded-A1 checkout in ~1 min.
-  The 81 %-tie analysis it produced is summarized in Context.
+**Pre-flight ritual — repeat before EVERY commit.** It caught real movement twice in one
+session (the venv cutover landed mid-session as `032f521`; the parallel stream committed this
+very plan file as `3ea6a61`), and it is cheap:
+1. `git fetch && git status --short && git log --oneline -3` — the tree moves under you.
+2. `ps -eo pid,cmd | grep -E "uvicorn|pytest"` — **is a parallel stream running tests?** If so,
+   do not run the gate: concurrent pytest runs write throwaway session keys to `ck.db`, and per
+   the stale-connection bug an external write makes the live server's thread-local connection go
+   stale. Wait for idle.
+3. Re-verify the line numbers you are about to rely on (see *Critical files*).
+4. Stage **explicit paths**, never `git add -A` — another stream's work is often in the tree.
 
-**Concurrency note (2026-07-28):** a parallel stream is mid-work on the PyTest Creator —
-uncommitted edits to `routers/pytest_create.py`, `templates/prompts/pt_extract_sequence.jinja`,
-`pt_generate_script.jinja`, `tests/test_prompt_examples.py`, and it was running
-`pytest tests/test_prompt_examples.py` live. **No A/B commit had a full-suite gate run
-against it yet for that reason** — concurrent pytest runs write throwaway session keys to
-`ck.db`, and per the known stale-connection bug an external write makes the live server's
-thread-local connection go stale. Run the gate when that stream is idle, and stage explicit
-paths only.
+**A1's before/after ranking baselines** lived in session scratch
+(`/tmp/claude-1971/step2-ranking-{baseline,after}.json`, generated by
+`snapshot_step2_ranking.py` / `compare_step2.py`) and are **gone with the session**. They are
+no longer needed — A1 shipped — but if a future commit revisits Zephyr ranking, that
+before/after harness is the pattern to rebuild: sample ~10 cases across distinct folder leaves,
+capture top-8 per case, diff, and separately check hand-picked known-good refs land in top-8.
+Tie-concentration alone was a misleading metric (keyword mode scored *better* on ties than
+hybrid while ranking the flagship case's best ref out of the results entirely).
 
-**Next session starts here:** re-run the pre-flight (it is cheap, and the tree moves —
-`032f521` landed *during* the authoring session), then **commit 1 / A1**.
+**Next session starts here:** run the pre-flight ritual above, then **commit 2 / A2** — the
+smallest commit in the plan (`get_data()` → `request.app.state.app_data`, ~4 lines across 10
+`Depends` sites; its one risk is already cleared, see *Critical files* → `conftest.py`).
+
+Two loose ends carried forward, neither blocking:
+- **No `.venv310-backup`.** The 3.13 cutover (`032f521`) kept no rollback venv, so a revert
+  means rebuilding from `requirements-dev.txt`. Everything is green on 3.13, so this is
+  theoretical.
+- **The E2E suite is not in `./tool/run_tests.sh`.** `e2e/deferred-step-load.spec.js` adds ~35 s.
+  A frontend change can pass the gate and still break the golden path, so run `npm run e2e`
+  deliberately for anything touching `static/` — **and ask first**; the user does not want
+  Playwright run unprompted.

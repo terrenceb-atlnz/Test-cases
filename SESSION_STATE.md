@@ -1949,3 +1949,87 @@ load-bearing, and all four historical cases are regression-locked. Memory:
   `polarity auto`; judges 5 bad / 1 good). Part 3b still blocked on `configs/tb470.setup`
   (`/home/st-art/st-art/configs/`). `PLAN-backend-module-split.md` is committed but
   unimplemented — its own conclusion is that Part A (perf/correctness) outranks the split.
+
+---
+
+## Session Activity (2026-07-28c) — Generator: deferred per-step loading (`PLAN-backend-module-split.md` A1)
+
+Started as a code review of `routers/wizard.py` ("this looks monolithic, should it be split?").
+The review said yes but argued size was **not** the real defect: two measured performance bugs
+and one silent-data-loss bug outranked the refactor. Plan written as
+`ask-ck/ck-facelift/PLAN-backend-module-split.md` (11 commits); commit 1 shipped this session.
+
+### What shipped
+
+- **`0c06586` `fix(pytest-create): pt_cases blocked the event loop on two reads`** —
+  `_refined_complete_keys()` (rglob) + `dbx.list_pt_progress()` (ck.db) ran bare in an async
+  handler: ~18 ms warm, up to **343 ms** cold, exactly when the PyTest Creator panel loads.
+  Verified green in an isolated `git worktree` at that commit, so the split is bisectable.
+- **`4578030` `perf(generator): defer all three data steps off case load`** — 10 files,
+  +972/−261.
+
+### The core change
+
+`load_case` used to build candidate pools for all three DB-review steps, i.e. the server did
+work for panels the user had not opened. That pattern has now caused **two** incidents: Step 3's
+`analyze_atp_coverage` LLM call (~60 s on every load, removed earlier) and Step 2's 45,427-row
+Python scan — **2708 ms bare on the event loop**, freezing every concurrent request including
+the agent-bridge long-poll that `claude_agent` self-deadlocks without.
+
+All three steps are now uniform: none works at load; each fetches on first visit via one
+endpoint, `GET /step_candidates/{key}/{step}`, dispatched through a `_STEP_BUILDERS` table so
+the symmetry is structural. Deleted outright: `_select_related_zephyr_refs`,
+`_score_zephyr_candidate`, `_ZREF_WEAK_ALONE`, `db.iter_zephyr_slim`.
+
+    step 1 TestLink   ~0 ms at load  ->   16 ms on open
+    step 2 Zephyr     2708 ms !!     ->  175 ms mean / 716 ms max
+    step 3 ATP        ~440 ms        ->   44 ms on open
+
+### Three things measurement caught that reasoning had not
+
+1. **The naive swap REGRESSED the flagship case.** For "Port - Auto Negotiation" both "port"
+   and "auto" are generic tokens, so `rank_words` collapsed to `["negotiation"]`, all 12 matches
+   scored an identical `0.7683`, and ordering fell back to key order — the best cross-ref
+   ("interface: port status, speed, duplex and negotiation") landed **9th and dropped out of the
+   top 8**, replaced by "Test modem support. TPS says Japan only". The old scorer ranked it 1st
+   via an `area_support` boost (`12.0 + 8.0 + 0.8 = 20.3` vs `12.8`). Fix: `db._relevance_score`
+   gains an **opt-in `area_words` third tier** — a binary specific/stripped stoplist cannot
+   express "too common to rank on, still real area signal". Defaults to `()`; only
+   `search_zephyr` opts in, so TestLink/ATP/scripts are provably bit-for-bit unchanged.
+   Now rank 1 at `0.8103`.
+2. **Hybrid is the wrong default for a panel-open view** — warm, step 2 hybrid is
+   763 ms mean / 2692 ms max, *no better than the scan being deleted*, plus a ~11.8 s cold
+   model construction landing on a plain panel open. Step builders pin keyword; hybrid stays
+   for `/search_*`, where the user actually typed a query.
+3. **Two query bugs.** The decision rationale leaked process prose ("Zephyr says covered" →
+   "TPS SAYS Japan only" ranked) but must not be dropped wholesale — it moves the QoS case's
+   best ref 20→4 and DHCPv6's 143→3. `_DECISION_META_TOKENS` strips only coverage-status words.
+   And pre-filtering generics in the builder starved the new area tier. Rule now written down:
+   **the caller decides which TEXT is relevant, `db` decides how to WEIGHT it.**
+
+### Tests
+
++13 Vitest (`js-tests/step-candidates.spec.js`) and +14 Playwright
+(`e2e/deferred-step-load.spec.js`) — zero candidate requests at load, exactly one per step
+open, no re-fetch on revisit, no row leak across cases, honest "not fetched" placeholder
+(distinct from "none found"), both in-flight races, API 400/404 paths. **Both suites were
+mutation-checked**: removing the fetch-once memo fails 3 tests, removing the clobber guard
+fails 1 — so they are not vacuous.
+
+Widening `_BLOCKING` (adding `_refined_complete_keys` / `_session_progress_map` /
+`_select_related_zephyr_refs`) generalized batch B's invariant from "don't block on I/O" to
+"don't block, period" — and immediately caught the `pt_cases` bug above. **Caveat learned the
+hard way:** a `lambda` passed to `run_in_threadpool` satisfies the runtime requirement while
+hiding the call from that AST check. Always dispatch a **named** function; `wizard._cases_index`
+and `pytest_create._pt_cases_index` exist for that reason.
+
+### State at close
+
+- **295 pytest + 85 Vitest** green on 3.13.14; guards green. **Playwright 15/15** (14 new +
+  golden path) — still NOT in `./tool/run_tests.sh`, so a green gate says nothing about it.
+- Live-server verified: `/health` answers in 3–215 ms while a step-2 fetch is in flight.
+- **Open:** `PLAN-backend-module-split.md` commits **2–11** (next: A2, `get_data()` →
+  `app.state.app_data`). Its *What A1 taught* section records that the plan's
+  "expect an improvement, not a regression to defend" assumption was **falsified** — the
+  consolidation commits (7–9) need before/after comparison on real data, not just a green gate.
+- Unchanged from the previous entry: T33234 TestCase_8, Part 3b blocked on `configs/tb470.setup`.
