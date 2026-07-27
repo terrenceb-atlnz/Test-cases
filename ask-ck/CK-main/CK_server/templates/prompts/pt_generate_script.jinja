@@ -100,9 +100,17 @@ Reviewer note: {{ f.why }}
    row = next((l for l in output.splitlines() if l.split()[:1] == [port]), None)
    if row is None:
        self.failed('port {} missing from show ecofriendly output'.format(port))
-   elif row.split()[-2:] == ['off', 'off']:   # Configured, Status
+   elif row.split()[-2] == 'off':             # Configured column ONLY
        self.passed(...)
    ```
+   **Assert ONE named column, never a tuple of adjacent columns.** `show ecofriendly` rows
+   are `<port> [<name>] <Configured> <Status>`, so `Configured` is `split()[-2]` and
+   `Status` is `split()[-1]`. Testing BOTH positionally (`split()[-2:] == ['off','off']`)
+   is wrong and fails on real hardware: `Status` legitimately reads `-` on a port with no
+   peer (`port1.0.7  off  -`) and lags `Configured` while negotiating
+   (`port1.0.5  lpi  off`). Both are normal states, so a two-column check is a false RED
+   after a command that actually worked. Pick the column the step is about and test that
+   one.
    Index from the END, not a fixed column: `show ecofriendly`'s optional `Name` column
    shifts the middle fields (`port1.0.1 Port 1 lpi lpi` splits to 5 tokens,
    `port1.0.2 lpi lpi` to 3), but `Configured`/`Status` are always the last two.

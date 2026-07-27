@@ -1,0 +1,124 @@
+{
+  "case_key": "AWPTCM-T33234",
+  "case_title": "Port - Auto MDI/MDI-X",
+  "criterion": "4 \u2014 generated the missing steps (gap-fill quality)",
+  "scale": [
+    "exceptional",
+    "good",
+    "bad",
+    "not at all"
+  ],
+  "judges": [
+    "claude-opus",
+    "vllm-fast#1",
+    "vllm-fast#2",
+    "vllm-fast#3",
+    "vllm-fast#4",
+    "vllm-fast#5"
+  ],
+  "judged_at": "2026-07-27T18:52:22+00:00",
+  "gap_fill_blocks": 1,
+  "total_testcases": 14,
+  "results": [
+    {
+      "testcase": "TestCase_8",
+      "step_n": 9,
+      "action": "Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`.",
+      "verify": "Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 50868,
+          "tok_in": 2,
+          "tok_out": 335,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The block configures `polarity mdi` on the link partner and then reads `show interface` / `show interface status` on the DUT, which is roughly the right shape. But it cannot perform the step's core physical action \u2014 connecting a crossover cable \u2014 and, more importantly, it never sets the local DUT port to `polarity auto` as the step requires, so the very precondition that makes the combination 'incompatible' is unverified. The pass condition also matches the substring `down` too loosely and reads status output that on AlliedWare Plus is tabular (e.g. header words could contain the matched tokens), so it can easily go green without the feature actually being exercised.",
+          "concrete_problem": "It never configures the local port to `polarity auto` (the step's required local state) and omits/cannot perform the crossover-cable change, so it verifies link-down without establishing the incompatible MDI/MDI-X condition that is the actual thing under test \u2014 a likely false green.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 12002,
+          "tok_in": 1000,
+          "tok_out": 2157,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code configures the link partner's polarity but completely omits the required step of setting the local port to `polarity auto`, which is essential for testing the auto MDI/MDI-X feature. While it correctly runs the verification commands and checks for a down/disconnected state, the missing local configuration means the test does not actually validate the intended link negotiation behavior. Consequently, it could pass even if the auto MDI/MDI-X feature is broken.",
+          "concrete_problem": "Fails to configure the local port to `polarity auto` before testing the crossover cable link state.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 11862,
+          "tok_in": 1000,
+          "tok_out": 2134,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly configures the link partner's polarity to mdi and verifies the DUT's interface status shows a down or disconnected state while confirming connected is absent. It uses standard Allied Telesis CLI commands and directly implements the specified string-matching verification logic. The omission of the physical crossover cable connection is typical for automated scripts where physical setup is managed externally, and the local port polarity is likely a prerequisite.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 10547,
+          "tok_in": 1000,
+          "tok_out": 1893,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code configures the link partner but completely omits configuring the local DUT port to `polarity auto`, which is explicitly required to establish the incompatible combination being tested. It also relies on fragile substring matching for CLI output and ignores the physical cable connection step, meaning the test could pass while the actual feature is broken.",
+          "concrete_problem": "Missing configuration for the local port's `polarity auto` setting.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 14409,
+          "tok_in": 1000,
+          "tok_out": 2590,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code only configures the link partner's polarity but completely omits the required step to set the local DUT port to `polarity auto`. It also skips the physical cable connection instruction and uses a naive substring match for verification, making it a materially weaker implementation that could pass incorrectly or fail due to missing setup.",
+          "concrete_problem": "Missing configuration for the local DUT port (`polarity auto`) and physical cable connection step.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 16418,
+          "tok_in": 1000,
+          "tok_out": 2952,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code configures the link partner but completely omits setting the local DUT port to `polarity auto` as required, testing an incomplete state. Furthermore, the verification logic uses a fragile substring check (`'connected' not in status_output`) that will incorrectly fail when the output contains `notconnect`. This results in a materially weaker test that could pass or fail incorrectly depending on the exact CLI output.",
+          "concrete_problem": "Omits configuring the local DUT port to `polarity auto` and uses a fragile substring check for link status.",
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 2,
+          "majority": "bad",
+          "majority_share": "4/5",
+          "stable": false,
+          "votes": [
+            "bad",
+            "good",
+            "bad",
+            "bad",
+            "bad"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    }
+  ]
+}

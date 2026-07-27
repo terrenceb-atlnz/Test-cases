@@ -2,8 +2,8 @@
   "case_key": "AWPTCM-T33234",
   "group": "Port",
   "name": "Port_Auto_MDI_MDI_test",
-  "saved_at": "2026-07-27T19:47:55.511914",
-  "iterations": 11,
+  "saved_at": "2026-07-27T20:33:41.951688",
+  "iterations": 13,
   "fragments": [
     {
       "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
@@ -96,6 +96,37 @@
       "symbol": "TestCase_3",
       "maps_to": [
         8
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py",
+      "symbol": "TestCase_11",
+      "maps_to": [
+        1,
+        2,
+        4,
+        5,
+        18
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+      "symbol": "TestCase_26",
+      "maps_to": [
+        1,
+        2,
+        4,
+        6,
+        18
+      ]
+    },
+    {
+      "source_id": "legacy/5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py",
+      "symbol": "TestCase_4",
+      "maps_to": [
+        7,
+        11,
+        12
       ]
     }
   ],

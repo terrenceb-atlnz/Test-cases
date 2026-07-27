@@ -16,87 +16,287 @@
     "vllm-fast#4",
     "vllm-fast#5"
   ],
-  "judged_at": "2026-07-27T18:52:22+00:00",
-  "gap_fill_blocks": 1,
+  "judged_at": "2026-07-27T20:27:22+00:00",
+  "gap_fill_blocks": 4,
   "total_testcases": 14,
   "results": [
     {
-      "testcase": "TestCase_8",
-      "step_n": 9,
-      "action": "Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`.",
-      "verify": "Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).",
+      "testcase": "TestCase_10",
+      "step_n": 16,
+      "action": "Poll show interface port1.0.1 status 5 times at 1s intervals",
+      "verify": "State remains connected/consistent across all polls, no link flaps",
       "tag": "# AI vllm-fast 2026-07-27",
       "judges": [
         {
           "judge": "claude-opus",
           "model": "opus",
-          "latency_ms": 50868,
+          "latency_ms": 54196,
           "tok_in": 2,
-          "tok_out": 335,
+          "tok_out": 305,
           "verdict": "bad",
           "confidence": "high",
-          "rationale": "The block configures `polarity mdi` on the link partner and then reads `show interface` / `show interface status` on the DUT, which is roughly the right shape. But it cannot perform the step's core physical action \u2014 connecting a crossover cable \u2014 and, more importantly, it never sets the local DUT port to `polarity auto` as the step requires, so the very precondition that makes the combination 'incompatible' is unverified. The pass condition also matches the substring `down` too loosely and reads status output that on AlliedWare Plus is tabular (e.g. header words could contain the matched tokens), so it can easily go green without the feature actually being exercised.",
-          "concrete_problem": "It never configures the local port to `polarity auto` (the step's required local state) and omits/cannot perform the crossover-cable change, so it verifies link-down without establishing the incompatible MDI/MDI-X condition that is the actual thing under test \u2014 a likely false green.",
+          "rationale": "The code polls the port status 5 times at 1s intervals and checks that all samples are 'connected', which is a plausible substitute for detecting link flaps. However, the CLI command is wrong: on AlliedWare Plus the command is `show interface port1.0.1 status` where the interface name is embedded in the command, not `show interface <x> status` with a separate 'status' token \u2014 and more importantly it matches the substring 'connected' against raw output, which will also match 'notconnected'/'not connected' style strings, and it never actually verifies link-flap counters or the port stays up between polls beyond a naive substring check.",
+          "concrete_problem": "The substring test `'connected' in output` is contained within 'notconnected'/'not connected', so a down port whose output reads 'not connected' matches as connected \u2014 a false green that passes while the link is actually flapping or down.",
           "unparsed_verdict": null
         },
         {
           "judge": "vllm-fast#1",
           "model": "vllm-fast",
-          "latency_ms": 12002,
-          "tok_in": 1000,
-          "tok_out": 2157,
-          "verdict": "bad",
+          "latency_ms": 11624,
+          "tok_in": 847,
+          "tok_out": 2064,
+          "verdict": "good",
           "confidence": "high",
-          "rationale": "The code configures the link partner's polarity but completely omits the required step of setting the local port to `polarity auto`, which is essential for testing the auto MDI/MDI-X feature. While it correctly runs the verification commands and checks for a down/disconnected state, the missing local configuration means the test does not actually validate the intended link negotiation behavior. Consequently, it could pass even if the auto MDI/MDI-X feature is broken.",
-          "concrete_problem": "Fails to configure the local port to `polarity auto` before testing the crossover cable link state.",
+          "rationale": "The code correctly implements the 5-poll loop with 1-second intervals, extracts the port state from the CLI output, and verifies both consistency and a connected state across all polls. It accurately matches the step's action and verification requirements without introducing false negatives or missing the core intent.",
+          "concrete_problem": null,
           "unparsed_verdict": null
         },
         {
           "judge": "vllm-fast#2",
           "model": "vllm-fast",
-          "latency_ms": 11862,
-          "tok_in": 1000,
-          "tok_out": 2134,
+          "latency_ms": 14933,
+          "tok_in": 847,
+          "tok_out": 2656,
           "verdict": "good",
           "confidence": "high",
-          "rationale": "The code correctly configures the link partner's polarity to mdi and verifies the DUT's interface status shows a down or disconnected state while confirming connected is absent. It uses standard Allied Telesis CLI commands and directly implements the specified string-matching verification logic. The omission of the physical crossover cable connection is typical for automated scripts where physical setup is managed externally, and the local port polarity is likely a prerequisite.",
+          "rationale": "The code correctly implements the 5-poll loop with 1-second intervals and accurately collects the interface state. It verifies both consistency across all polls and that the initial state is connected, which directly satisfies the requirement to detect link flaps or state changes. The use of self.dut.portA is a standard framework abstraction for the hardcoded port name.",
           "concrete_problem": null,
           "unparsed_verdict": null
         },
         {
           "judge": "vllm-fast#3",
           "model": "vllm-fast",
-          "latency_ms": 10547,
-          "tok_in": 1000,
-          "tok_out": 1893,
-          "verdict": "bad",
+          "latency_ms": 13084,
+          "tok_in": 847,
+          "tok_out": 2327,
+          "verdict": "good",
           "confidence": "high",
-          "rationale": "The code configures the link partner but completely omits configuring the local DUT port to `polarity auto`, which is explicitly required to establish the incompatible combination being tested. It also relies on fragile substring matching for CLI output and ignores the physical cable connection step, meaning the test could pass while the actual feature is broken.",
-          "concrete_problem": "Missing configuration for the local port's `polarity auto` setting.",
+          "rationale": "The code correctly implements the 5-poll loop with 1-second intervals and parses the CLI output to verify that the port state remains consistently 'connected' without flapping. It directly satisfies both the action and verification requirements of the step. No significant logical gaps or false-green risks are present.",
+          "concrete_problem": null,
           "unparsed_verdict": null
         },
         {
           "judge": "vllm-fast#4",
           "model": "vllm-fast",
-          "latency_ms": 14409,
-          "tok_in": 1000,
-          "tok_out": 2590,
-          "verdict": "bad",
+          "latency_ms": 16359,
+          "tok_in": 847,
+          "tok_out": 2906,
+          "verdict": "good",
           "confidence": "high",
-          "rationale": "The code only configures the link partner's polarity but completely omits the required step to set the local DUT port to `polarity auto`. It also skips the physical cable connection instruction and uses a naive substring match for verification, making it a materially weaker implementation that could pass incorrectly or fail due to missing setup.",
-          "concrete_problem": "Missing configuration for the local DUT port (`polarity auto`) and physical cable connection step.",
+          "rationale": "The code correctly implements the required 5-poll loop with 1-second sleep intervals, parses the CLI output for the 'connected' keyword, and verifies that the state remains consistent and connected across all polls. This directly satisfies the step's action and verification requirements without introducing false positives.",
+          "concrete_problem": null,
           "unparsed_verdict": null
         },
         {
           "judge": "vllm-fast#5",
           "model": "vllm-fast",
-          "latency_ms": 16418,
-          "tok_in": 1000,
-          "tok_out": 2952,
+          "latency_ms": 14470,
+          "tok_in": 847,
+          "tok_out": 2569,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly implements the polling loop with the specified interval and count, parses the interface status for 'connected', and verifies both consistency and the expected 'connected' state across all iterations. It accurately fulfills the step's intent to detect link flaps or state changes. The minor step number mismatch in the log comment is cosmetic and does not impact the functional logic.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 1,
+          "majority": "good",
+          "majority_share": "5/5",
+          "stable": true,
+          "votes": [
+            "good",
+            "good",
+            "good",
+            "good",
+            "good"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_11",
+      "step_n": 17,
+      "action": "Prompt operator to remove pluggable from port1.0.1",
+      "verify": "show interface port1.0.1 shows link down",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 16593,
+          "tok_in": 2,
+          "tok_out": 348,
           "verdict": "bad",
           "confidence": "high",
-          "rationale": "The code configures the link partner but completely omits setting the local DUT port to `polarity auto` as required, testing an incomplete state. Furthermore, the verification logic uses a fragile substring check (`'connected' not in status_output`) that will incorrectly fail when the output contains `notconnect`. This results in a materially weaker test that could pass or fail incorrectly depending on the exact CLI output.",
-          "concrete_problem": "Omits configuring the local DUT port to `polarity auto` and uses a fragile substring check for link status.",
+          "rationale": "The code polls `show interface port1.0.1 status` for the string `notconnect` and passes when it appears. Step 17 requires verifying the port shows 'link down' after the pluggable is removed \u2014 'notconnect' is a link-state string but on AlliedWare Plus the actual `show interface ... status` output uses different tokens, and more importantly the block never confirms it observed a link that was previously UP transitioning to down; a port that was already notconnect (e.g. nothing ever plugged in) passes immediately, giving a false green. The physical-prompt substitution itself is a reasonable pattern, but the verification is matched against an unverified output token and the timeout path is acceptable.",
+          "concrete_problem": "Passes on any port already in 'notconnect' state without confirming a link-up\u2192link-down transition, so it can go green while the removal/link-down behaviour under test never actually occurred; also 'notconnect' is not the confirmed AlliedWare Plus `show interface status` link-down token.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 16287,
+          "tok_in": 976,
+          "tok_out": 2891,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly implements the physical prompt and waits for the expected port state change. It polls the Allied Telesis CLI for 'notconnect', which accurately represents a link-down state after pluggable removal, and uses a reasonable timeout to avoid false passes. The logic faithfully substitutes the human action with a framework-standard operator prompt and verifies the exact state change required.",
+          "concrete_problem": "null",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 8354,
+          "tok_in": 976,
+          "tok_out": 1479,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly prompts the operator for the physical action and implements a standard polling loop to verify the port status transitions to 'notconnect' within a 120-second timeout. It uses the appropriate CLI command and state string for Allied Telesis switches, faithfully handling the physical step as required by the test framework.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 13441,
+          "tok_in": 976,
+          "tok_out": 2386,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly implements the physical step by logging an operator prompt and polling the interface status for the expected 'notconnect' state, which accurately reflects a removed pluggable or link down condition. It properly implements the wait loop and verification logic required for this type of ART test step.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 13510,
+          "tok_in": 976,
+          "tok_out": 2398,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly handles the physical action by prompting the operator and polling for the expected state change. It uses the standard Allied Telesis CLI command and checks for 'notconnect', which accurately reflects a disconnected port/link-down state. The timeout and polling logic properly handles the asynchronous physical step.",
+          "concrete_problem": "None",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 8866,
+          "tok_in": 976,
+          "tok_out": 1571,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly prompts the operator for the physical removal and implements a polling loop to verify the port state transitions to 'notconnect'. It appropriately handles the timing and state verification required for a hardware removal step.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 1,
+          "majority": "good",
+          "majority_share": "5/5",
+          "stable": true,
+          "votes": [
+            "good",
+            "good",
+            "good",
+            "good",
+            "good"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_13",
+      "step_n": 19,
+      "action": "Run ecofriendly lpi",
+      "verify": "show ecofriendly output shows Configured column as lpi for port1.0.1",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 67678,
+          "tok_in": 2,
+          "tok_out": 3427,
+          "verdict": "bad",
+          "confidence": "medium",
+          "rationale": "The action is right \u2014 it enters config on the port under test and applies `ecofriendly lpi`, then runs `show ecofriendly` and locates the row for the DUT's port hardware-agnostically. But the verification hinges on an invented output shape: it requires the last two whitespace-split tokens of the row to both equal 'lpi' (`row.split()[-2:] == ['lpi','lpi']`), whereas the step only calls for the *Configured* column to read lpi. Requiring a second trailing 'lpi' (an operational/current column) is link-state dependent and the actual `show ecofriendly` column layout is guessed, so on a correctly-configured switch this can easily produce a false FAIL and does not faithfully verify the single thing the step names.",
+          "concrete_problem": "The assertion `row.split()[-2:] == ['lpi','lpi']` demands two adjacent 'lpi' columns from a fabricated `show ecofriendly` layout, but the step only requires the Configured column to be lpi \u2014 the extra operational-column match is link/negotiation dependent and the column shape is unverified, so it can fail on a working device.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 12712,
+          "tok_in": 876,
+          "tok_out": 2287,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the interface configuration command and captures the show output to verify the expected feature state. It parses the output to locate the target port row and checks that the relevant columns contain the expected value, which aligns with the step's verification requirement. The logic is functionally sound for a gap-fill, though slightly heuristic in its column matching.",
+          "concrete_problem": "The verification assumes case-insensitive matching and a fixed two-column suffix, which could fail if the CLI output uses uppercase or varies in column count.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 14514,
+          "tok_in": 876,
+          "tok_out": 2615,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code correctly executes the configuration command but uses brittle and incorrect parsing for verification. It checks if the last two columns of the output are both 'lpi', whereas the step requires verifying the specific 'Configured' column. This mismatch means the assertion could pass while broken or fail on valid output, failing to accurately test the stated requirement.",
+          "concrete_problem": "row.split()[-2:] == ['lpi', 'lpi'] incorrectly assumes the last two columns contain 'lpi', failing to target the specific 'Configured' column required by the step.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 15927,
+          "tok_in": 876,
+          "tok_out": 2868,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code executes the configuration command but uses a brittle and likely hallucinated parsing strategy for verification. It checks if the last two tokens of the output row are exactly ['lpi', 'lpi'], which does not actually verify the 'Configured' column as specified in the step. This arbitrary check could easily yield false positives or false negatives depending on the actual switch output format.",
+          "concrete_problem": "Verifies row.split()[-2:] == ['lpi', 'lpi'] instead of checking the specific 'Configured' column value.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 18365,
+          "tok_in": 876,
+          "tok_out": 3303,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the `ecofriendly lpi` configuration command and verifies the `show ecofriendly` output. It parses the CLI response to check that the port's row contains the expected `lpi` values in the relevant columns, satisfying the step's verification requirement. The parsing logic is a reasonable heuristic for this type of test script.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 14610,
+          "tok_in": 876,
+          "tok_out": 2626,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The code correctly issues the configuration command but uses a fragile and likely incorrect parsing heuristic to verify the output. Checking the last two tokens for exactly ['lpi', 'lpi'] does not reliably target the 'Configured' column as specified and could easily produce false positives or negatives depending on the actual CLI table formatting.",
+          "concrete_problem": "Fragile output parsing (row.split()[-2:] == ['lpi', 'lpi']) does not reliably verify the specific 'Configured' column and may pass/fail incorrectly based on unrelated CLI output formatting.",
           "unparsed_verdict": null
         }
       ],
@@ -106,14 +306,114 @@
           "runs": 5,
           "distinct": 2,
           "majority": "bad",
-          "majority_share": "4/5",
+          "majority_share": "3/5",
           "stable": false,
           "votes": [
-            "bad",
             "good",
             "bad",
             "bad",
+            "good",
             "bad"
+          ]
+        }
+      },
+      "human_verdict": null,
+      "human_note": null
+    },
+    {
+      "testcase": "TestCase_14",
+      "step_n": 20,
+      "action": "Run no ecofriendly lpi",
+      "verify": "show ecofriendly output shows Configured column as off for port1.0.1; show interface port1.0.1 shows link remains up",
+      "tag": "# AI vllm-fast 2026-07-27",
+      "judges": [
+        {
+          "judge": "claude-opus",
+          "model": "opus",
+          "latency_ms": 14288,
+          "tok_in": 2,
+          "tok_out": 407,
+          "verdict": "bad",
+          "confidence": "high",
+          "rationale": "The action is wrong: the step requires running `no ecofriendly lpi`, but LPI is a distinct feature from ecofriendly (energy-efficient-ethernet low-power-idle) and the verification hinges on the `show ecofriendly` output's *Configured* column reading `off`. The block matches `row.split()[-2:] == ['off', 'off']`, blindly grabbing the last two whitespace tokens of the row rather than the specific Configured column, and it verifies link-up via `'connected' in intf_output` from `show interface ... status` \u2014 but the step explicitly calls for `show interface port1.0.1` (not the `status` variant) and its link-state line. These mismatches mean the assertion can pass or fail for reasons unrelated to the actual LPI/ecofriendly state.",
+          "concrete_problem": "The pass condition `row.split()[-2:] == ['off', 'off']` does not read the named *Configured* column \u2014 it just tests that the row's last two tokens are both 'off', so it neither reliably confirms LPI was disabled nor distinguishes the Configured column from other columns; it can green while the feature is broken.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#1",
+          "model": "vllm-fast",
+          "latency_ms": 11734,
+          "tok_in": 949,
+          "tok_out": 2107,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the `no ecofriendly lpi` command and verifies the expected CLI output for both the ecofriendly settings and interface link status. The parsing logic uses reasonable heuristics to match the required 'off' states and 'connected' status, fulfilling the step's intent.",
+          "concrete_problem": "The comment header incorrectly references 'STEP 14' instead of 'STEP 20', and the table parsing relies on a fixed heuristic for column positions that may be fragile if the CLI output format varies.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#2",
+          "model": "vllm-fast",
+          "latency_ms": 14320,
+          "tok_in": 949,
+          "tok_out": 2575,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the `no ecofriendly lpi` command and verifies both required conditions: the `Configured` column shows `off` and the interface link remains active. The parsing logic is functional and aligns with the step's intent, though it assumes a specific column layout for the `show ecofriendly` output.",
+          "concrete_problem": "Relies on a fixed column slice `[-2:]` for the ecofriendly output check and substitutes `show interface ... status` for the exact command specified, which could fail if CLI formatting varies.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#3",
+          "model": "vllm-fast",
+          "latency_ms": 14254,
+          "tok_in": 949,
+          "tok_out": 2562,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the configuration action and verifies the expected post-change state by parsing the outputs of show ecofriendly and show interface. The verification logic directly maps to the step's requirements, checking for the off configuration state and a connected link status. While the string parsing is somewhat rigid, it accurately captures the intended verification for a gap-fill scenario.",
+          "concrete_problem": "Rigid parsing of CLI output (row.split()[-2:] == ['off', 'off']) may fail if the switch's table formatting varies or includes trailing whitespace, potentially causing false negatives.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#4",
+          "model": "vllm-fast",
+          "latency_ms": 9266,
+          "tok_in": 949,
+          "tok_out": 1663,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the `no ecofriendly lpi` configuration command and verifies both the resulting configuration state and the link status as specified in the step. The output parsing uses a reasonable heuristic for Allied Telesis CLI output, checking for 'off' values and 'connected' status. It faithfully implements the step's intent without material deviations.",
+          "concrete_problem": "The output parsing relies on a rigid check of the last two columns (`['off', 'off']`), which may be brittle if the switch's CLI output format varies slightly or includes additional trailing columns.",
+          "unparsed_verdict": null
+        },
+        {
+          "judge": "vllm-fast#5",
+          "model": "vllm-fast",
+          "latency_ms": 19188,
+          "tok_in": 949,
+          "tok_out": 3451,
+          "verdict": "good",
+          "confidence": "high",
+          "rationale": "The code correctly executes the 'no ecofriendly lpi' command and verifies the expected state using 'show ecofriendly' and 'show interface'. The parsing logic for the ecofriendly table and interface status is a reasonable heuristic that directly maps to the step's verification requirements. It implements the intended action without material deviation.",
+          "concrete_problem": null,
+          "unparsed_verdict": null
+        }
+      ],
+      "agreement": "near-miss",
+      "self_consistency": {
+        "vllm-fast": {
+          "runs": 5,
+          "distinct": 1,
+          "majority": "good",
+          "majority_share": "5/5",
+          "stable": true,
+          "votes": [
+            "good",
+            "good",
+            "good",
+            "good",
+            "good"
           ]
         }
       },

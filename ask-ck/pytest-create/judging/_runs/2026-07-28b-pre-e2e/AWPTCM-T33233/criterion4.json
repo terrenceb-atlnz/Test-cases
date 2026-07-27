@@ -1,0 +1,6 @@
+{
+  "case_key": "AWPTCM-T33233",
+  "gap_fill_blocks": 0,
+  "note": "no gap-fill steps \u2014 every TestCase reuses a real fragment, so criterion 4 does not apply to this case",
+  "results": []
+}

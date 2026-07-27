@@ -357,6 +357,17 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
                     {"verdict": "n-a", "reason": "C2 is stale; order is not meaningful",
                      "expected": [], "actual": []})
 
+    # "Ignored reuse": a fragment WAS mapped to this step and the model invented code
+    # anyway (stamped `# AI`). This is the most interesting failure mode in the whole of
+    # C2 — reviewer-approved code was available and went unused — but it was invisible
+    # (2026-07-28): it sank into the "9/12" ratio with no label, and the two tools
+    # disagreed on the count because they define gap-fill differently. The grader means
+    # "no fragment was MAPPED"; pt_judge.py means "the code carries an `# AI` tag". A step
+    # with a fragment mapped but AI-stamped code is gap-fill to the judge and a plain tag
+    # mismatch to the grader, so it appeared in neither total. Name it explicitly.
+    ignored_reuse = [p["testcase"] for p in per_step
+                     if p["expected_tag"] and str(p["actual_tag"] or "").startswith("# AI")]
+
     if tag_total == 0:
         c2 = {"verdict": "n-a", "reason": "no fragment maps to any TestCase", "per_step": per_step}
     elif tag_ok == tag_total:
@@ -377,12 +388,13 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
               "tags_matched": f"{tag_ok}/{tag_total}", "avg_code_overlap": avg,
               "overlap_note": "low overlap == adapted, not absent; see per_step. "
                               "Judges assess adaptation quality (criterion 4).",
-              "per_step": per_step}
+              "ignored_reuse": ignored_reuse, "per_step": per_step}
     elif tag_ok:
         c2 = {"verdict": "partially", "tags_matched": f"{tag_ok}/{tag_total}",
-              "per_step": per_step}
+              "ignored_reuse": ignored_reuse, "per_step": per_step}
     else:
-        c2 = {"verdict": "not at all", "tags_matched": f"0/{tag_total}", "per_step": per_step}
+        c2 = {"verdict": "not at all", "tags_matched": f"0/{tag_total}",
+              "ignored_reuse": ignored_reuse, "per_step": per_step}
 
     # C3 — do the reused fragments appear in sequence order?
     expected_order = [expected_tag_by_class[n] for n in sorted(expected_tag_by_class)]
@@ -550,6 +562,13 @@ def print_report(r: dict) -> None:
     dups = [p["testcase"] for p in c2.get("per_step", []) if p.get("duplicate_tag_lines", 0) > 1]
     if dups:
         print(f"       - duplicate tag lines in main(): {', '.join(dups)}")
+    # The sharpest C2 signal, and it used to be invisible inside the tags ratio: a
+    # reviewer-approved fragment was available for this step and the model wrote its own
+    # code anyway. Say so plainly.
+    ign = c2.get("ignored_reuse") or []
+    if ign:
+        print(f"       - IGNORED REUSE ({len(ign)}): a fragment was mapped but the code is "
+              f"AI-invented: {', '.join(ign)}")
     c3 = c["3_snippet_order"]
     print(f"  C3 snippet order   : {c3['verdict'].upper()}"
           + (f"  ({c3.get('reason')})" if c3.get("reason") else ""))

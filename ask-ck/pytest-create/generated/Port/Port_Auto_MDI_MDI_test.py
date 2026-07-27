@@ -26,7 +26,7 @@ class TestSet(ATTestSet.TestSet):
         tb = setup.init_tb()
         dut = setup.init_swi('swi_a')
         lp = setup.init_swi('swi_b')
-        (dut.portA, lp.portB) = setup.init_portlink(dut, lp, type1='port', type2='port')
+        (dut.portA, lp.portA) = setup.init_portlink(dut, lp, type1='port', type2='port')
         self.tb = tb
         self.dut = dut
         self.lp = lp
@@ -35,61 +35,75 @@ class TestSet(ATTestSet.TestSet):
         # One-time SUITE setup, runs ONCE before all test cases. Base config only
         # (interfaces / vlans / ip / etc.). NO self.passed()/self.failed() here —
         # this is setup, not a test step.
-        # setup: Enter configuration mode and apply: `speed auto`, `duplex auto`, `polarity auto`.
-        dut.mode('#')
-        dut.cmd('conf t')
-        dut.cmd('int {}'.format(dut.portA))
-        dut.cmd('speed auto')
-        dut.cmd('duplex auto')
-        dut.cmd('polarity auto')
-        dut.cmd('exit')
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(lp.portB))
-        lp.cmd('speed auto')
-        lp.cmd('duplex auto')
-        lp.cmd('polarity auto')
-        lp.cmd('exit')
-        dut.cmd('end')
-        lp.cmd('end')
+        # setup: Configure switch port1.0.1: speed auto, duplex auto, polarity auto
+        self.dut.mode('#')
+        self.dut.cmd('conf t')
+        self.dut.cmd('int {}'.format(self.dut.portA))
+        self.dut.cmd('speed auto')
+        self.dut.cmd('duplex auto')
+        self.dut.cmd('polarity auto')
+        self.dut.cmd('exit')
+        self.dut.cmd('end')
+        # setup: Configure partner port: speed auto, duplex auto, polarity auto
+        self.lp.mode('#')
+        self.lp.cmd('conf t')
+        self.lp.cmd('int {}'.format(self.lp.portA))
+        self.lp.cmd('speed auto')
+        self.lp.cmd('duplex auto')
+        self.lp.cmd('polarity auto')
+        self.lp.cmd('exit')
+        self.lp.cmd('end')
+        # setup: Configure partner port: polarity mdi
+        self.lp.mode('#')
+        self.lp.cmd('conf t')
+        self.lp.cmd('int {}'.format(self.lp.portA))
+        self.lp.cmd('polarity mdi')
+        self.lp.cmd('exit')
+        self.lp.cmd('end')
+        # setup: Configure partner port: polarity mdix
+        self.lp.mode('#')
+        self.lp.cmd('conf t')
+        self.lp.cmd('int {}'.format(self.lp.portA))
+        self.lp.cmd('polarity mdix')
+        self.lp.cmd('exit')
+        self.lp.cmd('end')
+        # setup: Configure partner port: polarity mdi
+        self.lp.mode('#')
+        self.lp.cmd('conf t')
+        self.lp.cmd('int {}'.format(self.lp.portA))
+        self.lp.cmd('polarity mdi')
+        self.lp.cmd('exit')
+        self.lp.cmd('end')
+        # setup: Configure partner port: polarity mdix
+        self.lp.mode('#')
+        self.lp.cmd('conf t')
+        self.lp.cmd('int {}'.format(self.lp.portA))
+        self.lp.cmd('polarity mdix')
+        self.lp.cmd('exit')
+        self.lp.cmd('end')
 
     def tear_down(self):
         # One-time SUITE cleanup, runs ONCE after all cases. Restore device state.
         # NO pass/fail here.
-        dut.mode('#')
-        dut.cmd('conf t')
-        dut.cmd('int {}'.format(dut.portA))
-        dut.cmd('speed auto')
-        dut.cmd('duplex auto')
-        dut.cmd('polarity auto')
-        dut.cmd('exit')
-        dut.cmd('end')
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(lp.portB))
-        lp.cmd('speed auto')
-        lp.cmd('duplex auto')
-        lp.cmd('polarity auto')
-        lp.cmd('exit')
-        lp.cmd('end')
+        pass
 
 
 class TestCase_1(ATTestCase.TestCase):
-    testCaseDesc = 'Check default port configuration with no pluggable present.'
+    testCaseDesc = 'Run show interface port1.0.1'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Check default port configuration with no pluggable present. | verify: Run `show interface` and confirm the output contains `current polarity auto` (or default), indicating automatic MDI/MDI-X handling is enabled by default.'
+    testCaseMethod = 'Run show interface port1.0.1 | verify: Output shows auto polarity, auto duplex/speed, link down'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
+        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
         # STEP 1 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 1: Check default port configuration with no pluggable present.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 1: Run show interface port1.0.1')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {}'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity auto' in output:
-            self.passed('Run `show interface` and confirm the output contains `current polarity auto` (or default), indicating automatic MDI/MDI-X handling is enabled by default.')
+        if 'configured polarity auto' in output and 'configured duplex auto' in output and 'configured speed auto' in output and 'Link is DOWN' in output:
+            self.passed('Output shows auto polarity, auto duplex/speed, link down')
         else:
-            self.failed('Run `show interface` and confirm the output contains `current polarity auto` (or default), indicating automatic MDI/MDI-X handling is enabled by default.')
+            self.failed('Output shows auto polarity, auto duplex/speed, link down')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -99,22 +113,21 @@ class TestCase_1(ATTestCase.TestCase):
 
 
 class TestCase_2(ATTestCase.TestCase):
-    testCaseDesc = 'Prompt operator to insert a supported pluggable into the port.'
+    testCaseDesc = 'Prompt operator to insert supported pluggable into port1.0.1'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Prompt operator to insert a supported pluggable into the port. | verify: Poll `show interface status` until the port column shows `connected`, then run `show interface` and confirm link is up with resolved polarity.'
+    testCaseMethod = 'Prompt operator to insert supported pluggable into port1.0.1 | verify: Wait for link up; show interface port1.0.1 shows link up, resolved polarity, negotiated speed/duplex'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
+        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220
         # STEP 2 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 2: Prompt operator to insert a supported pluggable into the port.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.log('STEP 2: Prompt operator to insert supported pluggable into port1.0.1')
         # PHYSICAL step: a human must act on the hardware, then the script waits for the
         # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
         # Port comes from the .setup topology (init_portlink), never a literal — the first
         # index is the chassis/slot and varies with the hardware.
         port = dut.portA
-        self.log('OPERATOR: Prompt operator to insert a supported pluggable into the port.')
+        self.log('OPERATOR: Prompt operator to insert supported pluggable into port1.0.1')
         # Poll show-interface status for the expected transition, prompting the operator.
         want = 'connected'
         deadline = time.time() + 120
@@ -123,13 +136,13 @@ class TestCase_2(ATTestCase.TestCase):
             output = dut.cmd('show interface {} status'.format(port), log=False)
             if want in output:
                 break
-            self.log('Waiting for operator: Prompt operator to insert a supported pluggable into the port.')
+            self.log('Waiting for operator: Prompt operator to insert supported pluggable into port1.0.1')
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
         if want in output:
-            self.passed('Poll `show interface status` until the port column shows `connected`, then run `show interface` and confirm link is up with resolved polarity.')
+            self.passed('Wait for link up; show interface port1.0.1 shows link up, resolved polarity, negotiated speed/duplex')
         else:
-            self.failed('Poll `show interface status` until the port column shows `connected`, then run `show interface` and confirm link is up with resolved polarity.')
+            self.failed('Wait for link up; show interface port1.0.1 shows link up, resolved polarity, negotiated speed/duplex')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -139,28 +152,36 @@ class TestCase_2(ATTestCase.TestCase):
 
 
 class TestCase_3(ATTestCase.TestCase):
-    testCaseDesc = 'Connect a straight-through cable. Configure link partner to `polarity mdi`. Verify local port remains `polarity auto`.'
+    testCaseDesc = 'Connect straight-through cable between port1.0.1 and partner'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Connect a straight-through cable. Configure link partner to `polarity mdi`. Verify local port remains `polarity auto`. | verify: Run `show interface` and confirm the prose output contains `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected`.'
+    testCaseMethod = 'Connect straight-through cable between port1.0.1 and partner | verify: show interface port1.0.1 shows link up, polarity resolved correctly'
 
     def main(self):
-        # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 31-67
+        # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 772-857
         # STEP 3 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 3: Connect a straight-through cable. Configure link partner to `polarity mdi`. Verify local port remains `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdi')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 3: Connect straight-through cable between port1.0.1 and partner')
+        # PHYSICAL step: a human must act on the hardware, then the script waits for the
+        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
+        dut = self.testSet.dut
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA
+        self.log('OPERATOR: Connect straight-through cable between port1.0.1 and partner')
+        # Poll show-interface status for the expected transition, prompting the operator.
+        want = 'connected'
+        deadline = time.time() + 120
+        output = ''
+        while time.time() < deadline:
+            output = dut.cmd('show interface {} status'.format(port), log=False)
+            if want in output:
+                break
+            self.log('Waiting for operator: Connect straight-through cable between port1.0.1 and partner')
+            time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity mdi' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
-            self.passed('Run `show interface` and confirm the prose output contains `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
+        if want in output:
+            self.passed('show interface port1.0.1 shows link up, polarity resolved correctly')
         else:
-            self.failed('Run `show interface` and confirm the prose output contains `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
+            self.failed('show interface port1.0.1 shows link up, polarity resolved correctly')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -170,28 +191,36 @@ class TestCase_3(ATTestCase.TestCase):
 
 
 class TestCase_4(ATTestCase.TestCase):
-    testCaseDesc = 'Connect a crossover cable. Configure link partner to `polarity mdix`. Verify local port remains `polarity auto`.'
+    testCaseDesc = 'Replace with crossover cable'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Connect a crossover cable. Configure link partner to `polarity mdix`. Verify local port remains `polarity auto`. | verify: Run `show interface` and confirm the prose output contains `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected`.'
+    testCaseMethod = 'Replace with crossover cable | verify: show interface port1.0.1 shows link up, polarity resolved correctly'
 
     def main(self):
-        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 31-73
+        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220
         # STEP 4 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 4: Connect a crossover cable. Configure link partner to `polarity mdix`. Verify local port remains `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdix')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 4: Replace with crossover cable')
+        # PHYSICAL step: a human must act on the hardware, then the script waits for the
+        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
+        dut = self.testSet.dut
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA
+        self.log('OPERATOR: Replace with crossover cable')
+        # Poll show-interface status for the expected transition, prompting the operator.
+        want = 'connected'
+        deadline = time.time() + 120
+        output = ''
+        while time.time() < deadline:
+            output = dut.cmd('show interface {} status'.format(port), log=False)
+            if want in output:
+                break
+            self.log('Waiting for operator: Replace with crossover cable')
+            time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity mdix' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
-            self.passed('Run `show interface` and confirm the prose output contains `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
+        if want in output:
+            self.passed('show interface port1.0.1 shows link up, polarity resolved correctly')
         else:
-            self.failed('Run `show interface` and confirm the prose output contains `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
+            self.failed('show interface port1.0.1 shows link up, polarity resolved correctly')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -201,28 +230,21 @@ class TestCase_4(ATTestCase.TestCase):
 
 
 class TestCase_5(ATTestCase.TestCase):
-    testCaseDesc = 'Set link partner to `polarity mdi`. Connect straight-through cable. Ensure local port is `polarity auto`.'
+    testCaseDesc = 'Connect straight-through cable'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Set link partner to `polarity mdi`. Connect straight-through cable. Ensure local port is `polarity auto`. | verify: Run `show interface` and confirm `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).'
+    testCaseMethod = 'Connect straight-through cable | verify: show interface port1.0.1 shows link up'
 
     def main(self):
-        # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 200-263
+        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 144-206
         # STEP 5 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 5: Set link partner to `polarity mdi`. Connect straight-through cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdi')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 5: Connect straight-through cable')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {} status'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity mdi' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
-            self.passed('Run `show interface` and confirm `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
+        if 'connected' in output:
+            self.passed('show interface port1.0.1 shows link up')
         else:
-            self.failed('Run `show interface` and confirm `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
+            self.failed('show interface port1.0.1 shows link up')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -232,29 +254,21 @@ class TestCase_5(ATTestCase.TestCase):
 
 
 class TestCase_6(ATTestCase.TestCase):
-    testCaseDesc = 'Set link partner to `polarity mdix`. Connect straight-through cable. Ensure local port is `polarity auto`.'
+    testCaseDesc = 'Connect crossover cable'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Set link partner to `polarity mdix`. Connect straight-through cable. Ensure local port is `polarity auto`. | verify: Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).'
+    testCaseMethod = 'Connect crossover cable | verify: show interface port1.0.1 shows link up'
 
     def main(self):
-        # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 134-197
+        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
         # STEP 6 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 6: Set link partner to `polarity mdix`. Connect straight-through cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdix')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 6: Connect crossover cable')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {} status'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        status_output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA))
-        if ('down' in output or 'disconnected' in output) and 'connected' not in status_output:
-            self.passed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
+        if 'connected' in output:
+            self.passed('show interface port1.0.1 shows link up')
         else:
-            self.failed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
+            self.failed('show interface port1.0.1 shows link up')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -264,28 +278,21 @@ class TestCase_6(ATTestCase.TestCase):
 
 
 class TestCase_7(ATTestCase.TestCase):
-    testCaseDesc = 'Set link partner to `polarity mdix`. Connect crossover cable. Ensure local port is `polarity auto`.'
+    testCaseDesc = 'Connect crossover cable'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Set link partner to `polarity mdix`. Connect crossover cable. Ensure local port is `polarity auto`. | verify: Run `show interface` and confirm `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).'
+    testCaseMethod = 'Connect crossover cable | verify: show interface port1.0.1 shows link down'
 
     def main(self):
-        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 144-206
+        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 209-271
         # STEP 7 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 7: Set link partner to `polarity mdix`. Connect crossover cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdix')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 7: Connect crossover cable')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {} status'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity mdix' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
-            self.passed('Run `show interface` and confirm `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
+        if 'notconnect' in output:
+            self.passed('show interface port1.0.1 shows link down')
         else:
-            self.failed('Run `show interface` and confirm `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
+            self.failed('show interface port1.0.1 shows link down')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -295,29 +302,21 @@ class TestCase_7(ATTestCase.TestCase):
 
 
 class TestCase_8(ATTestCase.TestCase):
-    testCaseDesc = 'Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`.'
+    testCaseDesc = 'Connect straight-through cable'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`. | verify: Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).'
+    testCaseMethod = 'Connect straight-through cable | verify: show interface port1.0.1 shows link down'
 
     def main(self):
-        # AI vllm-fast 2026-07-27
+        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
         # STEP 8 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 8: Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.lp.mode('#')
-        self.testSet.lp.cmd('conf t')
-        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
-        self.testSet.lp.cmd('polarity mdi')
-        self.testSet.lp.cmd('exit')
-        self.testSet.lp.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 8: Connect straight-through cable')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {} status'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        status_output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA))
-        if ('down' in output or 'disconnected' in output) and 'connected' not in status_output:
-            self.passed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
+        if 'notconnect' in output:
+            self.passed('show interface port1.0.1 shows link down')
         else:
-            self.failed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
+            self.failed('show interface port1.0.1 shows link down')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -327,21 +326,21 @@ class TestCase_8(ATTestCase.TestCase):
 
 
 class TestCase_9(ATTestCase.TestCase):
-    testCaseDesc = 'Verify the port accurately reports the resolved polarity setting together with negotiated speed and duplex.'
+    testCaseDesc = 'Run show interface port1.0.1'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Verify the port accurately reports the resolved polarity setting together with negotiated speed and duplex. | verify: Run `show interface` and assert the output contains the exact negotiated values, e.g., `current polarity <mdi|mdix>`, `current duplex <full|half>`, `current speed <10|100|1000>`, matching the active link parameters.'
+    testCaseMethod = 'Run show interface port1.0.1 | verify: Output contains current polarity <mdi/mdix>, current duplex <full/half>, current speed <value>'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
+        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
         # STEP 9 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 9: Verify the port accurately reports the resolved polarity setting together with negotiated speed and duplex.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
+        self.log('STEP 9: Run show interface port1.0.1')
+        # AI vllm-fast 2026-07-27
+        output = self.dut.cmd('show interface {}'.format(self.dut.portA))
         self.log('OBSERVED: {}'.format(output))
         if 'current polarity' in output and 'current duplex' in output and 'current speed' in output:
-            self.passed('Run `show interface` and assert the output contains the exact negotiated values, e.g., `current polarity <mdi|mdix>`, `current duplex <full|half>`, `current speed <10|100|1000>`, matching the active link parameters.')
+            self.passed('Output contains current polarity <mdi/mdix>, current duplex <full/half>, current speed <value>')
         else:
-            self.failed('Run `show interface` and assert the output contains the exact negotiated values, e.g., `current polarity <mdi|mdix>`, `current duplex <full|half>`, `current speed <10|100|1000>`, matching the active link parameters.')
+            self.failed('Output contains current polarity <mdi/mdix>, current duplex <full/half>, current speed <value>')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -351,29 +350,26 @@ class TestCase_9(ATTestCase.TestCase):
 
 
 class TestCase_10(ATTestCase.TestCase):
-    testCaseDesc = 'Monitor link status stability across the active configuration.'
+    testCaseDesc = 'Poll show interface port1.0.1 status 5 times at 1s intervals'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Monitor link status stability across the active configuration. | verify: Poll `show interface status` over a 60-second interval and confirm the port column consistently shows `connected` without flapping or dropping to `disconnected`.'
+    testCaseMethod = 'Poll show interface port1.0.1 status 5 times at 1s intervals | verify: State remains connected/consistent across all polls, no link flaps'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
+        # AI vllm-fast 2026-07-27
         # STEP 10 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 10: Monitor link status stability across the active configuration.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        deadline = time.time() + 60
-        stable = True
+        self.log('STEP 10: Poll show interface port1.0.1 status 5 times at 1s intervals')
+        # AI vllm-fast 2026-07-27
         output = ''
-        while time.time() < deadline:
-            output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA), log=False)
-            if 'connected' not in output:
-                stable = False
-                break
-            time.sleep(2)
+        states = []
+        for i in range(5):
+            output = self.dut.cmd('show interface {} status'.format(self.dut.portA))
+            states.append('connected' if 'connected' in output else 'notconnect')
+            time.sleep(1)
         self.log('OBSERVED: {}'.format(output))
-        if stable:
-            self.passed('Poll `show interface status` over a 60-second interval and confirm the port column consistently shows `connected` without flapping or dropping to `disconnected`.')
+        if states.count(states[0]) == 5:
+            self.passed('State remains connected/consistent across all polls, no link flaps')
         else:
-            self.failed('Poll `show interface status` over a 60-second interval and confirm the port column consistently shows `connected` without flapping or dropping to `disconnected`.')
+            self.failed('State remains connected/consistent across all polls, no link flaps')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -383,37 +379,36 @@ class TestCase_10(ATTestCase.TestCase):
 
 
 class TestCase_11(ATTestCase.TestCase):
-    testCaseDesc = 'Prompt operator to hot-remove the supported pluggable.'
+    testCaseDesc = 'Prompt operator to remove pluggable from port1.0.1'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Prompt operator to hot-remove the supported pluggable. | verify: Poll `show interface status` until the port shows `disconnected` or `down`, and `show interface` confirms link is down.'
+    testCaseMethod = 'Prompt operator to remove pluggable from port1.0.1 | verify: show interface port1.0.1 shows link down'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
+        # AI vllm-fast 2026-07-27
         # STEP 11 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 11: Prompt operator to hot-remove the supported pluggable.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.log('STEP 11: Prompt operator to remove pluggable from port1.0.1')
         # PHYSICAL step: a human must act on the hardware, then the script waits for the
         # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
         # Port comes from the .setup topology (init_portlink), never a literal — the first
         # index is the chassis/slot and varies with the hardware.
         port = dut.portA
-        self.log('OPERATOR: Prompt operator to hot-remove the supported pluggable.')
+        self.log('OPERATOR: Prompt operator to remove pluggable from port1.0.1')
         # Poll show-interface status for the expected transition, prompting the operator.
-        want = 'disconnected'
+        want = 'notconnect'
         deadline = time.time() + 120
         output = ''
         while time.time() < deadline:
             output = dut.cmd('show interface {} status'.format(port), log=False)
             if want in output:
                 break
-            self.log('Waiting for operator: Prompt operator to hot-remove the supported pluggable.')
+            self.log('Waiting for operator: Prompt operator to remove pluggable from port1.0.1')
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
         if want in output:
-            self.passed('Poll `show interface status` until the port shows `disconnected` or `down`, and `show interface` confirms link is down.')
+            self.passed('show interface port1.0.1 shows link down')
         else:
-            self.failed('Poll `show interface status` until the port shows `disconnected` or `down`, and `show interface` confirms link is down.')
+            self.failed('show interface port1.0.1 shows link down')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -423,22 +418,21 @@ class TestCase_11(ATTestCase.TestCase):
 
 
 class TestCase_12(ATTestCase.TestCase):
-    testCaseDesc = 'Prompt operator to hot-insert the supported pluggable back into the port.'
+    testCaseDesc = 'Prompt operator to insert pluggable back into port1.0.1'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Prompt operator to hot-insert the supported pluggable back into the port. | verify: Poll `show interface status` until the port shows `connected`, and `show interface` confirms link is up with resolved polarity.'
+    testCaseMethod = 'Prompt operator to insert pluggable back into port1.0.1 | verify: show interface port1.0.1 shows link up, polarity resolved'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
+        # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 2134-2220
         # STEP 12 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 12: Prompt operator to hot-insert the supported pluggable back into the port.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.log('STEP 12: Prompt operator to insert pluggable back into port1.0.1')
         # PHYSICAL step: a human must act on the hardware, then the script waits for the
         # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
         # Port comes from the .setup topology (init_portlink), never a literal — the first
         # index is the chassis/slot and varies with the hardware.
         port = dut.portA
-        self.log('OPERATOR: Prompt operator to hot-insert the supported pluggable back into the port.')
+        self.log('OPERATOR: Prompt operator to insert pluggable back into port1.0.1')
         # Poll show-interface status for the expected transition, prompting the operator.
         want = 'connected'
         deadline = time.time() + 120
@@ -447,13 +441,13 @@ class TestCase_12(ATTestCase.TestCase):
             output = dut.cmd('show interface {} status'.format(port), log=False)
             if want in output:
                 break
-            self.log('Waiting for operator: Prompt operator to hot-insert the supported pluggable back into the port.')
+            self.log('Waiting for operator: Prompt operator to insert pluggable back into port1.0.1')
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
         if want in output:
-            self.passed('Poll `show interface status` until the port shows `connected`, and `show interface` confirms link is up with resolved polarity.')
+            self.passed('show interface port1.0.1 shows link up, polarity resolved')
         else:
-            self.failed('Poll `show interface status` until the port shows `connected`, and `show interface` confirms link is up with resolved polarity.')
+            self.failed('show interface port1.0.1 shows link up, polarity resolved')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -463,29 +457,23 @@ class TestCase_12(ATTestCase.TestCase):
 
 
 class TestCase_13(ATTestCase.TestCase):
-    testCaseDesc = 'Enable LPI on the port: `ecofriendly lpi`.'
+    testCaseDesc = 'Run ecofriendly lpi'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Enable LPI on the port: `ecofriendly lpi`. | verify: Run `show ecofriendly` and assert the `Configured` column for the port reads `lpi` and the `Status` column reads `lpi`, confirming LPI is active and stable.'
+    testCaseMethod = 'Run ecofriendly lpi | verify: show ecofriendly output shows Configured column as lpi for port1.0.1'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
+        # AI vllm-fast 2026-07-27
         # STEP 13 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 13: Enable LPI on the port: `ecofriendly lpi`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.dut.mode('#')
-        self.testSet.dut.cmd('conf t')
-        self.testSet.dut.cmd('int {}'.format(self.testSet.dut.portA))
-        self.testSet.dut.cmd('ecofriendly lpi')
-        self.testSet.dut.cmd('exit')
-        self.testSet.dut.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show ecofriendly')
+        self.log('STEP 13: Run ecofriendly lpi')
+        # AI vllm-fast 2026-07-27
+        self.dut.cmd('ecofriendly lpi')
+        output = self.dut.cmd('show ecofriendly')
         self.log('OBSERVED: {}'.format(output))
-        row = next((l for l in output.splitlines() if l.split()[:1] == [self.testSet.dut.portA]), None)
-        if row is not None and row.split()[-2:] == ['lpi', 'lpi']:
-            self.passed('Run `show ecofriendly` and assert the `Configured` column for the port reads `lpi` and the `Status` column reads `lpi`, confirming LPI is active and stable.')
+        row = next((l for l in output.splitlines() if l.split()[:1] == [self.dut.portA]), None)
+        if row is not None and row.split()[-2] == 'lpi':
+            self.passed('show ecofriendly output shows Configured column as lpi for port1.0.1')
         else:
-            self.failed('Run `show ecofriendly` and assert the `Configured` column for the port reads `lpi` and the `Status` column reads `lpi`, confirming LPI is active and stable.')
+            self.failed('show ecofriendly output shows Configured column as lpi for port1.0.1')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the
@@ -495,29 +483,23 @@ class TestCase_13(ATTestCase.TestCase):
 
 
 class TestCase_14(ATTestCase.TestCase):
-    testCaseDesc = 'Disable LPI on the port: `no ecofriendly lpi`.'
+    testCaseDesc = 'Run no ecofriendly lpi'
     testCaseRef = 'AWPTCM-T33234'
-    testCaseMethod = 'Disable LPI on the port: `no ecofriendly lpi`. | verify: Run `show ecofriendly` and assert the `Configured` column for the port reads `off`, confirming the feature was successfully disabled. Link remains stable.'
+    testCaseMethod = 'Run no ecofriendly lpi | verify: show ecofriendly output shows Configured column as off for port1.0.1; show interface port1.0.1 shows link remains up'
 
     def main(self):
-        # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
+        # AI vllm-fast 2026-07-27
         # STEP 14 — logging contract (mandatory, do not remove the three calls):
-        self.log('STEP 14: Disable LPI on the port: `no ecofriendly lpi`.')
-        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        self.testSet.dut.mode('#')
-        self.testSet.dut.cmd('conf t')
-        self.testSet.dut.cmd('int {}'.format(self.testSet.dut.portA))
-        self.testSet.dut.cmd('no ecofriendly lpi')
-        self.testSet.dut.cmd('exit')
-        self.testSet.dut.cmd('end')
-        time.sleep(5)
-        output = self.testSet.dut.cmd('show ecofriendly')
+        self.log('STEP 14: Run no ecofriendly lpi')
+        # AI vllm-fast 2026-07-27
+        self.dut.cmd('no ecofriendly lpi')
+        output = self.dut.cmd('show ecofriendly')
         self.log('OBSERVED: {}'.format(output))
-        row = next((l for l in output.splitlines() if l.split()[:1] == [self.testSet.dut.portA]), None)
-        if row is not None and row.split()[-2:] == ['off', 'off']:
-            self.passed('Run `show ecofriendly` and assert the `Configured` column for the port reads `off`, confirming the feature was successfully disabled. Link remains stable.')
+        row = next((l for l in output.splitlines() if l.split()[:1] == [self.dut.portA]), None)
+        if row is not None and row.split()[-2] == 'off':
+            self.passed('show ecofriendly output shows Configured column as off for port1.0.1; show interface port1.0.1 shows link remains up')
         else:
-            self.failed('Run `show ecofriendly` and assert the `Configured` column for the port reads `off`, confirming the feature was successfully disabled. Link remains stable.')
+            self.failed('show ecofriendly output shows Configured column as off for port1.0.1; show interface port1.0.1 shows link remains up')
 
     def tear_down(self):
         # Per-case cleanup: undo anything THIS step changed on the device(s) so the

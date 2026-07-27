@@ -342,3 +342,58 @@ def test_skeleton_assigns_self_before_any_attribute_use():
         code = line.split("#", 1)[0]
         assert "self." not in code, (
             f"init() uses `self.` before the assignment block (line {i}): {line.strip()!r}")
+
+
+def test_prompt_forbids_multi_column_positional_assertions():
+    """Assert ONE named column, never a tuple of adjacent columns.
+
+    Found by re-judging (2026-07-28): the generated code asserted
+    `row.split()[-2:] == ['off','off']` — copied faithfully from this prompt's own worked
+    example, which demonstrated exactly that. It is a FALSE RED on real hardware: the
+    `show ecofriendly` Status column legitimately reads `-` on a port with no peer
+    (`port1.0.7  off  -`) and lags Configured while negotiating (`port1.0.5  lpi  off`).
+    Both are normal, so the check fails after a command that actually worked.
+
+    The instruction said "assert Configured" while the EXAMPLE tested both columns; the
+    model followed the example. Guarding the example, not just the prose.
+    """
+    generate = (REPO / "ask-ck" / "CK-main" / "CK_server" / "templates" / "prompts"
+                / "pt_generate_script.jinja").read_text()
+    assert "split()[-2] == 'off'" in generate, "example must assert ONE column"
+    assert "[-2:] == ['off', 'off']" not in generate, (
+        "the prompt still demonstrates a two-column positional assertion")
+    assert "never a tuple of adjacent columns" in generate.lower() \
+        or "ONE named column" in generate
+
+
+def test_configured_column_check_survives_every_real_status_value():
+    """The four Configured/Status pairs that actually occur in harvested output."""
+    real_rows = ["port1.0.1    Port 1           lpi         lpi",
+                 "port1.0.5                     lpi         off",
+                 "port1.0.4                     off         off",
+                 "port1.0.7                     off         -"]
+    # after `ecofriendly lpi`: Configured must read lpi, whatever Status says
+    assert [r.split()[-2] == "lpi" for r in real_rows] == [True, True, False, False]
+    # after `no ecofriendly lpi`: Configured must read off, incl. the Status='-' row
+    assert [r.split()[-2] == "off" for r in real_rows] == [False, False, True, True]
+    # the OLD two-column check would have failed the normal post-disable state
+    assert real_rows[3].split()[-2:] != ["off", "off"], "regression: false RED is back"
+
+
+def test_port_literals_in_prose_are_not_flagged():
+    """`testCaseDesc` and passed()/failed() reasons echo the reviewer's step text, so a
+    port name there is DOCUMENTATION. Flagging it buried the real signal under ~30 false
+    positives per script, and an untrusted warning gets ignored wholesale."""
+    import re
+    prose_rx = re.compile(r"^\s*(?:testCaseDesc|testCaseMethod|testCaseRef)\s*=|"
+                          r"^\s*self\.(?:log|passed|failed)\s*\(")
+    prose = ["        testCaseDesc = 'Run show interface port1.0.1'",
+             "        self.log('STEP 1: configure port1.0.1 speed 1000')",
+             "        self.passed('show interface port1.0.1 shows link up')",
+             "        self.failed('show interface port1.0.1 shows link up')"]
+    real = ["        port = 'port1.0.1'",
+            "        dut.cmd('interface port1.0.1')"]
+    for line in prose:
+        assert prose_rx.match(line), f"should be treated as prose: {line.strip()!r}"
+    for line in real:
+        assert not prose_rx.match(line), f"should NOT be excused: {line.strip()!r}"

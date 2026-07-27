@@ -1488,8 +1488,19 @@ def _lint_generated(sess: PtSession) -> dict:
         # (it did exactly that on first run — a warning against its own advice).
         _port_literal_rx = re.compile(
             r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""")
+        # Descriptive text is not a device reference. `testCaseDesc`/`testCaseMethod` are
+        # echoed from the sequence step, and a passed()/failed() reason quotes the step's
+        # own verify wording — if the reviewer wrote "show interface port1.0.1" there, the
+        # port name is DOCUMENTATION. Flagging those buried the real signal under ~30 false
+        # positives per script (measured 2026-07-28), and a warning nobody can trust gets
+        # ignored. Only lines that actually drive the device or bind a port matter.
+        _prose_rx = re.compile(
+            r"^\s*(?:testCaseDesc|testCaseMethod|testCaseRef)\s*=|"
+            r"^\s*self\.(?:log|passed|failed)\s*\(")
         for _i, _line in enumerate(code.splitlines(), 1):
             if _line.lstrip().startswith("#"):
+                continue
+            if _prose_rx.match(_line):
                 continue
             # Find literals first, THEN drop trailing comments — splitting on '#' first
             # would corrupt a string that legitimately contains one.
