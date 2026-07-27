@@ -1695,4 +1695,21 @@ refused, localhost 200, SKIP fires by default and is still overridable with `?fo
 - **The repo gate is currently red** from `tests/test_cli_docs.py` — untracked in-progress CLI-docs
   work from another stream (`tool/harvest_cli_docs.py`, `tool/cli_lookup.py`), failing independently
   of everything above. My layers: 190 pytest / 72 Vitest green.
+
+  > **✅ CORRECTION — re-verified at session end: the gate is GREEN, ignore the line above.**
+  > The other stream fixed those two failures while the doc sync was being written.
+  > `./tool/run_tests.sh` → guards OK, **208 pytest** (190 mine + 18 theirs), 72 Vitest, ALL GREEN.
+  > Terrence asked for this note specifically so a future reader is not led astray by the stale
+  > claim; the commit message on `4b54376` repeats the same stale statement and is likewise wrong
+  > (left as-is — a commit message is a point-in-time record).
+  >
+  > What was still accurate: their CLI-docs work is **uncommitted** — `pytest_create.py`,
+  > `pt_extract_sequence.jinja`, `pt_generate_script.jinja`, `tool/cli_lookup.py`,
+  > `tool/harvest_cli_docs.py`, `tests/test_cli_docs.py` (plus `ck.db` session churn).
+  >
+  > **Why it happened, and the rule it implies:** the claim came from a check ~40 min earlier and
+  > was restated in a close-out summary without re-running. This tree is shared with an active
+  > parallel stream, so **gate status and working-tree contents have a shelf life of minutes** —
+  > re-run `./tool/run_tests.sh` and `git status` before acting on either, rather than trusting a
+  > statement made earlier in the same session.
 - Still no CI runner (`.github/workflows`); the gate remains run-before-commit discipline.

@@ -67,6 +67,17 @@ found, then take the two accepted-risk security items to a decision. All committ
 - **Invariants:** `guard_db_only` + framework-RO green, `/health` 200, no corpus/JSON/rebuild
   changes. Note the repo gate is currently red from **`tests/test_cli_docs.py`** — untracked
   in-progress CLI-docs work by another stream, failing independently of everything above.
+  > **✅ CORRECTION (same session, re-verified after the doc sync): the gate is GREEN.** The other
+  > stream fixed those two failures while this sync was being written. `./tool/run_tests.sh` →
+  > guards OK, **208 pytest** (190 mine + 18 theirs), 72 Vitest, ALL GREEN. The "currently red"
+  > line above was a stale observation restated without re-checking — it was true when first seen
+  > and wrong within the hour. Their CLI-docs work (`pytest_create.py`, two prompt templates,
+  > `tool/cli_lookup.py`, `tool/harvest_cli_docs.py`, `tests/test_cli_docs.py`) is still
+  > **uncommitted** — that half was accurate.
+  >
+  > **Lesson for this tree:** it is shared with an active parallel stream, so any claim about gate
+  > status or working-tree contents has a shelf life of minutes. Re-run `./tool/run_tests.sh`
+  > before acting on one — do not trust a status statement from earlier in a session.
 
 ## Latest session (2026-07-27f) — LLM-button UX feedback + a 3-layer test suite
 
