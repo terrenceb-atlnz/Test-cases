@@ -1,9 +1,10 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28): commit 1 of 11 DONE + pushed.** A1 shipped as `4578030`, with the
-> pre-existing `pt_cases` blocker split into `0c06586`. Commits 2-11 are still planned. Read
-> *What A1 taught* below before starting commit 2 — one of this plan's core assumptions was
-> falsified and it changes how the rest should be approached.
+> **Status (2026-07-28): commits 1-2 of 11 DONE.** A1 shipped as `4578030` (with the
+> pre-existing `pt_cases` blocker split into `0c06586`); A2 followed. **Next: A3.** Read
+> *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
+> by measurement, and it changes how the consolidation commits (7-9) should be approached.
+> A2 added two more corrections of its own; see its section.
 >
 > **Original status line, kept for context:** PLANNED, nothing implemented. Written 2026-07-28 from a full read of all
 > 2439 lines; revised the same day after the "all data steps must load identically"
@@ -384,7 +385,26 @@ is being deleted, but list it anyway — it costs nothing and pins the name agai
 verify with checklist items 1-3 below. **A1b (the SQL prefilter) is removed from the plan** —
 `db.search_zephyr` already *is* the FTS prefilter it was going to build.
 
-### A2. Stop reloading data per request — `wizard.py:402-404`
+### A2. Stop reloading data per request ✅ SHIPPED
+
+> **Done.** `get_data` now serves `request.app.state.app_data`, matching
+> `pytest_create._data`. Two deviations from the plan below, both deliberate:
+> - **11 `Depends(get_data)` sites, not 10** — A1's `step_candidates` added one.
+> - **No `load_all_data()` fallback.** The plan suggested `or load_all_data()`; the house
+>   pattern (`pytest_create._data`) instead raises **503**, and that is better: a silent
+>   fallback would restore the per-request cost invisibly *and* mask a boot failure. Verified
+>   safe — `conftest.py:32` uses the `with TestClient(...)` form, so startup fires in tests.
+>
+> Also removed the now-dead `from data import load_all_data` import.
+>
+> Verified rather than assumed: `app_data` is one shared object across requests; **5 requests
+> emit 0 chars of stdout** (was 3 lines each — the "Loading lightweight references…" noise);
+> a missing `app_data` yields a clean `503 Server data not loaded yet.`, not a 500; live
+> reloaded server serves all four sampled endpoints 200. +7 tests
+> (`tests/test_app_data_dependency.py`), **mutation-checked**: reverting to a per-request
+> rebuild with a silent fallback fails 4 of them.
+
+#### Original plan (retained for rationale) — `wizard.py:402-404`
 
 ```python
 def get_data(request: Request):
@@ -478,8 +498,12 @@ doing all the commits suggested in A and B. Improving this code flow is importan
   stays green on its own.
 1. **✅ `4578030` `perf(generator): defer all three data steps off case load`** — A1. Came in at
    10 files / +972-261, well beyond the "delete the scan" estimate; see *What A1 taught*.
-2. **← NEXT.** `perf(wizard): serve app.state.app_data instead of reloading per request` — A2.
-3. `fix(wizard): confirm_step silently dropped malformed selections` — A3.
+2. **✅ `perf(wizard): serve app.state.app_data instead of reloading per request`** — A2.
+3. **← NEXT.** `fix(wizard): confirm_step silently dropped malformed selections` — A3.
+   Targets `wizard.py:1459/1468/1476` (three `except Exception: pass` blocks that drop the
+   whole selection list, then set `confirmed = True` and report `can_synthesize: true`).
+   Collapse the three near-identical step branches while there; the only real differences are
+   step 3's `art_string` handling and step 1's `none_selected`.
 4. `chore(wizard): logging, dead code, pydantic v2` — A5 + the non-`utcnow` half of A4.
 5. `fix(wizard): tz-aware timestamps` — A4's `utcnow` half, **its own commit**: `ck.db` holds
    naive datetimes and mixed naive/aware comparison raises `TypeError`.
@@ -609,7 +633,7 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 2-11 remain.** Next is **A2**. Read *What A1 taught* first — one of this plan's
+**Commits 3-11 remain.** Next is **A3**. Read *What A1 taught* first — one of this plan's
 stated expectations was falsified by measurement, and it changes how the consolidation commits
 (7-9 especially) should be approached.
 

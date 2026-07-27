@@ -10,7 +10,7 @@ Per PROGRESS.md (High Priority #1) and SERVER-README.md:
 """
 
 import time
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
 from datetime import datetime
@@ -23,7 +23,6 @@ import subprocess
 
 from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig, safe_session_dict, redact_llm_config
 from html_sanitize import sanitize_objective_html
-from data import load_all_data
 import db
 from llm import (
     synthesize_objectives_and_steps,
@@ -399,9 +398,34 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
     return changed
 
 
-def get_data():
-    # Would be from app.state in a fuller implementation
-    return load_all_data()
+def get_data(request: Request):
+    """The shared corpus references, built ONCE at startup (main.py startup_event).
+
+    This used to be `return load_all_data()`, with the comment "Would be from
+    app.state in a fuller implementation" — so every one of the 11 endpoints that
+    depends on it rebuilt the whole reference set per request: re-reading
+    zephyr_master, all candidates, decisions and two json_docs out of ck.db, plus a
+    startup_check() that counts every corpus. Measured 47ms (70ms on py3.10) of
+    redundant work per request, and because `get_data` is sync FastAPI ran it in a
+    threadpool worker, so it burned one of those too.
+
+    Two quieter costs beyond the latency: load_all_data() prints three lines to
+    stdout on every call (data.py:57,88-93), which is where the "Loading lightweight
+    references…" noise during ordinary use came from; and two dependencies resolved
+    within one request could see two different snapshots of the corpus.
+
+    main.py:132 already assigned this to app.state.app_data at startup and nothing
+    read it — pytest_create has always done it correctly (see _data there, whose
+    fail-loud 503 this mirrors). Deliberately NOT falling back to load_all_data():
+    that would silently restore the per-request cost and mask a boot problem instead
+    of reporting it. Safe because startup always runs in production, and the test
+    suite drives the app through `with TestClient(...)` (tests/conftest.py:32), the
+    context-manager form that fires startup/shutdown events.
+    """
+    data = getattr(request.app.state, "app_data", None)
+    if not data:
+        raise HTTPException(503, "Server data not loaded yet.")
+    return data
 
 
 # --- Query tokenization ------------------------------------------------------
