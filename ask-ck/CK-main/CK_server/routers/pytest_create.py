@@ -259,6 +259,35 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
         sess.step8 = {**sess.step8, "validated": False}
 
 
+# The internal `stepN` keys and the numbers the UI shows DIVERGED when the old step 4
+# (Fit Decision) was folded away: internal step5 is "4. Fragments" on screen and internal
+# step6 is "5. Generate". Error messages must speak the UI's language — quoting the raw
+# key told a user blocked on Fragments that "step5 must be confirmed", and step5 is the
+# label the UI puts on Generate, i.e. the very thing they were trying to run.
+_STEP_UI_LABEL = {
+    "step2": "2. Sequence",
+    "step3": "3. Script Search",
+    # internal step4 (Fit Decision) has no panel of its own any more — it is folded into
+    # Fragments. It stays reachable via confirm_step/{key}/4, so give it a name that
+    # matches where a user would actually look for it rather than a bare number.
+    "step4": "4. Fragments (fit decision)",
+    "step5": "4. Fragments",
+    "step6": "5. Generate",
+    "step7": "6. Run",
+    "step8": "7. Validate",
+}
+
+
+def _step_label(step: object) -> str:
+    """UI-facing name for an internal step key or number ('step5' / 5 -> '4. Fragments').
+
+    Falls back to the raw value so an unmapped step degrades to today's behaviour
+    instead of raising inside an error path.
+    """
+    key = step if isinstance(step, str) and step.startswith("step") else f"step{step}"
+    return _STEP_UI_LABEL.get(key, str(step))
+
+
 _LIVE_RUN_STATUSES = ("queued", "connecting", "uploading", "running")
 
 
@@ -303,7 +332,8 @@ def _collapse_step_text(step: dict) -> dict:
 
 def _require_confirmed(sess: PtSession, step_key: str, what: str) -> None:
     if not (getattr(sess, step_key) or {}).get("confirmed"):
-        raise HTTPException(409, f"{what} requires {step_key} to be confirmed first.")
+        raise HTTPException(
+            409, f"{what} requires '{_step_label(step_key)}' to be confirmed first.")
 
 
 def _selected_script_ids(sess: PtSession) -> List[str]:
@@ -1437,10 +1467,10 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     if required_field in ("matches", "fragments"):
         ran = bool(content.get("provenance")) or content.get(required_field) is not None
         if not ran:
-            raise HTTPException(409, f"Nothing to confirm yet for step {step} "
+            raise HTTPException(409, f"Nothing to confirm yet for '{_step_label(step)}' "
                                      f"(missing {required_field}).")
     elif not content.get(required_field):
-        raise HTTPException(409, f"Nothing to confirm yet for step {step} "
+        raise HTTPException(409, f"Nothing to confirm yet for '{_step_label(step)}' "
                                  f"(missing {required_field}).")
     _confirm(sess, step_key)
     _invalidate_from(sess, step)
