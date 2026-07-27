@@ -238,9 +238,14 @@ def test_skeleton_does_not_import_a_module_removed_from_python_3_12():
     src = SKELETON.read_text()
     assert "from distutils" not in src and "import distutils" not in src, \
         "distutils is back — removed in Python 3.12, and the testbox runs 3.13"
-    # a comment may still explain WHY it was avoided
-    assert "yesNo" in src and "strtobool" not in src.replace(
-        "# Hand-rolled rather than distutils.strtobool: that was removed in Python 3.12.", "")
+    assert "yesNo" in src, "the manual-step helper is gone"
+    # Prose (a comment or the helper's own docstring) may NAME distutils to explain why it
+    # is avoided; what must not exist is an IMPORT. Match import statements only — the
+    # earlier word-level check flagged the very explanation that keeps the fix understood,
+    # the same mistake the port lint made against its own advice comment.
+    for line in src.splitlines():
+        assert not re.match(r"\s*(?:from\s+distutils|import\s+distutils)\b", line), \
+            f"distutils imported in: {line.strip()!r}"
 
 
 def test_removed_stdlib_imports_are_lint_errors():

@@ -49,23 +49,52 @@
 
 import sys
 import time
+{%- if has_manual %}
+import select
+{%- endif %}
 from framework import ATTestSet, ATTestCase
 {%- for imp in extra_imports %}
 {{ imp }}
 {%- endfor %}
 
 {% if has_manual %}
-def yesNo(question):
-    # Operator Y/N confirmation for MANUAL steps (SVT 3009 pattern).
-    # Hand-rolled rather than distutils.strtobool: that was removed in Python 3.12.
-    sys.stdout.write('%s [y/n]\n' % question)
-    while True:
-        answer = input().strip().lower()
+# How long a MANUAL step waits for the operator before failing that step. Must stay well
+# under the runner's own timeout so the suite still reports the cases that did run.
+OPERATOR_TIMEOUT_S = 120
+
+
+def yesNo(question, timeout=OPERATOR_TIMEOUT_S):
+    """Operator Y/N confirmation for MANUAL steps (SVT 3009 pattern).
+
+    BOUNDED on purpose. An unattended run has no operator, and an unbounded input() would
+    block until the runner's global timeout — at which point the runner discards the whole
+    run, including the PASS/FAIL results of every case that already completed. Timing out
+    here fails just this step and lets the suite finish.
+
+    Hand-rolled rather than distutils.strtobool: that module was removed in Python 3.12.
+    """
+    sys.stdout.write('%s [y/n] ' % question)
+    sys.stdout.flush()
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if not select.select([sys.stdin], [], [], 5)[0]:
+            continue
+        try:
+            answer = sys.stdin.readline()
+        except (EOFError, OSError):
+            break                      # stdin closed: no operator is coming
+        if not answer:
+            break                      # EOF
+        answer = answer.strip().lower()
         if answer in ('y', 'yes'):
             return True
         if answer in ('n', 'no'):
             return False
         sys.stdout.write("Please respond with 'y' or 'n'.\n")
+        sys.stdout.flush()
+    sys.stdout.write('\nNo operator response within %ds - failing this step.\n' % timeout)
+    sys.stdout.flush()
+    return False
 
 {% endif %}
 class TestSet(ATTestSet.TestSet):

@@ -460,14 +460,33 @@ class RunManager:
             _, out, err = client.exec_command(cmd, timeout=timeout_s, get_pty=True)
             deadline = time.time() + timeout_s
             chunks = []
+            # On timeout, KEEP what the run already produced (2026-07-28). Raising here
+            # used to discard `chunks` entirely, so a suite that had completed 13 of 14
+            # TestCases and then blocked reported nothing at all — no PASS/FAIL, no stdout.
+            # The most likely cause of such a block is a script waiting on an operator with
+            # nobody there, which is precisely when the completed results matter most.
+            timed_out = False
             while not out.channel.exit_status_ready():
                 if time.time() > deadline:
-                    raise TimeoutError(f"run exceeded {timeout_s}s")
+                    timed_out = True
+                    break
                 while out.channel.recv_ready():
                     chunks.append(out.channel.recv(65536).decode(errors="replace"))
                 time.sleep(2)
             while out.channel.recv_ready():
                 chunks.append(out.channel.recv(65536).decode(errors="replace"))
+            if timed_out:
+                stdout_text = "".join(chunks)
+                local_run_dir.mkdir(parents=True, exist_ok=True)
+                (local_run_dir / "stdout.txt").write_text(stdout_text, encoding="utf-8")
+                try:
+                    out.channel.close()
+                except Exception:
+                    pass
+                raise TimeoutError(
+                    f"run exceeded {timeout_s}s — partial output preserved "
+                    f"({len(stdout_text)} chars in stdout.txt). A script blocked on an "
+                    f"operator prompt with no operator present is the usual cause.")
             exit_code = out.channel.recv_exit_status()
             stdout_text = "".join(chunks)
 
