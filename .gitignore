@@ -79,3 +79,9 @@ ask-ck/var/*
 !ask-ck/var/models/
 ask-ck/var/ck.db-wal
 ask-ck/var/ck.db-shm
+
+# Playwright E2E (ask-ck/ck-facelift/PLAN-playwright-e2e.md)
+node_modules/
+e2e/.report/
+e2e/.artifacts/
+test-results/
