@@ -212,7 +212,78 @@ than add a pattern.
 Individually testable, no file *moves* (A1 does delete ~160 lines and touches the frontend).
 **Land these before touching structure** so Part B stays a pure no-behaviour-change refactor.
 
-### A1. Defer all three data steps off case load (**user decision, 2026-07-28**)
+### A1. Defer all three data steps off case load ✅ WRITTEN 2026-07-28 (test gate pending)
+
+> **Implemented, not yet gated.** Code is written across `wizard.py`, `db.py`,
+> `static/js/{generator,nav}.js`, `static/index.html`, and
+> `tests/test_event_loop_blocking_batch_b.py`. The pytest gate was deliberately NOT run
+> — a parallel stream was mid-work running `pytest tests/test_prompt_examples.py` and
+> had `ck.db` modified; concurrent runs write throwaway session keys and trip the known
+> stale-connection bug. **Run the gate before committing.**
+>
+> **Result: step 2 went 2708 ms → 175 ms mean (15×), and all three steps together are
+> ~235 ms — none of it at case load, none of it on the event loop.**
+>
+> | | before | after |
+> |---|---|---|
+> | step 1 TestLink | ~0 ms (at load) | 16 ms (on open) |
+> | step 2 Zephyr | **2708 ms, event loop, every load** | 175 ms mean / 716 ms max (on open) |
+> | step 3 ATP | ~440 ms (at load, hybrid) | 44 ms (on open, keyword) |
+>
+> Step 2 cold-start is 1693 ms on the broadest query (cold `zephyr_fts` page cache),
+> settling to ~280 ms; the frontend memoizes per `(case, step)`, so that is paid at most
+> once per case per step and never on load.
+>
+> **Three things were learned that the plan had wrong — all now fixed in the code:**
+>
+> 1. **A naive swap REGRESSED the flagship case.** For `AWPTCM-T33233 "Port - Auto
+>    Negotiation"`, both "port" and "auto" are in `_ZREF_GENERIC_TOKENS`, so `rank_words`
+>    collapsed to `["negotiation"]`, all 12 matches scored an identical **0.7683**, and
+>    ordering fell back to key order. The best cross-ref (`interface: port status, speed,
+>    duplex and negotiation`) landed **9th and fell out of the top 8** — replaced by
+>    *"Test modem support. TPS says Japan only"* and *"ROCO-22 Switch containers to the
+>    upstream kernel"*. The retired scorer ranked it **1st**, via `area_support`:
+>    `12.0 (negotiation) + 8.0 (area "port") + 0.8 = 20.3` vs `12.8` for the rest.
+>    **So the plan's "expect an improvement, not a regression to defend" was wrong.**
+>    Fix — the load-bearing heuristic the plan anticipated, ported to shared code as it
+>    prescribed: `db._relevance_score` gained an **opt-in `area_words` third tier**
+>    (`db._AREA_WORDS`), contributing at 0.35 weight and **only when specific overlap is
+>    thin (`len(matched) <= 1`)** — precisely when results degenerate into a big tie.
+>    It defaults to `()`, and only `search_zephyr` opts in, so `search_testlink` /
+>    `search_atp` / `search_scripts` are **provably bit-for-bit unchanged** (verified:
+>    1 call site, and `_relevance_score(...) == _relevance_score(..., area_words=())`).
+>    `search_zephyr_hybrid` delegates to `search_zephyr`, so both modes agree.
+>    Result: the good ref is **rank 1 at 0.8103**, cleanly above the 0.7683 tie.
+>
+> 2. **Hybrid is the wrong default for a panel-open view.** `_search_zephyr_external`
+>    defaults to hybrid when `db.HAS_VEC`, which runs sentence-transformer inference.
+>    Measured warm: step 2 **763 ms mean / 2692 ms max** — *no better than the 2.7 s scan
+>    being deleted* — plus a ~11.8 s cold model construction that would land on a plain
+>    panel open. Keyword is 8× faster for step 2, 20× for step 3. So the step builders
+>    pin `_STEP_SEARCH_MODE = "keyword"`; hybrid stays the default for `/search_zephyr`
+>    and `/search_atp`, i.e. for a query the user actually typed. (This also changed
+>    step 3, which was implicitly hybrid at load — in scope, since uniformity is the goal.)
+>
+> 3. **Two query-construction bugs, both mine.**
+>    - *Process prose leaked into ranking.* `_build_zephyr_query` fed the decision
+>      rationale in raw, so `"Auto/Auto negotiation; Zephyr says covered by auto-test"`
+>      injected `zephyr says covered` and FTS ranked *"TPS **says** Japan only"* as a top
+>      cross-ref. But the rationale must NOT be dropped wholesale — it is what moves the
+>      QoS case's best ref from rank 20 → 4 ("cos map queues") and the DHCPv6 case's from
+>      143 → 3 ("range"). Fix: `_DECISION_META_TOKENS` strips only the coverage-status
+>      vocabulary (`zephyr/says/covered/suite/tbd/…`), keeping the feature words.
+>    - *Double filtering broke the new area tier.* The builder stripped
+>      `_ZREF_GENERIC_TOKENS` before db saw the query, so "port" never arrived and the
+>      area tier could not fire. Fix + the rule going forward: **wizard decides which
+>      TEXT is relevant; db decides how to WEIGHT it.** The builder no longer pre-strips
+>      generics.
+>
+> **Verified end state:** 4/4 hand-picked best cross-refs in top-8 (was 2/4 mid-fix);
+> tie concentration **81% → 59%**; all error paths correct (400 on step 0/4/99, 404 on
+> unknown key); `load_case` returns only `{session, case_title, message}`.
+> Baselines: `/tmp/claude-1971/step2-ranking-{baseline,after}.json`.
+
+#### Original plan (retained for rationale)
 
 > **Directive:** all three data steps must behave identically at startup — no expensive work
 > at case load; each step fetches its own data when the user navigates to it. *"Unless there's

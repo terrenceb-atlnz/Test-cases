@@ -404,9 +404,18 @@ def get_data():
     return load_all_data()
 
 
-# --- Step 2 Zephyr relevance scoring -----------------------------------------
-# Omit all "current Cases list" keys (candidates with data). Rank external slim_index
-# entries by title/folder/label keyword overlap so Step 2 is not first-N noise.
+# --- Query tokenization ------------------------------------------------------
+# Used to build the keyword query for a step's candidate retrieval (see
+# _build_step_query): drop words that carry no discriminating signal so the FTS
+# search ranks on the case's actual feature nouns.
+#
+# NOTE (debt, Part B): this set is duplicated verbatim in db.py:123, which is the
+# copy db.search_* actually scores with. Two copies is a drift risk — Part B moves
+# the survivors here into wizard/descriptions.py and consumes db's single copy.
+# The bespoke Step-2 scorer that used to live below (_score_zephyr_candidate +
+# _ZREF_WEAK_ALONE, ~120 lines) is gone: it hand-rolled a slower, weaker
+# reimplementation of db.search_zephyr, which is FTS-indexed and scores with the
+# shared db._relevance_score. See PLAN-backend-module-split.md A1.
 
 _ZREF_GENERIC_TOKENS = frozenset({
     "port", "ports", "ipv4", "ipv6", "ip", "switch", "switches", "interface",
@@ -426,13 +435,6 @@ _ZREF_GENERIC_TOKENS = frozenset({
     "interop", "exploratory", "testing", "platform-test", "functional",
     "field", "info", "error", "message", "generated", "whenever", "address",
 })
-
-# Alone these are too noisy for Step 2 ranking (need a companion specific token).
-_ZREF_WEAK_ALONE = frozenset({
-    "log", "logging", "auth", "qos", "acl", "snmp", "mib", "trap", "vlan",
-    "dhcp", "arp", "bgp", "ospf", "stp", "lacp", "poe",
-})
-
 
 def _normalize_zephyr_text(s: str) -> str:
     s = s or ""
@@ -457,102 +459,6 @@ def _zephyr_tokens(s: str) -> List[str]:
 
 def _specific_tokens(toks) -> set:
     return {t for t in toks if t not in _ZREF_GENERIC_TOKENS}
-
-
-def _score_zephyr_candidate(primary: dict, z: dict, extra_tokens: set) -> Tuple[float, str]:
-    """Return (score, reason_string). Higher is more relevant for Step 2 cross-ref."""
-    p_title = primary.get("title") or ""
-    p_folder = primary.get("folder") or ""
-    p_labels = set(primary.get("labels") or [])
-    z_title = z.get("title") or ""
-    z_folder = z.get("folder") or ""
-    z_labels = set(z.get("labels") or [])
-
-    p_leaf = p_folder.rstrip("/").split("/")[-1] if p_folder else ""
-    p_toks = set(_zephyr_tokens(p_title)) | set(_zephyr_tokens(p_leaf)) | set(extra_tokens or [])
-    z_toks = set(_zephyr_tokens(z_title)) | set(_zephyr_tokens(z_folder))
-    p_spec = _specific_tokens(p_toks)
-    z_spec = _specific_tokens(z_toks)
-
-    score = 0.0
-    reasons: List[str] = []
-
-    inter_spec = p_spec & z_spec
-    if inter_spec:
-        score += 12.0 * len(inter_spec)
-        reasons.append("keywords: " + ", ".join(sorted(inter_spec)[:6]))
-        if len(inter_spec) >= 2:
-            score += 14.0  # multi-keyword feature match (preferred)
-
-    z_blob = _normalize_zephyr_text(z_title) + " " + _normalize_zephyr_text(z_folder)
-    for t in sorted(p_spec, key=len, reverse=True):
-        if len(t) >= 4 and t in z_blob and t not in inter_spec:
-            score += 6.0
-            reasons.append(f"match '{t}'")
-
-    # Prefer same / related folder leaf only when leaf itself is non-generic
-    z_leaf = z_folder.rstrip("/").split("/")[-1] if z_folder else ""
-    p_leaf_spec = _specific_tokens(_zephyr_tokens(p_leaf))
-    if p_leaf and p_leaf == z_leaf and p_leaf_spec:
-        score += 10.0
-        reasons.append(f"same area '{p_leaf}'")
-    elif p_leaf_spec and (p_leaf_spec & set(_zephyr_tokens(z_folder))):
-        score += 4.0
-        reasons.append("related folder")
-
-    lab = p_labels & z_labels
-    if lab:
-        # Shared process labels like Functional are weak; New_Platform_* is stronger
-        strong = {x for x in lab if "platform" in x.lower() or "new_" in x.lower()}
-        if strong:
-            score += 6.0 * len(strong)
-            reasons.append("shared label")
-        elif score > 0:
-            score += 1.0
-
-    # Soft quality boosts only if already relevant
-    if score > 0:
-        if z.get("has_objective"):
-            score += 0.5
-        if (z.get("num_steps") or 0) > 0:
-            score += 0.3
-
-    # Drop pure noise: require at least one specific signal
-    if not inter_spec and score < 10:
-        return 0.0, ""
-
-    # Single weak token (e.g. only "log") is usually noise unless reinforced by
-    # another primary token (including semi-generic area words like ipv6/ipv4/port).
-    area_support = {"ipv4", "ipv6", "port", "switch", "poe", "stp", "vlan"}
-    support_hits = (p_toks & z_toks) & area_support
-    if len(inter_spec) == 1:
-        only = next(iter(inter_spec))
-        if only in _ZREF_WEAK_ALONE and not support_hits and score < 28:
-            return 0.0, ""
-        if support_hits:
-            score += 8.0
-            reasons.append("area: " + ", ".join(sorted(support_hits)[:3]))
-
-    # If the *title/folder* has multiple specific tokens, lightly prefer multi-hits.
-    # (Do not over-penalize — single strong features like "qos" + area still count.)
-    title_spec = _specific_tokens(
-        set(_zephyr_tokens(p_title)) | set(_zephyr_tokens(p_leaf))
-    )
-    if len(title_spec) >= 2 and len(inter_spec) < 2 and score < 24:
-        score *= 0.7
-
-    # Hard anchors: feature nouns that must appear when present on the primary title.
-    # Prevents e.g. ARP Logging matching generic 802.1X "Authentication Log" cases.
-    hard_anchors = title_spec & {
-        "arp", "dhcp", "mdi", "mdix", "bgp", "ospf", "poe", "epsr",
-        "rstp", "mstp", "snmp", "mib", "vrf", "nat", "igmp", "mlag",
-        "vxlan", "probe", "stp",
-    }
-    if hard_anchors and not (hard_anchors & (z_spec | z_toks)):
-        return 0.0, ""
-
-    reason = "; ".join(reasons[:3]) if reasons else "related"
-    return score, reason
 
 
 def _build_testlink_description(item: dict, title: str = "") -> str:
@@ -682,84 +588,25 @@ def _enrich_zephyr_rows(
     return out
 
 
-def _select_related_zephyr_refs(
-    key: str,
-    primary_case: dict,
-    sess: WizardSession,
-    data: dict,
-    limit: int = 8,
-) -> List[Dict[str, Any]]:
-    """Pick external Zephyr cross-refs ranked by relevance (not first-N of slim_index).
-
-    Omits the loaded key and every key in the current Cases list (candidates with data).
-    Enriches only the top-ranked hits (full description / steps) for UI review.
-    """
-    current_cases = {
-        c["key"] for c in data.get("candidates", []) or []
-        if c.get("candidates")
-    }
-    zm = data.get("zephyr_master", {}) or {}
-    slim = db.iter_zephyr_slim()   # Commit B: stream slim rows from ck.db (was 45k-item RAM list)
-
-    extra: set = set()
-    # Prefer decision *rationale* (w), not match ids (m) which are AWP-#### noise for scoring
-    if sess and sess.primary:
-        extra |= set(_zephyr_tokens(str(sess.primary.get("w") or "")))
-    dec = (data.get("decisions") or {}).get(key) or {}
-    extra |= set(_zephyr_tokens(str(dec.get("w") or "")))
-    # Drop pure ids / numeric fragments from extras
-    extra = {t for t in extra if not t.isdigit() and not t.startswith("awp")}
-
-    scored: List[tuple] = []
-    for z in slim:
-        rel_key = z.get("key")
-        if not rel_key or rel_key == key or rel_key in current_cases:
-            continue
-        sc, reason = _score_zephyr_candidate(primary_case or {}, z, extra)
-        if sc >= 8.0:
-            scored.append((sc, z, reason))
-
-    scored.sort(key=lambda x: (-x[0], x[1].get("title") or ""))
-
-    # Diversify: skip near-duplicate titles (same stem) so UI shows variety
-    seen_stems: set = set()
-    top: List[tuple] = []
-    for sc, z, reason in scored:
-        stem = re.sub(r"\s+", " ", _normalize_zephyr_text(z.get("title") or ""))[:48]
-        if stem in seen_stems:
-            continue
-        seen_stems.add(stem)
-        top.append((sc, z, reason))
-        if len(top) >= limit:
-            break
-
-    # Single-pass enrich only for top keys missing from zephyr_master
-    need_full = [z["key"] for _, z, _ in top if z["key"] not in zm]
-    full_map = _get_full_zephyr_cases_batch(need_full) if need_full else {}
-
-    zrefs: List[Dict[str, Any]] = []
-    for sc, z, reason in top:
-        rel_key = z["key"]
-        f = z.get("folder", "") or ""
-        t = z.get("title", "") or ""
-        full = zm.get(rel_key) or full_map.get(rel_key) or {}
-        description = _build_zephyr_case_description(z, full, title_fallback=t)
-
-        zrefs.append({
-            "key": rel_key,
-            "title": t,
-            "folder": f,
-            "score": round(sc, 2),
-            "description": description,
-            "justification": reason or "Related Zephyr case",
-        })
-    return zrefs
-
-
 @router.post("/load_case/{key}")
 async def load_case(key: str, data=Depends(get_data)):
-    """Load or restore a case. Enriches response with real TestLink candidates + Zephyr refs
-    so that the UI tables can be populated from real data.
+    """Load or restore a case: session state only, no per-step candidate retrieval.
+
+    Loading is deliberately CHEAP. Each of the three review steps fetches its own
+    candidates when the user navigates to it (GET /step_candidates/{key}/{step}) —
+    see _STEP_BUILDERS below. This has bitten the tool twice, both times because
+    load pre-computed data for a panel the user had not opened yet:
+
+      * Step 3 (ATPyLib) ran a blocking `analyze_atp_coverage` LLM call, adding ~60s
+        to EVERY load, for a ranking the step's own "Suggest with LLM" button
+        redid on demand anyway.
+      * Step 2 (Zephyr) scanned all ~45k slim rows through a bespoke Python scorer:
+        a measured 2.7s (3.8s on py3.10) bare on the event loop, so it froze every
+        concurrent request — including the agent-bridge long-poll that claude_agent
+        mode deadlocks without.
+
+    So: no step does work here, and all three behave identically. See
+    ask-ck/ck-facelift/PLAN-backend-module-split.md A1.
     """
     # Check in-memory or disk first
     sess = sessions.get(key) or _load_persisted(key)
@@ -789,53 +636,100 @@ async def load_case(key: str, data=Depends(get_data)):
 
     _persist_session(sess)
 
-    # Real data for UI tables from loaded case data.
     zm = data.get("zephyr_master", {}) or {}
-    primary_case = zm.get(key, {}) or {}
-    case_title = primary_case.get("title", "") if key else ""
-    cdata = data.get("candidates_dict", {}).get(key)
+    case_title = (zm.get(key, {}) or {}).get("title", "") if key else ""
+
+    return {
+        "session": safe_session_dict(sess),   # redacts llm_config secrets
+        "case_title": case_title,
+        "message": "Case loaded (or restored from persistence). Confirm each of the three database reviews explicitly before synthesis is allowed."
+    }
+
+
+# --- Per-step candidate retrieval (deferred; see load_case) -------------------
+# One builder per review step, all with the SAME signature and all reached through
+# the SAME endpoint, so the three steps cannot drift apart in startup behaviour
+# again. Each returns UI-ready rows for its step's top table. They differ only in
+# where the data comes from — which is the intended difference.
+#
+# All of them search in KEYWORD mode (_STEP_SEARCH_MODE). These are DEFAULT views,
+# built from a query auto-derived from the case title — not from something the user
+# typed — and semantic search does not earn its cost there. Measured warm, per case
+# (mean/max over 10 cases spanning 10 folder leaves):
+#
+#     step 2   hybrid  763.5 / 2692.0 ms      keyword   95.3 / 576.9 ms
+#     step 3   hybrid  437.7 /  773.3 ms      keyword   21.7 /  61.0 ms
+#
+# Hybrid also pays a ~11.8s sentence-transformer construction on the first call
+# after a restart, which would land on a plain panel-open. Note step 2's hybrid
+# figure is no better than the 2.7s bespoke scan this commit deleted — swapping one
+# slow default for another would have missed the point.
+#
+# The semantic path is NOT lost: /search_zephyr and /search_atp still default to
+# hybrid, so it applies exactly where it pays off — a query the user actually typed.
+_STEP_SEARCH_MODE = "keyword"
+
+
+def _step1_testlink_candidates(key: str, sess: WizardSession, data: dict,
+                               case_title: str) -> List[Dict[str, Any]]:
+    """Step 1: the case's pre-computed TestLink candidates from ck.db.
+
+    No search needed — build_db already scored and stored these per case; this only
+    enriches them with full step text for review.
+    """
+    cdata = data.get("candidates_dict", {}).get(key) or {}
     testlink = data.get("testlink", {})
-    tl_cands = []
-    for cand in (cdata or {}).get("candidates", [])[:8]:
+    rows: List[Dict[str, Any]] = []
+    for cand in (cdata.get("candidates") or [])[:8]:
         aid = cand.get("id")
         full = testlink.get(aid, {}) or {}
         title = cand.get("title") or full.get("title") or aid
-        rich_desc = _build_testlink_description(full, title=title)
-        if not rich_desc:
-            rich_desc = cand.get("snippet", "") or title or ""
-        tl_cands.append({
-            **cand,
-            "title": title,
-            "description": rich_desc,
-        })
+        rich_desc = (_build_testlink_description(full, title=title)
+                     or cand.get("snippet", "") or title or "")
+        rows.append({**cand, "title": title, "description": rich_desc})
+    return rows
 
-    # Step 2: relevance-ranked external Zephyr cross-refs only (omit current Cases list + primary)
-    zrefs = _select_related_zephyr_refs(key, primary_case, sess, data, limit=8)
 
-    # === Mechanically-scored ATP candidates for the ATPyLib review step ===
-    # Loading a case is STRICTLY DATA DISPLAY — no LLM. Previously this ran a blocking
-    # `analyze_atp_coverage` LLM call to pre-rank candidates for a review step the user
-    # hadn't navigated to yet, adding ~60s to every Load (the round-trip dominated,
-    # independent of case size). The ATPyLib review step has its own on-demand
-    # "Suggest with LLM" button for that ranking, so Load now returns the keyword-scored
-    # candidates instantly and the LLM ranking happens only when the user asks for it.
-    atp_query = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
-    # Off the event loop — see search_testlink. This one runs on EVERY case load, so a
-    # cold model here stalls the very first thing a user does.
-    atp_cands_raw = await run_in_threadpool(_get_atp_candidates, atp_query, data, limit=18)
+def _step2_zephyr_candidates(key: str, sess: WizardSession, data: dict,
+                             case_title: str) -> List[Dict[str, Any]]:
+    """Step 2: external Zephyr cross-refs via the shared FTS search.
 
-    atp_candidates = []
-    test_id_desc = data.get("test_id_desc", {}) or {}
+    Uses the same _search_zephyr_external the /search_zephyr endpoint uses, so the
+    default view and a manual search rank identically (db.search_zephyr → FTS +
+    db._relevance_score, excluding the current Cases list + this key).
+
+    This replaced a bespoke 45k-row scan whose output was measured to be ~81%
+    score-ties broken alphabetically by title — see PLAN-backend-module-split.md.
+    """
+    q = _build_zephyr_query(sess, data, key=key, case_title=case_title)
+    if not q:
+        return []
+    rows = _search_zephyr_external(q, data, case_key=key, limit=8,
+                                   mode=_STEP_SEARCH_MODE)
+    for r in rows:
+        r.setdefault("justification", "Candidate from keyword search")
+        r.setdefault("source", "keyword")
+    return rows
+
+
+def _step3_atp_candidates(key: str, sess: WizardSession, data: dict,
+                          case_title: str) -> List[Dict[str, Any]]:
+    """Step 3: keyword-scored ATPyLib candidates (the LLM ranking is on-demand)."""
+    q = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
+    raw = _get_atp_candidates(q, data, limit=18, mode=_STEP_SEARCH_MODE)
+
+    rows: List[Dict[str, Any]] = []
     seen_ids = set()
-    for c in atp_cands_raw:
+    for c in raw:
         cid = c.get("id")
         if not cid or cid in seen_ids:
             continue
         full_desc = (c.get("description") or "").strip()
         short_title = (c.get("title") or "").strip()
         if not short_title or short_title == full_desc:
-            short_title, full_desc = _split_atp_title_description(full_desc or c.get("title") or "", cid)
-        atp_candidates.append({
+            short_title, full_desc = _split_atp_title_description(
+                full_desc or c.get("title") or "", cid)
+        rows.append({
             "id": cid,
             "title": short_title or cid,
             "score": c.get("score", 0.55),
@@ -846,22 +740,50 @@ async def load_case(key: str, data=Depends(get_data)):
         })
         seen_ids.add(cid)
 
-    # Filter out non-functional tests for Step 3
-    atp_candidates = [
-        c for c in atp_candidates
+    # Non-functional tests are not reviewable coverage for Step 3.
+    rows = [
+        c for c in rows
         if "(not a functional test)" not in (c.get("title", "") + c.get("description", "")).lower()
     ]
-    # Stable sort: higher score first
-    atp_candidates.sort(key=lambda c: (-float(c.get("score") or 0), str(c.get("id") or "")))
+    rows.sort(key=lambda c: (-float(c.get("score") or 0), str(c.get("id") or "")))
+    return rows[:12]
 
-    return {
-        "session": safe_session_dict(sess),   # redacts llm_config secrets
-        "testlink_candidates": tl_cands,
-        "zephyr_refs": zrefs,
-        "atp_candidates": atp_candidates[:12],
-        "case_title": case_title,
-        "message": "Case loaded (or restored from persistence). Confirm each of the three database reviews explicitly before synthesis is allowed."
-    }
+
+# step -> (kind, builder). The kind is the frontend's table/bus name.
+_STEP_BUILDERS = {
+    1: ("testlink", _step1_testlink_candidates),
+    2: ("zephyr", _step2_zephyr_candidates),
+    3: ("atp", _step3_atp_candidates),
+}
+
+
+@router.get("/step_candidates/{key}/{step}")
+async def step_candidates(key: str, step: int, data=Depends(get_data)):
+    """Candidates for ONE review step, fetched when the user opens that step.
+
+    The deferred half of the load_case split: see that docstring for why none of
+    this runs at case-load time. One endpoint for all three steps so the uniform
+    behaviour is structural rather than a convention three call sites remember.
+
+    Off the event loop: steps 2 and 3 reach FTS + (in hybrid mode) sentence-
+    transformer inference, and the first such call after a restart also constructs
+    the model from disk. Step 1 is threadpooled too — not because it is slow, but
+    so all three share one dispatch path.
+    """
+    entry = _STEP_BUILDERS.get(step)
+    if not entry:
+        raise HTTPException(400, "step must be 1 (TestLink), 2 (Zephyr) or 3 (ATPyLib)")
+    kind, builder = entry
+
+    sess = sessions.get(key) or _load_persisted(key)
+    if not sess:
+        raise HTTPException(404, "Session not found. Load the case first.")
+    sessions[key] = sess
+
+    zm = data.get("zephyr_master", {}) or {}
+    case_title = (zm.get(key, {}) or {}).get("title", "") or ""
+    candidates = await run_in_threadpool(builder, key, sess, data, case_title)
+    return {"key": key, "step": step, "kind": kind, "candidates": candidates}
 
 
 def _refined_complete_keys() -> set:
@@ -888,6 +810,15 @@ def _session_progress_map() -> Dict[str, dict]:
     except Exception as e:
         print(f"Warning: reading session progress failed: {e}")
         return {}
+
+
+def _cases_index() -> Tuple[set, Dict[str, dict]]:
+    """(complete_keys, per-case progress) — the two blocking reads /cases needs.
+
+    Paired in one helper so the handler makes a single threadpool hop, and named so
+    the event-loop AST invariant can see what is being dispatched.
+    """
+    return _refined_complete_keys(), _session_progress_map()
 
 
 def _build_case_groups(keys, zephyr: dict) -> List[dict]:
@@ -925,8 +856,14 @@ async def get_cases(data=Depends(get_data)):
                 if c.get("candidates") and c.get("key")
                 and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
-    complete_set = _refined_complete_keys()
-    progress = _session_progress_map()
+    # Off the event loop: _refined_complete_keys rglob's the whole refined-cases tree
+    # (measured ~14ms) and _session_progress_map hits ck.db. Small next to the Step-2
+    # scan this commit removed, but the same class of bug — blocking I/O in an async
+    # handler — so it gets the same treatment. Dispatched via a NAMED helper, not a
+    # lambda: tests/test_event_loop_blocking_batch_b.py matches run_in_threadpool's
+    # first argument as an ast.Name, so a lambda would hide both calls from the
+    # invariant while looking correct. Keep blocking work reachable by name.
+    complete_set, progress = await run_in_threadpool(_cases_index)
 
     complete_keys = sorted(
         [k for k in all_keys if k in complete_set],
@@ -1130,6 +1067,66 @@ async def search_zephyr(q: str = "", case_key: str = "", keep_ids: str = "",
     return {"results": await run_in_threadpool(
         _search_zephyr_external, q, data, case_key=case_key, limit=20,
         keep_ids=keep, mode=mode)}
+
+
+# The decision rationale (`w`) is analyst prose about COVERAGE STATUS, mixed in with
+# real feature keywords. Its feature words are valuable — for "(163) QoS - Physical
+# Queue" the rationale contributes "cos map queues", moving the best cross-ref from
+# rank 20 to rank 4; for the DHCPv6 case "range" moves it from 143 to 3. But its
+# process vocabulary is pure poison as a ranking term: on "Port - Auto Negotiation"
+# the rationale "Auto/Auto negotiation; Zephyr says covered by auto-test" injected
+# "zephyr says covered", and FTS then ranked "Test modem support. TPS SAYS Japan only"
+# as a top cross-ref. These words are never a feature, so strip them and keep the rest.
+_DECISION_META_TOKENS = frozenset({
+    "zephyr", "testlink", "atp", "atpylib", "says", "said", "covered", "coverage",
+    "cover", "covers", "test", "tests", "tested", "testing", "suite", "suites",
+    "case", "cases", "note", "notes", "todo", "tbd", "none", "partial", "partially",
+    "existing", "exists", "already", "probably", "maybe", "likely", "unclear",
+    "review", "reviewed", "check", "checked", "confirm", "confirmed", "duplicate",
+    "obsolete", "deprecated", "manual", "automated", "automation",
+})
+
+
+def _build_zephyr_query(sess: WizardSession, data: dict, key: str = "",
+                        case_title: str = "") -> str:
+    """Keyword query for Step 2's default external cross-ref view.
+
+    Carries the same signal the retired bespoke scorer derived by hand:
+      * the case title and its Zephyr folder leaf (the feature "area"),
+      * the primary decision RATIONALE (`w`) — not the match ids (`m`), which are
+        AWP-#### noise for ranking,
+      * titles of what the user already picked in Step 1, since an upstream choice
+        sharpens what a useful cross-ref looks like (same inputs suggest_zephyr uses).
+
+    The case key itself is deliberately excluded: 'awptcm' / the bare test number
+    match nothing useful and only dilute the token budget.
+    """
+    folder = ((data.get("zephyr_master", {}) or {}).get(key, {}) or {}).get("folder") or ""
+    leaf = folder.rstrip("/").split("/")[-1] if folder else ""
+
+    parts = [case_title or "", leaf]
+    if sess.primary:
+        parts.append(str(sess.primary.get("w") or ""))
+    dec = (data.get("decisions") or {}).get(key) or {}
+    parts.append(str(dec.get("w") or ""))
+    for sel in (sess.step1.selections or [])[:6]:
+        parts.append(sel.title or "")
+
+    # Deliberately does NOT strip _ZREF_GENERIC_TOKENS. db.search_zephyr does its own
+    # specific/generic split, and since the area tier was added it NEEDS the generic
+    # words present to derive area affinity — pre-filtering them here made "port"
+    # invisible to db and left the best cross-ref for "Port - Auto Negotiation"
+    # stranded at rank 9 of a 12-way tie. Division of labour: this function decides
+    # which TEXT is relevant (drop analyst process-prose, ids, bare numbers); db
+    # decides how to WEIGHT it (specific / area / ignored).
+    toks = [t for t in _zephyr_tokens(" ".join(parts))
+            if t not in _DECISION_META_TOKENS
+            and not t.isdigit() and not t.startswith("awp")]
+    # De-dupe while preserving order so a word repeated across parts does not eat
+    # the token budget.
+    seen: set = set()
+    ordered = [t for t in toks if not (t in seen or seen.add(t))]
+    return " ".join(ordered[:24])
 
 
 def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:

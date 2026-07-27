@@ -140,8 +140,33 @@ _ZREF_GENERIC_TOKENS = frozenset({
 })
 
 
-def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]]):
-    """(score, matched_token_count, total_hits). Verbatim from wizard.py."""
+# Words that _ZREF_GENERIC_TOKENS strips as too common to RANK on, but which still
+# carry real "same area" affinity — a port case and an IPv6 case are not neighbours.
+# A binary specific/stripped stoplist cannot express that third tier, which is why
+# _relevance_score accepts area_words separately (see below).
+_AREA_WORDS = frozenset({"ipv4", "ipv6", "port", "switch", "poe", "stp", "vlan"})
+
+
+def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]],
+                     area_words: Tuple[str, ...] = ()):
+    """(score, matched_token_count, total_hits).
+
+    `area_words` is an OPT-IN third vocabulary tier, ported from the Generator's
+    retired bespoke Step-2 scorer. Words in it were dropped from `rank_words` by the
+    generic-token filter, but still contribute — at a reduced weight, and only when
+    the specific overlap is THIN (<=1 matched rank word), which is exactly when the
+    result set degenerates into a big score tie broken arbitrarily by key.
+
+    Why it exists: for the case "Port - Auto Negotiation", both "port" and "auto" are
+    generic, so `rank_words` collapses to ["negotiation"] and all 12 matches scored an
+    identical 0.7683 — ordering them by key alone. The genuinely best cross-ref
+    ("interface: port status, speed, duplex and negotiation") landed 9th and fell out
+    of the top 8. The old scorer surfaced it at rank 1 precisely because it gave "port"
+    a weak area boost (+8 on a 12-point base) instead of discarding it.
+
+    Defaults to empty, so every existing caller is bit-for-bit unchanged; only
+    search_zephyr opts in.
+    """
     if not rank_words:
         return 0.0, 0, 0
     matched = set()
@@ -162,6 +187,17 @@ def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]]):
             weighted += weight * tf * (1.35 if whole else 1.0)
     if not matched:
         return 0.0, 0, 0
+    # Thin-overlap area affinity. Never counts toward `coverage` (that measures how
+    # much of the SPECIFIC query was hit) and never rescues a zero-match row — it only
+    # separates rows that would otherwise be exactly tied.
+    if area_words and len(matched) <= 1:
+        for text, weight in fields:
+            if not text:
+                continue
+            low = text.lower()
+            for w in area_words:
+                if re.search(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", low):
+                    weighted += weight * 0.35
     coverage = len(matched) / len(set(rank_words))
     phrase_bonus = 0.0
     if len(rank_words) > 1:
@@ -310,16 +346,11 @@ def get_target_cases() -> List[dict]:
             _rows("SELECT * FROM zephyr_cases WHERE is_target=1 ORDER BY key")]
 
 
-def iter_zephyr_slim():
-    """Yield slim zephyr records (the fields _score_zephyr_candidate + Step-2
-    related-ref ranking read) — replaces the in-RAM slim_index list."""
-    for r in _rows("SELECT key, title, folder, labels, status, has_objective, num_steps "
-                   "FROM zephyr_cases"):
-        yield {
-            "key": r["key"], "title": r["title"], "folder": r["folder"],
-            "labels": _json(r["labels"], []), "status": r["status"],
-            "has_objective": bool(r["has_objective"]), "num_steps": r["num_steps"],
-        }
+# iter_zephyr_slim() was removed here. Its sole caller was the Generator's Step-2
+# related-ref ranking, which streamed all ~45k rows through a bespoke Python scorer
+# on the event loop. That path now uses search_zephyr() below (FTS + the shared
+# _relevance_score), so a full-corpus scan is no longer needed anywhere. Do not
+# reintroduce a whole-table iterator without an index-backed reason.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -500,6 +531,11 @@ def search_zephyr(q: str, case_key: str = "", exclude_keys: Optional[set] = None
         return []
     specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
     rank_words = specific or words
+    # Third tier: query words the generic filter dropped that still mark a feature
+    # AREA. Only meaningful when `specific` carried the ranking (otherwise these words
+    # are already in rank_words). See _relevance_score's area_words.
+    area_words = tuple(sorted({w for w in words if w in _AREA_WORDS} - set(rank_words))) \
+        if specific else ()
 
     cand: Dict[str, sqlite3.Row] = {}
     if rank_words:
@@ -524,7 +560,7 @@ def search_zephyr(q: str, case_key: str = "", exclude_keys: Optional[set] = None
         score, nmatch, nhits = _relevance_score(rank_words, [
             (f"{rel_key} {title}", 3.0),
             (folder, 1.0),
-        ])
+        ], area_words=area_words)
         if nmatch <= 0 and rel_key not in keep_ids:
             continue
         scored.append((score, {

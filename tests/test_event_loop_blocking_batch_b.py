@@ -34,6 +34,14 @@ _BLOCKING = {
     "_call_llm_raw", "_call_llm_with_meta", "_health_ping",
     "embed_texts", "_get_model",
     "_search_testlink", "_search_zephyr_external", "_get_atp_candidates",
+    # Pure-CPU / filesystem blockers. The list above was all LLM round-trips and
+    # sentence-transformer entry points, which is why it never caught
+    # _select_related_zephyr_refs: a 45k-row Python scan is neither, so it sat bare
+    # on the event loop for a measured 2.7s per case load until it was deleted
+    # outright. `_refined_complete_keys` rglob's the whole refined-cases tree.
+    # _select_related_zephyr_refs no longer exists — listed to pin the name against
+    # revival, which costs nothing since this is a call-name match.
+    "_select_related_zephyr_refs", "_refined_complete_keys", "_session_progress_map",
 }
 
 

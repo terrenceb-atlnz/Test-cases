@@ -2,7 +2,7 @@
 import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
-import { renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
+import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
 import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
 
 export function initSidebarAccordion() {
@@ -106,6 +106,13 @@ export function goToStep(step) {
   S.currentStep = step;
   goToPanel('step-' + step);
 
+  // Steps 1-3 fetch their own candidate pool on first visit (see
+  // generator.loadStepCandidates): none of it is loaded at case-load time, and all
+  // three behave identically. Deliberately not awaited — navigation must stay
+  // instant; the table fills in when the fetch lands.
+  if (step >= 1 && step <= 3) {
+    loadStepCandidates(step);
+  }
   if (step === 4) {
     renderReviewSummary();
     renderObjectiveResult();

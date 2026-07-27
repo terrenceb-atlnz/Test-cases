@@ -2,13 +2,27 @@
 import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from './dom-helpers.js';
-import { renderStepTables } from './tables.js';
+import { renderChosenTable, renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
 import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
 import { goToStep, updatePageHeader } from './nav.js';
 import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from './llm.js';
 import { recordLLMDebug } from './llm-debug.js';
 import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
+
+// --- Deferred per-step candidate loading -------------------------------------
+// load_case deliberately returns no candidate pools: each review step fetches its
+// own the first time you open it. Two separate incidents came from pre-loading data
+// for panels the user had not visited (a ~60s LLM prefetch for Step 3, and a 2.7s
+// 45k-row scan for Step 2 that ran bare on the event loop). See wizard.load_case.
+// Declared above loadCase because loadCase resets the memo.
+const _CANDIDATE_CONTAINERS = { 1: 'tl-table', 2: 'zephyr-table', 3: 'atp-table' };
+const _STEP_BUS = { 1: 'currentTestLink', 2: 'currentZephyr', 3: 'currentATP' };
+const _STEP_KIND = { 1: 'testlink', 2: 'zephyr', 3: 'atp' };
+
+// `${key}:${step}` for pools already fetched, so revisiting a step is free and does
+// not clobber rows the user merged in via Search / Suggest.
+const _stepFetched = new Set();
 
 async function loadCase() {
   const sel = getActiveCaseKey();
@@ -21,7 +35,7 @@ async function loadCase() {
   const loadBanner = document.getElementById('load-status');
   if (loadBanner) {
     loadBanner.classList.remove('hidden');
-    loadBanner.textContent = `Loading ${sel}… (data + related Zephyr + ATP)`;
+    loadBanner.textContent = `Loading ${sel}…`;
   }
   try {
     const res = await fetch(`/api/wizard/load_case/${sel}`, {method: 'POST'});
@@ -42,18 +56,28 @@ async function loadCase() {
     const step2Sels = (S.currentSession.step2 && S.currentSession.step2.selections) || [];
     const step3Sels = (S.currentSession.step3 && S.currentSession.step3.selections) || [];
 
-    if (data.testlink_candidates) window.currentTestLink = data.testlink_candidates;
-    if (data.zephyr_refs) window.currentZephyr = data.zephyr_refs;
-    if (data.atp_candidates) window.currentATP = data.atp_candidates;
+    // Candidate pools are NOT part of the load response any more — each review step
+    // fetches its own when you first open it (loadStepCandidates, called from
+    // goToStep). Drop the previous case's pools so a stale row can never show under a
+    // new case, and reset the fetch-once memo.
+    window.currentTestLink = [];
+    window.currentZephyr = [];
+    window.currentATP = [];
+    _stepFetched.clear();
 
-    // Restore chosen lists first (so the top tables can hide already-chosen rows),
-    // then render both tables for each step.
+    // Chosen lists DO come from the session, so they render immediately: a returning
+    // user sees what they already picked without waiting for a candidate fetch.
+    // Only the CHOSEN table is rendered here — deliberately not renderStepTables,
+    // whose empty-candidate branch would print "No TestLink candidates for this
+    // case.", asserting a fact we have not checked yet. Say "not fetched" instead.
     restoreChosenFromSelections('testlink', step1Sels);
     restoreChosenFromSelections('zephyr', step2Sels);
     restoreChosenFromSelections('atp', step3Sels);
-    renderStepTables('testlink', window.currentTestLink || []);
-    renderStepTables('zephyr', window.currentZephyr || []);
-    renderStepTables('atp', window.currentATP || []);
+    [1, 2, 3].forEach(step => {
+      renderChosenTable(_STEP_KIND[step]);
+      const cont = document.getElementById(_CANDIDATE_CONTAINERS[step]);
+      if (cont) cont.innerHTML = '<em>Open this step to load candidates.</em>';
+    });
 
     updateUI();
     // Session may include workspace LLM carried over from last Apply / Login
@@ -68,7 +92,43 @@ async function loadCase() {
     alert('Failed to load case: ' + e);
   } finally {
     if (loadBanner) loadBanner.classList.add('hidden');
-    recordLLMDebug(null);   // load_case may run analyze_atp_coverage (LLM) — footer only
+    recordLLMDebug(null);   // load_case makes no LLM call; clear the panel footer
+  }
+}
+
+export async function loadStepCandidates(step, { force = false } = {}) {
+  const kind = _STEP_KIND[step];
+  if (!kind || !S.currentKey) return;
+  const bus = _STEP_BUS[step];
+  const keyAtStart = S.currentKey;
+  const memo = `${keyAtStart}:${step}`;
+  if (!force && _stepFetched.has(memo)) return;
+
+  const cont = document.getElementById(_CANDIDATE_CONTAINERS[step]);
+  if (cont) cont.innerHTML = '<em>Loading candidates…</em>';
+  try {
+    const res = await fetch(
+      `/api/wizard/step_candidates/${encodeURIComponent(keyAtStart)}/${step}`);
+    if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 160)}`);
+    const data = await res.json();
+
+    // The user can act while this is in flight. Two races to lose gracefully:
+    //  1. they loaded a DIFFERENT case  -> this response is stale, drop it entirely.
+    //  2. they ran Search / Suggest on THIS step -> db-search.js merged rows into the
+    //     same window bus. Those are an explicit request and outrank a default view,
+    //     so do not overwrite them.
+    if (S.currentKey !== keyAtStart) return;
+    _stepFetched.add(memo);
+    if ((window[bus] || []).length) return;
+
+    window[bus] = data.candidates || [];
+    renderStepTables(kind, window[bus]);
+  } catch (e) {
+    if (cont && S.currentKey === keyAtStart) {
+      cont.innerHTML = '<em class="status-error">Could not load candidates — '
+        + escapeHtml(String(e && e.message ? e.message : e))
+        + '. Re-open this step to retry.</em>';
+    }
   }
 }
 

@@ -5,6 +5,10 @@
 import { expect } from '@playwright/test';
 
 // The three DB-search "kinds" share an identical structure; drive them by config.
+// `emptyTop` / `emptyChosen` are copied from static/js/tables.js TABLE_KINDS — the
+// strings the render code actually emits. Asserting the real text is what makes the
+// "candidates not fetched yet" state distinguishable from "there are none", which is
+// the whole point of the deferred-load specs.
 export const KINDS = {
   testlink: {
     step: 1,
@@ -14,6 +18,8 @@ export const KINDS = {
     chosenTable: '#tl-chosen-table',
     topCheckbox: 'input.tl-checkbox',
     chooseAction: '[data-action="chooseTestLink"]',
+    emptyTop: 'No TestLink candidates for this case.',
+    emptyChosen: 'No cases chosen yet',
   },
   zephyr: {
     step: 2,
@@ -23,6 +29,8 @@ export const KINDS = {
     chosenTable: '#zephyr-chosen-table',
     topCheckbox: 'input.zephyr-checkbox',
     chooseAction: '[data-action="chooseZephyr"]',
+    emptyTop: 'No relevant external Zephyr cross-refs found for this case.',
+    emptyChosen: 'No cases chosen yet',
   },
   atp: {
     step: 3,
@@ -32,8 +40,19 @@ export const KINDS = {
     chosenTable: '#atp-chosen-table',
     topCheckbox: 'input.atp-checkbox',
     chooseAction: '[data-action="chooseATP"]',
+    emptyTop: 'No ATPyLib candidates loaded for this case.',
+    emptyChosen: 'No tests chosen yet',
   },
 };
+
+// The placeholder index.html ships and generator.loadCase() restores — "we have not
+// looked yet", as opposed to KINDS[*].emptyTop's "we looked and found none".
+export const NOT_FETCHED_TEXT = /Open this step to load candidates|open this step to fetch/i;
+
+// Deferred per-step candidate endpoint (wizard.step_candidates).
+export const STEP_CANDIDATES_GLOB = '**/api/wizard/step_candidates/**';
+export const stepCandidatesUrl = (key, step) =>
+  `/api/wizard/step_candidates/${key}/${step}`;
 
 export class GeneratorPage {
   constructor(page) {
@@ -110,6 +129,54 @@ export class GeneratorPage {
     // candidates table into the chosen table via chooseSelected()).
     await expect(chosen).toHaveCount(before + n, { timeout: 10_000 });
     return n;
+  }
+
+  // --- Deferred per-step candidate loading -----------------------------------
+
+  candidateTable(kindName) {
+    return this.page.locator(KINDS[kindName].table);
+  }
+
+  chosenTable(kindName) {
+    return this.page.locator(KINDS[kindName].chosenTable);
+  }
+
+  // Candidate rows currently rendered in a kind's TOP table.
+  candidateRows(kindName) {
+    const k = KINDS[kindName];
+    return this.page.locator(`${k.table} ${k.topCheckbox}`);
+  }
+
+  // Open a review step and wait for its deferred fetch to render rows. Step 2 can
+  // take ~3s on the first call after a restart (cold zephyr_fts page cache), so this
+  // allows generously rather than flaking.
+  async openStepAndWaitForCandidates(kindName, { timeout = 30_000 } = {}) {
+    const k = KINDS[kindName];
+    await this.goToStep(k.step);
+    await expect(this.candidateRows(kindName).first()).toBeVisible({ timeout });
+  }
+
+  // Record every request to the deferred endpoint. Returns the array (mutated live)
+  // plus a helper to count hits for one step — the core "fetch once" assertion.
+  trackStepCandidateRequests() {
+    const urls = [];
+    this.page.on('request', (req) => {
+      const u = req.url();
+      if (u.includes('/api/wizard/step_candidates/')) urls.push(u);
+    });
+    return {
+      urls,
+      forStep: (step) => urls.filter((u) => new RegExp(`/${step}(?:\\?|$)`).test(u)),
+      forKey: (key) => urls.filter((u) => u.includes(key)),
+    };
+  }
+
+  // Collect console errors/pageerrors so a spec can assert the journey is clean.
+  trackConsoleErrors() {
+    const errors = [];
+    this.page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    this.page.on('pageerror', (e) => errors.push(String(e)));
+    return errors;
   }
 
   // Click the always-present Export button in the Cases panel (step-0).
