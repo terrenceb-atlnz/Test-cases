@@ -591,8 +591,15 @@ defaults now *match* that model instead of quietly contradicting it:
   the connection is **outbound** to a lab testbox, so its exposure is independent of the web UI being
   single-user.
 
-Still accepted, unchanged: **no authentication on any endpoint.** Add auth (and TLS) before any
-shared or exposed deployment — `HOST=0.0.0.0` alone is not a safe configuration.
+Still accepted, unchanged: **no authentication on any endpoint.** `HOST=0.0.0.0` alone is not a
+safe configuration. Note `X-CK-Session` is **not** a credential — the browser tab invents it and
+the server never verifies it; it is a per-tab correlation id for the agent bridge only.
+
+**This is now tracked work, not just a caveat:** `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`
+(multi-user identity + per-case session locking). Phase 1 of that plan — locking — also fixes a
+concurrency bug that is live *today* even single-user: session writes are unconditional whole-blob
+overwrites keyed by case with no owner, so two tabs editing one case silently destroy each other's
+work.
 
 ## Testing
 
