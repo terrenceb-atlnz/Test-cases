@@ -1138,7 +1138,14 @@ def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[
     # swi_* from the text, else the default pair (most cases are DUT + link partner).
     switches = frag_devs or swi_literal or ["dut", "lp"]
     stacks = sorted(set(_STK_RX.findall(blob)))
-    needs_portlink = bool(_PORTLINK_RX.search(blob))
+    # A PHYSICAL step always needs a port link, whatever its wording says. Its rendered
+    # body does `port = dut.portA` and then polls `show interface <port> status`, so
+    # without the init_portlink FILL slot `portA` is never bound and the script dies with
+    # AttributeError on the first poll iteration (2026-07-28). The keyword scan misses this
+    # whenever the step is phrased physically rather than topologically — e.g. "prompt
+    # operator to power-cycle the unit" mentions no link at all.
+    has_physical = any(_step_kind(s) == "physical" for s in sequence)
+    needs_portlink = bool(_PORTLINK_RX.search(blob)) or has_physical
     return switches, stacks, needs_portlink
 
 
@@ -1614,6 +1621,27 @@ def _lint_generated(sess: PtSession) -> dict:
 
         # 2b. Imports the TESTBOX's python3 will not have. The script runs there, not here.
         errors.extend(_removed_stdlib_imports(tree))
+
+        # 2b-ii. The same port attribute bound by two init_portlink() calls. Each call
+        # ASSIGNS the attribute, so the second silently discards the first link — the script
+        # then drives one topology while believing it has two. Observed 2026-07-28: the model
+        # emitted `(dut.portA, tb.ethA) = ...` followed by `(dut.portA, lp.portA) = ...`,
+        # losing the testbox link entirely. An ERROR: the test cannot be measuring what it
+        # claims, and nothing downstream would reveal it.
+        _pl_binds: Dict[str, List[int]] = {}
+        for _i, _line in enumerate(code.splitlines(), 1):
+            if "init_portlink" not in _line or _line.lstrip().startswith("#"):
+                continue
+            lhs = _line.split("=")[0]
+            for _m in re.finditer(r"\b(\w+\.port[A-Za-z]\w*)\b", lhs):
+                _pl_binds.setdefault(_m.group(1), []).append(_i)
+        for attr, lines in _pl_binds.items():
+            if len(lines) > 1:
+                errors.append(
+                    f"init(): `{attr}` is bound by init_portlink() on lines "
+                    f"{', '.join(map(str, lines))} — the later call DISCARDS the earlier "
+                    f"link, so one of those topologies is silently missing. Use a distinct "
+                    f"attribute per link (portA, portB, …).")
 
         # 2c. `startswith(port)` when selecting a port's row from a per-port table.
         # `'port1.0.1'` is a prefix of `'port1.0.10'`, so this silently reads the WRONG

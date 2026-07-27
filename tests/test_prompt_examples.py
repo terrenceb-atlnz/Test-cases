@@ -66,8 +66,14 @@ def test_row_selection_example_picks_exactly_the_right_port():
     Must match the port under test and nothing else. `startswith` was the earlier form and
     matched `port1.0.10` when asked for `port1.0.1`, silently reading the wrong row.
     """
-    assert "l.split()[:1] == [port]" in GENERATE.read_text(), \
-        "the exact-match row selector is no longer in the prompt"
+    src = GENERATE.read_text()
+    # The selector must compare against a STRING. `[port]` with a SwitchPort object never
+    # equals any token from split(), so `row` is always None and every such step is a
+    # guaranteed false RED — the defect this example itself shipped (2026-07-28).
+    assert "l.split()[:1] == [name]" in src or "l.split()[:1] == [port.name]" in src, \
+        "the row selector no longer compares against a string"
+    assert "l.split()[:1] == [port])" not in src, \
+        "the selector compares a SwitchPort OBJECT to a token — always False"
 
     rows = ["port1.0.1    Port 1           lpi         lpi",
             "port1.0.10                    off         off",
@@ -141,21 +147,26 @@ def test_no_prompt_or_skeleton_seeds_a_literal_port_name():
                 pytest.fail(f"{f.name}:{i} seeds a literal port name: {ln.strip()[:90]}")
 
 
-def test_skeleton_fill_slot_does_not_teach_self_before_assignment():
-    """`self.<dev>` in init() before the assignment block is an AttributeError. The FILL
-    example previously read as `self.dut.portTB` and the model reproduced the crash."""
+def test_skeleton_init_cannot_use_self_before_assignment():
+    """SUPERSEDED APPROACH, kept as the invariant: `self.<dev>` inside init() before the
+    assignment block is an AttributeError, and warning against it did not work — the model
+    reproduced the crash twice. The fix was structural: the assignments now come FIRST, so
+    every spelling in the FILL slot is valid. What must hold is that nothing in init()
+    touches `self.` before `self.tb = tb`.
+    """
     src = SKELETON.read_text()
     m = re.search(r"def init\(self.*?def configure", src, re.S)
     assert m, "init() not found in the skeleton"
-    init_src = m.group(0)
-    # only the FILL example lines matter; `self.tb = tb` below the block is the fix, not the bug
-    example = [l for l in init_src.splitlines()
-               if "init_portlink" in l and l.lstrip().startswith("#")]
-    assert example, "the portlink FILL example is gone"
-    offenders = [l for l in example if "self." in l]
-    assert not offenders, f"FILL example uses `self.` before assignment: {offenders}"
-    assert "not self." in init_src or "never `self.`" in init_src, \
-        "the FILL slot no longer warns against `self.` here"
+    body = m.group(0)
+    first_assign = body.index("self.tb = tb")
+    before = body[:first_assign]
+    # strip jinja control lines and comments; what remains is rendered code
+    for line in before.splitlines():
+        code_part = line.split("#", 1)[0]
+        if "{%" in line or "{#" in line:
+            continue
+        assert "self." not in code_part, (
+            f"init() touches `self.` before the assignment block: {line.strip()!r}")
 
 
 # --- the substring-vs-scoped-command rule ----------------------------------------------
@@ -257,3 +268,166 @@ def test_skeleton_does_not_repeat_the_idiom_example_per_step():
         "the interface-config example is repeated in the skeleton; state it in the rules"
     assert "see rule 1" in src or "rule" in src, \
         "per-step slots should point at the rules rather than restate them"
+
+
+# --- findings from the fan-out audit (2026-07-28) ---------------------------------------
+
+def test_row_selector_compares_a_string_not_a_port_object():
+    """A SwitchPort never equals a token from `split()`, so `[port]` matches nothing and
+    `row is None` fires on every run — a GUARANTEED false RED on working hardware. The
+    prompt shipped exactly this, because rule 3b binds `port = dev.portA` (an object) while
+    rule 4d's example compared `[port]` as though it were a string."""
+    class FakePort:                       # stands in for ATSwitch.SwitchPort
+        name = "port1.0.1"
+        def __eq__(self, other): return self is other
+        def __hash__(self): return id(self)
+
+    port = FakePort()
+    row = "port1.0.1    Port 1           off         off"
+    assert row.split()[:1] != [port], "sanity: an object must not equal a token"
+    assert row.split()[:1] == [port.name], "the .name form is what matches"
+
+
+def test_prompt_documents_switchport_api_without_inventing_methods():
+    """`SwitchPort` really has name/ifName/is_up/up/get_mac_addr/set_mac_addr. `.down()`
+    and `.speed` belong to `ATTestBox.Eth` — the TESTBOX interface. The prompt claimed them
+    for the switch port, and `dev.portA.speed = 1000` does NOT raise: it creates a dead
+    attribute and the device is never configured."""
+    src = GENERATE.read_text()
+    assert "NO `.down()`" in src and "`.speed`" in src, \
+        "the prompt no longer warns that .down()/.speed are not SwitchPort methods"
+    assert "ATTestBox.Eth" in src, "the real owner of those methods is not named"
+
+
+def test_every_branch_of_the_row_example_reaches_a_verdict():
+    """Rule 4c's whole purpose is catching a silent failure. An example with `if/elif` and
+    no `else` writes NO marker in exactly that case, which the framework scores as a pass."""
+    src = GENERATE.read_text()
+    block_start = src.index("row = next((l for l in output.splitlines()")
+    block = src[block_start:block_start + 700]
+    assert "else:" in block, "the worked example has no else branch — silent failure = pass"
+    # Only inside ```python fences — the prose deliberately NAMES `self.passed(...)` to
+    # warn against it, and flagging that is the same mistake the port lint made when it
+    # flagged its own advice comment.
+    import re as _re
+    fences = _re.findall(r"```python\n(.*?)```", src, _re.S)
+    for block in fences:
+        assert "self.passed(...)" not in block, (
+            "a code example writes `self.passed(...)`: `...` is Ellipsis, so the script "
+            "lints clean, runs clean, and logs `PASS: Ellipsis` as its evidence")
+
+
+def test_prompt_corpus_counts_reproduce():
+    """Rule 3b says "the counts are why", so a number a reader cannot reproduce discredits
+    the whole rule. Two were wrong: literals (125 -> 350, a narrower regex had missed
+    embedded ones) and `conf t` (54 -> 69)."""
+    import re as _re
+    import sqlite3 as _s
+    if not DB.exists():
+        pytest.skip("ck.db absent")
+    try:
+        c = _s.connect(f"file:{DB}?mode=ro", uri=True)
+        rows = [r[0] for r in c.execute(
+            "SELECT source_text FROM scripts WHERE source_text IS NOT NULL")]
+    except _s.OperationalError:
+        pytest.skip("scripts table absent")
+    counts = {
+        "bound": sum(len(_re.findall(r"\.port[A-Z]\w*\b", t)) for t in rows),
+        "literals": sum(len(_re.findall(
+            r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""", t)) for t in rows),
+        "conft": sum(len(_re.findall(r"cmd\(\s*['\"]conf(?:igure)?[ ]?t", t)) for t in rows),
+        "mode_cfg": sum(len(_re.findall(r"mode\(\s*'\)#'\s*\)", t)) for t in rows),
+    }
+    src = GENERATE.read_text()
+    for label, n in (("bound", counts["bound"]), ("literals", counts["literals"]),
+                     ("conft", counts["conft"]), ("mode_cfg", counts["mode_cfg"])):
+        pretty = f"{n:,}"
+        assert pretty in src or str(n) in src, (
+            f"prompt does not cite the reproducible {label} count ({n}); "
+            f"an unverifiable number discredits rule 3b")
+
+
+def test_skeleton_renders_and_compiles_for_every_step_kind_mix():
+    """A whole-matrix render, because the defects found were combination-specific: a
+    physical step with no link wording left `dut.portA` unbound, and an empty `verify`
+    rendered `self.passed('')` (Jinja `default()` only fires on UNDEFINED, not on '')."""
+    import py_compile, tempfile, os, re as _re, sys as _sys
+    _sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    _sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+
+    mixes = {
+        "verify": [{"n": 1, "action": "a", "verify": "v", "kind": "verify"}],
+        "physical-no-link-wording": [
+            {"n": 1, "action": "power-cycle the unit", "verify": "boots", "kind": "physical"}],
+        "manual": [{"n": 1, "action": "LED", "verify": "green", "kind": "manual"}],
+        "setup+verify": [{"n": 1, "action": "cfg", "verify": "", "kind": "setup"},
+                         {"n": 2, "action": "a", "verify": "v", "kind": "verify"}],
+        "empty-text": [{"n": 1, "action": "", "verify": "", "kind": "verify"}],
+        "empty-physical": [{"n": 1, "action": "", "verify": "", "kind": "physical"}],
+        "stack-b": [{"n": 1, "action": "check stk_b", "verify": "up", "kind": "verify"}],
+    }
+    for label, seq in mixes.items():
+        sk = pc._render_skeleton("AWPTCM-T1", "t", seq, [], [])
+        f = tempfile.NamedTemporaryFile("w", suffix=".py", delete=False)
+        f.write(sk); f.close()
+        try:
+            py_compile.compile(f.name, doraise=True)
+        finally:
+            os.unlink(f.name)
+        assert not _re.search(r"self\.(?:passed|failed)\(\s*''\s*\)", sk), \
+            f"{label}: empty verdict reason emits NO log marker, so the step is invisible"
+        binds = set(_re.findall(r"^\s*(\w+) = setup\.init_(?:swi|stk)\(", sk, _re.M))
+        orphan = set(_re.findall(r"\b(swi_[a-z])\.port", sk)) - binds
+        assert not orphan, f"{label}: references unbound device(s) {orphan}"
+        # a physical step polls a port, so the portlink slot must exist wherever portA is used
+        if "port = dut.portA" in sk:
+            assert "setup.init_portlink" in sk, \
+                f"{label}: uses dut.portA but init() never binds a port link -> AttributeError"
+        # stack variable and lookup key must agree
+        for var, key in _re.findall(r"(\w+) = setup\.init_stk\('([^']+)'\)", sk):
+            assert var == key, f"{label}: {var} looks up a different stack ({key})"
+
+
+def test_duplicate_portlink_binding_is_a_lint_error():
+    """Each `init_portlink()` ASSIGNS the attribute, so binding the same one twice silently
+    discards the first link — the script drives one topology while believing it has two.
+    Observed 2026-07-28: `(dut.portA, tb.ethA)` then `(dut.portA, lp.portA)`, losing the
+    testbox link with nothing downstream to reveal it."""
+    import re as _re
+    binds = {}
+    code = (
+        "        (dut.portA, tb.ethA) = setup.init_portlink(dut, tb, type1='port')\n"
+        "        (dut.portA, lp.portA) = setup.init_portlink(dut, lp, type1='port')\n")
+    for i, line in enumerate(code.splitlines(), 1):
+        if "init_portlink" not in line or line.lstrip().startswith("#"):
+            continue
+        for m in _re.finditer(r"\b(\w+\.port[A-Za-z]\w*)\b", line.split("=")[0]):
+            binds.setdefault(m.group(1), []).append(i)
+    dupes = {k: v for k, v in binds.items() if len(v) > 1}
+    assert "dut.portA" in dupes, "the duplicate binding is not detected"
+
+    ok = (
+        "        (dut.portA, tb.ethA) = setup.init_portlink(dut, tb, type1='port')\n"
+        "        (dut.portB, lp.portA) = setup.init_portlink(dut, lp, type1='port')\n")
+    binds2 = {}
+    for i, line in enumerate(ok.splitlines(), 1):
+        for m in _re.finditer(r"\b(\w+\.port[A-Za-z]\w*)\b", line.split("=")[0]):
+            binds2.setdefault(m.group(1), []).append(i)
+    assert not {k: v for k, v in binds2.items() if len(v) > 1}, "false positive on distinct attrs"
+
+
+def test_self_assignments_precede_the_portlink_slot():
+    """Designed out rather than warned about. The FILL slot used to sit ABOVE the
+    `self.<dev> = <dev>` block, so a model that read ahead wrote `self.dut.portA` and
+    crashed with AttributeError — twice, despite the slot saying "not self.". Assigning
+    first makes BOTH spellings valid and removes the trap."""
+    src = SKELETON.read_text()
+    m = re.search(r"def init\(self.*?def configure", src, re.S)
+    assert m, "init() not found"
+    body = m.group(0)
+    assign = body.index("self.tb = tb")
+    slot = body.find("init_portlink")
+    assert slot > assign, (
+        "the portlink FILL slot precedes the self.<dev> assignments again — a model that "
+        "uses the attribute form there produces an AttributeError at init")

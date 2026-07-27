@@ -22,7 +22,7 @@
 
   Idioms below are grounded in the 830-script corpus (counts as of 2026-07-28):
     mode(')#') = config mode 4812 | mode('#') = priv exec 4253 | mode(']#') = stack 382
-    cmd('conf t') is NOT the idiom (54)   |   port.name for CLI text 1013 (vs 241 bare)
+    cmd('conf t') is NOT the idiom (69)   |   port.name for CLI text 1013 (vs 241 bare); literals 350
     FEATURES=['ALL'] 291/306   |   init_swi('swi_a') 621/~650   |   init_stk('stk_a') 191/191
 
   Context expected:
@@ -80,17 +80,24 @@ class TestSet(ATTestSet.TestSet):
         {{ dev }} = setup.init_swi('{{ setup_keys[loop.index0] if setup_keys and loop.index0 < setup_keys | length else dev }}')
         {%- endfor %}
         {%- for st in (stacks or []) %}
-        {{ st }} = setup.init_stk('stk_{{ 'abcdefgh'[loop.index0] }}')
+        {# Stack names are DETECTED as `stk_[a-z]`, so the name is already a valid .setup
+           key — rewriting it positionally produced `stk_b = setup.init_stk('stk_a')`,
+           looking up a stack the reviewer never asked for (2026-07-28). #}
+        {{ st }} = setup.init_stk('{{ st }}')
         {%- endfor %}
-        {%- if needs_portlink %}
-        # >>> FILL: declare this case's port link(s), using the LOCAL names above (not self.):
-        #     ({{ dev0 }}.portA, tb.ethA) = setup.init_portlink({{ dev0 }}, tb, type1='port')
-        #     ({{ dev0 }}.portB, {{ dev1 }}.portA) = setup.init_portlink({{ dev0 }}, {{ dev1 }}, type1='port', type2='port') <<<
-        {%- endif %}
         self.tb = tb
         {%- for dev in all_devs %}
         self.{{ dev }} = {{ dev }}
         {%- endfor %}
+        {%- if needs_portlink %}
+        # >>> FILL: declare this case's port link(s). Bind `portA` on {{ dev0 }} at minimum —
+        #     the test bodies below reference it:
+        #     ({{ dev0 }}.portA, tb.ethA) = setup.init_portlink({{ dev0 }}, tb, type1='port')
+        {%- if all_devs | length > 1 %}
+        #     ({{ dev0 }}.portB, {{ dev1 }}.portA) = setup.init_portlink({{ dev0 }}, {{ dev1 }}, type1='port', type2='port')
+        {%- endif %}
+        #     <<<
+        {%- endif %}
 
     def configure(self):
         # One-time SUITE setup, runs ONCE before all test cases. Config only — no pass/fail.
@@ -112,17 +119,17 @@ class TestSet(ATTestSet.TestSet):
 
 {% for step in steps %}
 class TestCase_{{ step.n }}(ATTestCase.TestCase):
-    testCaseDesc = {{ (step.action | default('') ) | pyliteral }}
+    testCaseDesc = {{ (step.action | default('', true) ) | pyliteral }}
     testCaseRef = '{{ case_key }}'
-    testCaseMethod = {{ ((step.action | default('')) ~ ' | verify: ' ~ (step.verify | default(''))) | pyliteral }}
+    testCaseMethod = {{ ((step.action | default('', true)) ~ ' | verify: ' ~ (step.verify | default('', true))) | pyliteral }}
 
     def main(self):
-        self.log({{ ('STEP ' ~ step.n ~ ': ' ~ (step.action | default(''))) | pyliteral }})
+        self.log({{ ('STEP ' ~ step.n ~ ': ' ~ (step.action | default('', true))) | pyliteral }})
 {%- if step.kind == 'physical' %}
         # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
         dut = self.testSet.{{ dev0 }}
         port = dut.portA  # >>> FILL: the init_portlink() attribute for this link <<<
-        self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action'))) | pyliteral }})
+        self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action', true))) | pyliteral }})
         want = 'connected'  # >>> FILL: 'connected' after insert, 'notconnect' after removal <<<
         deadline = time.time() + 120  # >>> adjust operator timeout (s) <<<
         output = ''
@@ -131,30 +138,30 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
             output = dut.cmd('show interface {} status'.format(port.name), log=False)
             if want in output:
                 break
-            self.log({{ ('Waiting for operator: ' ~ (step.action | default(''))) | pyliteral }})
+            self.log({{ ('Waiting for operator: ' ~ (step.action | default('', true))) | pyliteral }})
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
         if want in output:  # >>> replace with the real verification condition <<<
-            self.passed({{ (step.verify | default('expected state change observed')) | pyliteral }})
+            self.passed({{ (step.verify | default('expected state change observed', true)) | pyliteral }})
         else:
-            self.failed({{ (step.verify | default('operator action / state change not observed within timeout')) | pyliteral }})
+            self.failed({{ (step.verify | default('operator action / state change not observed within timeout', true)) | pyliteral }})
 {%- elif step.kind == 'manual' %}
         # MANUAL: a check the device cannot self-report (LED, physical seating).
-        self.log({{ ('OPERATOR CHECK: ' ~ (step.verify | default('confirm the manual check'))) | pyliteral }})
-        ok = yesNo({{ ((step.verify | default('Did the check pass')) ~ ' - press Y/N') | pyliteral }})  # >>> FILL: phrase the question <<<
+        self.log({{ ('OPERATOR CHECK: ' ~ (step.verify | default('confirm the manual check', true))) | pyliteral }})
+        ok = yesNo({{ ((step.verify | default('Did the check pass', true)) ~ ' - press Y/N') | pyliteral }})  # >>> FILL: phrase the question <<<
         self.log('OBSERVED: operator answered {}'.format('Y' if ok else 'N'))
         if ok:
-            self.passed({{ (step.verify | default('operator confirmed')) | pyliteral }})
+            self.passed({{ (step.verify | default('operator confirmed', true)) | pyliteral }})
         else:
-            self.failed({{ (step.verify | default('operator did not confirm')) | pyliteral }})
+            self.failed({{ (step.verify | default('operator did not confirm', true)) | pyliteral }})
 {%- else %}
         output = ''  # >>> FILL: the real observation (see rule 1) <<<
         self.log('OBSERVED: {}'.format(output))
-        # >>> FILL: verify — {{ (step.verify | default('')) | replace('\n', ' ') }} <<<
+        # >>> FILL: verify — {{ (step.verify | default('', true)) | replace('\n', ' ') }} <<<
         if False:  # >>> replace with the real condition <<<
-            self.passed({{ (step.verify | default('verification met')) | pyliteral }})
+            self.passed({{ (step.verify | default('verification met', true)) | pyliteral }})
         else:
-            self.failed({{ (step.verify | default('verification not met')) | pyliteral }})
+            self.failed({{ (step.verify | default('verification not met', true)) | pyliteral }})
 {%- endif %}
 
     def tear_down(self):
