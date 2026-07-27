@@ -45,10 +45,23 @@ tooling rather than LLM quality — the reported diagnosis was wrong in each cas
   literals), plus a comment-aware lint warning that caught 3 real hardcodes on a regeneration.
 - **Tests 208 → 250** (+19 import-lint, +23 feature-grounding), 72 Vitest, both guards green.
   Judging artifacts consolidated back under `judging/Port (7)/`.
+- **Hardware-agnostic is the GOAL, not a fallback (Terrence).** I had framed threading the DUT
+  platform into grounding as making it "hardware-accurate rather than best-guess" — wrong on
+  both counts. The scripts must run on **all** platforms interchangeably (the CLI barely
+  deviates), so `prompt_block(product=...)` is deliberately left unpassed: tuning the reference
+  to one platform would push code toward platform-specific output. Breadth-based variant
+  selection is *correct*. `.setup` is the mechanism — `[portlink]` resolves ports at runtime, so
+  the same source runs on an x930/AR4050S/x530 and yields `port1.1.x` on a chassis unchanged.
+- **`.setup` binding fixed — two layers.** The lookup STRING is the `[switch]` key
+  (`swi_a`/`swi_b`/… — 621 of ~650 corpus calls); the local VARIABLE carries the role
+  (`dutA = setup.init_swi('swi_a')`). The generator was emitting `init_swi('dut')` from role
+  names, which fails against any real `.setup`. `_setup_keys_for()` maps them positionally now.
+- **Found a guaranteed-crash bug doing it:** the scripts called
+  `init_portlink(self.dut, …)` three lines *above* `self.dut = dut` — an `AttributeError` on
+  every run, so they could never have executed on the testbox. Valid syntax, so `py_compile`
+  and every structural check passed it. Now a lint **error**; both cases regenerate clean.
 - **Still open:** T33234 TestCase_8 (unrelated to LPI — configures the partner's
-  `polarity mdi` but never the local `polarity auto`; judges near-unanimous). And
-  `prompt_block(product=...)` exists but is never passed, so variant choice is still inferred
-  from breadth rather than the real DUT — needs a `platform` field on the testbox profile.
+  `polarity mdi` but never the local `polarity auto`; judges 5 bad / 1 good).
 
 ## Latest session (2026-07-27h) — CLI grounding: the generator was starved, not stupid
 

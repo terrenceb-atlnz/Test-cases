@@ -270,3 +270,75 @@ def test_skeleton_and_prompt_do_not_teach_hardcoded_ports():
     assert "NEVER HARDCODE A PORT NAME" in generate
     # the chassis rationale must survive, since it is the reason the rule exists
     assert "x908gen3" in generate and "x950" in generate
+
+
+# --- hardware-agnostic topology binding ------------------------------------------------
+
+def test_setup_lookup_key_is_separate_from_the_role_variable():
+    """Two layers, and conflating them broke the first generated scripts (2026-07-28).
+
+    Real ART code does `dutA = setup.init_swi('swi_a')` — the VARIABLE carries the role,
+    the STRING is the .setup `[switch]` key. The generator emitted `init_swi('dut')`, which
+    simply fails against any real .setup (tb470 declares swi_a/swi_c/swi_d). The convention
+    is swi_a/swi_b/... — 621 of ~650 corpus `init_swi()` calls.
+    """
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+
+    assert pc._setup_keys_for(["dut", "lp"]) == ["swi_a", "swi_b"]
+    # a name that already looks like a .setup key is passed through untouched
+    assert pc._setup_keys_for(["swi_a", "swi_c"]) == ["swi_a", "swi_c"]
+    # mixed: real keys preserved, roles allocated around them without collision
+    got = pc._setup_keys_for(["dutA", "swi_c", "swiSrc"])
+    assert got[1] == "swi_c" and len(set(got)) == len(got), got
+
+
+def test_skeleton_binds_devices_and_never_names_a_port():
+    """The point of `.setup`: the script is HARDWARE-AGNOSTIC and runs unchanged on any
+    platform, because [portlink] supplies the port names at runtime. That is also why the
+    same code works on a chassis (port1.1.x) and a standalone switch (port1.0.x)."""
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+    import re
+
+    seq = [{"n": 1, "action": "Enable ecofriendly lpi on the port",
+            "verify": "show ecofriendly shows lpi", "kind": "verify"}]
+    sk = pc._render_skeleton("AWPTCM-T99999", "probe", seq, [], [])
+
+    # lookups use .setup keys, not role names
+    assert "init_swi('swi_a')" in sk
+    assert "init_swi('dut')" not in sk and "init_swi('lp')" not in sk
+    # and no literal port name is seeded anywhere
+    assert not re.search(r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""", sk), \
+        "skeleton seeds a literal port name — it must come from the .setup topology"
+
+
+def test_skeleton_assigns_self_before_any_attribute_use():
+    """A real bug the lint did not catch: the first generated script referenced
+    `self.dut.portA` on the init_portlink line BEFORE `self.dut` was assigned three lines
+    later — an AttributeError at init. Nothing may touch `self.<dev>` before the
+    assignment block."""
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+
+    seq = [{"n": 1, "action": "connect the link partner",
+            "verify": "link comes up", "kind": "verify"}]
+    sk = pc._render_skeleton("AWPTCM-T99999", "probe", seq, [], [])
+    lines = sk.splitlines()
+    try:
+        init_i = next(i for i, l in enumerate(lines) if "def init(self" in l)
+        end_i = next(i for i, l in enumerate(lines[init_i + 1:], init_i + 1)
+                     if l.strip().startswith("def "))
+    except StopIteration:                        # pragma: no cover
+        pytest.fail("could not locate init() in the rendered skeleton")
+
+    body = lines[init_i:end_i]
+    first_assign = next((i for i, l in enumerate(body) if l.strip().startswith("self.tb =")), None)
+    assert first_assign is not None, "init() never assigns self.tb"
+    for i, line in enumerate(body[:first_assign]):
+        code = line.split("#", 1)[0]
+        assert "self." not in code, (
+            f"init() uses `self.` before the assignment block (line {i}): {line.strip()!r}")

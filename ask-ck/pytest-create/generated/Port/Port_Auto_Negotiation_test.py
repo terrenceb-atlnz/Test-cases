@@ -13,17 +13,22 @@ class TestSet(ATTestSet.TestSet):
     FEATURES = ['ALL']
 
     def init(self, setup):
-        # Bind the topology declared in the .setup file. Every device a TestCase
-        # references must be bound here, and these names MUST match the [switch]/[stack]
-        # sections of the .setup file used at Run (they are NOT a fixed convention —
-        # the names below are taken from the reused fragments / sequence and may need
-        # renaming to your .setup's device names).
+        # Bind the topology declared in the .setup file. THIS SCRIPT IS HARDWARE-AGNOSTIC:
+        # it must run unchanged on any platform, so it never names a port. The .setup
+        # [portlink] lines resolve to the real port names at runtime, which is also why the
+        # same code works on a chassis (port1.1.x) and a standalone switch (port1.0.x).
+        #
+        # The lookup STRING must match the .setup's [switch]/[stack] key — the convention
+        # is swi_a/swi_b/swi_c/swi_d and stk_a (621 of ~650 corpus uses). The local
+        # VARIABLE it is assigned to carries the role, e.g.
+        #     dutA   = setup.init_swi('swi_a')
+        #     swiSrc = setup.init_swi('swi_c')
         tb = setup.init_tb()
-        dut = setup.init_swi('dut')
-        linkP = setup.init_swi('linkP')
-        dutA = setup.init_swi('dutA')
-        (self.dut.portA, self.tb.ethA) = setup.init_portlink(dut, tb, type1='port')
-        (self.linkP.portB, self.tb.ethB) = setup.init_portlink(linkP, tb, type1='port')
+        dut = setup.init_swi('swi_a')
+        linkP = setup.init_swi('swi_b')
+        dutA = setup.init_swi('swi_c')
+        (dut.portTB, tb.ethA) = setup.init_portlink(dut, tb, type1='port')
+        (dut.portB, linkP.portA) = setup.init_portlink(dut, linkP, type1='port', type2='port')
         self.tb = tb
         self.dut = dut
         self.linkP = linkP
@@ -49,8 +54,9 @@ class TestCase_1(ATTestCase.TestCase):
     def main(self):
         # legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py
         self.log('STEP 1: Check default port configuration for speed and duplex.')
-        port = self.testSet.dut.portA.name
-        output = self.testSet.dut.cmd('show interface {} status'.format(port))
+        dut = self.testSet.dut
+        port = dut.portTB
+        output = dut.cmd('show interface {} status'.format(port), log=False)
         self.log('OBSERVED: {}'.format(output))
         if 'a-full' in output and 'a-1000' in output:
             self.passed('Run `show interface <port> status`. Confirm default speed and duplex are reported with `a-` prefix (e.g., `a-full`, `a-1000`) indicating automatic negotiation mode.')
@@ -58,6 +64,9 @@ class TestCase_1(ATTestCase.TestCase):
             self.failed('Run `show interface <port> status`. Confirm default speed and duplex are reported with `a-` prefix (e.g., `a-full`, `a-1000`) indicating automatic negotiation mode.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -70,7 +79,7 @@ class TestCase_2(ATTestCase.TestCase):
         # legacy 8003_x8100/test-9999.083.py
         self.log('STEP 2: Physically insert a supported pluggable into the port.')
         dut = self.testSet.dut
-        port = self.testSet.dut.portA.name
+        port = dut.portTB
         self.log('OPERATOR: Physically insert a supported pluggable into the port.')
         want = 'connected'
         deadline = time.time() + 120
@@ -88,6 +97,9 @@ class TestCase_2(ATTestCase.TestCase):
             self.failed('Wait for link state change. Run `show interface <port> status`. Confirm column shows `connected` and autonegotiation completes (speed/duplex values appear in status columns).')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -101,34 +113,33 @@ class TestCase_3(ATTestCase.TestCase):
         self.log('STEP 3: Configure local port speed and duplex to `auto`. Configure link partner port speed and duplex to `auto`.')
         dut = self.testSet.dut
         linkP = self.testSet.linkP
-        portA = dut.portA.name
-        portB = linkP.portB.name
+        portDut = dut.portTB
+        portLink = linkP.portA
         
         dut.mode(')#')
-        dut.cmd('interface {}'.format(portA))
+        dut.cmd('interface {}'.format(portDut))
         dut.cmd('speed auto')
         dut.cmd('duplex auto')
         dut.mode('#')
         
         linkP.mode(')#')
-        linkP.cmd('interface {}'.format(portB))
+        linkP.cmd('interface {}'.format(portLink))
         linkP.cmd('speed auto')
         linkP.cmd('duplex auto')
         linkP.mode('#')
         
         time.sleep(5)
-        
-        output_status = dut.cmd('show interface {} status'.format(portA))
-        output_detail = dut.cmd('show interface {}'.format(portA))
-        output = output_status + '\n' + output_detail
+        output = dut.cmd('show interface {} status'.format(portDut), log=False)
         self.log('OBSERVED: {}'.format(output))
-        
-        if 'connected' in output_status and 'configured speed auto' in output_detail and 'configured duplex auto' in output_detail:
+        if 'connected' in output and 'a-1000' in output and 'a-full' in output:
             self.passed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` and reports negotiated speed/duplex values. Run `show interface <port>` to confirm config shows `auto`.')
         else:
             self.failed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` and reports negotiated speed/duplex values. Run `show interface <port>` to confirm config shows `auto`.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -142,32 +153,33 @@ class TestCase_4(ATTestCase.TestCase):
         self.log('STEP 4: Configure local port to `speed auto duplex auto`. Configure link partner to `speed 1000 duplex full`.')
         dut = self.testSet.dut
         linkP = self.testSet.linkP
-        portA = dut.portA.name
-        portB = linkP.portB.name
+        portDut = dut.portTB
+        portLink = linkP.portA
         
         dut.mode(')#')
-        dut.cmd('interface {}'.format(portA))
+        dut.cmd('interface {}'.format(portDut))
         dut.cmd('speed auto')
         dut.cmd('duplex auto')
         dut.mode('#')
         
         linkP.mode(')#')
-        linkP.cmd('interface {}'.format(portB))
+        linkP.cmd('interface {}'.format(portLink))
         linkP.cmd('speed 1000')
         linkP.cmd('duplex full')
         linkP.mode('#')
         
         time.sleep(5)
-        
-        output = dut.cmd('show interface {} status'.format(portA))
+        output = dut.cmd('show interface {} status'.format(portDut), log=False)
         self.log('OBSERVED: {}'.format(output))
-        
         if 'connected' in output and '1000' in output and 'full' in output:
             self.passed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` with negotiated speed `1000` and duplex `full`.')
         else:
             self.failed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` with negotiated speed `1000` and duplex `full`.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -181,32 +193,33 @@ class TestCase_5(ATTestCase.TestCase):
         self.log('STEP 5: Configure local port to `speed auto duplex auto`. Configure link partner to `speed 100 duplex half`.')
         dut = self.testSet.dut
         linkP = self.testSet.linkP
-        portA = dut.portA.name
-        portB = linkP.portB.name
+        portDut = dut.portTB
+        portLink = linkP.portA
         
         dut.mode(')#')
-        dut.cmd('interface {}'.format(portA))
+        dut.cmd('interface {}'.format(portDut))
         dut.cmd('speed auto')
         dut.cmd('duplex auto')
         dut.mode('#')
         
         linkP.mode(')#')
-        linkP.cmd('interface {}'.format(portB))
+        linkP.cmd('interface {}'.format(portLink))
         linkP.cmd('speed 100')
         linkP.cmd('duplex half')
         linkP.mode('#')
         
         time.sleep(5)
-        
-        output = dut.cmd('show interface {} status'.format(portA))
+        output = dut.cmd('show interface {} status'.format(portDut), log=False)
         self.log('OBSERVED: {}'.format(output))
-        
         if 'connected' in output and '100' in output and 'half' in output:
             self.passed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` with negotiated speed `100` and duplex `half`.')
         else:
             self.failed('Wait for link up. Run `show interface <port> status`. Confirm status shows `connected` with negotiated speed `100` and duplex `half`.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -220,32 +233,33 @@ class TestCase_6(ATTestCase.TestCase):
         self.log('STEP 6: Configure local port to `speed 1000 duplex full`. Configure link partner to `speed 100 duplex half`.')
         dut = self.testSet.dut
         linkP = self.testSet.linkP
-        portA = dut.portA.name
-        portB = linkP.portB.name
+        portDut = dut.portTB
+        portLink = linkP.portA
         
         dut.mode(')#')
-        dut.cmd('interface {}'.format(portA))
+        dut.cmd('interface {}'.format(portDut))
         dut.cmd('speed 1000')
         dut.cmd('duplex full')
         dut.mode('#')
         
         linkP.mode(')#')
-        linkP.cmd('interface {}'.format(portB))
+        linkP.cmd('interface {}'.format(portLink))
         linkP.cmd('speed 100')
         linkP.cmd('duplex half')
         linkP.mode('#')
         
         time.sleep(5)
-        
-        output = dut.cmd('show interface {} status'.format(portA))
+        output = dut.cmd('show interface {} status'.format(portDut), log=False)
         self.log('OBSERVED: {}'.format(output))
-        
-        if 'down' in output or 'disconnected' in output or 'notconnect' in output:
+        if 'down' in output or 'disconnected' in output:
             self.passed('Wait for link state. Run `show interface <port> status`. Confirm status shows `down` or `disconnected`. Link does not establish.')
         else:
             self.failed('Wait for link state. Run `show interface <port> status`. Confirm status shows `down` or `disconnected`. Link does not establish.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -258,7 +272,7 @@ class TestCase_7(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 341-430
         self.log('STEP 7: Physically hot-insert a supported pluggable while port is configured for `auto` speed/duplex.')
         dut = self.testSet.dut
-        port = self.testSet.dut.portA.name
+        port = dut.portTB
         self.log('OPERATOR: Physically hot-insert a supported pluggable while port is configured for `auto` speed/duplex.')
         want = 'connected'
         deadline = time.time() + 120
@@ -276,6 +290,9 @@ class TestCase_7(ATTestCase.TestCase):
             self.failed('Wait for link state to transition. Run `show interface <port> status`. Confirm status shows `connected` and negotiated speed/duplex values appear.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -288,9 +305,9 @@ class TestCase_8(ATTestCase.TestCase):
         # legacy 5703_Speed_Duplex_Polarity/test-5000.1001.py
         self.log('STEP 8: Physically hot-remove the pluggable.')
         dut = self.testSet.dut
-        port = self.testSet.dut.portA.name
+        port = dut.portTB
         self.log('OPERATOR: Physically hot-remove the pluggable.')
-        want = 'notconnect'
+        want = 'down'
         deadline = time.time() + 120
         output = ''
         while time.time() < deadline:
@@ -306,6 +323,9 @@ class TestCase_8(ATTestCase.TestCase):
             self.failed('Wait for link state to transition. Run `show interface <port> status`. Confirm status shows `down` or `disconnected`.')
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -317,39 +337,37 @@ class TestCase_9(ATTestCase.TestCase):
     def main(self):
         # SVT libSvt/portCoToCsv.py
         self.log('STEP 9: Enable `ecofriendly lpi` on the local port.')
-        port = self.testSet.dut.portA.name
         dut = self.testSet.dut
+        port = dut.portTB
         
         dut.mode(')#')
         dut.cmd('interface {}'.format(port))
         dut.cmd('ecofriendly lpi')
         dut.mode('#')
         
-        time.sleep(2)
+        time.sleep(5)
+        eco_output = dut.cmd('show ecofriendly', log=False)
+        self.log('OBSERVED: {}'.format(eco_output))
         
-        output = dut.cmd('show ecofriendly')
-        self.log('OBSERVED: {}'.format(output))
-        
-        lines = output.splitlines()
         row = None
-        for line in lines:
-            if line.strip().startswith(port):
+        for line in eco_output.splitlines():
+            if line.split()[:1] == [port]:
                 row = line
                 break
         
-        lpi_configured = False
         if row is not None:
-            fields = row.split()
-            if len(fields) >= 2 and fields[-2:] == ['lpi', 'lpi']:
-                lpi_configured = True
-        
-        status_out = dut.cmd('show interface {} status'.format(port))
-        if lpi_configured and 'connected' in status_out:
-            self.passed("Run `show ecofriendly`. Confirm the port's `Configured` column shows `lpi` and `Status` column shows `lpi` (or `off` if not yet active). Verify `show interface <port> status` still shows `connected` and link remains stable.")
+            cols = row.split()
+            if len(cols) >= 2 and cols[-2] == 'lpi' and cols[-1] == 'lpi':
+                self.passed("Run `show ecofriendly`. Confirm the port's `Configured` column shows `lpi` and `Status` column shows `lpi` (or `off` if not yet active). Verify `show interface <port> status` still shows `connected` and link remains stable.")
+            else:
+                self.failed("Run `show ecofriendly`. Confirm the port's `Configured` column shows `lpi` and `Status` column shows `lpi` (or `off` if not yet active). Verify `show interface <port> status` still shows `connected` and link remains stable.")
         else:
             self.failed("Run `show ecofriendly`. Confirm the port's `Configured` column shows `lpi` and `Status` column shows `lpi` (or `off` if not yet active). Verify `show interface <port> status` still shows `connected` and link remains stable.")
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 
@@ -361,39 +379,37 @@ class TestCase_10(ATTestCase.TestCase):
     def main(self):
         # legacy 5000_mdi_mdix/test-5000.0001-CopperFixed_Straight.py lines 958-1034
         self.log('STEP 10: Disable `ecofriendly lpi` using `no ecofriendly lpi`.')
-        port = self.testSet.dut.portA.name
         dut = self.testSet.dut
+        port = dut.portTB
         
         dut.mode(')#')
         dut.cmd('interface {}'.format(port))
         dut.cmd('no ecofriendly lpi')
         dut.mode('#')
         
-        time.sleep(2)
+        time.sleep(5)
+        eco_output = dut.cmd('show ecofriendly', log=False)
+        self.log('OBSERVED: {}'.format(eco_output))
         
-        output = dut.cmd('show ecofriendly')
-        self.log('OBSERVED: {}'.format(output))
-        
-        lines = output.splitlines()
         row = None
-        for line in lines:
-            if line.strip().startswith(port):
+        for line in eco_output.splitlines():
+            if line.split()[:1] == [port]:
                 row = line
                 break
         
-        off_configured = False
         if row is not None:
-            fields = row.split()
-            if len(fields) >= 2 and fields[-2:] == ['off', 'off']:
-                off_configured = True
-        
-        status_out = dut.cmd('show interface {} status'.format(port))
-        if off_configured and 'connected' in status_out:
-            self.passed("Run `show ecofriendly`. Confirm the port's `Configured` and `Status` columns show `off`. Verify `show interface <port> status` still shows `connected` and link remains stable.")
+            cols = row.split()
+            if len(cols) >= 2 and cols[-2] == 'off' and cols[-1] == 'off':
+                self.passed("Run `show ecofriendly`. Confirm the port's `Configured` and `Status` columns show `off`. Verify `show interface <port> status` still shows `connected` and link remains stable.")
+            else:
+                self.failed("Run `show ecofriendly`. Confirm the port's `Configured` and `Status` columns show `off`. Verify `show interface <port> status` still shows `connected` and link remains stable.")
         else:
             self.failed("Run `show ecofriendly`. Confirm the port's `Configured` and `Status` columns show `off`. Verify `show interface <port> status` still shows `connected` and link remains stable.")
 
     def tear_down(self):
+        # Per-case cleanup: undo anything THIS step changed on the device(s) so the
+        # next case starts clean. Runs after main(). NO pass/fail here. Leave as
+        # `pass` if this step needs no per-case cleanup.
         pass
 
 

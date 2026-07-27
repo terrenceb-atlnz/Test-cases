@@ -1294,9 +1294,57 @@ hardcodes on a regeneration, so the defect is live and model-dependent rather th
 prompt guidance alone. (First cut of the check flagged the skeleton's own guidance comment
 where it quoted an example — a warning against its own advice; comments are now skipped.)
 
-### 12.5 Not addressed
+### 12.5 Hardware-agnostic is the GOAL, not a fallback (Terrence, 2026-07-28)
 
-`prompt_block(product=...)` exists but both call sites pass `product=None`, so variant choice
-is still inferred from breadth rather than the DUT. Threading the real platform through would
-make grounding hardware-accurate; it needs a `platform` field on the testbox profile
-(`secrets.testboxes.json` currently has no profiles). Deferred by decision, not oversight.
+An earlier draft of §12.5 framed threading the DUT platform into grounding as making it
+"hardware-accurate rather than best-guess". **Both halves of that framing were wrong.**
+
+> *"These scripts should be Hardware-Agnostic, should run on all platforms. The CLI doesn't
+> deviate too terribly much between platforms, and as such the scripts should be robust
+> enough to be used interchangeably."*
+
+So `prompt_block(product=...)` is deliberately **left unpassed**. Tuning the reference to one
+platform would push generated code toward platform-specific output shapes — the opposite of
+interchangeable. Breadth-based variant selection is CORRECT: it picks what most families
+share. Relevance ranking only breaks ties toward a variant that actually shows the field
+under test, which does not narrow the platform.
+
+The `.setup` file is the mechanism that delivers agnosticism. Ports are never named in the
+script; `[portlink]` resolves them at runtime, which is exactly why the same code runs on an
+x930, an AR4050S and an x530 — and yields `port1.1.x` on a chassis or a populated-slot x950
+without a source change.
+
+    [switch]
+    swi_a = /dev/u0
+    swi_c = /dev/u1
+    swi_d = /dev/u2
+
+    [portlink]
+    tb-swi_a  = eth2-port1.0.15
+    swi_a-swi_c = port1.0.1-port1.0.1,port1.0.3-port1.0.2,port1.0.5-port1.0.3
+
+**Two layers, and conflating them broke the first generated scripts.** The lookup STRING is
+the `[switch]` key; the local VARIABLE carries the role:
+
+    dutA   = setup.init_swi('swi_a')      # 621 of ~650 corpus calls use swi_a/swi_b/...
+    swiSrc = setup.init_swi('swi_c')
+    (swiSrc.portTB, tb.ethSrc) = setup.init_portlink(swiSrc, tb, type1='port')
+
+The generator emitted `init_swi('dut')` / `init_swi('linkP')` from role names, which fails
+against any real `.setup`. `_setup_keys_for()` now maps roles → `swi_a/swi_b/...`
+positionally, passing through names that already look like keys. Also note `[stack]` takes a
+member list (`stk_a = swi_a, swi_b`), non-default stackports need `[configured_stackport]`,
+and `[boot_from_flash]` is emptied when booting over TFTP.
+
+**A guaranteed-crash bug this surfaced.** The scripts ran
+`init_portlink(self.dut, ...)` three lines ABOVE `self.dut = dut` — an `AttributeError` the
+moment `init()` is called, so the script could not run at all. Valid syntax, so `py_compile`
+passed and no structural check caught it. Now a lint **ERROR** (not a warning: it is a
+certain crash), plus the FILL slot says to use the local variables. Both cases regenerate
+clean.
+
+### 12.6 Not addressed
+
+The one criterion-4 block still judged `bad` (T33234 TestCase_8, step 9) is unrelated to
+LPI: it configures the partner's `polarity mdi` but never sets the local port to
+`polarity auto`. Judges near-unanimous (5 bad / 1 good). Real signal, still open.

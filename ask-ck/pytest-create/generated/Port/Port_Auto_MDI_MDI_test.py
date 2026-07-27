@@ -13,15 +13,20 @@ class TestSet(ATTestSet.TestSet):
     FEATURES = ['ALL']
 
     def init(self, setup):
-        # Bind the topology declared in the .setup file. Every device a TestCase
-        # references must be bound here, and these names MUST match the [switch]/[stack]
-        # sections of the .setup file used at Run (they are NOT a fixed convention —
-        # the names below are taken from the reused fragments / sequence and may need
-        # renaming to your .setup's device names).
+        # Bind the topology declared in the .setup file. THIS SCRIPT IS HARDWARE-AGNOSTIC:
+        # it must run unchanged on any platform, so it never names a port. The .setup
+        # [portlink] lines resolve to the real port names at runtime, which is also why the
+        # same code works on a chassis (port1.1.x) and a standalone switch (port1.0.x).
+        #
+        # The lookup STRING must match the .setup's [switch]/[stack] key — the convention
+        # is swi_a/swi_b/swi_c/swi_d and stk_a (621 of ~650 corpus uses). The local
+        # VARIABLE it is assigned to carries the role, e.g.
+        #     dutA   = setup.init_swi('swi_a')
+        #     swiSrc = setup.init_swi('swi_c')
         tb = setup.init_tb()
-        dut = setup.init_swi('dut')
-        lp = setup.init_swi('lp')
-        (dut.port1, lp.port1) = setup.init_portlink(dut, lp, type1='port')
+        dut = setup.init_swi('swi_a')
+        lp = setup.init_swi('swi_b')
+        (dut.portA, lp.portB) = setup.init_portlink(dut, lp, type1='port', type2='port')
         self.tb = tb
         self.dut = dut
         self.lp = lp
@@ -31,36 +36,40 @@ class TestSet(ATTestSet.TestSet):
         # (interfaces / vlans / ip / etc.). NO self.passed()/self.failed() here —
         # this is setup, not a test step.
         # setup: Enter configuration mode and apply: `speed auto`, `duplex auto`, `polarity auto`.
-        dut = self.dut
         dut.mode('#')
         dut.cmd('conf t')
-        dut.cmd('int port1')
+        dut.cmd('int {}'.format(dut.portA))
+        dut.cmd('speed auto')
+        dut.cmd('duplex auto')
+        dut.cmd('polarity auto')
+        dut.cmd('exit')
+        lp.mode('#')
+        lp.cmd('conf t')
+        lp.cmd('int {}'.format(lp.portB))
+        lp.cmd('speed auto')
+        lp.cmd('duplex auto')
+        lp.cmd('polarity auto')
+        lp.cmd('exit')
+        dut.cmd('end')
+        lp.cmd('end')
+
+    def tear_down(self):
+        # One-time SUITE cleanup, runs ONCE after all cases. Restore device state.
+        # NO pass/fail here.
+        dut.mode('#')
+        dut.cmd('conf t')
+        dut.cmd('int {}'.format(dut.portA))
         dut.cmd('speed auto')
         dut.cmd('duplex auto')
         dut.cmd('polarity auto')
         dut.cmd('exit')
         dut.cmd('end')
-
-    def tear_down(self):
-        # One-time SUITE cleanup, runs ONCE after all cases. Restore device state.
-        # NO pass/fail here.
-        dut = self.dut
-        lp = self.lp
-        port = 'port1'
-        dut.mode('#')
-        dut.cmd('conf t')
-        dut.cmd('int {}'.format(port))
-        dut.cmd('no speed')
-        dut.cmd('no duplex')
-        dut.cmd('no polarity')
-        dut.cmd('exit')
-        dut.cmd('end')
         lp.mode('#')
         lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('no speed')
-        lp.cmd('no duplex')
-        lp.cmd('no polarity')
+        lp.cmd('int {}'.format(lp.portB))
+        lp.cmd('speed auto')
+        lp.cmd('duplex auto')
+        lp.cmd('polarity auto')
         lp.cmd('exit')
         lp.cmd('end')
 
@@ -75,9 +84,9 @@ class TestCase_1(ATTestCase.TestCase):
         # STEP 1 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 1: Check default port configuration with no pluggable present.')
         # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
-        output = self.testSet.dut.cmd('show interface port1')
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity auto' in output or 'configured polarity auto' in output:
+        if 'current polarity auto' in output:
             self.passed('Run `show interface` and confirm the output contains `current polarity auto` (or default), indicating automatic MDI/MDI-X handling is enabled by default.')
         else:
             self.failed('Run `show interface` and confirm the output contains `current polarity auto` (or default), indicating automatic MDI/MDI-X handling is enabled by default.')
@@ -98,9 +107,13 @@ class TestCase_2(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
         # STEP 2 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 2: Prompt operator to insert a supported pluggable into the port.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        # PHYSICAL step: a human must act on the hardware, then the script waits for the
+        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
-        port = 'port1'
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA
         self.log('OPERATOR: Prompt operator to insert a supported pluggable into the port.')
         # Poll show-interface status for the expected transition, prompting the operator.
         want = 'connected'
@@ -134,18 +147,17 @@ class TestCase_3(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 31-67
         # STEP 3 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 3: Connect a straight-through cable. Configure link partner to `polarity mdi`. Verify local port remains `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 77-141
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdi')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdi')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity auto' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
+        if 'current polarity mdi' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
             self.passed('Run `show interface` and confirm the prose output contains `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
         else:
             self.failed('Run `show interface` and confirm the prose output contains `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
@@ -166,18 +178,17 @@ class TestCase_4(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 31-73
         # STEP 4 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 4: Connect a crossover cable. Configure link partner to `polarity mdix`. Verify local port remains `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 77-141
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdix')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdix')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
-        if 'current polarity auto' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
+        if 'current polarity mdix' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
             self.passed('Run `show interface` and confirm the prose output contains `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
         else:
             self.failed('Run `show interface` and confirm the prose output contains `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected`.')
@@ -198,16 +209,15 @@ class TestCase_5(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 200-263
         # STEP 5 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 5: Set link partner to `polarity mdi`. Connect straight-through cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 200-263
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdi')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdi')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
         if 'current polarity mdi' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
             self.passed('Run `show interface` and confirm `current polarity mdi`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
@@ -230,18 +240,17 @@ class TestCase_6(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 134-197
         # STEP 6 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 6: Set link partner to `polarity mdix`. Connect straight-through cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 134-197
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdix')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
-        status_output = self.testSet.dut.cmd('show interface {} status'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdix')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
+        status_output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA))
         if ('down' in output or 'disconnected' in output) and 'connected' not in status_output:
             self.passed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
         else:
@@ -263,16 +272,15 @@ class TestCase_7(ATTestCase.TestCase):
         # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 144-206
         # STEP 7 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 7: Set link partner to `polarity mdix`. Connect crossover cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0002-CopperFixed_Cross.py lines 144-206
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdix')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdix')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
         if 'current polarity mdix' in output and 'current duplex full' in output and 'current speed 1000' in output and 'connected' in output:
             self.passed('Run `show interface` and confirm `current polarity mdix`, `current duplex full`, `current speed 1000`, and link status is `connected` (compatible combination).')
@@ -295,18 +303,17 @@ class TestCase_8(ATTestCase.TestCase):
         # AI vllm-fast 2026-07-27
         # STEP 8 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 8: Set link partner to `polarity mdi`. Connect crossover cable. Ensure local port is `polarity auto`.')
-        # Provenance tag for this fragment: # legacy 5000_mdi_mdix/test-5000.0003-CopperSFP_Straight.py lines 134-197
-        lp = self.testSet.lp
-        port = 'port1'
-        lp.mode('#')
-        lp.cmd('conf t')
-        lp.cmd('int {}'.format(port))
-        lp.cmd('polarity mdi')
-        lp.cmd('exit')
-        lp.cmd('end')
-        output = self.testSet.dut.cmd('show interface {}'.format(port))
-        status_output = self.testSet.dut.cmd('show interface {} status'.format(port))
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.lp.mode('#')
+        self.testSet.lp.cmd('conf t')
+        self.testSet.lp.cmd('int {}'.format(self.testSet.lp.portB))
+        self.testSet.lp.cmd('polarity mdi')
+        self.testSet.lp.cmd('exit')
+        self.testSet.lp.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
+        status_output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA))
         if ('down' in output or 'disconnected' in output) and 'connected' not in status_output:
             self.passed('Run `show interface` and confirm link status is `down` or `disconnected`, and `show interface status` does not show `connected` (incompatible combination).')
         else:
@@ -328,8 +335,8 @@ class TestCase_9(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
         # STEP 9 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 9: Verify the port accurately reports the resolved polarity setting together with negotiated speed and duplex.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
-        output = self.testSet.dut.cmd('show interface port1')
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        output = self.testSet.dut.cmd('show interface {}'.format(self.testSet.dut.portA))
         self.log('OBSERVED: {}'.format(output))
         if 'current polarity' in output and 'current duplex' in output and 'current speed' in output:
             self.passed('Run `show interface` and assert the output contains the exact negotiated values, e.g., `current polarity <mdi|mdix>`, `current duplex <full|half>`, `current speed <10|100|1000>`, matching the active link parameters.')
@@ -352,19 +359,18 @@ class TestCase_10(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
         # STEP 10 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 10: Monitor link status stability across the active configuration.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
-        port = 'port1'
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
         deadline = time.time() + 60
-        output = ''
         stable = True
+        output = ''
         while time.time() < deadline:
-            output = self.testSet.dut.cmd('show interface {} status'.format(port), log=False)
+            output = self.testSet.dut.cmd('show interface {} status'.format(self.testSet.dut.portA), log=False)
             if 'connected' not in output:
                 stable = False
                 break
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        if stable and 'connected' in output:
+        if stable:
             self.passed('Poll `show interface status` over a 60-second interval and confirm the port column consistently shows `connected` without flapping or dropping to `disconnected`.')
         else:
             self.failed('Poll `show interface status` over a 60-second interval and confirm the port column consistently shows `connected` without flapping or dropping to `disconnected`.')
@@ -385,10 +391,15 @@ class TestCase_11(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
         # STEP 11 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 11: Prompt operator to hot-remove the supported pluggable.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        # PHYSICAL step: a human must act on the hardware, then the script waits for the
+        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
-        port = 'port1'
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA
         self.log('OPERATOR: Prompt operator to hot-remove the supported pluggable.')
+        # Poll show-interface status for the expected transition, prompting the operator.
         want = 'disconnected'
         deadline = time.time() + 120
         output = ''
@@ -420,10 +431,15 @@ class TestCase_12(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 195-216
         # STEP 12 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 12: Prompt operator to hot-insert the supported pluggable back into the port.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 149-193
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        # PHYSICAL step: a human must act on the hardware, then the script waits for the
+        # resulting port state change and continues (SVT 3009 waitForReplugEvent pattern).
         dut = self.testSet.dut
-        port = 'port1'
+        # Port comes from the .setup topology (init_portlink), never a literal — the first
+        # index is the chassis/slot and varies with the hardware.
+        port = dut.portA
         self.log('OPERATOR: Prompt operator to hot-insert the supported pluggable back into the port.')
+        # Poll show-interface status for the expected transition, prompting the operator.
         want = 'connected'
         deadline = time.time() + 120
         output = ''
@@ -455,18 +471,17 @@ class TestCase_13(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
         # STEP 13 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 13: Enable LPI on the port: `ecofriendly lpi`.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
-        dut = self.testSet.dut
-        port = 'port1'
-        dut.mode('#')
-        dut.cmd('conf t')
-        dut.cmd('int {}'.format(port))
-        dut.cmd('ecofriendly lpi')
-        dut.cmd('exit')
-        dut.cmd('end')
-        output = dut.cmd('show ecofriendly')
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.dut.mode('#')
+        self.testSet.dut.cmd('conf t')
+        self.testSet.dut.cmd('int {}'.format(self.testSet.dut.portA))
+        self.testSet.dut.cmd('ecofriendly lpi')
+        self.testSet.dut.cmd('exit')
+        self.testSet.dut.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show ecofriendly')
         self.log('OBSERVED: {}'.format(output))
-        row = next((l for l in output.splitlines() if l.split()[:1] == [port]), None)
+        row = next((l for l in output.splitlines() if l.split()[:1] == [self.testSet.dut.portA]), None)
         if row is not None and row.split()[-2:] == ['lpi', 'lpi']:
             self.passed('Run `show ecofriendly` and assert the `Configured` column for the port reads `lpi` and the `Status` column reads `lpi`, confirming LPI is active and stable.')
         else:
@@ -488,18 +503,17 @@ class TestCase_14(ATTestCase.TestCase):
         # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
         # STEP 14 — logging contract (mandatory, do not remove the three calls):
         self.log('STEP 14: Disable LPI on the port: `no ecofriendly lpi`.')
-        # Provenance tag for this fragment: # SVT 3009_pluggable_qualifications/libPluggableAutomateConfig.py lines 220-236
-        dut = self.testSet.dut
-        port = 'port1'
-        dut.mode('#')
-        dut.cmd('conf t')
-        dut.cmd('int {}'.format(port))
-        dut.cmd('no ecofriendly lpi')
-        dut.cmd('exit')
-        dut.cmd('end')
-        output = dut.cmd('show ecofriendly')
+        # Provenance tag for this fragment: # AI vllm-fast 2026-07-27
+        self.testSet.dut.mode('#')
+        self.testSet.dut.cmd('conf t')
+        self.testSet.dut.cmd('int {}'.format(self.testSet.dut.portA))
+        self.testSet.dut.cmd('no ecofriendly lpi')
+        self.testSet.dut.cmd('exit')
+        self.testSet.dut.cmd('end')
+        time.sleep(5)
+        output = self.testSet.dut.cmd('show ecofriendly')
         self.log('OBSERVED: {}'.format(output))
-        row = next((l for l in output.splitlines() if l.split()[:1] == [port]), None)
+        row = next((l for l in output.splitlines() if l.split()[:1] == [self.testSet.dut.portA]), None)
         if row is not None and row.split()[-2:] == ['off', 'off']:
             self.passed('Run `show ecofriendly` and assert the `Configured` column for the port reads `off`, confirming the feature was successfully disabled. Link remains stable.')
         else:

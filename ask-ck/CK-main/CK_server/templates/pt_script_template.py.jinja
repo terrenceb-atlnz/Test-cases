@@ -56,21 +56,30 @@ class TestSet(ATTestSet.TestSet):
     FEATURES = ['ALL']
 
     def init(self, setup):
-        # Bind the topology declared in the .setup file. Every device a TestCase
-        # references must be bound here, and these names MUST match the [switch]/[stack]
-        # sections of the .setup file used at Run (they are NOT a fixed convention —
-        # the names below are taken from the reused fragments / sequence and may need
-        # renaming to your .setup's device names).
+        # Bind the topology declared in the .setup file. THIS SCRIPT IS HARDWARE-AGNOSTIC:
+        # it must run unchanged on any platform, so it never names a port. The .setup
+        # [portlink] lines resolve to the real port names at runtime, which is also why the
+        # same code works on a chassis (port1.1.x) and a standalone switch (port1.0.x).
+        #
+        # The lookup STRING must match the .setup's [switch]/[stack] key — the convention
+        # is swi_a/swi_b/swi_c/swi_d and stk_a (621 of ~650 corpus uses). The local
+        # VARIABLE it is assigned to carries the role, e.g.
+        #     dutA   = setup.init_swi('swi_a')
+        #     swiSrc = setup.init_swi('swi_c')
         tb = setup.init_tb()
         {%- for dev in switches %}
-        {{ dev }} = setup.init_swi('{{ dev }}')
+        {{ dev }} = setup.init_swi('{{ setup_keys[loop.index0] if setup_keys and loop.index0 < setup_keys|length else dev }}')
         {%- endfor %}
         {%- for st in (stacks or []) %}
-        {{ st }} = setup.init_stk('{{ st }}')
+        {{ st }} = setup.init_stk('stk_{{ 'abcdefgh'[loop.index0] }}')
         {%- endfor %}
         {%- if needs_portlink %}
-        # >>> FILL: declare the port link(s) this case needs, e.g.
-        #     ({{ all_devs[0] }}.portA, tb.ethA) = setup.init_portlink({{ all_devs[0] }}, tb, type1='port') <<<
+        # >>> FILL: declare the port link(s) this case needs. Use the LOCAL variables above
+        #     (never `self.` — self.<dev> is not assigned until the block below, so `self.`
+        #     here is an AttributeError at init). Attribute names are yours; the ports come
+        #     from the .setup [portlink] lines:
+        #     ({{ all_devs[0] }}.portTB, tb.ethA) = setup.init_portlink({{ all_devs[0] }}, tb, type1='port')
+        #     ({{ all_devs[0] }}.portB, {{ all_devs[1] if all_devs|length > 1 else 'swiB' }}.portA) = setup.init_portlink({{ all_devs[0] }}, {{ all_devs[1] if all_devs|length > 1 else 'swiB' }}, type1='port', type2='port') <<<
         {%- endif %}
         self.tb = tb
         {%- for dev in all_devs %}

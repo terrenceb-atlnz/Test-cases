@@ -995,13 +995,42 @@ def _detect_fragment_devices(fragments: List[dict]) -> List[str]:
     return seen
 
 
+def _setup_keys_for(switches: List[str]) -> List[str]:
+    """The .setup [switch] KEYS the bound variables look up, positionally.
+
+    Two layers, and conflating them is what broke the first generated scripts
+    (2026-07-28): the LOOKUP STRING must match the .setup file's `[switch]` key, while the
+    local VARIABLE carries the role. Real ART code does exactly this:
+
+        dutA   = setup.init_swi('swi_a')
+        swiSrc = setup.init_swi('swi_c')
+
+    The convention is swi_a/swi_b/... — 621 of ~650 corpus `init_swi()` calls, and what a
+    real testbox declares (tb470's `[switch]` is swi_a/swi_c/swi_d). Generating
+    `init_swi('dut')` from a role name instead means the lookup simply fails on any real
+    .setup. A name that ALREADY looks like a .setup key is passed through unchanged.
+    """
+    keys: List[str] = []
+    letters = "abcdefghijklmnop"
+    nxt = 0
+    for name in switches:
+        if _SWI_RX.match(name):                  # already a .setup-style key
+            keys.append(name)
+            continue
+        while nxt < len(letters) and f"swi_{letters[nxt]}" in keys:
+            nxt += 1
+        keys.append(f"swi_{letters[nxt]}" if nxt < len(letters) else name)
+        nxt += 1
+    return keys
+
+
 def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[str], List[str], bool]:
     """Data-driven topology: the switch device names to bind in init(), stacks, and
     whether a port link is needed. Prefers the device names the SELECTED fragments
     actually reference (so the reused code resolves against init()); falls back to any
-    swi_*/stk_* seen in the sequence text, then to a sane default. Names must match the
-    .setup [switch]/[stack] sections — that reconciliation is surfaced to the reviewer/LLM
-    (see _fragment_device_note), since the real .setup is only chosen later at Run."""
+    swi_*/stk_* seen in the sequence text, then to a sane default. The .setup
+    [switch]/[stack] KEYS these look up come from `_setup_keys_for()` — the variable name
+    and the lookup string are different layers."""
     blob = " ".join((s.get("action", "") + " " + s.get("verify", "")) for s in sequence)
     blob += " " + " ".join(f.get("code", "") for f in fragments)
     frag_devs = _detect_fragment_devices(fragments)
@@ -1021,10 +1050,15 @@ def _fragment_device_note(fragments: List[dict], bound: List[str]) -> str:
     frag_devs = _detect_fragment_devices(fragments)
     if not frag_devs:
         return ""
+    keys = _setup_keys_for(bound)
+    pairs = ", ".join(f"{v} = init_swi('{k}')" for v, k in zip(bound, keys))
     return ("Reused fragments reference these device names: "
-            + ", ".join(frag_devs) + ". init() binds: " + ", ".join(bound)
-            + ". These MUST match the [switch]/[stack] sections of the .setup file used "
-              "at Run — rename to your .setup's device names where they differ.")
+            + ", ".join(frag_devs) + ". init() binds them as " + pairs
+            + ". The VARIABLE carries the role; the STRING is the .setup [switch] key "
+              "(swi_a/swi_b/... — a real testbox declares swi_a/swi_c/swi_d). Keep the "
+              "variable names when adapting fragment code so it resolves; do NOT put a "
+              "role name inside init_swi(), and never name a port — the .setup [portlink] "
+              "lines supply those so the script stays hardware-agnostic.")
 
 
 def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
@@ -1045,7 +1079,8 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
     return tpl.render(case_key=case_key, case_title=case_title,
                       extra_imports=extra_imports or [],
                       setup_steps=setup_steps, steps=verify_steps,
-                      switches=switches, stacks=stacks, needs_portlink=needs_portlink)
+                      switches=switches, stacks=stacks, needs_portlink=needs_portlink,
+                      setup_keys=_setup_keys_for(switches))
 
 
 def _assemble_fragment_preview(case_key: str, case_title: str, sequence: List[dict],
@@ -1411,6 +1446,27 @@ def _lint_generated(sess: PtSession) -> dict:
         for marker in (">>> FILL", "output = ''  # >>> replace", "if False:  # >>> replace"):
             if marker in code:
                 errors.append(f"contract: unfilled template placeholder present ({marker!r})")
+
+        # `self.<dev>` used in init() BEFORE the assignment block (2026-07-28). A real bug
+        # in the first generated scripts: `init_portlink(self.dut, ...)` ran three lines
+        # above `self.dut = dut`, an AttributeError the moment init() is called — so the
+        # script cannot run at all. py_compile does not catch it (it is valid syntax) and
+        # neither did any structural check. An ERROR, not a warning: it is a guaranteed
+        # crash, not a judgement call.
+        _init_m = re.search(r"\n    def init\(self.*?(?=\n    def )", code, re.S)
+        if _init_m:
+            _body = _init_m.group(0).splitlines()
+            _first_assign = next(
+                (i for i, l in enumerate(_body)
+                 if re.match(r"\s*self\.\w+\s*=", l)), None)
+            if _first_assign is not None:
+                for _off, _line in enumerate(_body[:_first_assign]):
+                    if "self." in _line.split("#", 1)[0]:
+                        errors.append(
+                            f"init(): uses `self.` before the self.<dev> assignment block "
+                            f"(line {_off} of init) — AttributeError at runtime; use the "
+                            f"local variables there: {_line.strip()[:70]!r}")
+                        break
 
         # Hardcoded port names (2026-07-28). The FIRST index of an AW+ port name is the
         # chassis/slot, so a literal `'port1.0.1'` is wrong on chassis platforms (x8100,
