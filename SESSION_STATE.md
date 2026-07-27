@@ -1579,3 +1579,43 @@ intentionally *accepted* for the localhost/single-user model (0.0.0.0-bind no-au
 — treat as a conscious "accept or harden" decision, not a silent change. The paused review workflow can
 be resumed (`resumeFromRunId wf_f53aa173-a88`) to finish verification + full synthesis. PyTest Creator
 Part 3a/3b still gated on `configs/tb470.setup`.
+
+## Session Close / Handoff (2026-07-27f) — LLM-button UX + a 3-layer automated-test suite
+
+Two threads this session, both committed + pushed to `main` (`4f990ea`→`e871caa`; tree clean,
+guard green, `/health` 200).
+
+**1. LLM-button UX (`27c5d39`).** Closed the three reported gaps — no pressed feedback, no success
+signal, no in-flight state (which invited repeat clicks stacking LLM calls). One shared mechanism in
+`dom-helpers.js`: `setButtonBusy` (pressed + spinner + working-label + disable + label stash/restore;
+returns `false` when already busy so the handler bails — the anti-stacked-call guard) and
+`flashButtonDone` (green ✓ / red ✗). Net-new CSS (spinner keyframes + `.btn.is-busy/.is-done/.is-error`
++ reduced-motion fallback). Applied to all ~13 LLM buttons (generator, db-search, pytest via the
+shared `ptApi` wrapper, llm health-check, provenance). No backend change.
+
+**2. A three-layer automated-test suite (the bulk of the session).** Built in the sequence the user
+chose: E2E first as a **known-good reference**, then the unit layer derived from it.
+- **Playwright E2E** (`e2e/`, `4f990ea`) — sparingly-run gate driving the real app through the
+  deterministic non-LLM golden path, asserting the export **validation gate blocks** an un-synthesized
+  case (Option A — a *green* export is impossible without LLM synthesis, which the design discussion
+  established). Selectors grounded in the real DOM via an Explore pass; three real-DOM facts corrected
+  the naive plan (collapsed accordion; `#load-status` self-clears; in-progress cases pre-load chosen
+  rows). Stable 4/4. Pinned Chromium 1234 downloaded (cache 1228 mismatched PW 1.62).
+- **Vitest + jsdom units** (`js-tests/`, `8759903` + `e871caa`) — 47 tests / 5 files, the regular
+  layer, re-asserting the E2E-proven behaviours exhaustively and cheaply. DOM fixtures lifted from the
+  real `index.html` (throws on a renamed id → drift-detection). Tool chosen (Vitest over Jasmine)
+  explicitly for readable diff+source-frame failure output, familiarity set aside. The `db-search.js`
+  `merge*` fns were made `export` (one-line, runtime-unchanged) to unit-test them directly rather than
+  via a brittle fetch-stub.
+- **Unified gate** (`e871caa`) — `tool/run_tests.sh` runs guards + pytest (48) + Vitest (47) in one
+  command, failing loudly if Node deps are absent; the E2E stays out (sparingly-run). Verified all
+  green, exit 0.
+
+**Layout note:** JS test tooling lives at repo root — `e2e/`, `js-tests/`, `package.json`,
+`playwright.config.js`, `vitest.config.js` — deliberately separate from the `static/js` module tree;
+`node_modules` + Playwright artifacts gitignored. Two plans (`ck-facelift/PLAN-playwright-e2e.md`,
+`PLAN-frontend-unit-tests.md`) authored then marked BUILT+PASSING.
+
+**Still open / next:** no CI runner yet (`.github/workflows`) — the gate is run-before-commit
+discipline; a second E2E that reaches a *green* export (pre-seed or LLM-intercept) is parked in the
+E2E plan; the adversarial-review backlog (35 candidates) is untouched this session.

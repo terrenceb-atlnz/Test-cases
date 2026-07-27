@@ -4,6 +4,42 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27f) — LLM-button UX feedback + a 3-layer test suite
+
+**Focus: (1) the reported LLM-button UX gaps, then (2) a full front-to-back automated-test
+build-out — a Playwright E2E as a known-good reference, a Vitest+jsdom unit layer derived from it,
+and one unified gate. All committed + pushed to `main` (4 commits: `4f990ea`→`e871caa`).**
+
+- **LLM-button UX (`27c5d39`).** Three gaps: no pressed feedback, no success signal, no in-flight
+  state (→ repeat clicks stacking LLM calls). Fix = one shared mechanism in `dom-helpers.js`:
+  `setButtonBusy(btn,on,{label})` (pressed style + animated spinner + working label + disable +
+  label stash/restore; returns `false` if already busy → the handler bails, the anti-stacked-call
+  guard) and `flashButtonDone(btn,ok)` (brief green ✓ / red ✗). New CSS (`@keyframes ck-spin`,
+  `.ck-spinner`, `.btn.is-busy/.is-done/.is-error`, `prefers-reduced-motion` fallback). Wired across
+  all ~13 LLM buttons: generator synth/export, db-search suggest (previously no disable + alert-only
+  errors), pytest (folded into the shared `ptApi` wrapper), llm health-check, provenance dry-run.
+- **Playwright E2E (`4f990ea`) — sparingly-run, `e2e/`.** One deterministic golden-path against the
+  REAL app (boot → load case → keyword-search TL/Zephyr/ATP → tick + choose → Export → assert the
+  validation gate BLOCKS it). **Key discovery:** the keyword-only path can't produce a *green*
+  export — `validate_zephyr_payload` needs a synthesized objective (`<ul>`+≥3`<li>`) and ≥2 steps,
+  both LLM-only — so the honest 100%-deterministic assertion is the blocked outcome (Option A).
+  Grounding selectors in the real DOM caught three things a guessed test would miss (collapsed-
+  accordion sidebar; `#load-status` self-clears so `#session-view` is the real signal; in-progress
+  cases pre-load chosen rows → assert the delta). Green + stable 4/4 runs (~7s). Pinned Chromium
+  1234 downloaded (cached 1228 didn't match Playwright 1.62).
+- **Vitest + jsdom unit layer (`8759903`) — regular, `js-tests/`.** 47 tests / 5 files, derived from
+  what the E2E proved: `dom-helpers` (the button feedback — regression-locks the UX work), `tables`
+  (renderers + the "top table hides already-chosen ids" behaviour), `chosen` (choose/dedup/restore),
+  `merge` (dedup/score-resort/description-preference; the `merge*` fns exported for this — one-line,
+  runtime-unchanged). DOM fixtures lifted from the real `index.html` (throws on a renamed id →
+  drift-detection). Chose Vitest over Jasmine for the readable diff+source-frame failure output.
+- **Unified gate (`e871caa`).** `tool/run_tests.sh` now runs guards + pytest (48) + `npm test`
+  (Vitest 47) in one command; **fails loudly** if npm is present but deps aren't installed (a silent
+  layer-skip would falsely read green). The E2E stays OUT of the gate (`npm run e2e`). Verified all
+  green together, exit 0. Both `ck-facelift/PLAN-{playwright-e2e,frontend-unit-tests}.md` marked
+  BUILT+PASSING.
+- **Invariants:** guard_db_only green, `/health` 200, tree clean. No corpus/JSON/rebuild changes.
+
 ## Latest session (2026-07-27e) — Adversarial-review batch 3: llm.py JSON-parser cluster
 
 **Focus: the correctness cluster from the backlog — 5 llm.py JSON-parse sites that silently

@@ -576,21 +576,42 @@ before any shared/exposed deployment.
 
 ## Testing
 
-A backend test suite lives at the repo-root `tests/` (pytest, in-process `TestClient` — no mocks,
-no network, no testbox). Run it with the venv interpreter:
+Three test layers, one regular gate (established 2026-07-27). Design: `ask-ck/ck-facelift/`
+`PLAN-frontend-unit-tests.md` + `PLAN-playwright-e2e.md`.
+
+**1. Backend units** — repo-root `tests/` (pytest, in-process `TestClient` — no mocks, network, or
+testbox). Coverage centers on the security/correctness fixes (validator + export gate, the JSON
+extractor, the framework guard, HTML sanitizer, secret redaction, path-traversal guards,
+agent-bridge ownership, CORS) plus the `/process` page. `PYTHONNOUSERSITE=1` is required so an older
+fastapi/starlette in `~/.local` can't shadow the venv's. Dev deps (`pytest`, `httpx`) in
+`ask-ck/CK-main/requirements-dev.txt` (runtime `requirements.txt` stays lean).
+
+**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 47
+tests). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
+(`setButtonBusy`/`flashButtonDone`/`showStatus`), the table renderers (`tables.js`), the
+chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.js` `merge*`, made
+`export` for this). DOM fixtures are lifted from the **real `index.html`** and the helper throws if a
+container id is missing — drift-detection, the same "ground selectors in the real DOM" discipline as
+the E2E. Node dev deps in `package.json`.
+
+**3. E2E (sparingly-run, NOT in the regular gate)** — repo-root `e2e/` (Playwright, one Chromium
+project driving the real running app: boot → load a case → keyword-search TestLink/Zephyr/ATP →
+tick + choose → Export → assert the validation gate blocks it). Deterministic (no LLM on the asserted
+path — a green export needs synthesized objective+steps, so the honest assertion is the blocked
+outcome). Run on demand, e.g. pre-release; it starts/reuses the server via `run.sh`.
 
 ```bash
-PYTHONNOUSERSITE=1 .venv/bin/pytest -q        # 48 tests
-./tool/run_tests.sh                            # guards + pytest, one command (CI-shaped)
+./tool/run_tests.sh        # THE GATE: guards + pytest (48) + Vitest (47), one command
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only
+npm test                                    # frontend units only (vitest run)
+npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```
 
-`PYTHONNOUSERSITE=1` is required so an older fastapi/starlette in `~/.local` can't shadow the venv's.
-Coverage centers on the security/correctness fixes (validator + export gate, the JSON extractor, the
-framework guard, HTML sanitizer, secret redaction, path-traversal guards, agent-bridge ownership,
-CORS) plus the `/process` page. Dev-only deps (`pytest`, `httpx`) are in
-`ask-ck/CK-main/requirements-dev.txt` (the runtime `requirements.txt` stays lean). There is **no CI
-runner yet** (`.github/workflows`) — running `./tool/run_tests.sh` before a commit is the current gate.
-The two invariant guards (`tool/guard_db_only.py`, `tool/guard_framework_readonly.py`) run as part of it.
+`./tool/run_tests.sh` runs the two invariant guards (`tool/guard_db_only.py`,
+`tool/guard_framework_readonly.py`), then pytest, then `npm test`; it **fails loudly** if npm is
+present but `node_modules` isn't installed (a partial gate that silently drops a layer would falsely
+read "all green"). There is **no CI runner yet** (`.github/workflows`) — running the gate before a
+commit is the current discipline.
 
 ## Relation to the Approved Plan
 
