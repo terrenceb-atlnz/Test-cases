@@ -33,6 +33,22 @@ LFS_MIN="3.3.0"
 # "No matching distribution found for fastapi". Catch it up front instead.
 PY_MIN="3.10"
 
+# PREFERRED Python: the version the TESTBOX runs (tb470 is on 3.13.5 as of
+# 2026-07-28). The server itself is happy on anything >= PY_MIN, so this is not a
+# hard floor — but matching the testbox matters for a specific, non-obvious reason:
+#
+#   The PyTest Creator lints every GENERATED test script with `py_compile` using
+#   THIS interpreter, while the script actually executes under the testbox's
+#   `python3`. When the two differ, the lint checks the wrong language version:
+#   it accepts imports the target removed, and rejects syntax the target accepts.
+#   That is exactly how `from distutils.util import strtobool` shipped in the
+#   skeleton — valid on 3.10, compiled clean here, and a hard ImportError on the
+#   3.13 testbox before a single test ran.
+#
+# So: prefer the newest available interpreter, and tell the user when the venv is
+# older than one that is installed.
+PY_PREFERRED="3.13"
+
 # --- Stop mode: `./setup.sh --stop` — delegate to run.sh --stop --------------
 if [ "${1:-}" = "--stop" ] || [ "${1:-}" = "stop" ]; then
   exec "$RUN_SH" --stop
@@ -70,7 +86,12 @@ py_ok() {
 # offering an accept/decline install of a newer Python when none is found.
 ensure_python() {
   PY=""
-  for cand in python3 python3.13 python3.12 python3.11 python3.10; do
+  # NEWEST FIRST, and bare `python3` LAST. It used to be first, which defeated the
+  # stated intent on any seat whose `python3` is older than an installed
+  # `python3.1x` — this seat had 3.13.14 available while `python3` was 3.10.12, so
+  # setup.sh would have built the venv on 3.10 and silently reintroduced the
+  # testbox/lint version mismatch described at PY_PREFERRED above.
+  for cand in python3.14 python3.13 python3.12 python3.11 python3.10 python3; do
     if py_ok "$cand"; then PY="$cand"; break; fi
   done
   if [ -z "$PY" ]; then
@@ -279,6 +300,26 @@ fi
 VENV_PY="$VENV_DIR/bin/python3"
 if [ -d "$VENV_DIR" ] && py_ok "$VENV_PY"; then
   echo "▶ Reusing existing virtual environment: $VENV_DIR ($("$VENV_PY" --version 2>&1))"
+  # An existing venv that merely meets PY_MIN is REUSED, never upgraded — so a seat
+  # that later installs a newer Python keeps building generated-script lints against
+  # the old one. Say so, with the exact commands, rather than leave it invisible.
+  VENV_VER="$("$VENV_PY" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo '?')"
+  BEST_VER="$("$PY" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo '?')"
+  if [ "$VENV_VER" != "$BEST_VER" ]; then
+    echo "  ⚠ This venv is on Python $VENV_VER but $BEST_VER is installed."
+    echo "    The PyTest Creator lints GENERATED scripts with the venv's interpreter,"
+    echo "    while they RUN on the testbox's python3 (tb470: $PY_PREFERRED). A mismatch means"
+    echo "    those lints check the wrong language version — that is how a"
+    echo "    distutils import (removed in 3.12) once shipped to a 3.13 testbox."
+    echo "    To upgrade (no server running, then verify):"
+    echo "      $PY -m venv .venv313 && PYTHONNOUSERSITE=1 .venv313/bin/pip install \\"
+    echo "        --index-url https://download.pytorch.org/whl/cpu torch"
+    echo "      PYTHONNOUSERSITE=1 .venv313/bin/pip install -r ask-ck/CK-main/requirements-dev.txt"
+    echo "      PYTHONNOUSERSITE=1 .venv313/bin/pytest -q tests   # must be green first"
+    echo "      mv .venv .venv-old && mv .venv313 .venv"
+    echo "      grep -rl '\.venv313' .venv/bin .venv/pyvenv.cfg | xargs sed -i 's|\.venv313|.venv|g'"
+    echo "      ./tool/run_tests.sh                                # confirm, then rm -rf .venv-old"
+  fi
 else
   if [ -d "$VENV_DIR" ]; then
     echo "▶ Recreating virtual environment (missing or older than $PY_MIN): $VENV_DIR"

@@ -35,7 +35,7 @@ cd Test-cases
 1. **Base toolchain** — verifies `git`, `git-lfs`, `curl` are present; offers to install any that are missing via your package manager (`apt`/`dnf`/`pacman`).
 2. **Python ≥ 3.10** — required by the dependencies (`fastapi>=0.139` drops 3.9). It selects the newest suitable `python3.x` on `PATH`, or offers to install a newer one; if none can be found it stops early with clear guidance instead of failing deep inside `pip`.
 3. **Git LFS ≥ 3.3** — installs/upgrades if needed (older LFS fails `git lfs pull` on a fresh clone), then pulls the large source files.
-4. **Virtual environment + dependencies** — creates `.venv` with the vetted interpreter (recreating a stale one), installs the CPU PyTorch wheel then `requirements.txt`.
+4. **Virtual environment + dependencies** — creates `.venv` with the **newest** available interpreter (recreating a stale one), installs the CPU PyTorch wheel then `requirements.txt`. It prefers **Python 3.13** to match the testbox — see *Python version: match the testbox* below.
 5. **Database** — verifies `ask-ck/var/ck.db` (shipped via Git LFS — the permanent source of truth, not rebuilt).
 6. Finally, **offers to launch the server** (delegates to `run.sh`, which asks foreground/background).
 
@@ -93,6 +93,42 @@ pip install -r ask-ck/CK-main/requirements.txt
 ```
 
 </details>
+
+### Python version: match the testbox
+
+**Minimum 3.10; use 3.13 if you can.** The server runs fine on anything ≥ 3.10, but the
+PyTest Creator lints every **generated** test script with `py_compile` using the venv's
+interpreter — while those scripts actually execute under the **testbox's** `python3`
+(tb470 is on **3.13.5**). When the two differ the lint checks the wrong language version:
+it accepts imports the target has removed, and rejects syntax the target accepts.
+
+That is not hypothetical. The script skeleton shipped `from distutils.util import
+strtobool`, which is valid on 3.10, compiles clean on 3.10, and is a hard `ImportError` on
+any 3.12+ target — so every generated script with a manual step would have died on import
+before running a single test. `py_compile` cannot catch a missing module; only an import
+can. The lint now also rejects stdlib modules removed in 3.12/3.13 (`distutils`, `imp`,
+`telnetlib`, `cgi`, `pipes`, `crypt`, `asyncore`/`asynchat`/`smtpd`).
+
+`setup.sh` picks the newest `python3.1x` on PATH. It **reuses** an existing venv that meets
+the 3.10 floor rather than upgrading it, so if you install a newer Python later it will tell
+you and print the upgrade steps. To upgrade by hand (with no server running):
+
+```bash
+python3.13 -m venv .venv313
+PYTHONNOUSERSITE=1 .venv313/bin/pip install --index-url https://download.pytorch.org/whl/cpu torch
+PYTHONNOUSERSITE=1 .venv313/bin/pip install -r ask-ck/CK-main/requirements-dev.txt
+PYTHONNOUSERSITE=1 .venv313/bin/pytest -q tests        # must be green BEFORE cutting over
+mv .venv .venv-old && mv .venv313 .venv
+# a venv is not relocatable: its console scripts hardcode the path they were built at
+grep -rl '\.venv313' .venv/bin .venv/pyvenv.cfg | xargs sed -i 's|\.venv313|.venv|g'
+./tool/run_tests.sh                                    # confirm, then rm -rf .venv-old
+```
+
+> `sentence-transformers` is **required** (it is in `requirements.txt`) — the semantic /
+> hybrid search and the offline embedding model need it. A venv built by hand without a full
+> `-r requirements.txt` install boots but silently degrades to keyword-only search. Verify
+> with `PYTHONNOUSERSITE=1 .venv/bin/python -c "import sentence_transformers"` and check
+> `/health` reports `sqlite_vec_loaded: true` with a non-zero `embeddings` count.
 
 **Requirements:** **Python ≥ 3.10** + [Git LFS](https://git-lfs.com/) **≥ 3.3** + `curl` (used by the LFS installer) + the Python packages in [`ask-ck/CK-main/requirements.txt`](ask-ck/CK-main/requirements.txt) (FastAPI, uvicorn, Jinja2, requests, python-multipart, pydantic). Installing these is mandatory — the server will not start without them (you'll get `ModuleNotFoundError: No module named 'fastapi'`). On Debian/Ubuntu, `python3 -m venv` also needs the `python3-venv` package. `setup.sh` checks all of this for you; if you set up manually, note that installing `requirements.txt` on Python 3.9 or older fails with `No matching distribution found for fastapi`.
 

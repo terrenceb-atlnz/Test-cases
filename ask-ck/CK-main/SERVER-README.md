@@ -140,6 +140,8 @@ pydantic, …) from `requirements.txt` — this is the supported way; the old ad
 pip install -r ask-ck/CK-main/requirements.txt
 ```
 
+**Python 3.13 is preferred** (the testbox runs 3.13.5): the PyTest Creator `py_compile`s generated scripts with the venv's interpreter while they execute on the testbox, so a version mismatch lints the wrong language version — see root `README.md` → *Python version: match the testbox*.
+
 `setup.sh` does this for you inside a repo-local `.venv` (see root `README.md` → Getting
 Started). If using a real LLM provider you may need additional packages such as `litellm`
 or the official SDK.

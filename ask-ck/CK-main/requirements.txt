@@ -7,6 +7,13 @@
 # Requires Python >= 3.10 (fastapi>=0.139 drops 3.9). setup.sh enforces this and
 # will pick the newest python3.1x on PATH; installing manually on Python 3.9 or
 # older fails with "No matching distribution found for fastapi".
+#
+# PREFER PYTHON 3.13 — match the testbox (tb470 runs 3.13.5). The PyTest Creator
+# lints GENERATED scripts with `py_compile` using THIS interpreter, while those
+# scripts run under the testbox's python3. A mismatch lints the wrong language
+# version: it accepts imports the target removed (this is how a `distutils`
+# import, gone in 3.12, once shipped to a 3.13 testbox) and rejects syntax the
+# target accepts. See README -> "Python version: match the testbox".
 
 # --- Core server (required to boot; keyword search works with just these) ---
 fastapi>=0.139
@@ -17,6 +24,11 @@ python-multipart>=0.0.9
 pydantic>=2.9
 
 # --- Semantic / hybrid search (Stage D; the server degrades to keyword without them) ---
+# ALL THREE BELOW ARE REQUIRED for semantic/hybrid search and the offline embedding
+# model. They are easy to miss when building a venv by hand: the server still BOOTS
+# without them and silently answers keyword-only. Verify after any manual venv build:
+#   PYTHONNOUSERSITE=1 .venv/bin/python -c "import sentence_transformers, sqlite_vec"
+#   curl -s localhost:8000/health   # sqlite_vec_loaded: true, embeddings: ~83816
 # torch is CPU-only for this app. A bare `pip install torch` on Linux pulls the
 # large CUDA build — prefer the CPU wheel:
 #     pip install --index-url https://download.pytorch.org/whl/cpu torch
