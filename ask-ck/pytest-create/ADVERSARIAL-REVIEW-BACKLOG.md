@@ -12,7 +12,7 @@
 > | **Fixed** | **31** — 10 in batches c/d/e, 19 in batches A–D, 2 accepted-risk items (§4) |
 > | **Dismissed as not-real** | **31** — 17 in the original partial pass, 14 in the completion pass |
 > | Unadjudicated | **0** |
-> | Commits | `1340d9b` `a1608d5` (c/d/e) · `6b50f80` `40ec299` `ba69e22` `be9149d` (A–D) · `e54fdd2` (data) · `4a9e0d6` (§4) |
+> | Commits | `1340d9b` `a1608d5` (c/d/e) · `6b50f80` `40ec299` `ba69e22` `be9149d` (A–D) · `e54fdd2` (data) · `6eaa43e` (§4) |
 > | Test suite | 48 → **190** pytest · 47 → **72** Vitest |
 >
 > *Plus 2 defects found by skeptics while refuting other claims (§1, "Found while refuting") —
@@ -170,7 +170,7 @@ never entered this table.
 Both were **documented accepted risks** (`README.md:145`, `SERVER-README.md:573-575`,
 `SESSION_STATE.md:1578`), so neither was fixed unilaterally. Taken to the owner with two
 facts the original acceptance did not account for; **all three actions approved and
-implemented** (`4a9e0d6`).
+implemented** (`6eaa43e`).
 
 | Location | Accepted risk | What the review added | Action taken |
 |----------|---------------|-----------------------|--------------|
