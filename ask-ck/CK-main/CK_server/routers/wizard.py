@@ -268,6 +268,45 @@ def _can_synthesize_steps(sess: WizardSession) -> bool:
     return _session_has_objective(sess)
 
 
+def _selection_fingerprint(sess: WizardSession, step: int) -> tuple:
+    """Order-insensitive identity of one step's confirmed selections.
+
+    Used to distinguish a real change (different cases picked) from a harmless
+    re-confirm of the same shortlist, so re-clicking Confirm never throws away a
+    good objective. Compares the chosen ids plus the none_selected flag; display
+    order and justification text are not part of the identity.
+    """
+    state = getattr(sess, f"step{step}", None)
+    if state is None:
+        return ()
+    ids = sorted((s.id_or_key or "") for s in (state.selections or []))
+    return (tuple(ids), bool(state.none_selected))
+
+
+def _invalidate_downstream(sess: WizardSession, changed: bool) -> dict:
+    """Un-confirm the objective and mark the test steps stale after an upstream change.
+
+    Only fires when the selections actually changed. The generated content is kept
+    (the user may want to edit rather than regenerate it) — what is cleared is the
+    claim that it has been reviewed against the CURRENT selections.
+    """
+    result = {"step4": False, "step5": False}
+    if not changed:
+        return result
+
+    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
+    if s4.get("objective") and s4.get("confirmed"):
+        sess.step4 = {**s4, "confirmed": False, "confirmed_at": None, "stale": True}
+        result["step4"] = True
+
+    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
+    if (s5.get("testScript") or {}).get("steps"):
+        sess.step5 = {**s5, "confirmed": False, "stale": True}
+        result["step5"] = True
+
+    return result
+
+
 def _migrate_legacy_step4_to_step5(sess: WizardSession) -> bool:
     """If old session has testScript only under step4, copy to step5 (non-destructive)."""
     s4 = sess.step4 if isinstance(sess.step4, dict) else {}
@@ -341,6 +380,21 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
     if isinstance(ts, dict) and (ts.get("steps")) and not has_steps:
         sess.step5 = {**s5, "testScript": ts, "confirmed": True, "backfilled": True}
         changed = True
+
+    # A backfilled case is Complete on disk, which means the three DB reviews WERE
+    # confirmed when it was originally refined — that history just isn't in the
+    # runtime session (it predates step4/step5 capture, or the session was cleared).
+    # export() now gates on _can_synthesize, so without this the 43 existing bundles
+    # would 400 on re-export ("confirm all three reviews") for reviews the user
+    # already did. Mark the reviews confirmed-by-backfill so the gate reflects the
+    # on-disk truth; `backfilled` distinguishes them from fresh in-session confirms.
+    if changed:
+        for step in (sess.step1, sess.step2, sess.step3):
+            if not step.confirmed:
+                step.confirmed = True
+                step.confirmed_at = step.confirmed_at or datetime.utcnow()
+                step.backfilled = True
+
     return changed
 
 
@@ -1381,6 +1435,10 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
         raise HTTPException(404, "Session not found. Call load_case first.")
     sessions[key] = sess
 
+    # Snapshot the pre-confirm selections so we can tell an actual change from a
+    # harmless re-confirm of the same shortlist (see _invalidate_downstream below).
+    _before = _selection_fingerprint(sess, step)
+
     if step == 1:
         # TestLink + Decisions — the most important gate
         if "selections" in body:
@@ -1418,12 +1476,25 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     else:
         raise HTTPException(400, "Invalid step")
 
+    # STATE (adversarial-review finding wizard.py:1381): confirming an upstream DB
+    # review only ever set flags forward — it never invalidated the objective (step4)
+    # or test steps (step5) that were synthesized FROM the previous selections. A user
+    # who went back to Step 1, swapped the TestLink case the objective was written
+    # around, and re-confirmed would still see "✓ Confirmed" / "✓ Ready" downstream,
+    # then export a bundle whose zephyr_payload.json (old generation) contradicted its
+    # own traceability.md (new selections). Invalidation is already the house style
+    # one level down (synthesize_objectives self-invalidates at :1690; save_objective
+    # comments "Edits invalidate prior confirm"; pytest_create has _invalidate_from) —
+    # this edge was simply missing.
+    invalidated = _invalidate_downstream(sess, changed=(_selection_fingerprint(sess, step) != _before))
+
     _mark_updated(sess)
     _persist_session(sess)
 
     return {
         "session": safe_session_dict(sess),   # redacts llm_config secrets
-        "can_synthesize": _can_synthesize(sess)
+        "can_synthesize": _can_synthesize(sess),
+        "invalidated": invalidated,
     }
 
 
@@ -1732,6 +1803,9 @@ async def save_objective(key: str, body: dict = Body(default={})):
     objective = sanitize_objective_html(objective)
     s4 = dict(stored.step4 or {})
     s4["objective"] = objective
+    # A deliberate edit re-authors the objective against the current selections, so it
+    # clears any staleness flagged by _invalidate_downstream after an upstream change.
+    s4.pop("stale", None)
     # Edits invalidate prior confirm until re-confirmed
     if body.get("confirm"):
         s4["confirmed"] = True
@@ -1766,6 +1840,9 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
         raise HTTPException(400, "No objective to confirm. Run Objective Synthesis first.")
     s4["confirmed"] = True
     s4["confirmed_at"] = datetime.utcnow().isoformat()
+    # An explicit re-confirm is the user asserting this objective matches the CURRENT
+    # selections, so it clears any staleness flagged by _invalidate_downstream.
+    s4.pop("stale", None)
     stored.step4 = s4
     _mark_updated(stored)
     _persist_session(stored)
@@ -1793,6 +1870,8 @@ async def save_steps(key: str, body: dict = Body(default={})):
     test_script = {"type": "steps", "steps": steps}
     s5 = dict(stored.step5 or {})
     s5["testScript"] = test_script
+    # Deliberate edit against the current selections — clears _invalidate_downstream's flag.
+    s5.pop("stale", None)
     stored.step5 = s5
     # Mirror onto step4 for legacy consumers / combined view
     s4 = dict(stored.step4 or {})
@@ -1862,6 +1941,8 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     s4 = dict(stored.step4 or {})
     s4["objective"] = sanitize_objective_html(result.get("objective") or "") or s4.get("objective")
     s4["testScript"] = result.get("testScript")
+    # Freshly synthesized against the current selections — drop any stale marker.
+    s4.pop("stale", None)
     stored.step4 = s4
 
     if not stored.full_session:
@@ -1927,7 +2008,9 @@ async def synthesize(req: SynthesisRequest):
 @router.post("/export", response_model=ExportResponse)
 async def export(req: SynthesisRequest, data=Depends(get_data)):
     """Produce repeatable, templated bundle for the case.
-    Uses authoritative server-stored session (after all confirms).
+    Uses the authoritative server-stored session ONLY (404 if absent) and requires
+    all three DB reviews confirmed (400 otherwise) — client-supplied session content
+    is never a write source for the bundle that marks a case Complete.
     - Builds proper first traceability note via server-side function (for repeatability).
     - Renders traceability.md.jinja with full context from selections.
     - Assembles exact zephyr_payload.json shape expected by refined-cases + upload_refined.py.
@@ -1942,11 +2025,54 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     elif isinstance(req.session, dict):
         key = req.session.get("key")
 
-    stored = sessions.get(key) if key else None
-    if stored is None:
-        stored = _load_persisted(key) if key else None
-    if stored is None:
-        stored = req.session
+    # SECURITY (adversarial-review finding): case_key becomes a directory component of
+    # the on-disk export path, so a value like '../../etc/x' would escape refined-cases/.
+    # This is a purely syntactic check on the client-supplied key, so it runs FIRST —
+    # ahead of the session lookup and the confirm gate. (Ordering matters: when the
+    # confirm gate ran first, a traversal key returned its 400 instead, so the
+    # traversal regression test passed without ever exercising this guard.)
+    if not key:
+        raise HTTPException(400, "Session key is required")
+    if not _CASE_KEY_RE.match(key):
+        raise HTTPException(400, f"Refusing to export: invalid case key '{key}'. "
+                                 f"Expected AWPTCM-Txxxx.")
+
+    # SECURITY / STATE (adversarial-review findings wizard.py:1939 + 1936):
+    # export() writes the bundle that MARKS A CASE COMPLETE, so it must never build
+    # that artefact from client-supplied state. Previously it fell back to
+    # `req.session` when the key was absent from both the cache and ck.db — so a
+    # stale browser tab could resurrect a session the server had explicitly deleted
+    # (clear_session) and re-mark the case Complete. Use the same authoritative
+    # resolver every sibling synthesis endpoint uses; 404 when no server session
+    # exists rather than trusting the request body.
+    stored = _authoritative_session(key)
+
+    # ...and gate on the three DB reviews, matching synthesize_objectives (1669),
+    # synthesize_steps (1818) and synthesize (1890). Without this, hand-pasting an
+    # objective + steps (save_objective/save_steps have no gate either) let an
+    # unreviewed case be written as Complete and become push-eligible — bypassing
+    # the exact three-review gate the drafting process mandates. Backfilled cases
+    # satisfy this via _backfill_from_refined, which marks the reviews confirmed
+    # from the Complete on-disk bundle.
+    if not _can_synthesize(stored):
+        # A case that is Complete on disk should have been rehydrated by
+        # _backfill_from_refined. If it wasn't, the bundle itself is unreadable
+        # (e.g. AWPTCM-T37861 ships invalid JSON — a bad \' escape), and blaming the
+        # user for unconfirmed reviews would be misleading and unactionable. Name the
+        # real cause instead.
+        _payload = _refined_payload_path(key)
+        if _payload is not None:
+            raise HTTPException(
+                400,
+                f"This case is marked Complete on disk but its bundle could not be read, "
+                f"so its prior reviews could not be restored ({_payload.name}). Fix or "
+                f"remove the file, or re-confirm the three database reviews manually.",
+            )
+        raise HTTPException(
+            400,
+            "Must complete and confirm reviews of all three databases "
+            "(TestLink, Zephyr, ATPyLib) before exporting.",
+        )
 
     # Normalize to dict for easy access + context building
     if hasattr(stored, "dict"):
@@ -1957,11 +2083,10 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         sess_dict = getattr(stored, "model_dump", lambda: {})()
 
     case_key = key or sess_dict.get("key", "unknown")
-    # SECURITY (adversarial-review finding): case_key becomes a directory component of the
-    # on-disk export path, so a value like '../../etc/x' would escape refined-cases/.
-    # Validate it against the canonical AWPTCM-Txxxx shape at the TOP of the handler —
-    # before the LLM gaps call, payload validation, or any write — so a traversal key is
-    # a clean 400 and never reaches a file-system operation.
+    # Defense in depth: `key` was already shape-checked at the top of the handler, but
+    # case_key can also come from the stored session, so re-validate whatever will
+    # actually be used as the path component — before the LLM gaps call, payload
+    # validation, or any write.
     if not _CASE_KEY_RE.match(case_key or ""):
         raise HTTPException(400, f"Refusing to export: invalid case key '{case_key}'. "
                                  f"Expected AWPTCM-Txxxx.")
@@ -1970,8 +2095,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
 
     # Gaps belong in Traceability and are LLM-generated at objective synthesis/export,
     # not collected as a Step 3 form field. Apply the workspace LLM at dispatch time
-    # when we have a real session object (may be a client-supplied req.session here),
     # so the coverage-gaps call uses the configured backend, not the default.
+    # (`stored` is always the authoritative server session now — never req.session.)
     if hasattr(stored, "llm_config") and _apply_workspace_llm_if_needed(stored):
         _mark_updated(stored)
         _persist_session(stored)
@@ -2163,14 +2288,38 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         target_dir = refined_root / group / case_key
         target_dir.mkdir(parents=True, exist_ok=True)
 
+        # PARTIAL-WRITE (adversarial-review finding wizard.py:2166): zephyr_payload.json
+        # is the Complete marker (_refined_complete_keys keys off its existence) and it
+        # used to be written SECOND of three, with the largest, most failure-prone write
+        # (the session dump, which carries full LLM provenance) last. A disk-full or
+        # encoding error on that third write left the case marked Complete and
+        # push-eligible while the API reported wrote_bundle=False — a lying signal.
+        #
+        # Now: serialize everything up front (so a serialization error fails before any
+        # file is touched), stage each file as a .tmp sibling, then os.replace them into
+        # place — payload LAST, so the Complete marker is the final commit point. Any
+        # failure unlinks the staged temp files and leaves the case not-Complete.
         files_written = [
             ("traceability.md", traceability_md),
-            ("zephyr_payload.json", json.dumps(zephyr_payload, indent=2)),
             (f"{case_key}-session.json", json.dumps(session_out, indent=2, default=str)),
+            ("zephyr_payload.json", json.dumps(zephyr_payload, indent=2)),
         ]
-        for name, content in files_written:
-            (target_dir / name).write_text(content, encoding="utf-8")
-            saved_files.append(name)
+        staged: List[tuple] = []
+        try:
+            for name, content in files_written:
+                tmp = target_dir / f".{name}.tmp"
+                tmp.write_text(content, encoding="utf-8")
+                staged.append((tmp, target_dir / name, name))
+            for tmp, final, name in staged:
+                os.replace(tmp, final)
+                saved_files.append(name)
+        except Exception:
+            for tmp, _final, _name in staged:
+                try:
+                    tmp.unlink(missing_ok=True)
+                except Exception:
+                    pass
+            raise
 
         # Prefer repo-relative path for display (portable across machines).
         # ASKCK_ROOT.parent is the Test-cases repo root.

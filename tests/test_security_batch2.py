@@ -60,17 +60,25 @@ def test_export_rejects_traversal_case_key(client):
     r = client.post("/api/wizard/export", json={"session": {"key": bad}})
     # Must be a clean 400 (validation), never a 200 that wrote outside refined-cases/.
     assert r.status_code == 400
+    # ...and specifically from the KEY-SHAPE guard. Batch A added a confirm gate to the
+    # same handler; when that ran first this assertion passed on the confirm-gate 400
+    # instead, leaving the traversal guard untested. Pin the reason, not just the code.
+    assert "invalid case key" in r.json().get("detail", "").lower()
     # And nothing was created outside refined-cases for this key.
     repo = pathlib.Path(__file__).resolve().parents[1]
     assert not (repo / "tmp" / "evil").exists()
 
 
 def test_export_still_accepts_valid_key_shape(client):
-    """A well-formed key is not rejected by the new traversal guard (it fails later on
-    validation, returning 200 with wrote_bundle False — not a 400 from the key guard)."""
+    """A well-formed key is not rejected by the traversal guard.
+
+    Batch A (2026-07-27g) means a valid key with no server-side session now 404s at the
+    authority gate rather than reaching payload validation — either way, what matters
+    here is that the rejection is NOT the key-shape 400.
+    """
     r = client.post("/api/wizard/export", json={"session": {"key": "AWPTCM-T99990"}})
-    assert r.status_code == 200
-    assert r.json().get("wrote_bundle") is False   # blocked by payload validation, not key
+    assert r.status_code != 400
+    assert "invalid case key" not in (r.text or "").lower()
 
 
 # --- CORS lockdown (in-process; no network) -------------------------------------

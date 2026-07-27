@@ -1054,6 +1054,15 @@ button.secondary:not(.btn):hover {
   color: var(--status-low);
 }
 
+/* Step 4/5 "stale" state: generated content kept, but the upstream DB-review
+   selections it was synthesized from have since changed. Same amber tone as the
+   PyTest stale-fragments banner (.pt-stale-warning) so staleness reads the same
+   way across both tools. */
+.badge-warning {
+  background: var(--status-medium-muted);
+  color: var(--status-medium);
+}
+
 /* LLM observability: token badge next to the pressed LLM button + footer error tag */
 .llm-token-badge { margin-left: 6px; vertical-align: middle; }
 .llm-debug-error { color: var(--status-low, #ef4444); }

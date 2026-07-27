@@ -94,12 +94,21 @@ function updateUI() {
       badge.textContent = conf ? '✓ Confirmed' : '';
     }
   });
-  // Step 4 objectives / Step 5 steps badges
+  // Step 4 objectives / Step 5 steps badges.
+  // `stale` is set server-side by _invalidate_downstream when an upstream DB review
+  // (steps 1-3) is re-confirmed with DIFFERENT selections: the generated content is
+  // kept but no longer matches what it was synthesized from. Showing it as Confirmed/
+  // Ready there is what let a contradictory bundle reach export, so stale outranks both.
   const hasObj = !!(s.step4 && (s.step4.objective || '').trim());
-  const objConf = !!(s.step4 && s.step4.confirmed && hasObj);
+  const objStale = !!(s.step4 && s.step4.stale && hasObj);
+  const objConf = !!(s.step4 && s.step4.confirmed && hasObj && !objStale);
   const badge4 = document.getElementById('step4-badge');
   if (badge4) {
-    if (objConf) {
+    if (objStale) {
+      badge4.className = 'badge badge-warning';
+      badge4.textContent = '⚠ Stale — selections changed';
+      badge4.classList.remove('hidden');
+    } else if (objConf) {
       badge4.className = 'badge badge-success';
       badge4.textContent = '✓ Confirmed';
       badge4.classList.remove('hidden');
@@ -113,9 +122,14 @@ function updateUI() {
   }
   const steps = getSessionTestScript(s);
   const hasSteps = !!(steps && steps.steps && steps.steps.length);
+  const stepsStale = !!(s.step5 && s.step5.stale && hasSteps);
   const badge5 = document.getElementById('step5-badge');
   if (badge5) {
-    if (hasSteps) {
+    if (stepsStale) {
+      badge5.className = 'badge badge-warning';
+      badge5.textContent = '⚠ Stale — selections changed';
+      badge5.classList.remove('hidden');
+    } else if (hasSteps) {
       badge5.className = 'badge badge-success';
       badge5.textContent = '✓ Ready';
       badge5.classList.remove('hidden');

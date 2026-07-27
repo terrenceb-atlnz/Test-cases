@@ -20,6 +20,11 @@ class StepState(BaseModel):
     confirmed_at: Optional[datetime] = None
     none_selected: bool = False
     selections: List[Selection] = []
+    # True when `confirmed` was inferred from a Complete on-disk bundle
+    # (_backfill_from_refined) rather than set by an explicit in-session confirm.
+    # Lets the export gate honour reviews the user did before step1-3 state was
+    # captured, while keeping the two provenances distinguishable.
+    backfilled: bool = False
 
 class LLMConfig(BaseModel):
     """Per-session LLM login config.
