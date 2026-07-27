@@ -424,15 +424,32 @@ def main() -> int:
         print()
 
     if args.out and not args.dry_run:
-        n = 0
+        n = stale = 0
         for r in reports:
-            if r.get("error") or not r.get("gap_fill_blocks"):
+            if r.get("error"):
                 continue
             d = Path(args.out) / r["case_key"]
+            target = d / "criterion4.json"
+            # A case with zero gap-fill blocks must still be WRITTEN, not skipped.
+            # Skipping left a previous run's file in place — observed live: T33235 kept a
+            # 13:43 file claiming 7 judged blocks long after regeneration made every
+            # TestCase fragment-backed (0 gap-fill). A stale artifact that looks current
+            # is worse than none, because the next session compares against it.
+            if not r.get("gap_fill_blocks"):
+                if target.exists():
+                    target.unlink()
+                    stale += 1
+                d.mkdir(parents=True, exist_ok=True)
+                target.write_text(json.dumps(r, indent=2))
+                n += 1
+                continue
             d.mkdir(parents=True, exist_ok=True)
-            (d / "criterion4.json").write_text(json.dumps(r, indent=2))
+            target.write_text(json.dumps(r, indent=2))
             n += 1
-        print(f"wrote criterion4.json for {n} case(s) under {args.out}")
+        msg = f"wrote criterion4.json for {n} case(s) under {args.out}"
+        if stale:
+            msg += f" (replaced {stale} stale no-gap-fill artifact(s))"
+        print(msg)
     return 0
 
 

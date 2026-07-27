@@ -67,10 +67,35 @@ its vote count suggests. Opus was "bad" every time.
 **Read the results with that in mind:** treat a block where `stable: false` as a block
 where vllm-fast's single vote should not be trusted; weight Opus and your own read.
 
-> **Results were still being written when this session closed** — the run is 20 gap-fill
-> blocks × 6 calls = 120 LLM calls at roughly 1/min. Check
-> `judging/Port (7)/<case>/criterion4.json` for the completed data, and the summary at the
-> end of the run for the agree / near-miss / disagree counts.
+### Results — 14 gap-fill blocks, 84 judge calls
+
+| | agree | near-miss | disagree |
+|---|---|---|---|
+| Opus vs vllm-fast | 11 | 3 | **0** |
+
+**Verdict distribution:** Opus `bad` × 14. Every vllm-fast repeat: `bad` × 12, `good` × 2.
+
+**Consistency answer: vllm-fast was STABLE on 12 of 14 blocks (85%).** The two splits were
+4–1, not coin-flips:
+
+| Case | step | votes |
+|---|---|---|
+| T33233 | 11 | bad, bad, bad, bad, **good** |
+| T33234 | 1 | good, good, good, good, **bad** |
+
+That is better than the previous session's 6-run observation implied, but it still means a
+single vllm-fast vote is not decisive on a contested block — check `self_consistency` in
+`criterion4.json` before trusting one.
+
+**T33235 has zero gap-fill blocks now** (every TestCase reuses a real fragment after the
+grounding improved script-search), so criterion 4 no longer applies to it — a genuine
+improvement, not a gap.
+
+**Nothing reached "good" from both judges.** The defects are consistent and specific:
+verification that checks link-state but never the feature under test (e.g. `lpi disable`
+asserts only `Link is UP`, never that LPI is off — a false green whenever the disable
+silently fails), and assertions weaker than the step demands. These are *semantic* defects
+the mechanical criteria cannot catch, which is exactly what criterion 4 is for.
 
 ---
 
@@ -84,6 +109,7 @@ where vllm-fast's single vote should not be trusted; weight Opus and your own re
 | 2 | `show interface eth1` — `prompt_block()` picked the **longest** sample output, which was the TQ wireless AP's *router* interface, not a switch port. | **Fixed** — prefers the variant the most product families share. |
 | 3 | `self.dut.port1.0.1` — a **SyntaxError**; the model used a CLI port name as a Python attribute. | **Fixed** — "port names are CLI text, never identifiers" rule. |
 | 4 | `framework.ATLibrary` — a hallucinated import; the existing lint correctly rejects it, so **T33235's `lint_ok` is False**. | **OPEN** — the import surface needs the same grounding treatment the CLI got. |
+| 5 | `pt_judge.py --out` **skipped** cases with zero gap-fill blocks, leaving the previous run's `criterion4.json` in place. T33235 kept a 13:43 file claiming 7 judged blocks hours after regeneration made it 0. A stale artifact that looks current is worse than none, since the next session compares against it. | **Fixed** — a no-gap-fill case now overwrites with an explicit `gap_fill_blocks: 0` record. |
 
 ### Coverage regression that prompted the gate
 
