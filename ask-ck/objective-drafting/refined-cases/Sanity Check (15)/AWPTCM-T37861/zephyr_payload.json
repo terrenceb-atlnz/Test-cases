@@ -1,6 +1,6 @@
 {
   "AWPTCM-T37861": {
-    "objective": "<ul><li>LLDP max power values sent to the switch are recognised and can override the port\'s classification-based max power.</li><li>CLI configuration of interface max power takes precedence over (overrides) any LLDP-provided max power value.</li><li>When the CLI interface max power setting is removed, the switch reverts to using the LLDP-provided max power.</li><li>PoE power delivery and status reporting accurately reflect the effective max power in use (from CLI or LLDP).</li></ul>",
+    "objective": "<ul><li>LLDP max power values sent to the switch are recognised and can override the port's classification-based max power.</li><li>CLI configuration of interface max power takes precedence over (overrides) any LLDP-provided max power value.</li><li>When the CLI interface max power setting is removed, the switch reverts to using the LLDP-provided max power.</li><li>PoE power delivery and status reporting accurately reflect the effective max power in use (from CLI or LLDP).</li></ul>",
     "testScript": {
       "type": "steps",
       "steps": [

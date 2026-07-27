@@ -152,6 +152,49 @@ def test_export_gate_passes_when_reviews_confirmed(client, clean_session):
     assert r.json()["wrote_bundle"] is False  # empty payload still fails validation
 
 
+# --- Data integrity: every shipped bundle must be readable ----------------------
+def test_every_refined_bundle_is_valid_json():
+    """A Complete bundle that cannot be parsed cannot be backfilled or re-exported.
+
+    AWPTCM-T37861 shipped with a Python-style `\\'` escape (valid in a Python literal,
+    invalid per RFC 8259) from its very first commit, so it silently failed backfill and
+    400ed on re-export. It was the only one of the 43; this keeps it that way.
+    """
+    import json
+    import pathlib
+
+    refined = (pathlib.Path(__file__).resolve().parents[1]
+               / "ask-ck" / "objective-drafting" / "refined-cases")
+    if not refined.exists():
+        pytest.skip("refined-cases/ not present")
+
+    broken = []
+    for p in sorted(refined.rglob("zephyr_payload.json")):
+        try:
+            json.loads(p.read_text(encoding="utf-8"))
+        except Exception as e:
+            broken.append(f"{p.parent.name}: {e}")
+    assert not broken, "unparseable Complete bundle(s):\n  " + "\n  ".join(broken)
+
+
+def test_every_refined_bundle_passes_the_export_gate():
+    """Every Complete case must remain re-exportable through the batch-A confirm gate."""
+    import pathlib
+
+    refined = (pathlib.Path(__file__).resolve().parents[1]
+               / "ask-ck" / "objective-drafting" / "refined-cases")
+    if not refined.exists():
+        pytest.skip("refined-cases/ not present")
+
+    blocked = []
+    for key in sorted({p.parent.name for p in refined.rglob("zephyr_payload.json")}):
+        sess = WizardSession(key=key)
+        _backfill_from_refined(sess)
+        if not _can_synthesize(sess):
+            blocked.append(key)
+    assert not blocked, f"cases that can no longer be re-exported: {blocked}"
+
+
 # --- Migration guard: backfilled cases satisfy the new gate ---------------------
 def test_backfill_marks_reviews_confirmed(tmp_path, monkeypatch):
     """The 43 existing bundles must stay re-exportable.
