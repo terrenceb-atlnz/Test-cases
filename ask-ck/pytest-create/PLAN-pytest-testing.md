@@ -52,6 +52,14 @@
 >   stale config is a headless CLI mode re-syncs instead of silently hitting the
 >   wrong backend; `_llm_is_active` left untouched. Unit-verified (8/8) + concurrency
 >   reviewed. See **§9 below**. (Pre-existing dual-instance session debt logged in §9.4.)
+> - ✅ **CLI grounding (§11)** — 2026-07-27h. Root-caused the fabricated `speed=1000`
+>   output schema to a RESOURCING gap, not model quality (all 5 models did it, Opus
+>   included). Harvested the real AlliedWare Plus command reference into `ck.db`
+>   (`tool/harvest_cli_docs.py`, 73,006 fetches, 0 failures, 4,652 commands) and grounded
+>   BOTH the sequence-extraction and generate prompts. Result: `key=value` fabrication
+>   **13→0** in sequences and **57→0** in scripts. Also added an objective-coverage gate
+>   (every Zephyr step needs ≥1 PyTest step) after a re-extraction silently dropped
+>   T33234's whole MDI/MDI-X negative path.
 > - 🔄 **Part 3a — mechanical half DONE** 2026-07-27 (`tool/pt_grade.py` + 21 tests):
 >   criteria 1-3 and the offline half of 6, graded for all three cases. T33235's script
 >   was generated this session (it had none). **C1 + C6-offline clean across all three.**
@@ -1042,3 +1050,154 @@ Still cosmetic (the authoritative tag is first and the grader reads that), still
   the human holistic review. The T33235 physical-step defect (§10.3) is the known one to
   watch for.
 - **Criteria 5-6 on hardware** — still blocked on `tb470.setup`.
+
+## 11. Session log — 2026-07-27h — CLI grounding, objective-coverage gate, re-judging
+
+Started from Part 3a's criterion-4 result (all 9 gap-fill blocks "bad") and Terrence's
+question: is the generator-prompt the problem? Five questions were asked and answered
+against the live corpus + the real CLI documentation.
+
+### 11.1 The five questions, answered with evidence
+
+1. **Is the generated syntax correct?** Python: yes (lint-clean, real framework calls).
+   CLI *commands*: yes (`speed`, `duplex`, `polarity` all verified real). CLI *output
+   assertions*: **fabricated** — the whole defect.
+2. **Is it a resourcing problem?** **Yes.** The generate prompt named `show interface` 27
+   times and contained ZERO examples of its output (`port1.0` count 0, `awplus` 0).
+3. **Different valid syntax, or hallucinated?** Hallucinated, but coherently — a
+   plausible invented schema applied consistently 57 times, not random noise.
+4. **Best-effort or garbage?** Best-effort. The proof is the split: fragment-backed cases
+   (T33233/T33234) fabricated **zero**; only the zero-fragment case (T33235) did. Reused
+   fragments already act as grounding.
+5. **How many models?** 5 models × 3 cases, one run each (11/15 succeeded). **Every model
+   fabricated on T33235** — vllm-fast 39, vllm-thinking 52, haiku 13, sonnet 39, **opus
+   35**. A defect that survives Opus is not fixable by swapping models.
+
+### 11.2 The source: docs.atlnz.lc (Terrence's pointer)
+
+37 product command references, ~2,900 unique commands, ~73,000 product×command pages.
+Measured facts that drove the design:
+- A command page's content is **byte-identical across families ~96%** of the time
+  (23/24 sampled), so content is CONTENT-ADDRESSED and stored once; per-product rows are
+  a thin support matrix. Dedupe factor ~4.7x.
+- Pages are ~630KB but only ~0.3% is real content (the rest is an inlined nav tree).
+- `/<product>/index.html` is a META-REFRESH — `curl -L` will NOT follow it.
+- **WebFetch's markdown conversion DROPS `<pre>` blocks**; raw HTML + regex is required.
+- The site is mid-build and serves **soft 404s** (HTTP 200 + "may have moved in the
+  latest rebuild"). Detected and counted separately so they can't poison the reference.
+
+**Terrence's rule confirmed:** commands are standard across devices; only feature
+*support* varies. The `duplex` difference (`{auto|full|half}` vs `{auto|full}`) is a
+consequence of **half duplex being impossible at ≥1 Gig** — devices whose ports don't go
+below 1 Gig can't offer it. **That constraint is NOT documented anywhere**; it is only
+visible in the diff between families. It IS recoverable from the ART corpus, which pairs
+`duplex half` with ≥1 Gig **zero times** in 830 scripts.
+
+### 11.3 What was built
+
+- **`tool/harvest_cli_docs.py`** — renewable harvest into `ck.db` (`cli_commands` +
+  `cli_command_products` + FTS). Full run: **73,006 fetches, 58.6 min, 0 failures**,
+  4,652 unique commands (993 with sample output), 61,240 product×command rows.
+- **`tool/cli_lookup.py`** — retrieval + `prompt_block()` for prompt injection, and
+  `detect_commands()` so only commands the case actually references are injected.
+- **Grounding wired into BOTH prompts** — step 2 (`_cli_reference_for_case`, capped at 8
+  output lines, 300-800 chars) and step 6 (`_cli_reference_block`, ~1.9k chars).
+- **`tool/pt_compare_runs.py`** — snapshot/compare grading runs across sessions, so
+  "did this help, did anything regress" is answerable without re-deriving it.
+
+### 11.4 The fabrication originates at STEP 2, not step 6
+
+Found while asking why the generate prompt is 26k chars. `speed=1000` lands in each
+step's `verify` text at Sequence Extraction, and `_render_skeleton` stamps it into the
+skeleton **4x per TestCase**. Step 6 was being *obedient*.
+
+| Case | step2 `key=value` | step6 `key=value` |
+|---|---|---|
+| T33233 | 0 | 0 |
+| T33234 | 0 | 0 |
+| T33235 | 13 | **57** |
+
+Perfect correlation — which is why grounding step 6 alone would have left the generator
+arguing with its own skeleton.
+
+**Prompt composition (26,043 chars):** skeleton **62%** (7,213 chars of which are
+`# >>> FILL <<<` comments the model is then told to delete), framework surface 15%,
+rules 12%, CLI grounding 7%. Trimming the scaffolding is a real opportunity, not done.
+
+### 11.5 Objective-coverage gate (Terrence's invariant)
+
+> Every objective has to link to a Zephyr step; every Zephyr step needs at least one
+> PyTest step. Otherwise the objectives aren't being tested.
+
+Prompted by a real regression: re-extracting T33234 went 14 → 9 steps and **silently
+dropped source step 4** — "configure one side to Auto and the other to forced MDI/MDIX …
+correct link-down behavior in incompatible combinations", i.e. the entire negative path
+of an MDI/MDI-X test, which the old sequence covered with 4 dedicated entries. Nothing
+absorbed it. Cause: the grounding pushed the model to reclassify partner-side config as
+`physical` operator prompts, collapsing the matrix into one prompt.
+
+**Enforced at the Confirm button** (Terrence's call — Generate still completes, because
+the script is useful to look at and the reviewer may fix and regenerate):
+- `_coverage_report()` — mechanical, also recorded on `extract_sequence`/`save_sequence`.
+- `_coverage_gate_error()` — a 409 on `confirm_step` for **'2. Sequence'** and
+  **'5. Generate'** that QUOTES each untested Zephyr step (an index alone is not
+  actionable). Generate is gated too because a case can arrive with zero fragments
+  (T33235), so the fragment gates prove nothing about coverage.
+- Override: `{"acknowledge_coverage_gap": true}` — a recorded decision, not a silent pass.
+- At Generate it also checks TestCase count vs non-setup steps, catching "the sequence
+  covered it but the script skipped it".
+
+Prompt rules added to match: coverage is mandatory; merging must not cross source steps;
+a source step describing COMBINATIONS needs one entry per combination **including the
+negative cases**; don't downgrade automatable partner config into an operator prompt.
+
+### 11.6 Measured result
+
+| | before | after |
+|---|---|---|
+| T33235 `key=value` in sequence | 13 | **0** |
+| T33235 `key=value` in script | 57 | **0** |
+| T33233 placeholder `portA` refs | 13 | **0** |
+| real CLI formats quoted per case | 0 | 14-23 |
+| objective coverage | unmeasured | **3/3 cases complete** |
+
+Mechanical grades after regeneration — **all three clean**:
+
+| Case | C1 | C2 | C3 | C6 | lint |
+|---|---|---|---|---|---|
+| T33233 | exactly (11/11) | exactly (9/9) | right | yes | ok |
+| T33234 | exactly (12/12) | n-a (0 frags) | n-a | yes | ok |
+| T33235 | exactly (6/6) | **exactly (6/6)** | **right** | yes | **fails** (see 11.7) |
+
+T33235 is the headline: it previously had zero fragments and graded `n-a`; the grounded
+sequence gave script-search better terms, so it now finds 14 fragments and grades
+C2 *exactly* / C3 *right*.
+
+### 11.7 Regressions the grounding itself caused (found + fixed, except one)
+
+Each was caught by checking output rather than trusting the change:
+1. **`speed 2000`** — an invented value. The prompt showed valid syntax but never said
+   arguments must come FROM it. Fixed with an explicit argument rule; now emits
+   `speed 2500 (unsupported on 1G copper)`, which is what the source step actually asks.
+2. **`show interface eth1`** — `prompt_block` picked the LONGEST sample output, which was
+   the TQ wireless AP's *router* interface, not a switch port. Fixed to prefer the
+   variant the MOST product families share. (A caveat on "commands are standard": the
+   command is, but sample OUTPUT is family-specific, and picking wrong is silent.)
+3. **`self.dut.port1.0.1`** — a SyntaxError; the model used a CLI port name as a Python
+   attribute. Fixed with a "port name is CLI TEXT, never an identifier" rule.
+4. **`framework.ATLibrary` — STILL OPEN.** A hallucinated import; the existing lint
+   correctly rejects it, so T33235's `lint_ok` is False. Not a grounding regression
+   (the import surface is a separate prompt section) but it blocks a clean run.
+
+### 11.8 Product debt found: writes can silently not persist
+
+Repeatedly hit while re-extracting: the server returns **HTTP 200 with correct new data
+that never reaches `ck.db`**. `db.get_connection()` caches one SQLite connection per
+thread; after an external process writes to `ck.db`, those long-lived connections hold a
+stale WAL snapshot, and `_pt_persist` swallows the failure into a `print` that never
+fired. Symptom: endpoint returns 13 steps, DB still has 0, `updated_at` unchanged.
+
+Workaround used: `./run.sh --restart` around any external write, then verify `updated_at`
+from a fresh connection — never trust the 200. Fix candidates: drop/refresh the
+thread-local cache, and make `_pt_persist` surface failures instead of printing. Related
+to the §9.4 dual-instance debt but worse, because it presents as success.

@@ -1713,3 +1713,90 @@ refused, localhost 200, SKIP fires by default and is still overridable with `?fo
   > re-run `./tool/run_tests.sh` and `git status` before acting on either, rather than trusting a
   > statement made earlier in the same session.
 - Still no CI runner (`.github/workflows`); the gate remains run-before-commit discipline.
+
+## Session Close / Handoff (2026-07-27h) — CLI grounding + objective-coverage gate + re-judging
+
+**Started from:** Part 3a's criterion-4 result (all 9 gap-fill blocks graded "bad") and the
+question *is the generator prompt the problem?* It was — but not in the way it looked.
+
+### What the investigation actually found
+
+Terrence asked five questions; each was answered against the live corpus and the real CLI
+docs, not from inference:
+
+1. **Syntax correct?** Python yes (lint-clean, real framework calls). CLI *commands* yes
+   (`speed`/`duplex`/`polarity` all verified real). CLI *output assertions* — fabricated.
+2. **Resourcing problem?** **Yes.** The generate prompt named `show interface` 27 times and
+   contained ZERO examples of its output.
+3. **Hallucinated or another dialect?** Hallucinated, but coherently — one invented schema
+   applied consistently 57 times.
+4. **Best-effort or garbage?** Best-effort. Fragment-backed cases fabricated **zero**; only
+   the zero-fragment case did. Reused fragments were already acting as grounding.
+5. **All models?** 5 models x 3 cases, one run each. **Every model** fabricated on T33235 —
+   including **Opus (35)**. Not a model-quality problem.
+
+**Then a deeper cause:** the fabrication originates at **step 2 (Sequence Extraction)**, not
+step 6. It lands in `verify` text and `_render_skeleton` stamps it into the skeleton 4x per
+TestCase. T33235: 13 in the sequence -> 57 in the script; the clean cases 0 -> 0. Grounding
+step 6 alone would have left the generator arguing with its own skeleton.
+
+### Built
+
+- **`tool/harvest_cli_docs.py`** — renewable harvest of the internal AlliedWare Plus command
+  reference (`docs.atlnz.lc/preview/`) into `ck.db`. Full run: **73,006 fetches, 58.6 min,
+  ZERO failures**; 4,652 unique commands (993 with sample output), 61,240 product x command
+  rows. Content-addressed (a page is byte-identical across families ~96% of the time), so
+  per-product rows are a thin support matrix.
+- **`tool/cli_lookup.py`** — retrieval, `detect_commands()`, `prompt_block()`.
+- **`tool/pt_compare_runs.py`** — snapshot/compare grading runs across sessions.
+- **Grounding wired into BOTH prompts**; `tests/test_cli_docs.py` (18 tests).
+- **Objective-coverage gate** — `_coverage_report()` + `_coverage_gate_error()`, enforced on
+  **Confirm** for *2. Sequence* and *5. Generate*.
+
+### Results
+
+| | before | after |
+|---|---|---|
+| T33235 `key=value` (sequence / script) | 13 / 57 | **0 / 0** |
+| T33233 placeholder `portA` refs | 13 | **0** |
+| real CLI formats quoted per case | 0 | 14-23 |
+| objective coverage | unmeasured | **3/3 complete** |
+
+Mechanical grades after regeneration: **C1/C2/C3/C6 clean on all three cases.** T33235 is
+the headline — previously zero fragments and `n-a`, now 14 fragments, C2 *exactly*, C3
+*right*.
+
+### Regressions the grounding itself caused (three fixed, one open)
+
+Each found by checking output rather than trusting the change:
+1. `speed 2000` — an invented value; the prompt showed valid syntax but never said arguments
+   must come FROM it. Fixed; now emits `speed 2500 (unsupported on 1G copper)`.
+2. `show interface eth1` — `prompt_block` picked the LONGEST sample output, which was a **TQ
+   wireless AP router interface**, not a switch port. Fixed to prefer the variant the most
+   product families share. *Caveat on "commands are standard across devices": the command is,
+   but sample OUTPUT is family-specific, and picking the wrong family is silent.*
+3. `self.dut.port1.0.1` — a SyntaxError; a CLI port name used as a Python attribute. Fixed.
+4. **OPEN:** a hallucinated `framework.ATLibrary` import keeps T33235's `lint_ok` false. The
+   existing lint catches it correctly; the prompt's import guidance needs the same treatment
+   the CLI grounding got.
+
+### Product debt found (not fixed)
+
+**The server can return HTTP 200 while the write never reaches `ck.db`.** `db.get_connection()`
+caches one SQLite connection per thread; after an external process writes to the DB those
+connections hold a stale WAL snapshot, and `_pt_persist` swallows the failure into a `print`
+that never fired. Symptom: endpoint returns 13 steps, DB still has 0, `updated_at` unchanged.
+Cost real debugging time and forced restart-and-reverify cycles. Related to the §9.4
+dual-instance debt but worse, because it presents as success. Fix candidates: refresh/drop the
+thread-local cache; make `_pt_persist` surface failures.
+
+### State at close
+
+- Tests: **208 pytest + 72 Vitest green**; both guards green; `/health` 200.
+- `ck.db` 420 MB, LFS-tracked; corpora untouched (the CLI tables are a new externally-sourced
+  reference, **not** a corpus rebuild — the no-rebuild invariant still holds).
+- Judging artifacts under `ask-ck/pytest-create/judging/Port (7)/<case>/`, with the
+  pre-grounding baseline preserved at `judging/_runs/2026-07-27a-pre-grounding/` for
+  next-session comparison via `tool/pt_compare_runs.py --against`.
+- **Part 3b (criteria 5-6) still blocked** on `configs/tb470.setup` (Terrence-side physical
+  topology). Note the corrected path: `/home/st-art/st-art/configs/`, NOT under `framework/`.

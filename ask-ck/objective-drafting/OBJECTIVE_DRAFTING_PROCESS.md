@@ -1,5 +1,14 @@
 # Objective Drafting Process (Repeatable Steps 1–4)
 
+> ⚠ **Historical / partially superseded (banner added 2026-07-27h).** The *method* below
+> (how objectives and steps are drafted) still stands, but the **data-access instructions
+> do not**. This doc tells you to read `data/zephyr_full/zephyr_cases.jsonl`,
+> `slim_index.json` and similar courier files — **those files are deleted.** `ck.db` is the
+> permanent single source of truth and the server reads corpora only from it (`db.py`,
+> enforced by `tool/guard_db_only.py`); there is no rebuild step. Read the corpora via
+> `db.py` / the search endpoints instead, and treat every JSON/JSONL path in this document
+> as a historical reference to how the material was originally assembled.
+
 **Purpose**  
 This document captures the repeatable drafting steps (now 1–4) used to enrich thin AWPTCM manual test cases in Zephyr.  
 

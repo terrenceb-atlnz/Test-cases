@@ -30,6 +30,9 @@ Reviewer note: {{ f.why }}
 - {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
 {% endfor %}
 
+{% if cli_reference %}
+## {{ cli_reference }}
+{% endif %}
 ## Rules for filling the slots (violating any makes the output unusable)
 1. **Keep the three logging-contract calls in every `main()`**, filling their content:
    - `self.log('STEP <n>: ...')` — keep as the first line (the step start).
@@ -56,6 +59,20 @@ Reviewer note: {{ f.why }}
    `print x` → `print(x)`, `except X, e:` → `except X as e:`, `.iteritems()` → `.items()`,
    `.has_key(k)` → `k in`, `xrange` → `range`, `basestring` → `str`. The final script
    MUST be valid Python 3; keep the fragment's logic, modernize its syntax.
+{%- endif %}
+{%- if cli_reference %}
+4b. **NEVER invent CLI output.** Match assertions to the REAL CLI REFERENCE above,
+   character for character. Real `show interface` prints prose like
+   `current duplex full, current speed 1000, current polarity mdix`; `show interface
+   status` prints aligned COLUMNS (`a-full`, `a-1000`, `connected`/`notconnect`).
+   Machine-style tokens (`speed=1000`, `duplex=full`, `state=up`) DO NOT EXIST and make
+   the test fail on working hardware. Ports are `port1.0.1`, never `1/0/1` or `portA`
+   unless a bound device attribute provides that name. If the reference does not show
+   the output you need, assert on a substring you can see in it — do not guess a format.
+   **A port name is CLI TEXT, never a Python identifier.** `port1.0.1` may appear only
+   inside a string (`dut.cmd('interface port1.0.1')`); writing it as an attribute —
+   `self.dut.port1.0.1` — is a SyntaxError. Reach ports through the bound device object
+   or a string variable (`port = 'port1.0.1'`), exactly as the skeleton's init() does.
 {%- endif %}
 5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.

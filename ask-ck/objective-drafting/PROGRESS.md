@@ -4,6 +4,57 @@
 
 **Last Updated**: 2026-07-27 (by Claude)
 
+## Latest session (2026-07-27h) — CLI grounding: the generator was starved, not stupid
+
+**Focus: root-cause the "all 9 gap-fill blocks graded bad" result from Part 3a. Answer: a
+RESOURCING gap, not model quality. Harvested the real AlliedWare Plus CLI reference into
+`ck.db` and grounded both LLM prompts; added an objective-coverage gate. Uncommitted at
+time of writing — see the commit that follows.**
+
+- **The evidence that settled it.** Across the Part 2B matrix (5 models x 3 cases, one run
+  each) **every model** fabricated a `speed=1000`/`state=up` output schema on T33235 —
+  vllm-fast 39, vllm-thinking 52, haiku 13, sonnet 39, **opus 35**. A defect that survives
+  Opus is not fixable by swapping models. Root cause: the prompts demanded "exact CLI
+  fields" while showing **zero** examples of real output. Real output is
+  `current duplex full, current speed 1000, current polarity mdix`.
+- **It originates at step 2, not step 6.** `speed=1000` lands in each step's `verify` text
+  at Sequence Extraction; `_render_skeleton` then stamps it into the skeleton **4x per
+  TestCase**, and Generate obediently copies it (T33235: 13 in the sequence -> 57 in the
+  script; the two fragment-backed cases had 0 -> 0). Grounding step 6 alone would have left
+  the generator arguing with its own skeleton.
+- **`tool/harvest_cli_docs.py`** — renewable harvest of `docs.atlnz.lc/preview/` into
+  `ck.db` (`cli_commands` + `cli_command_products` + FTS). **73,006 fetches, 58.6 min, ZERO
+  failures**; 4,652 unique commands (993 with sample output), 61,240 product x command rows.
+  Content-addressed because a command page is byte-identical across families ~96% of the
+  time (Terrence's "commands are standard across devices" rule, verified at scale); the
+  per-product rows are a thin support matrix. Soft-404s (HTTP 200 + "may have moved in the
+  latest rebuild") are detected and counted, never recorded as empty commands.
+- **`tool/cli_lookup.py`** — retrieval + `prompt_block()`/`detect_commands()`, so only the
+  commands a case actually references are injected. Wired into **both** prompts.
+- **Measured result:** T33235 `key=value` **13 -> 0** in the sequence and **57 -> 0** in the
+  script; T33233 shed 13 placeholder `portA` refs; all three cases now quote 14-23 real CLI
+  formats where they previously quoted none. T33235 also went from *zero* fragments to 14
+  (the grounded sequence gave script-search better terms), so it now grades C2 **exactly** /
+  C3 **right** instead of `n-a`.
+- **Objective-coverage gate (Terrence's invariant).** Every Zephyr step needs >=1 PyTest
+  step. Prompted by a real regression: re-extracting T33234 went 14 -> 9 steps and silently
+  dropped source step 4 — the whole MDI/MDI-X forced-polarity **negative path**. Enforced on
+  the **Confirm** button for *2. Sequence* and *5. Generate* (Generate still completes), with
+  a 409 that QUOTES each untested step; `acknowledge_coverage_gap` overrides deliberately.
+- **Regressions the grounding itself caused — found by checking, three fixed:** `speed 2000`
+  (invented value -> added an "arguments must come from the reference" rule); `show interface
+  eth1` (the block picked the LONGEST sample, which was a TQ wireless *router* interface ->
+  now prefers the variant most families share); `self.dut.port1.0.1` (a SyntaxError — a CLI
+  port name used as a Python attribute -> added a "port names are CLI text" rule).
+  **Still open:** a hallucinated `framework.ATLibrary` import keeps T33235's lint red.
+- **Product debt found:** the server can return **HTTP 200 while the write never reaches
+  `ck.db`** — thread-local SQLite connections go stale after an external write, and
+  `_pt_persist` swallows the failure into a `print`. Cost real debugging time; workaround is
+  restart-and-verify-`updated_at`, never trust the 200.
+- **Tests/guards:** 208 pytest (+18 new CLI-docs) + 72 Vitest all green; both guards green;
+  `/health` 200. `ck.db` 420 MB, still LFS-tracked, corpora untouched (the CLI tables are a
+  new externally-sourced reference, not a corpus rebuild).
+
 ## Latest session (2026-07-27g) — adversarial review CLOSED (19 fixes, 4 batches) + network hardening + multi-user plan
 
 **Focus: finish the verification that was paused at ~50% in 27c, fix everything real that it

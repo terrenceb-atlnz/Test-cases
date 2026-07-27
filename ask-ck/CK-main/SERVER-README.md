@@ -403,11 +403,60 @@ of how the DB was constructed and refuses to run. The one raw original kept, pur
 root (not read by anything), is the Zephyr XML export at
 `ask-ck/objective-drafting/data/zephyr_full/Zephyr-Database-*.xml`.
 
+### CLI command reference (`cli_commands`, added 2026-07-27)
+
+A **renewable** reference table — deliberately unlike the corpora above, which are permanent
+and never rebuilt. It holds the real AlliedWare Plus CLI: command syntax and the switch's
+actual sample output, harvested from the internal docs site `https://docs.atlnz.lc/preview/`.
+
+- `cli_commands` — one row per **unique content hash** (4,652 rows; 993 carry sample output):
+  `command`, `page`, `cmd_group`, `syntax` (JSON), `examples` (JSON), `sample_output`,
+  `pre_blocks`. Content is byte-identical across product families ~96% of the time, so it is
+  content-addressed and stored once.
+- `cli_command_products` — the thin support matrix (61,240 rows): which product family ships
+  which variant. This is how per-family differences are represented, e.g. `duplex` is
+  `{auto|full|half}` on x530/x220/x550 but `{auto|full}` on x930/x950 (half duplex is
+  impossible at ≥1 Gig, so platforms that never go below it cannot offer it).
+- `cli_commands_fts` — FTS5 over command/group/syntax/sample output.
+
+**Re-run any time:** `python3 tool/harvest_cli_docs.py --all` (73,006 fetches, ~59 min,
+idempotent — rows are replaced per (product, command), and `meta.cli_docs_harvest` records
+when it last ran and what it saw). Read it with `python3 tool/cli_lookup.py <command>` or
+`--prompt-block`. This does **not** violate the no-rebuild invariant: it adds a new,
+externally-sourced reference table and never touches the Zephyr/TestLink/ATP/script corpora.
+
+**Why it exists:** the PyTest Creator prompts demanded "exact CLI fields" while showing zero
+examples of real output, so every model in the Part 2B matrix — Claude Opus included —
+invented a `speed=1000` / `state=up` schema the switch never prints. Real output is
+`current duplex full, current speed 1000, current polarity mdix`. Both the sequence-extraction
+and generate prompts now inject the relevant commands' syntax + sample output.
+
+**Caveat — not a validity oracle.** Cross-command physical constraints are absent from the
+source (the x530 `duplex` page lists `half` unconditionally; nothing says it is impossible at
+≥1 Gig). Those rules must come from the ART corpus, which encodes them implicitly, or be
+written by hand. The site is also a *preview* under active construction and serves occasional
+soft-404 placeholders (HTTP 200 with a "may have moved in the latest rebuild" body) — the
+harvester detects and counts those separately rather than recording them as empty commands.
+
 ## PyTest Creator (2026-07-14)
 
 Turns a **Complete** case (one with a refined `zephyr_payload.json`) into a runnable
 Allied Telesis framework test script. Full plan + progress tracker:
 `ask-ck/pytest-create/PLAN-pytest-creator.md`.
+
+**Objective-coverage gate (2026-07-27).** *Every objective links to a Zephyr step, and
+every Zephyr step needs at least one PyTest step — otherwise that part of the objective is
+not being tested.* Enforced on the **Confirm** button (Generate still completes, so the
+script is available to inspect and regenerate) for **2. Sequence** and **5. Generate**:
+`confirm_step` returns **409** with a message that QUOTES each untested Zephyr step, since a
+bare index is not actionable. Generate is gated too because a case can arrive there with
+zero reusable fragments (a `decision: new` case), so the fragment gates prove nothing about
+coverage; there it additionally checks TestCase count against non-setup sequence steps.
+Coverage is recomputed and stored (`step2.coverage`) on both `extract_sequence` and
+`save_sequence` — a deleted UI row drops coverage as easily as the LLM can. Override with
+`{"acknowledge_coverage_gap": true}` when a source step is genuinely untestable: a recorded
+decision, not a silent pass. Built after a re-extraction silently dropped T33234's entire
+MDI/MDI-X forced-polarity negative path (14 steps → 9).
 
 **Gated flow (sidebar steps, each with an explicit Confirm):**
 1. **Cases** — pick a Complete case, Load Case & Continue.

@@ -9,12 +9,46 @@ Convert this manual test case into a prescriptive sequence of automatable test s
 ## Zephyr steps (traceability-note step already removed)
 {% for s in steps %}{{ loop.index }}. {{ s.description }}{% if s.expectedResult %} → {{ s.expectedResult }}{% endif %}
 {% endfor %}
+{% if cli_reference %}
+## {{ cli_reference }}
+{% endif %}
 ## Rules
+- **COVERAGE IS MANDATORY: every numbered Zephyr step above MUST be covered by at least
+  one sequence entry.** The objective is only tested if every source step it rests on is
+  exercised — a source step with no sequence entry means that part of the objective is
+  silently untested. Before you output, check the source-step numbers 1..{{ steps|length }}
+  and confirm each appears as some entry's `zephyr_step_idx`. Dropping one is a FAILURE,
+  not a simplification.
+- **Merging must not lose coverage.** You may merge redundant steps, but a merged entry
+  still covers only ONE `zephyr_step_idx`, so do NOT merge steps from different source
+  steps — split them instead. A source step describing several COMBINATIONS (e.g. "test
+  A-to-B and A-to-C, confirm success in compatible cases and failure in incompatible
+  ones") needs ONE ENTRY PER COMBINATION, including the negative/failure cases — those
+  are the point of the test, not optional extras.
+- Do not downgrade an automatable action into an operator prompt just because a link
+  partner is involved. Configuring the partner over its own CLI is automatable; reserve
+  `physical`/`manual` for things a human must physically do (reseat a cable, insert a
+  pluggable, read an LED).
 - Each entry = one concrete action + its verification.
 - Split compound steps; merge redundant ones.
 - **Output the steps in RUNNABLE EXECUTION ORDER** — the order they must actually run on the device, not necessarily the order they appear above. Setup/configuration must precede the verifications that depend on it; dependencies come first. Manual test cases are often written for a human reader, not for a machine, so reordering is expected.
 - "action" = imperative device-level instruction (configure X, send Y, power-cycle, read 'show ...').
 - "verify" = the observable check proving it worked (exact CLI fields, packet fields, link state) — becomes self.passed()/self.failed() logic.
+{%- if cli_reference %}
+  **Quote CLI output only as the REAL CLI REFERENCE below shows it.** Real `show interface`
+  prints prose (`current duplex full, current speed 1000, current polarity mdix`);
+  `show interface status` prints aligned columns (`a-full`, `a-1000`, `connected`).
+  Machine-style tokens like `speed=1000`, `duplex=full` or `state=up` DO NOT EXIST — a
+  verify written that way produces a test that fails on working hardware. If the
+  reference does not show the field you need, describe the check in plain words instead
+  of inventing a format.
+- **Every command ARGUMENT must come from the reference's syntax line.** `speed` accepts
+  only `{10|100|1000|2500|5000|10000|40000|100000}` — a value outside that set (e.g.
+  `speed 2000`) is rejected by the CLI parser, so the port is never configured and the
+  step tests nothing. When a step calls for an UNSUPPORTED or mismatched setting, pick a
+  REAL value the hardware may not support on that media (e.g. `2500` or `10000` on a
+  1G copper port), or force a mismatch against the partner — never an invented number.
+{%- endif %}
 - "zephyr_step_idx" = 1-based index of the source Zephyr step above (which manual step this came from). Always set it so the reordering is traceable; use the closest source step when merging or gap-filling.
 - **"kind"** = classify EVERY step as exactly one of:
   - `setup` — configuration or precondition with no pass/fail check of its own (base config, enabling a feature, addressing). Becomes suite `configure()`, not a test case.

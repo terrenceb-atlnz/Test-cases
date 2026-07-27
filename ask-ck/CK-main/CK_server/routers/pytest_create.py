@@ -1135,6 +1135,173 @@ def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
     return {m: surface[m] for m in wanted if m in surface}
 
 
+def _cli_reference_for_text(text: str, product: Optional[str] = None,
+                            max_output_lines: int = 14) -> str:
+    """Real AlliedWare Plus CLI syntax + sample output for the commands `text` mentions.
+
+    Why this exists: both LLM steps were asked to name exact CLI fields while being shown
+    ZERO examples of real switch output, so they invented a `speed=1000` / `state=up`
+    key=value schema. The switch actually prints
+    `current duplex full, current speed 1000, current polarity mdix`, so those assertions
+    can never match real hardware. Grounding both prompts in the harvested reference is
+    the fix; see PLAN-pytest-testing.md §11.
+
+    Used at BOTH ends of the pipeline, because the fabrication originates at step 2 and
+    step 6 merely propagates it (T33235: 13 key=value in the sequence -> 57 in the
+    script). Grounding step 6 alone would leave the generator arguing with its own
+    skeleton, which repeats the invented format 4x per TestCase.
+
+    Scoped, not dumped: only commands the text actually references are injected. Returns
+    "" when the harvest has not run or nothing matches — grounding is an enhancement and
+    must never block the pipeline.
+    """
+    try:
+        import sys as _sys
+        # routers/ -> CK_server/ -> CK-main/ -> ask-ck/ -> repo root
+        tool_dir = str(Path(__file__).resolve().parents[4] / "tool")
+        if tool_dir not in _sys.path:
+            _sys.path.insert(0, tool_dir)
+        import cli_lookup
+    except Exception:
+        return ""
+    try:
+        cmds = cli_lookup.detect_commands(text)
+        if not cmds:
+            return ""
+        return cli_lookup.prompt_block(cmds, product,
+                                       max_output_lines=max_output_lines)
+    except Exception as e:                       # never fail the step over grounding
+        print(f"[pt] CLI reference unavailable: {e}")
+        return ""
+
+
+def _cli_reference_block(sequence: List[dict], fragments: List[dict],
+                         product: Optional[str] = None) -> str:
+    """Step-6 grounding: commands named by the reviewed sequence + approved fragments."""
+    text = " ".join(
+        [(s.get("action") or "") + " " + (s.get("verify") or "") for s in sequence]
+        + [(f.get("code") or "") for f in fragments])
+    return _cli_reference_for_text(text, product)
+
+
+def _cli_reference_for_case(fields: dict, product: Optional[str] = None) -> str:
+    """Step-2 grounding: commands named by the REFINED objective + Zephyr steps.
+
+    Reads the same `_case_payload_fields` dict the prompt itself renders, so the
+    grounding can never see different text than the model does. (The raw `zephyr_cases`
+    row is NOT usable here — T33235's is an empty Draft, 29 chars of title, while its
+    refined objective is 698 chars with 6 real steps.) Output is capped shorter than
+    step 6's: the extract prompt is only ~2-4k chars, and 300-800 is proportionate.
+    """
+    text = re.sub(r"<[^>]+>", " ", fields.get("objective") or "") + " " + " ".join(
+        (s.get("description") or "") + " " + (s.get("expectedResult") or "")
+        for s in (fields.get("steps") or []))
+    return _cli_reference_for_text(text, product, max_output_lines=8)
+
+
+def _coverage_report(sequence: List[dict], source_steps: List[dict]) -> dict:
+    """Which source Zephyr steps does this sequence actually exercise?
+
+    THE INVARIANT (Terrence, 2026-07-27): every objective links to a Zephyr step, and
+    every Zephyr step needs at least one PyTest step — otherwise the objective is not
+    being tested. A dropped source step is silent: the sequence just looks tidier.
+
+    Real regression this catches: a re-extraction of T33234 went 14 -> 9 steps and
+    dropped source step 4 entirely — "configure one side to Auto and the other to forced
+    MDI/MDIX ... correct link-down behavior in incompatible combinations", i.e. the whole
+    negative path of an MDI/MDI-X test, which the old sequence covered with 4 dedicated
+    entries. Nothing absorbed it; it was simply gone.
+
+    Advisory, not fatal: the reviewer must SEE the gap and decide. Blocking would strand
+    a case whose source step is genuinely untestable, and step 2 is a human gate anyway.
+    """
+    total = len(source_steps or [])
+    covered: Dict[int, int] = {}
+    for s in sequence or []:
+        try:
+            idx = int(s.get("zephyr_step_idx"))
+        except (TypeError, ValueError):
+            continue
+        if 1 <= idx <= total:
+            covered[idx] = covered.get(idx, 0) + 1
+    missing = [i for i in range(1, total + 1) if i not in covered]
+    return {
+        "source_steps": total,
+        "covered": sorted(covered),
+        "missing": missing,
+        "multiplicity": {str(k): v for k, v in sorted(covered.items())},
+        "ok": not missing,
+        "warning": (
+            f"{len(missing)} of {total} Zephyr step(s) have NO sequence entry: "
+            f"{missing}. Those parts of the objective would go untested — review before "
+            f"confirming."
+        ) if missing else "",
+    }
+
+
+def _coverage_gate_error(sess: PtSession, step: int) -> str:
+    """Detailed refusal message when confirming would sign off untested source steps.
+
+    Returns "" when coverage is complete. The message QUOTES each uncovered Zephyr step
+    rather than listing bare indices — "step 4 is missing" is not actionable, whereas
+    the step's own text tells the reviewer exactly which behaviour goes untested. The
+    real case this was built for: T33234 silently dropped the MDI/MDI-X forced-polarity
+    matrix, i.e. the whole negative path of the feature under test.
+    """
+    try:
+        source_steps = _case_payload_fields(sess)["steps"]
+        sequence = (sess.step2 or {}).get("sequence") or []
+    except Exception:
+        return ""
+    cov = _coverage_report(sequence, source_steps)
+
+    lines: List[str] = []
+    if not cov["ok"]:
+        lines.append(
+            f"Cannot confirm '{_step_label(step)}': "
+            f"{len(cov['missing'])} of {cov['source_steps']} Zephyr step(s) are not "
+            f"tested by any step in this sequence. Every Zephyr step needs at least one "
+            f"PyTest step or that part of the objective is not being tested.")
+        lines.append("")
+        lines.append("UNTESTED source step(s):")
+        for idx in cov["missing"]:
+            try:
+                desc = (source_steps[idx - 1].get("description") or "").strip()
+            except (IndexError, AttributeError):
+                desc = "(source text unavailable)"
+            lines.append(f"  • Zephyr step {idx}: {desc[:300]}")
+
+    # At Generate, also require the script to actually render a case per verify step —
+    # the sequence can be complete while the model emitted fewer TestCase classes.
+    if step == 6:
+        code = (((sess.step6 or {}).get("files") or {}).get("test") or {}).get("code") or ""
+        verify_steps = [s for s in sequence if _step_kind(s) != "setup"]
+        n_cases = len(re.findall(r"^class TestCase_\d+\(", code, re.M))
+        if verify_steps and n_cases < len(verify_steps):
+            if lines:
+                lines.append("")
+            lines.append(
+                f"Cannot confirm '{_step_label(step)}': the generated script has "
+                f"{n_cases} TestCase class(es) for {len(verify_steps)} non-setup "
+                f"sequence step(s) — {len(verify_steps) - n_cases} step(s) have no test "
+                f"case, so they will never run.")
+            missing_cases = [s for s in verify_steps[n_cases:]][:8]
+            if missing_cases:
+                lines.append("")
+                lines.append("Sequence step(s) with no TestCase:")
+                for s in missing_cases:
+                    lines.append(f"  • step {s.get('n')}: "
+                                 f"{(s.get('action') or '')[:200]}")
+
+    if not lines:
+        return ""
+    lines.append("")
+    lines.append("Fix the sequence (edit or re-extract) and regenerate, or re-confirm "
+                 "with acknowledge_coverage_gap=true if the step is genuinely "
+                 "untestable.")
+    return "\n".join(lines)
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -1256,7 +1423,45 @@ def _lint_generated(sess: PtSession) -> dict:
         if re.search(rf"\bimport\s+{re.escape(lib_name)}\b|\bfrom\s+{re.escape(lib_name)}\b", code) is None:
             warnings.append(f"library file {lib['name']} provided but never imported")
 
+    # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
+    #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise
+    #    that part of the objective is not being tested.
+    #
+    #    Checked HERE as well as at step 2 because a case can legitimately reach Generate
+    #    with no reusable scripts at all (T33235: decision 'new', zero fragments), so the
+    #    fragment gates prove nothing about coverage. Generate is the last point before a
+    #    script exists, and coverage can still be lost after step 2 — a reviewer edits or
+    #    deletes a sequence row, or a re-extraction drops a source step (T33234 silently
+    #    lost the whole MDI/MDI-X negative path that way, 14 steps -> 9).
+    #
+    #    Measured against the SEQUENCE, then cross-checked against the TestCase classes
+    #    the script actually emitted, so "the sequence covered it but the script skipped
+    #    it" is caught too. A warning, not an error: the reviewer decides, and a genuinely
+    #    untestable source step must not permanently block generation.
+    try:
+        cov = _coverage_report((sess.step2 or {}).get("sequence") or [],
+                               _case_payload_fields(sess)["steps"])
+        result_coverage = cov
+        if not cov["ok"]:
+            warnings.append(
+                f"coverage: Zephyr step(s) {cov['missing']} have no sequence entry — "
+                f"that part of the objective is NOT tested by this script")
+        # The script must also render a TestCase per verify step; a shortfall means the
+        # model dropped steps the sequence did cover.
+        verify_steps = [s for s in ((sess.step2 or {}).get("sequence") or [])
+                        if _step_kind(s) != "setup"]
+        n_cases = len(re.findall(r"^class TestCase_\d+\(", code, re.M))
+        if verify_steps and n_cases < len(verify_steps):
+            warnings.append(
+                f"coverage: {n_cases} TestCase classes for {len(verify_steps)} "
+                f"non-setup sequence steps — {len(verify_steps) - n_cases} step(s) have "
+                f"no test case in the generated script")
+    except Exception as e:                       # never fail linting over the extra check
+        print(f"[pt] coverage check skipped: {e}")
+        result_coverage = None
+
     result = {"ok": not errors, "errors": errors, "warnings": warnings,
+              "coverage": result_coverage,
               "checked_at": datetime.utcnow().isoformat()}
     step6["lint"] = result
     sess.step6 = step6
@@ -1472,6 +1677,29 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     elif not content.get(required_field):
         raise HTTPException(409, f"Nothing to confirm yet for '{_step_label(step)}' "
                                  f"(missing {required_field}).")
+
+    # OBJECTIVE-COVERAGE GATE (Terrence's invariant, 2026-07-27): every objective links
+    # to a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise
+    # that slice of the objective is not being tested.
+    #
+    # Enforced HERE rather than at Generate: generation should still produce the script
+    # (it is useful to look at, and the reviewer may fix the sequence and regenerate),
+    # but confirming is the human signing off that the step is CORRECT — and signing off
+    # on a script that silently skips a source step is the thing to prevent.
+    #
+    # Checked at BOTH gates that can lock coverage in:
+    #   '2. Sequence' — the sequence itself dropped a source step
+    #   '5. Generate' — reachable with zero reusable fragments (T33235: decision 'new'),
+    #                   so the fragment gates prove nothing about coverage; and a reviewer
+    #                   can edit or delete a sequence row after step 2 was confirmed.
+    # Override with {"acknowledge_coverage_gap": true} once the reviewer has decided the
+    # uncovered step is genuinely untestable — a deliberate, recorded choice, not a
+    # silent pass.
+    if step in (2, 6) and not (body or {}).get("acknowledge_coverage_gap"):
+        gap = _coverage_gate_error(sess, step)
+        if gap:
+            raise HTTPException(409, gap)
+
     _confirm(sess, step_key)
     _invalidate_from(sess, step)
     _pt_persist(sess)
@@ -1500,6 +1728,10 @@ async def extract_sequence(key: str, request: Request):
         "case_title": _case_title(data, key),
         "objective": fields["objective"],
         "steps": fields["steps"],
+        # Real CLI output formats, so `verify` text quotes what the switch actually
+        # prints instead of inventing `speed=1000` — which the skeleton would then
+        # stamp into every TestCase 4x over.
+        "cli_reference": _cli_reference_for_case(fields),
     }, llm_config=_llm_cfg(sess), dry_run=dry_run)
     if dry_run:
         return _provenance_preview(meta)
@@ -1513,14 +1745,20 @@ async def extract_sequence(key: str, request: Request):
     for i, s in enumerate(sequence):
         s["n"] = i + 1
         _collapse_step_text(s)
+    # Every Zephyr step must map to >=1 sequence step, or that slice of the objective is
+    # untested. Surfaced to the reviewer rather than enforced silently.
+    coverage = _coverage_report(sequence, fields["steps"])
+    if not coverage["ok"]:
+        print(f"[pt] {key} coverage gap — {coverage['warning']}")
     sess.step2 = {"sequence": sequence, "notes": notes,
+                  "coverage": coverage,
                   "confirmed": False,
                   "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
                                  "prompt": meta.get("prompt", ""),
                                  "response": meta.get("content", "")[:20000]}}
     _invalidate_from(sess, 2)
     _pt_persist(sess)
-    return {"sequence": sequence, "notes": notes}
+    return {"sequence": sequence, "notes": notes, "coverage": coverage}
 
 
 @router.post("/save_sequence/{key}")
@@ -1533,10 +1771,14 @@ async def save_sequence(key: str, body: dict = Body(...)):
     for i, s in enumerate(sequence):
         s["n"] = i + 1
         _collapse_step_text(s)
-    sess.step2 = {**(sess.step2 or {}), "sequence": sequence, "confirmed": False}
+    # Re-check coverage on manual edits too — deleting a row in the UI can drop the last
+    # entry covering a Zephyr step just as easily as the LLM can.
+    coverage = _coverage_report(sequence, _case_payload_fields(sess)["steps"])
+    sess.step2 = {**(sess.step2 or {}), "sequence": sequence,
+                  "coverage": coverage, "confirmed": False}
     _invalidate_from(sess, 2)
     _pt_persist(sess)
-    return {"sequence": sequence}
+    return {"sequence": sequence, "coverage": coverage}
 
 
 # ---------------------------------------------------------------------------
@@ -2019,6 +2261,9 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "bound_devices": bound_devs,
         "py2_flagged": py2_flagged,
         "framework_surface": _framework_surface_slice(data, extra_mods),
+        # Real CLI syntax + sample output for the commands this case uses, so the model
+        # asserts on what the switch actually prints instead of inventing `speed=1000`.
+        "cli_reference": _cli_reference_block(sequence, fragments),
         "model_name": llm_cfg.get("model") or "unknown",
         "gen_date": datetime.utcnow().strftime("%Y-%m-%d"),
     }, llm_config=llm_cfg, timeout=600, dry_run=dry_run,

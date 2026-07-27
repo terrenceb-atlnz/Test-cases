@@ -67,6 +67,13 @@ JUDGES = {
     # id            kind          model/alias    label for the record
     "opus":       ("claude_cli", "opus",        "claude-opus"),
     "vllm-fast":  ("vllm",       "vllm-fast",   "vllm-fast"),
+    # vllm-fast repeated N times on the same block, to measure its own consistency.
+    # Motivated by a real observation: on T33235's physical hot-swap step it returned
+    # "bad" three times and "good" once, explicitly defending the shutdown/no-shutdown
+    # substitution as "standard" — so a single vote from it is not trustworthy on the
+    # judgements that matter most. Registered as pseudo-judges so each repeat is an
+    # independent call recorded in full, not an averaged-away number.
+    **{f"vllm-fast-{i}": ("vllm", "vllm-fast", f"vllm-fast#{i}") for i in range(1, 6)},
 }
 
 PROMPT = """You are grading ONE block of auto-generated Python from an Allied Telesis ART \
@@ -231,6 +238,37 @@ def agreement(verdicts: List[Optional[str]]) -> str:
     return "near-miss" if idx[-1] - idx[0] == 1 else "disagree"
 
 
+def self_consistency(judged: List[dict]) -> dict:
+    """How stable is a repeated judge on THIS block?
+
+    With vllm-fast run N times, an unstable verdict is itself a finding: it means a
+    single vote from that judge cannot be trusted here. Reported per model rather than
+    collapsed to one number, so the human review sees the spread.
+    """
+    by_model: Dict[str, List[str]] = {}
+    for j in judged:
+        v = j.get("verdict")
+        if v:
+            by_model.setdefault(j.get("model", "?"), []).append(v)
+    out = {}
+    for model, votes in by_model.items():
+        if len(votes) < 2:
+            continue
+        counts: Dict[str, int] = {}
+        for v in votes:
+            counts[v] = counts.get(v, 0) + 1
+        top, n = max(counts.items(), key=lambda kv: kv[1])
+        out[model] = {
+            "runs": len(votes),
+            "distinct": len(counts),
+            "majority": top,
+            "majority_share": f"{n}/{len(votes)}",
+            "stable": len(counts) == 1,
+            "votes": votes,
+        }
+    return out
+
+
 # --------------------------------------------------------------------------- driver
 
 
@@ -269,6 +307,7 @@ def judge_case(conn: sqlite3.Connection, case_key: str, judge_ids: List[str],
             "tag": b["tag"],
             "judges": judged,
             "agreement": agreement([j.get("verdict") for j in judged]),
+            "self_consistency": self_consistency(judged),
             # filled in by the human holistic review (plan §3)
             "human_verdict": None,
             "human_note": None,
