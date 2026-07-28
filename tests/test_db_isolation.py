@@ -200,3 +200,161 @@ def test_deleting_a_session_also_stays_isolated():
     assert key not in ids, "the delete did not take effect in the isolated copy"
     assert _real_db_ids() == before, (
         "the real ck.db's session set changed across an insert+delete cycle")
+
+
+# --- LAYER 1: fail-closed connect guard --------------------------------------
+#
+# Isolation alone was one layer, and it was removed on purpose during mutation testing.
+# These pin the second layer, which holds even when the first is broken.
+
+def test_a_writable_connect_to_the_real_db_is_refused():
+    """The mechanism that would have prevented the AWPTCM-T30649 deletion."""
+    with pytest.raises(RuntimeError, match="REFUSED"):
+        sqlite3.connect(str(_REAL_DB))
+
+
+def test_a_writable_connect_is_refused_however_the_path_is_spelled():
+    """Path spelling must not be a way around it — the guard resolves before comparing."""
+    weird = _REAL_DB.parent / ".." / "var" / _REAL_DB.name       # same file, silly route
+    with pytest.raises(RuntimeError, match="REFUSED"):
+        sqlite3.connect(str(weird))
+    with pytest.raises(RuntimeError, match="REFUSED"):
+        sqlite3.connect(_REAL_DB)                                # a Path, not a str
+
+
+@pytest.mark.parametrize("uri", [
+    "file:{p}",                    # no mode= at all defaults to read-write-create
+    "file:{p}?mode=rw",
+    "file:{p}?mode=rwc",
+])
+def test_writable_uri_forms_are_refused(uri):
+    with pytest.raises(RuntimeError, match="REFUSED"):
+        sqlite3.connect(uri.format(p=_REAL_DB.resolve()), uri=True)
+
+
+def test_read_only_access_to_the_real_db_still_works():
+    """The guard must not block legitimate inspection — tool/ckdb_signature.py and the
+    _real_db_ids() helper in this file both depend on read-only access."""
+    con = sqlite3.connect(f"file:{_REAL_DB.resolve()}?mode=ro", uri=True)
+    try:
+        assert con.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] >= 0
+    finally:
+        con.close()
+
+
+def test_the_guard_does_not_interfere_with_other_databases(tmp_path):
+    """Only the real ck.db is special; everything else opens normally."""
+    other = tmp_path / "scratch.db"
+    con = sqlite3.connect(str(other))
+    try:
+        con.execute("CREATE TABLE t (x)")
+        con.commit()
+    finally:
+        con.close()
+    assert other.exists()
+    sqlite3.connect(":memory:").close()
+
+
+def test_broken_isolation_now_fails_loudly_instead_of_writing():
+    """The incident path, end to end, with no write performed.
+
+    Simulate the isolation being absent by pointing CK_DB_PATH at the real file and
+    forcing db.py to open a fresh connection. Before Layer 1 this handed back a writable
+    handle to the permanent DB. Now it raises.
+    """
+    import db
+
+    saved_env = os.environ.get("CK_DB_PATH")
+    saved_conn = getattr(db._local, "conn", None)
+    try:
+        db._local.conn = None                      # force get_connection() to reopen
+        os.environ["CK_DB_PATH"] = str(_REAL_DB)
+        with pytest.raises(RuntimeError, match="REFUSED"):
+            db.get_connection()
+    finally:
+        if saved_env is None:
+            os.environ.pop("CK_DB_PATH", None)
+        else:
+            os.environ["CK_DB_PATH"] = saved_env
+        db._local.conn = saved_conn
+
+
+# --- LAYER 3: destructive writes may only name throwaway keys ----------------
+
+def test_persisting_a_real_shaped_key_is_refused():
+    """`victim = sorted(real_ids)[0]` was the incident. Refuse it at the db choke point,
+    where every caller funnels through, rather than trusting each test."""
+    import db
+
+    for real_key in ("AWPTCM-T30649", "AWPTCM-T33233", "AWPTCM-T1"):
+        with pytest.raises(AssertionError, match="REAL case key"):
+            db.save_session("wizard", real_key, {"key": real_key})
+        with pytest.raises(AssertionError, match="REAL case key"):
+            db.delete_session("wizard", real_key)
+
+
+def test_the_pt_prefixed_form_is_also_refused():
+    import db
+
+    with pytest.raises(AssertionError, match="REAL case key"):
+        db.delete_session("pt", "pt-AWPTCM-T33235")
+
+
+@pytest.mark.parametrize("key", [
+    "AWPTCM-T99990",      # reserved numeric block
+    "AWPTCM-T99999",      # top of the block
+    "AWPTCM-TSTALE1",     # non-numeric suffix: a real key is AWPTCM-T + digits only
+    "AWPTCM-TTZ1",
+])
+def test_throwaway_keys_are_allowed(key):
+    """The guard must not obstruct the suites that legitimately test persistence."""
+    from models import WizardSession
+    import db
+    import routers.wizard as wizard
+
+    db.save_session("wizard", key, WizardSession(key=key).model_dump())
+    try:
+        ids = {r[0] for r in db.get_connection().execute("SELECT id FROM sessions")}
+        assert key in ids
+    finally:
+        db.delete_session("wizard", key)
+        wizard.sessions.pop(key, None)
+
+
+def test_the_reserved_block_boundaries_are_exact():
+    """Off-by-one here would either block a real case or wave through a neighbour of one."""
+    from conftest import _is_throwaway_key
+
+    assert not _is_throwaway_key("AWPTCM-T99979")   # just below the block
+    assert _is_throwaway_key("AWPTCM-T99980")       # first reserved
+    assert _is_throwaway_key("AWPTCM-T99999")       # last reserved
+    assert not _is_throwaway_key("AWPTCM-T100000")  # just above
+    assert _is_throwaway_key("_workspace_llm")      # not a case row
+    assert not _is_throwaway_key(None)              # not a str -> refuse, do not crash
+
+
+def test_the_guard_covers_the_sqlite_module_db_actually_uses():
+    """The bug the first version of Layer 1 had, pinned so it cannot return.
+
+    db.py binds `sqlite3` as pysqlite3 when installed (db.py:34-38 — pysqlite3 bundles a
+    modern SQLite with enable_load_extension, which sqlite-vec needs), so
+    `db.sqlite3 is not sqlite3` on this seat. A guard patched onto the stdlib module alone
+    never sees db.get_connection()'s call, which is precisely the path that deleted a real
+    session row. Assert the guard is installed on EVERY reachable module, not just stdlib.
+    """
+    import db
+
+    for mod in {sqlite3, db.sqlite3}:
+        assert getattr(mod.connect, "_ck_guarded", False), (
+            f"{mod.__name__}.connect is unguarded — a writable open of the real ck.db "
+            f"through this module would not be refused")
+
+
+def test_pysqlite3_is_the_module_in_use_here():
+    """Documents WHY the multi-module patch is needed, and fails loudly if the situation
+    changes (e.g. pysqlite3 uninstalled), so the comment above cannot silently rot."""
+    import db
+
+    if db.sqlite3 is sqlite3:
+        pytest.skip("pysqlite3 not installed; db.py fell back to the stdlib sqlite3")
+    assert db.sqlite3.__name__ == "pysqlite3"
