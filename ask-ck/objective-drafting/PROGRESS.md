@@ -4,6 +4,94 @@
 
 **Last Updated**: 2026-07-28 (by Claude)
 
+## Latest session (2026-07-28f) — the wizard module split, all but one commit
+
+**Focus: `PLAN-backend-module-split.md` Part B. 7 commits, `591dbb9`→`e0886c0`.
+`routers/wizard.py` 2515 → 1971 lines, and `pytest_create.py` no longer imports anything
+from it. 424 → 559 pytest tests.**
+
+| commit | what |
+|---|---|
+| `591dbb9` | `refactor: extract wizard/descriptions.py` (plan commit 7) |
+| `1f3b7e4` | `test: the ck.db snapshot cache key could not see a WAL write` (out of plan) |
+| `104d3e6` | `refactor: extract llm_config.py + case_registry.py; drop pytest_create's wizard imports` (8) |
+| `e15c360` | `refactor: extract session_store.py + wizard/{gates,backfill}.py` (9) |
+| `77ab960` | `refactor: decompose export()` (11, taken before 10) |
+| `03a0aac` | `refactor: rename CK_server/wizard → generator; a lost session write now 500s` |
+| `e0886c0` | `test: E2E and smoke checks must not write the permanent ck.db` |
+
+**Only plan commit 10 remains** — the atomic `routers/wizard.py` → `routers/wizard/` move.
+Commit 6 stays dropped.
+
+### The coupling fix landed
+
+`pytest_create.py` opened with six **underscore-private** imports out of `routers/wizard.py`,
+so renaming any one of them silently broke a different tool. They now live in leaf modules
+both routers import: `CK_server/llm_config.py` and `CK_server/case_registry.py`. The plan's
+own acceptance check holds — `grep "from routers.wizard import"` returns `main.py` and tests
+only. `pytest_create._apply_workspace_llm` was a hand-copy of the wizard function whose
+docstring said "Mirrors wizard…"; proven byte-identical in body (differing ONLY in the
+annotation) and collapsed into one duck-typed `llm_config.apply_workspace_llm`.
+
+### "Mechanical" was verified, not asserted — and it mattered
+
+Every moved function was unparsed from HEAD, had the deliberate renames applied, and
+compared. All 20 identical, bar three where a `'wizard'` literal became a `KIND` constant
+(asserted mechanically, not eyeballed). For `export()` the check went further: HEAD's
+monolithic `wizard.py` was loaded as a second module and both `export()`s run over the same
+session with `REFINED_DIR` in tmp — artefacts byte-identical, whole response equal,
+`wrote_bundle=True`. Comparing through the live server first had given an identical **400**
+and proved nothing; equivalence on the error path is not equivalence.
+
+### Three false greens found, all in tests
+
+1. **A test that passed for the wrong reason.** Commit 8 moved `REFINED_DIR`'s reader to
+   `case_registry`; three tests patched `wizard.REFINED_DIR`. Two went red.
+   `test_backfill_noop_leaves_gate_closed` kept passing — its key has no bundle in the real
+   tree either, so "backfill did nothing" was true whether or not the redirect worked, while
+   it silently read the production `refined-cases/`.
+2. **A guard that matched its own advice** (5th occurrence in this repo). My new check for
+   `Connection.backup()` grepped the whole file, so mutating the call to
+   `pass  # src.backup(dst)` left it GREEN — the docstring and the commented-out call both
+   contain the string. Now reads code lines only via `tests/_prose.py`.
+3. **An end-to-end test that accepted the wrong status.** The lost-write 500 test did not
+   seed a session, so `confirm_step` 404'd long before reaching the persist; it accepted
+   404-or-500 and asserted nothing.
+
+### Two behaviour changes, on request
+
+- **A failed session write now returns 500, not 200.** `persist_session` logged ERROR and
+  carried on, so a confirm or export completed with the user's confirmed selections or
+  synthesized objective gone and nothing in the response saying so. `pytest_create._pt_persist`
+  had exactly that shape and was already fixed for that reason. Raises a DOMAIN error
+  (`SessionWriteError`) so `session_store` stays framework-free; `main.py` has one app-wide
+  handler.
+- **Case ids sort numerically.** `AWPTCM-T100` sorted before `AWPTCM-T9` — a string compare
+  on the id. Harmless only because every real key is `AWPTCM-T` + five digits.
+
+### Test traffic no longer writes ck.db — and the rule behind it
+
+Terrence: *"ck.db is designed to go dirty when users actually operate in it. When tests are
+run for smoke checks or E2E or whatever, that data is useless and shouldn't be propagated."*
+
+The pytest suite was already isolated. Two paths were not: **Playwright** (`webServer:
+'./run.sh --bg'` with `reuseExistingServer: true` — i.e. attach to whatever is on :8000,
+which is the real dev server) and **my own curl smoke checks**, which created a session row
+for `AWPTCM-T45102` and bumped two stamps. Those three rows were discarded by restoring
+ck.db from git; it is back to `sessions_rows 30185cd466774462` / 39 sessions. Both paths now
+use `tool/run_scratch_server.sh` (throwaway `backup()` copy, port 8123, own pid/log files),
+verified by driving the offending case load against it and confirming the real DB stayed
+signature-identical while the copy took the write. `/health` now reports `db.db_path` +
+`db.is_permanent_db`, since previously the only way to tell which database a server was on
+was to read its process environment.
+
+### State at close
+
+- **559 pytest + 85 Vitest**, both guards, ck.db signature check — all green. `ck.db` clean
+  at `sessions_rows 30185cd466774462`, 39 sessions.
+- Every commit gated before it landed, staged by explicit path, and pushed.
+- **Not done:** plan commit 10. Playwright not run (standing instruction).
+
 ## Latest session (2026-07-28d) — first real CLI session on hardware; it falsified a documented rule
 
 > **Note on this log:** `SESSION_STATE.md` already uses `2026-07-28c` for the Generator

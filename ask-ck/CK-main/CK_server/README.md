@@ -20,4 +20,14 @@ This file is intentionally minimal. Please refer to `SERVER-README.md` for:
 - Full directory layout
 - Links to the approved plan (`../../objective-drafting/PLAN-server-backed.md`)
 
-The server code lives in this directory (`CK_server/`). Filesystem anchors (data, refined-cases, process md) are defined in `paths.py` and point into `../../objective-drafting/`. Sibling tool routers (`routers/zephyr_tool.py`, `routers/test_composer.py`, `routers/pytest_create.py`) are stubs for the other Ask CK tools.
+The server code lives in this directory (`CK_server/`). Filesystem anchors (data, refined-cases, process md) are defined in `paths.py` and point into `../../objective-drafting/`.
+
+**Sibling tool routers:** `routers/pytest_create.py` is the **fully implemented** PyTest Creator (7-step flow, testbox execution, LLM fix loop) — it stopped being a stub long ago. `routers/zephyr_tool.py` and `routers/test_composer.py` *are* still stubs.
+
+**Shared modules (2026-07-28, `PLAN-backend-module-split.md` Part B)** — leaves that both routers import, so neither reaches into the other's internals:
+- `llm_config.py` — the workspace LLM login (active? same backend? apply to a session)
+- `case_registry.py` — which cases exist, which are Complete, which are hidden, how they group
+- `session_store.py` — the in-memory `sessions` dict and its `ck.db` row
+- `generator/` — the Generator's own logic with no FastAPI surface (`descriptions.py`, `gates.py`, `backfill.py`)
+
+None of these may import `routers.*`, and none may import fastapi; `tests/test_shared_modules_decoupling.py` enforces both.

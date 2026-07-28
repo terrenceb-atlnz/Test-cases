@@ -2273,3 +2273,182 @@ Worth internalising: a mutation that stays GREEN is the valuable result.
   explicit say-so).
 - **Next: commit 7**, `refactor: extract wizard/descriptions.py`. Read *What A1 taught* and
   the **A4+A5** section of the plan first — both record assumptions that measurement falsified.
+
+---
+
+## Session Close / Handoff (2026-07-28f) — Part B of the wizard split; 10 of 11 commits done
+
+Continues `2026-07-28e` (which finished Part A). This stream owns
+`ask-ck/ck-facelift/PLAN-backend-module-split.md`. Seven commits, `591dbb9`→`e0886c0`, all
+gated before landing, staged by explicit path, and pushed.
+
+### What shipped
+
+| commit | what |
+|---|---|
+| `591dbb9` | `refactor: extract wizard/descriptions.py` (plan commit 7) |
+| `1f3b7e4` | `test: the ck.db snapshot cache key could not see a WAL write` (out of plan) |
+| `104d3e6` | `refactor: extract llm_config.py + case_registry.py; drop pytest_create's wizard imports` (8) |
+| `e15c360` | `refactor: extract session_store.py + wizard/{gates,backfill}.py` (9) |
+| `77ab960` | `refactor: decompose export()` (11 — taken *before* 10, deliberately) |
+| `03a0aac` | `refactor: rename CK_server/wizard → generator; a lost session write now 500s` |
+| `e0886c0` | `test: E2E and smoke checks must not write the permanent ck.db` |
+
+`routers/wizard.py` **2515 → 1971 lines**. Tests **424 → 559** pytest (+85 Vitest unchanged).
+**Only plan commit 10 remains**: the atomic `routers/wizard.py` → `routers/wizard/` move.
+
+New modules at `CK_server/`: `llm_config.py`, `case_registry.py`, `session_store.py`, and the
+`generator/` package (`descriptions.py`, `gates.py`, `backfill.py`).
+
+### The point of Part B, achieved
+
+`pytest_create.py` opened with **six underscore-private imports out of `routers/wizard.py`** —
+a sibling router reaching into another router's internals, so renaming any one of them
+silently broke a different feature. Gone. `grep -rn "from routers.wizard import"` now returns
+`main.py` and tests only, which is the plan's own acceptance check.
+
+Also gone: `pytest_create._apply_workspace_llm`, a hand-maintained copy of the wizard function
+whose docstring literally said "Mirrors wizard…". Proven byte-identical in body (the ONLY
+difference was the parameter annotation, `WizardSession` vs `PtSession`) and collapsed into one
+duck-typed `llm_config.apply_workspace_llm`. That drift is not hypothetical — the two tools
+disagreeing about which LLM to talk to shipped once already, fixed 2026-07-20.
+
+Three duplicate definitions were retired in total. Two the plan predicted
+(`_ZREF_GENERIC_TOKENS`, byte-identical in `db.py` and `wizard.py`), one it did not:
+`_split_atp_title_description` also existed twice, and `db.py`'s copy was labelled "Verbatim
+from wizard.py". Both now live in `db` — the leaf, and `search_atp` calls one itself.
+
+### "Mechanical, no behaviour change" was verified every time
+
+A1's lesson (a supposedly-mechanical query builder shipped two real behaviour changes the
+295-test suite could not see) was taken literally. Every moved function was unparsed from
+HEAD, had the commit's deliberate renames applied, and compared: **20 of 20 identical**, bar
+three in `session_store` where a `'wizard'` literal became a `KIND` constant — asserted
+mechanically (`a.replace("'wizard'", "KIND") == b`), not eyeballed.
+
+`export()` got a stronger check, because it writes the artefact that marks a case Complete.
+HEAD's monolithic `wizard.py` was loaded as a **second module** (`exec` into a module object
+with `__file__` set so `BASE_DIR` still resolves) and both `export()`s run over the same
+session with `REFINED_DIR` pointed at tmp: `traceability.md` and `zephyr_payload.json`
+byte-identical, whole `ExportResponse` equal, `wrote_bundle=True`. The harness was deleted
+rather than committed (it pins HEAD) — **but it is the technique commit 10 should reuse.**
+
+That check earned its keep: comparing responses through the live server first returned an
+identical **400** for `AWPTCM-T33233` (Complete on disk, but its session already carries
+step4/step5 so backfill does not fire and the reviews are unconfirmed). Identical, and it
+never reached the write. **Equivalence on the error path is not equivalence.**
+
+### Three false greens, all in tests, all found by moving code
+
+1. **A test passing for the wrong reason.** `from paths import REFINED_DIR` binds per
+   importing module, so when commit 8 moved the reader to `case_registry`, three tests that
+   patched `wizard.REFINED_DIR` were affected. Two went red.
+   `test_backfill_noop_leaves_gate_closed` **kept passing** — its key has no bundle in the
+   real tree either, so "backfill did nothing" was true whether or not the redirect worked,
+   while it silently read the production `refined-cases/`. It now asserts the redirect is in
+   force before drawing a conclusion from a not-found.
+2. **A guard matching its own advice — 5th time in this repo.** My new check that the scratch
+   copy uses `Connection.backup()` grepped the whole file, so mutating the call to
+   `pass  # src.backup(dst)` left it GREEN: the docstring above it and the commented-out call
+   both contain `.backup(`. Now reads **code lines only** via `tests/_prose.py`, which exists
+   for precisely this.
+3. **An end-to-end test accepting the wrong status.** The lost-write 500 test did not seed a
+   session, so `confirm_step` 404'd ("Call load_case first") long before reaching the persist.
+   It accepted 404-or-500 and asserted nothing.
+
+A fourth, subtler one was designed out rather than found: renaming
+`_get_atp_candidates` → `get_atp_candidates` interacts badly with
+`test_event_loop_blocking_batch_b.py`, which matches an unwrapped blocking call by `ast.Name`.
+`from generator import descriptions` + `descriptions.get_atp_candidates(…)` would satisfy the
+invariant **without being covered by it** — suite green, handler silently unprotected. Three
+defences: routers import the names directly, `_BLOCKING` lists both spellings, and a new
+`test_blocking_helpers_are_imported_by_name` fails on any attribute-style call. Its `glob` was
+also widened to `rglob` ahead of commit 10, where a top-level glob would quietly stop matching
+the wizard handlers.
+
+### Moving code moves its logger
+
+`test_pydantic_v2_and_logging.py` asserted "no `print()` in wizard.py" and watched logger
+`"routers.wizard"`. Commit 9 moved the persist-failure ERROR that suite exists to pin into
+`session_store`, and two of its tests went red. `caplog` and every log filter select by logger
+NAME, so this is real, not cosmetic. Both checks are now parametrized over every module Part B
+extracted — grepping one file would have silently stopped covering the exact site.
+
+### Two deliberate deviations from the plan
+
+- **`session_store` is NOT generic over `kind='wizard'|'pt'`, and `pytest_create` is NOT
+  rewired to it.** `_pt_persist` raises where wizard's swallowed, and `_pt_get` reloads when
+  the DB is ahead so a stale process cannot clobber newer work — there is no wizard
+  equivalent of the latter. Merging them would be a behaviour change wearing a refactor's
+  clothes. The asymmetry is documented in the module.
+- **`_authoritative_session` stayed in the router.** It raises `HTTPException(404)`, so moving
+  it would drag fastapi into the leaf and cost the framework-free property that makes the rest
+  unit-testable. It is an HTTP gate, not storage.
+
+And one reordering: **commit 11 was done before commit 10.** The plan sequenced it last so it
+would not be attempted *during* the move; doing it first honours that and leaves commit 10
+relocating six short functions instead of one 351-line handler.
+
+### Two behaviour changes, decided by Terrence
+
+- **A lost session write now fails the request.** `persist_session` logged ERROR and returned,
+  so a confirm or export answered **200 with the user's work gone**. Raises `SessionWriteError`
+  — a DOMAIN error, so the module stays framework-free — and `main.py` registers one app-wide
+  handler that turns it into a 500 saying the work was not saved. Closes the asymmetry with
+  `_pt_persist`.
+- **Case ids sort numerically.** `build_case_groups` sorted on `k.split("-T")[-1]`, a string,
+  so `AWPTCM-T100` came before `AWPTCM-T9`. Invisible only because every real key is
+  `AWPTCM-T` + five digits. `_case_sort_key` separates numeric from non-numeric so
+  `pt-AWPTCM-Txxxx` and malformed rows still sort instead of raising `TypeError`.
+
+### ck.db: the rule, and the incident it came from
+
+Terrence, when I proposed committing a dirty ck.db: *"ck.db is designed to go dirty when users
+actually operate in it. When tests are run for smoke checks or E2E or whatever, that data is
+useless and shouldn't be propagated."*
+
+The in-process suite was already isolated (`ac760fd`/`7e80289`). **Two paths were not:**
+
+- **Playwright** — `webServer: './run.sh --bg'` on port 8000 with
+  `reuseExistingServer: true`. That means "attach to whatever already answers this URL", which
+  on a developer's seat is the real-database dev server, and E2E drives real case loads. The
+  scratch launcher would never even have run.
+- **My own curl smoke checks** verifying commits 7-9. They created a session row for
+  `AWPTCM-T45102` and bumped the stamps on `T33233`/`T33241`.
+
+Those three rows were **discarded**: server stopped, `ck.db-wal` + `ck.db-shm` removed *before*
+`git checkout -- ask-ck/var/ck.db` (a stale WAL must never replay onto a restored main file),
+then verified — back to `sessions_rows 30185cd466774462` / 39 sessions, the exact value recorded
+at the close of `2026-07-28e`.
+
+Both paths now go through **`tool/run_scratch_server.sh`**: `CK_DB_PATH` → a WAL-consistent
+`backup()` copy (`tool/ckdb_scratch.py`), `PORT` 8123 so it cannot be confused with the dev
+server, and `CK_RUN_TAG` so it keeps its own `.ck-server-scratch.{pid,log}` and `--stop` on one
+never stops the other. Verified by driving the exact offending case load against it: the real
+ck.db stayed byte- AND signature-identical while the copy took the write.
+`/health` now reports `db.db_path` + `db.is_permanent_db` — previously the only way to know
+which database a running server was on was to read its process environment, which is why this
+went unnoticed for so long.
+
+**A related trap, worth internalising:** I initially proposed committing the dirty ck.db, and
+when asked whether the WAL was needed, the honest answer is that **an un-checkpointed WAL holds
+the NEWEST commits, not stale leftovers** — deleting it loses data. It also explains why
+`git status` showed ck.db *clean* for an hour after the writes and *dirty* later with nothing
+new written: SQLite auto-checkpointed at 16:03 and folded the WAL into the main file. Same
+blind spot, seen from the other side, as the `md5sum` check that hid the `AWPTCM-T30649`
+deletion. `1f3b7e4` fixes the same flaw in `tests/conftest.py`, whose snapshot cache was keyed
+on the main file's `(size, mtime_ns)` alone and therefore served a **stale** copy after those
+writes — caught by `test_the_copy_reflects_the_current_real_db`, unaided, with a failure
+message that named the cause.
+
+### State at close
+
+- **559 pytest + 85 Vitest**, both invariant guards, and the ck.db signature check all green.
+- `ck.db` clean at `sessions_rows 30185cd466774462`, **39 sessions** — pristine.
+- Every commit mutation-checked. Roughly 30 mutations across the session; the ones that stayed
+  green were the valuable results (see the `.backup(` grep above).
+- **Playwright not run** — standing instruction, never without explicit say-so. Note its
+  config changed this session, so the first run will exercise the new scratch-server path.
+- **Next: plan commit 10.** See `PLAN-backend-module-split.md` → *Commit 10 — what it now
+  faces* for the six test files that read the router as text, and *Part B — as executed* for
+  what each finished extraction got wrong.

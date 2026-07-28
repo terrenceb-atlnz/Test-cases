@@ -110,8 +110,15 @@ ask-ck/
 │       ├── data.py                  ← Data loading (three DBs + indices)
 │       ├── llm.py                   ← Prompt templating + LLM call + parser
 │       ├── models.py                ← Pydantic models
+│       ├── llm_config.py            ← workspace LLM login: active? same backend? apply  (shared)
+│       ├── case_registry.py         ← which cases exist / are Complete / are hidden      (shared)
+│       ├── session_store.py         ← the `sessions` dict + its ck.db row                (shared)
+│       ├── generator/               ← the Generator's LOGIC, no FastAPI surface
+│       │   ├── descriptions.py      ← review-table text shaping + ATP retrieval
+│       │   ├── gates.py             ← the step state machine (can_synthesize, invalidation)
+│       │   └── backfill.py          ← rehydrate a session from its Complete on-disk bundle
 │       ├── routers/
-│       │   ├── wizard.py            ← Generator API (/api/wizard)
+│       │   ├── wizard.py            ← Generator API (/api/wizard) — endpoints only
 │       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
 │       │   └── pytest_create.py     ← PyTest Creator stub (/api/pytest-create)
@@ -775,8 +782,8 @@ outcome). Run on demand, e.g. pre-release.
 > `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 ```bash
-./tool/run_tests.sh        # THE GATE: guards + pytest (424) + Vitest (85), one command
-PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (424 tests, Python 3.13)
+./tool/run_tests.sh        # THE GATE: guards + pytest (559) + Vitest (85), one command
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (559 tests, Python 3.13)
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```

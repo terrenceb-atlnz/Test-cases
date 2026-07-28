@@ -1,15 +1,36 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28): commits 1-5 of 11 DONE.** A1 shipped as `4578030` (with the
-> pre-existing `pt_cases` blocker split into `0c06586`); A2, A3, A4 and A5 followed.
-> **Next: commit 7** — Part B begins (`refactor: extract wizard/descriptions.py`).
-> **Commit 6 (type step4/step5) was DROPPED** by user decision 2026-07-28; see its entry and
-> `SURVEY-step4-step5.md`. Read
-> *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
-> by measurement, and it changes how the consolidation commits (7-9) should be approached.
-> A2 added two more corrections of its own; see its section. **A4 corrected three wrong
-> items in its own plan entry — see the A4 section; verify dead-code claims by AST scan
-> before trusting any list in this document.**
+> **Status (2026-07-28f): 10 of 11 commits DONE. Only commit 10 remains** — the atomic
+> `routers/wizard.py` → `routers/wizard/` move. Everything else in Part A and Part B has
+> shipped and is pushed.
+>
+> | | commit | state |
+> |---|---|---|
+> | Part A | 1-5 | ✅ `4578030` (+`0c06586`), `9178659`, `91d86ef`, `77cb383`, `0b47926` |
+> | | 6 | 🚫 DROPPED (user decision) — `SURVEY-step4-step5.md` |
+> | Part B | 7 | ✅ `591dbb9` `refactor: extract wizard/descriptions.py` |
+> | | 8 | ✅ `104d3e6` `extract llm_config.py + case_registry.py` — **the coupling fix** |
+> | | 9 | ✅ `e15c360` `extract session_store.py + wizard/{gates,backfill}.py` |
+> | | **10** | ⬜ **NEXT** — split `routers/wizard.py` into `routers/wizard/` |
+> | | 11 | ✅ `77ab960` `decompose export()` — taken BEFORE 10, deliberately |
+>
+> **`wizard.py` is 2515 → 1971 lines** (2515 → 1907 by commit 9; commit 11 added back ~64
+> lines of named helpers + docstrings while removing the 351-line monolith).
+>
+> **Two things changed shape since this plan was written:**
+> - **`CK_server/wizard/` was renamed to `CK_server/generator/`** (`03a0aac`), because
+>   commit 10 makes `routers/wizard/` and two packages called `wizard` is unreadable. Every
+>   reference to `wizard/descriptions.py`, `wizard/gates.py`, `wizard/backfill.py` in the
+>   tables below means `generator/…` now.
+> - **Commit 11 was done before commit 10.** The plan sequenced it last so it would not be
+>   attempted *during* the move; doing it first honours that and makes the move easier —
+>   commit 10 now relocates six short functions instead of one 351-line handler.
+>
+> Read *What A1 taught* below before continuing — one of this plan's core assumptions was
+> falsified by measurement. A2 added two more corrections of its own; see its section.
+> **A4 corrected three wrong items in its own plan entry — see the A4 section; verify
+> dead-code claims by AST scan before trusting any list in this document.** Commits 7-9 and
+> 11 each added their own corrections; see *Part B — as executed*.
 >
 > **Original status line, kept for context:** PLANNED, nothing implemented. Written 2026-07-28 from a full read of all
 > 2439 lines; revised the same day after the "all data steps must load identically"
@@ -499,6 +520,11 @@ without a manual scan. Opt out per-helper with `# keep: <reason>` on the line ab
 
 ## Part B — the module split
 
+> ⚠ **Names in the tables below are as-planned, not as-shipped.** `CK_server/wizard/…`
+> became **`CK_server/generator/…`** in `03a0aac`, and every extracted helper lost its
+> underscore (a name another module imports is not private). The tables are kept as the
+> record of what was planned; see *Part B — as executed* for what actually landed.
+
 Extract in dependency order, **leaves first**. The first three modules land at package
 root (`CK_server/`), *not* in `routers/` — that is what actually fixes the
 `pytest_create → wizard` coupling.
@@ -717,15 +743,115 @@ doing all the commits suggested in A and B. Improving this code flow is importan
    read of on-disk JSON, so it is the place to look first if a malformed bundle ever appears.
 
 **Part B (leaves first — each is import-only motion, no logic change):**
-7. `refactor: extract wizard/descriptions.py` (pure; add unit tests in the same commit).
-   Now the first extraction — A1 deleted what used to be commit 5's `scoring.py`.
-8. `refactor: extract llm_config.py + case_registry.py; drop pytest_create's wizard imports`
-   — the coupling fix, and the highest-value commit in Part B. Verify with
+7. ✅ `591dbb9` `refactor: extract wizard/descriptions.py` (pure; add unit tests in the same
+   commit). Now the first extraction — A1 deleted what used to be commit 5's `scoring.py`.
+8. ✅ `104d3e6` `refactor: extract llm_config.py + case_registry.py; drop pytest_create's
+   wizard imports` — the coupling fix, and the highest-value commit in Part B. Verify with
    `grep -rn "from routers.wizard import" --include=*.py .` → only `main.py` and tests.
-9. `refactor: extract session_store.py + wizard/{gates,backfill}.py`.
-10. `refactor: split routers/wizard.py into routers/wizard/` — the atomic move. Must also fix
-    the 5 hardcoded `wizard.py` path reads, incl. `glob`→`rglob` (see Risks).
-11. `refactor: decompose export()` — the 350-line handler, after 10 is proven.
+   **Holds as of 2026-07-28f.**
+9. ✅ `e15c360` `refactor: extract session_store.py + wizard/{gates,backfill}.py`.
+10. ⬜ **NEXT.** `refactor: split routers/wizard.py into routers/wizard/` — the atomic move.
+    Must also fix the hardcoded `wizard.py` path reads (see *Commit 10 — what it now faces*).
+11. ✅ `77ab960` `refactor: decompose export()` — done BEFORE 10, not after; see the status
+    header. Six named steps + a 115-line orchestrator, verified byte-identical to HEAD
+    through the write path.
+
+### Part B — as executed (corrections the commits themselves produced)
+
+Each extraction found something the plan did not anticipate. Recorded here because the
+pattern is the point: *the tests that broke were more informative than the ones that passed.*
+
+- **Two duplicate definitions were retired into `db`, not carried into the new module**
+  (commit 7). `_ZREF_GENERIC_TOKENS` was byte-identical in `db.py` and `wizard.py` — as the
+  plan predicted — but `_split_atp_title_description` ALSO existed twice, which the plan did
+  not mention; `db.py`'s copy was labelled "Verbatim from wizard.py" and was proven
+  structurally identical. Both now live in `db` (the leaf, and `search_atp` calls one of
+  them itself), as `db.GENERIC_TOKENS` / `db.split_atp_title_description`.
+- **Public names, not underscore-private ones.** The plan says this only for `llm_config`;
+  it applies everywhere. A name another module imports is not private, and cross-module
+  imports of underscore-privates are the defect Part B exists to remove.
+- **That rename has a trap, and it is the sharpest thing in commit 7.**
+  `tests/test_event_loop_blocking_batch_b.py` matches an unwrapped blocking call by
+  `ast.Name`, so `from generator import descriptions` + `descriptions.get_atp_candidates(…)`
+  would satisfy the invariant **without being covered by it** — the suite stays green while a
+  handler silently loses its threadpool guarantee. Three defences now: routers import the
+  names directly, `_BLOCKING` lists old and new spellings, and
+  `test_blocking_helpers_are_imported_by_name` fails on any attribute-style call.
+- **Module-level constants are bound per importing module** (commit 8). Three tests in
+  `test_export_authority_batch_a.py` patched `wizard.REFINED_DIR` while the reader had moved
+  to `case_registry`. Two went red; the third **kept passing for the wrong reason** — its key
+  has no bundle in the real tree either, so "backfill did nothing" was true whether or not
+  the redirect worked, while it silently read the production `refined-cases/`. One
+  `_redirect_refined_dir` helper now patches every binding, and that test asserts the
+  redirect is in force before drawing a conclusion from a not-found.
+- **`session_store` is NOT generic over `kind='wizard'|'pt'`, and `pytest_create` is NOT
+  rewired to it** (commit 9) — a deliberate deviation. `_pt_persist` RAISES on a failed
+  write; `_pt_get` reloads when the DB is ahead so a stale process cannot clobber newer
+  work. There is no wizard equivalent of the latter. Merging them would be a behaviour
+  change wearing a refactor's clothes.
+  *(The persist asymmetry WAS then closed on purpose, as its own decision — see below.)*
+- **`_authoritative_session` stayed in the router** (commit 9). It raises
+  `HTTPException(404)`, so moving it would drag fastapi into the leaf and cost the
+  framework-free property that makes the rest unit-testable. It is an HTTP gate, not storage.
+- **Moving code moved its logger, and that broke two tests usefully** (commit 9).
+  `test_pydantic_v2_and_logging.py` asserted "no `print()` in wizard.py" and watched logger
+  `"routers.wizard"`; the persist-failure ERROR it exists to pin now comes from
+  `"session_store"`. Both checks are parametrized over every extracted module now — grepping
+  one file would have silently stopped covering the exact site the suite was written for.
+- **A source-grep test went red and became stronger** (commit 11).
+  `test_complete_marker_is_written_last` split on `files_written = [`, a variable the
+  decomposition renamed away. Replaced by a behavioural test that drives the real
+  `_write_bundle` with a failing second commit (induced with no patching — `os.replace` onto
+  a non-empty directory raises) and requires that `zephyr_payload.json` never landed, plus an
+  AST check that the one call site passes the marker last.
+- **Equivalence on the error path is not equivalence** (commit 11). Comparing export
+  responses through the live server gave an identical 400 for `AWPTCM-T33233` — Complete on
+  disk, but its session already carries step4/step5 so backfill does not fire and the reviews
+  are unconfirmed. Identical, and it never reached the write. The real check loaded HEAD's
+  `wizard.py` as a second module (`exec` into a module object with `__file__` set so
+  `BASE_DIR` resolves) and compared both `export()`s over the same session with `REFINED_DIR`
+  in tmp: artefacts byte-identical, whole `ExportResponse` equal, `wrote_bundle=True`.
+  **That harness is the technique to reuse for commit 10** — it was deleted rather than
+  committed because it pins HEAD.
+
+### Two decisions taken after commit 11 (2026-07-28f, user)
+
+- **A lost session write now fails the request.** `session_store.persist_session` logged
+  ERROR and returned, so a confirm or export answered **200 with the user's work gone**.
+  It now raises `SessionWriteError` — a DOMAIN error, so the module stays framework-free —
+  and `main.py` has one app-wide handler turning it into a 500. This closes the asymmetry
+  with `_pt_persist` noted in commit 9.
+- **Case ids sort numerically.** `build_case_groups` sorted on `k.split("-T")[-1]`, a string,
+  so `AWPTCM-T100` came before `AWPTCM-T9`. Invisible while every real key is `AWPTCM-T` +
+  five digits. `_case_sort_key` separates numeric from non-numeric so `pt-AWPTCM-Txxxx` and
+  malformed rows still sort instead of raising `TypeError`.
+
+### Commit 10 — what it now faces
+
+Smaller than the plan assumed (11 is done, so `export()` is already six short functions),
+but the *test* surface grew, because commits 7-9 added files that read the router as text.
+
+**Every hardcoded `routers/wizard.py` path read must be handled in the same commit:**
+
+| file | what it does |
+|---|---|
+| `test_event_loop_blocking_batch_b.py` | `_ROUTERS.rglob("*.py")` — **already widened in commit 7**, so the parametrized sweep survives the move. But `test_export_gaps_call_is_wrapped`, `test_search_endpoints_are_wrapped` and `test_blocking_helpers_are_imported_by_name` read `(_ROUTERS / "wizard.py")` |
+| `test_pydantic_v2_and_logging.py` | `_WIZARD = _SERVER / "routers" / "wizard.py"` — feeds `_HEDGE_FILES`, `_LOGGING_FILES`, the deleted-helper sweep and the unreferenced-private sweep |
+| `test_export_authority_batch_a.py` | two reads, incl. the `_write_bundle` AST call-site check |
+| `test_security_hardening_batch_e.py` | one read |
+| `test_shared_modules_decoupling.py` | `routers/wizard.py` in the private-import and single-definition checks |
+| `test_generator_descriptions.py` | `"routers/wizard.py"` in `_module_defines` |
+
+The right move is **one shared helper** that returns the wizard router's source (all files
+concatenated when it is a package), rather than six independent fixes — otherwise the next
+move breaks them all again. A `FileNotFoundError` is loud and fine; a `glob` that quietly
+stops matching is not.
+
+Test imports to keep working (via `routers/wizard/__init__.py` re-exports or updated
+imports): `sessions` and `_parse_selections`, `confirm_step`, `push_to_zephyr`,
+`_authoritative_session`, plus `import routers.wizard as wizard` in five files.
+`sessions` must stay the same dict object `session_store` holds — a test already asserts
+`wizard.sessions is session_store.sessions`.
 
 ## Risks
 
@@ -844,8 +970,8 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 7-11 remain** (6 was dropped). Next is **commit 7**, the first Part B extraction.
-Read *What A1 taught*
+**Superseded 2026-07-28f — see the status header.** Commits 7, 8, 9 and 11 have shipped;
+only **commit 10** remains. What follows was written when 7 was next; read *What A1 taught*
 first — one of this plan's stated expectations was falsified by measurement, and it changes
 how the consolidation commits (7-9 especially) should be approached. Then read the **A4+A5**
 section: three of its own planned items turned out to be wrong, so treat every line ref and
@@ -890,9 +1016,15 @@ capture top-8 per case, diff, and separately check hand-picked known-good refs l
 Tie-concentration alone was a misleading metric (keyword mode scored *better* on ties than
 hybrid while ranking the flagship case's best ref out of the results entirely).
 
-**Next session starts here:** run the pre-flight ritual above, then **commit 2 / A2** — the
-smallest commit in the plan (`get_data()` → `request.app.state.app_data`, ~4 lines across 10
-`Depends` sites; its one risk is already cleared, see *Critical files* → `conftest.py`).
+**Next session starts here (2026-07-28f):** run the pre-flight ritual above, then
+**commit 10** — the atomic `routers/wizard.py` → `routers/wizard/` move. Read
+*Commit 10 — what it now faces* for the six test files that read the router as text, and
+*Part B — as executed* for what each of the finished extractions got wrong. Reuse commit
+11's HEAD-vs-new equivalence harness (described there) to prove the move byte-for-byte
+rather than trusting a green suite.
+
+~~**Next session starts here:** run the pre-flight ritual above, then **commit 2 / A2**~~ —
+done, `9178659`.
 
 Two loose ends carried forward, neither blocking:
 - **No `.venv310-backup`.** The 3.13 cutover (`032f521`) kept no rollback venv, so a revert
