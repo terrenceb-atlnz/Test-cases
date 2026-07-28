@@ -38,6 +38,28 @@ from routers.wizard import (
 _THROWAWAY_KEY = "AWPTCM-T99991"
 
 
+def _redirect_refined_dir(monkeypatch, tmp_path):
+    """Point EVERY reader of refined-cases/ at tmp_path, not just wizard's.
+
+    `from paths import REFINED_DIR` binds the value into each importing module, so
+    patching one module redirects only that module's reads. Since
+    PLAN-backend-module-split.md commit 8 there are two readers: `case_registry` owns the
+    Complete/backfill lookups (refined_payload_path, refined_complete_keys) and
+    `routers.wizard` still owns the export WRITE path. Patching wizard alone left backfill
+    reading the REAL tree — two of these tests went red, and a third
+    (test_backfill_noop_leaves_gate_closed) kept passing for the wrong reason: its key
+    genuinely has no bundle on disk, so "no backfill" was true either way.
+
+    Anything added here must be patched wherever the name is BOUND, which is why this is
+    one helper rather than a monkeypatch line per test.
+    """
+    import case_registry
+    import routers.wizard as wiz
+
+    monkeypatch.setattr(wiz, "REFINED_DIR", tmp_path)
+    monkeypatch.setattr(case_registry, "REFINED_DIR", tmp_path)
+
+
 def _sess(key=_THROWAWAY_KEY, confirmed=False):
     s = WizardSession(key=key)
     if confirmed:
@@ -202,8 +224,6 @@ def test_backfill_marks_reviews_confirmed(tmp_path, monkeypatch):
     A Complete on-disk bundle means the reviews WERE done; that history just isn't in
     the runtime session. Without this, the new gate 400s every legacy re-export.
     """
-    import routers.wizard as wiz
-
     key = "AWPTCM-T99992"
     payload_dir = tmp_path / "Group" / key
     payload_dir.mkdir(parents=True)
@@ -213,7 +233,7 @@ def test_backfill_marks_reviews_confirmed(tmp_path, monkeypatch):
             "testScript": {"type": "steps", "steps": [{"description": "x", "expectedResult": "y"}]},
         }
     }), encoding="utf-8")
-    monkeypatch.setattr(wiz, "REFINED_DIR", tmp_path)
+    _redirect_refined_dir(monkeypatch, tmp_path)
 
     sess = WizardSession(key=key)
     assert not _can_synthesize(sess)          # precondition: gate would block
@@ -231,13 +251,11 @@ def test_unreadable_bundle_reports_the_real_cause(client, tmp_path, monkeypatch)
     can't restore its reviews. Telling the user to "confirm all three databases" would
     be both wrong and unactionable — the message must name the unreadable file.
     """
-    import routers.wizard as wiz
-
     key = "AWPTCM-T99994"
     payload_dir = tmp_path / "Group" / key
     payload_dir.mkdir(parents=True)
     (payload_dir / "zephyr_payload.json").write_text("{ not valid json ", encoding="utf-8")
-    monkeypatch.setattr(wiz, "REFINED_DIR", tmp_path)
+    _redirect_refined_dir(monkeypatch, tmp_path)
 
     _purge(key)
     sessions[key] = WizardSession(key=key)
@@ -253,8 +271,15 @@ def test_unreadable_bundle_reports_the_real_cause(client, tmp_path, monkeypatch)
 
 def test_backfill_noop_leaves_gate_closed(tmp_path, monkeypatch):
     """No on-disk bundle → no synthetic confirms. The gate must stay shut."""
-    import routers.wizard as wiz
-    monkeypatch.setattr(wiz, "REFINED_DIR", tmp_path)
+    import case_registry
+
+    _redirect_refined_dir(monkeypatch, tmp_path)
+    # Prove the redirect is actually in force before drawing a conclusion from "not
+    # found". T99993 has no bundle in the REAL tree either, so without this the test
+    # passes whether or not case_registry was redirected — it would report "backfill
+    # correctly did nothing" while reading the production refined-cases/ directory.
+    assert case_registry.refined_complete_keys() == set(), (
+        "refined-cases was not redirected to tmp_path; this test would pass vacuously")
 
     sess = WizardSession(key="AWPTCM-T99993")
     assert _backfill_from_refined(sess) is False

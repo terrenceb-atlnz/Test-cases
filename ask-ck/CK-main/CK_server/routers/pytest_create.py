@@ -21,7 +21,7 @@ import py_compile
 import re
 import tempfile
 
-from models import PtSession, LLMConfig, safe_session_dict, model_to_dict
+from models import PtSession, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
 from llm import run_prompt, extract_json_block
@@ -30,10 +30,12 @@ from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
     check_profile, parse_framework_log, failure_excerpts, run_manager,
 )
-from routers.wizard import (
-    _load_global_llm, _llm_is_active, _same_backend,
-    _refined_complete_keys, _build_case_groups, _is_hidden_case,
-)
+# Shared with the Generator. These were six underscore-PRIVATE imports out of
+# routers/wizard.py until PLAN-backend-module-split.md commit 8 — a sibling router
+# reaching into another router's internals, so renaming any one of them silently broke
+# a different tool. They now live in leaf modules that both routers import.
+from case_registry import build_case_groups, is_hidden_case, refined_complete_keys
+from llm_config import apply_workspace_llm
 
 router = APIRouter(tags=["pytest-creator"])
 
@@ -287,26 +289,6 @@ def _pt_get(key: str) -> PtSession:
     return sess
 
 
-def _apply_workspace_llm(sess: PtSession) -> bool:
-    """Re-sync this PyTest session's LLM config to the active workspace default.
-
-    Mirrors wizard._apply_workspace_llm_if_needed (see its docstring for the full
-    rationale): the active workspace default is the single source of truth, so we
-    re-sync whenever the session has no active config OR its config diverges from
-    the workspace default's backend — not only when it is inactive. This fixes the
-    bug (§7.3) where a stale headless-CLI config (`_llm_is_active` reports it active
-    unconditionally) could never re-sync and kept hitting the wrong backend."""
-    global_cfg = _load_global_llm()
-    if not global_cfg:
-        return False
-    cur = getattr(sess, "llm_config", None)
-    if _llm_is_active(cur) and _same_backend(cur, global_cfg):
-        return False
-    raw = model_to_dict(global_cfg)
-    sess.llm_config = LLMConfig(**raw)
-    return True
-
-
 def _llm_cfg(sess: PtSession) -> dict:
     # Apply the workspace LLM login at dispatch time if this session has no
     # active config of its own. Without this, an LLM endpoint would fall back to
@@ -315,8 +297,8 @@ def _llm_cfg(sess: PtSession) -> dict:
     # prompt to the wrong LLM. load_case applies it once, but a stale/inactive
     # persisted config (or a session touched before the workspace login) would
     # otherwise slip through. Centralized here so no endpoint can forget it,
-    # mirroring the wizard's per-call _apply_workspace_llm_if_needed.
-    if _apply_workspace_llm(sess):
+    # via the shared llm_config.apply_workspace_llm the Generator also calls.
+    if apply_workspace_llm(sess):
         _pt_persist(sess)
     return model_to_dict(sess.llm_config)
 
@@ -631,7 +613,7 @@ def _html_to_text(s: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Refined-case resolution (wizard._refined_complete_keys pattern, plus group)
+# Refined-case resolution (case_registry.refined_complete_keys pattern, plus group)
 # ---------------------------------------------------------------------------
 
 def _find_refined_case(key: str) -> Tuple[str, dict, str]:
@@ -1939,7 +1921,7 @@ def _pt_cases_index() -> Tuple[set, Dict[str, dict]]:
     except Exception as e:
         print(f"Warning: reading pt session progress failed: {e}")
         pt_prog = {}
-    return _refined_complete_keys(), pt_prog
+    return refined_complete_keys(), pt_prog
 
 
 @router.get("/pt_cases")
@@ -1956,9 +1938,9 @@ async def pt_cases(request: Request):
     cands = data.get("candidates", []) or []
     all_keys = [c["key"] for c in cands
                 if c.get("candidates") and c.get("key")
-                and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
+                and not is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
-    # Off the event loop: _refined_complete_keys rglob's the whole refined-cases tree
+    # Off the event loop: refined_complete_keys rglob's the whole refined-cases tree
     # and list_pt_progress hits ck.db. Both were bare here — the same blocking-work-in-
     # an-async-handler bug batch B fixed for the LLM/search sites, missed because the
     # invariant's _BLOCKING list only covered LLM round-trips and embedding entry
@@ -1992,11 +1974,11 @@ async def pt_cases(request: Request):
             hint = f" [{conf}/7 steps]" if conf else ""
             partial_cases.append({"key": k, "title": f"{title}{hint}" if title else f"{k}{hint}"})
         open_grouped.append({"label": f"In progress ({len(partial_cases)})", "cases": partial_cases})
-    open_grouped.extend(_build_case_groups(not_started_keys, zephyr))
+    open_grouped.extend(build_case_groups(not_started_keys, zephyr))
 
     return {
         "in_progress": {"grouped": open_grouped},
-        "complete": {"grouped": _build_case_groups(done_keys, zephyr)},
+        "complete": {"grouped": build_case_groups(done_keys, zephyr)},
         "counts": {"in_progress": len(open_keys), "complete": len(done_keys),
                    "partials": len(partial_keys)},
     }
@@ -2010,7 +1992,7 @@ async def load_case(key: str, request: Request):
         group, payload, trace = _find_refined_case(key)
         sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
     _sweep_stale_runs(sess)
-    changed = _apply_workspace_llm(sess)
+    changed = apply_workspace_llm(sess)
     pt_sessions[key] = sess
     _pt_persist(sess)
     fields = _case_payload_fields(sess)

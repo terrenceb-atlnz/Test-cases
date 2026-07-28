@@ -51,6 +51,22 @@ from local_llm_key import get_local_llm_key, set_local_llm_key
 from jinja2 import Environment, FileSystemLoader
 from paths import REFINED_DIR, ASKCK_ROOT
 from timeutil import utc_now
+from case_registry import (
+    CASE_KEY_RE,
+    build_case_groups,
+    get_refined_group,
+    is_hidden_case,
+    refined_complete_keys,
+    refined_payload_path,
+    session_progress_map,
+)
+from llm_config import (
+    apply_workspace_llm,
+    llm_is_active,
+    load_global_llm,
+    preview_from,
+    save_global_llm,
+)
 # Import the NAMES, not the module. The AST invariant in
 # tests/test_event_loop_blocking_batch_b.py matches an unwrapped blocking call by
 # `ast.Name`, so calling these as `descriptions.get_atp_candidates(...)` would pass
@@ -71,41 +87,6 @@ log = logging.getLogger(__name__)
 # In-memory sessions (replace with DB later). File persistence added for restart survival.
 sessions: Dict[str, WizardSession] = {}
 
-# Case keys are AWPTCM-Txxxx. Validate before interpolating a key into a filesystem path
-# or a subprocess argument. Declared here, at the top, because it guards handlers defined
-# hundreds of lines above where it used to sit (module-level names all bind before any
-# request is served, so the old placement worked — it just read as a forward reference).
-_CASE_KEY_RE = re.compile(r"^AWPTCM-T\d+$")
-
-# Cases hidden from the Generator (and PyTest Creator) case lists — out of scope for
-# this tool. This is a DISPLAY filter only: the data stays untouched in ck.db (the
-# permanent source of truth), it just isn't offered for review. Remove an entry here
-# to surface a case/folder again.
-#   T44453  — "ART Limits Test"  (New Platform Template/ART Limits Test)
-#   T41263-6 — 1335_pbr / 1336_acl / 1344_qos / 5000_mdi_mdix (ART Testsuites folder)
-HIDDEN_CASE_KEYS = frozenset({
-    "AWPTCM-T44453",
-    "AWPTCM-T41263", "AWPTCM-T41264", "AWPTCM-T41265", "AWPTCM-T41266",
-})
-
-# Whole categories (Zephyr folders) hidden from the case lists — out of scope. Matched
-# by exact folder path, so every case in the folder is hidden regardless of its (non-
-# contiguous) test-id, and any future case added to the folder is hidden too.
-#   Bootloader (17) + GRUB Bootloader (8) = 25 cases
-HIDDEN_CASE_FOLDERS = frozenset({
-    "/New Platform Test (MASTER)/Bootloader",
-    "/New Platform Test (MASTER)/GRUB Bootloader",
-})
-
-
-def _is_hidden_case(key: str, folder: str = "") -> bool:
-    """A case is hidden from the lists if its key is explicitly hidden OR it lives in a
-    hidden folder. Display-only; ck.db is untouched."""
-    if key in HIDDEN_CASE_KEYS:
-        return True
-    f = (folder or "").rstrip("/")
-    return f in HIDDEN_CASE_FOLDERS
-
 # wizard.py lives in routers/ so go up one more level to the CK_server package root.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # NOTE: sessions (per-case + the '_workspace_llm' workspace default) live in ck.db
@@ -115,89 +96,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Output templates for repeatable exports (traceability.md etc.)
 OUTPUTS_DIR = BASE_DIR / "templates" / "outputs"
 OUTPUTS_ENV = Environment(loader=FileSystemLoader(str(OUTPUTS_DIR)))
-
-
-def _llm_is_active(cfg: Optional[LLMConfig]) -> bool:
-    """True when the config can actually drive synthesis (CLI mode or stored key)."""
-    if not cfg:
-        return False
-    am = (getattr(cfg, "auth_method", None) or "").lower()
-    if am in ("claude_code", "claude_agent", "grok_cli"):
-        return True
-    if am == "local_llm":
-        # Key lives server-side (secrets.local.json / env), never on the config.
-        return bool(get_local_llm_key())
-    if getattr(cfg, "api_key", None) or getattr(cfg, "token", None):
-        return True
-    return False
-
-
-def _same_backend(a: Optional[LLMConfig], b: Optional[LLMConfig]) -> bool:
-    """True when two configs would hit the SAME LLM backend — compares the
-    dispatch-selecting fields (auth_method / provider / model) only, ignoring
-    credentials. Used to decide whether a case session's config still matches the
-    workspace default or is a stale leftover from a previous default."""
-    if not a or not b:
-        return False
-    f = lambda c, k: (getattr(c, k, None) or "").lower()
-    return all(f(a, k) == f(b, k) for k in ("auth_method", "provider", "model"))
-
-
-def _load_global_llm() -> Optional[LLMConfig]:
-    """Load last-applied workspace LLM config (shared across all cases). Commit C:
-    from the sessions table (id='_workspace_llm')."""
-    try:
-        raw = db.load_workspace_llm()
-        if not raw:
-            return None
-        cfg = LLMConfig(**raw)
-        return cfg if _llm_is_active(cfg) else None
-    except Exception as e:
-        log.warning("failed to load workspace LLM config: %s", e)
-        return None
-
-
-def _save_global_llm(cfg: LLMConfig) -> None:
-    """Persist workspace LLM preference when the user applies a login/config."""
-    if not cfg or not _llm_is_active(cfg):
-        return
-    try:
-        data = model_to_dict(cfg)
-        db.save_workspace_llm(data)
-    except Exception as e:
-        log.warning("failed to save workspace LLM config: %s", e)
-
-
-def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
-    """Re-sync this case session's LLM config to the active workspace default.
-
-    Returns True if the session was updated (caller should persist).
-
-    The active workspace default is the single source of truth: `set_llm_config`
-    always writes a case's config === the workspace default (there is no code path
-    that gives a case a config that legitimately differs), so any divergence is a
-    STALE leftover from a previous default, not an intentional per-case override.
-    We therefore re-sync whenever the case has no active config OR its config no
-    longer matches the workspace default's backend. This fixes the bug where a
-    session whose stale config was a headless CLI mode (claude_agent/claude_code/
-    grok_cli — which `_llm_is_active` reports active unconditionally, since there
-    is no server-side key to check) could NEVER re-sync and kept silently hitting
-    the wrong backend. `_llm_is_active` is intentionally left unchanged (it is also
-    used for status/`has_key` reporting, where headless=active is correct).
-
-    When there is no active workspace default we leave the session untouched, so
-    "the workspace login persists across cases" still holds.
-    """
-    global_cfg = _load_global_llm()
-    if not global_cfg:
-        return False
-    cur = getattr(sess, "llm_config", None)
-    if _llm_is_active(cur) and _same_backend(cur, global_cfg):
-        return False
-    # Fresh copy so case sessions do not share the same object instance
-    raw = model_to_dict(global_cfg)
-    sess.llm_config = LLMConfig(**raw)
-    return True
 
 
 def _persist_session(sess: WizardSession) -> None:
@@ -324,19 +222,6 @@ def _migrate_legacy_step4_to_step5(sess: WizardSession) -> bool:
     return False
 
 
-def _refined_payload_path(key: str) -> Optional[Path]:
-    """Path to the on-disk drop-in zephyr_payload.json for a case, if it exists."""
-    if not key or not REFINED_DIR.exists():
-        return None
-    for p in REFINED_DIR.glob(f"*/{key}/zephyr_payload.json"):
-        return p
-    # Fallback for any deeper nesting of the group dir.
-    for p in REFINED_DIR.rglob("zephyr_payload.json"):
-        if p.parent.name == key:
-            return p
-    return None
-
-
 def _backfill_from_refined(sess: WizardSession) -> bool:
     """Restore step4.objective + step5.testScript from the completed on-disk payload
     when the persisted runtime session is missing them.
@@ -357,7 +242,7 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
     if has_obj and has_steps:
         return False  # session already carries the synthesis — nothing to do
 
-    path = _refined_payload_path(sess.key)
+    path = refined_payload_path(sess.key)
     if not path:
         return False
     try:
@@ -475,7 +360,7 @@ async def load_case(key: str, data=Depends(get_data)):
 
     # Carry over workspace LLM preference (last Apply / Login) so switching cases
     # does not reset provider / CLI mode back to empty defaults.
-    if _apply_workspace_llm_if_needed(sess):
+    if apply_workspace_llm(sess):
         _mark_updated(sess)
 
     _persist_session(sess)
@@ -630,59 +515,13 @@ async def step_candidates(key: str, step: int, data=Depends(get_data)):
     return {"key": key, "step": step, "kind": kind, "candidates": candidates}
 
 
-def _refined_complete_keys() -> set:
-    """Cases with drop-in refined-cases/**/AWPTCM-Txxxx/zephyr_payload.json are 'complete'."""
-    refined_root = REFINED_DIR
-    done = set()
-    if not refined_root.exists():
-        return done
-    try:
-        for path in refined_root.rglob("zephyr_payload.json"):
-            parent = path.parent.name
-            if parent.startswith("AWPTCM-"):
-                done.add(parent)
-    except Exception as e:
-        log.warning("scanning refined-cases failed: %s", e)
-    return done
-
-
-def _session_progress_map() -> Dict[str, dict]:
-    """Per-case wizard progress (confirms + step4/5). Commit C: sourced from the
-    sessions table via db.list_session_progress() (identical derivation)."""
-    try:
-        return db.list_session_progress()
-    except Exception as e:
-        log.warning("reading session progress failed: %s", e)
-        return {}
-
-
 def _cases_index() -> Tuple[set, Dict[str, dict]]:
     """(complete_keys, per-case progress) — the two blocking reads /cases needs.
 
     Paired in one helper so the handler makes a single threadpool hop, and named so
     the event-loop AST invariant can see what is being dispatched.
     """
-    return _refined_complete_keys(), _session_progress_map()
-
-
-def _build_case_groups(keys, zephyr: dict) -> List[dict]:
-    """Group case keys by Zephyr folder leaf for optgroups."""
-    groups: Dict[str, List[str]] = {}
-    for key in keys:
-        folder = zephyr.get(key, {}).get("folder", "") or ""
-        group = folder.rstrip("/").split("/")[-1] if folder else "Other"
-        groups.setdefault(group, []).append(key)
-    for g in groups:
-        groups[g].sort(key=lambda k: (k.split("-T")[-1] if "-T" in k else k))
-    grouped = []
-    for g in sorted(groups.keys()):
-        case_list = groups[g]
-        enriched = []
-        for k in case_list:
-            title = zephyr.get(k, {}).get("title", k)
-            enriched.append({"key": k, "title": title})
-        grouped.append({"label": f"{g} ({len(case_list)})", "cases": enriched})
-    return grouped
+    return refined_complete_keys(), session_progress_map()
 
 
 @router.get("/cases")
@@ -698,10 +537,10 @@ async def get_cases(data=Depends(get_data)):
     zephyr = data.get("zephyr_master", {})
     all_keys = [c["key"] for c in cands
                 if c.get("candidates") and c.get("key")
-                and not _is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
+                and not is_hidden_case(c["key"], zephyr.get(c["key"], {}).get("folder", ""))]
 
-    # Off the event loop: _refined_complete_keys rglob's the whole refined-cases tree
-    # (measured ~14ms) and _session_progress_map hits ck.db. Small next to the Step-2
+    # Off the event loop: refined_complete_keys rglob's the whole refined-cases tree
+    # (measured ~14ms) and session_progress_map hits ck.db. Small next to the Step-2
     # scan this commit removed, but the same class of bug — blocking I/O in an async
     # handler — so it gets the same treatment. Dispatched via a NAMED helper, not a
     # lambda: tests/test_event_loop_blocking_batch_b.py matches run_in_threadpool's
@@ -767,14 +606,14 @@ async def get_cases(data=Depends(get_data)):
             "bucket": "in_progress",
         })
     if not_started_keys:
-        for grp in _build_case_groups(not_started_keys, zephyr):
+        for grp in build_case_groups(not_started_keys, zephyr):
             incomplete_grouped.append({
                 "label": f"Not started — {grp['label']}",
                 "cases": grp["cases"],
                 "bucket": "not_started",
             })
 
-    complete_grouped = _build_case_groups(complete_keys, zephyr)
+    complete_grouped = build_case_groups(complete_keys, zephyr)
     for grp in complete_grouped:
         grp["bucket"] = "complete"
 
@@ -966,29 +805,6 @@ def _build_zephyr_query(sess: WizardSession, data: dict, key: str = "",
     return " ".join(ordered[:24])
 
 
-def _get_refined_group(case_key: str, data: dict) -> str:
-    """Determine the appropriate refined-cases group folder for a case.
-    Uses the last segment of the zephyr folder (e.g. 'Port', 'IPv4').
-    Tries to match an existing refined-cases directory for consistency
-    (e.g. 'Port (7)', 'IPv4 (44)'), otherwise uses the base name and creates if needed.
-    Cross-references PROGRESS.md (output generation to produce drop-in refined-cases artifacts)
-    and SERVER-README.md (drop files into refined-cases/<Group>/...).
-    """
-    zephyr = data.get("zephyr_master", {})
-    folder = zephyr.get(case_key, {}).get("folder", "") or ""
-    base = folder.rstrip("/").split("/")[-1] if folder else "Other"
-
-    refined_root = REFINED_DIR
-    if refined_root.exists():
-        for d in sorted(refined_root.iterdir()):
-            if d.is_dir():
-                name = d.name
-                # Match if base appears in existing group name (case insensitive)
-                if base.lower() in name.lower() or name.lower().startswith(base.lower()):
-                    return name
-    return base
-
-
 @router.post("/suggest_atp/{key}")
 async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_data)):
     """Use LLM to analyze current session selections and pre-select relevant ATPyLib tests.
@@ -1017,7 +833,7 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
         dry_run=dry_run,
     )
     if dry_run:
-        return _preview_from(result)
+        return preview_from(result)
     suggestions = result
 
     # Enrich with full source descriptions (not just LLM reason) for Step 3 UI
@@ -1056,25 +872,10 @@ def _session_llm_cfg(sess: WizardSession) -> dict:
     # to the LLM layer's default backend, silently using the wrong provider. load_case
     # applies it once; centralizing here guarantees every LLM handler resolves the
     # current workspace backend at call time. Same fix as pytest_create._llm_cfg.
-    if _apply_workspace_llm_if_needed(sess):
+    if apply_workspace_llm(sess):
         _mark_updated(sess)
         _persist_session(sess)
     return model_to_dict(getattr(sess, "llm_config", None))
-
-
-def _preview_from(result) -> dict:
-    """Shape a dry_run function result ({dry_run, prompt, ...}) into the standard
-    provenance-preview HTTP response. dry_run reuses the endpoint's real path so
-    the previewed prompt is 1-for-1 with what a real send would transmit."""
-    r = result if isinstance(result, dict) else {}
-    return {"provenance": {
-        "prompt": r.get("prompt", ""),
-        "provider": r.get("provider"),
-        "model": r.get("model"),
-        "auth_method": r.get("auth_method"),
-        "note": r.get("note"),
-        "dry_run": True,
-    }}
 
 
 @router.post("/suggest_testlink/{key}")
@@ -1123,7 +924,7 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
         dry_run=dry_run,
     )
     if dry_run:
-        return _preview_from(result)
+        return preview_from(result)
     suggestions = result
     # Enrich suggestions with full source descriptions for the UI merge
     by_id = {c.get("id"): c for c in candidates if c.get("id")}
@@ -1182,7 +983,7 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
         dry_run=dry_run,
     )
     if dry_run:
-        return _preview_from(result)
+        return preview_from(result)
     suggestions = result
     by_id = {c.get("id") or c.get("key"): c for c in candidates}
     # Rebuild rows then re-enrich so LLM-only hits still get full case bodies
@@ -1392,7 +1193,7 @@ async def get_llm_config():
     this on boot to render the real status (and, for local_llm, whether a key is
     stored). Credentials are never returned; only booleans/flags.
     """
-    cfg = _load_global_llm()
+    cfg = load_global_llm()
     if not cfg:
         return {"llm_config": None}
     am = (getattr(cfg, "auth_method", None) or "").lower()
@@ -1401,7 +1202,7 @@ async def get_llm_config():
         "auth_method": cfg.auth_method,
         "model": cfg.model,
         "base_url": cfg.base_url,
-        "has_key": _llm_is_active(cfg),
+        "has_key": llm_is_active(cfg),
     }
     if am == "local_llm":
         safe["local_llm_key_set"] = bool(get_local_llm_key())
@@ -1417,8 +1218,8 @@ async def llm_health():
     is recorded in debug-log like any other call. Provider-agnostic: works for
     whatever auth_method is active, not just local_llm.
     """
-    cfg = _load_global_llm()
-    if not cfg or not _llm_is_active(cfg):
+    cfg = load_global_llm()
+    if not cfg or not llm_is_active(cfg):
         return {"ok": False, "reason": "not_configured",
                 "detail": "No active LLM configuration. Apply a provider on the Configure page first."}
     llm_cfg = model_to_dict(cfg)
@@ -1518,7 +1319,7 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         # claude_code / claude_agent / grok_cli: leave model unset so the CLI's own default is used
 
     # Remember as workspace default so future case loads keep this LLM choice
-    _save_global_llm(cfg)
+    save_global_llm(cfg)
 
     # Also apply to the case session when one is loaded/known
     if sess:
@@ -1601,7 +1402,7 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
     session_dict = model_to_dict(stored)
     if getattr(req, "dry_run", False):
         preview = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg, dry_run=True)
-        return _preview_from(preview)
+        return preview_from(preview)
     # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
     # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
     result = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg)
@@ -1774,7 +1575,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
         preview = await run_in_threadpool(
             synthesize_steps, session_dict, llm_config=llm_cfg,
             objective=_session_objective(stored), dry_run=True)
-        return _preview_from(preview)
+        return preview_from(preview)
     try:
         result = await run_in_threadpool(
             synthesize_steps,
@@ -1885,7 +1686,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # traversal regression test passed without ever exercising this guard.)
     if not key:
         raise HTTPException(400, "Session key is required")
-    if not _CASE_KEY_RE.match(key):
+    if not CASE_KEY_RE.match(key):
         raise HTTPException(400, f"Refusing to export: invalid case key '{key}'. "
                                  f"Expected AWPTCM-Txxxx.")
 
@@ -1912,7 +1713,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         # (e.g. AWPTCM-T37861 ships invalid JSON — a bad \' escape), and blaming the
         # user for unconfirmed reviews would be misleading and unactionable. Name the
         # real cause instead.
-        _payload = _refined_payload_path(key)
+        _payload = refined_payload_path(key)
         if _payload is not None:
             raise HTTPException(
                 400,
@@ -1937,7 +1738,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # case_key can also come from the stored session, so re-validate whatever will
     # actually be used as the path component — before the LLM gaps call, payload
     # validation, or any write.
-    if not _CASE_KEY_RE.match(case_key or ""):
+    if not CASE_KEY_RE.match(case_key or ""):
         raise HTTPException(400, f"Refusing to export: invalid case key '{case_key}'. "
                                  f"Expected AWPTCM-Txxxx.")
     step4 = sess_dict.get("step4", {}) or {}
@@ -1947,7 +1748,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # not collected as a Step 3 form field. Apply the workspace LLM at dispatch time
     # so the coverage-gaps call uses the configured backend, not the default.
     # (`stored` is always the authoritative server session now — never req.session.)
-    if hasattr(stored, "llm_config") and _apply_workspace_llm_if_needed(stored):
+    if hasattr(stored, "llm_config") and apply_workspace_llm(stored):
         _mark_updated(stored)
         _persist_session(stored)
         sess_dict["llm_config"] = model_to_dict(stored.llm_config)
@@ -2100,7 +1901,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         # A case that was exported successfully before is STILL Complete (Complete is keyed
         # off refined-cases/**/zephyr_payload.json existing), and push_to_zephyr operates on
         # that on-disk bundle. So don't claim "NOT Complete" unconditionally; say what's true.
-        stale_bundle_exists = _refined_payload_path(case_key) is not None
+        stale_bundle_exists = refined_payload_path(case_key) is not None
         if stale_bundle_exists:
             complete_note = (
                 "A previously-exported bundle is still on disk, so this case remains marked "
@@ -2132,11 +1933,11 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # like '../../etc/x' would escape refined-cases/. Validate it against the canonical
     # AWPTCM-Txxxx shape before ANY filesystem write. (push_to_zephyr already does this;
     # the export write path did not.)
-    # (case_key was already validated against _CASE_KEY_RE at the top of the handler.)
+    # (case_key was already validated against CASE_KEY_RE at the top of the handler.)
     # Resolve the target dir and confirm it stays inside refined-cases/ BEFORE the write
     # try-block (whose broad `except Exception` would otherwise soften a 400 into a
     # "failed to write" message). Defends against a manipulated folder-derived `group`.
-    _export_group = _get_refined_group(case_key, data)
+    _export_group = get_refined_group(case_key, data)
     _export_target = REFINED_DIR / _export_group / case_key
     if REFINED_DIR.resolve() not in _export_target.resolve().parents:
         raise HTTPException(400, "Refusing to export outside refined-cases/.")
@@ -2145,13 +1946,13 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
         group = _export_group
         # Post-restructure (2026-07-13) refined-cases live under
         # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor
-        # from paths.py, matching _get_refined_group and _refined_complete_keys.
+        # from paths.py, matching case_registry.get_refined_group and refined_complete_keys.
         refined_root = REFINED_DIR
         target_dir = refined_root / group / case_key
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # PARTIAL-WRITE (adversarial-review finding wizard.py:2166): zephyr_payload.json
-        # is the Complete marker (_refined_complete_keys keys off its existence) and it
+        # is the Complete marker (refined_complete_keys keys off its existence) and it
         # used to be written SECOND of three, with the largest, most failure-prone write
         # (the session dump, which carries full LLM provenance) last. A disk-full or
         # encoding error on that third write left the case marked Complete and
@@ -2232,7 +2033,7 @@ async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False):
     protection in place. Pass force=true only to deliberately overwrite a case that has
     already been refined upstream.
     """
-    if not _CASE_KEY_RE.match(key or ""):
+    if not CASE_KEY_RE.match(key or ""):
         raise HTTPException(status_code=400, detail="invalid case key")
 
     repo_root = ASKCK_ROOT.parent           # .../Test-cases

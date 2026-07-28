@@ -49,7 +49,12 @@ _BLOCKING = {
     # outright. `_refined_complete_keys` rglob's the whole refined-cases tree.
     # _select_related_zephyr_refs no longer exists — listed to pin the name against
     # revival, which costs nothing since this is a call-name match.
-    "_select_related_zephyr_refs", "_refined_complete_keys", "_session_progress_map",
+    # _refined_complete_keys / _session_progress_map moved to CK_server/case_registry.py
+    # in commit 8 and lost their underscores. Both spellings listed, same reasoning as
+    # get_atp_candidates above.
+    "_select_related_zephyr_refs",
+    "_refined_complete_keys", "refined_complete_keys",
+    "_session_progress_map", "session_progress_map",
 }
 
 
