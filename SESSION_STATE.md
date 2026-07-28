@@ -2452,3 +2452,66 @@ message that named the cause.
 - **Next: plan commit 10.** See `PLAN-backend-module-split.md` → *Commit 10 — what it now
   faces* for the six test files that read the router as text, and *Part B — as executed* for
   what each finished extraction got wrong.
+
+## Session Close / Handoff (2026-07-29) — commit 10 lands; the wizard split is COMPLETE
+
+Cleared the one remaining straggler from `PLAN-backend-module-split.md`: **commit 10**, the
+atomic `routers/wizard.py` → `routers/wizard/` move. All 11 commits are now done (6 stays
+dropped). Two commits pushed to `main`: `3f07243` (the split) and `a4435a8` (a stale-doc fix).
+
+- **`routers/wizard.py` (1972 lines) is now a package.** Split on the file's *existing* concern
+  order into four route modules — `reviews` (148–981), `config` (982–1190), `synthesis`
+  (1191–1497), `export` (1498–EOF) — plus `_shared.py` (the `get_data` dependency + `OUTPUTS_ENV`;
+  a leaf, so no import cycle) and `__init__.py` (mounts the four sub-routers, re-exports the
+  surface `main.py` + the tests import). `main.py` still does `from routers.wizard import router`.
+- **Every function body moved BYTE-IDENTICAL — proven, not asserted.** The four sliced bodies
+  reassembled and `diff`ed against the original 148–EOF are identical: no line lost, duplicated
+  or reordered. The only new code is the per-module import headers, computed from an AST scan of
+  the free names actually used in each slice (grep gave prose false-positives — `reviews` needs
+  no stdlib/logging at all, `export` was the only module that logs). **A trailing-newline trap:**
+  the file's last line (`    }`) had no newline, so `wc -l` reported 1971 and a naive `NR<=1971`
+  slice dropped push_to_zephyr's closing brace — the byte-identity diff is what caught it. The
+  lesson from earlier sessions held: verify the move mechanically, don't eyeball it.
+- **Two cross-module privates use RELATIVE imports** (`_session_llm_cfg` reviews→synthesis,
+  `_authoritative_session` synthesis→export) so `test_shared_modules_decoupling` reads them as one
+  router's internal wiring, not a cross-router reach; both are also used within their own defining
+  module, so the per-file unreferenced-private check stays green.
+- **Six hardcoded `routers/wizard.py` source reads across the suite now go through one helper**,
+  `tests/_wizard_src.py` (`wizard_router_paths()` / `wizard_router_source()`), which RAISES if it
+  finds nothing. A hardcoded path that silently stops matching — green while covering nothing — was
+  the exact failure mode the plan flagged. The parametrized structural tests now fan out over the
+  six package files instead of one, so **pytest rose 559 → 584** (coverage, not new behaviour).
+  Two tests that referenced old symbol homes were repointed: the REFINED_DIR redirect now patches
+  `routers.wizard.export` (where the name is bound), and the export-size guard inspects
+  `wiz.export`, not the package `__init__`.
+- **Doc fix:** `PLAN-llm-observability.md` still labelled its follow-on features "UNCOMMITTED";
+  they shipped in `47833de`. Corrected (historical record only).
+
+### The Mac-SSH push mechanism (durable env fact — see memory `commit-and-push-on-session-end`)
+
+Establishing *how* to push from this Mac-attached VS Code Remote-SSH session was itself the
+finding. git runs on the **Linux host** (the Mac is only the terminal), but `SSH_AUTH_SOCK`
+points at the **forwarded Mac agent, which is empty** and *shadows* the working key — so a plain
+`git push` fails `Permission denied (publickey)`, and the on-disk `~/.ssh/id_rsa` is
+passphrase-encrypted (useless non-interactively). The Linux host's **gnome-keyring agent**
+(`$XDG_RUNTIME_DIR/keyring/ssh`, i.e. `/run/user/1971/keyring/ssh`) holds the authorized key;
+pointing `SSH_AUTH_SOCK` at it authenticates (`Hi terrenceb-atlnz!`) and pushes. This is why
+pushing "never worked from the Mac" before. Made permanent this session: a guarded block in
+`~/.bashrc` exports `SSH_AUTH_SOCK` to the keyring socket when it exists, so future Mac-attached
+terminals push without a prefix. (More-surgical alternative, not taken: an `IdentityAgent` stanza
+for `Host github.com` in the host's `~/.ssh/config`.)
+
+### State at close
+
+- **584 pytest + 85 Vitest**, both invariant guards (`guard_db_only`, framework-RO), and the
+  ck.db signature check — all green. `/health` ok: `is_permanent_db: true`, **39 sessions**, all
+  corpora present. ck.db untouched by the work.
+- `PLAN-backend-module-split.md` status header now reads COMPLETE; README feature table and
+  SERVER-README directory tree updated to show the `routers/wizard/` package (and the tree's stale
+  "PyTest Creator stub" label corrected — it has been fully implemented for a long time).
+- Both commits pushed to `origin/main` (`a4435a8`); tree clean.
+- **Playwright not run** — standing instruction.
+- **No open stragglers from prior plans.** Remaining work is either done or waiting on external
+  input: `PLAN-auth-and-case-locking.md` is unstarted (6 open decisions, D1 likely an org/IT call);
+  `PLAN-pytest-testing.md` Part 3a needs the two LLM judges + T33233 regen, Part 3b is blocked on
+  `configs/tb470.setup` (Terrence-side hardware topology).

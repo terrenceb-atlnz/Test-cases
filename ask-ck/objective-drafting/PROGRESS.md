@@ -35,6 +35,13 @@
 - **Also fixed a stale doc note:** `PLAN-llm-observability.md` still labelled its follow-on
   features "UNCOMMITTED"; they shipped in `47833de` (verified). Corrected.
 - **Gate:** 584 pytest + 85 Vitest, both guards, ck.db signature unchanged (isolation held).
+  `/health` ok (`is_permanent_db: true`, 39 sessions). Both commits (`3f07243` split,
+  `a4435a8` doc fix) pushed to `origin/main`; tree clean.
+- **No open stragglers left from prior plans.** What remains is done or externally blocked:
+  `PLAN-auth-and-case-locking.md` unstarted (6 open decisions, D1 likely an org/IT call);
+  `PLAN-pytest-testing.md` Part 3a needs the two LLM judges + T33233 regen, Part 3b blocked on
+  `configs/tb470.setup` (Terrence-side hardware topology). See also memory
+  `commit-and-push-on-session-end` for pushing from a Mac-attached SSH session.
 
 ## Latest session (2026-07-28f) — the wizard module split, all but one commit
 

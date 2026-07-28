@@ -118,10 +118,16 @@ ask-ck/
 │       │   ├── gates.py             ← the step state machine (can_synthesize, invalidation)
 │       │   └── backfill.py          ← rehydrate a session from its Complete on-disk bundle
 │       ├── routers/
-│       │   ├── wizard.py            ← Generator API (/api/wizard) — endpoints only
+│       │   ├── wizard/              ← Generator API (/api/wizard) — endpoints, split by concern
+│       │   │   ├── __init__.py      ← mounts the four sub-routers; re-exports the public surface
+│       │   │   ├── _shared.py       ← get_data dependency + export template env (no routes)
+│       │   │   ├── reviews.py       ← step 1/2/3 gates, search/suggest, confirm_step
+│       │   │   ├── config.py        ← session clear, CLI status, LLM config, health
+│       │   │   ├── synthesis.py     ← objectives + steps
+│       │   │   └── export.py        ← drop-in refined-cases bundle + push_to_zephyr
 │       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
-│       │   └── pytest_create.py     ← PyTest Creator stub (/api/pytest-create)
+│       │   └── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
 │       ├── static/index.html        ← Ask CK frontend (all tools + process links)
 │       ├── templates/
 │       │   ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, analyze_atp_coverage
