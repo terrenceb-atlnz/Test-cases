@@ -2136,3 +2136,140 @@ against at Run time. Not started.
   cabling, nothing more.
 - Unchanged: module-split commits 7-11 (6 dropped in `323c1db`), T33234 TestCase_8,
   Playwright still outside the gate.
+
+---
+
+## Session Close / Handoff (2026-07-28e) — wizard Part A finished, commit 6 dropped, and I deleted a real session row
+
+Continues `2026-07-28c` (A1). This stream owns `ask-ck/ck-facelift/PLAN-backend-module-split.md`.
+The other stream (`2026-07-28d`) was working in `pytest_create.py` / prompts concurrently —
+every commit below was staged by explicit path, never `git add -A`.
+
+### What shipped
+
+| commit | what |
+|---|---|
+| `9178659` | `perf(wizard): serve app.state.app_data instead of reloading per request` (A2) |
+| `91d86ef` | `fix(wizard): confirm_step silently dropped malformed selections` (A3) |
+| `77cb383` | `chore(wizard): logging, dead code, and an inverted pydantic-v2 hedge` (A4+A5) |
+| `0b47926` | `fix: tz-aware UTC timestamps (replace deprecated datetime.utcnow)` (commit 5) |
+| `323c1db` | `docs: DROP commit 6 (type step4/step5)` + `SURVEY-step4-step5.md` |
+| `ac760fd` | `test: isolate the suite from ck.db, and verify it correctly` |
+| `7e80289` | `test: two fail-closed layers so a test cannot write the real ck.db` |
+
+**Part A of the module-split plan is complete.** Commits 1-5 done, 6 dropped. Next is
+**commit 7** — `refactor: extract wizard/descriptions.py`, the first Part B extraction.
+
+### Three bugs that were filed as hygiene items
+
+- **The pydantic "portability" hedge was inverted.** 19 sites did
+  `obj.dict() if hasattr(obj, "dict") else obj.model_dump()`. On v2 `BaseModel.dict()` still
+  exists as a deprecated alias, so `hasattr` is ALWAYS true — every site took the v1 path and
+  the `else` branches were unreachable. Replaced by `models.model_to_dict`. Deleting the
+  `.dict()` fallback outright broke `safe_session_dict`'s llm_config **redaction**;
+  `test_security_fixes` caught it, so the fallback stayed, just last instead of first.
+- **`print()` → `logging` would have DELETED output.** There was no logging config anywhere,
+  so the root logger sat at WARNING and every `log.info()` would have been dropped —
+  including `[export] Saved drop-in bundle to …`. `main.py` now calls `basicConfig(...,
+  force=True)` (`force` because uvicorn installs its own root handlers).
+- **`pytest_create._score_script_candidate` would have crashed if called** — it referenced
+  `_PT_GENERIC_TOKENS` / `_PT_AREA_SUPPORT`, defined only in `db.py`. Verified `NameError`.
+  The comment directly above it already claimed "no private copy here".
+
+The plan's own dead-code list was wrong: it named `slim_by_key` and `test_id_desc`, which are
+**live local variables**. Found the real set by AST scan. Treat every line ref and dead-code
+claim in that plan as a hypothesis to verify, not a fact.
+
+### Commit 6 (type step4/step5) was DROPPED — user decision
+
+Evidence in `ask-ck/ck-facelift/SURVEY-step4-step5.md` (21-agent survey; 11 of 13 hazards
+survived adversarial verification, 4 blockers). Two independently hand-verified:
+
+- **17 `isinstance(…, dict)` guards.** A model is not a dict, so each takes its `else` branch.
+  `wizard.py:2241` would make **export write the placeholder "Objective not yet synthesized"
+  into the published bundle**; `:2219-2220` empties the exported testScript; `:296-348` kills
+  the invalidation cascade; `db.py:1024-1035` makes the case list report nothing done.
+- **The `stale` key is invisible to any census of stored data.** Written `wizard.py:298,303`,
+  popped at 4 sites, read only by `generator.js:163,185`. It is **0 of 35** in ck.db because
+  it is transient. Default `extra='ignore'` drops it, killing the badge that
+  `generator.js:158-161` documents as the guard against a contradictory bundle reaching export.
+- **The whole 393-test suite passed with the fields typed.** No test could see any of it.
+
+And the commit had no remaining purpose: its goal was normalizing `confirmed_at`, which has
+**zero readers** (6 write sites, no Python or JS reader). `provenance` stays `Dict[str, Any]` —
+it is inert (14 writes, 0 reads, display-only in the JS panel), and Terrence called that
+correctly: *"it's a non-functional set of data… a blackhole."*
+
+Also recorded there: `REFINED_DIR` is `ask-ck/objective-drafting/refined-cases/` (**not**
+`ask-ck/refined-cases/`), holding 43 `zephyr_payload.json` + 2 `*-session.json`. Since
+`_backfill_from_refined` copies `testScript` verbatim from the payloads, those 43 are the
+shape contract: **276/276 steps exactly `{description, expectedResult}`**, 350/350 with ck.db.
+
+### THE INCIDENT — I deleted AWPTCM-T30649 from the permanent ck.db
+
+Read this before touching test infrastructure.
+
+**What happened.** After isolating the suite from ck.db, I mutation-tested the new guards by
+disabling the isolation. One of those guards picked `sorted(real_ids)[0]` and called
+`_clear_persisted` on it, on the reasoning that isolation made that safe. It deleted the real
+session `AWPTCM-T30649`.
+
+**Why it wasn't caught.** I was verifying "ck.db untouched" with `md5sum ask-ck/var/ck.db`.
+**ck.db is WAL-mode** — the delete landed in `ck.db-wal`, and the main file's bytes AND mtime
+never changed. The check could not detect any write, and reported "byte-identical" throughout.
+
+**Recovery** came from a `backup()` copy left in the scratchpad from benchmarking 10 minutes
+earlier — luck, not design. Restored and verified by full-row hash over all 39 sessions
+(`30185cd466774462`), matching the pre-damage state exactly, including the other stream's
+`llm_config` switch to `vllm-fast`.
+
+**Four contributing causes, each now closed:**
+1. *One layer.* `CK_DB_PATH` redirection was the only protection. → `7e80289` adds a
+   fail-closed `connect()` guard that refuses any writable open of the real ck.db regardless
+   of `CK_DB_PATH`, plus a reserved-key guard at `db.save_session`/`delete_session`.
+2. *Blind verification.* → `tool/ckdb_signature.py` asks SQLite (reads main+WAL together).
+   `tool/run_tests.sh` now captures it before/after and **fails the gate** on any change.
+3. *A test naming real data.* → that test now writes a throwaway key to the isolated copy and
+   asserts the real DB's id set is unchanged. Reserved namespace: `AWPTCM-T99980..T99999`, or
+   a non-numeric suffix (real keys are `AWPTCM-T` + digits only).
+4. *Mutation-testing safety infrastructure against live data.* Process, not tooling: raise
+   the plan first. Layer 1 makes this specific mistake impossible anyway.
+
+**The safeguard's first version did not work, and the test caught it.** I patched stdlib
+`sqlite3`, but `db.py:34-38` does `try: import pysqlite3 as sqlite3` (pysqlite3 bundles a
+modern SQLite with `enable_load_extension` for sqlite-vec) and it IS installed — so
+**`db.sqlite3 is not sqlite3`** and the guard never saw `get_connection()`'s call, the exact
+path that deleted the row. What exposed it was writing the test as the **incident path**
+(break the isolation, assert it raises) rather than as "does the guard work". Anyone
+monkeypatching sqlite in this repo must patch `db.sqlite3`, not just the stdlib module.
+
+### Mutation testing caught three overclaims I had already written up
+
+Worth internalising: a mutation that stays GREEN is the valuable result.
+
+1. `_pt_get`'s stamp comparison — I wrote it up as fixing a live data-loss path. Reverting to
+   the string compare left everything green; enumerating the 8 reachable stamp shapes showed
+   the two strategies **agree** once stamps are coerced. It is defence-in-depth, and the
+   docstrings now say so.
+2. `_coerce_utc(None)` — a mutation making it fabricate a stamp stayed green, because pydantic
+   resolves `None` on an `Optional[...]` union *before* the annotated validator runs. The
+   branch was unreachable; deleted.
+3. "plain `cp` of ck.db loses WAL data" — does not reproduce; the WAL happens to be
+   checkpointed. `backup()` is still correct (consistent by construction, not by timing), but
+   the claim is false as stated, so that property is pinned by source, labelled as such.
+
+### State at close
+
+- **424 pytest + 85 Vitest**, both invariant guards, and the new ck.db signature check all
+  green. Count moved 295→…→424 across the session; the other stream was landing tests too.
+- `ck.db` at `sessions_rows 30185cd466774462`, **39 sessions** — the exact value from before
+  any of this session's work.
+- The suite is **~2-3x faster** (12-19s → ~6s) as a side effect: the isolated copy lives on
+  local ext4 instead of over NFS.
+- **Declined:** a snapshot/restore tool (`tool/ckdb_snapshot.py`, proposed as Layer 2).
+  Recovery therefore still depends on a copy existing somewhere. ~30 lines if wanted.
+- **Playwright E2E is deliberately outside all of this** — it boots a real server that
+  legitimately writes ck.db. Not run this session (standing instruction: never without
+  explicit say-so).
+- **Next: commit 7**, `refactor: extract wizard/descriptions.py`. Read *What A1 taught* and
+  the **A4+A5** section of the plan first — both record assumptions that measurement falsified.
