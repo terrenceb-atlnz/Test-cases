@@ -3,7 +3,12 @@
 // See ask-ck/ck-facelift/PLAN-playwright-e2e.md for the full design + rationale.
 import { defineConfig, devices } from '@playwright/test';
 
-const BASE_URL = process.env.CK_BASE_URL || 'http://localhost:8000';
+// E2E drives real case loads, which WRITE session rows. It must never do that to
+// ask-ck/var/ck.db (the permanent, LFS-committed source of truth), so it runs on its own
+// port against a throwaway copy — see tool/run_scratch_server.sh. Port 8123, not 8000,
+// precisely so `reuseExistingServer` can never latch onto the real dev server.
+const E2E_PORT = process.env.CK_E2E_PORT || '8123';
+const BASE_URL = process.env.CK_BASE_URL || `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
@@ -25,12 +30,15 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
-  // Start the real server if one isn't already up; reuse an existing instance locally.
-  // The server reads corpora only from the LFS-materialized ck.db (db-only invariant).
+  // Start a server against a THROWAWAY copy of ck.db. reuseExistingServer is false on
+  // purpose: true meant "attach to whatever is on this URL", and with the old port 8000
+  // that was the developer's real-database server — so every E2E run wrote session rows
+  // into the permanent ck.db. (Reuse is still effectively free: the scratch copy is cached
+  // by ck.db's revision, so start-up is ~0.3s of file copy.)
   webServer: {
-    command: './run.sh --bg',
+    command: './tool/run_scratch_server.sh --bg',
     url: `${BASE_URL}/health`,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

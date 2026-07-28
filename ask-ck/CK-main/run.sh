@@ -27,8 +27,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PID_FILE="$REPO_ROOT/.ck-server.pid"
-LOG_FILE="$REPO_ROOT/.ck-server.log"
+# CK_RUN_TAG lets a second, throwaway server (E2E / smoke checks — see
+# tool/run_scratch_server.sh) keep its own pid + log files, so --stop on one never
+# stops or orphans the other. Empty for the normal dev server.
+PID_FILE="$REPO_ROOT/.ck-server${CK_RUN_TAG:-}.pid"
+LOG_FILE="$REPO_ROOT/.ck-server${CK_RUN_TAG:-}.log"
 
 # --- Stop helper (used by --stop and --restart) -----------------------------
 _stop_server() {

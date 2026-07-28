@@ -63,7 +63,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 from data import load_all_data
-from paths import PROCESS_MD
+from paths import DB_PATH as PERMANENT_DB_PATH, PROCESS_MD
 from session_store import SessionWriteError
 from routers.wizard import router as wizard_router
 from routers.zephyr_tool import router as zephyr_tool_router
@@ -324,6 +324,14 @@ async def health():
         "status": "ok",
         "db": {
             "ready": chk.get("ok", False),
+            # WHICH database this server is on, and whether it is the permanent one.
+            # ask-ck/var/ck.db is meant to be written when a person operates the app (a
+            # case load persists a session); a server being DRIVEN BY TESTS must not touch
+            # it, and runs against a throwaway copy via CK_DB_PATH (see
+            # tool/run_scratch_server.sh). Until this was reported, the only way to tell
+            # the two apart was to read the process environment.
+            "db_path": chk.get("db_path"),
+            "is_permanent_db": chk.get("db_path") == str(PERMANENT_DB_PATH),
             "counts": chk.get("counts", {}),
             "vector_search": chk.get("vector_search", False),   # live: extension loaded AND vectors exist
             "sqlite_vec_loaded": chk.get("has_vec", False),

@@ -754,7 +754,25 @@ the E2E. Node dev deps in `package.json`.
 project driving the real running app: boot → load a case → keyword-search TestLink/Zephyr/ATP →
 tick + choose → Export → assert the validation gate blocks it). Deterministic (no LLM on the asserted
 path — a green export needs synthesized objective+steps, so the honest assertion is the blocked
-outcome). Run on demand, e.g. pre-release; it starts/reuses the server via `run.sh`.
+outcome). Run on demand, e.g. pre-release.
+
+> **E2E runs against a THROWAWAY copy of ck.db, on port 8123** (`tool/run_scratch_server.sh`).
+> `ask-ck/var/ck.db` going dirty is *correct* when a person operates the app — a case load persists
+> a session row, and that is the tool working. A test doing it is worthless data landing in the
+> permanent, LFS-committed source of truth. Until 2026-07-28 the Playwright `webServer` was
+> `./run.sh --bg` with `reuseExistingServer: true`, so on a seat with the dev server already up it
+> attached to *that* and wrote real session rows; the same thing happened via curl smoke checks, and
+> three rows had to be discarded by restoring ck.db from git. Use the scratch launcher for anything
+> that DRIVES the app as a test would:
+>
+> ```bash
+> tool/run_scratch_server.sh --bg      # port 8123, throwaway ck.db copy, own pid/log files
+> tool/run_scratch_server.sh --stop    # stops only the scratch server
+> ```
+>
+> `/health` now reports `db.db_path` and `db.is_permanent_db`, so you can tell at a glance which
+> database a running server is on. Guarded by
+> `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 ```bash
 ./tool/run_tests.sh        # THE GATE: guards + pytest (424) + Vitest (85), one command

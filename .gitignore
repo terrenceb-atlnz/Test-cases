@@ -63,6 +63,8 @@ backups/
 # Ask CK background-server runtime files (setup.sh)
 .ck-server.pid
 .ck-server.log
+.ck-server-*.pid
+.ck-server-*.log
 
 # Ask CK LLM observability: per-session request logs (full prompts/responses)
 ask-ck/CK-main/CK_server/debug-log/
