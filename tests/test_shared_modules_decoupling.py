@@ -28,7 +28,8 @@ import pytest
 
 _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "CK_server"
 _ROUTERS = _SERVER / "routers"
-_LEAVES = ("llm_config.py", "case_registry.py", "wizard/descriptions.py")
+_LEAVES = ("llm_config.py", "case_registry.py", "session_store.py",
+           "wizard/descriptions.py", "wizard/gates.py", "wizard/backfill.py")
 
 
 def _imports(path):

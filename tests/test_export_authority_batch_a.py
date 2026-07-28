@@ -6,7 +6,7 @@ authorized it.
 
   1. wizard.py:1939 — export fell back to the client-supplied req.session when the key
      was absent server-side, so a stale browser tab could resurrect a deleted session.
-  2. wizard.py:1936 — export had no _can_synthesize gate, so a hand-pasted objective +
+  2. wizard.py:1936 — export had no can_synthesize gate, so a hand-pasted objective +
      steps could be exported as Complete with zero DB reviews confirmed.
   3. wizard.py:1381 — confirm_step never invalidated step4/step5, so re-confirming an
      upstream review with DIFFERENT selections left a bundle whose payload (old
@@ -15,7 +15,7 @@ authorized it.
      failure-prone write, so a mid-loop I/O error left a case Complete + push-eligible
      while the API reported wrote_bundle=False.
 
-Plus the migration guard: _backfill_from_refined must satisfy the new confirm gate, or
+Plus the migration guard: backfill_from_refined must satisfy the new confirm gate, or
 the 43 existing on-disk bundles would 400 on re-export for reviews already done.
 
 All in-process — no network, no testbox, no writes outside a tmp_path.
@@ -26,13 +26,16 @@ import pathlib
 import pytest
 
 from models import WizardSession, Selection
-from routers.wizard import (
-    _backfill_from_refined,
-    _can_synthesize,
-    _clear_persisted,
-    _invalidate_downstream,
-    _selection_fingerprint,
-    sessions,
+# Commit 9 moved these into leaf modules; the router now imports them too, so these are
+# the same objects it uses. `sessions` still comes from the router deliberately: it must be
+# the one dict object both the router and session_store hold.
+from routers.wizard import sessions
+from session_store import clear_persisted
+from wizard.backfill import backfill_from_refined
+from wizard.gates import (
+    can_synthesize,
+    invalidate_downstream,
+    selection_fingerprint,
 )
 
 _THROWAWAY_KEY = "AWPTCM-T99991"
@@ -77,8 +80,8 @@ def clean_session():
     """Guarantee no leftover server-side session for the throwaway key.
 
     Must clear BOTH layers: the in-memory `sessions` dict AND the persisted row in
-    ck.db. Endpoints call _persist_session, so a session created by one test is
-    otherwise resurrected by _authoritative_session -> _load_persisted in the next —
+    ck.db. Endpoints call persist_session, so a session created by one test is
+    otherwise resurrected by _authoritative_session -> load_persisted in the next —
     which silently turned the "client-supplied session is rejected" test green-in-
     isolation but wrong in a full run. Also keeps test keys out of ck.db, which is the
     permanent source of truth.
@@ -92,7 +95,7 @@ def clean_session():
 
 def _purge(key):
     sessions.pop(key, None)
-    _clear_persisted(key)
+    clear_persisted(key)
 
 
 # --- Finding 1: no client-supplied session as a write source --------------------
@@ -211,8 +214,8 @@ def test_every_refined_bundle_passes_the_export_gate():
     blocked = []
     for key in sorted({p.parent.name for p in refined.rglob("zephyr_payload.json")}):
         sess = WizardSession(key=key)
-        _backfill_from_refined(sess)
-        if not _can_synthesize(sess):
+        backfill_from_refined(sess)
+        if not can_synthesize(sess):
             blocked.append(key)
     assert not blocked, f"cases that can no longer be re-exported: {blocked}"
 
@@ -236,10 +239,10 @@ def test_backfill_marks_reviews_confirmed(tmp_path, monkeypatch):
     _redirect_refined_dir(monkeypatch, tmp_path)
 
     sess = WizardSession(key=key)
-    assert not _can_synthesize(sess)          # precondition: gate would block
+    assert not can_synthesize(sess)          # precondition: gate would block
 
-    assert _backfill_from_refined(sess) is True
-    assert _can_synthesize(sess), "backfilled case cannot pass the export confirm gate"
+    assert backfill_from_refined(sess) is True
+    assert can_synthesize(sess), "backfilled case cannot pass the export confirm gate"
     assert sess.step1.backfilled is True      # provenance distinguishable from a real confirm
     assert sess.step4.get("objective")
 
@@ -282,8 +285,8 @@ def test_backfill_noop_leaves_gate_closed(tmp_path, monkeypatch):
         "refined-cases was not redirected to tmp_path; this test would pass vacuously")
 
     sess = WizardSession(key="AWPTCM-T99993")
-    assert _backfill_from_refined(sess) is False
-    assert not _can_synthesize(sess), "backfill invented confirms with no bundle on disk"
+    assert backfill_from_refined(sess) is False
+    assert not can_synthesize(sess), "backfill invented confirms with no bundle on disk"
 
 
 # --- Finding 3: the invalidation cascade ----------------------------------------
@@ -297,7 +300,7 @@ def _synthesized(confirmed_obj=True):
 
 def test_changed_selections_invalidate_downstream():
     s = _synthesized()
-    out = _invalidate_downstream(s, changed=True)
+    out = invalidate_downstream(s, changed=True)
     assert out == {"step4": True, "step5": True}
     assert s.step4["confirmed"] is False
     assert s.step4["stale"] is True
@@ -310,7 +313,7 @@ def test_changed_selections_invalidate_downstream():
 def test_unchanged_selections_preserve_downstream():
     """Re-clicking Confirm on the same shortlist must not destroy a good objective."""
     s = _synthesized()
-    out = _invalidate_downstream(s, changed=False)
+    out = invalidate_downstream(s, changed=False)
     assert out == {"step4": False, "step5": False}
     assert s.step4["confirmed"] is True
     assert "stale" not in s.step4
@@ -324,7 +327,7 @@ def test_fingerprint_is_order_insensitive():
     b = _sess()
     b.step1.selections = [Selection(id_or_key="TL-2", title="two"),
                           Selection(id_or_key="TL-1", title="one")]
-    assert _selection_fingerprint(a, 1) == _selection_fingerprint(b, 1)
+    assert selection_fingerprint(a, 1) == selection_fingerprint(b, 1)
 
 
 def test_fingerprint_detects_swapped_selection():
@@ -333,14 +336,14 @@ def test_fingerprint_detects_swapped_selection():
     a.step1.selections = [Selection(id_or_key="TL-1", title="one")]
     b = _sess()
     b.step1.selections = [Selection(id_or_key="TL-9", title="nine")]
-    assert _selection_fingerprint(a, 1) != _selection_fingerprint(b, 1)
+    assert selection_fingerprint(a, 1) != selection_fingerprint(b, 1)
 
 
 def test_fingerprint_detects_none_selected_toggle():
     a = _sess()
     b = _sess()
     b.step1.none_selected = True
-    assert _selection_fingerprint(a, 1) != _selection_fingerprint(b, 1)
+    assert selection_fingerprint(a, 1) != selection_fingerprint(b, 1)
 
 
 def test_confirm_step_endpoint_invalidates(client, clean_session):

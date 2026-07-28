@@ -35,7 +35,8 @@ def confirmed_session():
     VALIDATION gate now requires getting past the AUTHORITY + CONFIRM gate first.
     Yields the key; removes the session afterwards so no state leaks between tests.
     """
-    from routers.wizard import sessions, _clear_persisted
+    from routers.wizard import sessions
+    from session_store import clear_persisted
     from models import WizardSession
 
     sess = WizardSession(key=_THROWAWAY_KEY)
@@ -52,7 +53,7 @@ def confirmed_session():
         # pop leaves a throwaway row in the permanent source of truth and leaks
         # session state into later tests.
         sessions.pop(_THROWAWAY_KEY, None)
-        _clear_persisted(_THROWAWAY_KEY)
+        clear_persisted(_THROWAWAY_KEY)
 
 
 def test_invalid_payload_is_blocked_and_writes_nothing(client, confirmed_session):

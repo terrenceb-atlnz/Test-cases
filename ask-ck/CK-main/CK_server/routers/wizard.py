@@ -67,6 +67,26 @@ from llm_config import (
     preview_from,
     save_global_llm,
 )
+# `sessions` is imported as a NAME so `routers.wizard.sessions` stays the very same dict
+# object session_store holds — rebinding it here (sessions = {}) would give the router a
+# private copy and silently detach persistence from the cache.
+from session_store import (
+    clear_persisted,
+    load_persisted,
+    mark_updated,
+    persist_session,
+    sessions,
+)
+from wizard.backfill import backfill_from_refined
+from wizard.gates import (
+    can_synthesize,
+    can_synthesize_steps,
+    invalidate_downstream,
+    migrate_legacy_step4_to_step5,
+    selection_fingerprint,
+    session_has_objective,
+    session_objective,
+)
 # Import the NAMES, not the module. The AST invariant in
 # tests/test_event_loop_blocking_batch_b.py matches an unwrapped blocking call by
 # `ast.Name`, so calling these as `descriptions.get_atp_candidates(...)` would pass
@@ -84,9 +104,6 @@ router = APIRouter()
 
 log = logging.getLogger(__name__)
 
-# In-memory sessions (replace with DB later). File persistence added for restart survival.
-sessions: Dict[str, WizardSession] = {}
-
 # wizard.py lives in routers/ so go up one more level to the CK_server package root.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # NOTE: sessions (per-case + the '_workspace_llm' workspace default) live in ck.db
@@ -96,195 +113,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Output templates for repeatable exports (traceability.md etc.)
 OUTPUTS_DIR = BASE_DIR / "templates" / "outputs"
 OUTPUTS_ENV = Environment(loader=FileSystemLoader(str(OUTPUTS_DIR)))
-
-
-def _persist_session(sess: WizardSession) -> None:
-    """Persist full session (confirmed flags + selections + step4/5) to ck.db
-    (Commit C). llm_config is split into its own column by db.save_session. The
-    old sessions/{key}.json file stays in place as a frozen pre-migration backup."""
-    sess.updated_at = utc_now()
-    try:
-        data = model_to_dict(sess)
-        db.save_session("wizard", sess.key, data)
-    except Exception:
-        # ERROR, not warning: a swallowed failure here loses the user's confirmed
-        # selections and objective while the handler still returns 200. This is the
-        # wizard-side twin of the known stale-thread-local-connection bug, where the
-        # write silently never reaches ck.db. Keep the traceback — the message alone
-        # ("database is locked", "no such table") does not say which caller lost data.
-        log.error("failed to persist session %s — CHANGES WERE LOST", sess.key, exc_info=True)
-
-
-def _load_persisted(key: str) -> Optional[WizardSession]:
-    """Restore persisted session from ck.db (restart survival / authoritative state)."""
-    try:
-        raw = db.load_session("wizard", key)
-        if raw is not None:
-            return WizardSession(**raw)
-    except Exception:
-        # Traceback matters: the usual cause is a stored row that no longer validates
-        # against WizardSession, and only the pydantic error names the offending field.
-        log.warning("failed to load persisted session %s", key, exc_info=True)
-    return None
-
-
-def _clear_persisted(key: str) -> None:
-    """Delete the persisted session row for a key."""
-    try:
-        db.delete_session("wizard", key)
-        log.info("cleared persisted session for %s", key)
-    except Exception as e:
-        log.warning("failed to delete session for %s: %s", key, e)
-
-
-def _mark_updated(sess: WizardSession) -> None:
-    sess.updated_at = utc_now()
-
-
-def _can_synthesize(sess: WizardSession) -> bool:
-    """Gate for objective synthesis (Step 4). Must confirm all three DB reviews first."""
-    return bool(sess.step1.confirmed and sess.step2.confirmed and sess.step3.confirmed)
-
-
-def _session_objective(sess: WizardSession) -> str:
-    """Finalized objective HTML from Step 4 (or legacy combined step4)."""
-    s4 = sess.step4 or {}
-    if isinstance(s4, dict):
-        return (s4.get("objective") or "").strip()
-    return ""
-
-
-def _session_has_objective(sess: WizardSession) -> bool:
-    return bool(_session_objective(sess))
-
-
-def _can_synthesize_steps(sess: WizardSession) -> bool:
-    """Gate for Step 5: reviews confirmed + finalized objective present.
-
-    Prefer objectives marked confirmed (user applied Step 4); allow unconfirmed
-    objective if present so re-runs after synthesize_objectives still work when
-    the user proceeds without an extra click (UI still prompts to confirm).
-    """
-    if not _can_synthesize(sess):
-        return False
-    return _session_has_objective(sess)
-
-
-def _selection_fingerprint(sess: WizardSession, step: int) -> tuple:
-    """Order-insensitive identity of one step's confirmed selections.
-
-    Used to distinguish a real change (different cases picked) from a harmless
-    re-confirm of the same shortlist, so re-clicking Confirm never throws away a
-    good objective. Compares the chosen ids plus the none_selected flag; display
-    order and justification text are not part of the identity.
-    """
-    state = getattr(sess, f"step{step}", None)
-    if state is None:
-        return ()
-    ids = sorted((s.id_or_key or "") for s in (state.selections or []))
-    return (tuple(ids), bool(state.none_selected))
-
-
-def _invalidate_downstream(sess: WizardSession, changed: bool) -> dict:
-    """Un-confirm the objective and mark the test steps stale after an upstream change.
-
-    Only fires when the selections actually changed. The generated content is kept
-    (the user may want to edit rather than regenerate it) — what is cleared is the
-    claim that it has been reviewed against the CURRENT selections.
-    """
-    result = {"step4": False, "step5": False}
-    if not changed:
-        return result
-
-    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
-    if s4.get("objective") and s4.get("confirmed"):
-        sess.step4 = {**s4, "confirmed": False, "confirmed_at": None, "stale": True}
-        result["step4"] = True
-
-    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
-    if (s5.get("testScript") or {}).get("steps"):
-        sess.step5 = {**s5, "confirmed": False, "stale": True}
-        result["step5"] = True
-
-    return result
-
-
-def _migrate_legacy_step4_to_step5(sess: WizardSession) -> bool:
-    """If old session has testScript only under step4, copy to step5 (non-destructive)."""
-    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
-    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
-    if s4.get("testScript") and not (s5 or {}).get("testScript"):
-        sess.step5 = {
-            **(s5 or {}),
-            "testScript": s4.get("testScript"),
-        }
-        return True
-    return False
-
-
-def _backfill_from_refined(sess: WizardSession) -> bool:
-    """Restore step4.objective + step5.testScript from the completed on-disk payload
-    when the persisted runtime session is missing them.
-
-    Cases refined before the runtime session captured step4/step5 (or whose session
-    was later cleared) are 'Complete' on disk (refined-cases/**/zephyr_payload.json)
-    yet load with empty synthesis views — the Generator shows "No objective yet" for
-    a case that is actually done. The zephyr_payload.json is the canonical Complete
-    artefact (guard_db_only explicitly allows reading it), so use it as the source of
-    truth to rehydrate the session. This also keeps a subsequent export/push from
-    overwriting the good payload with empty fallback content. Returns True if changed.
-    """
-    s4 = sess.step4 if isinstance(sess.step4, dict) else {}
-    s5 = sess.step5 if isinstance(sess.step5, dict) else {}
-    has_obj = bool((s4.get("objective") or "").strip())
-    has_steps = bool((s5.get("testScript") or {}).get("steps")
-                     or (s4.get("testScript") or {}).get("steps"))
-    if has_obj and has_steps:
-        return False  # session already carries the synthesis — nothing to do
-
-    path = refined_payload_path(sess.key)
-    if not path:
-        return False
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as e:
-        log.warning("[backfill] could not read %s: %s", path, e)
-        return False
-
-    inner = raw.get(sess.key) if isinstance(raw, dict) else None
-    if not isinstance(inner, dict):
-        # Tolerate a direct-inner shape ({objective, testScript} at top level).
-        inner = raw if (isinstance(raw, dict) and ("objective" in raw or "testScript" in raw)) else None
-    if not isinstance(inner, dict):
-        return False
-
-    changed = False
-    objective = (inner.get("objective") or "").strip()
-    if objective and not has_obj:
-        # Sanitize on backfill too — legacy on-disk bundles predate objective sanitization.
-        sess.step4 = {**s4, "objective": sanitize_objective_html(objective),
-                      "confirmed": True, "backfilled": True}
-        changed = True
-    ts = inner.get("testScript")
-    if isinstance(ts, dict) and (ts.get("steps")) and not has_steps:
-        sess.step5 = {**s5, "testScript": ts, "confirmed": True, "backfilled": True}
-        changed = True
-
-    # A backfilled case is Complete on disk, which means the three DB reviews WERE
-    # confirmed when it was originally refined — that history just isn't in the
-    # runtime session (it predates step4/step5 capture, or the session was cleared).
-    # export() now gates on _can_synthesize, so without this the 43 existing bundles
-    # would 400 on re-export ("confirm all three reviews") for reviews the user
-    # already did. Mark the reviews confirmed-by-backfill so the gate reflects the
-    # on-disk truth; `backfilled` distinguishes them from fresh in-session confirms.
-    if changed:
-        for step in (sess.step1, sess.step2, sess.step3):
-            if not step.confirmed:
-                step.confirmed = True
-                step.confirmed_at = step.confirmed_at or utc_now()
-                step.backfilled = True
-
-    return changed
 
 
 def get_data(request: Request):
@@ -338,11 +166,11 @@ async def load_case(key: str, data=Depends(get_data)):
     ask-ck/ck-facelift/PLAN-backend-module-split.md A1.
     """
     # Check in-memory or disk first
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if sess:
         sessions[key] = sess
-        if _migrate_legacy_step4_to_step5(sess):
-            _mark_updated(sess)
+        if migrate_legacy_step4_to_step5(sess):
+            mark_updated(sess)
     else:
         if key not in data.get("zephyr_master", {}):
             raise HTTPException(404, "Case not found")
@@ -355,15 +183,15 @@ async def load_case(key: str, data=Depends(get_data)):
 
     # Rehydrate a Complete case whose runtime session lost step4/step5 from the
     # canonical on-disk payload, so the UI reflects the finished objective + steps.
-    if _backfill_from_refined(sess):
-        _mark_updated(sess)
+    if backfill_from_refined(sess):
+        mark_updated(sess)
 
     # Carry over workspace LLM preference (last Apply / Login) so switching cases
     # does not reset provider / CLI mode back to empty defaults.
     if apply_workspace_llm(sess):
-        _mark_updated(sess)
+        mark_updated(sess)
 
-    _persist_session(sess)
+    persist_session(sess)
 
     zm = data.get("zephyr_master", {}) or {}
     case_title = (zm.get(key, {}) or {}).get("title", "") if key else ""
@@ -504,7 +332,7 @@ async def step_candidates(key: str, step: int, data=Depends(get_data)):
         raise HTTPException(400, "step must be 1 (TestLink), 2 (Zephyr) or 3 (ATPyLib)")
     kind, builder = entry
 
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Load the case first.")
     sessions[key] = sess
@@ -811,7 +639,7 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
     Returns suggestions for the user to review/approve in Step 3.
     """
     body = body or {}
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Load the case first.")
 
@@ -873,8 +701,8 @@ def _session_llm_cfg(sess: WizardSession) -> dict:
     # applies it once; centralizing here guarantees every LLM handler resolves the
     # current workspace backend at call time. Same fix as pytest_create._llm_cfg.
     if apply_workspace_llm(sess):
-        _mark_updated(sess)
-        _persist_session(sess)
+        mark_updated(sess)
+        persist_session(sess)
     return model_to_dict(getattr(sess, "llm_config", None))
 
 
@@ -882,7 +710,7 @@ def _session_llm_cfg(sess: WizardSession) -> dict:
 async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends(get_data)):
     """LLM pre-select TestLink cases for Step 1 (user reviews/approves)."""
     body = body or {}
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Load the case first.")
     zm = data.get("zephyr_master", {}) or {}
@@ -959,7 +787,7 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
 async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(get_data)):
     """LLM pre-select external Zephyr cross-refs for Step 2."""
     body = body or {}
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Load the case first.")
     zm = data.get("zephyr_master", {}) or {}
@@ -1095,14 +923,14 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
         # the guard after the work it guards.
         raise HTTPException(400, "Invalid step")
 
-    sess = sessions.get(key) or _load_persisted(key)
+    sess = sessions.get(key) or load_persisted(key)
     if not sess:
         raise HTTPException(404, "Session not found. Call load_case first.")
     sessions[key] = sess
 
     # Snapshot the pre-confirm selections so we can tell an actual change from a
-    # harmless re-confirm of the same shortlist (see _invalidate_downstream below).
-    _before = _selection_fingerprint(sess, step)
+    # harmless re-confirm of the same shortlist (see invalidate_downstream below).
+    _before = selection_fingerprint(sess, step)
 
     # Validate BEFORE mutating anything, so a rejected payload cannot leave the
     # session half-updated or wrongly marked confirmed.
@@ -1139,14 +967,14 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
     # one level down (synthesize_objectives self-invalidates at :1690; save_objective
     # comments "Edits invalidate prior confirm"; pytest_create has _invalidate_from) —
     # this edge was simply missing.
-    invalidated = _invalidate_downstream(sess, changed=(_selection_fingerprint(sess, step) != _before))
+    invalidated = invalidate_downstream(sess, changed=(selection_fingerprint(sess, step) != _before))
 
-    _mark_updated(sess)
-    _persist_session(sess)
+    mark_updated(sess)
+    persist_session(sess)
 
     return {
         "session": safe_session_dict(sess),   # redacts llm_config secrets
-        "can_synthesize": _can_synthesize(sess),
+        "can_synthesize": can_synthesize(sess),
         "invalidated": invalidated,
     }
 
@@ -1160,7 +988,7 @@ async def clear_session(key: str):
     to the next case you load.
     """
     sessions.pop(key, None)
-    _clear_persisted(key)
+    clear_persisted(key)
     return {
         "message": f"Session for {key} cleared (workspace LLM preference kept)",
         "workspace_llm_kept": True,
@@ -1267,7 +1095,7 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     if key:
         # Best-effort: attach to the case session when it exists, but an unknown
         # key must not block the workspace-level apply.
-        sess = sessions.get(key) or _load_persisted(key)
+        sess = sessions.get(key) or load_persisted(key)
 
     provider = (body.get("provider") or "grok").lower().strip()
     auth_method = (body.get("auth_method") or "api_key").lower().strip()
@@ -1324,8 +1152,8 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     # Also apply to the case session when one is loaded/known
     if sess:
         sess.llm_config = cfg
-        _mark_updated(sess)
-        _persist_session(sess)
+        mark_updated(sess)
+        persist_session(sess)
 
     # Headless mode readiness comes from the CLI install, not a stored credential
     cli_status = check_claude_cli() if auth_method == "claude_code" else None
@@ -1372,12 +1200,12 @@ def _session_key_from_req(req: SynthesisRequest) -> str:
 
 
 def _authoritative_session(key: str) -> WizardSession:
-    stored = sessions.get(key) or _load_persisted(key)
+    stored = sessions.get(key) or load_persisted(key)
     if not stored:
         raise HTTPException(404, "Session not found. Load the case and confirm all three steps first.")
     sessions[key] = stored
-    if _migrate_legacy_step4_to_step5(stored):
-        _persist_session(stored)
+    if migrate_legacy_step4_to_step5(stored):
+        persist_session(stored)
     return stored
 
 
@@ -1390,7 +1218,7 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
     """
     key = _session_key_from_req(req)
     stored = _authoritative_session(key)
-    if not _can_synthesize(stored):
+    if not can_synthesize(stored):
         raise HTTPException(
             400,
             "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first.",
@@ -1430,12 +1258,12 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
     prev_llm = stored.full_session.get("llm") or {}
     stored.full_session["llm"] = {**prev_llm, **(result.get("provenance") or {})}
 
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
     return {
         "phase": "objectives",
         "synthesized": result,
-        "can_synthesize_steps": _can_synthesize_steps(stored),
+        "can_synthesize_steps": can_synthesize_steps(stored),
         "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
@@ -1444,7 +1272,7 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
 async def save_objective(key: str, body: dict = Body(default={})):
     """Persist edited objective HTML from Step 4 (before or as part of confirm)."""
     body = body or {}
-    stored = sessions.get(key) or _load_persisted(key)
+    stored = sessions.get(key) or load_persisted(key)
     if not stored:
         raise HTTPException(404, "Session not found.")
     sessions[key] = stored
@@ -1457,7 +1285,7 @@ async def save_objective(key: str, body: dict = Body(default={})):
     s4 = dict(stored.step4 or {})
     s4["objective"] = objective
     # A deliberate edit re-authors the objective against the current selections, so it
-    # clears any staleness flagged by _invalidate_downstream after an upstream change.
+    # clears any staleness flagged by invalidate_downstream after an upstream change.
     s4.pop("stale", None)
     # Edits invalidate prior confirm until re-confirmed
     if body.get("confirm"):
@@ -1469,11 +1297,11 @@ async def save_objective(key: str, body: dict = Body(default={})):
             s4["confirmed"] = False
             s4["confirmed_at"] = None
     stored.step4 = s4
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
     return {
         "message": "Objective saved" + (" and confirmed" if s4.get("confirmed") else ""),
-        "can_synthesize_steps": _can_synthesize_steps(stored),
+        "can_synthesize_steps": can_synthesize_steps(stored),
         "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
@@ -1482,7 +1310,7 @@ async def save_objective(key: str, body: dict = Body(default={})):
 async def confirm_objectives(key: str, body: dict = Body(default={})):
     """Mark Step 4 objective as finalized (optional body.objective overwrites)."""
     body = body or {}
-    stored = sessions.get(key) or _load_persisted(key)
+    stored = sessions.get(key) or load_persisted(key)
     if not stored:
         raise HTTPException(404, "Session not found.")
     sessions[key] = stored
@@ -1494,11 +1322,11 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
     s4["confirmed"] = True
     s4["confirmed_at"] = utc_now().isoformat()
     # An explicit re-confirm is the user asserting this objective matches the CURRENT
-    # selections, so it clears any staleness flagged by _invalidate_downstream.
+    # selections, so it clears any staleness flagged by invalidate_downstream.
     s4.pop("stale", None)
     stored.step4 = s4
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
     return {
         "message": "Objectives confirmed — proceed to Step 5 (Test Step Synthesis).",
         "can_synthesize_steps": True,
@@ -1510,7 +1338,7 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
 async def save_steps(key: str, body: dict = Body(default={})):
     """Persist edited testScript steps from Step 5 editor."""
     body = body or {}
-    stored = sessions.get(key) or _load_persisted(key)
+    stored = sessions.get(key) or load_persisted(key)
     if not stored:
         raise HTTPException(404, "Session not found.")
     sessions[key] = stored
@@ -1523,15 +1351,15 @@ async def save_steps(key: str, body: dict = Body(default={})):
     test_script = {"type": "steps", "steps": steps}
     s5 = dict(stored.step5 or {})
     s5["testScript"] = test_script
-    # Deliberate edit against the current selections — clears _invalidate_downstream's flag.
+    # Deliberate edit against the current selections — clears invalidate_downstream's flag.
     s5.pop("stale", None)
     stored.step5 = s5
     # Mirror onto step4 for legacy consumers / combined view
     s4 = dict(stored.step4 or {})
     s4["testScript"] = test_script
     stored.step4 = s4
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
     return {
         "message": "Steps saved",
         "session": safe_session_dict(stored),   # redacts llm_config secrets
@@ -1547,12 +1375,12 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     """
     key = _session_key_from_req(req)
     stored = _authoritative_session(key)
-    if not _can_synthesize(stored):
+    if not can_synthesize(stored):
         raise HTTPException(
             400,
             "Must complete and confirm reviews of all three databases first.",
         )
-    if not _session_has_objective(stored):
+    if not session_has_objective(stored):
         raise HTTPException(
             400,
             "No objective on session. Complete Step 4 (Objective Synthesis) first.",
@@ -1564,7 +1392,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
         client_obj = (req.session.step4.get("objective") or "").strip()
     elif isinstance(req.session, dict):
         client_obj = ((req.session.get("step4") or {}).get("objective") or "").strip()
-    if client_obj and client_obj != _session_objective(stored):
+    if client_obj and client_obj != session_objective(stored):
         s4 = dict(stored.step4 or {})
         s4["objective"] = sanitize_objective_html(client_obj)
         stored.step4 = s4
@@ -1574,14 +1402,14 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     if getattr(req, "dry_run", False):
         preview = await run_in_threadpool(
             synthesize_steps, session_dict, llm_config=llm_cfg,
-            objective=_session_objective(stored), dry_run=True)
+            objective=session_objective(stored), dry_run=True)
         return preview_from(preview)
     try:
         result = await run_in_threadpool(
             synthesize_steps,
             session_dict,
             llm_config=llm_cfg,
-            objective=_session_objective(stored),
+            objective=session_objective(stored),
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
@@ -1604,8 +1432,8 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
     prev_llm = stored.full_session.get("llm") or {}
     stored.full_session["llm"] = {**prev_llm, **(result.get("provenance") or {})}
 
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
     return {
         "phase": "steps",
         "synthesized": result,
@@ -1621,7 +1449,7 @@ async def synthesize(req: SynthesisRequest):
     """
     key = _session_key_from_req(req)
     stored = _authoritative_session(key)
-    if not _can_synthesize(stored):
+    if not can_synthesize(stored):
         raise HTTPException(
             400,
             "Must complete and confirm reviews of all three databases (TestLink, Zephyr, ATPyLib) first. This gate is enforced server-side per the repeatable process.",
@@ -1649,8 +1477,8 @@ async def synthesize(req: SynthesisRequest):
         if not stored.full_session:
             stored.full_session = {}
         stored.full_session["llm"] = result["provenance"]
-    _mark_updated(stored)
-    _persist_session(stored)
+    mark_updated(stored)
+    persist_session(stored)
 
     return {
         "phase": "combined",
@@ -1705,11 +1533,11 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # objective + steps (save_objective/save_steps have no gate either) let an
     # unreviewed case be written as Complete and become push-eligible — bypassing
     # the exact three-review gate the drafting process mandates. Backfilled cases
-    # satisfy this via _backfill_from_refined, which marks the reviews confirmed
+    # satisfy this via backfill_from_refined, which marks the reviews confirmed
     # from the Complete on-disk bundle.
-    if not _can_synthesize(stored):
+    if not can_synthesize(stored):
         # A case that is Complete on disk should have been rehydrated by
-        # _backfill_from_refined. If it wasn't, the bundle itself is unreadable
+        # backfill_from_refined. If it wasn't, the bundle itself is unreadable
         # (e.g. AWPTCM-T37861 ships invalid JSON — a bad \' escape), and blaming the
         # user for unconfirmed reviews would be misleading and unactionable. Name the
         # real cause instead.
@@ -1749,8 +1577,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # so the coverage-gaps call uses the configured backend, not the default.
     # (`stored` is always the authoritative server session now — never req.session.)
     if hasattr(stored, "llm_config") and apply_workspace_llm(stored):
-        _mark_updated(stored)
-        _persist_session(stored)
+        mark_updated(stored)
+        persist_session(stored)
         sess_dict["llm_config"] = model_to_dict(stored.llm_config)
     llm_cfg = sess_dict.get("llm_config", {})
     if not (sess_dict.get("gaps") or "").strip():
@@ -1771,8 +1599,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             stored.gaps = sess_dict["gaps"]
             if isinstance(stored, WizardSession) or hasattr(stored, "llm_config"):
                 try:
-                    _mark_updated(stored)
-                    _persist_session(stored)
+                    mark_updated(stored)
+                    persist_session(stored)
                 except Exception:
                     pass
 

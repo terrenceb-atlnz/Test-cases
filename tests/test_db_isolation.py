@@ -174,13 +174,13 @@ def test_the_snapshot_cache_key_sees_a_wal_write(tmp_path):
 def test_writes_do_not_reach_the_real_db():
     """The one that matters. Persist a session for real, then prove it is not in ck.db."""
     from models import WizardSession
-    import routers.wizard as wizard
+    import session_store as store
 
     key = "AWPTCM-T99990"          # throwaway; never a real case
     before = _real_db_ids()
     assert key not in before, "stale residue from an earlier run is already in the real DB"
 
-    wizard._persist_session(WizardSession(key=key))
+    store.persist_session(WizardSession(key=key))
     try:
         # It must be in the isolated copy...
         import db
@@ -190,8 +190,8 @@ def test_writes_do_not_reach_the_real_db():
         assert key not in _real_db_ids(), (
             f"{key} reached ask-ck/var/ck.db — the permanent source of truth was written")
     finally:
-        wizard._clear_persisted(key)
-        wizard.sessions.pop(key, None)
+        store.clear_persisted(key)
+        store.sessions.pop(key, None)
 
     assert _real_db_ids() == before, "the real DB's session set changed"
 
@@ -212,19 +212,19 @@ def test_deleting_a_session_also_stays_isolated():
     throughout.
     """
     from models import WizardSession
-    import routers.wizard as wizard
+    import session_store as store
     import db
 
     key = "AWPTCM-T99989"          # throwaway; never a real case
     before = _real_db_ids()
     assert key not in before
 
-    wizard._persist_session(WizardSession(key=key))
+    store.persist_session(WizardSession(key=key))
     ids = {r[0] for r in db.get_connection().execute("SELECT id FROM sessions")}
     assert key in ids, "setup failed — nothing to delete"
 
-    wizard._clear_persisted(key)
-    wizard.sessions.pop(key, None)
+    store.clear_persisted(key)
+    store.sessions.pop(key, None)
 
     ids = {r[0] for r in db.get_connection().execute("SELECT id FROM sessions")}
     assert key not in ids, "the delete did not take effect in the isolated copy"
@@ -340,7 +340,7 @@ def test_throwaway_keys_are_allowed(key):
     """The guard must not obstruct the suites that legitimately test persistence."""
     from models import WizardSession
     import db
-    import routers.wizard as wizard
+    import session_store as store
 
     db.save_session("wizard", key, WizardSession(key=key).model_dump())
     try:
@@ -348,7 +348,7 @@ def test_throwaway_keys_are_allowed(key):
         assert key in ids
     finally:
         db.delete_session("wizard", key)
-        wizard.sessions.pop(key, None)
+        store.sessions.pop(key, None)
 
 
 def test_the_reserved_block_boundaries_are_exact():

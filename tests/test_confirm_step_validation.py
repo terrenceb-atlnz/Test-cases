@@ -22,11 +22,11 @@ from fastapi import HTTPException
 
 from models import Selection, WizardSession
 from routers.wizard import (
-    _clear_persisted,
     _parse_selections,
     confirm_step,
     sessions,
 )
+from session_store import clear_persisted
 
 _KEY = "AWPTCM-T99993"          # throwaway; never a real case
 _GOOD = {"id_or_key": "AWP-1", "title": "Alpha", "justification": "why", "order": 0}
@@ -41,7 +41,7 @@ def sess():
     sessions[_KEY] = s
     yield s
     sessions.pop(_KEY, None)
-    _clear_persisted(_KEY)
+    clear_persisted(_KEY)
 
 
 def _confirm(step, body):

@@ -39,7 +39,20 @@ _MODELS = _SERVER / "models.py"
 _MAIN = _SERVER / "main.py"
 
 # Every file that carried the hedge. Any `x.dict()` call in these is a regression.
-_HEDGE_FILES = [_WIZARD, _PYTEST_CREATE, _MODELS]
+# session_store.py is included because commit 9 moved model_to_dict call sites there out
+# of wizard.py — without it, the hedge could grow back in the new home unnoticed.
+_SESSION_STORE = _SERVER / "session_store.py"
+_HEDGE_FILES = [_WIZARD, _PYTEST_CREATE, _MODELS, _SESSION_STORE]
+
+# Files that must use `log.<level>()`, never print(). Part B keeps moving code out of
+# wizard.py, and the logging discipline has to travel with it — the persist-failure ERROR
+# that this suite pins now lives in session_store.py, not wizard.py, so grepping only the
+# router would silently stop covering the very site the test was written for.
+_LOGGING_FILES = [
+    _WIZARD, _SESSION_STORE,
+    _SERVER / "llm_config.py", _SERVER / "case_registry.py",
+    _SERVER / "wizard" / "backfill.py",
+]
 
 
 def _model_to_dict_lines() -> set:
@@ -214,36 +227,51 @@ def test_dict_only_objects_are_still_supported():
 
 # --- logging hygiene ---------------------------------------------------------
 
-def test_wizard_has_no_print_calls():
+@pytest.mark.parametrize("path", _LOGGING_FILES, ids=lambda p: p.name)
+def test_no_print_calls(path):
     """wizard.py had 14 print() calls: no levels, no timestamps, no way to quiet them —
-    a failed-persistence warning was indistinguishable from boot noise."""
-    tree = ast.parse(_WIZARD.read_text(encoding="utf-8"))
+    a failed-persistence warning was indistinguishable from boot noise. The modules Part B
+    extracted from it inherit the rule."""
+    tree = ast.parse(path.read_text(encoding="utf-8"))
     prints = [n.lineno for n in ast.walk(tree)
               if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
               and n.func.id == "print"]
-    assert prints == [], f"wizard.py uses print() at line(s) {prints}; use `log.<level>()`"
+    assert prints == [], f"{path.name} uses print() at line(s) {prints}; use `log.<level>()`"
 
 
-def test_wizard_defines_a_module_logger():
-    tree = ast.parse(_WIZARD.read_text(encoding="utf-8"))
+@pytest.mark.parametrize("path", _LOGGING_FILES, ids=lambda p: p.name)
+def test_defines_a_module_logger(path):
+    """`logging.getLogger(__name__)`, so the record carries the module that emitted it.
+
+    This is not cosmetic: caplog and any log filter select by logger NAME, so a module
+    that logs through the root logger (or borrows another module's) cannot be asserted on
+    or quieted independently — which is exactly how commit 9 broke two of this file's own
+    tests when the persist code moved and kept logging under "routers.wizard".
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"))
     calls = [n for n in ast.walk(tree)
              if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
              and n.func.attr == "getLogger"]
-    assert calls, "wizard.py must define log = logging.getLogger(__name__)"
+    assert calls, f"{path.name} must define log = logging.getLogger(__name__)"
 
 
 def test_losing_a_session_write_is_logged_at_error(caplog, monkeypatch):
     """A failed persist loses the user's confirmed selections while the handler still
-    returns 200 (the stale-connection bug). It must not be a mere warning."""
-    import routers.wizard as wizard
+    returns 200 (the stale-connection bug). It must not be a mere warning.
+
+    Lives in session_store since commit 9, so the logger to watch is "session_store" —
+    caplog.at_level on the wrong logger name captures nothing and the test would fail
+    with "logged nothing at all" rather than telling you the module moved.
+    """
+    import session_store
 
     def _boom(*a, **k):
         raise RuntimeError("database is locked")
 
-    monkeypatch.setattr(wizard.db, "save_session", _boom)
+    monkeypatch.setattr(session_store.db, "save_session", _boom)
     sess = WizardSession(key="AWPTCM-T99991")
-    with caplog.at_level(logging.DEBUG, logger="routers.wizard"):
-        wizard._persist_session(sess)          # must swallow, not raise
+    with caplog.at_level(logging.DEBUG, logger="session_store"):
+        session_store.persist_session(sess)          # must swallow, not raise
 
     records = [r for r in caplog.records if "AWPTCM-T99991" in r.getMessage()]
     assert records, "a failed persist logged nothing at all"
@@ -254,11 +282,11 @@ def test_losing_a_session_write_is_logged_at_error(caplog, monkeypatch):
 
 def test_clearing_a_session_logs_at_info_not_error(caplog, monkeypatch):
     """Level discipline: routine bookkeeping must not read as a fault."""
-    import routers.wizard as wizard
+    import session_store
 
-    monkeypatch.setattr(wizard.db, "delete_session", lambda *a, **k: None)
-    with caplog.at_level(logging.DEBUG, logger="routers.wizard"):
-        wizard._clear_persisted("AWPTCM-T99992")
+    monkeypatch.setattr(session_store.db, "delete_session", lambda *a, **k: None)
+    with caplog.at_level(logging.DEBUG, logger="session_store"):
+        session_store.clear_persisted("AWPTCM-T99992")
 
     records = [r for r in caplog.records if "AWPTCM-T99992" in r.getMessage()]
     assert records and records[0].levelno == logging.INFO

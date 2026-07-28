@@ -312,11 +312,13 @@ def test_string_and_parsed_verdicts_agree_only_because_stamps_are_coerced():
 # --- persistence stamps ------------------------------------------------------
 
 def test_wizard_persist_stamps_aware(monkeypatch):
-    import routers.wizard as wizard
+    import session_store as store
 
-    monkeypatch.setattr(wizard.db, "save_session", lambda *a, **k: None)
+    # session_store.db and routers.wizard.db are the same module object (both `import db`),
+    # so patching it here covers every caller.
+    monkeypatch.setattr(store.db, "save_session", lambda *a, **k: None)
     sess = WizardSession(key="AWPTCM-T99994")
-    wizard._persist_session(sess)
+    store.persist_session(sess)
     assert sess.updated_at.tzinfo is not None
 
 
@@ -325,16 +327,17 @@ def test_confirm_step_stamps_aware(monkeypatch):
     import asyncio
 
     import routers.wizard as wizard
+    import session_store as store
 
-    monkeypatch.setattr(wizard.db, "save_session", lambda *a, **k: None)
+    monkeypatch.setattr(store.db, "save_session", lambda *a, **k: None)
     key = "AWPTCM-T99995"
-    wizard.sessions[key] = WizardSession(key=key)
+    store.sessions[key] = WizardSession(key=key)
     try:
         asyncio.run(wizard.confirm_step(
             key, 1, {"selections": [{"id_or_key": "A", "title": "t"}]}, data={}))
-        assert wizard.sessions[key].step1.confirmed_at.tzinfo is not None
+        assert store.sessions[key].step1.confirmed_at.tzinfo is not None
     finally:
-        wizard.sessions.pop(key, None)
+        store.sessions.pop(key, None)
 
 
 # --- source guard ------------------------------------------------------------
