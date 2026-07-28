@@ -121,7 +121,11 @@ def _json(s: Optional[str], default):
 # Scoring helpers — copied VERBATIM from the current wizard.py / pytest_create.py
 # so DB-backed search reproduces live ordering & scores exactly.
 # ─────────────────────────────────────────────────────────────────────────────
-_ZREF_GENERIC_TOKENS = frozenset({
+# THE definition of the stoplist. It was duplicated byte-for-byte in wizard.py, which
+# is the drift risk the "no private copy here" comment below already claimed had been
+# eliminated; wizard/descriptions.py now reads this one (PLAN-backend-module-split.md
+# commit 7). Public, because another module imports it.
+GENERIC_TOKENS = frozenset({
     "port", "ports", "ipv4", "ipv6", "ip", "switch", "switches", "interface",
     "interfaces", "test", "tests", "feature", "features", "basic", "function",
     "functionality", "command", "commands", "show", "config", "configuration",
@@ -141,7 +145,7 @@ _ZREF_GENERIC_TOKENS = frozenset({
 })
 
 
-# Words that _ZREF_GENERIC_TOKENS strips as too common to RANK on, but which still
+# Words that GENERIC_TOKENS strips as too common to RANK on, but which still
 # carry real "same area" affinity — a port case and an IPv6 case are not neighbours.
 # A binary specific/stripped stoplist cannot express that third tier, which is why
 # _relevance_score accepts area_words separately (see below).
@@ -210,17 +214,32 @@ def _relevance_score(rank_words: List[str], fields: List[Tuple[str, float]],
     return min(0.95, round(score, 4)), len(matched), total_hits
 
 
-def _split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple[str, str]:
-    """Verbatim from wizard.py: (short_title, full_body)."""
+def split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple[str, str]:
+    """Split test_id_description text into short title + full body (no mid-sentence truncation).
+
+    Source format is typically:
+      Short title line
+
+      [Log-derived analysis] Longer paragraph...
+    Title = first non-empty line (before analysis marker). Description = full original text.
+
+    THE definition. wizard.py held a second copy — this one was labelled "Verbatim from
+    wizard.py" and was proven structurally identical (same signature, same AST once
+    docstrings are stripped) before that copy was deleted in commit 7. It lives here
+    because search_atp/search_atp_hybrid below call it, so db must not depend on the
+    router package to reach it.
+    """
     full = (full_desc or "").strip()
     if not full:
         return (fallback_id or "", "")
+    # Prefer text before the analysis marker as title when present
     for marker in ("\n\n[", "\n["):
         idx = full.find(marker)
         if idx > 0:
             title = full[:idx].strip().split("\n")[0].strip()
             if title:
                 return (title, full)
+    # Otherwise first non-empty line is the short title
     for line in full.splitlines():
         line = line.strip()
         if line:
@@ -473,7 +492,7 @@ def search_testlink(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> 
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
     if not words and not keep_ids:
         return []
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    specific = [w for w in words if w not in GENERIC_TOKENS]
     rank_words = specific or words
 
     cand: Dict[str, sqlite3.Row] = {}
@@ -530,7 +549,7 @@ def search_zephyr(q: str, case_key: str = "", exclude_keys: Optional[set] = None
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9._+-]{1,}", qlow) if len(w) > 1]
     if not words and not keep_ids:
         return []
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    specific = [w for w in words if w not in GENERIC_TOKENS]
     rank_words = specific or words
     # Third tier: query words the generic filter dropped that still mark a feature
     # AREA. Only meaningful when `specific` carried the ranking (otherwise these words
@@ -596,7 +615,7 @@ def search_atp(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[
     keep_ids = keep_ids or set()
     qlow = (q or "").lower().strip()
     words = [w for w in re.findall(r"[a-z0-9][a-z0-9.+_-]{1,}", qlow) if len(w) > 2]
-    specific = [w for w in words if w not in _ZREF_GENERIC_TOKENS]
+    specific = [w for w in words if w not in GENERIC_TOKENS]
     rank_words = specific or words
 
     cand: Dict[str, sqlite3.Row] = {}
@@ -617,7 +636,7 @@ def search_atp(q: str, keep_ids: Optional[set] = None, limit: int = 20) -> List[
         suite = r["suite_name"] or ""
         if "(not a functional test)" in desc.lower() or "(not a functional test)" in tid.lower():
             continue
-        short_title, full_desc = _split_atp_title_description(desc, tid)
+        short_title, full_desc = split_atp_title_description(desc, tid)
         score, nmatch, nhits = _relevance_score(rank_words, [
             (f"{tid} {short_title}", 3.0),
             (suite, 1.5),
@@ -931,7 +950,7 @@ def search_atp_hybrid(q: str, keep_ids: Optional[set] = None, limit: int = 20) -
         r = _one("SELECT tid, description, suite_name FROM atp_tests WHERE tid=?", (tid,))
         if not r:
             return None
-        short_title, full_desc = _split_atp_title_description(r["description"] or "", tid)
+        short_title, full_desc = split_atp_title_description(r["description"] or "", tid)
         return {"id": r["tid"], "description": full_desc, "title": short_title,
                 "suite": r["suite_name"] or ""}
     return _hybrid("atp", q, kw, "id", hydrate, limit, keep_ids=keep_ids)

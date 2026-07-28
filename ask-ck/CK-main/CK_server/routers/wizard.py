@@ -51,6 +51,18 @@ from local_llm_key import get_local_llm_key, set_local_llm_key
 from jinja2 import Environment, FileSystemLoader
 from paths import REFINED_DIR, ASKCK_ROOT
 from timeutil import utc_now
+# Import the NAMES, not the module. The AST invariant in
+# tests/test_event_loop_blocking_batch_b.py matches an unwrapped blocking call by
+# `ast.Name`, so calling these as `descriptions.get_atp_candidates(...)` would pass
+# the check without being covered by it — a silent loss of the threadpool guarantee.
+from wizard.descriptions import (
+    build_atp_query,
+    build_testlink_description,
+    enrich_zephyr_rows,
+    get_atp_candidates,
+    hybrid_on,
+    zephyr_tokens,
+)
 
 router = APIRouter()
 
@@ -225,13 +237,6 @@ def _clear_persisted(key: str) -> None:
         log.info("cleared persisted session for %s", key)
     except Exception as e:
         log.warning("failed to delete session for %s: %s", key, e)
-
-
-def _get_full_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
-    """Batch lookup of full Zephyr cases by key. Commit B: indexed SQLite read
-    (db.get_zephyr_cases_batch) — replaces the per-request zephyr_cases.jsonl
-    linear scan that this used to do."""
-    return db.get_zephyr_cases_batch([k for k in keys if k])
 
 
 def _mark_updated(sess: WizardSession) -> None:
@@ -427,186 +432,6 @@ def get_data(request: Request):
     return data
 
 
-# --- Query tokenization ------------------------------------------------------
-# Used to build the keyword query for a step's candidate retrieval (see
-# _build_step_query): drop words that carry no discriminating signal so the FTS
-# search ranks on the case's actual feature nouns.
-#
-# NOTE (debt, Part B): this set is duplicated verbatim in db.py:123, which is the
-# copy db.search_* actually scores with. Two copies is a drift risk — Part B moves
-# the survivors here into wizard/descriptions.py and consumes db's single copy.
-# The bespoke Step-2 scorer that used to live below (_score_zephyr_candidate +
-# _ZREF_WEAK_ALONE, ~120 lines) is gone: it hand-rolled a slower, weaker
-# reimplementation of db.search_zephyr, which is FTS-indexed and scores with the
-# shared db._relevance_score. See PLAN-backend-module-split.md A1.
-
-_ZREF_GENERIC_TOKENS = frozenset({
-    "port", "ports", "ipv4", "ipv6", "ip", "switch", "switches", "interface",
-    "interfaces", "test", "tests", "feature", "features", "basic", "function",
-    "functionality", "command", "commands", "show", "config", "configuration",
-    "platform", "new", "master", "template", "traffic", "link", "device",
-    "devices", "support", "supported", "behaviour", "behavior", "check",
-    "verify", "confirm", "using", "with", "from", "that", "this", "when",
-    "case", "cases", "area", "manual", "auto", "server", "client", "mode",
-    "type", "level", "status", "info", "data", "table", "entry", "entries",
-    "packet", "packets", "network", "remote", "local", "enabled", "disabled",
-    "enable", "disable", "set", "get", "add", "remove", "for", "via", "and",
-    "the", "full", "half", "fixed", "copper", "fibre", "fiber", "gig", "cross",
-    "straight", "awp", "cr", "proj", "project", "red", "api", "user", "defined",
-    "default", "bridge", "eth", "vlan", "vlans", "tunnel", "queueing", "queuing",
-    "priority", "source", "destination", "address", "static", "lag", "lacp",
-    "interop", "exploratory", "testing", "platform-test", "functional",
-    "field", "info", "error", "message", "generated", "whenever", "address",
-})
-
-def _normalize_zephyr_text(s: str) -> str:
-    s = s or ""
-    s = re.sub(r"^\(\d+\)\s*", "", s)
-    s = s.replace("_", " ").replace("/", " ").replace("-", " ")
-    return s.lower()
-
-
-def _zephyr_tokens(s: str) -> List[str]:
-    s = _normalize_zephyr_text(s)
-    words = re.findall(r"[a-z0-9][a-z0-9+]{1,}", s)
-    out: List[str] = []
-    for w in words:
-        if len(w) < 3:
-            continue
-        out.append(w)
-        # Normalize MDI variants so MDI / MDIX / MDI-MDIX cluster together
-        if w in ("mdi", "mdix"):
-            out.extend(["mdi", "mdix"])
-    return out
-
-
-def _build_testlink_description(item: dict, title: str = "") -> str:
-    """Full TestLink step body for Step 1 UI — no mid-sentence character truncation.
-
-    Includes all steps with complete action/expected text. Soft-caps only on
-    pathological step counts (first 30) so payloads stay reasonable.
-    """
-    steps = (item or {}).get("steps") or []
-    desc_parts: List[str] = []
-    for s in steps[:30]:
-        action = (s.get("action") or "").strip()
-        expected = (s.get("expected") or "").strip()
-        if action or expected:
-            if action and expected:
-                desc_parts.append(f"Step: {action}\nExpected: {expected}")
-            elif action:
-                desc_parts.append(f"Step: {action}")
-            else:
-                desc_parts.append(f"Expected: {expected}")
-    if desc_parts:
-        return "\n\n".join(desc_parts)
-    # Fallbacks only when no structured steps exist
-    snip = ((item or {}).get("snippet") or "").strip()
-    if snip:
-        return snip
-    return (title or (item or {}).get("title") or "").strip()
-
-
-def _build_zephyr_case_description(
-    slim_meta: dict,
-    full: dict,
-    title_fallback: str = "",
-) -> str:
-    """Full Zephyr case body for Step 2 UI — no mid-field character truncation.
-
-    Soft-caps step count only (first 20) for pathological cases; each field is complete.
-    """
-    desc_parts: List[str] = []
-    t = (
-        (slim_meta or {}).get("title")
-        or (full or {}).get("title")
-        or title_fallback
-        or ""
-    ).strip()
-    full = full or {}
-    slim_meta = slim_meta or {}
-
-    obj = str(full.get("objective") or "").strip()
-    if obj:
-        desc_parts.append("Objective: " + obj)
-    pre = str(full.get("precondition") or "").strip()
-    if pre:
-        desc_parts.append("Precondition: " + pre)
-
-    meta = []
-    if slim_meta.get("status"):
-        meta.append(f"Status: {slim_meta['status']}")
-    if "has_objective" in slim_meta:
-        meta.append(f"Has objective: {slim_meta['has_objective']}")
-    if "num_steps" in slim_meta:
-        meta.append(f"Num steps: {slim_meta['num_steps']}")
-    if slim_meta.get("labels"):
-        meta.append(f"Labels: {', '.join(slim_meta['labels'])}")
-    if meta:
-        desc_parts.append(" | ".join(meta))
-
-    steps_source = full.get("steps", []) or []
-    if steps_source:
-        steps_list = []
-        for i, s in enumerate(steps_source[:20], 1):
-            d = (s.get("description") or "").strip()
-            if d:
-                steps_list.append(f"{i}. {d}")
-        if steps_list:
-            desc_parts.append("Steps:\n" + "\n".join(steps_list))
-
-    if not desc_parts:
-        desc_parts.append(t or "Related Zephyr case")
-    return "\n\n".join(desc_parts)
-
-
-def _enrich_zephyr_rows(
-    rows: List[Dict[str, Any]],
-    data: dict,
-) -> List[Dict[str, Any]]:
-    """Fill description from zephyr_master / batch jsonl for UI rows that only have title."""
-    zm = data.get("zephyr_master", {}) or {}
-    # Commit B: slim fields (title/folder/status/labels/…) already ride on each
-    # row from db.search_zephyr, so no slim_index dict is needed.
-    slim_by_key = {}
-    need = []
-    for r in rows:
-        k = r.get("key") or r.get("id")
-        if not k:
-            continue
-        # Re-enrich when description is missing or is just the title
-        desc = (r.get("description") or "").strip()
-        title = (r.get("title") or "").strip()
-        if not desc or desc == title:
-            if k not in zm:
-                need.append(k)
-    full_map = _get_full_zephyr_cases_batch(need) if need else {}
-    out = []
-    for r in rows:
-        k = r.get("key") or r.get("id")
-        if not k:
-            out.append(r)
-            continue
-        slim = slim_by_key.get(k) or {
-            "key": k,
-            "title": r.get("title"),
-            "folder": r.get("folder"),
-            "status": r.get("status"),
-            "labels": r.get("labels"),
-            "has_objective": r.get("has_objective"),
-            "num_steps": r.get("num_steps"),
-        }
-        full = zm.get(k) or full_map.get(k) or {}
-        desc = _build_zephyr_case_description(slim, full, title_fallback=r.get("title") or "")
-        enriched = {**r, "key": k, "description": desc}
-        if not enriched.get("title"):
-            enriched["title"] = slim.get("title") or full.get("title") or k
-        if not enriched.get("folder"):
-            enriched["folder"] = slim.get("folder") or full.get("folder") or ""
-        out.append(enriched)
-    return out
-
-
 @router.post("/load_case/{key}")
 async def load_case(key: str, data=Depends(get_data)):
     """Load or restore a case: session state only, no per-step candidate retrieval.
@@ -703,7 +528,7 @@ def _step1_testlink_candidates(key: str, sess: WizardSession, data: dict,
         aid = cand.get("id")
         full = testlink.get(aid, {}) or {}
         title = cand.get("title") or full.get("title") or aid
-        rich_desc = (_build_testlink_description(full, title=title)
+        rich_desc = (build_testlink_description(full, title=title)
                      or cand.get("snippet", "") or title or "")
         rows.append({**cand, "title": title, "description": rich_desc})
     return rows
@@ -734,8 +559,8 @@ def _step2_zephyr_candidates(key: str, sess: WizardSession, data: dict,
 def _step3_atp_candidates(key: str, sess: WizardSession, data: dict,
                           case_title: str) -> List[Dict[str, Any]]:
     """Step 3: keyword-scored ATPyLib candidates (the LLM ranking is on-demand)."""
-    q = _build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
-    raw = _get_atp_candidates(q, data, limit=18, mode=_STEP_SEARCH_MODE)
+    q = build_atp_query(sess, case_title=case_title) if sess else (case_title or key or "")
+    raw = get_atp_candidates(q, data, limit=18, mode=_STEP_SEARCH_MODE)
 
     rows: List[Dict[str, Any]] = []
     seen_ids = set()
@@ -746,7 +571,7 @@ def _step3_atp_candidates(key: str, sess: WizardSession, data: dict,
         full_desc = (c.get("description") or "").strip()
         short_title = (c.get("title") or "").strip()
         if not short_title or short_title == full_desc:
-            short_title, full_desc = _split_atp_title_description(
+            short_title, full_desc = db.split_atp_title_description(
                 full_desc or c.get("title") or "", cid)
         rows.append({
             "id": cid,
@@ -990,7 +815,7 @@ async def search_atp(q: str = "", keep_ids: str = "", mode: str = "", data=Depen
     keep = {s for s in (keep_ids or "").split(",") if s}
     # Off the event loop — see search_testlink.
     cands = await run_in_threadpool(
-        _get_atp_candidates, q, data, limit=20, keep_ids=keep, mode=mode)
+        get_atp_candidates, q, data, limit=20, keep_ids=keep, mode=mode)
     return {
         "results": [
             {
@@ -1013,23 +838,16 @@ async def search_atp(q: str = "", keep_ids: str = "", mode: str = "", data=Depen
 # those; this module no longer keeps a private copy (was a drift risk).
 
 
-def _hybrid_on(mode: str) -> bool:
-    """True → use semantic+keyword hybrid; False → keyword only. Default (mode
-    empty/'hybrid'/'semantic') is hybrid when vectors are available, else keyword;
-    'keyword' forces keyword. db.*_hybrid also degrades internally, so this is safe."""
-    return (mode or "").lower() != "keyword" and db.HAS_VEC
-
-
 def _search_testlink(q: str, data: dict, limit: int = 20,
                      keep_ids: Optional[set] = None, mode: str = "") -> List[Dict[str, Any]]:
     """Keyword (or hybrid) search over TestLink. Ranking delegates to db; the
     description is re-enriched with full step text for the UI (Commit B/D)."""
     keep = keep_ids or set()
-    rows = (db.search_testlink_hybrid(q, keep_ids=keep, limit=limit) if _hybrid_on(mode)
+    rows = (db.search_testlink_hybrid(q, keep_ids=keep, limit=limit) if hybrid_on(mode)
             else db.search_testlink(q, keep_ids=keep, limit=limit))
     for r in rows:
         full = data.get("testlink", {}).get(r["id"]) or {}
-        rich = _build_testlink_description(full, title=r.get("title") or "")
+        rich = build_testlink_description(full, title=r.get("title") or "")
         if rich:
             r["description"] = rich
     return rows
@@ -1044,7 +862,7 @@ def _search_zephyr_external(
     mode: str = "",
 ) -> List[Dict[str, Any]]:
     """Keyword (or hybrid) external-Zephyr search, omitting the current Cases list
-    + primary key. Full descriptions filled by _enrich_zephyr_rows (Commit B/D)."""
+    + primary key. Full descriptions filled by descriptions.enrich_zephyr_rows."""
     current_cases = {
         c["key"] for c in data.get("candidates", []) or []
         if c.get("candidates")
@@ -1052,13 +870,13 @@ def _search_zephyr_external(
     if case_key:
         current_cases.add(case_key)
     keep = keep_ids or set()
-    if _hybrid_on(mode):
+    if hybrid_on(mode):
         rows = db.search_zephyr_hybrid(q, case_key=case_key, exclude_keys=current_cases,
                                        keep_ids=keep, limit=limit)
     else:
         rows = db.search_zephyr(q, case_key=case_key, exclude_keys=current_cases,
                                 keep_ids=keep, limit=limit)
-    return _enrich_zephyr_rows(rows, data)
+    return enrich_zephyr_rows(rows, data)
 
 
 @router.get("/search_testlink")
@@ -1131,14 +949,14 @@ def _build_zephyr_query(sess: WizardSession, data: dict, key: str = "",
     for sel in (sess.step1.selections or [])[:6]:
         parts.append(sel.title or "")
 
-    # Deliberately does NOT strip _ZREF_GENERIC_TOKENS. db.search_zephyr does its own
+    # Deliberately does NOT strip db.GENERIC_TOKENS. db.search_zephyr does its own
     # specific/generic split, and since the area tier was added it NEEDS the generic
     # words present to derive area affinity — pre-filtering them here made "port"
     # invisible to db and left the best cross-ref for "Port - Auto Negotiation"
     # stranded at rank 9 of a 12-way tie. Division of labour: this function decides
     # which TEXT is relevant (drop analyst process-prose, ids, bare numbers); db
     # decides how to WEIGHT it (specific / area / ignored).
-    toks = [t for t in _zephyr_tokens(" ".join(parts))
+    toks = [t for t in zephyr_tokens(" ".join(parts))
             if t not in _DECISION_META_TOKENS
             and not t.isdigit() and not t.startswith("awp")]
     # De-dupe while preserving order so a word repeated across parts does not eat
@@ -1146,61 +964,6 @@ def _build_zephyr_query(sess: WizardSession, data: dict, key: str = "",
     seen: set = set()
     ordered = [t for t in toks if not (t in seen or seen.add(t))]
     return " ".join(ordered[:24])
-
-
-def _build_atp_query(sess: WizardSession, case_title: str = "") -> str:
-    """Build a keyword search query from case + previous selections for ATP retrieval."""
-    parts = [sess.key or "", case_title or ""]
-    if sess.primary:
-        parts.append(str(sess.primary.get("w", "")))
-        parts.append(str(sess.primary.get("m", "")))
-    for sel in (sess.step1.selections or []):
-        parts.append(sel.title or "")
-        parts.append(sel.justification or "")
-    for sel in (sess.step2.selections or []):
-        parts.append(sel.title or "")
-    # Prefer specific tokens for search quality
-    raw = " ".join(parts)
-    toks = [t for t in _zephyr_tokens(raw) if t not in _ZREF_GENERIC_TOKENS]
-    # Fall back to raw if everything was filtered
-    return " ".join(toks[:24]) if toks else raw
-
-
-def _split_atp_title_description(full_desc: str, fallback_id: str = "") -> Tuple[str, str]:
-    """Split test_id_description text into short title + full body (no mid-sentence truncation).
-
-    Source format is typically:
-      Short title line
-
-      [Log-derived analysis] Longer paragraph...
-    Title = first non-empty line (before analysis marker). Description = full original text.
-    """
-    full = (full_desc or "").strip()
-    if not full:
-        return (fallback_id or "", "")
-    # Prefer text before the analysis marker as title when present
-    for marker in ("\n\n[", "\n["):
-        idx = full.find(marker)
-        if idx > 0:
-            title = full[:idx].strip().split("\n")[0].strip()
-            if title:
-                return (title, full)
-    # Otherwise first non-empty line is the short title
-    for line in full.splitlines():
-        line = line.strip()
-        if line:
-            return (line, full)
-    return (fallback_id or full[:80], full)
-
-
-def _get_atp_candidates(q: str, data: dict, limit: int = 20,
-                        keep_ids: Optional[set] = None, mode: str = "") -> List[Dict[str, Any]]:
-    """Candidate ATP tests via keyword (or hybrid) search. Full descriptions,
-    short title. keep_ids pool rows always returned, re-scored (Commit B/D)."""
-    keep = keep_ids or set()
-    if _hybrid_on(mode):
-        return db.search_atp_hybrid(q, keep_ids=keep, limit=limit)
-    return db.search_atp(q, keep_ids=keep, limit=limit)
 
 
 def _get_refined_group(case_key: str, data: dict) -> str:
@@ -1237,9 +1000,9 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
         raise HTTPException(404, "Session not found. Load the case first.")
 
     # Build smart query and retrieve candidates
-    q = body.get("q") or _build_atp_query(sess)
+    q = body.get("q") or build_atp_query(sess)
     # Off the event loop — see search_testlink.
-    candidates = await run_in_threadpool(_get_atp_candidates, q, data, limit=25)
+    candidates = await run_in_threadpool(get_atp_candidates, q, data, limit=25)
 
     # Call LLM for selection. _session_llm_cfg applies the workspace LLM at dispatch
     # time so this respects the configured backend even if the session's persisted
@@ -1266,7 +1029,7 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
         base = by_id.get(sid, {})
         info = test_id_desc.get(sid, {}) or {}
         full_desc = (base.get("description") or info.get("description") or "").strip()
-        short_title, full_desc = _split_atp_title_description(
+        short_title, full_desc = db.split_atp_title_description(
             full_desc or base.get("title") or "", sid or ""
         )
         enriched.append({
@@ -1342,7 +1105,7 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
             candidates.append({
                 "id": cid,
                 "title": title,
-                "description": _build_testlink_description(full, title=title)
+                "description": build_testlink_description(full, title=title)
                 or cand.get("snippet")
                 or title
                 or "",
@@ -1372,7 +1135,7 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
         title = base.get("title") or full.get("title") or sid
         full_desc = (
             base.get("description")
-            or _build_testlink_description(full, title=title)
+            or build_testlink_description(full, title=title)
             or base.get("snippet")
             or s.get("reason")
             or ""
@@ -1438,7 +1201,7 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
             "score": base.get("score", 0.85),
             "source": "llm",
         })
-    enriched = _enrich_zephyr_rows(draft, data)
+    enriched = enrich_zephyr_rows(draft, data)
     # Preserve LLM justification after enrich
     just_by = {s.get("id"): s.get("reason") for s in suggestions}
     for row in enriched:

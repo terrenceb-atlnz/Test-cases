@@ -33,7 +33,15 @@ _BLOCKING = {
     "synthesize_objectives_and_steps", "analyze_atp_coverage", "call_llm",
     "_call_llm_raw", "_call_llm_with_meta", "_health_ping",
     "embed_texts", "_get_model",
-    "_search_testlink", "_search_zephyr_external", "_get_atp_candidates",
+    # get_atp_candidates moved to CK_server/wizard/descriptions.py in commit 7 and lost
+    # its underscore (a name another module imports is not private). It is listed under
+    # BOTH names: the new one because that is what the routers call today, the old one
+    # to pin it against revival. This set matches on the CALL NAME, so a router that
+    # imports the module and calls `descriptions.get_atp_candidates(...)` would not be
+    # seen at all — see test_blocking_helpers_are_imported_by_name below, which is what
+    # stops that silently un-covering the handler.
+    "_search_testlink", "_search_zephyr_external",
+    "_get_atp_candidates", "get_atp_candidates",
     # Pure-CPU / filesystem blockers. The list above was all LLM round-trips and
     # sentence-transformer entry points, which is why it never caught
     # _select_related_zephyr_refs: a 45k-row Python scan is neither, so it sat bare
@@ -62,7 +70,12 @@ def _unwrapped_blocking_calls(path):
     return found
 
 
-@pytest.mark.parametrize("router", sorted(_ROUTERS.glob("*.py")), ids=lambda p: p.name)
+# rglob, not glob: PLAN-backend-module-split.md commit 10 turns routers/wizard.py into
+# routers/wizard/, at which point a top-level glob would simply stop matching the wizard
+# handlers and keep passing green — a silent coverage loss. Widened here, ahead of the
+# move, because it costs nothing today (routers/ has no subdirectories yet) and the
+# failure mode is invisible.
+@pytest.mark.parametrize("router", sorted(_ROUTERS.rglob("*.py")), ids=lambda p: p.name)
 def test_no_blocking_calls_on_the_event_loop(router):
     """No async handler may call a blocking function without run_in_threadpool.
 
@@ -86,9 +99,36 @@ def test_export_gaps_call_is_wrapped():
 def test_search_endpoints_are_wrapped():
     """All three review-flagged search endpoints plus load_case's ATP prefetch."""
     src = (_ROUTERS / "wizard.py").read_text(encoding="utf-8")
-    for fn in ("_search_testlink", "_search_zephyr_external", "_get_atp_candidates"):
+    for fn in ("_search_testlink", "_search_zephyr_external", "get_atp_candidates"):
         assert f"run_in_threadpool(\n        {fn}" in src or f"run_in_threadpool({fn}" in src, (
             f"{fn} is never dispatched via run_in_threadpool")
+
+
+def test_blocking_helpers_are_imported_by_name():
+    """A router must import a blocking helper BY NAME, never as `module.helper`.
+
+    _unwrapped_blocking_calls above matches `ast.Name` call targets. That is deliberate
+    — it is also how run_in_threadpool's first argument is recognised — but it means an
+    attribute call is invisible to it. So as Part B moves helpers out of the routers
+    (commit 7 moved get_atp_candidates to CK_server/wizard/descriptions.py), a switch
+    from `from wizard.descriptions import get_atp_candidates` to
+    `from wizard import descriptions` would drop the handler out of the invariant while
+    the whole suite stayed green. This asserts the import style that keeps it covered.
+    """
+    offenders = []
+    for path in sorted(_ROUTERS.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for n in ast.walk(tree):
+            if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                    and n.func.attr in _BLOCKING
+                    and isinstance(n.func.value, ast.Name)
+                    # db.* is the data layer, not a helper that got moved; its search
+                    # entry points are already named individually in _BLOCKING.
+                    and n.func.value.id != "db"):
+                offenders.append(
+                    f"{path.name}:{n.lineno} {n.func.value.id}.{n.func.attr}() — "
+                    "import the name directly so the AST invariant can see it")
+    assert not offenders, "\n  ".join(offenders)
 
 
 def test_embedding_warmup_is_backgrounded_and_non_fatal():
