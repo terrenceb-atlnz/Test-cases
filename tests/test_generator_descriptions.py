@@ -1,4 +1,4 @@
-"""Unit tests for CK_server/wizard/descriptions.py (PLAN-backend-module-split.md, commit 7).
+"""Unit tests for CK_server/generator/descriptions.py (PLAN-backend-module-split.md, commit 7).
 
 Two jobs.
 
@@ -30,7 +30,7 @@ _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "
 
 @pytest.fixture(scope="module")
 def d():
-    import wizard.descriptions as descriptions
+    import generator.descriptions as descriptions
     return descriptions
 
 
@@ -268,7 +268,7 @@ def test_the_generic_token_stoplist_is_defined_only_in_db(name):
     """It was byte-identical in db.py and wizard.py — two copies of the vocabulary that
     decides what every search ranks on. Whichever name it goes by, db owns the only one.
     """
-    others = [rel for rel in ("routers/wizard.py", "wizard/descriptions.py")
+    others = [rel for rel in ("routers/wizard.py", "generator/descriptions.py")
               if _module_defines(rel, name)]
     assert not others, f"{name} redefined outside db.py in {others}"
     if name == "GENERIC_TOKENS":
@@ -282,21 +282,15 @@ def test_the_atp_title_split_is_defined_only_in_db(name):
     identical. db.search_atp calls it, so db is where it has to live — a router-owned
     copy would make the data layer depend on the route layer to split its own rows.
     """
-    others = [rel for rel in ("routers/wizard.py", "wizard/descriptions.py")
+    others = [rel for rel in ("routers/wizard.py", "generator/descriptions.py")
               if _module_defines(rel, name)]
     assert not others, f"{name} redefined outside db.py in {others}"
 
 
-def test_descriptions_never_imports_the_router_layer():
-    """The dependency runs one way. If this module ever imports routers.*, the split has
-    achieved nothing and the import cycle is one edit away.
-    """
-    tree = ast.parse((_SERVER / "wizard" / "descriptions.py").read_text(encoding="utf-8"))
-    bad = [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)
-           if (n.module or "").startswith("routers")]
-    bad += [a.name for n in ast.walk(tree) if isinstance(n, ast.Import)
-            for a in n.names if a.name.startswith("routers")]
-    assert not bad, f"wizard/descriptions.py imports the router layer: {bad}"
+# test_descriptions_never_imports_the_router_layer lived here until commit 10's rename.
+# tests/test_shared_modules_decoupling.py::test_the_shared_leaves_never_import_a_router is
+# the same assertion parametrized over EVERY extracted leaf, so this narrower copy is gone
+# rather than repaired — it only ever covered one of the six.
 
 
 def test_the_extracted_helpers_left_the_router():

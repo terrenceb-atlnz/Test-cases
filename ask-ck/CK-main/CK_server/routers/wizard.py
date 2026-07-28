@@ -77,8 +77,8 @@ from session_store import (
     persist_session,
     sessions,
 )
-from wizard.backfill import backfill_from_refined
-from wizard.gates import (
+from generator.backfill import backfill_from_refined
+from generator.gates import (
     can_synthesize,
     can_synthesize_steps,
     invalidate_downstream,
@@ -91,7 +91,7 @@ from wizard.gates import (
 # tests/test_event_loop_blocking_batch_b.py matches an unwrapped blocking call by
 # `ast.Name`, so calling these as `descriptions.get_atp_candidates(...)` would pass
 # the check without being covered by it — a silent loss of the threadpool guarantee.
-from wizard.descriptions import (
+from generator.descriptions import (
     build_atp_query,
     build_testlink_description,
     enrich_zephyr_rows,

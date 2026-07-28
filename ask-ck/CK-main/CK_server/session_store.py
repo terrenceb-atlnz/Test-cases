@@ -46,6 +46,17 @@ from timeutil import utc_now
 
 log = logging.getLogger(__name__)
 
+
+class SessionWriteError(RuntimeError):
+    """A session write did not reach ck.db. The user's work is gone; say so.
+
+    A DOMAIN error, not an HTTPException, so this module stays framework-free (tool/
+    scripts and unit tests import it with no app in play, and an HTTPException raised
+    outside a request is meaningless). `main.py` registers one app-wide handler that
+    turns it into a 500 carrying this message, so no call site needs to remember.
+    """
+
+
 # The kind discriminator on the ck.db `sessions` table. pytest_create uses 'pt' through
 # its own layer (see deviation 1 above).
 KIND = "wizard"
@@ -57,18 +68,28 @@ sessions: Dict[str, WizardSession] = {}
 def persist_session(sess: WizardSession) -> None:
     """Persist full session (confirmed flags + selections + step4/5) to ck.db
     (Commit C). llm_config is split into its own column by db.save_session. The
-    old sessions/{key}.json file stays in place as a frozen pre-migration backup."""
+    old sessions/{key}.json file stays in place as a frozen pre-migration backup.
+
+    Failures are RAISED, not swallowed (2026-07-28, user decision). This used to
+    `log.error(...)` and return, so a handler completed with 200 while the user's
+    confirmed selections or synthesized objective never reached the DB — and nothing in
+    the response said so. `pytest_create._pt_persist` had exactly that shape and was
+    changed to raise for exactly that reason: silently losing work made "never trust the
+    200" a documented workaround. The two halves now agree.
+
+    The log line stays, at ERROR with the traceback, because the message alone
+    ("database is locked", "no such table") does not say which caller lost data — and the
+    500 body is what the browser shows, so it must be actionable on its own.
+    """
     sess.updated_at = utc_now()
     try:
         data = model_to_dict(sess)
         db.save_session(KIND, sess.key, data)
-    except Exception:
-        # ERROR, not warning: a swallowed failure here loses the user's confirmed
-        # selections and objective while the handler still returns 200. This is the
-        # wizard-side twin of the known stale-thread-local-connection bug, where the
-        # write silently never reaches ck.db. Keep the traceback — the message alone
-        # ("database is locked", "no such table") does not say which caller lost data.
+    except Exception as e:
         log.error("failed to persist session %s — CHANGES WERE LOST", sess.key, exc_info=True)
+        raise SessionWriteError(
+            f"Could not save session {sess.key} to the database: {e}. "
+            f"Your work was NOT saved — retry, and check the server log.") from e
 
 
 def load_persisted(key: str) -> Optional[WizardSession]:

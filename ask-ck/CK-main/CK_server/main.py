@@ -31,7 +31,7 @@ This replaces the old single-file static approach.
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, Response
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
@@ -60,8 +60,11 @@ logging.basicConfig(
     force=True,
 )
 
+log = logging.getLogger(__name__)
+
 from data import load_all_data
 from paths import PROCESS_MD
+from session_store import SessionWriteError
 from routers.wizard import router as wizard_router
 from routers.zephyr_tool import router as zephyr_tool_router
 from routers.test_composer import router as test_composer_router
@@ -91,6 +94,25 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(SessionWriteError)
+async def _session_write_failed(request: Request, exc: SessionWriteError):
+    """A session write that never reached ck.db must fail the request, not return 200.
+
+    session_store.persist_session used to log the failure and carry on, so a handler
+    answered 200 while the user's confirmed selections or synthesized objective were
+    gone — and nothing in the response said so. pytest_create._pt_persist had the same
+    shape and was already changed to raise, because silently losing work is what made
+    "never trust the 200" a documented workaround.
+
+    Handled here rather than in session_store so that module stays framework-free (see
+    its SessionWriteError docstring), and here rather than at each call site so none of
+    them can forget. The exception's own message is the body — it already names the case
+    and says the work was not saved.
+    """
+    log.error("session write failed on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
 @app.middleware("http")

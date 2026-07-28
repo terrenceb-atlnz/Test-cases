@@ -32,8 +32,8 @@ from models import WizardSession, Selection
 # the one dict object both the router and session_store hold.
 from routers.wizard import sessions
 from session_store import clear_persisted
-from wizard.backfill import backfill_from_refined
-from wizard.gates import (
+from generator.backfill import backfill_from_refined
+from generator.gates import (
     can_synthesize,
     invalidate_downstream,
     selection_fingerprint,

@@ -33,7 +33,7 @@ _BLOCKING = {
     "synthesize_objectives_and_steps", "analyze_atp_coverage", "call_llm",
     "_call_llm_raw", "_call_llm_with_meta", "_health_ping",
     "embed_texts", "_get_model",
-    # get_atp_candidates moved to CK_server/wizard/descriptions.py in commit 7 and lost
+    # get_atp_candidates moved to CK_server/generator/descriptions.py in commit 7 and lost
     # its underscore (a name another module imports is not private). It is listed under
     # BOTH names: the new one because that is what the routers call today, the old one
     # to pin it against revival. This set matches on the CALL NAME, so a router that
@@ -115,9 +115,9 @@ def test_blocking_helpers_are_imported_by_name():
     _unwrapped_blocking_calls above matches `ast.Name` call targets. That is deliberate
     — it is also how run_in_threadpool's first argument is recognised — but it means an
     attribute call is invisible to it. So as Part B moves helpers out of the routers
-    (commit 7 moved get_atp_candidates to CK_server/wizard/descriptions.py), a switch
-    from `from wizard.descriptions import get_atp_candidates` to
-    `from wizard import descriptions` would drop the handler out of the invariant while
+    (commit 7 moved get_atp_candidates to CK_server/generator/descriptions.py), a switch
+    from `from generator.descriptions import get_atp_candidates` to
+    `from generator import descriptions` would drop the handler out of the invariant while
     the whole suite stayed green. This asserts the import style that keeps it covered.
     """
     offenders = []

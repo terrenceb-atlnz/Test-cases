@@ -123,7 +123,7 @@ def _json(s: Optional[str], default):
 # ─────────────────────────────────────────────────────────────────────────────
 # THE definition of the stoplist. It was duplicated byte-for-byte in wizard.py, which
 # is the drift risk the "no private copy here" comment below already claimed had been
-# eliminated; wizard/descriptions.py now reads this one (PLAN-backend-module-split.md
+# eliminated; generator/descriptions.py now reads this one (PLAN-backend-module-split.md
 # commit 7). Public, because another module imports it.
 GENERIC_TOKENS = frozenset({
     "port", "ports", "ipv4", "ipv6", "ip", "switch", "switches", "interface",

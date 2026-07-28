@@ -1,7 +1,7 @@
 """Unit tests for the Generator's state machine, backfill, and session store.
 
 PLAN-backend-module-split.md commit 9 moved these out of `routers/wizard.py` into
-`CK_server/wizard/gates.py`, `CK_server/wizard/backfill.py` and
+`CK_server/generator/gates.py`, `CK_server/generator/backfill.py` and
 `CK_server/session_store.py`. They are the rules that make the Generator a gated wizard
 rather than a form, and until the move nothing could call them without a TestClient.
 
@@ -33,7 +33,7 @@ def _confirmed(sess=None):
 # --- gates -------------------------------------------------------------------
 
 def test_objective_synthesis_needs_all_three_reviews():
-    from wizard.gates import can_synthesize
+    from generator.gates import can_synthesize
 
     sess = WizardSession(key="AWPTCM-T99991")
     assert not can_synthesize(sess)
@@ -46,7 +46,7 @@ def test_objective_synthesis_needs_all_three_reviews():
 def test_step_five_needs_the_reviews_AND_an_objective():
     """Both conditions, and in that order — the ordering is what makes the 400 messages
     actionable (a user with no reviews should not be told to write an objective)."""
-    from wizard.gates import can_synthesize_steps
+    from generator.gates import can_synthesize_steps
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = {"objective": "<ul><li>a</li></ul>"}
@@ -61,7 +61,7 @@ def test_step_five_needs_the_reviews_AND_an_objective():
 def test_an_unconfirmed_objective_still_opens_step_five():
     """Deliberate: a re-run after synthesize_objectives must work without an extra click.
     The UI still prompts to confirm."""
-    from wizard.gates import can_synthesize_steps
+    from generator.gates import can_synthesize_steps
 
     sess = _confirmed()
     sess.step4 = {"objective": "<ul><li>a</li></ul>", "confirmed": False}
@@ -69,7 +69,7 @@ def test_an_unconfirmed_objective_still_opens_step_five():
 
 
 def test_objective_reader_trims_and_tolerates_every_empty_shape():
-    from wizard.gates import session_has_objective, session_objective
+    from generator.gates import session_has_objective, session_objective
 
     sess = WizardSession(key="AWPTCM-T99991")
     assert session_objective(sess) == "" and not session_has_objective(sess)
@@ -85,7 +85,7 @@ def test_objective_reader_trims_and_tolerates_every_empty_shape():
 def test_objective_reader_returns_empty_for_a_non_dict_step4():
     """The isinstance guard's else branch. If step4 were ever a pydantic model this is the
     path every gate would take — see the module docstring and SURVEY-step4-step5.md."""
-    from wizard.gates import session_objective
+    from generator.gates import session_objective
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = "not a dict"
@@ -97,7 +97,7 @@ def test_objective_reader_returns_empty_for_a_non_dict_step4():
 def test_fingerprint_ignores_order_and_justification_but_not_the_ids():
     """It exists to tell a real change from a harmless re-confirm, so re-clicking Confirm
     never throws away a good objective."""
-    from wizard.gates import selection_fingerprint
+    from generator.gates import selection_fingerprint
 
     a, b = WizardSession(key="AWPTCM-T99991"), WizardSession(key="AWPTCM-T99991")
     a.step1.selections = [Selection(id_or_key="X", title="x", justification="one", order=0),
@@ -112,7 +112,7 @@ def test_fingerprint_ignores_order_and_justification_but_not_the_ids():
 
 def test_fingerprint_distinguishes_none_selected_from_nothing_chosen():
     """"I reviewed and nothing applies" is a decision; "not looked at yet" is not."""
-    from wizard.gates import selection_fingerprint
+    from generator.gates import selection_fingerprint
 
     a, b = WizardSession(key="AWPTCM-T99991"), WizardSession(key="AWPTCM-T99991")
     b.step1.none_selected = True
@@ -120,14 +120,14 @@ def test_fingerprint_distinguishes_none_selected_from_nothing_chosen():
 
 
 def test_fingerprint_of_a_nonexistent_step_is_empty():
-    from wizard.gates import selection_fingerprint
+    from generator.gates import selection_fingerprint
     assert selection_fingerprint(WizardSession(key="AWPTCM-T99991"), 99) == ()
 
 
 # --- invalidation cascade ----------------------------------------------------
 
 def test_invalidation_only_fires_on_a_real_change():
-    from wizard.gates import invalidate_downstream
+    from generator.gates import invalidate_downstream
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = {"objective": "<ul><li>a</li></ul>", "confirmed": True}
@@ -138,7 +138,7 @@ def test_invalidation_only_fires_on_a_real_change():
 
 def test_invalidation_keeps_the_content_and_clears_only_the_review_claim():
     """The user may want to edit rather than regenerate, so the generated text stays."""
-    from wizard.gates import invalidate_downstream
+    from generator.gates import invalidate_downstream
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = {"objective": "<ul><li>a</li></ul>", "confirmed": True,
@@ -159,7 +159,7 @@ def test_invalidation_keeps_the_content_and_clears_only_the_review_claim():
 
 def test_an_unconfirmed_objective_is_not_invalidated_again():
     """Nothing to withdraw: it was never claimed as reviewed."""
-    from wizard.gates import invalidate_downstream
+    from generator.gates import invalidate_downstream
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = {"objective": "<ul><li>a</li></ul>", "confirmed": False}
@@ -168,7 +168,7 @@ def test_an_unconfirmed_objective_is_not_invalidated_again():
 
 
 def test_empty_test_steps_are_not_marked_stale():
-    from wizard.gates import invalidate_downstream
+    from generator.gates import invalidate_downstream
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step5 = {"testScript": {"type": "steps", "steps": []}}
@@ -178,7 +178,7 @@ def test_empty_test_steps_are_not_marked_stale():
 # --- legacy migration --------------------------------------------------------
 
 def test_legacy_test_script_migrates_step4_to_step5_without_destroying_it():
-    from wizard.gates import migrate_legacy_step4_to_step5
+    from generator.gates import migrate_legacy_step4_to_step5
 
     ts = {"type": "steps", "steps": [{"description": "d", "expectedResult": "e"}]}
     sess = WizardSession(key="AWPTCM-T99991")
@@ -190,7 +190,7 @@ def test_legacy_test_script_migrates_step4_to_step5_without_destroying_it():
 
 
 def test_migration_never_overwrites_a_current_step5():
-    from wizard.gates import migrate_legacy_step4_to_step5
+    from generator.gates import migrate_legacy_step4_to_step5
 
     sess = WizardSession(key="AWPTCM-T99991")
     sess.step4 = {"testScript": {"steps": [{"description": "OLD"}]}}
@@ -218,8 +218,8 @@ def refined(tmp_path, monkeypatch):
 def test_backfill_restores_both_fields_and_confirms_the_reviews(refined):
     """A Complete bundle proves the three reviews were done, so the export gate must open —
     otherwise all 43 existing bundles 400 on re-export for work already finished."""
-    from wizard.backfill import backfill_from_refined
-    from wizard.gates import can_synthesize
+    from generator.backfill import backfill_from_refined
+    from generator.gates import can_synthesize
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, {key: {
@@ -240,7 +240,7 @@ def test_backfill_restores_both_fields_and_confirms_the_reviews(refined):
 def test_backfill_sanitizes_the_objective_it_reads_from_disk(refined):
     """Legacy bundles predate objective sanitization, and this is a stored-XSS path: the
     objective is rendered in the browser."""
-    from wizard.backfill import backfill_from_refined
+    from generator.backfill import backfill_from_refined
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, {key: {
@@ -255,7 +255,7 @@ def test_backfill_sanitizes_the_objective_it_reads_from_disk(refined):
 def test_backfill_is_a_noop_when_the_session_already_has_the_synthesis(refined):
     """Otherwise it would re-fire on every /load_case for all 43 Complete cases and clobber
     the session's own objective — the hazard that helped get commit 6 dropped."""
-    from wizard.backfill import backfill_from_refined
+    from generator.backfill import backfill_from_refined
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, {key: {"objective": "<ul><li>DISK</li></ul>",
@@ -269,7 +269,7 @@ def test_backfill_is_a_noop_when_the_session_already_has_the_synthesis(refined):
 
 def test_backfill_accepts_the_direct_inner_shape(refined):
     """Two shapes exist on disk: keyed by case, and {objective, testScript} at top level."""
-    from wizard.backfill import backfill_from_refined
+    from generator.backfill import backfill_from_refined
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, {"objective": "<ul><li>a</li></ul>",
@@ -280,8 +280,8 @@ def test_backfill_accepts_the_direct_inner_shape(refined):
 
 def test_backfill_refuses_an_unreadable_bundle_without_confirming_anything(refined):
     """One real bundle (AWPTCM-T37861) ships invalid JSON. It must not half-confirm."""
-    from wizard.backfill import backfill_from_refined
-    from wizard.gates import can_synthesize
+    from generator.backfill import backfill_from_refined
+    from generator.gates import can_synthesize
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, "{ not valid json ")
@@ -291,8 +291,8 @@ def test_backfill_refuses_an_unreadable_bundle_without_confirming_anything(refin
 
 
 def test_backfill_does_nothing_without_a_bundle(refined):
-    from wizard.backfill import backfill_from_refined
-    from wizard.gates import can_synthesize
+    from generator.backfill import backfill_from_refined
+    from generator.gates import can_synthesize
 
     sess = WizardSession(key="AWPTCM-T99993")
     assert backfill_from_refined(sess) is False
@@ -302,7 +302,7 @@ def test_backfill_does_nothing_without_a_bundle(refined):
 def test_backfill_leaves_an_already_confirmed_step_alone(refined):
     """A real in-session confirm must not be relabelled as backfilled — that is the only
     thing distinguishing the two provenances."""
-    from wizard.backfill import backfill_from_refined
+    from generator.backfill import backfill_from_refined
 
     key = "AWPTCM-T99992"
     _bundle(refined, key, {key: {"objective": "<ul><li>a</li></ul>",
@@ -335,13 +335,15 @@ def test_persist_stamps_updated_at_as_aware_utc(monkeypatch):
     assert sess.updated_at.tzinfo is not None
 
 
-def test_persist_swallows_a_failure_but_records_it_as_a_lost_write(monkeypatch, caplog):
-    """Deliberately different from pytest_create._pt_persist, which RAISES 500.
+def test_persist_raises_and_logs_when_the_write_does_not_land(monkeypatch, caplog):
+    """A lost write must fail the request, not return 200 (2026-07-28, user decision).
 
-    Both are intentional and the asymmetry is documented in session_store's docstring: the
-    pt side was changed to raise because a 200 with no write had made "never trust the 200"
-    a documented workaround. If this is ever unified, it is a behaviour decision, not a
-    refactor — so pin what this half does today.
+    This used to log ERROR and carry on, so a confirm or an export answered 200 with the
+    user's work gone and nothing in the response saying so. pytest_create._pt_persist had
+    exactly that shape and was already changed to raise — the asymmetry is now closed.
+
+    A DOMAIN error, not HTTPException: session_store must stay framework-free. main.py
+    registers the app-wide handler that turns it into the 500.
     """
     import logging
 
@@ -352,11 +354,45 @@ def test_persist_swallows_a_failure_but_records_it_as_a_lost_write(monkeypatch, 
 
     monkeypatch.setattr(store.db, "save_session", _boom)
     with caplog.at_level(logging.DEBUG, logger="session_store"):
-        store.persist_session(WizardSession(key="AWPTCM-T99994"))   # must not raise
+        with pytest.raises(store.SessionWriteError) as exc:
+            store.persist_session(WizardSession(key="AWPTCM-T99994"))
 
+    assert "AWPTCM-T99994" in str(exc.value) and "NOT saved" in str(exc.value), (
+        "the message becomes the 500 body, so it must name the case and say work was lost")
+    assert exc.value.__cause__ is not None, "keep the original error chained"
     rec = [r for r in caplog.records if "AWPTCM-T99994" in r.getMessage()]
     assert rec and rec[0].levelno == logging.ERROR
     assert rec[0].exc_info is not None, "keep the traceback"
+
+
+def test_a_lost_write_surfaces_as_a_500_not_a_200(client, monkeypatch):
+    """End-to-end through the real app: the handler must be registered and must fire.
+
+    Raising is only half the fix — without main.py's exception handler this surfaces as a
+    bare unhandled 500 with no actionable body, and if any call site swallowed it, as a 200
+    again.
+
+    The session must be SEEDED first. Without it confirm_step 404s ("Call load_case
+    first") before it ever reaches persist, and a test that accepts 404 proves nothing —
+    which is exactly what the first version of this test did.
+    """
+    import db as real_db
+    import session_store as store
+
+    key = "AWPTCM-T99988"
+    store.sessions[key] = WizardSession(key=key)
+    monkeypatch.setattr(real_db, "save_session",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("disk full")))
+    try:
+        r = client.post(f"/api/wizard/confirm_step/{key}/1",
+                        json={"selections": [{"id_or_key": "AWP-1", "title": "t"}]})
+    finally:
+        store.sessions.pop(key, None)
+
+    assert r.status_code == 500, (
+        f"a lost write returned {r.status_code}, not 500 — the user was told their work "
+        f"was saved when it was not. Body: {r.text[:200]}")
+    assert "NOT saved" in r.json().get("detail", ""), r.json()
 
 
 def test_load_returns_none_rather_than_raising_on_an_invalid_stored_row(monkeypatch):

@@ -103,6 +103,22 @@ def session_progress_map() -> Dict[str, dict]:
         return {}
 
 
+def _case_sort_key(key: str):
+    """Sort AWPTCM-Txxxx NUMERICALLY on the test id, not lexically.
+
+    Was `k.split("-T")[-1]`, a STRING compare, so AWPTCM-T100 sorted before AWPTCM-T9.
+    Invisible today because every real key is AWPTCM-T + five digits, where lexical and
+    numeric orders coincide — but the dropdowns are what a user scans to find a case, and
+    the first four- or six-digit id would land in the wrong place with no clue why.
+
+    Non-numeric ids (and the `pt-` prefixed pt session keys) still sort, after the numeric
+    ones, by their text: the tuple's first element separates the two classes so int and str
+    are never compared.
+    """
+    tail = key.split("-T")[-1] if "-T" in key else key
+    return (0, int(tail), "") if tail.isdigit() else (1, 0, tail)
+
+
 def build_case_groups(keys, zephyr: dict) -> List[dict]:
     """Group case keys by Zephyr folder leaf for optgroups."""
     groups: Dict[str, List[str]] = {}
@@ -111,7 +127,7 @@ def build_case_groups(keys, zephyr: dict) -> List[dict]:
         group = folder.rstrip("/").split("/")[-1] if folder else "Other"
         groups.setdefault(group, []).append(key)
     for g in groups:
-        groups[g].sort(key=lambda k: (k.split("-T")[-1] if "-T" in k else k))
+        groups[g].sort(key=_case_sort_key)
     grouped = []
     for g in sorted(groups.keys()):
         case_list = groups[g]

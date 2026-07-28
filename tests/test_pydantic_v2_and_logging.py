@@ -51,7 +51,7 @@ _HEDGE_FILES = [_WIZARD, _PYTEST_CREATE, _MODELS, _SESSION_STORE]
 _LOGGING_FILES = [
     _WIZARD, _SESSION_STORE,
     _SERVER / "llm_config.py", _SERVER / "case_registry.py",
-    _SERVER / "wizard" / "backfill.py",
+    _SERVER / "generator" / "backfill.py",
 ]
 
 
@@ -271,7 +271,10 @@ def test_losing_a_session_write_is_logged_at_error(caplog, monkeypatch):
     monkeypatch.setattr(session_store.db, "save_session", _boom)
     sess = WizardSession(key="AWPTCM-T99991")
     with caplog.at_level(logging.DEBUG, logger="session_store"):
-        session_store.persist_session(sess)          # must swallow, not raise
+        # Raises since 2026-07-28 (a lost write must not return 200); the logging
+        # contract this test exists for is unchanged.
+        with pytest.raises(session_store.SessionWriteError):
+            session_store.persist_session(sess)
 
     records = [r for r in caplog.records if "AWPTCM-T99991" in r.getMessage()]
     assert records, "a failed persist logged nothing at all"

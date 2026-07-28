@@ -29,7 +29,7 @@ import pytest
 _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "CK_server"
 _ROUTERS = _SERVER / "routers"
 _LEAVES = ("llm_config.py", "case_registry.py", "session_store.py",
-           "wizard/descriptions.py", "wizard/gates.py", "wizard/backfill.py")
+           "generator/descriptions.py", "generator/gates.py", "generator/backfill.py")
 
 
 def _imports(path):
@@ -226,12 +226,27 @@ def test_build_case_groups_labels_counts_and_sorts_numerically():
     groups = cr.build_case_groups(list(zephyr), zephyr)
     assert [g["label"] for g in groups] == ["IPv4 (1)", "Other (1)", "Port (2)"]
     port = next(g for g in groups if g["label"].startswith("Port"))
-    assert [c["key"] for c in port["cases"]] == ["AWPTCM-T100", "AWPTCM-T9"], (
-        "the sort key is k.split('-T')[-1], a STRING, so ordering is lexical: '100' sorts "
-        "before '9'. Harmless today because every real key is AWPTCM-T + 5 digits, so "
-        "lexical and numeric agree — pinned as current behaviour, not as desirable. "
-        "Making it int() is a behaviour change and does not belong in a move commit.")
+    assert [c["key"] for c in port["cases"]] == ["AWPTCM-T9", "AWPTCM-T100"], (
+        "case ids must sort NUMERICALLY. The sort key was k.split('-T')[-1], a string, so "
+        "T100 came before T9 — invisible while every real key is AWPTCM-T + 5 digits, and "
+        "wrong the moment a four- or six-digit id appears (2026-07-28)")
     assert next(g for g in groups if g["label"] == "Other (1)")["cases"][0]["title"] == "AWPTCM-T7"
+
+
+def test_case_ids_that_are_not_numeric_still_sort_without_raising():
+    """int() vs str() in one sort key is a TypeError, so the classes must be separated.
+
+    Reachable: pt session keys are `pt-AWPTCM-Txxxx`, and a malformed row in ck.db is not
+    validated on the way to this function.
+    """
+    import case_registry as cr
+    zephyr = {k: {"folder": "/Root/Port"} for k in
+              ("AWPTCM-T9", "AWPTCM-T100", "AWPTCM-TABC", "not-a-key", "pt-AWPTCM-T5")}
+    cases = cr.build_case_groups(list(zephyr), zephyr)[0]["cases"]
+    keys = [c["key"] for c in cases]
+    assert keys[:3] == ["pt-AWPTCM-T5", "AWPTCM-T9", "AWPTCM-T100"], (
+        f"numeric ids must sort numerically and come first; got {keys}")
+    assert set(keys[3:]) == {"AWPTCM-TABC", "not-a-key"}
 
 
 def test_complete_is_defined_by_the_payload_file(tmp_path, monkeypatch):
