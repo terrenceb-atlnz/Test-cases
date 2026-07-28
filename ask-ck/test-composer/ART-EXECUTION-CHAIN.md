@@ -52,6 +52,12 @@
   the explicit `-s <file>` argument.
 - **Why here:** a testset can't `init()` its devices without it. **This is the one hard
   dependency the DIRECT single-script path shares** (`-s <setup>`).
+- **Full schema + a real worked example:**
+  **[`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](../pytest-create/SETUP-FILE-REFERENCE.md)**
+  — every section `Setup.py` parses, with `[stack]` (stack membership),
+  `[configured_stackport]` (ports a test must never touch) and
+  `[portlink] tb-swi_X = ethN-portA.B.C` (testbox NIC ↔ switch port cabling) called out,
+  since those three are declared here and must never be inferred from case text.
 
 ### 3. (optional) Firmware build load — `-b <buildname>`
 - **What:** `runAll.py` can download + install a firmware build before running
@@ -147,6 +153,10 @@ the test SCRIPT only; setup/config are environment inputs.
 
 ## Open verifications (do on the first real tb470 run)
 - [ ] Does the direct `-s` single-script path need `config.cfg`, or only the `.setup`?
-- [ ] Exact `.setup` schema needed for tb470 (device on u5) — capture a working example.
+- [x] Exact `.setup` schema needed for tb470 (device on u5) — captured 2026-07-28 in
+      **[`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](../pytest-create/SETUP-FILE-REFERENCE.md)**:
+      a real worked example plus every section `Setup.py` accepts, including `[stack]`,
+      `[configured_stackport]`, and the `tb-swi_X = ethN-portA.B.C` cabling convention.
+      Writing `configs/tb470.setup` still needs tb470's device list and cabling.
 - [ ] Whether `noconf` behavior matters for our generated tests (do we want the
       framework's default-config/power-cycle hygiene, or skip it for speed?).

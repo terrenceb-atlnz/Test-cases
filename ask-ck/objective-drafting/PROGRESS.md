@@ -4,6 +4,65 @@
 
 **Last Updated**: 2026-07-28 (by Claude)
 
+## Latest session (2026-07-28d) — first real CLI session on hardware; it falsified a documented rule
+
+> **Note on this log:** `SESSION_STATE.md` already uses `2026-07-28c` for the Generator
+> deferred-per-step-loading work (`PLAN-backend-module-split.md` A1). PROGRESS has **no**
+> entry for A1-A5 (`0c06586`…`0b47926`) — those six commits are recorded in SESSION_STATE
+> and the plan's status header only. Left for whoever did that work; noted here so the
+> next session does not read PROGRESS's top entry as covering it.
+
+**Focus: drove a live device for the first time (tb105 `u5`, an 8-member x950 stack), then
+reviewed the project's CLI-facing surfaces against what the hardware actually reports. The
+headline is that a rule stated in three places was simply wrong, and only hardware showed it.**
+
+- **"The FIRST index is the chassis/slot" was false — it is the STACK MEMBER.** In
+  `portA.B.C`, A is the stack member, B is the bay (0 = base board, 1+ = a populated
+  expansion slot), C the port. The live stack reported `port1.0.x`–`port8.1.x`, its first
+  index tracking `show stack` member IDs 1-8 exactly, with members 5-8 each carrying a
+  `.0.` base board AND a `.1.` expansion slot. The claim sat in `pt_generate_script.jinja`,
+  the port-hardcode lint's own comment, AND `test_cli_feature_grounding.py`'s docstring —
+  each contradicting itself, since all three illustrated it with `port1.1.x`, a change to
+  the SECOND index. Per the governing lesson (the model implements the EXAMPLE), generated
+  code was mostly unharmed; the wrong *rule* was the defect, because it leaves no concept
+  that ports span members. All three corrected.
+- **The harvested reference proved it independently, and the first test I wrote was wrong.**
+  That test assumed every doc example was single-unit and asserted the first index was
+  pinned at 1. It failed — `show stack resiliencylink`, `show platform`, `show powerinline`
+  and `show udld port` all print `port2.x.y`. The failure was the better evidence: doc
+  examples number a second UNIT, never a second chassis, and `show stack resiliencylink`
+  carries both `port2.0.11` and `port2.2.11`, so one unit presents two bays under one first
+  index. Now the assertion.
+- **Two new lint warnings, from hazards only visible on real hardware.** (1) `interface
+  eth0` under config — eth0 reports `Vlan: none` and is in no VLAN, but still appears in
+  `show interface status` as an ordinary connected row. (2) A loop that enumerates
+  interface rows and then drives the device with no `stackport` exclusion — stack links
+  appear in that table with `stackport` in the Vlan column, so such a loop can split the
+  stack mid-run. Both key off code shape, not case text. Zero false positives across all
+  three real generated scripts.
+- **A stack-detection alias set was built and then REVERTED — Terrence caught it.** The
+  `.setup` file already declares stack membership (`[stack]`), the ports never to touch
+  (`[configured_stackport]`) and the testbox cabling (`[portlink] tb-swi_X = ethN-portA.B.C`);
+  inferring any of it from case prose repeats the exact mistake this project already
+  recorded for port naming ("a RUNTIME hardware property — take it from the .setup, do not
+  guess"). Measured before reverting: `_STK_RX` hits 192/195 corpus scripts that call
+  `init_stk` (98%) but 0/4 stack cases written in prose — so the gate would have failed
+  silently on precisely the new cases it was for. The right fix is to PARSE the `.setup`,
+  which nothing in `CK_server` does today; that would make the stackport rule exact instead
+  of heuristic. Not started.
+- **`.setup` schema captured at last** — `ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`,
+  from a real testbox, closing the open TODO in `ART-EXECUTION-CHAIN.md` that asked for a
+  working example. Also records `[switch] swi_a = /dev/u0` (the console mapping is the same
+  `uN` namespace as the shell aliases) and that TFTP boot means CLEARING `[boot_from_flash]`,
+  not setting it False. Writing `configs/tb470.setup` now needs only tb470's device list and
+  cabling — the schema is no longer the blocker.
+- **Session count discrepancy left alone:** the corpus port-literal count is cited as 350 in
+  the generate prompt and 125 in the lint comment and test docstring. An independent count
+  here gave 294 literals / 9,923 bound uses, matching neither — the counting method differs.
+  Not reconciled; needs whoever took the original measurement.
+- **Tests 393 → 424 pytest** (5 mine; the rest another stream's ck.db-isolation work, still landing at time of writing — re-check before commit) + 85
+  Vitest, both guards green.
+
 ## Latest session (2026-07-28b) — the prompts were the defect, ~14 fixes, venv on 3.13
 
 **Focus: "prioritize improving the prompts, the judges are a symptom not the cause"

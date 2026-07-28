@@ -215,13 +215,17 @@ def test_prompts_require_asserting_on_the_feature():
 # --- port names must come from the .setup topology -------------------------------------
 
 def test_port_hardcode_lint_matches_real_literals_only():
-    """A literal port name is wrong on chassis platforms and on a populated-slot x950.
+    """A literal port name is wrong on a stack member, a chassis, and a populated-slot x950.
 
-    The FIRST index of an AW+ port name is the chassis/slot, so `'port1.0.1'` is not a
-    safe default — x8100/x908gen2/x908gen3 use `port1.1.x`, and so does an x950 once its
-    card slot is populated (a RUNTIME property, not a per-model one). Ports must come from
-    the .setup topology via the attribute `init_portlink()` binds; the corpus does this
-    10,578 times vs 125 literals.
+    In `portA.B.C`, A is the STACK MEMBER and B is the BAY (0 = base board, 1+ = a
+    populated expansion slot) — corrected 2026-07-28 against a live 8-member x950 stack
+    that reported port1.0.x-port8.1.x, its first index tracking `show stack` member IDs
+    1-8 and members 5-8 carrying both a `.0.` base board and a `.1.` expansion slot.
+    So `'port1.0.1'` is not a safe default: x8100/x908gen2/x908gen3 use `port1.1.x`, so
+    does an x950 once its card slot is populated (a RUNTIME property, not a per-model
+    one), and on a stack every member but the first uses `port2.0.x` … `port8.0.x`.
+    Ports must come from the .setup topology via the attribute `init_portlink()` binds;
+    the corpus does this 10,578 times vs 125 literals.
 
     Warning-not-error is deliberate: `invalidIfRangeList.append('port1.0.1')` is a
     legitimate literal feeding a negative test.
@@ -397,3 +401,83 @@ def test_port_literals_in_prose_are_not_flagged():
         assert prose_rx.match(line), f"should be treated as prose: {line.strip()!r}"
     for line in real:
         assert not prose_rx.match(line), f"should NOT be excused: {line.strip()!r}"
+
+
+# --- stack + management-port hazards (2026-07-28, from a live 8-member x950 stack) ------
+
+def _lint_warnings(code: str):
+    """Run the REAL `_lint_generated` over `code` and return its warnings.
+
+    Deliberately not a mirror of the lint's logic: the sibling
+    `test_port_hardcode_lint_matches_real_literals_only` reimplements its per-line rule and
+    so can drift from it. These call the shipped function, so they fail if it changes.
+    """
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+    from models import PtSession
+
+    sess = PtSession(key="AWPTCM-T00000")
+    sess.step6 = {"files": {"test": {"code": code}}}
+    return pc._lint_generated(sess)["warnings"]
+
+
+def test_lint_flags_eth0_driven_as_a_switchport():
+    """`eth0` is the out-of-band management port, not part of the switching fabric.
+
+    Verified on the live stack: `show interface eth0 status` reports `Vlan: none` and eth0
+    is a member of no VLAN — yet it still appears in `show interface status`,
+    `show interface brief` and `show ip interface brief` as an ordinary connected row,
+    which is how it gets swept into a port test by accident.
+    """
+    code = (
+        "class TestSet(ATTestSet.TestSet):\n"
+        "    def configure(self):\n"
+        "        self.dut.mode(')#')\n"
+        "        self.dut.cmd('interface eth0')\n"
+        "        self.dut.cmd('switchport mode access')\n")
+    warns = _lint_warnings(code)
+    assert any("eth0" in w and "management" in w for w in warns), warns
+
+
+def test_lint_flags_port_enumeration_without_a_stackport_guard():
+    """Enumerating interface rows and configuring what you find can SPLIT A STACK.
+
+    On the live 8-member x950, `show interface status` lists the stack links themselves
+    with `stackport` in the Vlan column (port1.0.57 / port1.0.61). A loop that shuts every
+    row it reads takes the stack down mid-run, which then reads as a product failure.
+    """
+    code = (
+        "class TestSet(ATTestSet.TestSet):\n"
+        "    def configure(self):\n"
+        "        out = self.dut.cmd('show interface status')\n"
+        "        for line in out.splitlines():\n"
+        "            name = line.split()[0]\n"
+        "            self.dut.cmd('interface {}'.format(name))\n"
+        "            self.dut.cmd('shutdown')\n")
+    warns = _lint_warnings(code)
+    assert any("stackport" in w for w in warns), warns
+
+
+def test_lint_stackport_check_is_silenced_by_the_guard_and_by_read_only_loops():
+    """Both ways of being safe must stop the warning, or it becomes noise people ignore."""
+    guarded = (
+        "class TestSet(ATTestSet.TestSet):\n"
+        "    def configure(self):\n"
+        "        out = self.dut.cmd('show interface status')\n"
+        "        for line in out.splitlines():\n"
+        "            if 'stackport' in line:\n"
+        "                continue\n"
+        "            name = line.split()[0]\n"
+        "            self.dut.cmd('interface {}'.format(name))\n"
+        "            self.dut.cmd('shutdown')\n")
+    assert not any("stackport" in w for w in _lint_warnings(guarded))
+
+    read_only = (
+        "class TestSet(ATTestSet.TestSet):\n"
+        "    def configure(self):\n"
+        "        out = self.dut.cmd('show interface status')\n"
+        "        for line in out.splitlines():\n"
+        "            if line.split()[:1] == [self.dut.portA.name]:\n"
+        "                self.dut.cmd('show interface {}'.format(line.split()[0]))\n")
+    assert not any("stackport" in w for w in _lint_warnings(read_only))

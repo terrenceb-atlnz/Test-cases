@@ -2033,3 +2033,106 @@ and `pytest_create._pt_cases_index` exist for that reason.
   "expect an improvement, not a regression to defend" assumption was **falsified** — the
   consolidation commits (7–9) need before/after comparison on real data, not just a green gate.
 - Unchanged from the previous entry: T33234 TestCase_8, Part 3b blocked on `configs/tb470.setup`.
+
+---
+
+## Session Close / Handoff (2026-07-28d) — first real CLI session on hardware; it falsified a documented rule
+
+**Shape of the session: drove a live device for the first time (tb105 `u5` — an 8-member
+x950 stack), used what it reported to review the project's CLI-facing surfaces, and found a
+rule that was stated in three places and wrong in all three. Nothing but hardware would have
+shown it.**
+
+### Getting onto the device
+
+`ssh tb105` → `u5`. That alias is `minicom --wrap -D /dev/u5`, and `/dev/u5` is a udev
+symlink onto `/dev/ttyUSB20`. Minicom needs a TTY, so it cannot be driven from one-shot
+commands; the same port was driven with pyserial instead (`/dev/u5`, 115200, read until the
+prompt, answer `--More--` with a space). Read-only `show` commands plus a session-scoped
+`terminal length 0`. Nothing left on the box.
+
+Answering the question that started the session — which tb105 Eth port reaches the stack:
+**`eth2` only**, and it is a shared management LAN, not a dedicated cable. tb105 `eth2`
+(10.37.105.100/25, `00:90:0b:2a:11:ad`) ↔ x950 `eth0` (10.37.105.6/25), confirmed from both
+ends (`show arp` on the switch lists tb105's eth2 MAC on eth0). 37 ARP neighbours on eth2
+with two live simultaneously proves a shared segment. **No data-plane link at all**: none of
+tb105's six NIC MACs appear anywhere in the stack's MAC table, even after forcing ARP
+broadcasts out all six. Independently corroborated afterwards — `kochi_uni_tb105.setup`
+declares zero `tb-` portlinks.
+
+Incidental: tb105 `eth5` is down with **973 carrier changes** — flapping, probably a bad
+cable or SFP.
+
+### The defect: "the FIRST index is the chassis/slot" is false
+
+In `portA.B.C`, **A is the STACK MEMBER**, B is the bay (0 = base board, 1+ = a populated
+expansion slot), C the port. The live stack reported:
+
+    52 port1.0.  52 port2.0.  52 port3.0.  52 port4.0.
+    28 port5.0.  12 port5.1.  28 port6.0.  12 port6.1.
+    28 port7.0.  12 port7.1.  28 port8.0.  12 port8.1.
+
+First index 1-8, exactly the `show stack` member IDs; members 5-8 each carry a base board
+AND an expansion slot. The wrong claim sat in `pt_generate_script.jinja`, the port-hardcode
+lint's own comment, and `test_cli_feature_grounding.py`'s docstring — each **contradicting
+itself**, since all three illustrated it with `port1.1.x`, a change to the SECOND index.
+
+Per the governing lesson (the model implements the EXAMPLE, not the prose), generated code
+was mostly unharmed. The wrong *rule* was the defect: it leaves no concept that ports span
+stack members, which is exactly the case coming next.
+
+### The harvested reference proved it, after my first test got it wrong
+
+That test assumed every doc example was single-unit and asserted the first index was pinned
+at 1. It **failed** — `show stack resiliencylink`, `show platform`, `show powerinline` and
+`show udld port` all print `port2.x.y`. The failure was better evidence than the hypothesis:
+doc examples number a second UNIT, never a second chassis, and `show stack resiliencylink`
+carries both `port2.0.11` and `port2.2.11`, so one unit shows two bays under one first index.
+
+### Shipped
+
+- **Index semantics corrected** in all three surfaces, keeping the chassis rationale an
+  existing test depends on (it caught the first attempt at dropping it).
+- **Two lint warnings** for hazards only visible on hardware: `interface eth0` under config
+  (eth0 reports `Vlan: none`, is in no VLAN, yet appears in `show interface status` as an
+  ordinary connected row), and enumerate-then-configure with no `stackport` exclusion (stack
+  links appear in that table with `stackport` in the Vlan column — such a loop can split the
+  stack mid-run). Both key off code shape, not case text. Zero false positives across all
+  three real generated scripts.
+- **5 tests**, including the data-backed index proof. The guard test caught that the
+  stackport check read only `ast.Constant`, so `'show interface {}'.format(p)` — how
+  generated code actually writes commands — was misread as config; `_cmd_text` now handles
+  `.format()`, f-strings and `%`.
+- **`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`** — the `.setup` schema and a real worked
+  example, closing the open TODO in `ART-EXECUTION-CHAIN.md`.
+
+### Built, then reverted — Terrence caught it
+
+A prose alias set (`_STACK_PROSE` + `is_stack_case`) to gate a conditional stack block in the
+Generate prompt. **The `.setup` already declares all of it**: `[stack]` (membership),
+`[configured_stackport]` (ports never to touch), `[portlink] tb-swi_X = ethN-portA.B.C`
+(testbox cabling), `[switch] swi_a = /dev/u0` (console). Inferring any of it from case prose
+repeats the mistake this project already recorded for port naming — *a RUNTIME hardware
+property; take it from the .setup, do not guess*.
+
+Measured before reverting, and the numbers make the case: `_STK_RX` hits **192/195** corpus
+scripts that call `init_stk` (98%) but **0/4** stack cases written in prose. So the gate
+would have failed silently on precisely the new cases it was built for.
+
+**The right fix is to PARSE the `.setup`** — nothing in `CK_server` does today. That makes
+the stackport rule exact rather than heuristic, and gives the lint the real topology to check
+against at Run time. Not started.
+
+### State at close
+
+- **424 pytest + 85 Vitest** green, both guards green, `/health` ok, `ck.db` signature
+  unchanged. The count moved 393→398→407→424 during the session — another stream was landing
+  ck.db-isolation tests throughout, so treat it as a snapshot.
+- **Not reconciled:** the corpus port-literal count reads 350 in the generate prompt and 125
+  in the lint comment and test docstring. An independent count gave 294 literals / 9,923
+  bound uses — matching neither, because the method differs. Needs whoever took the original
+  measurement; left alone rather than picking one and making it look settled.
+- `configs/tb470.setup` is **no longer schema-blocked** — it needs tb470's device list and
+  cabling, nothing more.
+- Unchanged: module-split commits 7-11 (6 dropped in `323c1db`), T33234 TestCase_8,
+  Playwright still outside the gate.

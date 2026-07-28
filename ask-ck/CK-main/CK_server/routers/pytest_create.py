@@ -1564,10 +1564,13 @@ def _lint_generated(sess: PtSession) -> dict:
                             f"local variables there: {_line.strip()[:70]!r}")
                         break
 
-        # Hardcoded port names (2026-07-28). The FIRST index of an AW+ port name is the
-        # chassis/slot, so a literal `'port1.0.1'` is wrong on chassis platforms (x8100,
-        # x908gen2, x908gen3) AND on an x950 whose card slot is populated — those use
-        # `port1.1.x`. It is a runtime property of the hardware, not something the case
+        # Hardcoded port names (2026-07-28; index semantics corrected the same day against a
+        # live 8-member x950 stack, which reported port1.0.x-port8.1.x). In `portA.B.C`,
+        # A is the STACK MEMBER (1 standalone, 1-8 across a stack), B is the BAY (0 = base
+        # board, 1+ = a populated expansion slot), C the port. A literal `'port1.0.1'` is
+        # therefore wrong on a chassis or a populated-slot x950 (`port1.1.x`) AND on every
+        # stack member but the first (`port2.0.x` … `port8.0.x`).
+        # It is a runtime property of the hardware, not something the case
         # text implies, so it must come from the .setup topology via the attribute
         # `init_portlink()` binds. The corpus agrees overwhelmingly: 10,578 bound-attribute
         # uses vs 125 literals (and those are mostly negative-test inputs).
@@ -1606,8 +1609,9 @@ def _lint_generated(sess: PtSession) -> dict:
                 warnings.append(
                     f"port name hardcoded as {m.group(0)} at line {_i} — take it from "
                     f"the .setup topology (e.g. `port = dut.portA` bound by "
-                    f"init_portlink), since chassis platforms and a populated-slot x950 "
-                    f"use port1.1.x")
+                    f"init_portlink). The first index is the stack member and the second "
+                    f"the bay, so a literal is wrong on every stack member but the first "
+                    f"and on a chassis or populated-slot x950 (port1.1.x)")
 
         # 2b. Imports the TESTBOX's python3 will not have. The script runs there, not here.
         errors.extend(_removed_stdlib_imports(tree))
@@ -1632,6 +1636,102 @@ def _lint_generated(sess: PtSession) -> dict:
                     f"{', '.join(map(str, lines))} — the later call DISCARDS the earlier "
                     f"link, so one of those topologies is silently missing. Use a distinct "
                     f"attribute per link (portA, portB, …).")
+
+        # 2b-iii. `eth0` driven as if it were a switchport (2026-07-28, observed on a live
+        # x950 stack). eth0 is the out-of-band MANAGEMENT interface: `show interface eth0
+        # status` reports `Vlan: none` and it belongs to no VLAN, so it sits outside the
+        # switching fabric entirely. It nonetheless appears in `show interface status`,
+        # `show interface brief` and `show ip interface brief` as an ordinary connected
+        # row — which is precisely how it gets swept into a port test by accident.
+        # Switchport/VLAN/port-level config does not apply to it and asserting on it proves
+        # nothing about the fabric.
+        #
+        # A WARNING, not an error: READING eth0 is a legitimate management-reachability
+        # check (35 of 830 corpus scripts reference it). Only the reviewer can tell whether
+        # a given `interface eth0` meant management or was a misplaced fabric test.
+        _eth0_rx = re.compile(r"""['"][^'"\n]*\binterface\s+eth0\b[^'"\n]*['"]""")
+        for _i, _line in enumerate(code.splitlines(), 1):
+            if _line.lstrip().startswith("#"):
+                continue
+            for _m in _eth0_rx.finditer(_line):
+                if "#" in _line[:_m.start()]:
+                    continue
+                warnings.append(
+                    f"line {_i} enters interface config on `eth0` — that is the "
+                    f"out-of-band management port (Vlan: none, outside the switching "
+                    f"fabric), so switchport/VLAN/port-level commands do not apply and an "
+                    f"assertion on it proves nothing about the fabric. Use a port bound "
+                    f"from the .setup topology for fabric tests.")
+
+        # 2b-iv. Enumerating interface rows from device output and then DRIVING the device,
+        # with no stackport exclusion (2026-07-28, from a live 8-member x950 stack). On a
+        # stack, `show interface status` lists the stack links themselves — they print
+        # `stackport` in the Vlan column (port1.0.57 / port1.0.61 on that box). A loop that
+        # reads those rows and configures whatever it finds can shut a stack link and SPLIT
+        # THE STACK mid-run, which then reads as a product failure rather than a test bug.
+        # The corpus already knows the hazard: 40 of 830 scripts mention `stackport`.
+        #
+        # A WARNING, not an error: the loop may be reading output already scoped to one
+        # port, where no stack link can appear. It fires only when the script never mentions
+        # `stackport` at all, so adding the guard silences it. A `show` inside the loop is a
+        # read and does not count — the risk is config, not inspection.
+        if "stackport" not in code:
+            for _node in ast_mod.walk(tree):
+                if not isinstance(_node, ast_mod.For):
+                    continue
+                _target = getattr(_node.target, "id", None)
+                _iter_dump = ast_mod.dump(_node.iter)
+                # Either `for line in out.splitlines():` or a pre-split list that the body
+                # then row-parses with `line.split()` — both are the same enumeration idiom.
+                _row_parses = any(
+                    isinstance(_s, ast_mod.Call)
+                    and isinstance(_s.func, ast_mod.Attribute)
+                    and _s.func.attr == "split"
+                    and getattr(_s.func.value, "id", None) == _target
+                    for _s in ast_mod.walk(_node))
+                if "splitlines" not in _iter_dump and not _row_parses:
+                    continue
+                def _cmd_text(_arg) -> str:
+                    """The literal head of a command argument.
+
+                    A generated command is rarely a bare constant — the port is interpolated
+                    (`'show interface {}'.format(p)`, or an f-string). Reading only
+                    ast.Constant classified every such call as config and warned on
+                    read-only loops (caught by the guard test, not in review).
+                    """
+                    if isinstance(_arg, ast_mod.Constant) and isinstance(_arg.value, str):
+                        return _arg.value
+                    if (isinstance(_arg, ast_mod.Call)
+                            and isinstance(_arg.func, ast_mod.Attribute)
+                            and _arg.func.attr == "format"):
+                        return _cmd_text(_arg.func.value)
+                    if isinstance(_arg, ast_mod.JoinedStr):     # f-string: take its head
+                        for _p in _arg.values:
+                            if isinstance(_p, ast_mod.Constant) and isinstance(_p.value, str):
+                                return _p.value
+                    if isinstance(_arg, ast_mod.BinOp) and isinstance(_arg.op, ast_mod.Mod):
+                        return _cmd_text(_arg.left)             # legacy `'...%s' % x`
+                    return ""
+
+                _drives = False
+                for _sub in ast_mod.walk(_node):
+                    if not (isinstance(_sub, ast_mod.Call)
+                            and isinstance(_sub.func, ast_mod.Attribute)
+                            and _sub.func.attr in ("cmd", "mode")):
+                        continue
+                    _arg = _sub.args[0] if _sub.args else None
+                    if not _cmd_text(_arg).strip().lower().startswith("show"):
+                        _drives = True
+                        break
+                if _drives:
+                    warnings.append(
+                        f"line {_node.lineno} iterates interface rows from device output "
+                        f"and then drives the device, with no `stackport` exclusion — on a "
+                        f"stack, `show interface status` lists the stack links themselves "
+                        f"(their Vlan column reads `stackport`), so this can shut a stack "
+                        f"link and split the stack mid-run. Skip rows whose Vlan is "
+                        f"`stackport`, or drive only ports bound from the .setup topology.")
+                    break
 
         # 2c. `startswith(port)` when selecting a port's row from a per-port table.
         # `'port1.0.1'` is a prefix of `'port1.0.10'`, so this silently reads the WRONG

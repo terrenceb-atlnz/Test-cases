@@ -611,6 +611,101 @@ def test_extract_prompt_requires_keeping_source_qualifiers():
         assert q in flat, f"the rule does not name the {q!r} qualifier"
 
 
+# --- AW+ port-index semantics -----------------------------------------------------------
+#
+# Corrected 2026-07-28 against a live 8-member x950 stack (tb105 u5). `show interface
+# status` there reported, per first/second index:
+#
+#     52 port1.0.  52 port2.0.  52 port3.0.  52 port4.0.
+#     28 port5.0.  12 port5.1.  28 port6.0.  12 port6.1.
+#     28 port7.0.  12 port7.1.  28 port8.0.  12 port8.1.
+#
+# The first index spans 1-8, exactly the member IDs listed by `show stack`; members 5-8
+# each carry a `.0.` base board AND a `.1.` populated expansion slot. So A is the STACK
+# MEMBER and B is the BAY. Three surfaces previously stated the opposite ("the FIRST index
+# is the chassis/slot") while illustrating it with `port1.1.x` — a change to the SECOND
+# index. Prose and example disagreed, and per this module's governing lesson the model
+# implements the example, so generated code was mostly unharmed; the wrong *rule* was the
+# defect, because it leaves no concept that ports span stack members.
+#
+# The harvested reference turned out to prove this by itself — see the test below. The
+# first cut of that test assumed every doc example was single-unit and asserted the first
+# index was pinned at 1; it failed, because `show stack resiliencylink`, `show platform`,
+# `show powerinline`, `show udld port` and others do print `port2.x.y`. The failure was the
+# better evidence: doc examples number a second UNIT, never a second chassis.
+
+_PORT_RX = re.compile(r"\bport(\d+)\.(\d+)\.(\d+)\b")
+
+
+def _port_tokens_by_command():
+    """(command, [(A, B, C), …]) for each harvested sample output containing port tokens."""
+    if not DB.exists():
+        return []
+    try:
+        c = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+        rows = c.execute("SELECT command, sample_output FROM cli_commands "
+                         "WHERE sample_output IS NOT NULL").fetchall()
+    except sqlite3.OperationalError:
+        return []
+    return [(cmd, _PORT_RX.findall(s or "")) for cmd, s in rows if _PORT_RX.search(s or "")]
+
+
+def test_the_first_port_index_is_the_unit_and_the_second_is_the_bay():
+    """The harvested reference refutes "the FIRST index is the chassis/slot" on its own.
+
+    Two independent facts, both read from `cli_commands.sample_output`:
+
+    1. The first index is not pinned to 1. Where it exceeds 1 the command is stack or
+       platform context — `show stack resiliencylink` prints `port2.0.11`, `show platform`
+       prints `port2.1.1`. A doc example numbering a second unit is numbering a MEMBER.
+    2. Decisive: a single output holds the same first index against two different second
+       indices — `show stack resiliencylink` carries both `port2.0.11` and `port2.2.11`.
+       If the first index were the bay/slot, one unit could not present two of them under
+       one first index. So the bay is the SECOND index.
+
+    Corroborated on hardware (see the block comment above): the live 8-member x950 spans
+    port1.x-port8.x, matching `show stack` member IDs exactly.
+    """
+    by_cmd = _port_tokens_by_command()
+    if not by_cmd:
+        pytest.skip("no portA.B.C tokens in harvested sample output")
+
+    firsts = {a for _c, toks in by_cmd for a, _b, _x in toks}
+    assert len(firsts) > 1, (
+        f"first index never varies ({sorted(firsts)}) — this test then proves nothing "
+        f"and the semantics must be re-derived from hardware")
+
+    multi_unit = sorted({c for c, toks in by_cmd if any(a != "1" for a, _b, _x in toks)})
+    assert any("stack" in c or "platform" in c for c in multi_unit), (
+        f"a first index above 1 should appear in stack/platform context; saw {multi_unit}")
+
+    two_bays_one_unit = [
+        c for c, toks in by_cmd
+        if any(len({b for a2, b, _x in toks if a2 == a}) > 1 for a, _b, _x in toks)]
+    assert two_bays_one_unit, (
+        "no sample output shows one unit with two different second indices — that is the "
+        "observation proving the second index is the bay")
+
+
+def test_no_surface_still_claims_the_first_port_index_is_the_slot():
+    """Regression-lock the correction across all three surfaces that carried it.
+
+    Deliberately NOT scanning this file: the bad phrase is quoted here as the thing being
+    forbidden, which is precisely the self-match trap `tests/_prose.py` exists to prevent.
+    """
+    lint_src = REPO / "ask-ck" / "CK-main" / "CK_server" / "routers" / "pytest_create.py"
+    grounding = pathlib.Path(__file__).with_name("test_cli_feature_grounding.py")
+    bad = "first index is the chassis/slot"
+    for path in (GENERATE, lint_src, grounding):
+        assert bad not in flat(path.read_text()).lower(), (
+            f"{path.name} still states the first port index is the chassis/slot — it is "
+            f"the stack member; the bay is the second index")
+    # and the corrected rule must actually be stated where the model reads it
+    low = flat(GENERATE.read_text()).lower()
+    assert "a is the stack member" in low, "generate prompt lost the stack-member rule"
+    assert "b is the bay" in low, "generate prompt lost the bay rule"
+
+
 # --- the prevention mechanism itself ----------------------------------------------------
 
 def test_prose_helpers_survive_the_four_historical_self_match_cases():

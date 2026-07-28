@@ -541,10 +541,26 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
    (`generated/<Group>/<Name>.py`), review/edit, **Lint** (py_compile + structure +
    framework-import + **template/logging-contract conformance**: each `main()` needs a
    `self.log()` and ≥1 non-empty `passed()`/`failed()`, no empty verdicts, no leftover
-   FILL placeholders), **Save**, Confirm. See
+   FILL placeholders), **Save**, Confirm.
+   **Stack + management-port hazards (2026-07-28, added after a live 8-member x950 run):**
+   two further warnings. (1) `interface eth0` under config — eth0 is the out-of-band
+   MANAGEMENT port (`show interface eth0 status` reports `Vlan: none`; it belongs to no
+   VLAN and sits outside the switching fabric), yet it still appears in
+   `show interface status`/`brief` as an ordinary connected row, which is how it gets swept
+   into a port test. (2) A loop that enumerates interface rows from device output and then
+   DRIVES the device with no `stackport` exclusion — on a stack, `show interface status`
+   lists the stack links themselves with `stackport` in the Vlan column, so such a loop can
+   shut one and **split the stack mid-run**, which then reads as a product failure rather
+   than a test bug. Both key off the code shape, not the case text, so they fire whether or
+   not the case is "about" stacking; both are silenced by the correct fix. See
    `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
 6. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
-   the `.setup`, **Check Connection**, **Run on Testbox**. The script + setup go over
+   the `.setup` (schema + a real worked example:
+   **`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`** — it declares stack membership
+   `[stack]`, the ports a test must never touch `[configured_stackport]`, and the testbox
+   NIC ↔ switch port cabling `[portlink] tb-swi_X = ethN-portA.B.C`; these are DECLARED
+   there and must never be inferred from case text), **Check Connection**,
+   **Run on Testbox**. The script + setup go over
    SSH/SFTP, run as `sudo python3 <script> -s <setup> -v`, and the framework `.log`
    comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
    (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
@@ -725,7 +741,7 @@ so they catch the *next* regression, not only the one filed. `PYTHONNOUSERSITE=1
 fastapi/starlette in `~/.local` can't shadow the venv's. Dev deps (`pytest`, `httpx`) in
 `ask-ck/CK-main/requirements-dev.txt` (runtime `requirements.txt` stays lean).
 
-**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 72
+**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 85
 tests). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
 (`setButtonBusy`/`flashButtonDone`/`showStatus`), the table renderers (`tables.js`), the
 chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.js` `merge*`, made
@@ -741,8 +757,8 @@ path — a green export needs synthesized objective+steps, so the honest asserti
 outcome). Run on demand, e.g. pre-release; it starts/reuses the server via `run.sh`.
 
 ```bash
-./tool/run_tests.sh        # THE GATE: guards + pytest (190) + Vitest (72), one command
-PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (295 tests, Python 3.13)
+./tool/run_tests.sh        # THE GATE: guards + pytest (424) + Vitest (85), one command
+PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (424 tests, Python 3.13)
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```

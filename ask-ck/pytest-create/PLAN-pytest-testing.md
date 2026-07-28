@@ -81,6 +81,11 @@
 > - ⏳ **Part 3b** (tb470 execution, criteria 5-6) — still blocked on
 >   `configs/tb470.setup` + a testbox profile (Terrence-side physical-topology
 >   prerequisite — see §5b; note the **corrected configs path** there).
+>   **Narrowed 2026-07-28d: the SCHEMA is no longer part of the blocker.** It is captured
+>   with a real worked example in **`SETUP-FILE-REFERENCE.md`** (sections, `[stack]`
+>   membership, `[configured_stackport]`, and the `[portlink] tb-swi_X = ethN-portA.B.C`
+>   testbox-cabling convention). What remains is purely Terrence-side data: tb470's device
+>   list and its physical wiring.
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
@@ -455,6 +460,12 @@ ART runs depend on host-side config files that our tool does NOT generate — th
   `tb470.setup` nor `tb470.cfg` exists yet** (re-verified 2026-07-27). Both are Terrence-side prerequisites
   (topology = physical wiring) before Part 3b can run. The tool generates the test
   SCRIPT only; setup/config are environment inputs.
+- **`.setup` schema + a real worked example: `SETUP-FILE-REFERENCE.md`** (2026-07-28d).
+  Authoring `tb470.setup` no longer requires reverse-engineering the format. Note in
+  particular that `[stack]`, `[configured_stackport]` and `[portlink] tb-swi_X` DECLARE
+  stack membership, the ports a test must never touch, and the testbox↔switch cabling —
+  none of those may be inferred from case text (that mistake was made and reverted the
+  same day).
 - **SVT setup utilities** (`svt_scripts/.../setupSwi.py`, `libSvt/libSvtSetup.py`) are
   SVT-workflow switch-provisioning helpers — NOT part of ART single-script execution,
   not a dependency our ART-targeted generated scripts inherit.

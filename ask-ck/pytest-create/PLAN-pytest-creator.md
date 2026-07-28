@@ -42,6 +42,19 @@
 > gets a `(py2→py3)` suffix). D2 (per-step fragment cap) resolved as **keep no cap**. Rationale in
 > memory `d1-fragment-resolver-boundaries` / `d3-py2-fragment-translation`; details in SERVER-README
 > Step-4 and PROGRESS 2026-07-27.
+>
+> **Hardware-informed corrections (2026-07-28d, from a live 8-member x950 stack)**: the rule
+> that *"the FIRST index of `portA.B.C` is the chassis/slot"* was **wrong** and is corrected
+> wherever it appeared (generate prompt, the port-hardcode lint's comment, the grounding
+> test's docstring) — **A is the STACK MEMBER**, B is the bay (0 = base board, 1+ = a
+> populated expansion slot). Step-5 Lint gained two warnings for hazards only visible on real
+> hardware: `interface eth0` under config (eth0 is the out-of-band management port —
+> `Vlan: none`, in no VLAN — yet appears in `show interface status` as an ordinary connected
+> row), and enumerate-then-configure with no `stackport` exclusion (stack links appear in
+> that table with `stackport` in the Vlan column, so such a loop can split the stack
+> mid-run). A prose-based stack detector was built and **reverted**: the `.setup` file
+> already DECLARES stack membership, stackports and cabling — see `SETUP-FILE-REFERENCE.md`.
+> Parsing `.setup` (nothing in `CK_server` does) is the outstanding follow-up.
 
 ## Status Checklist
 

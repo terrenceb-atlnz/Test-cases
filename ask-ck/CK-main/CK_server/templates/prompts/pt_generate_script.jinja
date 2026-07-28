@@ -129,10 +129,13 @@ Reviewer note: {{ f.why }}
    **NEVER HARDCODE A PORT NAME.** Take it from the .setup topology via the attribute
    `init_portlink()` bound in `TestSet.init` (`port = dut.portA`), the way the corpus does
    (10,578 bound-attribute uses vs 350 literals, and most of those are
-   deliberately-invalid inputs to negative tests). The FIRST index is the chassis/slot, so
-   a literal `'port1.0.1'` is simply wrong on chassis platforms (x8100, x908gen2,
-   x908gen3) and on an x950 whose card slot is populated — those use `port1.1.x`. It is a
-   runtime property of the hardware, not something you can infer from the case text.
+   deliberately-invalid inputs to negative tests). In `portA.B.C`: **A is the STACK MEMBER**
+   (1 on a standalone, 1-8 across a stack), **B is the BAY** (0 = base board, 1+ = a
+   populated expansion slot), C the port within that bay. So a literal `'port1.0.1'` is
+   wrong on chassis platforms (x8100, x908gen2, x908gen3) and on an x950 whose card slot is
+   populated — those use `port1.1.x` — AND on every stack member but the first, which use
+   `port2.0.x` … `port8.0.x`. It is a runtime property of the hardware, not something you
+   can infer from the case text.
 4c. **ASSERT ON THE FEATURE UNDER TEST, not merely that the link survived.** If the step
    enables/disables a feature, the `passed()`/`failed()` condition must read that
    feature's own reported state. Checking only `Link is UP` after disabling a feature
