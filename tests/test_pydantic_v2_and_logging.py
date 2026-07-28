@@ -30,10 +30,12 @@ import warnings
 import pytest
 from pydantic import BaseModel
 
+from _wizard_src import wizard_router_paths
 from models import LLMConfig, WizardSession, model_to_dict, safe_session_dict
 
 _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "CK_server"
-_WIZARD = _SERVER / "routers" / "wizard.py"
+# commit 10: the wizard router is a routers/wizard/ PACKAGE, not one file.
+_WIZARD_FILES = wizard_router_paths()
 _PYTEST_CREATE = _SERVER / "routers" / "pytest_create.py"
 _MODELS = _SERVER / "models.py"
 _MAIN = _SERVER / "main.py"
@@ -42,17 +44,22 @@ _MAIN = _SERVER / "main.py"
 # session_store.py is included because commit 9 moved model_to_dict call sites there out
 # of wizard.py — without it, the hedge could grow back in the new home unnoticed.
 _SESSION_STORE = _SERVER / "session_store.py"
-_HEDGE_FILES = [_WIZARD, _PYTEST_CREATE, _MODELS, _SESSION_STORE]
+_HEDGE_FILES = [*_WIZARD_FILES, _PYTEST_CREATE, _MODELS, _SESSION_STORE]
 
-# Files that must use `log.<level>()`, never print(). Part B keeps moving code out of
-# wizard.py, and the logging discipline has to travel with it — the persist-failure ERROR
-# that this suite pins now lives in session_store.py, not wizard.py, so grepping only the
-# router would silently stop covering the very site the test was written for.
-_LOGGING_FILES = [
-    _WIZARD, _SESSION_STORE,
-    _SERVER / "llm_config.py", _SERVER / "case_registry.py",
-    _SERVER / "generator" / "backfill.py",
-]
+# The extracted leaves that also carry logging discipline (persist-failure ERROR etc.).
+_LEAF_LOG_FILES = [_SESSION_STORE, _SERVER / "llm_config.py",
+                   _SERVER / "case_registry.py", _SERVER / "generator" / "backfill.py"]
+
+# No file in the router package (or the extracted leaves) may print(). Part B keeps moving
+# code out of wizard.py, and the discipline travels with it.
+_NO_PRINT_FILES = [*_WIZARD_FILES, *_LEAF_LOG_FILES]
+
+# Files that actually EMIT logs must do so through a named module logger. Among the router
+# package that is export.py; the review/config/synthesis modules do no logging (still
+# covered for print() above). The persist-failure ERROR this suite pins moved to
+# session_store.py in commit 9, so grepping only the router would silently stop covering
+# the very site the test was written for — the leaves stay in this set.
+_LOGGING_FILES = [p for p in _WIZARD_FILES if p.name == "export.py"] + _LEAF_LOG_FILES
 
 
 def _model_to_dict_lines() -> set:
@@ -227,7 +234,7 @@ def test_dict_only_objects_are_still_supported():
 
 # --- logging hygiene ---------------------------------------------------------
 
-@pytest.mark.parametrize("path", _LOGGING_FILES, ids=lambda p: p.name)
+@pytest.mark.parametrize("path", _NO_PRINT_FILES, ids=lambda p: p.name)
 def test_no_print_calls(path):
     """wizard.py had 14 print() calls: no levels, no timestamps, no way to quiet them —
     a failed-persistence warning was indistinguishable from boot noise. The modules Part B
@@ -313,7 +320,7 @@ def test_main_configures_logging_so_info_is_not_dropped():
 # --- dead code stays dead ----------------------------------------------------
 
 _DELETED = {
-    "routers/wizard.py": [
+    "wizard router": (_WIZARD_FILES, [
         # thin single-key wrapper; its own docstring said prefer the batch form
         "_get_full_zephyr_case",
         # born unused in 05b194a; _can_synthesize_steps documents why the strict
@@ -325,35 +332,41 @@ _DELETED = {
         # ORDER-PRESERVING list for its [:24] slice, which this set-returning helper
         # could not provide anyway
         "_specific_tokens",
-    ],
-    "routers/pytest_create.py": [
+    ]),
+    "routers/pytest_create.py": ([_PYTEST_CREATE], [
         # a full copy of db._score_script_candidate that referenced _PT_GENERIC_TOKENS /
         # _PT_AREA_SUPPORT — names that only ever existed in db.py. It raised NameError on
         # any call and nothing reached it. The comment above it already claimed the
         # scorer lived in db with "no private copy here".
         "_score_script_candidate",
-    ],
+    ]),
 }
 
 
-@pytest.mark.parametrize("rel,names", list(_DELETED.items()), ids=lambda x: str(x)[:24])
-def test_deleted_helpers_are_not_reintroduced(rel, names):
-    tree = ast.parse((_SERVER / rel).read_text(encoding="utf-8"))
-    defined = {n.name for n in tree.body
-               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+@pytest.mark.parametrize("label", list(_DELETED))
+def test_deleted_helpers_are_not_reintroduced(label):
+    paths, names = _DELETED[label]
+    defined = set()
+    for p in paths:
+        defined |= {n.name for n in ast.parse(p.read_text(encoding="utf-8")).body
+                    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
     back = sorted(set(names) & defined)
-    assert not back, f"{rel} reintroduced dead helper(s): {back}"
+    assert not back, f"{label} reintroduced dead helper(s): {back}"
 
 
-@pytest.mark.parametrize("rel", ["routers/wizard.py", "routers/pytest_create.py"])
-def test_no_unreferenced_private_module_functions(rel):
+@pytest.mark.parametrize("path", [*_WIZARD_FILES, _PYTEST_CREATE], ids=lambda p: p.name)
+def test_no_unreferenced_private_module_functions(path):
     """Generalizes the four deletions above into an invariant.
 
     A module-level `_helper` that nothing in the file names is either dead or a symptom
     of a gate that was meant to be wired up and never was. Route handlers are exempt by
     construction: they are decorated and do not start with an underscore.
+
+    Applied PER FILE, so a helper shared between the router package's own modules (e.g.
+    `_session_llm_cfg`, used by reviews and synthesis) must also be USED in the module
+    that defines it — which it is; the sibling reaches it by a relative import.
     """
-    src = (_SERVER / rel).read_text(encoding="utf-8")
+    src = path.read_text(encoding="utf-8")
     tree = ast.parse(src)
     defined = {n.name: n.lineno for n in tree.body
                if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
@@ -363,5 +376,5 @@ def test_no_unreferenced_private_module_functions(rel):
     exported = {n for n in defined if f"# keep: " in src.split("\n")[defined[n] - 2]}
     orphans = {n: ln for n, ln in defined.items() if n not in used and n not in exported}
     assert not orphans, (
-        f"{rel} has unreferenced private helper(s) {orphans}. Delete them, wire them "
+        f"{path.name} has unreferenced private helper(s) {orphans}. Delete them, wire them "
         f"up, or mark the line above with `# keep: <reason>` if a test imports it.")

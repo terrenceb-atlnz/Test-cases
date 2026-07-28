@@ -17,8 +17,7 @@ import pathlib
 
 import pytest
 
-_WIZARD = (pathlib.Path(__file__).resolve().parents[1]
-           / "ask-ck" / "CK-main" / "CK_server" / "routers" / "wizard.py")
+from _wizard_src import wizard_router_source
 
 
 class _FakeRequest:
@@ -81,10 +80,10 @@ def test_get_data_does_not_call_load_all_data():
     The identity test above is the real guard; this one names the specific regression
     so a failure explains itself.
     """
-    tree = ast.parse(_WIZARD.read_text(encoding="utf-8"))
+    tree = ast.parse(wizard_router_source())
     fn = next((n for n in ast.walk(tree)
                if isinstance(n, ast.FunctionDef) and n.name == "get_data"), None)
-    assert fn is not None, "get_data disappeared from wizard.py"
+    assert fn is not None, "get_data disappeared from the wizard router"
     called = {n.func.id for n in ast.walk(fn)
               if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
     assert "load_all_data" not in called, (

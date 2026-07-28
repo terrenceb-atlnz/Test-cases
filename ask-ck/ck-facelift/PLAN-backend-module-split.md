@@ -1,8 +1,10 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28f): 10 of 11 commits DONE. Only commit 10 remains** — the atomic
-> `routers/wizard.py` → `routers/wizard/` move. Everything else in Part A and Part B has
-> shipped and is pushed.
+> **Status (2026-07-29): COMPLETE — all 11 commits DONE (commit 6 dropped by decision).**
+> Commit 10, the atomic `routers/wizard.py` → `routers/wizard/` move, landed this session;
+> `wizard.py` (1972 lines) is now the package `reviews`/`config`/`synthesis`/`export` +
+> `_shared` + `__init__`, with every function body moved BYTE-IDENTICAL (proven by diff of
+> the reassembled slices against the original). Everything in Part A and Part B has shipped.
 >
 > | | commit | state |
 > |---|---|---|
@@ -11,8 +13,20 @@
 > | Part B | 7 | ✅ `591dbb9` `refactor: extract wizard/descriptions.py` |
 > | | 8 | ✅ `104d3e6` `extract llm_config.py + case_registry.py` — **the coupling fix** |
 > | | 9 | ✅ `e15c360` `extract session_store.py + wizard/{gates,backfill}.py` |
-> | | **10** | ⬜ **NEXT** — split `routers/wizard.py` into `routers/wizard/` |
+> | | **10** | ✅ **DONE (2026-07-29)** — `routers/wizard.py` → `routers/wizard/` package |
 > | | 11 | ✅ `77ab960` `decompose export()` — taken BEFORE 10, deliberately |
+>
+> **Commit 10 as executed.** Four route modules split on the file's existing concern order
+> (reviews 148–981 / config 982–1190 / synthesis 1191–1497 / export 1498–EOF), shared
+> `get_data` + `OUTPUTS_ENV` in `_shared.py` (a leaf, so no import cycle), and `__init__.py`
+> mounts the four sub-routers and re-exports the surface main.py + the tests import. The two
+> cross-module private helpers (`_session_llm_cfg` reviews→synthesis, `_authoritative_session`
+> synthesis→export) use RELATIVE imports so the decoupling suite does not read them as a
+> cross-router reach. The six hardcoded `routers/wizard.py` source-path reads across the test
+> suite now resolve through one helper, `tests/_wizard_src.py` (`wizard_router_paths()` /
+> `wizard_router_source()`), which raises if it finds nothing — a stale glob that silently
+> stopped matching was the exact failure mode the plan warned about. Gate: **584 pytest + 85
+> Vitest**, both guards, ck.db signature unchanged.
 >
 > **`wizard.py` is 2515 → 1971 lines** (2515 → 1907 by commit 9; commit 11 added back ~64
 > lines of named helpers + docstrings while removing the 351-line monolith).
@@ -750,8 +764,9 @@ doing all the commits suggested in A and B. Improving this code flow is importan
    `grep -rn "from routers.wizard import" --include=*.py .` → only `main.py` and tests.
    **Holds as of 2026-07-28f.**
 9. ✅ `e15c360` `refactor: extract session_store.py + wizard/{gates,backfill}.py`.
-10. ⬜ **NEXT.** `refactor: split routers/wizard.py into routers/wizard/` — the atomic move.
-    Must also fix the hardcoded `wizard.py` path reads (see *Commit 10 — what it now faces*).
+10. ✅ **DONE (2026-07-29).** `refactor: split routers/wizard.py into routers/wizard/` — the
+    atomic move. Bodies moved byte-identical; the hardcoded `wizard.py` path reads now resolve
+    through `tests/_wizard_src.py` (see *Commit 10 — what it now faces*).
 11. ✅ `77ab960` `refactor: decompose export()` — done BEFORE 10, not after; see the status
     header. Six named steps + a 115-line orchestrator, verified byte-identical to HEAD
     through the write path.
@@ -970,8 +985,8 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Superseded 2026-07-28f — see the status header.** Commits 7, 8, 9 and 11 have shipped;
-only **commit 10** remains. What follows was written when 7 was next; read *What A1 taught*
+**Superseded — see the status header.** All 11 commits have shipped (commit 6 dropped);
+commit 10 landed 2026-07-29. What follows was written when 7 was next; read *What A1 taught*
 first — one of this plan's stated expectations was falsified by measurement, and it changes
 how the consolidation commits (7-9 especially) should be approached. Then read the **A4+A5**
 section: three of its own planned items turned out to be wrong, so treat every line ref and

@@ -26,6 +26,8 @@ import pathlib
 
 import pytest
 
+from _wizard_src import wizard_router_paths
+
 _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "CK_server"
 _ROUTERS = _SERVER / "routers"
 _LEAVES = ("llm_config.py", "case_registry.py", "session_store.py",
@@ -56,13 +58,19 @@ def test_pytest_create_imports_nothing_from_the_wizard_router():
         "not in a sibling router.")
 
 
-@pytest.mark.parametrize("rel", ["pytest_create.py", "wizard.py"])
-def test_routers_do_not_import_private_names_from_each_other(rel):
+@pytest.mark.parametrize("path", [_ROUTERS / "pytest_create.py", *wizard_router_paths()],
+                         ids=lambda p: p.name)
+def test_routers_do_not_import_private_names_from_each_other(path):
     """A leading underscore across a module boundary is the smell, not just the file it
-    came from. Catches `from routers.foo import _bar` for any foo."""
-    offenders = [f"{mod}.{name}" for mod, name in _imports(_ROUTERS / rel)
+    came from. Catches `from routers.foo import _bar` for any foo.
+
+    Intra-package wiring is fine and expected: the wizard router's own modules import each
+    other's helpers via RELATIVE imports (`from .reviews import _session_llm_cfg`), whose
+    module name is not `routers.*`, so they are correctly not flagged here — that is one
+    router's internals, not a reach across the router boundary."""
+    offenders = [f"{mod}.{name}" for mod, name in _imports(path)
                  if mod.startswith("routers") and name.startswith("_")]
-    assert not offenders, f"{rel} imports private names across routers: {offenders}"
+    assert not offenders, f"{path.name} imports private names across routers: {offenders}"
 
 
 @pytest.mark.parametrize("rel", _LEAVES)
@@ -95,8 +103,11 @@ def test_the_workspace_llm_sync_exists_exactly_once():
     but `sess.llm_config`, so one duck-typed function serves both.
     """
     defined = []
-    for rel in ("routers/wizard.py", "routers/pytest_create.py", "llm_config.py"):
-        tree = ast.parse((_SERVER / rel).read_text(encoding="utf-8"))
+    targets = [(str(p.relative_to(_SERVER)), p) for p in wizard_router_paths()]
+    targets += [("routers/pytest_create.py", _SERVER / "routers" / "pytest_create.py"),
+                ("llm_config.py", _SERVER / "llm_config.py")]
+    for rel, path in targets:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         for n in tree.body:
             if isinstance(n, ast.FunctionDef) and "workspace_llm" in n.name:
                 defined.append(f"{rel}:{n.name}")
@@ -106,10 +117,15 @@ def test_the_workspace_llm_sync_exists_exactly_once():
 
 def test_both_routers_reach_the_same_workspace_llm_function():
     """Not just "no copy" — they must actually be wired to the shared one."""
-    for rel in ("routers/wizard.py", "routers/pytest_create.py"):
-        got = [name for mod, name in _imports(_SERVER / rel) if mod == "llm_config"]
-        assert "apply_workspace_llm" in got, (
-            f"{rel} does not import llm_config.apply_workspace_llm (imports: {got})")
+    wiz_got = set()
+    for path in wizard_router_paths():
+        wiz_got |= {name for mod, name in _imports(path) if mod == "llm_config"}
+    assert "apply_workspace_llm" in wiz_got, (
+        f"the wizard router does not import llm_config.apply_workspace_llm (imports: {sorted(wiz_got)})")
+    pc_got = [name for mod, name in _imports(_SERVER / "routers" / "pytest_create.py")
+              if mod == "llm_config"]
+    assert "apply_workspace_llm" in pc_got, (
+        f"routers/pytest_create.py does not import llm_config.apply_workspace_llm (imports: {pc_got})")
 
 
 # --- behaviour of the shared modules -----------------------------------------

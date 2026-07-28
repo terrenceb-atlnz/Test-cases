@@ -26,6 +26,7 @@ import pathlib
 
 import pytest
 
+from _wizard_src import wizard_router_source
 from models import WizardSession, Selection
 # Commit 9 moved these into leaf modules; the router now imports them too, so these are
 # the same objects it uses. `sessions` still comes from the router deliberately: it must be
@@ -48,19 +49,19 @@ def _redirect_refined_dir(monkeypatch, tmp_path):
     `from paths import REFINED_DIR` binds the value into each importing module, so
     patching one module redirects only that module's reads. Since
     PLAN-backend-module-split.md commit 8 there are two readers: `case_registry` owns the
-    Complete/backfill lookups (refined_payload_path, refined_complete_keys) and
-    `routers.wizard` still owns the export WRITE path. Patching wizard alone left backfill
-    reading the REAL tree — two of these tests went red, and a third
-    (test_backfill_noop_leaves_gate_closed) kept passing for the wrong reason: its key
-    genuinely has no bundle on disk, so "no backfill" was true either way.
+    Complete/backfill lookups (refined_payload_path, refined_complete_keys) and the wizard
+    router owns the export WRITE path — which commit 10 moved into `routers.wizard.export`.
+    Patching the wrong module left backfill reading the REAL tree — two of these tests went
+    red, and a third (test_backfill_noop_leaves_gate_closed) kept passing for the wrong
+    reason: its key genuinely has no bundle on disk, so "no backfill" was true either way.
 
     Anything added here must be patched wherever the name is BOUND, which is why this is
     one helper rather than a monkeypatch line per test.
     """
     import case_registry
-    import routers.wizard as wiz
+    from routers.wizard import export as wiz_export
 
-    monkeypatch.setattr(wiz, "REFINED_DIR", tmp_path)
+    monkeypatch.setattr(wiz_export, "REFINED_DIR", tmp_path)
     monkeypatch.setattr(case_registry, "REFINED_DIR", tmp_path)
 
 
@@ -422,9 +423,7 @@ def test_export_passes_the_complete_marker_to_the_writer_last():
     caller's list order is the invariant. Read from the AST, not a grep for a variable
     name, which is exactly what broke last time.
     """
-    src = pathlib.Path(__file__).resolve().parents[1] / (
-        "ask-ck/CK-main/CK_server/routers/wizard.py")
-    tree = ast.parse(src.read_text(encoding="utf-8"))
+    tree = ast.parse(wizard_router_source())
     calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
              and getattr(n.func, "id", None) == "_write_bundle"]
     assert len(calls) == 1, f"expected one _write_bundle call site, found {len(calls)}"
@@ -435,8 +434,6 @@ def test_export_passes_the_complete_marker_to_the_writer_last():
 
 def test_export_write_is_staged_via_os_replace():
     """The write must stage to a temp sibling and os.replace, not write in place."""
-    src = pathlib.Path(__file__).resolve().parents[1] / (
-        "ask-ck/CK-main/CK_server/routers/wizard.py")
-    text = src.read_text(encoding="utf-8")
+    text = wizard_router_source()
     assert "os.replace(tmp, final)" in text, "bundle write is no longer atomic"
     assert "tmp.unlink(missing_ok=True)" in text, "partial temp files are not cleaned up"

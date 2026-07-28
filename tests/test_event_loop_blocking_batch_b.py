@@ -23,6 +23,8 @@ import pathlib
 
 import pytest
 
+from _wizard_src import wizard_router_source
+
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 _ROUTERS = _REPO_ROOT / "ask-ck" / "CK-main" / "CK_server" / "routers"
 
@@ -95,7 +97,7 @@ def test_no_blocking_calls_on_the_event_loop(router):
 
 def test_export_gaps_call_is_wrapped():
     """Pin the specific claude_agent self-deadlock site (the sharpest of the four)."""
-    src = (_ROUTERS / "wizard.py").read_text(encoding="utf-8")
+    src = wizard_router_source()
     assert "await run_in_threadpool(generate_coverage_gaps" in src, (
         "export()'s coverage-gaps call must run off the event loop — on it, "
         "claude_agent mode deadlocks for the full 180s agent timeout")
@@ -103,7 +105,7 @@ def test_export_gaps_call_is_wrapped():
 
 def test_search_endpoints_are_wrapped():
     """All three review-flagged search endpoints plus load_case's ATP prefetch."""
-    src = (_ROUTERS / "wizard.py").read_text(encoding="utf-8")
+    src = wizard_router_source()
     for fn in ("_search_testlink", "_search_zephyr_external", "get_atp_candidates"):
         assert f"run_in_threadpool(\n        {fn}" in src or f"run_in_threadpool({fn}" in src, (
             f"{fn} is never dispatched via run_in_threadpool")

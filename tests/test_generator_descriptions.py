@@ -25,6 +25,8 @@ import pathlib
 
 import pytest
 
+from _wizard_src import wizard_router_paths
+
 _SERVER = pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "CK-main" / "CK_server"
 
 
@@ -253,13 +255,15 @@ def test_get_atp_candidates_routes_to_the_mode_it_was_asked_for(d, monkeypatch):
 # --- single source of truth --------------------------------------------------
 
 def _module_defines(rel, name):
-    tree = ast.parse((_SERVER / rel).read_text(encoding="utf-8"))
-    for n in tree.body:
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == name:
-            return True
-        if isinstance(n, ast.Assign) and any(
-                getattr(t, "id", None) == name for t in n.targets):
-            return True
+    # commit 10: "routers/wizard.py" is now a routers/wizard/ package — scan every file.
+    paths = wizard_router_paths() if rel == "routers/wizard.py" else [_SERVER / rel]
+    for p in paths:
+        for n in ast.parse(p.read_text(encoding="utf-8")).body:
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == name:
+                return True
+            if isinstance(n, ast.Assign) and any(
+                    getattr(t, "id", None) == name for t in n.targets):
+                return True
     return False
 
 

@@ -236,7 +236,9 @@ def test_export_is_no_longer_a_monolith(wiz):
     import ast
     import inspect
 
-    src = inspect.getsource(wiz)
+    # export() moved into routers/wizard/export.py (commit 10); inspect that module, not
+    # the package __init__.
+    src = inspect.getsource(wiz.export)
     tree = ast.parse(src)
     fn = next(n for n in ast.walk(tree)
               if isinstance(n, ast.AsyncFunctionDef) and n.name == "export")

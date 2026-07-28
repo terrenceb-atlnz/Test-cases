@@ -24,6 +24,8 @@ import re
 
 import pytest
 
+from _wizard_src import wizard_router_paths
+
 _REPO = pathlib.Path(__file__).resolve().parents[1]
 _CK = _REPO / "ask-ck" / "CK-main"
 
@@ -59,8 +61,13 @@ def test_main_module_entrypoint_binds_loopback_and_uses_a_real_module_path():
 
 # --- 1b. the hardcoded --force --------------------------------------------------
 def _push_handler_src():
-    src = (_CK / "CK_server" / "routers" / "wizard.py").read_text(encoding="utf-8")
-    return src.split("async def push_to_zephyr(", 1)[1].split("\n@router", 1)[0]
+    # push_to_zephyr moved into routers/wizard/export.py (commit 10). Find the package file
+    # that defines it and slice out its body — it is the last route in that module.
+    for p in wizard_router_paths():
+        t = p.read_text(encoding="utf-8")
+        if "async def push_to_zephyr(" in t:
+            return t.split("async def push_to_zephyr(", 1)[1]
+    raise AssertionError("push_to_zephyr handler not found in the wizard router")
 
 
 def test_force_is_not_hardcoded():

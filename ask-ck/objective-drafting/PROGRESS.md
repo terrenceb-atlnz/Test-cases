@@ -2,7 +2,39 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-28 (by Claude)
+**Last Updated**: 2026-07-29 (by Claude)
+
+## Latest session (2026-07-29) — commit 10 lands; the module split is COMPLETE
+
+**Focus: the one straggler from `PLAN-backend-module-split.md` — commit 10, the atomic
+`routers/wizard.py` → `routers/wizard/` move. All 11 commits are now done (6 stays dropped).**
+
+- **`routers/wizard.py` (1972 lines) is now a package.** Four route modules split on the
+  file's *existing* concern order — `reviews` (148–981: load_case, step candidates, the
+  three searches + suggests, confirm_step), `config` (982–1190: session clear, CLI status,
+  LLM config, health), `synthesis` (1191–1497: objectives + steps), `export` (1498–EOF: the
+  drop-in bundle + push_to_zephyr) — plus `_shared.py` (get_data + OUTPUTS_ENV; a leaf, so no
+  import cycle) and `__init__.py` (mounts the four sub-routers, re-exports the public surface).
+- **Every function body moved BYTE-IDENTICAL** — proven, not asserted: the four sliced bodies
+  reassembled and `diff`ed against the original 148–EOF are identical (no line lost, duplicated
+  or reordered). The only new code is the per-module import headers, computed from an AST scan
+  of the actual free names in each slice (several grep hits were prose false-positives — reviews
+  needs no stdlib/logging at all; export was the only module that logs). The last line of the
+  file had no trailing newline, so `wc -l` said 1971 and a naive `NR<=1971` slice dropped the
+  closing `}` of push_to_zephyr — the byte-identity diff caught it.
+- **The two cross-module privates use RELATIVE imports** (`_session_llm_cfg` reviews→synthesis,
+  `_authoritative_session` synthesis→export) so `test_shared_modules_decoupling` does not read
+  one router's internal wiring as a cross-router reach. Both are also used within their own
+  defining module, so the per-file unreferenced-private check stays green.
+- **Six hardcoded `routers/wizard.py` source reads across the suite now go through one helper**,
+  `tests/_wizard_src.py` (`wizard_router_paths()` / `wizard_router_source()`), which RAISES if it
+  finds nothing. A hardcoded path that silently stops matching — passing green while covering
+  nothing — was the precise failure mode the plan flagged; the helper makes the next move
+  re-route every caller at once. Parametrized structural tests now fan out over the six package
+  files instead of one, so **pytest rose 559 → 584** (more coverage, not new behaviour).
+- **Also fixed a stale doc note:** `PLAN-llm-observability.md` still labelled its follow-on
+  features "UNCOMMITTED"; they shipped in `47833de` (verified). Corrected.
+- **Gate:** 584 pytest + 85 Vitest, both guards, ck.db signature unchanged (isolation held).
 
 ## Latest session (2026-07-28f) — the wizard module split, all but one commit
 
