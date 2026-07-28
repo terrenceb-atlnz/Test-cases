@@ -156,6 +156,10 @@ class WizardSession(BaseModel):
     art_string: str = ""
     full_session: Dict[str, Any] = {}  # For provenance
     updated_at: Optional[UtcDatetime] = None  # For tracking / persistence order
+    # Monotonic write counter for the optimistic-write backstop (locks.next_rev). Rides
+    # inside the payload JSON — no ck.db schema change. Optional/defaulted so sessions
+    # persisted before it deserialize as rev=0. See PLAN-auth-and-case-locking.md Phase 1.
+    rev: int = 0
     llm_config: LLMConfig = LLMConfig()  # Session-scoped login (Grok / Claude)
 
 class PtSession(BaseModel):
@@ -187,6 +191,8 @@ class PtSession(BaseModel):
     step8: Dict[str, Any] = {}
     llm_config: LLMConfig = LLMConfig()
     updated_at: Optional[UtcDatetime] = None
+    # Optimistic-write backstop counter; see WizardSession.rev and locks.next_rev.
+    rev: int = 0
 
 
 class SynthesisRequest(BaseModel):

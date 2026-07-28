@@ -2,9 +2,40 @@
 
 > ## Status (read first)
 >
-> **PLANNED — not started. No code written.** Captured 2026-07-27g at Terrence's direction
-> after the adversarial review closed. Terrence chose **Option B (real multi-user)** as the
-> intended end-state of the tool, and added a hard requirement the review had not raised:
+> **PHASE 1 (case locking) — DONE 2026-07-29.** Phases 2 (identity) and 3 (attribution +
+> TLS) remain PLANNED and are gated on the org identity decision (D1/D2). Captured
+> 2026-07-27g at Terrence's direction after the adversarial review closed; Terrence chose
+> **Option B (real multi-user)** as the intended end-state and added a hard requirement the
+> review had not raised:
+>
+> ### Phase 1 as built — TWO deviations from §4, both forced by the ck.db invariant
+>
+> The §4 design wanted a durable `case_locks` table + a `rev` column. Investigation
+> confirmed **ck.db is immutable by design** — `tool/build_db.py` refuses to rebuild, there
+> is no runtime DDL and no migration framework — so adding a table/column would have been the
+> repo's first in-place schema mutation of the permanent DB. Terrence's call was to leave the
+> schema untouched. So Phase 1 shipped **with ZERO ck.db schema change**:
+>
+> 1. **Locks live in memory** (`CK_server/locks.py`), not in a table. Authoritative because
+>    the server is single-process today (`uvicorn … --reload`, no `--workers`; nginx example =
+>    one upstream). `locks.py` + SERVER-README carry a prominent caveat: going multi-worker
+>    without promoting the registry to a shared store silently reintroduces the overwrite bug.
+> 2. **`rev` rides inside the session `payload` JSON** (a field on both session models), not a
+>    column. The optimistic compare-and-swap (`locks.next_rev`) runs at both persist choke
+>    points and covers the one gap the in-memory lock cannot: a restart or a second process
+>    (the window `pytest_create._pt_get` already documents) clobbering with a stale copy.
+>
+> Guard is at the two choke points only — `session_store.persist_session` +
+> `pytest_create._pt_persist` (holder = the `X-CK-Session` ContextVar, no signature change) —
+> raising `locks.LockError` → HTTP 409 via one app-wide handler. `load_case` acquires on load
+> and serves a read-only snapshot when another holds it (D6a). Endpoints:
+> `POST /api/locks/{kind}/{case_key}/acquire|heartbeat|release`. Frontend `static/js/locks.js`:
+> acquire-on-load, 5-min heartbeat, `navigator.sendBeacon` release on `pagehide`, read-only
+> banner + disabled inputs + "Take over" once idle. Tests: `tests/test_case_locks.py` (24) +
+> `tests/test_no_unguarded_session_write.py` (structural — no write bypasses the guard) +
+> `js-tests/locks.spec.js` (7). Decisions D3–D6 implemented as recommended; D1/D2 still open.
+>
+> **Original requirement (unchanged):**
 >
 > > *"There should be a session-lockout for each test case selected so concurrent overwrites
 > > are impossible, both for the PyTest Creator and for the test-case generator."*
@@ -205,7 +236,7 @@ Shipping locking first means the data-loss risk closes even if identity stalls.
 
 | Phase | Size | Gated on |
 |---|---|---|
-| 1 — locking | **M** — one table, one choke point, one frontend banner, ~8 tests | nothing |
+| 1 — locking | ✅ **DONE 2026-07-29** — in-memory registry (no ck.db table), two choke points, frontend banner, 31 tests | nothing |
 | 2 — identity | **M–L** | D1/D2 (likely an org/IT decision) |
 | 3 — attribution + TLS | **S–M** | Phase 2 |
 

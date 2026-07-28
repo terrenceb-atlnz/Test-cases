@@ -10,6 +10,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 import db
+import locks
 from models import Selection, WizardSession, model_to_dict, safe_session_dict
 from timeutil import utc_now
 from case_registry import (
@@ -69,14 +70,39 @@ async def load_case(key: str, data=Depends(get_data)):
     So: no step does work here, and all three behave identically. See
     ask-ck/ck-facelift/PLAN-backend-module-split.md A1.
     """
-    # Check in-memory or disk first
+    # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). Acquire for this tab; if
+    # another tab/user holds a LIVE lock we do NOT acquire (by_me=False) and serve a
+    # read-only view (D6a).
+    lock = locks.acquire("wizard", key)
+    zm = data.get("zephyr_master", {}) or {}
+    case_title = (zm.get(key, {}) or {}).get("title", "") if key else ""
+
+    if not lock["by_me"]:
+        # Read-only: someone else is editing. Serve a snapshot of the LAST SAVED state
+        # and touch NOTHING — the holder's live in-memory object is shared across tabs in
+        # this one process, so backfill/apply_workspace_llm here would mutate THEIR work.
+        # No hydration persist either (it would 409 against their lock).
+        snap = load_persisted(key)
+        if snap is None and key not in zm:
+            raise HTTPException(404, "Case not found")
+        return {
+            "session": safe_session_dict(snap or WizardSession(key=key)),
+            "case_title": case_title,
+            "lock": lock,
+            "read_only": True,
+            "message": f"'{key}' is being edited in the Generator by {lock['holder_label']} "
+                       f"(since {lock['acquired_at']}). You are viewing it read-only.",
+        }
+
+    # We hold the lock — normal load.
     sess = sessions.get(key) or load_persisted(key)
     if sess:
         sessions[key] = sess
         if migrate_legacy_step4_to_step5(sess):
             mark_updated(sess)
     else:
-        if key not in data.get("zephyr_master", {}):
+        if key not in zm:
+            locks.release("wizard", key)   # don't strand a lock on a non-existent case
             raise HTTPException(404, "Case not found")
         sess = WizardSession(key=key)
         # Populate primary decision (cross-ref from data/decisions)
@@ -97,12 +123,11 @@ async def load_case(key: str, data=Depends(get_data)):
 
     persist_session(sess)
 
-    zm = data.get("zephyr_master", {}) or {}
-    case_title = (zm.get(key, {}) or {}).get("title", "") if key else ""
-
     return {
         "session": safe_session_dict(sess),   # redacts llm_config secrets
         "case_title": case_title,
+        "lock": lock,
+        "read_only": False,
         "message": "Case loaded (or restored from persistence). Confirm each of the three database reviews explicitly before synthesis is allowed."
     }
 

@@ -419,4 +419,8 @@ def test_the_store_addresses_the_wizard_kind(monkeypatch):
     store.persist_session(WizardSession(key="AWPTCM-T99994"))
     store.load_persisted("AWPTCM-T99994")
     store.clear_persisted("AWPTCM-T99994")
-    assert seen == ["wizard", "wizard", "wizard"]
+    # persist_session now reads the current rev (locks.next_rev, the optimistic-write
+    # backstop) via load_session BEFORE it saves, so it addresses the wizard row twice
+    # (load + save) — hence four calls, not three. The invariant this test guards is
+    # unchanged: every call targets kind='wizard', a 'pt' row is never touched here.
+    assert seen == ["wizard", "wizard", "wizard", "wizard"]

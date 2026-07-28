@@ -65,6 +65,7 @@ log = logging.getLogger(__name__)
 from data import load_all_data
 from paths import DB_PATH as PERMANENT_DB_PATH, PROCESS_MD
 from session_store import SessionWriteError
+from locks import LockError
 from routers.wizard import router as wizard_router
 from routers.zephyr_tool import router as zephyr_tool_router
 from routers.test_composer import router as test_composer_router
@@ -72,6 +73,7 @@ from routers.pytest_create import router as pytest_create_router
 from routers.agent_bridge import router as agent_bridge_router
 from routers.llm_debug import router as llm_debug_router
 from routers.admin import router as admin_router
+from routers.locks import router as locks_router
 import llm as _llm
 
 app = FastAPI(title="Ask CK (Server-Backed)")
@@ -113,6 +115,19 @@ async def _session_write_failed(request: Request, exc: SessionWriteError):
     """
     log.error("session write failed on %s: %s", request.url.path, exc)
     return JSONResponse(status_code=500, content={"detail": str(exc)})
+
+
+@app.exception_handler(LockError)
+async def _lock_conflict(request: Request, exc: LockError):
+    """A per-case lock conflict (another editor holds the case) or a stale optimistic
+    write (rev CAS mismatch) is a 409, not a 500: the request was well-formed and the
+    server is fine — the write was deliberately refused to protect another editor's
+    work. The exception's own message names the case and says what to do, so it is the
+    body. Handled app-wide (like SessionWriteError) so no persist call site can forget.
+    See PLAN-auth-and-case-locking.md Phase 1 and locks.py.
+    """
+    log.info("lock conflict on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
 @app.middleware("http")
@@ -195,6 +210,7 @@ app.include_router(pytest_create_router, prefix="/api/pytest-create")
 app.include_router(agent_bridge_router, prefix="/api/agent")
 app.include_router(llm_debug_router, prefix="/api/llm")
 app.include_router(admin_router, prefix="/api/admin")
+app.include_router(locks_router, prefix="/api/locks")
 
 
 @app.get("/favicon.ico")

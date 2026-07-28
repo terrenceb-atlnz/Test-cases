@@ -26,6 +26,7 @@ from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
 from llm import run_prompt, extract_json_block
 import db as dbx   # aliased: several functions here have a `db` filter parameter
+import locks
 from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
     check_profile, parse_framework_log, failure_excerpts, run_manager,
@@ -214,8 +215,16 @@ def _pt_persist(sess: PtSession) -> None:
     endpoint returned 200 while the work never reached the DB — the caller then had no way
     to know, and the documented workaround was "never trust the 200". A lost generate costs
     a multi-minute LLM round trip, so it must fail loudly.
+
+    Case-locking guards run FIRST (PLAN-auth-and-case-locking.md Phase 1), before the DB
+    write and outside the try/except so their 409 is never rewrapped as a 500:
+    `require_can_write` refuses if another tab/user holds a live lock on this case, and
+    `next_rev` is the optimistic backstop against a stale copy — precisely the two-process
+    window `_pt_get` documents. Both raise `locks.LockError` → HTTP 409 (app-wide handler).
     """
+    locks.require_can_write("pt", sess.key)
     sess.updated_at = utc_now()
+    sess.rev = locks.next_rev("pt", sess.key, int(sess.rev or 0))
     try:
         data = model_to_dict(sess)
         dbx.save_session("pt", sess.key, data)
@@ -1987,6 +1996,25 @@ async def pt_cases(request: Request):
 @router.post("/load_case/{key}")
 async def load_case(key: str, request: Request):
     data = _data(request)
+    # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). If another tab/user holds a
+    # LIVE lock, serve a read-only snapshot and touch nothing — pt_sessions is shared
+    # across tabs in this one process, so _sweep_stale_runs / apply_workspace_llm here
+    # would mutate THEIR live object, and the hydration _pt_persist would 409.
+    lock = locks.acquire("pt", key)
+    if not lock["by_me"]:
+        snap = _pt_load(key) or PtSession(key=key)
+        fields = _case_payload_fields(snap)
+        return {
+            "session": safe_session_dict(snap),
+            "case_title": _case_title(data, key),
+            "group_display": _group_display(snap.group),
+            "objective": fields["objective"],
+            "steps": fields["steps"],
+            "llm_applied_from_workspace": False,
+            "lock": lock,
+            "read_only": True,
+        }
+
     sess = pt_sessions.get(key) or _pt_load(key)
     if not sess:
         group, payload, trace = _find_refined_case(key)
@@ -2003,6 +2031,8 @@ async def load_case(key: str, request: Request):
         "objective": fields["objective"],
         "steps": fields["steps"],
         "llm_applied_from_workspace": changed,
+        "lock": lock,
+        "read_only": False,
     }
 
 

@@ -41,6 +41,7 @@ import logging
 from typing import Dict, Optional
 
 import db
+import locks
 from models import WizardSession, model_to_dict
 from timeutil import utc_now
 
@@ -80,8 +81,17 @@ def persist_session(sess: WizardSession) -> None:
     The log line stays, at ERROR with the traceback, because the message alone
     ("database is locked", "no such table") does not say which caller lost data — and the
     500 body is what the browser shows, so it must be actionable on its own.
+
+    Two case-locking guards run FIRST (PLAN-auth-and-case-locking.md Phase 1), before the
+    DB write and OUTSIDE the try/except so their 409 is never rewrapped as a 500:
+    `require_can_write` refuses if another tab/user holds a live lock on this case;
+    `next_rev` is the optimistic-write backstop that stops a stale in-memory copy from
+    overwriting newer work even if a lock was bypassed. Both raise `locks.LockError`,
+    which `main.py` maps to HTTP 409 app-wide.
     """
+    locks.require_can_write(KIND, sess.key)
     sess.updated_at = utc_now()
+    sess.rev = locks.next_rev(KIND, sess.key, int(sess.rev or 0))
     try:
         data = model_to_dict(sess)
         db.save_session(KIND, sess.key, data)

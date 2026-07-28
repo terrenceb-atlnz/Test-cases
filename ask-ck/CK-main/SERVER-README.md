@@ -652,6 +652,35 @@ hardened the boundaries so untrusted/LLM-derived input can't escape its lane eve
 > dismissal is not a bug, so they are not re-raised — is
 > `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`.
 
+### Concurrency + case locking (Phase 1, 2026-07-29)
+
+Two people — or one person in two browser tabs — could open the same case and silently
+overwrite each other: every persist was an unconditional whole-blob write, so the second save
+won and the first person's work vanished with no error. Phase 1 of
+`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` closes this for **both** tools.
+
+- **A per-(tool, case) lock** (`CK_server/locks.py`) is acquired on `load_case`, heartbeated
+  every 5 min, released on tab close (`navigator.sendBeacon` on `pagehide`), and idles out after
+  15 min so an abandoned lock can be taken over. Held by the per-tab `X-CK-Session` id (Phase 2
+  will make that a real user). Endpoints: `POST /api/locks/{kind}/{case_key}/acquire|heartbeat|release`.
+- **Enforced at the two write choke points only** — `session_store.persist_session` and
+  `pytest_create._pt_persist` — which raise a 409 if another holder owns a live lock. A
+  `tests/test_no_unguarded_session_write.py` AST sweep proves no other code path writes a session.
+- **Read-only while locked (not refused):** loading a case someone else is editing shows a
+  banner ("held by … since HH:MM") and disables the step inputs; the case content still displays.
+- **Optimistic `rev` backstop:** a monotonic `rev` in the session payload JSON is compared-and-
+  swapped on every write, so even a stale copy after a restart — or a second server process (the
+  window `pytest_create._pt_get` documents) — cannot clobber newer work.
+- **This is NOT authentication.** `X-CK-Session` is a correlation id, not a credential; the lock
+  is a data-loss guard. Identity (D1/D2) is Phase 2.
+
+> ⚠ **Single-process assumption.** The lock registry is an in-memory dict, authoritative because
+> the server runs as ONE process (`uvicorn … --reload`, no `--workers`; the nginx example proxies a
+> single upstream). ck.db is immutable by design (`tool/build_db.py` refuses to rebuild; no
+> migration path), so a durable lock table was deliberately not added. **If the server is ever run
+> multi-worker/multi-process, promote the registry to a shared store** or the overwrite bug returns
+> silently — the `rev` backstop is then the only remaining guard. See `locks.py`'s module docstring.
+
 - **No secrets to the browser or disk.** `llm_config.api_key`/`token` are redacted from every
   session serialized to the client and from the exported `*-session.json` (`models.redact_llm_config`
   / `safe_session_dict`). The real key lives only in the server-side session store; the vLLM key

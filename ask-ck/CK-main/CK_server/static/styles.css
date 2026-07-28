@@ -1222,6 +1222,10 @@ h2 {
 .status-banner.is-warning { border-left-color: #d97706; }
 .status-banner.is-error   { border-left-color: #dc2626; }
 .status-banner.is-busy    { border-left-color: var(--border-default); }
+/* Read-only step panel while another tab/user holds the case lock (PLAN-auth Phase 1,
+   D6a). Inputs are actually disabled in JS (locks._setReadOnly); this is the visual cue. */
+.tool-panel.ck-readonly { opacity: 0.55; }
+#ck-lock-banner .btn { margin-left: 8px; vertical-align: baseline; }
 .atp-toolbar {
   display: flex;
   gap: 6px;

@@ -6,6 +6,10 @@ import { refreshCaseSelects } from './cases.js';
 import { goToPanel } from './nav.js';
 import { recordLLMDebug } from './llm-debug.js';
 import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
+import { onCaseLoaded, registerReloader } from './locks.js';
+
+// Let "Take over" (locks.js) re-run the editable load without a circular import.
+registerReloader('pt', ptLoadCase);
 
 // Mount the shared LLM Provenance block into a per-panel container, wired to the
 // panel's endpoint (dry_run for Refresh). `stepProv` seeds the last real call's
@@ -94,7 +98,10 @@ async function ptLoadCase() {
   ptCaseInfo = { title: d.case_title, group_display: d.group_display,
                  objective: d.objective, steps: d.steps };
   updatePtBadges();
-  goToPanel('panel-pt-seq');
+  // Per-case lock (PLAN-auth-and-case-locking.md Phase 1): read-only banner + disabled
+  // inputs when another tab/user holds it; heartbeat + release-on-close when we do.
+  onCaseLoaded('pt', S.ptCase.key, d.lock, d.read_only);
+  if (!d.read_only) goToPanel('panel-pt-seq');
 }
 
 async function ptRefreshSession() {

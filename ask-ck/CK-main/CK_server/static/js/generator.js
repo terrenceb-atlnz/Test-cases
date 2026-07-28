@@ -9,6 +9,10 @@ import { goToStep, updatePageHeader } from './nav.js';
 import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from './llm.js';
 import { recordLLMDebug } from './llm-debug.js';
 import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
+import { onCaseLoaded, registerReloader } from './locks.js';
+
+// Let "Take over" (locks.js) re-run the editable load without a circular import.
+registerReloader('wizard', loadCase);
 
 // --- Deferred per-step candidate loading -------------------------------------
 // load_case deliberately returns no candidate pools: each review step fetches its
@@ -88,6 +92,10 @@ async function loadCase() {
     renderObjectiveResult();
     renderStepsResult();
     renderReviewSummary();
+
+    // Per-case lock (PLAN-auth-and-case-locking.md Phase 1). Do this AFTER the renders
+    // so the read-only sweep catches every control they just added to the step panels.
+    onCaseLoaded('wizard', sel, data.lock, data.read_only);
   } catch (e) {
     alert('Failed to load case: ' + e);
   } finally {
