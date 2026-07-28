@@ -2,7 +2,9 @@
 
 > **Status (2026-07-28): commits 1-5 of 11 DONE.** A1 shipped as `4578030` (with the
 > pre-existing `pt_cases` blocker split into `0c06586`); A2, A3, A4 and A5 followed.
-> **Next: commit 6** (`refactor(models): type step4/step5`). Read
+> **Next: commit 7** — Part B begins (`refactor: extract wizard/descriptions.py`).
+> **Commit 6 (type step4/step5) was DROPPED** by user decision 2026-07-28; see its entry and
+> `SURVEY-step4-step5.md`. Read
 > *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
 > by measurement, and it changes how the consolidation commits (7-9) should be approached.
 > A2 added two more corrections of its own; see its section. **A4 corrected three wrong
@@ -456,7 +458,9 @@ read-through cannot tell a dead helper from a live one.
   `_specific_tokens` (wizard) + `_score_script_candidate` (pytest_create).
 - ~~Move `_CASE_KEY_RE` (`:2375`) to the top of the module.~~ Done (it sat *below* the two
   handlers it guards; legal, but read as a forward reference).
-- Normalize `confirmed_at` → **still open, commit 6** (untyped `step4`/`step5`).
+- Normalize `confirmed_at` → **DROPPED with commit 6.** Two reasons: `step4/step5.confirmed_at`
+  has **zero readers**, and unifying on `UtcDatetime` would change the published
+  `*-session.json` twice over (offset added AND the `T` separator lost).
 
 **A5 (`print()` → `logging`): 14 sites in wizard.py, not 18.** All converted, with levels
 matched to consequence rather than uniformly `warning`:
@@ -506,7 +510,7 @@ root (`CK_server/`), *not* in `routers/` — that is what actually fixes the
 | `CK_server/session_store.py` | 50-51, 176-230 | the `sessions` dict, `_persist_session`, `_load_persisted`, `_clear_persisted`, `_mark_updated`, `_authoritative_session` (1736-1743) | Generic over `kind='wizard'\|'pt'` — `db.py` already is. Where per-case locking lands later (`PLAN-auth-and-case-locking.md`) |
 | ~~`CK_server/wizard/scoring.py`~~ | ~~407-555~~ | **CANCELLED by A1** — `_score_zephyr_candidate`, `_ZREF_WEAK_ALONE` and the duplicate `_ZREF_GENERIC_TOKENS` are *deleted*, not extracted. Only **two** tokenizers survive (`_normalize_zephyr_text`, `_zephyr_tokens`) because `_build_atp_query` still uses them → they go to `descriptions.py`. `_specific_tokens` was deleted by A4 (unreferenced; wrong return type for its only would-be caller) | A1 turns this from "move 150 lines" into "delete 150 lines". Strictly better |
 | `CK_server/wizard/descriptions.py` | 437-459, 558-682, 1135-1187 | the two surviving tokenizers, `_build_testlink_description`, `_build_zephyr_case_description`, `_enrich_zephyr_rows`, `_build_atp_query`, `_split_atp_title_description`, `_get_atp_candidates`, `_hybrid_on` (1060-1064) | Pure. `_get_atp_candidates`/`_hybrid_on` are thin db wrappers — fine here. **Now the first extraction**, since scoring.py is gone |
-| `CK_server/wizard/gates.py` | 225-321 | `_can_synthesize`, `_session_objective`, `_session_has_objective`, `_session_objectives_confirmed`, `_session_test_script`, `_can_synthesize_steps`, `_selection_fingerprint`, `_invalidate_downstream`, `_migrate_legacy_step4_to_step5` | The state machine. Pure predicates over a session — unit-testable, currently not |
+| `CK_server/wizard/gates.py` | 225-321 | `_can_synthesize`, `_session_objective`, `_session_has_objective`, `_can_synthesize_steps`, `_selection_fingerprint`, `_invalidate_downstream`, `_migrate_legacy_step4_to_step5` | The state machine. Pure predicates over a session — unit-testable, currently not. **Two fewer than planned:** `_session_objectives_confirmed` and `_session_test_script` were deleted in commit 4 (born unused in `05b194a`, never called). Do not re-add them here |
 | `CK_server/wizard/backfill.py` | 337-399 | `_backfill_from_refined` | Depends on `case_registry._refined_payload_path` |
 
 Then the routes, `routers/wizard.py` → `routers/wizard/`:
@@ -569,7 +573,148 @@ doing all the commits suggested in A and B. Improving this code flow is importan
    case diverges (spurious reload every request). +38 tests; 4 of 6 mutations red, and the
    2 that stayed green revealed a genuinely UNREACHABLE branch (pydantic resolves `None` on
    the `Optional` union before the annotated validator runs) which was then deleted.
-6. `refactor(models): type step4/step5` — A4's last item, own commit (touches persisted shape).
+6. ~~`refactor(models): type step4/step5`~~ — **🚫 DROPPED. User decision, 2026-07-28.
+   Do not re-raise this.** Full evidence: `ask-ck/ck-facelift/SURVEY-step4-step5.md`
+   (21-agent survey; 11 of 13 hazards survived adversarial verification, 4 blockers).
+
+   **Why it was dropped — the commit had no remaining purpose:**
+   - Its stated goal was normalizing `confirmed_at`, and **`step4/step5.confirmed_at` has
+     ZERO readers** — 6 write sites (`wizard.py:298, 1855, 1901, 1906, 1931, 2075`), no
+     Python reader, no JS reader. The whole motivation was a field nothing consumes.
+   - `provenance` is inert and stays a dict (see below), so there was nothing to model there.
+   - `testScript` is **350/350 uniform** in real data, so validation would catch nothing that
+     has ever occurred.
+   - What remained was editor completion and typo-safety.
+
+   **Why it was actively dangerous — verified, not argued:**
+   - **17 `isinstance(..., dict)` guards** on these fields. A pydantic model is not a dict, so
+     every one silently takes its `else` branch. Worst: `wizard.py:2241` makes **export write
+     the placeholder `"<ul><li>Objective not yet synthesized</li></ul>"` into the published
+     bundle**; `wizard.py:2219-2220` empties the exported testScript; `wizard.py:296-348`
+     kills the invalidation cascade and the Step-5 gate; `db.py:1024-1035` makes the case
+     list report nothing done.
+   - **The `stale` key is invisible to any data census.** Written `wizard.py:298,303`, popped
+     at `:1897, 1934, 1963, 2034`, read ONLY by `generator.js:163,185`. It is **0 of 35** in
+     ck.db and **0 of 2** on disk because it is transient — so no survey of stored data can
+     see it, including the ck.db census above. Default `extra='ignore'` drops it, killing the
+     stale badge that `generator.js:158-161` documents as the guard that stops a contradictory
+     bundle reaching export.
+   - **FALSE GREEN: the whole 393-test suite passes with these fields typed.** No test can
+     see any of the above. This is the real reason the commit was not attempted on judgement.
+   - `_backfill_from_refined` would re-fire on every `/load_case` for all 43 Complete cases
+     and clobber the session's objective/confirmed_at/provenance.
+   - `PtSession.step4/step5` (`models.py:183,184`) hold a **completely different live shape**
+     under the same names — one shared model drops 8 keys; `extra='forbid'` fails to load all
+     3 pt sessions.
+
+   **Ancillary conclusions worth keeping (these stand independently of the drop):**
+   - **`provenance` must stay `Dict[str, Any]`.** It is inert: all 14 sites in `wizard.py` are
+     WRITES, zero Python reads any key, no template touches it. Only `provenance.js:89` and
+     the `pytest.js` panels read it, purely to DISPLAY (the paste-into-another-LLM feature),
+     plus `pytest_create.py:1961` `bool(content.get("provenance"))` — presence-only,
+     PtSession-only. *(User: "why do we actually care about it at all? it's a non-functional
+     set of data… a blackhole." Correct.)* On-disk proves it is multi-generational: T33373
+     carries a 10-key legacy combined shape, T33233 a 4-key one, and current code emits
+     `objective_used` which appears in 0 of 35 rows. Persisted provenance is neither a subset
+     nor a superset of what the code can produce — do not try to model it.
+   - **`REFINED_DIR` is `ask-ck/objective-drafting/refined-cases/`**, NOT `ask-ck/refined-cases/`.
+     43 `zephyr_payload.json` + only 2 `*-session.json`. `_backfill_from_refined`
+     (`wizard.py:375-380`) copies `testScript` verbatim from the payloads, so **those 43 files
+     — not the 9 non-empty sessions — are the step-shape contract**: wrapper keyed by
+     `AWPTCM-Txxxx` 43/43, inner keys exactly `{objective, testScript}` 43/43, `testScript`
+     keys exactly `{type, steps}` 43/43, **276/276 steps exactly
+     `{description, expectedResult}`** (3-15 each). With ck.db's 74 that is 350/350.
+   - `confirmed_at` normalization stays dropped for the same reason (zero readers), and
+     because unifying on `UtcDatetime` would change the published `*-session.json` twice over
+     — adding the offset AND losing the `T` separator.
+   - Pydantic 2.13.4 facts, executed: raw-dict assignment is **not** validated (so typing is
+     cosmetic across 19 assignment sites); `validate_assignment=True` then breaks **13**
+     in-place mutation sites with `TypeError: does not support item assignment`;
+     `extra='ignore'` silently drops undeclared keys; `model_dump` fills defaults, which
+     changes the browser JSON and the exported artefact.
+
+   **Superseded scope notes from before the drop, kept for context:**
+
+   Measured from `ck.db` (read-only, 35 wizard sessions):
+
+   | | step4 | step5 |
+   |---|---|---|
+   | present | 35 | 10 |
+   | **non-empty** | **7** | **5** |
+
+   ```
+   step4:  objective 7(str) | provenance 6(dict) | confirmed 5(bool)
+           confirmed_at 4(str x3, null x1) | testScript 4(dict x3, null x1) | backfilled 1(bool)
+   step5:  testScript 5(dict) | provenance 1(dict) | confirmed 1(bool) | backfilled 1(bool)
+   ```
+
+   **`provenance` STAYS `Dict[str, Any]` — do not model it.** It looks like the hard case
+   (13 sparse, partly-nullable keys) and it is the opposite: it is **inert**. All 14
+   `provenance` sites in `wizard.py` are WRITES; there are **zero** reads of any provenance
+   key in Python, and no Jinja template touches it. The only reads anywhere are
+   `static/js/provenance.js:89` and the `pytest.js` panels, which merely DISPLAY it (the
+   paste-into-another-LLM feature), plus `pytest_create.py:1961`
+   `bool(content.get("provenance"))` — presence-only, PtSession-only. Nothing branches on
+   its contents, so its irregularity costs nothing, and a `Dict[str, Any]` field preserves
+   whatever keys arrive. Modelling it would buy nothing and risk silently dropping keys the
+   provenance panel displays. *(User called this out directly: "why do we actually care
+   about it at all? it's a non-functional set of data… a blackhole." Correct.)*
+
+   **Type these instead** — small and regular: `objective` (str), `confirmed` (bool),
+   `backfilled` (bool), `testScript`. `testScript` is the tightest of all: 74/74 step
+   entries across 8 testScripts are exactly `{description, expectedResult}`, so
+   `{type: str, steps: [TestStep]}` is safe. Note `step4.testScript` is **nullable**
+   (1 row holds null) — it is the legacy location, `step5` is current.
+
+   **`confirmed_at` is a BEHAVIOUR change, not a typing change — split it out.** step1-3
+   use a real aware `datetime` (`models.UtcDatetime`, added in commit 5) while step4/step5
+   hold a naive **string in two different formats**, both present in live data:
+   `'2026-07-15T00:42:37.575327'` (T) and `'2026-07-13 03:11:37.604091'` (space — this is
+   what `json.dumps(default=str)` writes). Unifying on `UtcDatetime` makes them serialize
+   as `+00:00`, which flows into the exported `*-session.json`. That is a data-format change
+   to a published artefact and does not belong in "add types".
+
+   **The on-disk population is the real shape contract, and it is airtight.**
+   `REFINED_DIR` is `ask-ck/objective-drafting/refined-cases/` (NOT `ask-ck/refined-cases/`).
+   It holds **43 `zephyr_payload.json`** plus only **2 `*-session.json`** (T33233, T33373).
+   `_backfill_from_refined` (`wizard.py:375-380`) copies `testScript` **verbatim** out of
+   `zephyr_payload.json` into `sess.step5`, so those 43 files — not the 9 sessions — define
+   the shape. Measured across all 43: wrapper keyed by `AWPTCM-Txxxx` 43/43; inner keys
+   exactly `{objective, testScript}` 43/43; `objective` non-empty 43/43; `testScript` a dict
+   43/43 with keys exactly `{type, steps}`; **276/276 step entries exactly
+   `{description, expectedResult}`**, 3-15 steps each. With ck.db's 74 that is
+   **350/350 uniform** — `TestScript`/`TestStep` can be typed tightly with real confidence.
+
+   🛑 **BUT: typing these fields is NOT a typing change. Executed on pydantic 2.13.4:**
+
+   | fact | result |
+   |---|---|
+   | `s.step4 = {"objective": "x", "junk": 1}` (default config) | stays a **plain dict** — `type after assign: dict` |
+   | same, with `validate_assignment=True` | becomes `Step4`; `junk` **dropped** |
+   | `model.step4["confirmed"] = True` | `TypeError: 'Step4' object does not support item assignment` |
+   | `extra='ignore'` (the default) on an undeclared key | **silently dropped** → data loss on re-persist |
+   | `extra='allow'` | preserved |
+   | `model_dump()` of `{"objective": "o"}` | `{"objective": "o", "confirmed": False}` — absent keys become explicit defaults |
+
+   Consequences, counted:
+   - **19 raw-dict assignments** to `step4`/`step5` (17 in `wizard.py` — `:298, 303, 314,
+     375, 380, 1851, 1907, 1935, 1964, 1968, 2006, 2025, 2035, 2070, 2077` — plus
+     `pytest_create.py:2417, 2445`). Because pydantic v2 does not validate on assignment,
+     **the typing is cosmetic unless `validate_assignment=True`**.
+   - Turn that on and the **13 in-place mutation sites break** with `TypeError`:
+     `wizard.py:1894, 1900, 1901, 1905, 1906, 1927, 1930, 1931, 1961, 1967, 2005, 2031, 2032`.
+     The prevailing idiom is `s4 = stored.step4 or {}` → mutate → `stored.step4 = s4`; every
+     one of those needs rewriting to model construction or `model_copy(update=...)`.
+   - `model_dump` gaining explicit defaults changes the JSON the browser sees **and** the
+     exported `*-session.json`.
+
+   **So commit 6 as originally specified was a ~32-site refactor plus a serialization change
+   to a published artefact — not "add types".** Two options were put to the user: drop it, or
+   reduce it to `TestScript`/`TestStep` as validators at the backfill boundary.
+   **The user chose: drop, with no boundary validator** (2026-07-28). The backfill path keeps
+   copying `testScript` verbatim from `zephyr_payload.json`, which is acceptable because all
+   43 payloads are uniform and the server writes them itself — but note it is an unvalidated
+   read of on-disk JSON, so it is the place to look first if a malformed bundle ever appears.
 
 **Part B (leaves first — each is import-only motion, no logic change):**
 7. `refactor: extract wizard/descriptions.py` (pure; add unit tests in the same commit).
@@ -674,7 +819,8 @@ block when it next goes stale. A confidently-wrong line ref is worse than no lin
   (unchanged by the split if `__init__.py` still exports `router`)
 - `ask-ck/CK-main/CK_server/data.py` — `:47` `load_all_data`, `:57,88-93` the per-call prints
 - `ask-ck/CK-main/CK_server/models.py` — `:98,102` untyped `WizardSession.step4`/`step5`
-  (→ commit 6); `:131,132` the same on `PtSession`, which that commit should probably cover too
+  (→ commit 6, DROPPED — leave both untyped; `PtSession.step4/step5` hold a DIFFERENT live
+  shape under the same names, so a shared model would have dropped 8 keys)
 - `ask-ck/CK-main/CK_server/db.py` — `:123` `_ZREF_GENERIC_TOKENS` (still duplicated in
   wizard; Part B consolidates), `:147` `_AREA_WORDS` (**new in A1**), `:150`
   `_relevance_score` with its opt-in `area_words` tier — **the place any future scoring
@@ -698,7 +844,8 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 6-11 remain.** Next is **commit 6** (type `step4`/`step5`). Read *What A1 taught*
+**Commits 7-11 remain** (6 was dropped). Next is **commit 7**, the first Part B extraction.
+Read *What A1 taught*
 first — one of this plan's stated expectations was falsified by measurement, and it changes
 how the consolidation commits (7-9 especially) should be approached. Then read the **A4+A5**
 section: three of its own planned items turned out to be wrong, so treat every line ref and
