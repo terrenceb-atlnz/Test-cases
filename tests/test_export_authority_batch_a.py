@@ -20,6 +20,7 @@ the 43 existing on-disk bundles would 400 on re-export for reviews already done.
 
 All in-process — no network, no testbox, no writes outside a tmp_path.
 """
+import ast
 import json
 import pathlib
 
@@ -384,20 +385,52 @@ def test_reconfirm_objective_clears_stale(client, clean_session):
 
 
 # --- Finding 4: atomic bundle write ---------------------------------------------
-def test_complete_marker_is_written_last():
+def test_a_mid_write_failure_never_leaves_the_complete_marker(tmp_path):
     """zephyr_payload.json is the Complete marker, so it must be the final commit point.
 
-    Guards the ordering directly: if a future edit moves the payload back ahead of the
-    session dump, a mid-write failure could again leave a case Complete with a partial
-    bundle.
+    This was a grep for `files_written = [`, and commit 11 decomposed export() so that
+    variable no longer exists — the test went red for the right reason. It is now
+    BEHAVIOURAL, which is strictly better: drive the real writer, make the second of three
+    commits fail, and require that the marker never landed and no staged temp survived.
+
+    The failure is induced without patching anything: os.replace onto a non-empty
+    directory raises, so the session-dump destination is pre-created as one.
+    """
+    import routers.wizard as wiz
+
+    victim = tmp_path / "AWPTCM-T99991-session.json"
+    victim.mkdir()
+    (victim / "occupied").write_text("x")       # non-empty, so os.replace must fail
+
+    with pytest.raises(OSError):
+        wiz._write_bundle(tmp_path, [
+            ("traceability.md", "md"),
+            ("AWPTCM-T99991-session.json", "{}"),
+            ("zephyr_payload.json", "{}"),
+        ])
+
+    assert not (tmp_path / "zephyr_payload.json").exists(), (
+        "the Complete marker landed despite a mid-write failure — the case would read as "
+        "Complete with a partial bundle, and push_to_zephyr would use it")
+    assert not list(tmp_path.glob(".*.tmp")), "staged temp files were not cleaned up"
+
+
+def test_export_passes_the_complete_marker_to_the_writer_last():
+    """The ordering _write_bundle depends on, checked at the one call site.
+
+    _write_bundle cannot enforce this itself — it commits in the order it is given — so the
+    caller's list order is the invariant. Read from the AST, not a grep for a variable
+    name, which is exactly what broke last time.
     """
     src = pathlib.Path(__file__).resolve().parents[1] / (
         "ask-ck/CK-main/CK_server/routers/wizard.py")
-    text = src.read_text(encoding="utf-8")
-    block = text.split("files_written = [", 1)[1].split("]", 1)[0]
-    order = [line for line in block.splitlines() if '("' in line or '(f"' in line]
-    assert "zephyr_payload.json" in order[-1], (
-        "the Complete marker must be written last; got order:\n" + "\n".join(order))
+    tree = ast.parse(src.read_text(encoding="utf-8"))
+    calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+             and getattr(n.func, "id", None) == "_write_bundle"]
+    assert len(calls) == 1, f"expected one _write_bundle call site, found {len(calls)}"
+    names = [ast.unparse(el.elts[0]) for el in calls[0].args[1].elts]
+    assert "zephyr_payload.json" in names[-1], (
+        f"the Complete marker must be committed last; got {names}")
 
 
 def test_export_write_is_staged_via_os_replace():

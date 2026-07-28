@@ -1486,19 +1486,20 @@ async def synthesize(req: SynthesisRequest):
         "session": safe_session_dict(stored),   # redacts llm_config secrets
     }
 
-@router.post("/export", response_model=ExportResponse)
-async def export(req: SynthesisRequest, data=Depends(get_data)):
-    """Produce repeatable, templated bundle for the case.
-    Uses the authoritative server-stored session ONLY (404 if absent) and requires
-    all three DB reviews confirmed (400 otherwise) — client-supplied session content
-    is never a write source for the bundle that marks a case Complete.
-    - Builds proper first traceability note via server-side function (for repeatability).
-    - Renders traceability.md.jinja with full context from selections.
-    - Assembles exact zephyr_payload.json shape expected by refined-cases + upload_refined.py.
-    - Also writes the main outputs (traceability.md + zephyr_payload.json) directly
-      into refined-cases/<Group>/AWPTCM-Txxxx/ (creating folders if needed).
-    Cross-references PROGRESS.md (High Priority: Complete output generation - "Update export to produce drop-in refined-cases artifacts")
-    and SERVER-README.md (output artifacts drop-in compatible; drop into refined-cases/<Group>/...).
+# --- export: gate, build, render, write -------------------------------------
+# export() was one 351-line handler doing gating, an LLM round-trip, payload assembly,
+# validation, Jinja templating and staged atomic writes. Split into named steps
+# (PLAN-backend-module-split.md commit 11) so each is reviewable and the pure ones are
+# unit-testable — _build_test_script in particular carries a subtle fix that had no direct
+# test, and _write_bundle carries the ordering that decides whether a case is Complete.
+# Pure motion: every step's body is verbatim from the handler.
+
+
+def _export_gate(req: SynthesisRequest) -> Tuple[str, WizardSession]:
+    """Resolve and authorize the case to export. Returns (case_key, authoritative session).
+
+    Raises 400 on a bad key, 404 when no server-side session exists, 400 when the three DB
+    reviews are not confirmed.
     """
     key = None
     if hasattr(req.session, "key"):
@@ -1528,13 +1529,13 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # exists rather than trusting the request body.
     stored = _authoritative_session(key)
 
-    # ...and gate on the three DB reviews, matching synthesize_objectives (1669),
-    # synthesize_steps (1818) and synthesize (1890). Without this, hand-pasting an
-    # objective + steps (save_objective/save_steps have no gate either) let an
-    # unreviewed case be written as Complete and become push-eligible — bypassing
-    # the exact three-review gate the drafting process mandates. Backfilled cases
-    # satisfy this via backfill_from_refined, which marks the reviews confirmed
-    # from the Complete on-disk bundle.
+    # ...and gate on the three DB reviews, matching synthesize_objectives,
+    # synthesize_steps and synthesize. Without this, hand-pasting an objective + steps
+    # (save_objective/save_steps have no gate either) let an unreviewed case be written
+    # as Complete and become push-eligible — bypassing the exact three-review gate the
+    # drafting process mandates. Backfilled cases satisfy this via
+    # backfill_from_refined, which marks the reviews confirmed from the Complete on-disk
+    # bundle.
     if not can_synthesize(stored):
         # A case that is Complete on disk should have been rehydrated by
         # backfill_from_refined. If it wasn't, the bundle itself is unreadable
@@ -1554,59 +1555,54 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             "Must complete and confirm reviews of all three databases "
             "(TestLink, Zephyr, ATPyLib) before exporting.",
         )
+    return key, stored
 
-    # Normalize to dict for easy access + context building. `stored` comes from
-    # _authoritative_session, so it is always a WizardSession — but this stays tolerant
-    # of a plain dict because sess_dict is mutated below (llm_config, gaps) and a
-    # pass-through would then write back into the live session.
-    sess_dict = model_to_dict(stored)
 
-    case_key = key or sess_dict.get("key", "unknown")
-    # Defense in depth: `key` was already shape-checked at the top of the handler, but
-    # case_key can also come from the stored session, so re-validate whatever will
-    # actually be used as the path component — before the LLM gaps call, payload
-    # validation, or any write.
-    if not CASE_KEY_RE.match(case_key or ""):
-        raise HTTPException(400, f"Refusing to export: invalid case key '{case_key}'. "
-                                 f"Expected AWPTCM-Txxxx.")
-    step4 = sess_dict.get("step4", {}) or {}
-    step5 = sess_dict.get("step5", {}) or {}
+async def _ensure_gaps(stored, sess_dict: dict) -> None:
+    """Fill sess_dict['gaps'] via the LLM when empty, and persist it onto the session.
 
-    # Gaps belong in Traceability and are LLM-generated at objective synthesis/export,
-    # not collected as a Step 3 form field. Apply the workspace LLM at dispatch time
-    # so the coverage-gaps call uses the configured backend, not the default.
-    # (`stored` is always the authoritative server session now — never req.session.)
+    Gaps belong in Traceability and are LLM-generated at objective synthesis/export, not
+    collected as a Step 3 form field.
+    """
+    # Apply the workspace LLM at dispatch time so the coverage-gaps call uses the
+    # configured backend, not the default. (`stored` is always the authoritative server
+    # session now — never req.session.)
     if hasattr(stored, "llm_config") and apply_workspace_llm(stored):
         mark_updated(stored)
         persist_session(stored)
         sess_dict["llm_config"] = model_to_dict(stored.llm_config)
     llm_cfg = sess_dict.get("llm_config", {})
-    if not (sess_dict.get("gaps") or "").strip():
-        # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
-        # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
-        #
-        # This was the one LLM call site in the router that omitted the wrap, and in
-        # claude_agent mode it is a guaranteed self-deadlock, not just a stall:
-        # _call_claude_agent -> registry.submit() blocks on threading.Event.wait(180s),
-        # and the event is only set when the browser POSTs to /api/agent/result — which
-        # the blocked event loop cannot serve. The export hangs for the full 180s and
-        # then reports "local Claude agent did not respond in time", blaming the user's
-        # ck-agent for a deadlock the server caused.
-        gaps_out = await run_in_threadpool(generate_coverage_gaps, sess_dict, llm_config=llm_cfg)
-        sess_dict["gaps"] = gaps_out.get("gaps") or ""
-        # Persist onto authoritative session when available
-        if stored is not None and hasattr(stored, "gaps"):
-            stored.gaps = sess_dict["gaps"]
-            if isinstance(stored, WizardSession) or hasattr(stored, "llm_config"):
-                try:
-                    mark_updated(stored)
-                    persist_session(stored)
-                except Exception:
-                    pass
+    if (sess_dict.get("gaps") or "").strip():
+        return
+    # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
+    # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
+    #
+    # This was the one LLM call site in the router that omitted the wrap, and in
+    # claude_agent mode it is a guaranteed self-deadlock, not just a stall:
+    # _call_claude_agent -> registry.submit() blocks on threading.Event.wait(180s),
+    # and the event is only set when the browser POSTs to /api/agent/result — which
+    # the blocked event loop cannot serve. The export hangs for the full 180s and
+    # then reports "local Claude agent did not respond in time", blaming the user's
+    # ck-agent for a deadlock the server caused.
+    gaps_out = await run_in_threadpool(generate_coverage_gaps, sess_dict, llm_config=llm_cfg)
+    sess_dict["gaps"] = gaps_out.get("gaps") or ""
+    # Persist onto authoritative session when available
+    if stored is not None and hasattr(stored, "gaps"):
+        stored.gaps = sess_dict["gaps"]
+        if isinstance(stored, WizardSession) or hasattr(stored, "llm_config"):
+            try:
+                mark_updated(stored)
+                persist_session(stored)
+            except Exception:
+                pass
 
-    # Rebuild the testScript with authoritative server-constructed repeatable note as first step.
-    # Prefer Step 5 testScript; fall back to legacy step4.testScript.
-    # Client edits to later steps are respected; only the first note step is forced.
+
+def _build_test_script(step4: dict, step5: dict, sess_dict: dict) -> dict:
+    """The exported testScript: stored steps with the server-built traceability note first.
+
+    Prefer Step 5 testScript; fall back to legacy step4.testScript. Client edits to later
+    steps are respected; only the first note step is forced.
+    """
     test_script = (
         (step5.get("testScript") if isinstance(step5, dict) else None)
         or (step4.get("testScript") if isinstance(step4, dict) else None)
@@ -1628,7 +1624,17 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             steps.insert(0, {"description": note_desc, "expectedResult": ""})
     else:
         steps = [{"description": note_desc, "expectedResult": ""}]
-    test_script = {"type": "steps", "steps": steps}
+    return {"type": "steps", "steps": steps}
+
+
+def _build_payload(case_key: str, step4: dict, step5: dict, sess_dict: dict) -> dict:
+    """The exact zephyr_payload.json shape refined-cases/ + upload_refined.py expect.
+
+    Side effect by design: derives sess_dict['art_string'] from the Step 3 selections when
+    absent, because the traceability template renders it too — so this must run before
+    _render_traceability, as it did inline.
+    """
+    test_script = _build_test_script(step4, step5, sess_dict)
 
     objective = (step4.get("objective") if isinstance(step4, dict) else None) or "<ul><li>Objective not yet synthesized</li></ul>"
     objective = sanitize_objective_html(objective)   # defense-in-depth on the exported artefact
@@ -1640,20 +1646,16 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             sess_dict["art_string"] = " + ".join(atp_ids[:6])  # cap for cleanliness
 
     # Exact shape matching real refined-cases examples
-    zephyr_payload = {
+    return {
         case_key: {
             "objective": objective,
             "testScript": test_script
         }
     }
 
-    # Run full validation (strengthened for complete output generation)
-    validation = validate_zephyr_payload(zephyr_payload)
-    if not validation.get("valid"):
-        log.warning("[export] validation issues for %s: %s", case_key, validation.get("issues"))
-    for w in validation.get("warnings", []):
-        log.warning("[export] %s", w)
 
+def _render_traceability(case_key: str, sess_dict: dict) -> str:
+    """traceability.md from the template, with a plain-text fallback that never raises."""
     # Rich context for Jinja (handles key vs id_or_key variations from UI data)
     primary = sess_dict.get("primary")
     tl_sels = sess_dict.get("step1", {}).get("selections", []) or []
@@ -1697,18 +1699,149 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # Render using the output template for repeatable md
     try:
         tmpl = OUTPUTS_ENV.get_template("traceability.md.jinja")
-        traceability_md = tmpl.render(**template_context)
+        return tmpl.render(**template_context)
     except Exception:
         # Traceback matters: this silently degrades the exported traceability.md to a
         # bare fallback, and the template name/line is only in the Jinja traceback.
         log.warning("[export] Jinja render failed — using plain-text fallback", exc_info=True)
-        traceability_md = f"# Traceability & Supporting Data for {case_key}\n\n## Primary\n{primary}\n\n## Gaps\n{gaps}\n\n## ART String\n{art_string}\n"
+        return f"# Traceability & Supporting Data for {case_key}\n\n## Primary\n{primary}\n\n## Gaps\n{gaps}\n\n## ART String\n{art_string}\n"
+
+
+def _write_bundle(target_dir: Path, files: List[Tuple[str, str]]) -> List[str]:
+    """Stage every file as a .tmp sibling, then os.replace them into place IN ORDER.
+
+    PARTIAL-WRITE (adversarial-review finding wizard.py:2166): zephyr_payload.json
+    is the Complete marker (refined_complete_keys keys off its existence) and it
+    used to be written SECOND of three, with the largest, most failure-prone write
+    (the session dump, which carries full LLM provenance) last. A disk-full or
+    encoding error on that third write left the case marked Complete and
+    push-eligible while the API reported wrote_bundle=False — a lying signal.
+
+    So the caller serializes everything up front (a serialization error then fails before
+    any file is touched) and passes the payload LAST, making the Complete marker the final
+    commit point. Any failure unlinks the staged temp files and leaves the case
+    not-Complete. THE ORDER OF `files` IS LOAD-BEARING.
+    """
+    target_dir.mkdir(parents=True, exist_ok=True)
+    saved_files: List[str] = []
+    staged: List[tuple] = []
+    try:
+        for name, content in files:
+            tmp = target_dir / f".{name}.tmp"
+            tmp.write_text(content, encoding="utf-8")
+            staged.append((tmp, target_dir / name, name))
+        for tmp, final, name in staged:
+            os.replace(tmp, final)
+            saved_files.append(name)
+    except Exception:
+        for tmp, _final, _name in staged:
+            try:
+                tmp.unlink(missing_ok=True)
+            except Exception:
+                pass
+        raise
+    return saved_files
+
+
+def _blocked_export(case_key: str, traceability_md: str, zephyr_payload: dict,
+                    session_out: dict, validation: dict) -> ExportResponse:
+    """The response when hard validation fails: render everything, write nothing.
+
+    HARDENING (backlog: output-generation): the drop-in bundle is exactly what marks a case
+    "Complete" (refined-cases/**/zephyr_payload.json). If the payload fails hard validation,
+    refuse to write it — a silently-broken bundle promoting a case to Complete is the failure
+    mode this guards. Warnings do NOT block (they're advisory). The client is handed the
+    validation detail so it can show WHY nothing was written.
+    """
+    issues = validation.get("issues") or ["unknown validation failure"]
+    # Be precise about state (adversarial-review findings): the guard only prevents
+    # WRITING a new/overwritten drop-in bundle — it does not remove one already on disk.
+    # A case that was exported successfully before is STILL Complete (Complete is keyed
+    # off refined-cases/**/zephyr_payload.json existing), and push_to_zephyr operates on
+    # that on-disk bundle. So don't claim "NOT Complete" unconditionally; say what's true.
+    stale_bundle_exists = refined_payload_path(case_key) is not None
+    if stale_bundle_exists:
+        complete_note = (
+            "A previously-exported bundle is still on disk, so this case remains marked "
+            "Complete and Push-to-Zephyr would use that OLDER bundle. This export did NOT "
+            "overwrite it. Fix the issues and re-export to refresh it."
+        )
+    else:
+        complete_note = "No bundle was written, so the case is NOT marked Complete."
+    export_message = (
+        "Export blocked — the payload did not pass validation, so no drop-in bundle was "
+        "written to refined-cases/. " + complete_note + " Issues:\n  - "
+        + "\n  - ".join(issues)
+    )
+    log.warning("[export] BLOCKED for %s (stale_bundle=%s): %s",
+                case_key, stale_bundle_exists, issues)
+    return ExportResponse(
+        traceability_md=traceability_md,
+        zephyr_payload=zephyr_payload,
+        session_json=session_out,
+        validation=validation,
+        saved_to=None,
+        saved_files=None,
+        message=export_message,
+        wrote_bundle=False,
+    )
+
+
+@router.post("/export", response_model=ExportResponse)
+async def export(req: SynthesisRequest, data=Depends(get_data)):
+    """Produce repeatable, templated bundle for the case.
+    Uses the authoritative server-stored session ONLY (404 if absent) and requires
+    all three DB reviews confirmed (400 otherwise) — client-supplied session content
+    is never a write source for the bundle that marks a case Complete.
+    - Builds proper first traceability note via server-side function (for repeatability).
+    - Renders traceability.md.jinja with full context from selections.
+    - Assembles exact zephyr_payload.json shape expected by refined-cases + upload_refined.py.
+    - Also writes the main outputs (traceability.md + zephyr_payload.json) directly
+      into refined-cases/<Group>/AWPTCM-Txxxx/ (creating folders if needed).
+    Cross-references PROGRESS.md (High Priority: Complete output generation - "Update export to produce drop-in refined-cases artifacts")
+    and SERVER-README.md (output artifacts drop-in compatible; drop into refined-cases/<Group>/...).
+    """
+    key, stored = _export_gate(req)
+
+    # Normalize to dict for easy access + context building. `stored` comes from
+    # _authoritative_session, so it is always a WizardSession — but this stays tolerant
+    # of a plain dict because sess_dict is mutated below (llm_config, gaps) and a
+    # pass-through would then write back into the live session.
+    sess_dict = model_to_dict(stored)
+
+    case_key = key or sess_dict.get("key", "unknown")
+    # Defense in depth: `key` was already shape-checked in _export_gate, but case_key can
+    # also come from the stored session, so re-validate whatever will actually be used as
+    # the path component — before the LLM gaps call, payload validation, or any write.
+    if not CASE_KEY_RE.match(case_key or ""):
+        raise HTTPException(400, f"Refusing to export: invalid case key '{case_key}'. "
+                                 f"Expected AWPTCM-Txxxx.")
+    step4 = sess_dict.get("step4", {}) or {}
+    step5 = sess_dict.get("step5", {}) or {}
+
+    await _ensure_gaps(stored, sess_dict)
+
+    # Order matters: _build_payload derives sess_dict['art_string'], which the
+    # traceability template renders.
+    zephyr_payload = _build_payload(case_key, step4, step5, sess_dict)
+
+    # Run full validation (strengthened for complete output generation)
+    validation = validate_zephyr_payload(zephyr_payload)
+    if not validation.get("valid"):
+        log.warning("[export] validation issues for %s: %s", case_key, validation.get("issues"))
+    for w in validation.get("warnings", []):
+        log.warning("[export] %s", w)
+
+    traceability_md = _render_traceability(case_key, sess_dict)
 
     # Full session out for audit/provenance (repeatable). REDACTED: this is written to
     # {case_key}-session.json under refined-cases/ (and returned to the browser), so the
     # llm_config api_key/token must be masked — otherwise a credential lands on disk in a
     # directory that can be committed. The live server-side session keeps the real key.
     session_out = safe_session_dict(stored if not isinstance(stored, dict) else stored)
+
+    if not validation.get("valid"):
+        return _blocked_export(case_key, traceability_md, zephyr_payload, session_out, validation)
 
     # Primary destination: write drop-in artefacts under refined-cases/ (server path).
     # Browser downloads are intentional only if the client asks; default UX is server-side only.
@@ -1717,100 +1850,31 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     export_message = ""
     wrote_bundle = False
 
-    # HARDENING (backlog: output-generation): the drop-in bundle is exactly what marks a case
-    # "Complete" (refined-cases/**/zephyr_payload.json). If the payload fails hard validation,
-    # refuse to write it — a silently-broken bundle promoting a case to Complete is the failure
-    # mode this guards. Warnings do NOT block (they're advisory). The client is handed the
-    # validation detail so it can show WHY nothing was written.
-    if not validation.get("valid"):
-        issues = validation.get("issues") or ["unknown validation failure"]
-        # Be precise about state (adversarial-review findings): the guard only prevents
-        # WRITING a new/overwritten drop-in bundle — it does not remove one already on disk.
-        # A case that was exported successfully before is STILL Complete (Complete is keyed
-        # off refined-cases/**/zephyr_payload.json existing), and push_to_zephyr operates on
-        # that on-disk bundle. So don't claim "NOT Complete" unconditionally; say what's true.
-        stale_bundle_exists = refined_payload_path(case_key) is not None
-        if stale_bundle_exists:
-            complete_note = (
-                "A previously-exported bundle is still on disk, so this case remains marked "
-                "Complete and Push-to-Zephyr would use that OLDER bundle. This export did NOT "
-                "overwrite it. Fix the issues and re-export to refresh it."
-            )
-        else:
-            complete_note = "No bundle was written, so the case is NOT marked Complete."
-        export_message = (
-            "Export blocked — the payload did not pass validation, so no drop-in bundle was "
-            "written to refined-cases/. " + complete_note + " Issues:\n  - "
-            + "\n  - ".join(issues)
-        )
-        log.warning("[export] BLOCKED for %s (stale_bundle=%s): %s",
-                    case_key, stale_bundle_exists, issues)
-        return ExportResponse(
-            traceability_md=traceability_md,
-            zephyr_payload=zephyr_payload,
-            session_json=session_out,
-            validation=validation,
-            saved_to=None,
-            saved_files=None,
-            message=export_message,
-            wrote_bundle=False,
-        )
-
     # SECURITY (adversarial-review finding): case_key comes from the client-supplied
     # session and is used as a directory component of the on-disk write path, so a value
     # like '../../etc/x' would escape refined-cases/. Validate it against the canonical
     # AWPTCM-Txxxx shape before ANY filesystem write. (push_to_zephyr already does this;
     # the export write path did not.)
-    # (case_key was already validated against CASE_KEY_RE at the top of the handler.)
+    # (case_key was already validated against CASE_KEY_RE above.)
     # Resolve the target dir and confirm it stays inside refined-cases/ BEFORE the write
     # try-block (whose broad `except Exception` would otherwise soften a 400 into a
     # "failed to write" message). Defends against a manipulated folder-derived `group`.
+    # Post-restructure (2026-07-13) refined-cases live under
+    # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor from paths.py,
+    # matching case_registry.get_refined_group and refined_complete_keys.
     _export_group = get_refined_group(case_key, data)
-    _export_target = REFINED_DIR / _export_group / case_key
-    if REFINED_DIR.resolve() not in _export_target.resolve().parents:
+    target_dir = REFINED_DIR / _export_group / case_key
+    if REFINED_DIR.resolve() not in target_dir.resolve().parents:
         raise HTTPException(400, "Refusing to export outside refined-cases/.")
 
     try:
-        group = _export_group
-        # Post-restructure (2026-07-13) refined-cases live under
-        # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor
-        # from paths.py, matching case_registry.get_refined_group and refined_complete_keys.
-        refined_root = REFINED_DIR
-        target_dir = refined_root / group / case_key
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        # PARTIAL-WRITE (adversarial-review finding wizard.py:2166): zephyr_payload.json
-        # is the Complete marker (refined_complete_keys keys off its existence) and it
-        # used to be written SECOND of three, with the largest, most failure-prone write
-        # (the session dump, which carries full LLM provenance) last. A disk-full or
-        # encoding error on that third write left the case marked Complete and
-        # push-eligible while the API reported wrote_bundle=False — a lying signal.
-        #
-        # Now: serialize everything up front (so a serialization error fails before any
-        # file is touched), stage each file as a .tmp sibling, then os.replace them into
-        # place — payload LAST, so the Complete marker is the final commit point. Any
-        # failure unlinks the staged temp files and leaves the case not-Complete.
-        files_written = [
+        # Serialize up front so a serialization error fails before any file is touched.
+        # zephyr_payload.json goes LAST — it is the Complete marker (see _write_bundle).
+        saved_files = _write_bundle(target_dir, [
             ("traceability.md", traceability_md),
             (f"{case_key}-session.json", json.dumps(session_out, indent=2, default=str)),
             ("zephyr_payload.json", json.dumps(zephyr_payload, indent=2)),
-        ]
-        staged: List[tuple] = []
-        try:
-            for name, content in files_written:
-                tmp = target_dir / f".{name}.tmp"
-                tmp.write_text(content, encoding="utf-8")
-                staged.append((tmp, target_dir / name, name))
-            for tmp, final, name in staged:
-                os.replace(tmp, final)
-                saved_files.append(name)
-        except Exception:
-            for tmp, _final, _name in staged:
-                try:
-                    tmp.unlink(missing_ok=True)
-                except Exception:
-                    pass
-            raise
+        ])
 
         # Prefer repo-relative path for display (portable across machines).
         # ASKCK_ROOT.parent is the Test-cases repo root.
