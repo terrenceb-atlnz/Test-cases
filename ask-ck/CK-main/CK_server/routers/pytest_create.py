@@ -22,7 +22,7 @@ import py_compile
 import re
 import tempfile
 
-from models import PtSession, LLMConfig, safe_session_dict
+from models import PtSession, LLMConfig, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from llm import run_prompt, extract_json_block
 import db as dbx   # aliased: several functions here have a `db` filter parameter
@@ -215,7 +215,7 @@ def _pt_persist(sess: PtSession) -> None:
     """
     sess.updated_at = datetime.utcnow()
     try:
-        data = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
+        data = model_to_dict(sess)
         dbx.save_session("pt", sess.key, data)
     except Exception as e:
         print(f"ERROR: failed to persist pt session {sess.key}: {e}")
@@ -292,7 +292,7 @@ def _apply_workspace_llm(sess: PtSession) -> bool:
     cur = getattr(sess, "llm_config", None)
     if _llm_is_active(cur) and _same_backend(cur, global_cfg):
         return False
-    raw = global_cfg.dict() if hasattr(global_cfg, "dict") else global_cfg.model_dump()
+    raw = model_to_dict(global_cfg)
     sess.llm_config = LLMConfig(**raw)
     return True
 
@@ -308,8 +308,7 @@ def _llm_cfg(sess: PtSession) -> dict:
     # mirroring the wizard's per-call _apply_workspace_llm_if_needed.
     if _apply_workspace_llm(sess):
         _pt_persist(sess)
-    cfg = sess.llm_config
-    return cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+    return model_to_dict(sess.llm_config)
 
 
 async def _dry_run(request: Request) -> bool:
@@ -698,9 +697,14 @@ def _propose_name(title: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Query tokenization. The 12/10/6 script scorer + its stopword/area sets now live
-# in db (db._score_script_candidate), applied inside dbx.search_scripts — single
-# source of truth, no private copy here (Commit B).
+# Query tokenization. The 12/10/6 script scorer + its stopword/area sets live in db
+# (db._score_script_candidate), applied inside dbx.search_scripts — single source of
+# truth (Commit B).
+#
+# This comment used to claim "no private copy here" while a full copy of the scorer sat
+# directly below it. That copy referenced _PT_GENERIC_TOKENS / _PT_AREA_SUPPORT, which
+# only ever existed in db.py — so it raised NameError on any call and was reachable from
+# nothing. Deleted. _pt_tokens stays: it is still used to build query token sets.
 # ---------------------------------------------------------------------------
 
 def _pt_tokens(s: str) -> set:
@@ -714,43 +718,6 @@ def _pt_tokens(s: str) -> set:
         if w in ("mdi", "mdix"):
             out.update(("mdi", "mdix"))
     return out
-
-
-def _score_script_candidate(query_toks: set, slim: dict) -> Tuple[float, str]:
-    """Score a slim index record against the sequence/query tokens."""
-    q_spec = {t for t in query_toks if t not in _PT_GENERIC_TOKENS}
-    tag_toks = set()
-    for t in slim.get("feature_tags") or []:
-        tag_toks |= _pt_tokens(t)
-    dir_toks = _pt_tokens(re.sub(r"^\d+_", "", slim.get("suite_dir") or ""))
-    blob = ((slim.get("title") or "") + " " + (slim.get("summary") or "")).lower()
-    blob_toks = _pt_tokens(blob)
-
-    score, reasons = 0.0, []
-    tag_hits = q_spec & tag_toks
-    if tag_hits:
-        score += 12.0 * len(tag_hits)
-        reasons.append("tags: " + ", ".join(sorted(tag_hits)[:4]))
-    dir_hits = q_spec & dir_toks
-    if dir_hits:
-        score += 10.0 * len(dir_hits)
-        reasons.append("suite: " + ", ".join(sorted(dir_hits)[:3]))
-    blob_hits = (q_spec & blob_toks) - tag_hits - dir_hits
-    if blob_hits:
-        score += 6.0 * len(blob_hits)
-        reasons.append("text: " + ", ".join(sorted(blob_hits)[:4]))
-
-    if score <= 0:
-        return 0.0, ""
-    # Require one specific signal; single weak generic-area hit is noise
-    all_hits = tag_hits | dir_hits | blob_hits
-    if len(all_hits) == 1 and next(iter(all_hits)) in _PT_AREA_SUPPORT and score < 12:
-        return 0.0, ""
-    if slim.get("kind") == "test":
-        score += 1.0  # prefer runnable tests over libs/tools at equal relevance
-    if slim.get("db") == "art":
-        score += 1.5  # canonical style
-    return score, "; ".join(reasons[:3])
 
 
 def _search_slim(data: dict, query_toks: set, db: str = "", limit: int = 40) -> List[dict]:

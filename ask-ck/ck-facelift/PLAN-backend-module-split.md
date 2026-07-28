@@ -1,10 +1,13 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28): commits 1-3 of 11 DONE.** A1 shipped as `4578030` (with the
-> pre-existing `pt_cases` blocker split into `0c06586`); A2 and A3 followed. **Next: A4** (logging + dead code). Read
+> **Status (2026-07-28): commits 1-4 of 11 DONE.** A1 shipped as `4578030` (with the
+> pre-existing `pt_cases` blocker split into `0c06586`); A2, A3 and A4 followed.
+> **Next: commit 5** (`fix(wizard): tz-aware timestamps` — A4's deferred `utcnow` half). Read
 > *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
 > by measurement, and it changes how the consolidation commits (7-9) should be approached.
-> A2 added two more corrections of its own; see its section.
+> A2 added two more corrections of its own; see its section. **A4 corrected three wrong
+> items in its own plan entry — see the A4 section; verify dead-code claims by AST scan
+> before trusting any list in this document.**
 >
 > **Original status line, kept for context:** PLANNED, nothing implemented. Written 2026-07-28 from a full read of all
 > 2439 lines; revised the same day after the "all data steps must load identically"
@@ -365,7 +368,10 @@ titles. `suggest_zephyr:1389-1395` already builds exactly this — reuse it, don
 `_ZREF_WEAK_ALONE` (431), `_ZREF_GENERIC_TOKENS` (407-428, the duplicate of `db.py:123`),
 `_normalize_zephyr_text`/`_zephyr_tokens`/`_specific_tokens` (437-459) **if** nothing else
 uses them — `_build_atp_query:1148` currently does, so keep those three and move them to
-`descriptions.py` in Part B. Also delete `db.iter_zephyr_slim` (`db.py:313`, 1 caller).
+`descriptions.py` in Part B. **Correction (A4):** only TWO survived. `_build_atp_query`
+filters generics inline and needs an ORDER-PRESERVING list for its `[:24]` slice, which
+the set-returning `_specific_tokens` could not supply — so nothing called it and A4
+deleted it. `descriptions.py` gets `_normalize_zephyr_text` + `_zephyr_tokens` only. Also delete `db.iter_zephyr_slim` (`db.py:313`, 1 caller).
 **~150 lines from wizard.py + 11 from db.py.**
 
 Frontend (`static/js/`): `nav.js` gains a per-panel first-visit fetch hook; `generator.js`
@@ -425,28 +431,65 @@ differences are step 3's `art_string` handling and step 1's `none_selected`.
 
 Then audit the other 4 silent swallows; the ones that corrupt state are these three.
 
-### A4. Deprecations + dead code (mechanical)
+### A4 + A5. ✅ DONE — logging, dead code, pydantic v2
 
-- 9× `datetime.utcnow()` → `datetime.now(timezone.utc)`. **Now live** on 3.13.
-  ⚠️ Check persistence round-trips: `db.save_session`/`load_session` and the
-  `confirmed_at` comparisons must tolerate tz-aware values, and existing rows in `ck.db`
-  hold **naive** datetimes. Mixed naive/aware comparison raises `TypeError` — this one is
-  not purely mechanical.
-- Collapse the 13× `.dict()`/`model_dump()` hedge to `model_dump()`.
-- Delete `_get_full_zephyr_case` (`:208`), `slim_by_key` (`:656`), `test_id_desc` (`:828`).
-- Move `_CASE_KEY_RE` (`:2375`) to the top of the module.
-- Normalize `confirmed_at`: `datetime` in `StepState` vs `.isoformat()` strings in
-  `step4`/`step5` (`:1827`, `:1857`). Root cause is untyped `step4`/`step5: Dict[str, Any]`
-  in `models.py:98,102`; both have a stable enough shape to become real models. That
-  typing change is **its own commit** — it touches persisted session shape.
+Shipped together as commit 4. **Three items in the original list below were wrong.** They
+are kept verbatim, struck through, with what was actually true — the lesson is that this
+document's line refs and dead-code claims were written from a read-through, and a
+read-through cannot tell a dead helper from a live one.
 
-### A5. Replace `print()` with `logging` (18 sites)
+- ~~9× `datetime.utcnow()`~~ → **7 sites, DEFERRED to commit 5** as planned (see Risks).
+- ~~Collapse the 13× `.dict()`/`model_dump()` hedge to `model_dump()`.~~ **19 sites, in
+  3 files** (`wizard.py` 14, `pytest_create.py` 3, `models.py` 2), and the diagnosis was
+  wrong in an important way: the hedge is not merely verbose, it is **inverted**. On
+  pydantic v2 `BaseModel.dict()` still exists as a deprecated alias, so
+  `hasattr(obj, "dict")` is always True and **every site took the v1 path** — the `else`
+  branches were unreachable. Fixed with one shared `models.model_to_dict`, which tries
+  `model_dump` first and keeps `.dict()` as a genuine last-resort v1 fallback.
+  ⚠️ Deleting that fallback outright broke `safe_session_dict`'s llm_config **redaction**
+  for `.dict()`-only objects; `tests/test_security_fixes.py` caught it.
+- ~~Delete `_get_full_zephyr_case` (`:208`), `slim_by_key` (`:656`), `test_id_desc` (`:828`).~~
+  **`slim_by_key` and `test_id_desc` are LIVE local variables, not dead code** — deleting
+  them would have broken Step 2 enrichment and ATP descriptions. The real dead set, found
+  by AST scan rather than reading:
+  `_get_full_zephyr_case`, `_session_objectives_confirmed`, `_session_test_script`,
+  `_specific_tokens` (wizard) + `_score_script_candidate` (pytest_create).
+- ~~Move `_CASE_KEY_RE` (`:2375`) to the top of the module.~~ Done (it sat *below* the two
+  handlers it guards; legal, but read as a forward reference).
+- Normalize `confirmed_at` → **still open, commit 6** (untyped `step4`/`step5`).
 
-No `logging` anywhere in the file, so there is no level control and no timestamps —
-failed-persistence warnings are indistinguishable from boot noise.
-`log = logging.getLogger(__name__)`, `print(f"Warning: …")` → `log.warning(…)`,
-`print(f"[export] …")` → `log.info(…)`. Highest hygiene-per-line change in the file.
-Do it **after** A2 (which removes the noisiest source).
+**A5 (`print()` → `logging`): 14 sites in wizard.py, not 18.** All converted, with levels
+matched to consequence rather than uniformly `warning`:
+- `_persist_session` failure → **`log.error(..., exc_info=True)`**. A swallowed failure
+  there loses the user's confirmed selections while the handler still returns 200 — the
+  wizard-side twin of the stale-thread-local-connection bug. It was a `print("Warning:")`.
+- Jinja render failure and `_load_persisted` failure also carry `exc_info=True`: both
+  silently degrade, and only the traceback names the template line / offending field.
+- Routine bookkeeping (`cleared persisted session`, `[export] Saved …`) → `log.info`.
+
+**The non-obvious part of A5**: there was **no logging configuration anywhere in the
+codebase**, so the root logger sat at `WARNING` and converting a `print()` to `log.info()`
+would have **silently deleted** operator-visible output (notably `[export] Saved drop-in
+bundle to …`). Commit 4 therefore also adds `logging.basicConfig(level=CK_LOG_LEVEL or
+INFO, …, force=True)` to `main.py`. `force=True` matters because uvicorn installs its own
+root handlers — without it the format depends on which ran first.
+
+**Still on `print()` (not in scope for A4, follow-up):** `llm.py` 24, `pytest_create.py` 8,
+`main.py` 4, `data.py` 4, `db.py` 3, `pt_exec.py` 2, `llm_debug.py` 2.
+
+**Found while scanning, fixed here:** `pytest_create._score_script_candidate` was a full
+copy of `db._score_script_candidate` that referenced `_PT_GENERIC_TOKENS` /
+`_PT_AREA_SUPPORT` — names defined **only in `db.py`**. It raised `NameError` on any call
+and nothing reached it. The comment directly above it already claimed the scorer lived in
+db with "no private copy here". Deleted, and the comment now says what is true.
+
+**New invariant test** (`tests/test_pydantic_v2_and_logging.py`, 29 tests, all 10
+mutations verified red): no `.dict()` call sites; `model_dump` preferred over `.dict()`;
+secrets still redacted; no `print()` in wizard.py; lost writes logged at ERROR with a
+traceback; `main.py` configures logging with `force=True`; the five deleted helpers stay
+deleted; **and no unreferenced private module-level function in either router** — the
+generalization of this commit's four deletions, which is what would have caught them
+without a manual scan. Opt out per-helper with `# keep: <reason>` on the line above.
 
 ---
 
@@ -461,8 +504,8 @@ root (`CK_server/`), *not* in `routers/` — that is what actually fixes the
 | `CK_server/llm_config.py` | 93-173, 1288-1300 | `_llm_is_active`, `_same_backend`, `_load_global_llm`, `_save_global_llm`, `_apply_workspace_llm_if_needed`, `_preview_from` | **Kills 3 of the 6 pytest_create imports.** Drop the `_` prefixes — these are public API now. `pytest_create._apply_workspace_llm` (`:280`) collapses into the shared one |
 | `CK_server/case_registry.py` | 53-80, 867-910, 1190-1210, 2374-2375 | `HIDDEN_CASE_KEYS`, `HIDDEN_CASE_FOLDERS`, `_is_hidden_case`, `_refined_complete_keys`, `_session_progress_map`, `_build_case_groups`, `_get_refined_group`, `_CASE_KEY_RE`, `_refined_payload_path` (324-334) | **Kills the other 3.** After this, `pytest_create` imports nothing from `routers.wizard` |
 | `CK_server/session_store.py` | 50-51, 176-230 | the `sessions` dict, `_persist_session`, `_load_persisted`, `_clear_persisted`, `_mark_updated`, `_authoritative_session` (1736-1743) | Generic over `kind='wizard'\|'pt'` — `db.py` already is. Where per-case locking lands later (`PLAN-auth-and-case-locking.md`) |
-| ~~`CK_server/wizard/scoring.py`~~ | ~~407-555~~ | **CANCELLED by A1** — `_score_zephyr_candidate`, `_ZREF_WEAK_ALONE` and the duplicate `_ZREF_GENERIC_TOKENS` are *deleted*, not extracted. Only the three tokenizers survive (`_normalize_zephyr_text`, `_zephyr_tokens`, `_specific_tokens`, 437-459) because `_build_atp_query:1148` still uses them → they go to `descriptions.py` | A1 turns this from "move 150 lines" into "delete 150 lines". Strictly better |
-| `CK_server/wizard/descriptions.py` | 437-459, 558-682, 1135-1187 | the three tokenizers, `_build_testlink_description`, `_build_zephyr_case_description`, `_enrich_zephyr_rows`, `_build_atp_query`, `_split_atp_title_description`, `_get_atp_candidates`, `_hybrid_on` (1060-1064) | Pure. `_get_atp_candidates`/`_hybrid_on` are thin db wrappers — fine here. **Now the first extraction**, since scoring.py is gone |
+| ~~`CK_server/wizard/scoring.py`~~ | ~~407-555~~ | **CANCELLED by A1** — `_score_zephyr_candidate`, `_ZREF_WEAK_ALONE` and the duplicate `_ZREF_GENERIC_TOKENS` are *deleted*, not extracted. Only **two** tokenizers survive (`_normalize_zephyr_text`, `_zephyr_tokens`) because `_build_atp_query` still uses them → they go to `descriptions.py`. `_specific_tokens` was deleted by A4 (unreferenced; wrong return type for its only would-be caller) | A1 turns this from "move 150 lines" into "delete 150 lines". Strictly better |
+| `CK_server/wizard/descriptions.py` | 437-459, 558-682, 1135-1187 | the two surviving tokenizers, `_build_testlink_description`, `_build_zephyr_case_description`, `_enrich_zephyr_rows`, `_build_atp_query`, `_split_atp_title_description`, `_get_atp_candidates`, `_hybrid_on` (1060-1064) | Pure. `_get_atp_candidates`/`_hybrid_on` are thin db wrappers — fine here. **Now the first extraction**, since scoring.py is gone |
 | `CK_server/wizard/gates.py` | 225-321 | `_can_synthesize`, `_session_objective`, `_session_has_objective`, `_session_objectives_confirmed`, `_session_test_script`, `_can_synthesize_steps`, `_selection_fingerprint`, `_invalidate_downstream`, `_migrate_legacy_step4_to_step5` | The state machine. Pure predicates over a session — unit-testable, currently not |
 | `CK_server/wizard/backfill.py` | 337-399 | `_backfill_from_refined` | Depends on `case_registry._refined_payload_path` |
 
@@ -636,9 +679,11 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 4-11 remain.** Next is **A4**. Read *What A1 taught* first — one of this plan's
-stated expectations was falsified by measurement, and it changes how the consolidation commits
-(7-9 especially) should be approached.
+**Commits 5-11 remain.** Next is **commit 5** (tz-aware timestamps). Read *What A1 taught*
+first — one of this plan's stated expectations was falsified by measurement, and it changes
+how the consolidation commits (7-9 especially) should be approached. Then read the **A4+A5**
+section: three of its own planned items turned out to be wrong, so treat every line ref and
+dead-code claim in this document as a hypothesis to verify by AST scan, not a fact.
 
 **Decisions taken (do not re-litigate):**
 - Defer **all three** data steps off case load; uniform startup behaviour across steps is a

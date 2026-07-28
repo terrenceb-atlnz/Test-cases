@@ -9,6 +9,7 @@ Per PROGRESS.md (High Priority #1) and SERVER-README.md:
   so confirmed state + selections survive restarts.
 """
 
+import logging
 import time
 from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from starlette.concurrency import run_in_threadpool
@@ -21,7 +22,15 @@ import re
 import sys
 import subprocess
 
-from models import WizardSession, SynthesisRequest, ExportResponse, Selection, LLMConfig, safe_session_dict, redact_llm_config
+from models import (
+    WizardSession,
+    SynthesisRequest,
+    ExportResponse,
+    Selection,
+    LLMConfig,
+    safe_session_dict,
+    model_to_dict,
+)
 from html_sanitize import sanitize_objective_html
 import db
 from llm import (
@@ -34,7 +43,6 @@ from llm import (
     build_traceability_note,
     _is_traceability_note,
     validate_zephyr_payload,
-    analyze_atp_coverage,
     generate_coverage_gaps,
     check_claude_cli,
     check_grok_cli,
@@ -46,8 +54,16 @@ from paths import REFINED_DIR, ASKCK_ROOT
 
 router = APIRouter()
 
+log = logging.getLogger(__name__)
+
 # In-memory sessions (replace with DB later). File persistence added for restart survival.
 sessions: Dict[str, WizardSession] = {}
+
+# Case keys are AWPTCM-Txxxx. Validate before interpolating a key into a filesystem path
+# or a subprocess argument. Declared here, at the top, because it guards handlers defined
+# hundreds of lines above where it used to sit (module-level names all bind before any
+# request is served, so the old placement worked — it just read as a forward reference).
+_CASE_KEY_RE = re.compile(r"^AWPTCM-T\d+$")
 
 # Cases hidden from the Generator (and PyTest Creator) case lists — out of scope for
 # this tool. This is a DISPLAY filter only: the data stays untouched in ck.db (the
@@ -125,7 +141,7 @@ def _load_global_llm() -> Optional[LLMConfig]:
         cfg = LLMConfig(**raw)
         return cfg if _llm_is_active(cfg) else None
     except Exception as e:
-        print(f"Warning: failed to load workspace LLM config: {e}")
+        log.warning("failed to load workspace LLM config: %s", e)
         return None
 
 
@@ -134,10 +150,10 @@ def _save_global_llm(cfg: LLMConfig) -> None:
     if not cfg or not _llm_is_active(cfg):
         return
     try:
-        data = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+        data = model_to_dict(cfg)
         db.save_workspace_llm(data)
     except Exception as e:
-        print(f"Warning: failed to save workspace LLM config: {e}")
+        log.warning("failed to save workspace LLM config: %s", e)
 
 
 def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
@@ -167,7 +183,7 @@ def _apply_workspace_llm_if_needed(sess: WizardSession) -> bool:
     if _llm_is_active(cur) and _same_backend(cur, global_cfg):
         return False
     # Fresh copy so case sessions do not share the same object instance
-    raw = global_cfg.dict() if hasattr(global_cfg, "dict") else global_cfg.model_dump()
+    raw = model_to_dict(global_cfg)
     sess.llm_config = LLMConfig(**raw)
     return True
 
@@ -178,10 +194,15 @@ def _persist_session(sess: WizardSession) -> None:
     old sessions/{key}.json file stays in place as a frozen pre-migration backup."""
     sess.updated_at = datetime.utcnow()
     try:
-        data = sess.dict() if hasattr(sess, "dict") else sess.model_dump()
+        data = model_to_dict(sess)
         db.save_session("wizard", sess.key, data)
-    except Exception as e:
-        print(f"Warning: failed to persist session {sess.key}: {e}")
+    except Exception:
+        # ERROR, not warning: a swallowed failure here loses the user's confirmed
+        # selections and objective while the handler still returns 200. This is the
+        # wizard-side twin of the known stale-thread-local-connection bug, where the
+        # write silently never reaches ck.db. Keep the traceback — the message alone
+        # ("database is locked", "no such table") does not say which caller lost data.
+        log.error("failed to persist session %s — CHANGES WERE LOST", sess.key, exc_info=True)
 
 
 def _load_persisted(key: str) -> Optional[WizardSession]:
@@ -190,8 +211,10 @@ def _load_persisted(key: str) -> Optional[WizardSession]:
         raw = db.load_session("wizard", key)
         if raw is not None:
             return WizardSession(**raw)
-    except Exception as e:
-        print(f"Warning: failed to load persisted session {key}: {e}")
+    except Exception:
+        # Traceback matters: the usual cause is a stored row that no longer validates
+        # against WizardSession, and only the pydantic error names the offending field.
+        log.warning("failed to load persisted session %s", key, exc_info=True)
     return None
 
 
@@ -199,15 +222,9 @@ def _clear_persisted(key: str) -> None:
     """Delete the persisted session row for a key."""
     try:
         db.delete_session("wizard", key)
-        print(f"Cleared persisted session for {key}")
+        log.info("cleared persisted session for %s", key)
     except Exception as e:
-        print(f"Warning: failed to delete session for {key}: {e}")
-
-
-def _get_full_zephyr_case(key: str) -> dict:
-    """On-demand lookup of one full Zephyr case from ck.db. Prefer _get_full_zephyr_cases_batch."""
-    found = _get_full_zephyr_cases_batch([key])
-    return found.get(key) or {}
+        log.warning("failed to delete session for %s: %s", key, e)
 
 
 def _get_full_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
@@ -236,24 +253,6 @@ def _session_objective(sess: WizardSession) -> str:
 
 def _session_has_objective(sess: WizardSession) -> bool:
     return bool(_session_objective(sess))
-
-
-def _session_objectives_confirmed(sess: WizardSession) -> bool:
-    s4 = sess.step4 or {}
-    if not isinstance(s4, dict):
-        return False
-    return bool(s4.get("confirmed")) and _session_has_objective(sess)
-
-
-def _session_test_script(sess: WizardSession) -> Dict[str, Any]:
-    """testScript from Step 5, with legacy fallback to step4.testScript."""
-    s5 = sess.step5 or {}
-    if isinstance(s5, dict) and s5.get("testScript"):
-        return s5.get("testScript") or {"type": "steps", "steps": []}
-    s4 = sess.step4 or {}
-    if isinstance(s4, dict) and s4.get("testScript"):
-        return s4.get("testScript") or {"type": "steps", "steps": []}
-    return {"type": "steps", "steps": []}
 
 
 def _can_synthesize_steps(sess: WizardSession) -> bool:
@@ -359,7 +358,7 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"[backfill] could not read {path}: {e}")
+        log.warning("[backfill] could not read %s: %s", path, e)
         return False
 
     inner = raw.get(sess.key) if isinstance(raw, dict) else None
@@ -479,10 +478,6 @@ def _zephyr_tokens(s: str) -> List[str]:
         if w in ("mdi", "mdix"):
             out.extend(["mdi", "mdix"])
     return out
-
-
-def _specific_tokens(toks) -> set:
-    return {t for t in toks if t not in _ZREF_GENERIC_TOKENS}
 
 
 def _build_testlink_description(item: dict, title: str = "") -> str:
@@ -822,7 +817,7 @@ def _refined_complete_keys() -> set:
             if parent.startswith("AWPTCM-"):
                 done.add(parent)
     except Exception as e:
-        print(f"Warning: scanning refined-cases failed: {e}")
+        log.warning("scanning refined-cases failed: %s", e)
     return done
 
 
@@ -832,7 +827,7 @@ def _session_progress_map() -> Dict[str, dict]:
     try:
         return db.list_session_progress()
     except Exception as e:
-        print(f"Warning: reading session progress failed: {e}")
+        log.warning("reading session progress failed: %s", e)
         return {}
 
 
@@ -1253,7 +1248,7 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
     dry_run = bool(body.get("dry_run"))
     result = await run_in_threadpool(
         suggest_relevant_atp,
-        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        model_to_dict(sess),
         candidates,
         llm_config=llm_cfg,
         dry_run=dry_run,
@@ -1301,9 +1296,7 @@ def _session_llm_cfg(sess: WizardSession) -> dict:
     if _apply_workspace_llm_if_needed(sess):
         _mark_updated(sess)
         _persist_session(sess)
-    if hasattr(sess, "llm_config"):
-        return sess.llm_config.dict() if hasattr(sess.llm_config, "dict") else sess.llm_config
-    return {}
+    return model_to_dict(getattr(sess, "llm_config", None))
 
 
 def _preview_from(result) -> dict:
@@ -1360,7 +1353,7 @@ async def suggest_testlink(key: str, body: dict = Body(default={}), data=Depends
     dry_run = bool(body.get("dry_run"))
     result = await run_in_threadpool(
         suggest_relevant_testlink,
-        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        model_to_dict(sess),
         candidates,
         llm_config=_session_llm_cfg(sess),
         case_title=case_title,
@@ -1419,7 +1412,7 @@ async def suggest_zephyr(key: str, body: dict = Body(default={}), data=Depends(g
     dry_run = bool(body.get("dry_run"))
     result = await run_in_threadpool(
         suggest_relevant_zephyr,
-        sess.dict() if hasattr(sess, "dict") else sess.model_dump(),
+        model_to_dict(sess),
         candidates,
         llm_config=_session_llm_cfg(sess),
         case_title=case_title,
@@ -1665,7 +1658,7 @@ async def llm_health():
     if not cfg or not _llm_is_active(cfg):
         return {"ok": False, "reason": "not_configured",
                 "detail": "No active LLM configuration. Apply a provider on the Configure page first."}
-    llm_cfg = cfg.dict() if hasattr(cfg, "dict") else cfg.model_dump()
+    llm_cfg = model_to_dict(cfg)
     t0 = time.monotonic()
     # Tiny prompt through the same choke point every real call uses. run_prompt
     # needs a template; use a throwaway one-liner rendered inline via a literal.
@@ -1842,7 +1835,7 @@ async def synthesize_objectives_endpoint(req: SynthesisRequest):
     # Resolve config through _session_llm_cfg so the workspace LLM is applied at
     # dispatch time (guards against a stale persisted config using the wrong backend).
     llm_cfg = _session_llm_cfg(stored)
-    session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+    session_dict = model_to_dict(stored)
     if getattr(req, "dry_run", False):
         preview = await run_in_threadpool(synthesize_objectives, session_dict, llm_config=llm_cfg, dry_run=True)
         return _preview_from(preview)
@@ -2013,7 +2006,7 @@ async def synthesize_steps_endpoint(req: SynthesisRequest):
         stored.step4 = s4
 
     llm_cfg = _session_llm_cfg(stored)  # applies workspace LLM at dispatch time
-    session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+    session_dict = model_to_dict(stored)
     if getattr(req, "dry_run", False):
         preview = await run_in_threadpool(
             synthesize_steps, session_dict, llm_config=llm_cfg,
@@ -2071,7 +2064,7 @@ async def synthesize(req: SynthesisRequest):
         )
 
     llm_cfg = _session_llm_cfg(stored)  # applies workspace LLM at dispatch time
-    session_dict = stored.dict() if hasattr(stored, "dict") else stored.model_dump()
+    session_dict = model_to_dict(stored)
     result = await run_in_threadpool(synthesize_objectives_and_steps, session_dict, llm_config=llm_cfg)
 
     stored.step4 = {
@@ -2170,13 +2163,11 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             "(TestLink, Zephyr, ATPyLib) before exporting.",
         )
 
-    # Normalize to dict for easy access + context building
-    if hasattr(stored, "dict"):
-        sess_dict = stored.dict()
-    elif isinstance(stored, dict):
-        sess_dict = stored
-    else:
-        sess_dict = getattr(stored, "model_dump", lambda: {})()
+    # Normalize to dict for easy access + context building. `stored` comes from
+    # _authoritative_session, so it is always a WizardSession — but this stays tolerant
+    # of a plain dict because sess_dict is mutated below (llm_config, gaps) and a
+    # pass-through would then write back into the live session.
+    sess_dict = model_to_dict(stored)
 
     case_key = key or sess_dict.get("key", "unknown")
     # Defense in depth: `key` was already shape-checked at the top of the handler, but
@@ -2196,8 +2187,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     if hasattr(stored, "llm_config") and _apply_workspace_llm_if_needed(stored):
         _mark_updated(stored)
         _persist_session(stored)
-        sess_dict["llm_config"] = stored.llm_config.dict() if hasattr(stored.llm_config, "dict") else stored.llm_config
-    llm_cfg = sess_dict.get("llm_config", {}) if isinstance(sess_dict, dict) else {}
+        sess_dict["llm_config"] = model_to_dict(stored.llm_config)
+    llm_cfg = sess_dict.get("llm_config", {})
     if not (sess_dict.get("gaps") or "").strip():
         # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll
         # stays serviceable for claude_agent mode. ContextVars (session id) propagate.
@@ -2267,9 +2258,9 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # Run full validation (strengthened for complete output generation)
     validation = validate_zephyr_payload(zephyr_payload)
     if not validation.get("valid"):
-        print(f"[export] Validation issues for {case_key}: {validation.get('issues')}")
+        log.warning("[export] validation issues for %s: %s", case_key, validation.get("issues"))
     for w in validation.get("warnings", []):
-        print(f"[export] Warning: {w}")
+        log.warning("[export] %s", w)
 
     # Rich context for Jinja (handles key vs id_or_key variations from UI data)
     primary = sess_dict.get("primary")
@@ -2315,8 +2306,10 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     try:
         tmpl = OUTPUTS_ENV.get_template("traceability.md.jinja")
         traceability_md = tmpl.render(**template_context)
-    except Exception as e:
-        print(f"[export] Jinja render error, fallback: {e}")
+    except Exception:
+        # Traceback matters: this silently degrades the exported traceability.md to a
+        # bare fallback, and the template name/line is only in the Jinja traceback.
+        log.warning("[export] Jinja render failed — using plain-text fallback", exc_info=True)
         traceability_md = f"# Traceability & Supporting Data for {case_key}\n\n## Primary\n{primary}\n\n## Gaps\n{gaps}\n\n## ART String\n{art_string}\n"
 
     # Full session out for audit/provenance (repeatable). REDACTED: this is written to
@@ -2358,7 +2351,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             "written to refined-cases/. " + complete_note + " Issues:\n  - "
             + "\n  - ".join(issues)
         )
-        print(f"[export] BLOCKED for {case_key} (stale_bundle={stale_bundle_exists}): {issues}")
+        log.warning("[export] BLOCKED for %s (stale_bundle=%s): %s",
+                    case_key, stale_bundle_exists, issues)
         return ExportResponse(
             traceability_md=traceability_md,
             zephyr_payload=zephyr_payload,
@@ -2434,10 +2428,13 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
             saved_to = str(target_dir)
         wrote_bundle = True
         export_message = f"Saved drop-in bundle to {saved_to}/"
-        print(f"[export] {export_message}")
+        log.info("[export] %s", export_message)
     except Exception as e:
         export_message = f"Failed to write to refined-cases: {e}"
-        print(f"[export] {export_message}")
+        # ERROR: the export the user just asked for produced no bundle. `export_message`
+        # is returned to the browser, so the user is told — but the traceback (permissions,
+        # missing parent, partial staged write) only exists here.
+        log.error("[export] %s", export_message, exc_info=True)
 
     # Include validation result so callers (and future UI) know the status of repeatability guarantees
     return ExportResponse(
@@ -2452,8 +2449,6 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     )
 
 
-# Case keys are AWPTCM-Txxxx; validate before passing to the subprocess.
-_CASE_KEY_RE = re.compile(r"^AWPTCM-T\d+$")
 
 
 @router.post("/push_to_zephyr/{key}")

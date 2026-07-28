@@ -69,19 +69,42 @@ def redact_llm_config(cfg: Any) -> Any:
     return out
 
 
+def model_to_dict(obj: Any) -> dict:
+    """Plain-dict view of a pydantic model; dicts pass through as a shallow copy.
+
+    Replaces the `obj.dict() if hasattr(obj, "dict") else obj.model_dump()` hedge that
+    was copied to 19 call sites. That hedge was written for pydantic v1/v2 portability
+    but is INVERTED on v2: `BaseModel.dict()` still exists there (as a deprecated alias
+    for `model_dump`), so `hasattr(obj, "dict")` was always True and every one of those
+    sites took the v1 path — emitting a DeprecationWarning and relying on an alias that
+    pydantic removes in v3. The `else` branches were unreachable.
+
+    ORDER IS THE WHOLE FIX. `model_dump` is tried FIRST, so a pydantic v2 model never
+    reaches `.dict()`. The `.dict()` fallback is kept, because that is what the hedge was
+    reaching for and a genuine pydantic v1 model has `.dict()` and NO `model_dump` — but
+    it is now last-resort instead of first-choice. Removing it outright broke redaction
+    for `.dict()`-only objects (caught by test_safe_session_dict_redacts_nested_llm_config).
+
+    This is the ONLY place in the codebase allowed to call `.dict()`; call sites use this
+    helper, and tests/test_pydantic_v2_and_logging.py enforces that.
+    """
+    dump = getattr(obj, "model_dump", None)
+    if callable(dump):
+        return dump()
+    if isinstance(obj, dict):
+        return dict(obj)
+    legacy = getattr(obj, "dict", None)  # pydantic v1 model, or a .dict()-shaped object
+    if callable(legacy):
+        return legacy()
+    return {}
+
+
 def safe_session_dict(sess: Any) -> dict:
     """Serialize a WizardSession/PtSession (or dict) for return to the browser or writing
     to disk, with llm_config secrets redacted. Use this ANYWHERE a full session is exposed
     outside the server — GET /session, wizard step responses, the exported *-session.json.
     The raw api_key/token stay only in the server-side session store."""
-    if hasattr(sess, "dict"):
-        d = sess.dict()
-    elif hasattr(sess, "model_dump"):
-        d = sess.model_dump()
-    elif isinstance(sess, dict):
-        d = dict(sess)
-    else:
-        return {}
+    d = model_to_dict(sess)
     if isinstance(d.get("llm_config"), dict):
         d["llm_config"] = redact_llm_config(d["llm_config"])
     return d

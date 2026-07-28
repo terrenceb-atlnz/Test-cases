@@ -34,6 +34,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import logging
 import os
 import sys
 import re
@@ -44,6 +45,20 @@ import time
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
+
+# Logging setup. The routers use `logging.getLogger(__name__)`; without this call the
+# root logger sits at WARNING, so every log.info() would be silently DROPPED — including
+# the "[export] Saved drop-in bundle to …" line an operator relies on. These messages
+# went to stdout as bare print() before, so configuring INFO here is what preserves
+# today's visibility rather than adding noise. Level is overridable for quiet runs.
+#
+# force=True because uvicorn installs its own handlers on the root logger when it starts;
+# without it, whichever ran first wins and the format silently depends on launch order.
+logging.basicConfig(
+    level=os.environ.get("CK_LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    force=True,
+)
 
 from data import load_all_data
 from paths import PROCESS_MD
