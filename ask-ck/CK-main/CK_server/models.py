@@ -2,9 +2,38 @@
 Pydantic models for the server-backed drafting tool.
 """
 
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, BeforeValidator
+from typing import Annotated, List, Optional, Dict, Any
 from datetime import datetime
+
+from timeutil import as_utc
+
+
+def _coerce_utc(v: Any) -> Any:
+    """Normalize a timestamp to timezone-aware UTC at validation time.
+
+    `ck.db` holds NAIVE stamps written by the pre-cutover `datetime.utcnow()`. Coercing on
+    the way IN means a loaded session can never carry a naive datetime, so no comparison
+    downstream can raise "can't compare offset-naive and offset-aware datetimes" — the
+    failure mode that makes a tz-aware migration risky. A naive value is read as UTC,
+    which is what `utcnow()` always meant.
+
+    Anything `as_utc` cannot read is passed through untouched so pydantic reports the real
+    validation error instead of a confusing None.
+
+    Not called with None: on an `Optional[UtcDatetime]` field pydantic resolves the None
+    member of the union before reaching this validator, and an omitted field uses the
+    default without validating at all. Verified — a `None` branch here would be dead code.
+    """
+    if isinstance(v, (datetime, str)):
+        return as_utc(v) or v
+    return v
+
+
+# Every persisted timestamp uses this, so "aware UTC" is an invariant of the models
+# rather than something each call site has to remember.
+UtcDatetime = Annotated[datetime, BeforeValidator(_coerce_utc)]
+
 
 class Selection(BaseModel):
     id_or_key: str
@@ -17,7 +46,7 @@ class Selection(BaseModel):
 
 class StepState(BaseModel):
     confirmed: bool = False
-    confirmed_at: Optional[datetime] = None
+    confirmed_at: Optional[UtcDatetime] = None
     none_selected: bool = False
     selections: List[Selection] = []
     # True when `confirmed` was inferred from a Complete on-disk bundle
@@ -126,7 +155,7 @@ class WizardSession(BaseModel):
     gaps: str = ""  # LLM-generated at objective synthesis/export for Traceability (not Step 3 UI)
     art_string: str = ""
     full_session: Dict[str, Any] = {}  # For provenance
-    updated_at: Optional[datetime] = None  # For tracking / persistence order
+    updated_at: Optional[UtcDatetime] = None  # For tracking / persistence order
     llm_config: LLMConfig = LLMConfig()  # Session-scoped login (Grok / Claude)
 
 class PtSession(BaseModel):
@@ -157,7 +186,7 @@ class PtSession(BaseModel):
     step7: Dict[str, Any] = {}
     step8: Dict[str, Any] = {}
     llm_config: LLMConfig = LLMConfig()
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[UtcDatetime] = None
 
 
 class SynthesisRequest(BaseModel):

@@ -42,10 +42,16 @@ def pc():
 
 
 def _mk(pc, key, code, stamp):
-    """A minimal PtSession carrying `code` and an explicit updated_at."""
-    sess = pc.PtSession(key=key, group="Port (7)")
+    """A minimal PtSession carrying `code` and an explicit updated_at.
+
+    `updated_at` is passed at CONSTRUCTION, not assigned afterwards, so the model's
+    UtcDatetime validator runs — the same path a session loaded from ck.db takes. The
+    naive stamps these tests pass are exactly what pre-cutover rows hold, so this also
+    covers the naive -> aware coercion. Assigning post-construction would bypass the
+    validator and leave a naive value no production code path can produce.
+    """
+    sess = pc.PtSession(key=key, group="Port (7)", updated_at=stamp)
     sess.step6 = {"files": {"test": {"name": "t.py", "code": code}}}
-    sess.updated_at = stamp
     return sess
 
 

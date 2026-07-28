@@ -1,8 +1,8 @@
 # Backend Module Split of `CK_server/routers/wizard.py` (+ uniform deferred step loading)
 
-> **Status (2026-07-28): commits 1-4 of 11 DONE.** A1 shipped as `4578030` (with the
-> pre-existing `pt_cases` blocker split into `0c06586`); A2, A3 and A4 followed.
-> **Next: commit 5** (`fix(wizard): tz-aware timestamps` — A4's deferred `utcnow` half). Read
+> **Status (2026-07-28): commits 1-5 of 11 DONE.** A1 shipped as `4578030` (with the
+> pre-existing `pt_cases` blocker split into `0c06586`); A2, A3, A4 and A5 followed.
+> **Next: commit 6** (`refactor(models): type step4/step5`). Read
 > *What A1 taught* below before continuing — one of this plan's core assumptions was falsified
 > by measurement, and it changes how the consolidation commits (7-9) should be approached.
 > A2 added two more corrections of its own; see its section. **A4 corrected three wrong
@@ -551,8 +551,24 @@ doing all the commits suggested in A and B. Improving this code flow is importan
    Collapse the three near-identical step branches while there; the only real differences are
    step 3's `art_string` handling and step 1's `none_selected`.
 4. `chore(wizard): logging, dead code, pydantic v2` — A5 + the non-`utcnow` half of A4.
-5. `fix(wizard): tz-aware timestamps` — A4's `utcnow` half, **its own commit**: `ck.db` holds
-   naive datetimes and mixed naive/aware comparison raises `TypeError`.
+5. **✅ `fix: tz-aware UTC timestamps`** — A4's `utcnow` half. **21 sites across 5 files**
+   (wizard 7, pytest_create 10, db 1, pt_exec 3), not the 9 the plan estimated; `tool/`
+   deliberately excluded (build scripts, and ck.db is built once and never rebuilt).
+   The `TypeError` the plan predicted **did fire** — `test_persist_stamps_updated_at` went
+   red on the first attempt. Fixed at the MODEL boundary rather than per comparison: a new
+   `models.UtcDatetime` (`BeforeValidator`) coerces every stored stamp to aware UTC on
+   validation, so a session loaded from a pre-cutover row cannot carry a naive value and
+   no comparison anywhere can raise. New `CK_server/timeutil.py` holds `utc_now()` +
+   `as_utc()`. Naive stamps are read as UTC — reading them as local would silently shift
+   every pre-cutover timestamp by the seat's offset (UTC+12 here).
+   **Scope claim corrected by measurement:** `_pt_get`'s anti-clobber check was switched
+   from a string compare to a parsed one, but enumeration over the 8 shapes the
+   `sessions.updated_at` column can hold shows string and parsed comparison **agree
+   everywhere once the cached stamp is coerced** — so that half is defence-in-depth, not a
+   bug fix, and the commit message and docstrings say so. Drop the coercion and exactly one
+   case diverges (spurious reload every request). +38 tests; 4 of 6 mutations red, and the
+   2 that stayed green revealed a genuinely UNREACHABLE branch (pydantic resolves `None` on
+   the `Optional` union before the annotated validator runs) which was then deleted.
 6. `refactor(models): type step4/step5` — A4's last item, own commit (touches persisted shape).
 
 **Part B (leaves first — each is import-only motion, no logic change):**
@@ -573,8 +589,11 @@ doing all the commits suggested in A and B. Improving this code flow is importan
   *does* run startup, so `app.state.app_data` is populated. No test invokes a
   `Depends(get_data)` endpoint directly (the direct imports are all pure helpers). A2 is
   low-risk; still keep the `or load_all_data()` fallback for non-TestClient callers.
-- **A4's `utcnow` → tz-aware** meets naive datetimes already persisted in `ck.db`. Mixed
-  comparison raises `TypeError`. Not mechanical — own commit, test the round-trip.
+- ~~**A4's `utcnow` → tz-aware** meets naive datetimes already persisted in `ck.db`. Mixed
+  comparison raises `TypeError`. Not mechanical — own commit, test the round-trip.~~
+  **RESOLVED in commit 5, and the risk was real** — the `TypeError` fired in the suite on
+  the first attempt. Resolved by coercing at the model boundary (`models.UtcDatetime`), not
+  by hardening each comparison, so the failure class is gone rather than patched.
 - **A1 changes Step-2 ranking output** — deliberately. The bespoke `_score_zephyr_candidate`
   (hard anchors, weak-alone tokens, area-support boosts) is replaced by `db._relevance_score`,
   so the top-8 refs a case shows *will* differ. This is convergence onto the shared scorer,
@@ -679,7 +698,7 @@ venv work, and **A1 shipped** — `0c06586` (`pt_cases` event-loop fix, split ou
 green in an isolated worktree) then `4578030` (A1 proper, 10 files, +972/−261). Gate green at
 the staged state; Playwright 15/15. Docs synced in the follow-up commit.
 
-**Commits 5-11 remain.** Next is **commit 5** (tz-aware timestamps). Read *What A1 taught*
+**Commits 6-11 remain.** Next is **commit 6** (type `step4`/`step5`). Read *What A1 taught*
 first — one of this plan's stated expectations was falsified by measurement, and it changes
 how the consolidation commits (7-9 especially) should be approached. Then read the **A4+A5**
 section: three of its own planned items turned out to be wrong, so treat every line ref and

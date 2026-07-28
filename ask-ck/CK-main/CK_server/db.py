@@ -38,6 +38,7 @@ except ImportError:
     import sqlite3                          # type: ignore
 
 from paths import DB_PATH, EMBED_MODEL_DIR
+from timeutil import utc_now
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Connection factory
@@ -953,7 +954,6 @@ def _session_id(kind: str, key: str) -> str:
 
 def _write_session(sid: str, kind: str, case_key: Optional[str],
                    payload_json: str, llm_config_json: Optional[str]) -> None:
-    from datetime import datetime
     conn = get_connection()
     conn.execute(
         "INSERT INTO sessions (id, kind, case_key, payload, llm_config, updated_at) "
@@ -961,7 +961,7 @@ def _write_session(sid: str, kind: str, case_key: Optional[str],
         "kind=excluded.kind, case_key=excluded.case_key, payload=excluded.payload, "
         "llm_config=excluded.llm_config, updated_at=excluded.updated_at",
         (sid, kind, case_key, payload_json, llm_config_json,
-         datetime.utcnow().isoformat()))
+         utc_now().isoformat()))
     conn.commit()
 
 

@@ -15,9 +15,10 @@ import re
 import shlex
 import threading
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from timeutil import utc_now
 
 # ---------------------------------------------------------------------------
 # Testbox profiles (secrets file)
@@ -421,7 +422,7 @@ class RunManager:
             client = _connect(profile)
         except Exception as e:
             run.update({"status": "error", "error": f"SSH connect failed: {e}",
-                        "finished_at": datetime.utcnow().isoformat()})
+                        "finished_at": utc_now().isoformat()})
             on_update(run)
             return
 
@@ -510,11 +511,11 @@ class RunManager:
             run["exit_code"] = exit_code
             run["parsed"] = parse_framework_log(log_text or stdout_text)
             run["status"] = "done"
-            run["finished_at"] = datetime.utcnow().isoformat()
+            run["finished_at"] = utc_now().isoformat()
             on_update(run)
         except Exception as e:
             run.update({"status": "error", "error": str(e),
-                        "finished_at": datetime.utcnow().isoformat()})
+                        "finished_at": utc_now().isoformat()})
             on_update(run)
         finally:
             client.close()

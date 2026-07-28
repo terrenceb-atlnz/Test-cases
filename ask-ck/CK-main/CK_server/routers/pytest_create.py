@@ -13,7 +13,6 @@ session persistence (sessions/pt-{key}.json), workspace LLM config reuse.
 from fastapi import APIRouter, HTTPException, Body, Request
 from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
-from datetime import datetime
 from pathlib import Path
 import html as html_mod
 import json
@@ -24,6 +23,7 @@ import tempfile
 
 from models import PtSession, LLMConfig, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
+from timeutil import utc_now, as_utc
 from llm import run_prompt, extract_json_block
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 from pt_exec import (
@@ -213,7 +213,7 @@ def _pt_persist(sess: PtSession) -> None:
     to know, and the documented workaround was "never trust the 200". A lost generate costs
     a multi-minute LLM round trip, so it must fail loudly.
     """
-    sess.updated_at = datetime.utcnow()
+    sess.updated_at = utc_now()
     try:
         data = model_to_dict(sess)
         dbx.save_session("pt", sess.key, data)
@@ -257,11 +257,21 @@ def _pt_get(key: str) -> PtSession:
 
     Comparing `updated_at` against the DB costs one indexed lookup and makes the DB
     authoritative whenever it is ahead, so a stale instance can no longer clobber.
+
+    The comparison PARSES both stamps rather than comparing their strings. This is
+    defence-in-depth, not a bug fix: `models.UtcDatetime` keeps the cached stamp aware, and
+    with that in place string comparison happens to agree with parsed comparison on all 8
+    shapes the `updated_at` column can hold (verified by enumeration in
+    tests/test_tz_aware_timestamps.py). The point is that the verdict no longer DEPENDS on
+    that coincidence — a naive stamp is a strict prefix of its own aware form
+    ("…T12:00:00" vs "…T12:00:00+00:00"), so string ordering is sensitive to formatting in
+    a way this check must not be. `as_utc` reads a naive stamp as UTC, which is what the
+    pre-cutover `utcnow()` always meant.
     """
     cached = pt_sessions.get(key)
     if cached is not None:
-        db_stamp = _pt_session_updated_at(key)
-        mem_stamp = cached.updated_at.isoformat() if cached.updated_at else None
+        db_stamp = as_utc(_pt_session_updated_at(key))
+        mem_stamp = as_utc(cached.updated_at)
         if db_stamp and (mem_stamp is None or db_stamp > mem_stamp):
             fresh = _pt_load(key)
             if fresh is not None:
@@ -340,7 +350,7 @@ def _provenance_preview(meta: dict) -> dict:
 def _confirm(sess: PtSession, step_key: str) -> None:
     step = getattr(sess, step_key) or {}
     step["confirmed"] = True
-    step["confirmed_at"] = datetime.utcnow().isoformat()
+    step["confirmed_at"] = utc_now().isoformat()
     setattr(sess, step_key, step)
 
 
@@ -351,7 +361,7 @@ def _invalidate_from(sess: PtSession, step_num: int) -> None:
             step = getattr(sess, k) or {}
             if step.get("confirmed"):
                 step["confirmed"] = False
-                step["invalidated_at"] = datetime.utcnow().isoformat()
+                step["invalidated_at"] = utc_now().isoformat()
                 setattr(sess, k, step)
     if step_num < 8 and (sess.step8 or {}).get("validated"):
         sess.step8 = {**sess.step8, "validated": False}
@@ -921,7 +931,7 @@ def _restamp_provenance(code: str, fragments: List[dict], model: str,
                 # Legacy callers pass no sequence; the two number spaces coincide.
                 class_n = orig_n
             tag_by_step[class_n] = tag
-    gen_date = datetime.utcnow().strftime("%Y-%m-%d")
+    gen_date = utc_now().strftime("%Y-%m-%d")
     ai_tag = f"# AI {model or 'unknown'} {gen_date}"
 
     lines = code.split("\n")
@@ -1729,7 +1739,7 @@ def _lint_generated(sess: PtSession) -> dict:
 
     result = {"ok": not errors, "errors": errors, "warnings": warnings,
               "coverage": result_coverage,
-              "checked_at": datetime.utcnow().isoformat()}
+              "checked_at": utc_now().isoformat()}
     step6["lint"] = result
     sess.step6 = step6
     return result
@@ -1780,7 +1790,7 @@ def _persist_generated_files(sess: PtSession) -> List[str]:
         "case_key": sess.key,
         "group": group,
         "name": name,
-        "saved_at": datetime.utcnow().isoformat(),
+        "saved_at": utc_now().isoformat(),
         "iterations": step6.get("iterations", 1),
         "fragments": [{k: f.get(k) for k in ("source_id", "symbol", "maps_to")}
                       for f in _selected_fragments(sess)],
@@ -2543,7 +2553,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         # asserts on what the switch actually prints instead of inventing `speed=1000`.
         "cli_reference": _cli_reference_block(sequence, fragments),
         "model_name": llm_cfg.get("model") or "unknown",
-        "gen_date": datetime.utcnow().strftime("%Y-%m-%d"),
+        "gen_date": utc_now().strftime("%Y-%m-%d"),
     }, llm_config=llm_cfg, timeout=600, dry_run=dry_run,
        # This step emits a whole standardized script (real runs have hit
        # ~35KB); the default 16000-token cap truncated a live generate on
@@ -2695,11 +2705,11 @@ async def run_script(key: str, body: dict = Body(...)):
         files[lib["name"]] = lib["code"]
 
     naming = step6.get("naming") or {}
-    run_id = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    run_id = utc_now().strftime("%Y%m%d-%H%M%S")
     run = {"run_id": run_id, "case_key": key, "status": "queued",
            "profile": profile_name, "setup": setup_remote,
            "test_file": step6["files"]["test"]["name"],
-           "started_at": datetime.utcnow().isoformat(),
+           "started_at": utc_now().isoformat(),
            "finished_at": None, "log_file": None, "parsed": None,
            "exit_code": None, "error": None}
 
@@ -2843,7 +2853,7 @@ async def validate(key: str):
     validated = all(checks.values())
     sess.step8 = {**(sess.step8 or {}),
                   "validated": validated,
-                  "validated_at": datetime.utcnow().isoformat() if validated else None,
+                  "validated_at": utc_now().isoformat() if validated else None,
                   "run_id": (last or {}).get("run_id"),
                   "checks": checks}
     if validated:

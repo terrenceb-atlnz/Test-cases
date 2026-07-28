@@ -14,7 +14,6 @@ import time
 from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from starlette.concurrency import run_in_threadpool
 from typing import Dict, Optional, List, Any, Tuple
-from datetime import datetime
 from pathlib import Path
 import json
 import os
@@ -51,6 +50,7 @@ from llm import (
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from jinja2 import Environment, FileSystemLoader
 from paths import REFINED_DIR, ASKCK_ROOT
+from timeutil import utc_now
 
 router = APIRouter()
 
@@ -192,7 +192,7 @@ def _persist_session(sess: WizardSession) -> None:
     """Persist full session (confirmed flags + selections + step4/5) to ck.db
     (Commit C). llm_config is split into its own column by db.save_session. The
     old sessions/{key}.json file stays in place as a frozen pre-migration backup."""
-    sess.updated_at = datetime.utcnow()
+    sess.updated_at = utc_now()
     try:
         data = model_to_dict(sess)
         db.save_session("wizard", sess.key, data)
@@ -235,7 +235,7 @@ def _get_full_zephyr_cases_batch(keys: List[str]) -> Dict[str, dict]:
 
 
 def _mark_updated(sess: WizardSession) -> None:
-    sess.updated_at = datetime.utcnow()
+    sess.updated_at = utc_now()
 
 
 def _can_synthesize(sess: WizardSession) -> bool:
@@ -391,7 +391,7 @@ def _backfill_from_refined(sess: WizardSession) -> bool:
         for step in (sess.step1, sess.step2, sess.step3):
             if not step.confirmed:
                 step.confirmed = True
-                step.confirmed_at = step.confirmed_at or datetime.utcnow()
+                step.confirmed_at = step.confirmed_at or utc_now()
                 step.backfilled = True
 
     return changed
@@ -1553,7 +1553,7 @@ async def confirm_step(key: str, step: int, body: dict, data=Depends(get_data)):
         # confirmStep posts `selections` only), so this serves API callers.
         state.none_selected = bool(body.get("none", False))
     state.confirmed = True
-    state.confirmed_at = datetime.utcnow()
+    state.confirmed_at = utc_now()
 
     if step == 3:
         # Gaps are LLM-generated at synthesis/export for Traceability — not user-edited in Step 3
@@ -1898,7 +1898,7 @@ async def save_objective(key: str, body: dict = Body(default={})):
     # Edits invalidate prior confirm until re-confirmed
     if body.get("confirm"):
         s4["confirmed"] = True
-        s4["confirmed_at"] = datetime.utcnow().isoformat()
+        s4["confirmed_at"] = utc_now().isoformat()
     else:
         # Keep prior confirmed only if body explicitly keeps it; default re-open review
         if "confirm" in body and not body.get("confirm"):
@@ -1928,7 +1928,7 @@ async def confirm_objectives(key: str, body: dict = Body(default={})):
     if not (s4.get("objective") or "").strip():
         raise HTTPException(400, "No objective to confirm. Run Objective Synthesis first.")
     s4["confirmed"] = True
-    s4["confirmed_at"] = datetime.utcnow().isoformat()
+    s4["confirmed_at"] = utc_now().isoformat()
     # An explicit re-confirm is the user asserting this objective matches the CURRENT
     # selections, so it clears any staleness flagged by _invalidate_downstream.
     s4.pop("stale", None)
@@ -2072,7 +2072,7 @@ async def synthesize(req: SynthesisRequest):
         "testScript": result.get("testScript"),
         "provenance": result.get("provenance"),
         "confirmed": True,
-        "confirmed_at": datetime.utcnow().isoformat(),
+        "confirmed_at": utc_now().isoformat(),
     }
     stored.step5 = {
         "testScript": result.get("testScript"),
