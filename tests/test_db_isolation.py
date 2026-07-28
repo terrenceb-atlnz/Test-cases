@@ -141,6 +141,36 @@ def test_the_snapshot_cache_key_includes_the_source_mtime():
         "snapshot of a superseded ck.db can be reused indefinitely")
 
 
+def test_the_snapshot_cache_key_sees_a_wal_write(tmp_path):
+    """The mtime of ck.db ALONE cannot detect a committed write. This is not theory.
+
+    Measured 2026-07-28: after three live case loads the session count went 39 -> 40 while
+    ck.db's size and mtime were unchanged, because every one of those commits sat in
+    ck.db-wal. The cache key matched, the stale snapshot was served, and
+    test_the_copy_reflects_the_current_real_db went red — the only reason it was noticed.
+    Same blind spot that let `md5sum ck.db` report "byte-identical" while a real session
+    row had been deleted.
+
+    Behavioural, not a source grep: touch only the -wal and require a different key.
+    """
+    import conftest
+
+    db = tmp_path / "ck.db"
+    db.write_bytes(b"x" * 64)
+    wal = tmp_path / "ck.db-wal"
+
+    no_wal = conftest._db_revision(db)
+    wal.write_bytes(b"y" * 32)
+    with_wal = conftest._db_revision(db)
+    assert with_wal != no_wal, (
+        "appearing WAL did not change the cache key — a committed write would be invisible")
+
+    wal.write_bytes(b"y" * 4096)          # a later commit appends to the WAL
+    assert conftest._db_revision(db) != with_wal, "a growing WAL did not change the key"
+
+    assert conftest._db_revision(db) == conftest._db_revision(db), "key must be stable"
+
+
 def test_writes_do_not_reach_the_real_db():
     """The one that matters. Persist a session for real, then prove it is not in ck.db."""
     from models import WizardSession

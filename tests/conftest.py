@@ -58,8 +58,7 @@ for _p in (str(_CK_MAIN), str(_CK_SERVER)):
 # below safe. Costs measured here: backup() 4.8s / VACUUM INTO 11.5s / plain cp 1.2s.
 #
 # Two levels, so the cost is paid only when ck.db actually changes:
-#   1. a PRISTINE cache keyed by (size, mtime_ns) of the real file — 4.8s, rebuilt only
-#      when ck.db is replaced;
+#   1. a PRISTINE cache keyed by _db_revision() — 4.8s, rebuilt only when ck.db changes;
 #   2. a per-run copy from that cache — ~0.3s, and a plain `cp` is safe here precisely
 #      because backup() emits a single checkpointed file with no -wal alongside it.
 # The per-run file is pid-suffixed so a concurrent gate run (another stream on this
@@ -71,12 +70,45 @@ for _p in (str(_CK_MAIN), str(_CK_SERVER)):
 _REAL_DB = _REPO_ROOT / "ask-ck" / "var" / "ck.db"
 
 
+def _db_revision(real: pathlib.Path) -> str:
+    """Cache key that can SEE a write. Must include the -wal file, and here is why.
+
+    The key was (size, mtime_ns) of ck.db alone, and that CANNOT detect a committed
+    write. ck.db is WAL-mode: a transaction lands in `ck.db-wal` and SQLite may not
+    checkpoint it back for a long time, so the main file's bytes AND mtime stay exactly
+    as they were. Measured on 2026-07-28 after three live case loads: ck.db mtime
+    13:20:12 unchanged with 440578048 bytes, while ck.db-wal was 4.1 MB at 15:04 and the
+    session count had gone 39 -> 40. The cache key was byte-identical, so the stale
+    snapshot was served and the suite ran against superseded data.
+
+    This is the SAME blind spot that hid the AWPTCM-T30649 deletion, where `md5sum
+    ask-ck/var/ck.db` reported "byte-identical" throughout (see SESSION_STATE.md
+    2026-07-28e, and tool/ckdb_signature.py, which exists because of it). Any check on
+    the main file alone inherits it.
+
+    Including the WAL's (size, mtime_ns) closes it: a commit appends to the WAL, so both
+    move; a checkpoint rewrites the main file and resets the WAL, so both move again.
+    Missing -wal is a legitimate state (fully checkpointed, or a fresh clone), keyed as
+    0-0 rather than being an error.
+
+    `tests/test_db_isolation.py::test_the_copy_reflects_the_current_real_db` is what
+    caught this, and it is what stops it coming back.
+    """
+    parts = []
+    for p in (real, real.with_name(real.name + "-wal")):
+        try:
+            st = p.stat()
+            parts.append(f"{st.st_size}-{st.st_mtime_ns}")
+        except OSError:
+            parts.append("0-0")
+    return "-".join(parts)
+
+
 def _pristine_cache(real: pathlib.Path) -> pathlib.Path:
     """A WAL-consistent snapshot of `real`, reused until `real` changes."""
-    st = real.stat()
     cache_dir = pathlib.Path(tempfile.gettempdir()) / "ck-test-db"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cached = cache_dir / f"pristine-{st.st_size}-{st.st_mtime_ns}.db"
+    cached = cache_dir / f"pristine-{_db_revision(real)}.db"
     if cached.exists():
         return cached
     # Build under a temp name and rename, so a concurrent run never observes a
