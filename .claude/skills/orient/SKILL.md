@@ -1,6 +1,6 @@
 ---
 name: orient
-description: Orient at the start of an Ask-CK session — ground-truth the live repo, read the newest handoff, confirm the invariants, and brief the user on what priorities remain. Use at session start, or whenever asked "where are we", "what's pending", or "what priorities remain". Replaces pasting START_OF_SESSION_PROMPT.md.
+description: Orient at the start of an Ask-CK session — ground-truth the live repo, read the newest handoff, confirm the invariants, and brief the user on what priorities remain. Use at session start, or whenever asked "where are we", "what's pending", "what priorities remain", or to get up to speed before touching the project. Pairs with /wrap, which closes the loop at the end of the session.
 ---
 
 # Orient (Ask-CK)

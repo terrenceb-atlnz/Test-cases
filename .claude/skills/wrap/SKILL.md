@@ -1,6 +1,6 @@
 ---
 name: wrap
-description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit and push to main. Use at the end of a work session, or when asked to "sync the docs", "wrap up", or "close the loop". Replaces pasting END_OF_SESSION_PROMPT.md.
+description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit and push to main. Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient, which establishes state at the start of the session.
 ---
 
 # Wrap (Ask-CK)

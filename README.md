@@ -278,6 +278,13 @@ Stored testboxes live in the gitignored `secrets.testboxes.json` (passwords writ
 | [`ask-ck/objective-drafting/LESSONS_LEARNED.md`](ask-ck/objective-drafting/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`ask-ck/ck-facelift/PLAN-facelift.md`](ask-ck/ck-facelift/PLAN-facelift.md) | 2026-07-13 multi-tool facelift plan (as executed) |
 
+**Session workflow:** run **`/orient`** at the start of a working session and **`/wrap`** at the
+end — project skills in [`.claude/skills/`](.claude/skills/). `/orient` ground-truths the live
+repo (git, guards, gate), reads the newest handoff entry, and confirms the invariants before any
+work begins; `/wrap` reconciles the docs above against what actually shipped, sweeps for stale
+claims, and commits. Both are plain Markdown with no tool-specific syntax — paste a `SKILL.md`
+body into any other assistant if you are not using Claude Code.
+
 ### Upload refined cases to Zephyr
 
 ```bash
