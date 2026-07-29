@@ -82,14 +82,57 @@ content-addressed), so nothing here touches the immutable `ck.db` corpus invaria
 7. **Determinism test.** A test asserting the same (objective, device) yields an identical
    expansion across runs — the property that justifies the whole subsystem.
 
+## Worked evidence — T33234 (MDI/MDI-X): the sequence-`kind` failure mode (2026-07-29)
+
+A 5-model × 3-case generation matrix (vllm-fast/thinking, claude haiku/sonnet/opus; all on
+Thread-B prompts) was holistically judged by opus + vllm-fast. Result that pins the target:
+
+- **T33233 (autoneg)** and **T33235 (fixed speed)**: sonnet + opus now score **"good"** — the
+  Thread-B objective fix worked on the GENERATION half.
+- **T33234 (MDI/MDI-X)**: **10/10 "bad"** — both judges, all five models, *including
+  opus-as-generator*. That unanimity is the tell: the defect is upstream of generation, and no
+  model or prompt tweak can recover it.
+
+Root cause, straight from T33234's step2 sequence — two `kind` MISCLASSIFICATIONS that the
+deterministic skeleton then routes on before any model sees a slot:
+
+1. **Per-case partner reconfigs classified `setup`.** Steps 7/9/11/13 ("configure partner
+   polarity mdi/mdix/mdi/mdix") are `kind: setup`, so ALL four render into
+   `TestSet.configure()` (runs ONCE) — they execute back-to-back at startup and cancel out, so
+   the per-test-case forced-polarity matrix (the whole point) never varies.
+2. **Physical cable swaps classified `verify`.** Steps 8/10/12/14 ("connect straight-through /
+   crossover cable") are `kind: verify` → rendered as automatable CLI TestCases, but connecting
+   a cable type has no CLI, so every model faked it (forcing the DUT's polarity — which must
+   stay AUTO — or re-checking an already-up link = false green). NOTE the classifier was not
+   even self-consistent: the identical action is `physical` at steps 5/6 but `verify` at
+   8/10/12/14.
+
+Physical reality the sequence ignored: over a single fixed `.setup` portlink there is ONE
+cable — straight-vs-crossover is impossible without an operator swap, OR the test must be
+recast as **vary the PARTNER's forced polarity over the one cable, keep the DUT auto, and
+verify the RESOLVED polarity**. MDI/MDI-X is functionally SIMPLER than autoneg; it only looks
+hard because it is a cable-wiring + link-partner feature and the sequence classifier mishandles
+exactly that shape (autoneg is pure DUT-side CLI, so it classifies cleanly).
+
+**What this ADDS to the expander's scope:** the multi-value axis here is `mdi/mdix/auto ×
+partner-polarity`, and expanding it correctly is not just enumeration — it must also get the
+`kind` routing right:
+- per-case reconfigurations belong INSIDE their TestCase (or a per-case setup that renders in
+  the TestCase body), NEVER one-time suite `configure()`;
+- a cable-type / physical dimension must render as `physical` operator steps OR be recast as
+  partner-polarity forcing — never as DUT-side CLI that defeats the feature under test;
+- so the expander (or the sequence stage it feeds) owns a **`kind`-classification contract**,
+  not only a value cross-product. This is a SECOND shit-in, downstream of the objective fix.
+
 ## Relation to work already done (2026-07-29, Thread B)
 
 The objective now flows into Generate and is baked into the emitted `.py` header
 (`_objective_comment_lines` + skeleton `==== OBJECTIVE ====` block + `pt_generate_script.jinja`
-rule 1a). That keeps the **declarative context** in the output. The expander is the
-complementary deterministic fix for **enumeration instability**. Together they close the
-"shit-in-shit-out" loop: objective context (done) + reproducible permutation coverage (this
-plan).
+rule 1a). That keeps the **declarative context** in the output, and the matrix above confirms
+it fixed the generation half (T33233/T33235 → "good"). The expander is the complementary
+deterministic fix for **enumeration instability** AND the `kind`-misclassification exposed by
+T33234. Together they close the "shit-in-shit-out" loop: objective context (done) +
+reproducible, physically-coherent permutation coverage with correct `kind` routing (this plan).
 
 ## First step when resumed
 

@@ -1,0 +1,94 @@
+{
+  "case": "AWPTCM-T33233",
+  "judges": [
+    "claude-opus",
+    "vllm-fast"
+  ],
+  "models": {
+    "vllm-fast": {
+      "chars": 22100,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "medium",
+        "rationale": "The core auto-negotiation checks (TC3/4/5) grep the output of `show interface <port> status` for strings like `configured speed auto`/`configured speed 1000` \u2014 but those config-line phrases only appear in the verbose `show interface <port>`, not the compact status table, so these central assertions can never match and the objective's 'reports Auto mode + negotiated speed/duplex' claim is never genuinely verified. Worse, the link partner (linkP/swi_b) is wired to dut.portB in init(), yet every negotiation case configures the partner while reading status on dut.portA (which faces tb, not the partner), so the with-a-partner tests observe the wrong port. Steps 1, 6\u201310 use plausible commands and the physical operator-poll pattern is faithful, so it partially exercises the objective, but the money steps are broken.",
+        "concrete_problem": "TC3/4/5 assert `'configured speed auto' in output` (and `configured speed 1000/100`) against `show interface <port> status`, whose table never contains that config-line text \u2014 so the negotiation/auto-reporting checks always fail and never test the negotiated values; compounded by reading dut.portA when the partner is on dut.portB.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script maps test ports to the wrong physical topology, attempting to verify links between dut.portA and linkP.portA despite them being unconnected in the setup. Additionally, assertions incorrectly search for configuration strings (e.g., 'configured speed auto') in the operational 'show interface status' output, which only reports link state and negotiated parameters. These defects prevent the script from actually establishing or verifying the autonegotiated links required by the objective.",
+        "concrete_problem": "Topological mismatch and incorrect CLI output parsing for configuration verification.",
+        "unparsed_verdict": null
+      }
+    },
+    "vllm-thinking": {
+      "chars": 26573,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "medium",
+        "rationale": "The script covers all 10 steps with plausible AlliedWare Plus config commands (`speed auto`, `duplex auto`, `ecofriendly lpi`, `show ecofriendly`) and faithfully models the physical insert/remove steps with operator prompts plus state-change polling. But several key assertions are too weak to trust: Step 5 uses `'100' in output`, which also matches the `a-1000` string, so the case meant to prove the DUT auto-negotiated *down* to 100M would pass even if it stayed at 1000M. Step 3's core 'reports Auto mode' check depends on the literal strings `'configured speed auto'`/`'configured duplex auto'`, which are not the format `show interface` actually emits, so that verification likely never truly validates. These are false-green / fabricated-output defects at the heart of the objective, not minor edits.",
+        "concrete_problem": "Step 5 (TestCase_5) verifies negotiated 100M with `'100' in output`, but `'100'` is a substring of `'1000'`/`a-1000`, so the case passes even if the link came up at 1000M \u2014 a false green on the exact speed it must confirm.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script correctly maps to all 10 steps, exercising default configs, autonegotiation with various partner settings, mismatched configuration failure, physical hot-plug/unplug, and ecofriendly LPI toggling. Assertions properly verify link states and CLI outputs against the stated objective.",
+        "concrete_problem": "Uses fixed time.sleep(5) for link establishment waits instead of polling for state changes, which is a minor robustness issue but acceptable for auto-generated scripts.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-haiku": {
+      "chars": 20263,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "medium",
+        "rationale": "Structurally the script faithfully covers all ten steps with operator prompts + polling for the physical SFP steps, a real negative test (step 6), and per-case cleanup, and the core auto/forced cases (TC4, TC6) do check negotiated speed/duplex. But the verification layer leans on output formats that are unverified and likely fabricated for AlliedWare Plus: the pervasive Cisco-style `a-1000`/`a-full` prefix in `show interface status`, TC3's lowercase colon-free `'configured speed auto'` substring (which almost certainly never matches real `show interface` output, so TC3 can't pass even when correct), and TC9/TC10's `show ecofriendly` fixed-column `.split()[-2]` guess. Several assertions also verify too weakly (`'100' in row` also matches `1000`; TC2/TC7 only confirm 'connected' appears), so the script can mis-parse or false-green while the feature is actually broken.",
+        "concrete_problem": "Assertions depend on invented/unverified CLI output shapes \u2014 the `a-` auto-prefix in `show interface status`, the case/punctuation-mismatched `'configured speed auto'` config check in TC3, and the positional `show ecofriendly` column in TC9/TC10 \u2014 so on a real switch they will silently mis-parse rather than verify negotiated speed/duplex.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script accurately maps each step to a dedicated test case, uses valid Allied Telesis CLI commands, and verifies the expected link states and configuration outputs. It handles physical actions by logging operator instructions and polling for state changes, which is standard for automated hardware tests. The assertions are direct and cover all objective requirements.",
+        "concrete_problem": "Minor fragility in parsing `show ecofriendly` output using `split()[-2]`, which assumes a fixed column position that may vary with switch OS versions.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-sonnet": {
+      "chars": 20665,
+      "claude-opus": {
+        "verdict": "good",
+        "confidence": "medium",
+        "rationale": "The script covers all ten steps with real actions and, crucially, grounds its assertions in authentic AlliedWare Plus output \u2014 the 'current duplex X, current speed Y' and 'configured duplex auto, configured speed auto' lines from `show interface` genuinely verify negotiated values (steps 4/5), and step 6 properly expects no link on a forced mismatch, so it is not a false-green overall. Physical SFP insert/remove steps use a faithful operator-prompt-plus-poll substitute rather than a weak administrative stand-in. It falls short of exceptional because the config-change steps use a fixed `time.sleep(3)` instead of polling for link-up as the steps explicitly demand ('Wait for link up'), and step 2's assertion checks only `connected` while the verify asks for speed/duplex values too; the `show ecofriendly` row-parsing in steps 9/10 is also of uncertain format.",
+        "concrete_problem": "Steps 3\u20136 replace the required 'wait for link up' with a fixed 3-second sleep; in the negative test (TestCase_6) this lets the assertion 'connected not in status' pass merely because autonegotiation hasn't finished within 3s, not because the speed/duplex mismatch actually prevented the link.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script faithfully implements all 10 steps, correctly mapping physical actions to state-polling loops and verifying both configuration and link status. Assertions are specific to the objective, checking for `a-` prefixes, `connected` states, and exact speed/duplex values. The main limitation is that Step 1 does not explicitly verify the \"no pluggable present\" condition, and some CLI output string matches rely on assumed formatting.",
+        "concrete_problem": "Step 1 fails to explicitly verify that the port has no pluggable present before checking default configuration.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-opus": {
+      "chars": 23297,
+      "claude-opus": {
+        "verdict": "good",
+        "confidence": "medium",
+        "rationale": "All 10 steps and every objective bullet are exercised with mostly meaningful assertions: TC1 sensibly checks `configured ... auto` rather than the `a-` prefix (which needs a live link), TC4/TC5 read the negotiated `current` line and match exact tokens to avoid `1000`/`10000` collisions, TC6 asserts the absence of `connected` instead of guessing the down spelling, and the physical insert/remove steps are faithfully handled via operator prompts plus state polling. CLI (`show interface [status]`, `speed/duplex auto`, `ecofriendly lpi`, `show ecofriendly`) and the matched strings are plausible AlliedWare Plus. Assertions verify the feature (configured auto, negotiated speed/duplex, connected vs not-connected, ecofriendly Configured column) rather than mere link survival, and the failure modes lean toward false-reds not false-greens.",
+        "concrete_problem": "The negotiated-value parse in TestCase_4/5 assumes the `current` line starts with `current duplex` and that speed is the last token (`toks[-1]`); a trailing field (e.g. `current polarity mdix` on copper) or speed-before-duplex ordering makes it read the wrong token or never match, so those two key negotiation cases could fail even when the port negotiated correctly.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script contains a critical parsing bug in steps 4 and 5 where the assertion condition expects both current speed and duplex on a single line, which will never match standard CLI output and causes guaranteed false failures. It also deviates from the step sequence by checking the `configured` line instead of the `status` output for `a-` prefixes in step 1, and omits the required link stability verification in steps 9 and 10.",
+        "concrete_problem": "Broken assertion logic in steps 4 and 5 where `s.startswith('current duplex') and 'current speed' in s` will never match standard CLI output, causing the test to fail on valid hardware.",
+        "unparsed_verdict": null
+      }
+    }
+  }
+}

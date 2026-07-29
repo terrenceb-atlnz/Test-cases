@@ -1,0 +1,94 @@
+{
+  "case": "AWPTCM-T33234",
+  "judges": [
+    "claude-opus",
+    "vllm-fast"
+  ],
+  "models": {
+    "vllm-fast": {
+      "chars": 20879,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The core of the objective \u2014 forced MDI/MDIX at the partner and the LPI feature \u2014 is never actually exercised. The partner polarity mdi/mdix commands (sequence steps 7/9/11/13) are dropped into configure() as comments only; the code just sets the partner to 'polarity auto', so the forced-polarity matrix that steps 7-14 depend on is never established, and TestCases 7-8 (which expect link DOWN under a conflicting forced polarity) can never legitimately reach that state. Likewise TestCase_13/14 only run 'show ecofriendly' and never issue the 'ecofriendly lpi' / 'no ecofriendly lpi' config commands, so LPI is untested (and 13 would deterministically fail). Most assertions also merely check 'connected'/'Link is UP' rather than the resolved MDI/MDIX polarity value, so the polarity-reporting objective is a false green even where the link does come up.",
+        "concrete_problem": "The partner forced-polarity commands and the 'ecofriendly lpi'/'no ecofriendly lpi' config actions are never actually executed (only their show-commands run), so the forced-MDI/MDIX matrix and the LPI portion of the objective are not tested at all.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script completely omits the CLI commands to configure the partner port's polarity to MDI/MDIX (steps 7, 9, 11, 13) and instead just polls for link connectivity after cable swaps. It fails to verify MDI/MDIX resolution, mismatched cable/link-down conditions, or CLI command acceptance, rendering it unable to validate the core objective.",
+        "concrete_problem": "Missing all partner port polarity configuration steps and corresponding link-down verification, reducing the test to a basic cable connectivity check.",
+        "unparsed_verdict": null
+      }
+    },
+    "vllm-thinking": {
+      "chars": 27039,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The LPI (TC_13/14) and pre-insert show-interface (TC_1) cases are reasonable, but the core MDI/MDI-X cases are broken. TC_3/TC_4 (the auto-polarity cable-swap steps) assert only that the link reaches 'connected', a link-survival false green that never checks the resolved polarity the objective demands. Worse, TC_5\u2013TC_8 drop the physical straight/crossover cable swaps entirely and substitute CLI `polarity mdi/mdix` config \u2014 and they force that polarity on the DUT (port1.0.1), which the objective requires to stay in AUTO, so the auto-resolution feature under test is defeated and the link up/down expectations correspond to no actual cable change.",
+        "concrete_problem": "TC_5\u2013TC_8 issue `dut.cmd('polarity mdi'/'mdix')` on the DUT and replace the operator cable-swap prompts with CLI config; the DUT must remain auto, and with no cable actually swapped the link-up/link-down assertions are meaningless \u2014 the auto MDI/MDI-X resolution across cable types is never exercised.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script fundamentally misimplements steps 5-8 by configuring polarity on both DUT and partner ports instead of just the partner, and it expects physically incorrect link states (e.g., expecting link up for MDI-MDI on a straight-through cable). Additionally, TC6 and TC7 share identical setup but expect opposite results, and TC5/TC8 do the same, indicating a severe logical flaw that fails to test the actual automatic polarity resolution behavior.",
+        "concrete_problem": "Incorrect test logic for MDI/MDIX forced configurations (TC5-8) configures both ends and expects inverted/contradictory link states, failing to validate the objective's core requirement.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-haiku": {
+      "chars": 18636,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script structurally walks the step list, but the heart of the objective \u2014 that MDI/MDI-X polarity actually resolves correctly across cable types and forced settings \u2014 is never verified. Almost every cable/polarity test asserts only `'connected' in output` (link survival) as a stand-in for 'polarity resolved correctly', a classic false green. Worse, the forced-polarity sequence is garbled: the steps call for configuring the PARTNER port to mdi/mdix, but the script instead pokes the DUT's polarity in tear_downs and drops several partner-config steps, so the link-up/link-down expectations in TestCase_5\u20138 aren't grounded in the prescribed configuration and are read against leftover state (no operator prompt or wait). The polarity-reporting checks also rely on likely-invented output strings ('configured polarity auto', 'current polarity', 'Link is DOWN').",
+        "concrete_problem": "The forced-MDI/MDIX tests (TestCase_5\u20138) neither set the partner polarity the steps require nor verify the resolved polarity \u2014 they only compare leftover link status to an expected up/down, so the script can pass while polarity resolution is entirely broken.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script completely omits configuring the partner port's polarity for the forced MDI/MDIX test steps, relying instead on simple cable swaps and weak link-state assertions. It fails to verify the actual resolved polarity settings or speed/duplex negotiation in the critical forced-polarity scenarios, effectively testing cable connectivity rather than the specified automatic polarity resolution feature.",
+        "concrete_problem": "Missing partner port polarity configuration (`polarity mdi`/`mdix`) and weak assertions that only check for 'connected'/'notconnect' instead of verifying resolved polarity and link parameters.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-sonnet": {
+      "chars": 22739,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The auto-polarity cases (TC1 no-pluggable defaults; TC3/TC4 operator-prompted straight-through then crossover) are reasonable, but the forced-MDI/MDIX matrix \u2014 the heart of an MDI/MDI-X test \u2014 is broken. All four partner-polarity reconfigs (steps 7/9/11/13) were dumped consecutively into configure(), so they cancel out (partner ends at mdix) and never vary per-step. TC5/TC6 (steps 8/10: forced polarity + matching cable \u2192 link up) set no polarity and prompt no cable swap; they just re-poll the still-up link from TC4 and pass unconditionally \u2014 a false green. TC9's report check only asserts the label strings 'current duplex/speed/polarity' appear, never that polarity actually resolved to MDI/MDIX with real speed/duplex values.",
+        "concrete_problem": "Steps 7/9/11/13 partner-polarity commands were collapsed into configure() and run back-to-back, so TestCase_5/6 exercise no forced polarity and no cable action \u2014 they merely re-check the auto-polarity link left up by TestCase_4 and pass regardless of the behavior they claim to test.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script misplaces stepwise CLI configurations into the suite configure() method, causing state leakage and incorrect test isolation. It completely omits the explicit 'CLI accepts command' verifications required for steps 7, 9, 11, and 13. Consequently, it tests link status changes but fails to validate the specific configuration acceptance and step-by-step state transitions mandated by the objective.",
+        "concrete_problem": "Suite configure() method incorrectly executes stepwise partner port polarity commands that belong in individual test cases, and skips verifying CLI command acceptance.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-opus": {
+      "chars": 26040,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The framing steps (TC1 auto/down check, TC2 pluggable insert via operator prompt+poll, TC3/TC4 cable swaps, TC13/TC14 ecofriendly) are faithful, but the heart of the objective \u2014 auto MDI/MDI-X resolving link across straight vs crossover cables \u2014 is mishandled. In TC5\u2013TC8 there is no operator cable swap (just CLI `polarity` + a 5s sleep) over the single fixed .setup portlink, so 'straight-through' vs 'crossover' are fictional labels on one physical cable; the four link up/down predictions cannot all hold on real hardware and will produce spurious fails. Worse, the script forces the DUT to `polarity mdi/mdix` in these cases, taking it out of `polarity auto`, so the auto-MDIX resolution the objective centers on is never actually exercised.",
+        "concrete_problem": "TC5\u2013TC8 substitute forced-both-ends polarity CLI for the physical cable swaps and never leave the DUT in polarity auto; with a single fixed installed cable the straight/crossover link-up/down assertions are physically inconsistent (some must fail) and auto-MDIX resolution is not tested.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script hardcodes assertions for 'current polarity mdi' across multiple test cases, ignoring the valid MDIX resolution path required by the objective. This will cause false failures when the switch correctly negotiates MDIX, making the test incorrect for its stated goal. Additionally, several steps that require verifying CLI acceptance of polarity commands are skipped, relying instead on implicit success.",
+        "concrete_problem": "Hardcoded 'current polarity mdi' checks that fail on valid MDIX resolution.",
+        "unparsed_verdict": null
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "case": "AWPTCM-T33235",
+  "judges": [
+    "claude-opus",
+    "vllm-fast"
+  ],
+  "models": {
+    "vllm-fast": {
+      "chars": 19933,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "TestCases 1\u20135 plausibly exercise fixed speed/duplex reporting via the `current/configured speed/duplex` substrings, but the back half of the objective is broken or falsely verified. TestCase_7 (hot-insert) only polls `show interface status` for `connected` and passes immediately when the port is already up \u2014 it never confirms the link went DOWN then re-established, so it is a false green that passes without any physical action. TestCase_6 asserts `configured speed 10000` sticks, yet a real AW+ switch rejects an unsupported speed at the CLI so that string never appears (false red), and TestCase_8 hardcodes `speed 1000/duplex full` even though the accumulated port state after cases 5\u20137 is 100/half (no tear_down resets config), so it fails on correct hardware. Traffic forwarding is claimed in the pass message but never executed, and the link partner is never configured to matching fixed settings.",
+        "concrete_problem": "TestCase_7 verifies hot-insert only by polling for `connected`, so it passes instantly on an already-up port and never confirms the required Link DOWN\u2192UP flap \u2014 a false green.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The script fails to verify critical aspects of the objective, most notably in TestCase_7 where it only checks for a generic 'connected' state after the hot-insert, completely omitting the required verification of configured and current speed/duplex values. Additionally, TestCase_1 skips the mandatory traffic forwarding check, and TestCase_6 lacks verification that current speed/duplex fields correctly report a down state. These omissions mean the script verifies the feature too weakly and could pass while the core fixed-speed reporting functionality is broken.",
+        "concrete_problem": "TestCase_7 omits verification of configured and current speed/duplex values after the hot-insert, only checking for a generic 'connected' state.",
+        "unparsed_verdict": null
+      }
+    },
+    "vllm-thinking": {
+      "chars": 23816,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The matched strings are genuinely plausible AlliedWare Plus output (`current speed/duplex`, `configured speed/duplex`, `Link is UP`, `connected`), so it's not fabricated, but the logic verifies the wrong things. The partner side (dutA/tb) is never set to matching fixed speed/duplex, so the core positive cases 1\u20135 may never bring the link up as the objective's 'matching partner settings' requires; TestCase_1 also asserts a pass message claiming traffic was forwarded while forwarding no traffic. TestCase_6's assertion is an OR containing `'configured speed 10000'`, a false-green that passes on config echo alone (and the switch would likely reject speed 10000 on a 1G port outright). TestCase_7 (the hot-insert requirement) matches `configured speed 1000`/`configured duplex full` against `show interface \u2026 status` table output that never contains those phrases, and only polls for 'connected' \u2014 so it never verifies the down\u2192up transition and can effectively never pass.",
+        "concrete_problem": "No matching fixed speed/duplex is ever configured on the partner, so fixed-speed link establishment (the heart of the objective) is untested and cases 1\u20135 could fail on real hardware from autoneg/duplex mismatch even when the feature works.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script correctly maps each step to a test case and verifies core configuration states using plausible Allied Telesis CLI commands. However, it omits the explicit traffic forwarding test required in Step 1 and fails to verify the link state goes DOWN during cable removal in Step 7, relying instead on a basic 'connected' check after re-insertion. These omissions reduce completeness but do not invalidate the overall test structure.",
+        "concrete_problem": "Missing traffic forwarding verification in Step 1 and incomplete link state polling (skips checking for DOWN during removal) in Step 7.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-haiku": {
+      "chars": 24712,
+      "claude-opus": {
+        "verdict": "bad",
+        "confidence": "high",
+        "rationale": "The happy-path fixed-speed cases (TC1\u20135, TC8) are solid: both ends are pinned to matching fixed speed/duplex and the assertions check the plausible AW+ strings ('configured speed 1000', 'current duplex full', 'Link is UP', 'connected'), genuinely testing that fixed values are reported. But the hot-insert case (TC7) is a false green \u2014 it polls `show interface status` only for 'connected', which is already true from its own preceding config step, so the loop breaks immediately and the case passes without ever confirming the link went DOWN on removal and back UP on re-insertion; no physical action is actually required. TC6's unsupported-speed path (`speed 10000` on a 1G port) is likely rejected by the CLI rather than accepted-and-down, so its 'Link is DOWN' assertion may be invalid, and TC1 never forwards traffic despite its verify demanding it.",
+        "concrete_problem": "TestCase_7 verifies hot-insert by polling only for 'connected', which is already present from the case's own speed/duplex config, so it passes trivially without any cable/pluggable removal or the required DOWN\u2192UP transition ever being observed.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script correctly sequences fixed speed/duplex configurations and verifies link establishment, unsupported speed handling, and status reporting. However, Step 7's verification is weak, as it waits for reconnection without explicitly polling for the `Link is DOWN` state during removal, and Step 6 omits verifying the `configured speed` string. Overall, it adequately tests the objective with standard ART patterns.",
+        "concrete_problem": "Step 7 fails to verify the intermediate `Link is DOWN` state during cable removal, relying only on a reconnection timeout and post-reinsertion checks.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-sonnet": {
+      "chars": 25109,
+      "claude-opus": {
+        "verdict": "good",
+        "confidence": "medium",
+        "rationale": "All eight steps map to dedicated TestCases; both DUT and partner are forced to matching fixed speed/duplex, the matched detail strings (`current speed 1000,`, `configured duplex full,`, `Link is UP`) are plausible real AW+ output, the 10/100 half-duplex combos are physically valid, and the hot-swap is handled faithfully with operator prompts plus down-then-up polling rather than an administrative shutdown. Weaknesses keep it from exceptional: the negative case (TC6) is dubious, the TC1 'traffic' check only watches counter deltas, and TC8's status-column indexing is speculative. The positive coverage is solid enough that a reviewer would accept it with focused edits.",
+        "concrete_problem": "TestCase_6 configures `speed 10000` on a 1G port to simulate an unsupported speed, but AW+ typically rejects that value at the CLI (leaving the port at auto and link UP), so the 'unsupported speed \u2192 link down' objective isn't genuinely exercised; it also never verifies that `configured speed` reflects the misconfigured value as the step requires.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script systematically covers all objective steps, correctly handles physical actions via operator prompts, and verifies expected CLI output strings. It lacks a specific check for the misconfigured speed string in Step 6 and uses brittle column-index parsing for `show interface status`, but these are minor gaps that don't fundamentally undermine the test's validity.",
+        "concrete_problem": "Step 6 fails to verify that `configured speed 10000` is present in the output, and Step 8 relies on hardcoded column indices for parsing `show interface status` which may break across switch models.",
+        "unparsed_verdict": null
+      }
+    },
+    "claude-opus": {
+      "chars": 22358,
+      "claude-opus": {
+        "verdict": "good",
+        "confidence": "medium",
+        "rationale": "Seven of the eight cases genuinely exercise the objective and handle real subtleties a competent engineer would weigh: both the DUT and the partner are set to matching fixed values, assertions check BOTH the `configured` and `current` speed/duplex lines (distinguishing 'command took effect' from 'link negotiated to that rate'), trailing commas prevent '10'/'100' from matching inside '1000', teardown reverts to auto in a safe order, and the unsupported-speed case correctly accepts either CLI rejection or link-down. The matched CLI strings (`configured speed 1000,`, `current duplex full,`, show-interface-status columns) are plausible real AlliedWare Plus output, clearly adapted from legacy 5000_mdi_mdix scripts. The main weaknesses are that step 1's 'forward traffic and confirm transmission' is downgraded to a 'connected' status proxy, and \u2014 more seriously \u2014 the hot-insert case is a false green.",
+        "concrete_problem": "TestCase_7 (hot-insert/flap) never verifies the link first went DOWN: it applies speed 1000/full, confirms UP, then polls `show interface status` only for 'connected' \u2014 which is already true from the config it just applied \u2014 so the loop breaks on the first iteration and the case passes immediately even if the operator removes nothing. The hot-insert objective bullet is not actually exercised and could pass while broken.",
+        "unparsed_verdict": null
+      },
+      "vllm-fast": {
+        "verdict": "good",
+        "confidence": "high",
+        "rationale": "The script systematically covers all step sequences, correctly configuring fixed speeds and duplexes, verifying link states, handling unsupported speeds, and parsing show interface outputs with precise string matching. It appropriately resets ports to auto-negotiation between cases to prevent state leakage. The only notable gap is substituting a connected status check for the explicit traffic forwarding and transmission verification required in Step 1, which is a minor omission for a link-state focused test.",
+        "concrete_problem": "Step 1 substitutes a connected status check for the explicit traffic forwarding and transmission verification required by the step sequence.",
+        "unparsed_verdict": null
+      }
+    }
+  }
+}
