@@ -526,6 +526,13 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
    `TestCase_<n>` **per verification step** (each with the three `testCase*` attrs, a
    `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
    and the `__main__` footer.
+   **Objective header (2026-07-29):** the refined case objective is rendered into the skeleton
+   as a `# ==== OBJECTIVE ====` comment block (`_objective_comment_lines` in `pytest_create.py`),
+   so it rides into **both** the generated `.py` artifact and — because the Generate prompt
+   embeds the skeleton — into the prompt itself (single source, no duplication). Generate-prompt
+   **rule 1a** then directs the model to ground each `passed()`/`failed()` in the slice of the
+   objective its step covers, not the per-step action/verify text alone. Port-literal lint skips
+   comments so the header is safe; `>>>` is sanitised out of the objective text.
    **Step-kind taxonomy (2026-07-23):** the Sequence extractor classifies every step as
    one of **setup / verify / physical / manual** (`_step_kind` is the single classifier;
    `_split_sequence` is non-mutating). The skeleton branches on kind: `setup` →
@@ -537,6 +544,13 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
    `strtobool` / the `yesNo` helper are emitted only when a physical/manual step is present.
    *(Physical classification only appears after re-running Sequence on a case with such
    steps; legacy sequences with no `kind` default every step to `verify`.)*
+   **Known limitation — `kind` misclassification (2026-07-29):** because the skeleton routes
+   deterministically on `kind`, a mis-classified step is unrecoverable at Generate. A 5-model
+   matrix graded T33234 (MDI/MDI-X) **10/10 "bad"** across every model: the extractor put the
+   *per-case* partner-polarity reconfigs in `setup` (so they collapse into one-time `configure()`
+   and the forced-polarity matrix never varies) and marked the *physical* cable-swaps `verify`
+   (so the models faked them with DUT-side CLI = false green). Fix belongs in Sequence
+   extraction, not Generate — tracked in `ask-ck/ck-facelift/PLAN-permutation-expander.md`.
    The prompt (`pt_generate_script.jinja`) instructs the LLM
    to fill the FILL slots with the reused fragments + gap-fill and to keep the three
    logging-contract calls. The prompt also mandates **deleting** each `# >>> FILL … <<<`

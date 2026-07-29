@@ -78,6 +78,14 @@
 >   Results: `judging/Port (7)/<CaseKey>/mechanical.json`. See **§10 below**. Remaining:
 >   criterion 4 (the two LLM judges + human review) and regenerating T33233, which is
 >   stale + wrong-backend and blocked behind its unconfirmed step5 (§10.6).
+> - ✅ **Part 3a re-run with Thread B + a 5-model matrix (2026-07-29).** Criterion 4 was completed
+>   (Opus + vllm-fast) and the CLI-grounding/ecofriendly fixes closed the earlier "all bad" run
+>   (§11 + NEXT-SESSION-REVIEW). This session regenerated all three against the objective-in-Generate
+>   prompts (objective header now in every `.py`; **T33234's duplicate-portlink lint defect cleared**)
+>   and ran a 5-model generation matrix (vllm-fast/thinking + claude haiku/sonnet/opus) judged
+>   holistically by opus + vllm-fast (`tool/pt_matrix_judge.py`; artifacts under `comparison/`).
+>   **T33233/T33235 → "good" (sonnet/opus); T33234 → 10/10 "bad"** — root-caused NOT to model quality
+>   but to sequence-step `kind` misclassification; see `ck-facelift/PLAN-permutation-expander.md`.
 > - ✅ **Part 3b UNBLOCKED + topology corrected (2026-07-29).** `configs/tb470.setup` existed
 >   as of 2026-07-27 but was the `SETUP-FILE-REFERENCE.md` worked example (x930/AR4050S/x530)
 >   copied verbatim — a placeholder that did NOT match the bench (those u0/u2 devices are

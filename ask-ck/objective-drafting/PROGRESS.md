@@ -2,7 +2,16 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-29 (by Claude)
+**Last Updated**: 2026-07-29c (by Claude)
+
+## Latest session (2026-07-29c) — objective→Generate (Thread B), Part 3b unblocked, model-matrix judging
+
+**Focus: shore up PyTest Creator generation so objective context reaches the `.py` output, then finish the Part 3 blockers.** (Ran alongside the reboot-scripts stream; commits interleave on `main`.)
+
+- **Thread B (commit `81bc972`):** the objective now flows into the Generate prompt AND is baked into the emitted `.py` as a `# ==== OBJECTIVE ====` header (single source: it rides into both the artifact and the prompt via the embedded skeleton). New generate-prompt rule 1a grounds each verdict in the objective slice. Tests + gate green.
+- **Part 3b unblocked (commit `83fb11d`):** `configs/tb470.setup` turned out to be the reference doc's worked example copied verbatim (x930/x530 — powered off). Read every live tb470 console + NIC/MAC tables and rewrote `tb470.setup` to the verified real rig (IE520 DUT / AR4050S / x230, verified portlink, skeleton sections, backup kept). Owed: PDU IP + inter-switch cabling. See memory `tb470-topology-and-setup`.
+- **Part 3a re-run:** all 3 cases regenerated with Thread B (objective header everywhere; T33234's duplicate-portlink lint defect cleared), then a 5-model matrix (vllm-fast/thinking + claude haiku/sonnet/opus) judged side-by-side by opus + vllm-fast via the new `tool/pt_matrix_judge.py`.
+- **Result:** T33233/T33235 → "good" (sonnet/opus) = generation half fixed. **T33234 = 10/10 "bad"** = the next shit-in is **sequence-extraction `kind` misclassification** (per-case reconfig→setup collapse; physical cable-swap→verify fake), not model quality. Folded into `ask-ck/ck-facelift/PLAN-permutation-expander.md` (deferred subsystem).
 
 ## Latest session (2026-07-29) — commit 10 lands; the module split is COMPLETE
 

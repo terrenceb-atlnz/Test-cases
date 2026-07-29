@@ -12,6 +12,14 @@
 > truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
 > `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
 >
+> **Objective-in-Generate note (2026-07-29)**: the Generate step now bakes the refined objective
+> into the skeleton as a `# ==== OBJECTIVE ====` header (rides into both the emitted `.py` and the
+> Generate prompt via the embedded skeleton), and generate-prompt rule 1a grounds each verdict in
+> the objective slice its step covers. Validated by a 5-model matrix + opus/vllm-fast judging
+> (`tool/pt_matrix_judge.py`): T33233/T33235 → "good". The next generation bottleneck is
+> **sequence-step `kind` misclassification** (T33234), tracked in
+> `ck-facelift/PLAN-permutation-expander.md`.
+>
 > **Generation note (2026-07-21)**: Step 6 (Generate) no longer composes a script freely from a
 > style exemplar — it **fills a standardized skeleton** (`templates/pt_script_template.py.jinja`)
 > rendered from the reviewed sequence (one `TestCase` per verification step, mandatory logging

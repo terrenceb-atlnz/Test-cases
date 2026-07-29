@@ -2625,3 +2625,48 @@ confirmed the scripts' `wr` branch never fired: the DUT already had
   `validation_library.py`.
 - Pre-existing uncommitted change **not touched**: `ask-ck/pytest-create/PLAN-pytest-testing.md`.
 - No server/DB/framework work this session; guards not re-run because nothing in their scope moved.
+
+## Session Close / Handoff (2026-07-29c) — objective→Generate (Thread B), Part 3b unblocked, and a 5-model matrix isolates the next shit-in
+
+Ran in parallel with the reboot-scripts stream above (shared working tree); commits interleave
+on `main`. Focus was the ORIGINAL prompt intent: shore up PyTest Creator **generation/CLI
+prompts so objective context reaches the `.py` output**, then complete the Part 3 blockers.
+
+- **Thread B — objective now flows into Generate AND into the emitted `.py`** (commit `81bc972`).
+  The Generate prompt + deterministic skeleton never saw the objective, so slot-filling worked
+  from per-step action/verify alone. Fix: `_objective_comment_lines()` + `_render_skeleton(…,
+  objective)` bake a `# ==== OBJECTIVE ====` header into the skeleton (rides into both the `.py`
+  artifact AND the Generate prompt, which embeds the skeleton — single source, no duplication);
+  new generate-prompt **rule 1a** tells the model to ground each verdict in the objective slice.
+  Port-literal lint skips comments so the header is safe; `>>>` sanitised. Tests in
+  `tests/test_prompt_examples.py` (compilable header; drift-guard; AST wiring-guard). Gate green.
+- **Part 3b UNBLOCKED — and the `.setup` was a placeholder.** `configs/tb470.setup` existed
+  (2026-07-27) but was the `SETUP-FILE-REFERENCE.md` worked example (x930/AR4050S/x530) copied
+  verbatim — those consoles are powered off; the real DUT is an IE520. Read every live console
+  + tb470's NIC/MAC tables and **rewrote `tb470.setup` to the verified rig**: swi_a=AT-IE520-28GSX
+  (/dev/u4), swi_b=AR4050S-5G (/dev/u1), swi_c=x230-10GP (/dev/u0 @9600), verified
+  `[portlink] tb-swi_a = eth3-port1.0.23`, skeleton `[power]/[stack]/[configured_stackport]/
+  [powerlink]` sections; original preserved as `tb470.setup.bak-2026-07-29`. Plan corrected
+  (commit `83fb11d`). Full bench map in memory `tb470-topology-and-setup`. **Still owed: PDU IP +
+  inter-switch cabling** (documented TODOs). Device console login = manager/friend (in secrets.md).
+- **Part 3a re-run with Thread B + a 5-model matrix.** Regenerated all 3 on vllm-fast against the
+  hardened prompts — objective header in every `.py`, and **T33234's duplicate-portlink lint
+  defect cleared**. Then a full generation matrix (vllm-fast/thinking + claude haiku/sonnet/opus,
+  all Thread-B prompts) holistically judged by opus + vllm-fast (new tool `tool/pt_matrix_judge.py`,
+  promoted from scratch). Artifacts: `comparison/Port (7)/<case>/{generate_script,generate_script.judged}.json`;
+  baseline snapshot `judging/_runs/2026-07-29a-pre-objective`.
+- **Result — Thread B fixed the generation half; T33234 exposes the NEXT shit-in.** T33233/T33235
+  → "good" (sonnet/opus). **T33234 (MDI/MDI-X) = 10/10 "bad"** (both judges, all 5 models incl.
+  opus-as-generator) — root-caused NOT to model quality but to **sequence-extraction `kind`
+  misclassification**: per-case partner reconfigs marked `setup` (collapse into one-time
+  `configure()`, matrix cancels) + physical cable-swaps marked `verify` (models fake them via
+  DUT-side CLI = false green). MDI/MDI-X is functionally simpler than autoneg; it only breaks
+  because it's a cable-wiring + link-partner feature the classifier mishandles. Folded into the
+  deferred **`PLAN-permutation-expander.md`** (new, plan-only) as a `kind`-classification contract.
+- **Gotchas learned (in `tool/pt_matrix_judge.py` + memory):** many concurrent `claude -p` on
+  ~88K-char prompts blow the 300s cap → cap concurrency 3, use 600s; the vLLM judge is a reasoning
+  model → needs `max_tokens≈16000` or it returns nothing.
+- **Deferred by Terrence:** build the deterministic CLI-bounded permutation-expander subsystem in
+  a future session (`PLAN-permutation-expander.md` is the resume-cold brief).
+- ck.db: real session writes from regeneration are in the WAL (git shows it clean); NOT committed
+  (avoid a torn snapshot mid-write). Guards not touched.
