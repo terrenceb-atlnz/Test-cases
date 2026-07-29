@@ -1135,11 +1135,32 @@ def _fragment_device_note(fragments: List[dict], bound: List[str]) -> str:
               "lines supply those so the script stays hardware-agnostic.")
 
 
+def _objective_comment_lines(objective: str, width: int = 88) -> List[str]:
+    r"""The refined objective as comment-body lines for the skeleton header — the
+    "expected results" this whole script must demonstrate, carried into the emitted .py
+    so the generator (and any later reader) never loses the declarative context that the
+    per-step action/verify text alone does not carry. Bullets (`<li>` -> `\n- ` in
+    _html_to_text) are wrapped independently so the structure survives; blank lines are
+    dropped; and `>>>` is neutralised because it is the one marker the generated-script
+    linter scans inside comments (an unfilled-placeholder error, _lint_generated §"`>>>`")."""
+    out: List[str] = []
+    for raw in (objective or "").replace(">>>", ">").split("\n"):
+        raw = raw.rstrip()
+        if raw:
+            out.extend(_wrap_comment(raw, width))
+    return out
+
+
 def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
-                     extra_imports: List[str], fragments: Optional[List[dict]] = None) -> str:
+                     extra_imports: List[str], fragments: Optional[List[dict]] = None,
+                     objective: str = "") -> str:
     """Render the standardized ART skeleton (fixed frame + FILL slots) for this case.
     Each TestCase step carries a resolved `kind` (verify/physical/manual) so the template
-    renders the right main() pattern (CLI check vs operator-prompt-and-wait vs yesNo)."""
+    renders the right main() pattern (CLI check vs operator-prompt-and-wait vs yesNo).
+
+    `objective` (the refined case's expected results) is emitted as a comment header so the
+    context rides into the .py artifact AND into the Generate prompt (which embeds this
+    skeleton) — the fix for verdicts drifting away from what the case actually asks."""
     setup_steps, verify_steps = _split_sequence(sequence)
     if not verify_steps:  # never emit a zero-TestCase script
         verify_steps = [dict(s, n=i + 1) for i, s in enumerate(sequence)]
@@ -1154,11 +1175,13 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       extra_imports=extra_imports or [],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
-                      setup_keys=_setup_keys_for(switches))
+                      setup_keys=_setup_keys_for(switches),
+                      objective_lines=_objective_comment_lines(objective))
 
 
 def _assemble_fragment_preview(case_key: str, case_title: str, sequence: List[dict],
-                               extra_imports: List[str], fragments: List[dict]) -> str:
+                               extra_imports: List[str], fragments: List[dict],
+                               objective: str = "") -> str:
     """The per-step ARTEFACT this Fragments step produces: the real Generate skeleton
     with each verification step's SELECTED fragment code inserted as a reference block
     inside its TestCase, and FILL markers left where the Generate LLM will gap-fill.
@@ -1174,7 +1197,8 @@ def _assemble_fragment_preview(case_key: str, case_title: str, sequence: List[di
     tc_orig = [s for s in sequence if _step_kind(s) != "setup"]
     orig_ns = [s.get("n") for s in tc_orig] or [s.get("n") for s in sequence]
 
-    skeleton = _render_skeleton(case_key, case_title, sequence, extra_imports, fragments)
+    skeleton = _render_skeleton(case_key, case_title, sequence, extra_imports, fragments,
+                                objective)
 
     # Device-name reconciliation banner: the reused fragments reference device names
     # (dut/remote/linkP/dutA/…) that must be reconciled against init()'s bindings and the
@@ -2594,7 +2618,8 @@ async def preview_fragments(key: str, request: Request, body: dict = Body(defaul
 
     sequence = (sess.step2 or {}).get("sequence") or []
     preview = _assemble_fragment_preview(key, _case_title(data, key), sequence,
-                                         extra_import_lines, fragments)
+                                         extra_import_lines, fragments,
+                                         _case_payload_fields(sess)["objective"])
     return {"preview": preview, "selected_count": len(fragments)}
 
 
@@ -2636,7 +2661,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # Topology (switches/stacks/portlinks) is detected from the sequence + fragments
     # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
-                                extra_import_lines, fragments)
+                                extra_import_lines, fragments,
+                                _case_payload_fields(sess)["objective"])
     # Device-name reconciliation (finding #1): tell the LLM which names the reused
     # fragments use vs what init() binds, so it renames rather than emitting AttributeErrors.
     bound_devs, _stk, _pl = _detect_topology(sequence, fragments)

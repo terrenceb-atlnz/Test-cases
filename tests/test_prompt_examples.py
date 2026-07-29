@@ -420,6 +420,82 @@ def test_skeleton_renders_and_compiles_for_every_step_kind_mix():
             assert var == key, f"{label}: {var} looks up a different stack ({key})"
 
 
+def test_skeleton_carries_the_objective_as_a_compilable_comment_header():
+    """The refined objective (the "expected results") must ride into the .py so the
+    declarative context is never lost between the sequence and the fill. It is emitted as a
+    COMMENT — safe from the port-literal lint, which skips comment lines — and `>>>` is
+    neutralised because it is the one marker the lint scans inside comments. A multi-bullet
+    objective must keep its structure and the whole script must still compile."""
+    import py_compile, tempfile, os, sys as _sys
+    _sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
+    _sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))
+    from routers import pytest_create as pc
+
+    objective = ("- Fixed-speed links come up at the configured rate\n"
+                 "- show interface reports the speed as fixed, not Auto\n"
+                 "- Unsupported speeds >>> leave the link down")
+    seq = [{"n": 1, "action": "configure speed 1000", "verify": "link up at 1000",
+            "kind": "verify"}]
+    sk = pc._render_skeleton("AWPTCM-T1", "Fixed speed", seq, [], [], objective)
+
+    assert "==== OBJECTIVE" in sk, "objective header missing from the skeleton"
+    for bullet in ("come up at the configured rate",
+                   "reports the speed as fixed, not Auto",
+                   "leave the link down"):
+        assert bullet in sk, f"objective bullet lost from the header: {bullet!r}"
+    # `>>>` in the OBJECTIVE is neutralised (the skeleton keeps its own `>>> FILL` markers,
+    # which the model deletes as it fills — those are not what this guards).
+    assert "Unsupported speeds > leave the link down" in sk, "objective `>>>` not sanitised"
+    assert "Unsupported speeds >>>" not in sk, "unsanitised `>>>` would trip the placeholder lint"
+
+    f = tempfile.NamedTemporaryFile("w", suffix=".py", delete=False)
+    f.write(sk); f.close()
+    try:
+        py_compile.compile(f.name, doraise=True)
+    finally:
+        os.unlink(f.name)
+
+    # No objective -> no dangling banner (cases without one pay nothing).
+    assert "==== OBJECTIVE" not in pc._render_skeleton("AWPTCM-T1", "t", seq, [], [], "")
+
+
+def test_generate_prompt_instructs_grounding_verdicts_in_the_objective():
+    """The objective in the skeleton is inert unless the Generate prompt tells the model to
+    USE it — resolve vague wording, prove the slice each step covers — and to keep the header
+    verbatim. Guard that instruction against drift; the header alone is easily ignored."""
+    text = GENERATE.read_text()
+    low = text.lower()
+    assert "objective" in low, "generate prompt no longer references the objective"
+    assert "verbatim" in low, "generate prompt must tell the model to keep the objective header"
+    assert "slice of the objective" in low or "prove the" in low, \
+        "generate prompt must tie each verdict to the objective, not merely mention it"
+
+
+def test_generate_and_preview_thread_the_objective_into_the_skeleton():
+    """The objective only reaches the .py if the endpoints pass it down. Guard the wiring
+    (mirrors test_no_unguarded_session_write's structural style) so a refactor can't quietly
+    drop it and regress to a skeleton with no expected-results context."""
+    import ast as _ast
+    src = (REPO / "ask-ck" / "CK-main" / "CK_server" / "routers" / "pytest_create.py").read_text()
+    tree = _ast.parse(src)
+
+    def _threads_objective(fn_name, callee):
+        fn = next((n for n in _ast.walk(tree)
+                   if isinstance(n, (_ast.FunctionDef, _ast.AsyncFunctionDef))
+                   and n.name == fn_name), None)
+        assert fn is not None, f"{fn_name} not found — test anchor is stale"
+        calls = [c for c in _ast.walk(fn)
+                 if isinstance(c, _ast.Call) and getattr(c.func, "id", None) == callee]
+        assert calls, f"{fn_name} no longer calls {callee}"
+        for c in calls:
+            rendered = _ast.unparse(c)
+            assert "objective" in rendered, \
+                f"{fn_name} calls {callee} without threading the objective:\n{rendered}"
+
+    _threads_objective("generate_script", "_render_skeleton")
+    _threads_objective("preview_fragments", "_assemble_fragment_preview")
+
+
 def test_duplicate_portlink_binding_is_a_lint_error():
     """Each `init_portlink()` ASSIGNS the attribute, so binding the same one twice silently
     discards the first link — the script drives one topology while believing it has two.

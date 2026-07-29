@@ -44,6 +44,16 @@ Reviewer note: {{ f.why }}
      `self.failed('<why>')` — so KEEP the `if/else`: one verdict per branch, not one
      verdict in the whole method. Dropping the `else` means a failing device emits NO
      marker and the step is scored as a pass. An empty reason emits no marker either.
+1a. **GROUND EVERY VERDICT IN THE OBJECTIVE.** The skeleton's header carries a
+   `# ==== OBJECTIVE — expected results this script must demonstrate ====` block (present
+   whenever the refined case has an objective). Those bullets are the AUTHORITATIVE
+   expected results the whole script exists to prove — the per-step `action`/`verify`
+   text is a means to them, not a replacement. Use the objective to (a) resolve vague step
+   wording — it says what "works" / "as applicable" / "where supported" concretely means
+   for this case — and (b) choose each `passed()`/`failed()` condition so it proves the
+   SLICE of the objective its step covers, not merely that the link survived (see 4c).
+   KEEP the objective header verbatim in the returned script: it is documentation the
+   artifact carries, not a FILL marker, so do not rewrite, summarise, or delete it.
 2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
    commands only; NEVER put `self.passed()`/`self.failed()` there.
 3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %};
