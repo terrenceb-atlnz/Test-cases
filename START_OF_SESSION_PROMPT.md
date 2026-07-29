@@ -17,6 +17,7 @@ writes the same locations back at the end.
 > - `README.md` — repo entry, setup, feature-status table, data-layer overview.
 > - `ask-ck/CK-main/SERVER-README.md` — deep technical reference (architecture, data layer, endpoints, admin panel, LLM config, workflow). Read this fully; it's the primary source.
 > - `ask-ck/CK-main/CK_server/README.md` and `ask-ck/CK-main/CK_server/static/js/README.md` — pointer stub + front-end ES-module conventions.
+> - `TESTBOX-ACCESS.md` — **read this before any work that touches lab hardware** (SSH to a testbox, driving a switch console, running a framework or legacy corpus script on a real DUT). It carries the non-obvious environment facts that cost real time to rediscover: the `SSH_AUTH_SOCK` gotcha, why the `.setup` console list cannot be trusted, and the fix set every legacy script needs against the current framework.
 >
 > **2. Read the current-status logs (most recent entries first):**
 > - `ask-ck/objective-drafting/PROGRESS.md` — the handoff log: what shipped, what's pending, how to continue. The top (newest) entries are current truth.
@@ -26,7 +27,8 @@ writes the same locations back at the end.
 > - `ask-ck/ck-facelift/PLAN-*.md` and `ask-ck/pytest-create/PLAN-pytest-creator.md` — check the **status header** of any plan tied to today's task (decisions already settled, phases done/remaining). Don't re-litigate settled decisions.
 >
 > **4. Load persistent memory:**
-> - Review `MEMORY.md` and the memory files it indexes — especially `db-is-permanent-source`, `db-only-single-source`, `pending-approved-plans`, and `user-prefers-manual-ui-testing`. These carry standing decisions and my working preferences across sessions.
+> - Review `MEMORY.md` and **the memory files it actually indexes** — read the index, don't assume a list. As at 2026-07-29 those are `pytest-creator-askck`, `testbox-console-access`, `setup-file-declares-topology` and `legacy-scripts-vs-framework`. These carry standing decisions and my working preferences across sessions.
+> - Treat any memory name hardcoded in a prompt as a hint, not a guarantee: this step previously named four files (`db-is-permanent-source`, `db-only-single-source`, `pending-approved-plans`, `user-prefers-manual-ui-testing`) that no longer exist in the index. The DB-only invariant they carried is restated inline below, so nothing was lost — but verify before reporting a memory as missing.
 >
 > **5. Verify the live state (don't trust docs alone):**
 > - `git status` + `git log --oneline -10` — is the tree clean? what landed recently?
@@ -59,6 +61,7 @@ between sessions — never memory, never assumption.
 |---|---|---|
 | 1 | `README.md` | Fast orientation: what the project is, current feature status |
 | 2 | `ask-ck/CK-main/SERVER-README.md` | Full technical picture (primary reference) |
+| 2b | `TESTBOX-ACCESS.md` | **Only if the task touches hardware** — SSH/console/legacy-script mechanics that are expensive to rediscover |
 | 3 | `ask-ck/objective-drafting/PROGRESS.md` | Newest handoff: what shipped / pending / next |
 | 4 | `SESSION_STATE.md` (latest entry) | Recent session detail + any "superseded" notes |
 | 5 | relevant `PLAN-*.md` status headers | Settled decisions + phase state for today's task |

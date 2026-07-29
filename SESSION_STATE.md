@@ -2515,3 +2515,113 @@ for `Host github.com` in the host's `~/.ssh/config`.)
   input: `PLAN-auth-and-case-locking.md` is unstarted (6 open decisions, D1 likely an org/IT call);
   `PLAN-pytest-testing.md` Part 3a needs the two LLM judges + T33233 regen, Part 3b is blocked on
   `configs/tb470.setup` (Terrence-side hardware topology).
+
+---
+
+## Session Close / Handoff (2026-07-29b) — three reboot scripts onto real hardware; the `.setup` lied and the framework had moved on
+
+The task was narrow: find a stack-reboot loop in `ck.db` and run it against tb105's 8-member x950
+stack. Almost all the work was in the gap between a 2015-era corpus script and 2026 reality, and
+**two documented assumptions were falsified**. Mechanics are written up in `TESTBOX-ACCESS.md`
+§2 and the new §4; this entry records what changed and why.
+
+### `reboot rolling` does not spare the master — and the DB summaries mislead
+
+I paired "member reboots" with `0010_simple_repeated_rolling_reboot.py` on the strength of its
+DB summary ("rolling reboots across all stack members"). Terrence challenged it: a member-reboot
+test should never touch the master. Checking `ck.db`'s own CLI reference
+(`stack_cmd/reboot_rolling_ag.html`) settled it — `reboot rolling` **reboots the master first**,
+forcing a failover and re-election; the old master comes up stand-alone and then reboots the
+remaining members **all at once**. Confirmed on the wire: `12:51:03 VCS[989]: Automatically
+rebooting stack member 2 … due to Rolling reboot`, member 2 being the Active Master.
+
+So my "walks all 8 sequentially" was also wrong (it is two phases), and the clean member/master
+split is **not** 0010/0009. It is:
+
+| Script | Reboots | Master role |
+|---|---|---|
+| `5053_validation_kochi/reboot_multiple_stack_members.py` | chosen backup members only | **never changes** — guarded, raises if master is in the list |
+| `misc_scripts/0010_simple_repeated_rolling_reboot.py` | master first, then the other 7 at once | changes every cycle |
+| `misc_scripts/0009_simple_repeated_Master_reboot.py` | the master, repeatedly | changes every cycle |
+
+**Lesson:** a script's title/summary describes *intent*, not CLI semantics. Look the command up in
+`ck.db`'s `cli_commands` before believing a name. The corpus also disagrees with itself on syntax —
+`reboot stack-member <id>` is canonical (ART 1343 + five legacy libraries), while the bare
+`reboot stack <id>` abbreviation appears only in the 5049/5053 validation lineage.
+
+### `tb105.setup` was stale — 3 of 8 consoles correct
+
+`tb105.setup` declares `c2_core_stk` on `u16, u10, u24, u5, u17, u23, u6, u18`. Live, `u16/u17/u18`
+front **C1-x930-STK**, `u23` fronts **D1-x540-STK-2**, and `u24` does not exist. Recovering the
+real map needed a sweep of all 43 consoles.
+
+This refines memory `setup-file-declares-topology`, which said to parse `.setup` and never infer
+topology. Still right — but it implied `.setup` is *verified*. It is **declarative**. Parse it for
+membership/stackports/cabling; resolve consoles against hardware. The reliable per-unit identifier
+is the **login banner**, not the prompt: every VCStack member serves the stack-wide CLI and shows
+the shared hostname (`x950-MAX#`), while the banner shows the unit (`x950-MAX-5 login:` = member 5,
+bare = master). Slot labels are not stack IDs — `c2_core_stk_4` is `u5`, which was member **2**.
+
+### The framework moved on: four breakages in every legacy corpus script
+
+Tabulated in `TESTBOX-ACCESS.md` §4. In the order they bite: **the framework is Python 3 only**
+(f-strings in `ATSwitch.py`, so `python` 2.7 cannot import it) → which forces `.iteritems()` →
+`.items()`, **`Switch.name` is now a read-only `@property`** (`AttributeError: can't set
+attribute`; assign `setupName`/`mappedName`, and `name_is()` is a comparison not a setter), and
+**TBv4 needs a full device path** (`/dev/u5`, not an int — so `type=int` args cannot express it,
+with a `'%d' % tty` knock-on). Checking every framework attribute a script assigns *before*
+launching beats crash-and-retry; only `name` and `bootsFromFlash` are read-only.
+
+### Timeouts were calibrated for flash boot, not TFTP netboot
+
+tb105's x950 stack **netboots via TFTP** (`tftp://10.37.105.100/x950-tb105.rel`, bootloader warning
+*"forced to boot from a non-standard location"*). Measured: **5 m 44 s for one unit**, **6 m 49 s
+for 7 concurrent**. 5053's shipped 300 s stack-reform budget is shorter than a single unit's boot;
+it would have failed cycle 1 about two minutes before the stack legitimately finished. Raised to
+900 s, disclosed in the log and in the script comment.
+
+### A real finding: duplicate-master snapshots
+
+0010 exited by itself after one cycle on `ERROR: Exception logs did not match`. Cause was genuine:
+members **1 and 4** each logged `duplicate-master debug snapshot saved to /flash/debug-duplicate-
+master-…tgz` at 12:57:44 — inside the window where the rebooted master runs stand-alone. The docs
+describe that transient two-master state as by-design, so this may be expected noise; what stands
+out is that only 1 and 4 logged it, not all members. Snapshots are on flash. Stack recovered fully
+(all 8 `Ready`, master back to ID 2). **Open question for Terrence — not adjudicated.**
+
+### Guardrails held
+
+`ck.db` untouched (mtime unchanged; all reads `SELECT`, verification opened `mode=ro`) and
+`/home/st-art/framework` never written. Terrence called out both as "explicitly bad things".
+Workflow used: extract `source_text` → staging copy at testbox_home root → verify against
+`scripts.sha1` → keep `.orig` → patch only the copy. That root path *is* `/home/terrenceb` on the
+testbox over NFS, so no SCP step — but it is a shared lab home, not private scratch. Also
+confirmed the scripts' `wr` branch never fired: the DUT already had
+`line con 0 / exec-timeout 0 0 / length 0`, so **no change to stack startup-config**.
+
+### Docs + memory changed this session
+
+- `TESTBOX-ACCESS.md` — new §2 subsection (verify the console map; banner-vs-prompt; tb105 map as
+  at 2026-07-29) and new §4 (running legacy corpus scripts). §3's "tb105 is not a run target" note
+  refined: true for *data-plane* runs, but console-only scripts run there fine.
+- `START_OF_SESSION_PROMPT.md` — added `TESTBOX-ACCESS.md` to the read list; it was **not
+  referenced**, so these lessons were undiscoverable at session start. Also corrected step 4,
+  which named four memory files that no longer exist in the index.
+- Memory: `setup-file-declares-topology` updated with the staleness caveat; new
+  `legacy-scripts-vs-framework`.
+
+### State at close
+
+- **`reboot_multiple_stack_members.py` was still running at time of writing** — 10 cycles, all 7
+  backups concurrently, master 2 untouched. Cycle 1 green: rejoin at 6 m 49 s, stack ready, both
+  `remote-diff` audits clean. ~10 min/cycle. Writing `x950-member.log`.
+- **`0009` not yet run** → `x950-master.log` still to come. It reboots whichever unit it identifies
+  as master, and the master can change during the 5053 run, so **re-read the banners immediately
+  before launching it** rather than reusing the map above.
+- Logs at testbox_home root: `x950-rolling-partial.log` (0010's single cycle incl. full boot
+  transcript + the duplicate-master failure), `x950-member.log` (filling).
+- Staged + patched at testbox_home root, each with a `.orig` hash-matching `ck.db`:
+  `0009_…Master_reboot.py`, `0010_…rolling_reboot.py`, `reboot_multiple_stack_members.py`,
+  `validation_library.py`.
+- Pre-existing uncommitted change **not touched**: `ask-ck/pytest-create/PLAN-pytest-testing.md`.
+- No server/DB/framework work this session; guards not re-run because nothing in their scope moved.

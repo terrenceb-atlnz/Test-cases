@@ -70,6 +70,52 @@ On tb105 the stack console is a USB serial port: **`/dev/u5 -> /dev/ttyUSB20`** 
 (`crw-rw---- root grp_everyone` — group-readable, so it's **shared**; don't collide with
 another operator).
 
+### Which console is which unit — verify, do NOT trust the `.setup` ✅
+
+The `.setup` file is **declarative, not verified**. Its `[switch] = /dev/uN` lines rot as lab
+hardware is recabled, and a stale line will point you at a different device entirely. Measured
+on tb105, 2026-07-29: `tb105.setup` declared the 8-member `c2_core_stk` x950 stack on
+`u16, u10, u24, u5, u17, u23, u6, u18`, but live only **3 of 8** were right — `u16/u17/u18`
+fronted **C1-x930-STK**, `u23` fronted **D1-x540-STK-2**, and `u24` did not exist at all.
+
+Parse `.setup` for membership / stackports / cabling (see `SETUP-FILE-REFERENCE.md`), but
+resolve consoles against the hardware before driving anything.
+
+**The reliable per-unit identifier is the login BANNER, not the prompt.** On an AlliedWare Plus
+VCStack, every member's console serves the full stack-wide CLI and shows the *shared* stack
+hostname once logged in (`x950-MAX#` on master and backups alike) — so the prompt cannot tell
+you which unit you are on. The banner shows the unit's own name:
+
+| What you see | Means |
+|---|---|
+| `x950-MAX-5 login:` | member **5** (the `-N` suffix is the stack ID) |
+| `x950-MAX login:` (bare, no suffix) | the **Active Master** |
+| `x950-MAX#` prompt, no banner | already logged in — identity unknown, send `quit` to force the banner |
+
+That `quit`-to-read-the-banner trick is exactly what `0009_simple_repeated_Master_reboot.py::
+get_master_id()` does. Note it **logs out whoever is on that console**.
+
+Sweep **all** of `/dev/u*`, not just the subset `.setup` names — open each at 115200, send `\r`,
+read, and match `([\w.-]+) login:`. Skip ports held by another operator (`/var/lock/LCK..*`,
+`pgrep minicom`). ~43 ports on tb105, budget ~2 s each.
+
+**tb105 `c2_core_stk` (`x950-MAX`, 8 members) as at 2026-07-29 — re-verify before use:**
+
+| Console | ttyUSB | Member | Note |
+|---|---|---|---|
+| `u5` | 20 | **2** | Active Master at time of survey |
+| `u7` | 36 | 1 | |
+| `u6` | 23 | 3 | |
+| `u10` | 15 | 5 | |
+| `u11` | 9 | 6 | |
+| `u12` | 11 | 7 | |
+| `u9` | 26 | 8 | |
+| — | — | 4 | **no console** — 7 consoles for 8 members |
+
+Master ID is **not** stable: any failover or rolling reboot re-elects it, so re-read the banners
+immediately before a run that targets "the master". The `.setup` slot labels (`c2_core_stk_4`)
+are **not** stack IDs — `c2_core_stk_4` is `u5`, which was member 2.
+
 **Interactive** 📄: `ssh tb105` → `u5` (minicom, 115200). Leave with `Ctrl-A Q`.
 
 **Programmatic (recommended for scripted grounding)** 📄 — run this **on tb105** (the console
@@ -141,10 +187,82 @@ SSH_AUTH_SOCK=$sock ssh "$BOX" "
 > `.setup` declares real `tb-` portlinks to the DUT(s). tb105's `kochi_uni_tb105.setup`
 > declares **zero** `tb-` portlinks (no data-plane cabling), so it is a CLI-console box, not
 > a data-plane run target. 📄
+>
+> **Refined 2026-07-29** ✅: that holds for *data-plane* runs only. **Console-only scripts run
+> fine on tb105** — a script that just drives the master console (stack reboot/failover loops,
+> CLI grounding) needs no portlinks at all, and several were executed there successfully. The
+> distinction is portlinks, not "can't run scripts here". Also note tb105 runs as user
+> `terrenceb`, not `st-art`, and needs no `sudo` for serial access.
 
 ---
 
-## 4. Quick reference
+## 4. Running a LEGACY corpus script on hardware ✅
+
+Corpus scripts recovered from `ck.db` are mostly 2015-era and **will not run as-is** against the
+current framework. Verified 2026-07-29 staging three stack-reboot scripts onto tb105.
+
+### Never patch the source of truth
+
+**`ck.db` and `/home/st-art/framework` are both off-limits for edits** — Terrence: "explicitly
+bad things". The workflow is:
+
+1. Extract `scripts.source_text` from `ck.db` (read-only; `sqlite3 'file:…ck.db?mode=ro'`).
+2. Verify what you extracted against the stored `scripts.sha1` — the DB holds the whole literal
+   file body, so this should match exactly.
+3. Write it to a **staging copy**, keep a `.orig` beside it, and patch only the copy.
+4. Staging at the **root of testbox_home works with no SCP step** — that path *is*
+   `/home/terrenceb` on the testbox over NFS (`10.36.250.11:/home`). Note this is a *shared* lab
+   home, not private scratch.
+
+### The four breakages, in the order they bite
+
+| # | Symptom | Fix |
+|---|---|---|
+| 1 | `SyntaxError: invalid syntax` importing the framework under `python` | **The framework is Python 3 ONLY** (`ATSwitch.py` uses f-strings). Testboxes still ship `python` 2.7 — use `python3` with `PYTHONPATH=/home/st-art`. This then *forces* fixes 2-4. |
+| 2 | `AttributeError: 'dict' has no attribute 'iteritems'` | py2-only, and usually inside an arg-logging helper called *before* the main loop, so it dies instantly. → `.items()`. |
+| 3 | `AttributeError: can't set attribute` on `dut.name = …` | **`Switch.name` is now a read-only `@property`** (returns `mappedName or setupName`). Assign the underlying attrs: `obj.mappedName = None; obj.setupName = …`. `Switch.name_is()` is a *comparison*, not a setter. |
+| 4 | Console won't open, or `TypeError: %d format` | **TBv4 wants a full device path.** A testbox with `/etc/network/interfaces` is TBv4, where `Switch(tty=…)` needs `/dev/u5`, not an int — so `add_argument("device", type=int)` cannot express it. Knock-on: any `'%d' % tty` filename then `TypeError`s, and a raw path in a filename needs its basename. |
+
+Only `name` and `bootsFromFlash` are read-only properties on `Switch`; `logFileName`,
+`console.logFileName`, `preCmdBuf` and `preModeBuf` are all still plain attributes. Check the
+whole set of attributes a script assigns *before* launching, rather than crash-and-retry.
+
+### Also check: mis-calibrated timeouts, and unexpected config writes
+
+- **Timeouts were tuned for flash-booting units.** tb105's x950 stack **netboots via TFTP**
+  (`tftp://10.37.105.100/x950-tb105.rel`, with a bootloader *"forced to boot from a non-standard
+  location"* warning). Measured: **5 m 44 s for ONE unit** to reach `Configuration update
+  completed`; **6 m 49 s for 7 members rebooted concurrently**. A shipped 300 s stack-reform
+  budget is therefore shorter than a single unit's boot and fails spuriously — raise it and say so
+  in the log.
+- **Several of these scripts write startup-config.** They check for
+  `line con 0 / exec-timeout 0 0 / length 0` in `show run` and, if absent, enter config mode and
+  `wr`. Read `show running-config | include line|exec-timeout|length` first; if it is already
+  present the branch never fires and the DUT config is untouched.
+
+### Worked example — console-only run on tb105
+
+```bash
+sock=/run/user/1971/keyring/ssh
+# cwd holds the framework's per-device console logs; logDir gets the script's own run log
+SSH_AUTH_SOCK=$sock ssh tb105 '
+  cd ~/x950-reboot-run &&
+  setsid nohup env PYTHONPATH=/home/st-art python3 ~/<script>.py -v \
+      <args> /home/terrenceb/ > run.stdout 2>&1 < /dev/null &'
+```
+
+- `setsid nohup … < /dev/null &` so the run survives the SSH session closing. These loops run for
+  hours; poll the log rather than holding a connection open.
+- **Python buffers stdout when redirected**, so `run.stdout` stays *empty* until the process
+  exits. Read the script's own log file for live progress, and the framework's
+  `<hostname>.log` for the raw console transcript.
+- Framework logs are written with `\r` line endings and embedded NULs — `tr -d '\000'` before
+  `grep`, or grep reports "binary file matches".
+- **Never `pkill -f <script-name>` over SSH**: the pattern matches the remote `bash -c` command
+  line carrying it and kills your own session (exit 255). Use `pgrep -f "[s]cript"` to test, and
+  kill by the PID you captured.
+
+## 5. Quick reference
 
 | Goal | Command |
 |---|---|
@@ -153,3 +271,9 @@ SSH_AUTH_SOCK=$sock ssh "$BOX" "
 | See how a name resolves | `ssh -G tb<NNN>` |
 | Probe reachability, no login | `getent hosts tb<NNN>` · `timeout 4 bash -c 'echo > /dev/tcp/tb<NNN>/22'` |
 | Non-interactive test connect | `SSH_AUTH_SOCK=…/keyring/ssh ssh -o BatchMode=yes tb<NNN> hostname` |
+| Identify which unit a console is | open `/dev/uN`, send `\r`, read the **login banner** (§2) — not the prompt |
+| Is a console free? | `ls /var/lock/LCK..*` · `pgrep -a minicom` · `fuser -v /dev/ttyUSBnn` |
+| Is this testbox TBv4? | `ls /etc/network/interfaces` (exists ⇒ TBv4 ⇒ `Switch()` needs `/dev/uN`, not an int) |
+| Run a legacy corpus script | extract from `ck.db` → staging copy + `.orig` → patch the copy → `python3` + `PYTHONPATH=/home/st-art` (§4) |
+| Check a script is still alive | `pgrep -f "[s]cript_name"` — bracket avoids self-match; never `pkill -f` over SSH |
+| Read a framework log | `tr -d '\000' < x.log \| grep -a …` (CR line endings + embedded NULs) |
