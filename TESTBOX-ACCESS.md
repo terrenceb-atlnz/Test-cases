@@ -97,24 +97,66 @@ get_master_id()` does. Note it **logs out whoever is on that console**.
 
 Sweep **all** of `/dev/u*`, not just the subset `.setup` names — open each at 115200, send `\r`,
 read, and match `([\w.-]+) login:`. Skip ports held by another operator (`/var/lock/LCK..*`,
-`pgrep minicom`). ~43 ports on tb105, budget ~2 s each.
+`pgrep minicom`). **42** `/dev/uNN` ports on tb105 as at 2026-07-30 (`u24` does not exist; filter the
+glob so `/dev/urandom` is not swept), budget ~2 s each — the whole sweep is ~90 s. Send only `\r` on
+the first pass: that identifies anything sitting at a login prompt without disturbing it, and leaves
+`quit` (which logs the occupant out) for just the consoles you actually need.
 
-**tb105 `c2_core_stk` (`x950-MAX`, 8 members) as at 2026-07-29 — re-verify before use:**
+**tb105 `c2_core_stk` (`x950-MAX`, 8 members) as at 2026-07-30 ✅ — re-verify before use:**
 
-| Console | ttyUSB | Member | Note |
-|---|---|---|---|
-| `u5` | 20 | **2** | Active Master at time of survey |
-| `u7` | 36 | 1 | |
-| `u6` | 23 | 3 | |
-| `u10` | 15 | 5 | |
-| `u11` | 9 | 6 | |
-| `u12` | 11 | 7 | |
-| `u9` | 26 | 8 | |
-| — | — | 4 | **no console** — 7 consoles for 8 members |
+| Console | Member | Note |
+|---|---|---|
+| `u7` | 1 | Active Master at time of survey (bare banner) |
+| `u5` | 2 | by elimination — a leftover session held it at `#`, so no banner |
+| `u6` | 3 | |
+| **`u8`** | **4** | |
+| `u10` | 5 | |
+| `u11` | 6 | |
+| `u12` | 7 | |
+| `u9` | 8 | |
+
+> **Corrected 2026-07-30.** This table previously said member 4 had **no console** ("7 consoles for
+> 8 members"). Wrong — member 4 is on **`/dev/u8`**, and all 8 members are reachable. The likely
+> cause of the miss: the 2026-07-29 sweep ran around a member-reboot loop, and a **booting** unit's
+> console emits boot spam rather than a `login:` banner, so `u8` fell into the no-banner bucket.
+> **Sweep a quiescent stack**, or a rebooting member reads as an absent one.
 
 Master ID is **not** stable: any failover or rolling reboot re-elects it, so re-read the banners
 immediately before a run that targets "the master". The `.setup` slot labels (`c2_core_stk_4`)
-are **not** stack IDs — `c2_core_stk_4` is `u5`, which was member 2.
+are **not** stack IDs.
+
+### Predicting which member becomes master ✅
+
+From `ck.db`'s own CLI reference (`stack priority`, `stack_cmd/stack_priority_ag.html`): **the
+lowest priority value wins; where two members share the lowest value, the lowest MAC address
+wins.** Default is 128, and *"assigning a new priority value will not immediately change the
+current stack master"* — election happens only on reboot, and there is no pre-emption when a
+higher-priority unit rejoins.
+
+On tb105, ID 1 is priority **10** and every other member is **128**, so:
+
+| Reboot the master… | …and the new master is |
+|---|---|
+| ID 1 (priority 10) | **ID 8** — lowest MAC (`e01a.ea43.e462`) among the 128s |
+| ID 8 | **ID 1** — priority 10 beats every 128 |
+
+Confirmed on hardware twice on 2026-07-30, so a repeated master-reboot loop alternates **1 ↔ 8**.
+Worth knowing before a run: it tells you which console will hold the master next.
+
+### Backup consoles are RELAYED to the master ✅
+
+Logging in on a *backup* member's console does not give you that unit — the Stack Login Server
+relays the session to the master. Consequence when the master reboots: **every backup console
+session is dropped**, with
+
+```
+Read from remote host node-1: Software caused connection abort
+```
+
+and the console falls back to its own `login:` banner. So the `has become the Active Master`
+promotion message appears **only on the console of the unit that actually won the election** —
+watching one arbitrary member and waiting for it is a coin flip (this is exactly what broke
+`0009_simple_repeated_Master_reboot.py`; see §4).
 
 **Interactive** 📄: `ssh tb105` → `u5` (minicom, 115200). Leave with `Ctrl-A Q`.
 
@@ -239,6 +281,28 @@ whole set of attributes a script assigns *before* launching, rather than crash-a
   `line con 0 / exec-timeout 0 0 / length 0` in `show run` and, if absent, enter config mode and
   `wr`. Read `show running-config | include line|exec-timeout|length` first; if it is already
   present the branch never fires and the DUT config is untouched.
+
+### The gates rot too, not just the API ✅
+
+The four breakages above are import-time and crash loudly. The expensive ones are the **log strings
+and topology assumptions a script waits on** — they fail after you have spent hardware time, and they
+read as device faults. Verified 2026-07-30 debugging `0009_simple_repeated_Master_reboot.py`:
+
+| Defect | How it presented | How to catch it first |
+|---|---|---|
+| Waits for a message the software never emits — `'Activating Hot-Standby HA processes'`; the real boot-time line is `'Assigning Hot-Standby Workload to HA processes:'` | `ERROR: New Master … was not found to be ready in defined time` — reads as a slow/broken device | **Grep every gate string against real captured console output before running.** Zero hits in ~740k lines of capture from this same stack ⇒ the gate can never pass, at any timeout. |
+| Monitors **one** arbitrarily-chosen member for the promotion message and assumes it wins the election | `ERROR: Was not able to sort out the new master within the [20] read period` | Work out who will be elected first (priority, then lowest MAC — §2). Prefer a **banner sweep of all members** over sniffing one console. |
+| `['Pending Master' 'Disabled Master']` — adjacent literals, no comma, so Python concatenates them into one string no device ever prints | **Nothing.** The check silently passed every cycle | Read every gate list literally; a dead check is invisible by construction. |
+
+A script that has "worked" is not evidence its gates work — the 2026-07-29 run passed the
+single-monitor gate only because the monitored member happened to be the one elected.
+
+Two more habits from the same session: **check what the script does on a finding.** 0009 aborted the
+whole loop on the first new exception-log entry, so a 10-cycle hunt for an intermittent fault yielded
+one data point — and did it under the message *"Stack did not report itself as ready after member
+rejoin"*, describing something that had not happened. And **check the log filename**: a fixed name
+opened with `'a'` appends each run onto the last, quietly merging a new run into the previous
+failure record.
 
 ### Worked example — console-only run on tb105
 

@@ -76,8 +76,16 @@ waste. Instead treat these as standing rules for later in the session:
 ## 4. Memory — read the index, never a written-down list
 
 ```bash
-ls ~/.claude/projects/*Test-cases/memory/*.md      # the directory IS the list
+ls .claude/memory/*.md      # the directory IS the list
 ```
+
+Memories live **in the repo** at `.claude/memory/` as of 2026-07-30;
+`~/.claude/projects/*/memory` are symlinks to it. Before that there were **two** stores keyed on
+the session's launch directory — 38 memories under the `…-copilot-Test-cases` slug and 4 hardware
+ones under `…-testbox-home` — and each was invisible to sessions started in the other directory.
+That, not stale names, is what produced most "I can't find that memory" reports. If `ls` above
+shows nothing, the symlinks are gone, not the memories: re-point
+`~/.claude/projects/<slug>/memory` at `<repo>/.claude/memory`.
 
 Read `MEMORY.md` (the index) and then the individual files whose one-line hooks look relevant
 to today's work. **Any memory name hardcoded in any document — including this one — is a hint,

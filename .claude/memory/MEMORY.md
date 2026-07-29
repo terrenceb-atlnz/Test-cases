@@ -1,0 +1,47 @@
+# Memory Index
+
+- [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps must load identically & on-demand, never at case-load; prefer db.* search + shared _relevance_score over bespoke per-step scorers
+- [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: deterministic CLI-bounded permutation cross-product from cli_commands.tables; brief at ck-facelift/PLAN-permutation-expander.md; objective-into-Generate half DONE 2026-07-29
+- [tb470 topology + setup](tb470-topology-and-setup.md) — 2026-07-30 pm: IE520s DE-STACKED (u5 was a Disabled Master with all ports err-disabled — that, not config, killed the links); both now standalone ID 1, .setup has NO [stack] + swi_a-swi_b links on 1.0.1/1.0.7 → preflight 2/3. NEVER cable 27/28 between them (both ID 1, same chassis-id 3039 = straight back to duplicate-master). ROLE NAMES: IE520s=swi_a/swi_b, AR4050S→swi_c, x230→swi_d. swi_a mgmt is DHCP and drifts; neither IE520 on the PDU
+- [Adversarial review — CLOSED](adversarial-review-2026-07-27c.md) — 62 candidates → 31 fixed / 31 dismissed / 0 open (closed 2026-07-27g); backlog is now a historical record, don't re-raise dismissed rows
+- [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user IS the intended end-use; per-case lockout required; concurrent overwrites are possible TODAY (two tabs); 6 decisions deferred
+- [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — another stream edits this repo concurrently; re-run the gate + git status before stating either, and stage explicit paths
+- [Backlog quality items DONE](backlog-quality-items-done.md) — 4 items (error UX / output hardening / process-page / first test suite) done+reviewed 2026-07-27b; run tests via PYTHONNOUSERSITE=1 .venv/bin/pytest or ./tool/run_tests.sh
+- [3-layer test suite](testing-suite-3-layer.md) — 2026-07-27f: pytest (backend) + Vitest/jsdom (frontend, js-tests/) run by ./tool/run_tests.sh; Playwright E2E (e2e/) is sparingly-run via `npm run e2e`, NOT in the gate
+
+- [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; device `duplex` page differences follow from speed range; NOT documented, so docs harvest alone can't capture cross-command physical rules
+- [AW+ ecofriendly + port naming](awplus-ecofriendly-and-port-naming.md) — `ecofriendly` is CLI, "ecomode" is slang; `lpi` deprecated but still required (TestLink is years old and says LPI); `port1.1.x` = chassis/slot, incl. populated-slot x950 — never hardcode a port
+- [Prompt examples ARE the spec](prompt-examples-are-the-spec.md) — where prose and EXAMPLE disagree the model copies the example; test examples against real data (tests/test_prompt_examples.py); design the trap out, add a lint when prose doesn't hold
+- [ck.db WAL + test isolation](ckdb-wal-and-test-isolation.md) — md5/mtime of ck.db CANNOT detect writes (WAL); real user traffic SHOULD dirty ck.db, test/smoke/E2E must NOT — use tool/run_scratch_server.sh; never name a real session id in a test
+- [Mutate before you claim](mutate-before-you-claim.md) — run mutation checks BEFORE writing the diagnosis; a mutation that stays green means an overclaim or dead code (2x in one session)
+- [Checks must not match their own advice](checks-must-not-match-their-own-advice.md) — a grep for a bad pattern finds it in the text forbidding it (4x in one session); use tests/_prose.py: code_lines / flat / code_fences
+- [Scripts must be hardware-agnostic](scripts-must-be-hardware-agnostic.md) — run on ALL platforms interchangeably; do NOT pass `product=` to grounding; `.setup` binding is two layers (`dutA = init_swi('swi_a')`), locals not `self.` in init()
+- [AlliedWare Plus CLI docs](atlnz-docs-cli-reference.md) — docs.atlnz.lc/preview/ = authoritative CLI reference; ~3000 command pages, real sample output in `<pre>` blocks (curl, not WebFetch)
+- [CLI fabrication starts at step 2](cli-fabrication-originates-step2.md) — `speed=1000` originates in Sequence Extraction, not Generate; skeleton repeats it 4×/TestCase; step6 amplifies 13→57
+- [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; resourcing gap (prompt shows zero sample output), not model quality
+- [Part 3 grading session](part3-grading-session.md) — 2026-07-27: judges = Opus + vllm-fast (NOT plan's vllm-thinking); T33235 generated; tb470 configs = /home/st-art/st-art/configs; Part 3b still blocked
+- [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users, use `_step_label()`
+- [Stale session connection bug](stale-session-connection-bug.md) — server returns 200 but the write never reaches ck.db (thread-local conn goes stale after external writes; `_pt_persist` swallows failures); restart + verify `updated_at`
+- [Workspace LLM default gotcha](workspace-llm-default-gotcha.md) — headless curl 502s "needs a browser session id" unless `_workspace_llm` is local_llm; per-case llm_config is NOT authoritative since the §9 fix
+- [PyTest artefact-review worklist](pytest-artefact-review-worklist.md) — T33233 review findings #1/2/4/5/7 DONE; #3 partial; D1/D2/D3 all RESOLVED+implemented 2026-07-27
+- [D1 fragment-resolver boundaries](d1-fragment-resolver-boundaries.md) — D1 DONE (2026-07-27, uncommitted): hardened single _resolve_symbol_code (_resolve_end exact loc/next-unit-start/loc_total; helpers via real loc; drops loc[0]+60). 27 adversarial checks green
+- [D3 py2 fragment translation](d3-py2-fragment-translation.md) — D3 DONE (2026-07-27, uncommitted): _translate_py2 via lib2to3 at resolve time; translated==guaranteed Py3; parse-fail ships original+banner+conditional steer; (py2→py3) provenance. D2 = keep no cap (no code). NEXT_SESSION_DECISIONS.md deleted.
+- [Physical-interaction steps are in scope](physical-interaction-steps.md) — generate prompt+wait-for-state-change (model on SVT 3009 waitForReplugEvent); do NOT skip plug/unplug steps
+- [User prefers manual UI testing](user-prefers-manual-ui-testing.md) — skip Playwright, give a manual test checklist instead
+- [Pending approved plans](pending-approved-plans.md) — ES-split + DB-migration + LLM-observability ALL executed & committed (incl. post-review fixes, 47833de)
+- [Ask CK admin + restart](ask-ck-admin-restart.md) — fast restart via ./run.sh --bg/--restart (root wrapper; not setup.sh); hidden admin panel by double-clicking CK's face
+- [ATP search merge UX](atp-search-merge-ux.md) — the "ATP search doesn't work" report; RESOLVED 2026-07-16 (two-table shortlist + relevance scoring + pool re-scoring)
+- [PyTest Creator LLM-config bug](pytest-creator-llm-config-bug.md) — LLM endpoints silently used wrong backend; fixed by centralizing workspace-LLM apply in both routers (2026-07-20, committed)
+- [LLM health-check button](llm-health-check-button.md) — button by "key stored" note pings the LLM for a hello (BUILT + committed 2026-07-20, 47833de)
+- [LLM provenance portability](llm-provenance-portability.md) — provenance = permanent paste-into-other-LLM feature via no-send dry_run; debug-log = dev scaffolding; BUILT across all 9 panels + committed 2026-07-20
+- [vLLM reasoning-model path](vllm-reasoning-model-path.md) — org vLLM models are REASONING models (reasoning_content before content; BOTH fast+thinking); llm.py hardened 2026-07-21 (16k cap, null guards, system+user steer) + STREAMS 2026-07-22b (read timeout now inter-chunk)
+- [Commit + push on session end](commit-and-push-on-session-end.md) — during END_OF_SESSION doc-sync, Claude SHOULD commit AND push to main; push works (git runs on the Linux host); a Mac-attached SSH session needs SSH_AUTH_SOCK pointed at the keyring agent — now permanent in ~/.bashrc
+- [DB-only single source](db-only-single-source.md) — Ask-CK must be stand-alone w/ ck.db as sole runtime source; DB-only Phase 1 + guard + offline model done 2026-07-20
+- [DB is permanent source](db-is-permanent-source.md) — ck.db built ONCE = permanent source of truth; commit via LFS, DELETE couriers, NO rebuild/APIs/re-fetch (supersedes "gitignore it")
+- [Testbox framework is read-only](testbox-framework-readonly.md) — /home/st-art/framework must never be written/edited/mutated; copy locally to edit; guards in pt_exec.py + tool/guard_framework_readonly.py
+
+<!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
+- [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 7-step flow; tracker at ask-ck/pytest-create/PLAN-pytest-creator.md; Part 3b needs tb470 wiring
+- [Testbox console access](testbox-console-access.md) — ssh tbNNN → uN alias → /dev/uN; drive it with pyserial, not minicom
+- [.setup declares topology](setup-file-declares-topology.md) — stack, stackports and cabling are declared there; never infer them from case text (but verify consoles live — tb105.setup was stale)
+- [Legacy scripts vs current framework](legacy-scripts-vs-framework.md) — py3-only framework, read-only Switch.name, TBv4 device paths; patch a staging copy, never ck.db or the framework; and grep every gate string against real console capture — the waits rot silently and fail mid-run

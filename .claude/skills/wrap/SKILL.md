@@ -70,7 +70,7 @@ deleting. Any doc describing a retired pipeline or deleted file must carry a
 ## 5. Memory — reconcile only durable facts
 
 ```bash
-ls ~/.claude/projects/*Test-cases/memory/*.md      # the directory IS the list
+ls .claude/memory/*.md      # the directory IS the list (in-repo since 2026-07-30; see /orient §4)
 ```
 
 Update a memory file if this session changed a standing decision, finished pending work, or
