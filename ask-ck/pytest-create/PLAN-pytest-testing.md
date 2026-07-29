@@ -78,14 +78,22 @@
 >   Results: `judging/Port (7)/<CaseKey>/mechanical.json`. See **§10 below**. Remaining:
 >   criterion 4 (the two LLM judges + human review) and regenerating T33233, which is
 >   stale + wrong-backend and blocked behind its unconfirmed step5 (§10.6).
-> - ⏳ **Part 3b** (tb470 execution, criteria 5-6) — still blocked on
->   `configs/tb470.setup` + a testbox profile (Terrence-side physical-topology
->   prerequisite — see §5b; note the **corrected configs path** there).
->   **Narrowed 2026-07-28d: the SCHEMA is no longer part of the blocker.** It is captured
->   with a real worked example in **`SETUP-FILE-REFERENCE.md`** (sections, `[stack]`
->   membership, `[configured_stackport]`, and the `[portlink] tb-swi_X = ethN-portA.B.C`
->   testbox-cabling convention). What remains is purely Terrence-side data: tb470's device
->   list and its physical wiring.
+> - ✅ **Part 3b UNBLOCKED + topology corrected (2026-07-29).** `configs/tb470.setup` existed
+>   as of 2026-07-27 but was the `SETUP-FILE-REFERENCE.md` worked example (x930/AR4050S/x530)
+>   copied verbatim — a placeholder that did NOT match the bench (those u0/u2 devices are
+>   powered off; the real DUT is an IE520). Reconciled live against the switch consoles +
+>   tb470's own NIC/MAC tables and **rewrote `tb470.setup` to the verified real rig**
+>   (original preserved as `tb470.setup.bak-2026-07-29`):
+>   `swi_a = AT-IE520-28GSX` (DUT, /dev/u4, 115200), `swi_b = AR4050S-5G` (/dev/u1),
+>   `swi_c = x230-10GP` (/dev/u0 **@9600**), with `[baudrates]`, `[boot_from_flash]`, empty
+>   `[power]/[stack]/[configured_stackport]/[powerlink]` skeletons, and one verified
+>   `[portlink] tb-swi_a = eth3-port1.0.23` (IE520 test port ↔ tb470 eth3, confirmed by MAC
+>   learning). Run preconditions verified live: framework present, `sudo -n` OK, python3
+>   3.13.5, DUT ttys present. **Part 3b needs only a go decision now.** Still owed (documented
+>   in the `.setup` header): the PDU IP + outlets, and any inter-switch data cabling. A run
+>   CONFIGURES the live IE520, so T33234/T33233 (config-only, no physical step) are the
+>   cleaner first cases; T33235 has a physical hot-insert step that auto-timeout-fails with no
+>   operator. The ⏳/"tb470.setup does not exist" claims later in this doc are STALE.
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
@@ -456,10 +464,14 @@ ART runs depend on host-side config files that our tool does NOT generate — th
   `/home/st-art/framework` — that dir has no `configs/` at all. The real location is
   **`/home/st-art/st-art/configs/`** (473 `.setup` files). Every `configs/<hostname>.setup`
   reference above should be read against that path.
-- **State on tb470 now:** `configs/` has other testboxes' `.setup` files but **neither
-  `tb470.setup` nor `tb470.cfg` exists yet** (re-verified 2026-07-27). Both are Terrence-side prerequisites
-  (topology = physical wiring) before Part 3b can run. The tool generates the test
-  SCRIPT only; setup/config are environment inputs.
+- **State on tb470 now (CORRECTED 2026-07-29):** `configs/tb470.setup` exists and, as of
+  2026-07-29, describes the VERIFIED real bench — `swi_a`=AT-IE520-28GSX (DUT, /dev/u4),
+  `swi_b`=AR4050S-5G (/dev/u1), `swi_c`=x230-10GP (/dev/u0 @9600). It was previously the
+  worked-example placeholder (x930/AR4050S/x530); that content is preserved as
+  `tb470.setup.bak-2026-07-29`. `tb470.cfg` also exists (0 B, empty). See the status header
+  at the top of this doc for the full device map, NIC mapping, and the PDU-IP /
+  inter-switch-cabling TODOs. The tool still generates the test SCRIPT only; the
+  `.setup`/`.cfg` are environment inputs and are now present and correct.
 - **`.setup` schema + a real worked example: `SETUP-FILE-REFERENCE.md`** (2026-07-28d).
   Authoring `tb470.setup` no longer requires reverse-engineering the format. Note in
   particular that `[stack]`, `[configured_stackport]` and `[portlink] tb-swi_X` DECLARE
