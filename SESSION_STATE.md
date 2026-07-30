@@ -2777,3 +2777,27 @@ dies with `AttributeError` mid-bench-slot).
   attribute without a binding is a lint error.
 - Memory moved in-repo to `.claude/memory/` by the parallel stream (commit `b99f0cf`); the old
   home path is now a symlink to it, so writes land in the repo automatically.
+
+### Addendum (same session, 2026-07-30) — executive-summary doc
+
+`ask-ck/ARCHITECTURE.md` added: a one-page executive summary of the architecture, linked from
+the README documentation map and from the head of `SERVER-README.md` (reciprocal, so a reader
+landing on the deep reference knows a summary exists). Covers the stack and languages
+explicitly — **Python/FastAPI back end, vanilla-JavaScript ES-module front end, no React, no
+TypeScript, no bundler, no build step** (verified: zero `.jsx`/`.tsx`/`.ts`/`.vue`/`.svelte`
+files, no Vite/Webpack/Rollup/Babel config, and the only JS dependencies are dev-only test
+tooling) — plus the four tools and their real state, the data layer with measured row counts,
+LLM strategy, the hardware bridge, the four invariants, deployment limits, and where the risk
+sits.
+
+Every figure in it was **measured on the day, not copied from prose**, and the doc states that
+with a date so it does not silently become another stale cache. That practice paid for itself
+immediately: it caught a stale *live* claim in `README.md` — the CLI reference was described as
+`4,652 commands, 993 with sample output` when the real counts are **6,323 / 1,250**, the
+reference having been refreshed from the authoritative per-device zips on 2026-07-29 (commit
+`b8ac403`) without the prose being updated. Corrected in place.
+
+Also note for the next session: the parallel stream committed `TESTBOX-ACCESS.md` edits
+(`aadebfe`) to the same file this session had extended with §4a. Both survived — verified by
+grep, not assumed — but that file is now actively co-edited, so re-read it before editing rather
+than patching from context.

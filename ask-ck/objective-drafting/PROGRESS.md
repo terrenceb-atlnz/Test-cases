@@ -60,6 +60,15 @@ the skeleton landed. Gate **612 → 719** pytest (+92 Vitest unchanged). Nothing
   unsupported** (`polarity` isn't listed for `ie520`; the device supports it). And two of my own
   over-claims were retracted — the copper/10G module mismatch links fine, and `no stackport` did
   *not* clear the real member's dedicated stackports.
+- **New doc — `ask-ck/ARCHITECTURE.md`** (executive summary, linked from the README doc map and
+  from SERVER-README's head). One page: the stack and languages (**Python/FastAPI back end,
+  vanilla-JS ES-module front end — no React, no TypeScript, no build step**), the four tools and
+  their real state, the data layer with measured row counts, LLM strategy, the hardware bridge,
+  the four invariants, deployment limits, and where the risk actually sits. Every figure was
+  **measured, not copied from prose**, and the doc says so with a date — which immediately caught
+  a stale live claim in the README (`4,652 commands, 993 with sample output` → actual **6,323 /
+  1,250**, the reference having been refreshed from the authoritative per-device zips on
+  2026-07-29). Corrected.
 - **Pending / not done:** nothing regenerated, so preflight is still 2/3 and the three scripts
   in the tree are pre-change artifacts. Regenerating T33235 under the new frame is the
   experiment that tests whether over-declaration was the bottleneck. Step **`kind`

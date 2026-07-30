@@ -2,6 +2,11 @@
 
 This document contains **all instructions for use, setup, configuration, architecture, and details** for **Ask CK** — the server-backed workbench whose first (and mature) tool is the **Objective/Test Case Generator** (formerly "Objective Drafting Tool").
 
+> **Want the shape rather than the detail?** [`ask-ck/ARCHITECTURE.md`](../ARCHITECTURE.md) is a
+> one-page executive summary — the stack and languages, the four tools and their real state, the
+> data layer, the four invariants, and where the risk actually sits. Read it first; this file is
+> the deep reference behind it.
+
 > **Layout note (2026-07-13):** the repo was restructured. Server code: `ask-ck/CK-main/CK_server/` (was `drafting-tool/drafting_server/`). Generator data, process docs, and `refined-cases/`: `ask-ck/objective-drafting/`. Filesystem anchors live in `CK_server/paths.py`. Historical session summaries at the bottom of this file keep their original (pre-move) paths.
 
 ## Overview and Goals
