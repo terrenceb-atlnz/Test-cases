@@ -1073,9 +1073,13 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
         swiSrc = setup.init_swi('swi_c')
 
     The convention is swi_a/swi_b/... — 621 of ~650 corpus `init_swi()` calls, and what a
-    real testbox declares (tb470's `[switch]` is swi_a/swi_c/swi_d). Generating
-    `init_swi('dut')` from a role name instead means the lookup simply fails on any real
-    .setup. A name that ALREADY looks like a .setup key is passed through unchanged.
+    real testbox declares (tb470's `[switch]` is swi_a/swi_b/swi_c/swi_d as of 2026-07-30).
+    Generating `init_swi('dut')` from a role name instead means the lookup simply fails on
+    any real .setup. A name that ALREADY looks like a .setup key is passed through unchanged.
+
+    Binding a role successfully is NOT the same as being able to RUN: the bench also has to
+    declare the [portlink]s the script asks for, and `init_portlink` returns (None, None)
+    silently when it does not. `tool/pt_preflight.py` checks that offline before a run.
     """
     keys: List[str] = []
     letters = "abcdefghijklmnop"
@@ -1089,6 +1093,48 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
         keys.append(f"swi_{letters[nxt]}" if nxt < len(letters) else name)
         nxt += 1
     return keys
+
+
+# parents[2]=CK_server (cf. _TEMPLATES_DIR), [3]=CK-main, [4]=ask-ck, [5]=repo root.
+_MEDIA_HELPER_SRC = Path(__file__).resolve().parents[4] / "tool" / "pt_media.py"
+# The workdir filename the generated script imports. Must match the template's `import`.
+MEDIA_HELPER_NAME = "ck_media.py"
+
+_FIBRE_HINT_RX = re.compile(
+    r"\b(fibre|fiber|optical|optic|single-?mode|multi-?mode|"
+    r"\d+base-(?:sx|lx|lh|sr|lr|er|zx|bx|fx))\b", re.I)
+
+
+def _detect_link_role(sequence: List[dict], objective: str = "") -> str:
+    """Which MEDIA role this case's link must be — `'copper'` or `'fibre'`.
+
+    Defaults to copper, and that default is SAFE rather than a guess: MDI/MDIX and the
+    10/100 speed range exist only on twisted pair, which is what the great majority of port
+    cases exercise. Crucially, a wrong choice cannot produce a wrong verdict — the run-time
+    media assertion (`_ck_bind_link` -> `ck_media`) refuses to proceed when the bound port's
+    pluggable disagrees, and says the BENCH is at fault. So the failure mode is a loud stop,
+    never a silent false pass.
+    """
+    blob = " ".join([objective or ""] + [
+        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
+    return "fibre" if _FIBRE_HINT_RX.search(blob) else "copper"
+
+
+def _media_helper_source() -> str:
+    """The `ck_media.py` shipped alongside a generated script into the run workdir.
+
+    Read from `tool/pt_media.py` rather than duplicated, so the module the testbox executes
+    is byte-identical to the one the in-repo tests cover. Not a corpus read (guard_db_only
+    is about corpora), and the script imports it as a workdir sibling.
+
+    Fails loudly if the path is wrong: shipping a run WITHOUT this helper would make every
+    generated script die on `import ck_media`, so a silent miss is not acceptable.
+    """
+    if not _MEDIA_HELPER_SRC.is_file():
+        raise RuntimeError(
+            f"media helper not found at {_MEDIA_HELPER_SRC} — generated scripts import it as "
+            f"`ck_media`, so a run cannot proceed without it")
+    return _MEDIA_HELPER_SRC.read_text(encoding="utf-8")
 
 
 def _detect_topology(sequence: List[dict], fragments: List[dict]) -> Tuple[List[str], List[str], bool]:
@@ -1176,6 +1222,7 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       setup_steps=setup_steps, steps=verify_steps,
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
                       setup_keys=_setup_keys_for(switches),
+                      link_role=_detect_link_role(sequence, objective),
                       objective_lines=_objective_comment_lines(objective))
 
 
@@ -1630,6 +1677,104 @@ def _lint_generated(sess: PtSession) -> dict:
 
         # 2b. Imports the TESTBOX's python3 will not have. The script runs there, not here.
         errors.extend(_removed_stdlib_imports(tree))
+
+        # 2b-0. The MEDIA ASSERTION must be on the only path to a bound port.
+        #
+        # `_ck_bind_link()` (fixed frame) resolves the bench's `[misc] ck_link_<role>`,
+        # binds it, and asserts the bound port's media before the test uses it. That last
+        # part cannot be checked offline — media belongs to the pluggable, and the CLI
+        # accepts `polarity`/`speed 100` on a fibre port where they are meaningless, so a
+        # run bound to the wrong media reports a PRODUCT failure that is really a cabling
+        # error (TOPOLOGY-PROFILES.md). A script that calls `init_portlink()` directly
+        # therefore gets a port with no media guarantee, which defeats the whole mechanism.
+        #
+        # Two errors, both about the same invariant:
+        #   (a) a direct init_portlink() OUTSIDE the helper — bypasses the assertion;
+        #   (b) reading a bound port attribute while never calling the helper — the port is
+        #       unbound, so this dies with AttributeError on first use (seen 2026-07-28).
+        _helper = "_ck_bind_link"
+        _helper_def = next((n for n in ast_mod.walk(tree)
+                            if isinstance(n, ast_mod.FunctionDef) and n.name == _helper), None)
+        _helper_lines = (set(range(_helper_def.lineno, (_helper_def.end_lineno or
+                                                        _helper_def.lineno) + 1))
+                         if _helper_def else set())
+        _calls_helper = any(
+            isinstance(n, ast_mod.Call) and (
+                (isinstance(n.func, ast_mod.Attribute) and n.func.attr == _helper)
+                or (isinstance(n.func, ast_mod.Name) and n.func.id == _helper))
+            for n in ast_mod.walk(tree))
+        for _n in ast_mod.walk(tree):
+            if not (isinstance(_n, ast_mod.Call) and isinstance(_n.func, ast_mod.Attribute)
+                    and _n.func.attr == "init_portlink"):
+                continue
+            if _n.lineno in _helper_lines:
+                continue                      # the helper's own, sanctioned, call
+            errors.append(
+                f"line {_n.lineno}: calls setup.init_portlink() directly, which skips the "
+                f"run-time MEDIA assertion. Bind through `self.{_helper}(setup, <dut>, misc, "
+                f"'<role>')` instead — a port bound without that check can be the wrong media, "
+                f"and the resulting failure reads as a product defect rather than a cabling "
+                f"error. See ask-ck/pytest-create/TOPOLOGY-PROFILES.md")
+        if not _calls_helper:
+            _port_attr_rx = re.compile(r"\.port[A-Z]\w*\b")
+            for _i, _line in enumerate(code.splitlines(), 1):
+                if _i in _helper_lines or _line.lstrip().startswith("#"):
+                    continue
+                _m = _port_attr_rx.search(_line.split("#")[0])
+                if _m:
+                    errors.append(
+                        f"line {_i}: reads `{_m.group(0).lstrip('.')}` but the script never "
+                        f"calls `self.{_helper}(...)`, so no port link is ever bound — this "
+                        f"dies with AttributeError the first time the attribute is read")
+                    break
+
+        # 2b-0b. A body referencing a device init() never bound.
+        #
+        # The counterpart to capping the bound device set at DUT + one partner (template,
+        # 2026-07-30). Dropping a device that was only ever inferred from a fragment's
+        # variable vocabulary is safe ONLY if using it fails at generation instead of on
+        # hardware: `self.linkP.cmd(...)` is valid Python and compiles, so without this the
+        # run dies with AttributeError halfway through a booked bench slot.
+        _bound = {t.attr for n in ast_mod.walk(tree) if isinstance(n, ast_mod.Assign)
+                  for t in n.targets
+                  if isinstance(t, ast_mod.Attribute) and isinstance(t.value, ast_mod.Name)
+                  and t.value.id == "self"}
+        # Tuple-unpacked binds — `(dut.portA, self.ck_far_port, lp) = ...`
+        for _n in ast_mod.walk(tree):
+            if isinstance(_n, ast_mod.Assign):
+                for _t in _n.targets:
+                    if isinstance(_t, (ast_mod.Tuple, ast_mod.List)):
+                        for _el in _t.elts:
+                            if (isinstance(_el, ast_mod.Attribute)
+                                    and isinstance(_el.value, ast_mod.Name)
+                                    and _el.value.id == "self"):
+                                _bound.add(_el.attr)
+        _DEV_VERBS = {"cmd", "mode", "reboot", "portReset", "configurePort", "link",
+                      "portA", "portB", "name"}
+        _unbound_seen = set()
+        for _n in ast_mod.walk(tree):
+            if not isinstance(_n, ast_mod.Attribute):
+                continue
+            _v = _n.value
+            # shape A: self.testSet.<dev>
+            if (isinstance(_v, ast_mod.Attribute) and _v.attr == "testSet"
+                    and isinstance(_v.value, ast_mod.Name) and _v.value.id == "self"):
+                _dev = _n.attr
+            # shape B: self.<dev>.<device verb>
+            elif (_n.attr in _DEV_VERBS and isinstance(_v, ast_mod.Attribute)
+                    and isinstance(_v.value, ast_mod.Name) and _v.value.id == "self"):
+                _dev = _v.attr
+            else:
+                continue
+            if _dev in _bound or _dev in _unbound_seen or _dev.startswith("_"):
+                continue
+            _unbound_seen.add(_dev)
+            errors.append(
+                f"line {_n.lineno}: uses device `{_dev}` but init() never binds "
+                f"`self.{_dev}` — this compiles and then dies with AttributeError on the "
+                f"testbox. A test binds the DUT plus ONE partner (the far end of its single "
+                f"link); a second partner needs a second link role declared in "
+                f"TOPOLOGY-PROFILES.md, not an extra init_swi()")
 
         # 2b-ii. The same port attribute bound by two init_portlink() calls. Each call
         # ASSIGNS the attribute, so the second silently discards the first link — the script
@@ -2841,6 +2986,9 @@ async def run_script(key: str, body: dict = Body(...)):
     lib = (step6.get("files") or {}).get("library")
     if lib and lib.get("code"):
         files[lib["name"]] = lib["code"]
+    # Every generated script does `import ck_media` inside _ck_bind_link (fixed frame), so
+    # the helper ships with EVERY run — not only when the reviewer supplied a library.
+    files[MEDIA_HELPER_NAME] = _media_helper_source()
 
     naming = step6.get("naming") or {}
     run_id = utc_now().strftime("%Y%m%d-%H%M%S")

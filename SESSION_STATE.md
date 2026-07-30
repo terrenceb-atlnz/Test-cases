@@ -2670,3 +2670,110 @@ prompts so objective context reaches the `.py` output**, then complete the Part 
   a future session (`PLAN-permutation-expander.md` is the resume-cold brief).
 - ck.db: real session writes from regeneration are in the WAL (git shows it clean); NOT committed
   (avoid a torn snapshot mid-write). Guards not touched.
+
+## Session Close / Handoff (2026-07-30) — tb470 de-stacked and cabled; generation now targets a topology contract
+
+Began as `.setup` housekeeping (the two facts owed on 2026-07-29c: PDU details and inter-switch
+cabling) and became a hardware fix plus the largest change to generation since the skeleton
+landed. Gate **612 → 719** pytest, 92 Vitest unchanged, both guards green, `ck.db` signature
+unchanged throughout.
+
+### Hardware — tb470 is a different bench now
+
+- **PDU supplied:** `10.36.150.14`, AR4050S outlet **8** (front-panel "H"), x230 outlet **6**
+  ("F"). The outlet field is **numeric** — `Setup.py` does `int(outTuple[2])` for any non-`awplus`
+  type, so a letter raises. Neither IE520 is on the PDU, so **the DUT cannot be power-cycled**;
+  a failover test must reboot over the CLI.
+- **Role names CHANGED on Terrence's call:** IE520s are `swi_a`/`swi_b`, AR4050S → `swi_c`,
+  x230 → `swi_d`. ⚠️ `swi_b` binds a **different physical device** than it did on 2026-07-29 and
+  both names still resolve, so a pre-07-30 script's `init_swi('swi_b')` silently gets the second
+  IE520. Re-check role bindings before reusing any older script.
+- **The "bugged out" stack was a SPLIT stack.** Both IE520s were provisioned into virtual
+  chassis 3039 with their stackports uncabled, so each saw the other as `Provisioned`: u4 ran as
+  a standalone Active Master, u5 was a **`Disabled Master`** in failover mode with **all 26
+  front-panel ports `err-disabled`**. That, not interface config, is why newly-cabled links
+  stayed down — no config on u4 could fix a dead far end.
+- **Fix applied:** `no stackport` on both 27/28 ranges + `no stack virtual-mac` on both,
+  **`stack 2 renumber 1`** on u5, `write`, reboot. Deliberately **not** `no stack <id> enable` —
+  the docs say it disables every port and strands the unit on its console, i.e. it creates the
+  state being escaped. Both units now report `Operational Status: Standalone unit`, stack ID 1,
+  own MAC as stack MAC; u5's ports renumbered `2.0.x → 1.0.x`; zero `err-disabled`.
+- **Both links verified up at `a-1000/a-full` on both ends:** copper `port1.0.1` and fibre
+  `port1.0.7` between swi_a and swi_b, plus `port1.0.23` → tb470 eth3.
+- ⚠️ **Two things could NOT be removed, and one is a live hazard.** IE520 `port1.0.27/1.0.28` are
+  **dedicated** stackports — `no stackport` saved but the flag returned after reboot on the real
+  member's ports. And `stack virtual-chassis-id` has **no `no` form** (`no stack ?` offers only
+  `<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`).
+  So both units are stack ID 1 sharing chassis-id 3039 with live stackports: **do not cable
+  27/28 between them** or both will claim ID 1 and return to duplicate-master/err-disabled.
+- **Management addresses are not stable:** swi_a's `vlan1` is DHCP and **moved across the
+  reboot** (`10.38.215.3 → .6`), so any doc quoting a fixed swi_a IP will rot. Both IE520s also
+  carry the **same static** `vlan1000 10.38.215.67/27`; harmless only because swi_b's
+  `port1.0.23` has no pluggable. The IE520s have **no SSH/telnet** — console is the only CLI path.
+- `configs/tb470.setup` rewritten twice and installed both times, round-trip verified by fetching
+  it back and comparing md5. Backups kept: `.bak-2026-07-30c`, `.bak-2026-07-30b`,
+  `.bak-2026-07-30`, `.bak-2026-07-29`.
+
+### New tooling (all in-repo, all mutation-tested)
+
+- **`tool/pt_preflight.py`** — offline "can this bench run this script?". Exists because
+  `Setup.init_portlink()` returns **`(None, None)`** for an undeclared link (`sys.exit(2)` is
+  reserved for fatal misconfig), and the skeleton unpacks that straight into port attributes: on
+  `3_Port_Fixed_port_test.py` every TestCase then dies on `portA.name`, reading as a *script*
+  defect when the cause is *bench cabling*. Verdict went **0/3 → 2/3** once the `swi_a-swi_b`
+  links were declared.
+- **`tool/pt_profiles.py` + `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`** — the contract.
+  Terrence rejected feeding generation the bench's device list; he was right, because that
+  silently *weakens* a test to fit the hardware present and a false green is unfalsifiable. So
+  generation declares the **profile** it needs, a bench declares in `[misc]` what it
+  **implements**, and the checker matches. Profiles are claimable in pieces
+  (`base`/`fibre`/`tblink`/`stack`); roles name **links**, not devices. tb470 implements
+  `base, fibre, tblink`.
+- **`tool/pt_media.py`** — the run-time media assertion. MDI/MDI-X is copper-only, the
+  framework's `type1='port'` filter cannot tell copper from fibre (both `port1.0.x`), and **the
+  CLI is media-blind**: on the 1000BASE-SX port `speed ?` still offers `10…400000` and
+  `duplex ?` still offers `half`. So a matrix bound to fibre records *"DUT failed to set speed
+  100"* — a false failure blamed on the product. Fixtures are real captured IE520 output;
+  `1000BASE-T` (u4) vs `10GBASE-TM` (u5) on the **same port number** is the standing proof media
+  cannot be inferred from a name or a file.
+
+### Generation changed
+
+`init()` resolves the DUT from `misc.get('ck_role_dut', 'swi_a')` and binds its single link via
+fixed-frame `_ck_bind_link` (resolves `ck_link_<role>`, refuses `(None, None)`, asserts media);
+`ck_media.py` ships into the run workdir on every run, read from `tool/pt_media.py` so the
+testbox executes byte-identically what the tests cover. **Minimality:** the bound device set is
+now a *consequence* of the topology — one link ⇒ one partner, and the partner **is** that link's
+far end, so no second `init_swi()` exists to over-declare with. Previously the set was fixed at
+render time before any body existed, so it could only over-bind (T33235 bound 4 devices and 2
+links while referencing 1 of each). Extras are dropped with a `# NOT BOUND:` comment. Two lints:
+a direct `setup.init_portlink()` outside the helper is an **error** (skips the media assertion),
+and using a device `init()` never bound is an **error** (`self.linkP.cmd(...)` compiles, then
+dies with `AttributeError` mid-bench-slot).
+
+### Corrections recorded (mine, and one general rule)
+
+- **ck.db's CLI reference: absence means UNKNOWN, not unsupported.** `polarity` is documented for
+  29 products *not* including `ie520`, yet both tb470 IE520s support it (verified with
+  `polarity ?`). Same shape for `stackport`. I had briefly treated a docs gap as a negative
+  finding and retracted it.
+- The copper/10G **module mismatch links fine** — AT-SPTXc (1000BASE-T) against AT-SP10TM
+  (10GBASE-TM) negotiated 1000/full. I had flagged it as likely not to link.
+- `no stackport` did **not** clear the real member's dedicated stackports, so my earlier "they
+  physically cannot stack now" was wrong.
+
+### State at close
+
+- **Nothing regenerated.** The three Port (7) scripts in the tree are pre-change artifacts, so
+  preflight is still 2/3 and T33235 still demands `swi_a`↔`swi_c`. Regenerating it under the new
+  frame is the experiment that tests whether over-declaration was the bottleneck.
+- **Step `kind` misclassification is untouched** (`PLAN-permutation-expander.md`) and is what
+  actually made T33234 grade 10/10 bad. Note the partner is now a bound, contract-resolved
+  device, so partner-side `polarity mdi`/`mdix` is finally available as the automatable
+  substitute for the physical cable swap that was being faked.
+- **Media scope agreed with Terrence:** the assertion matters only for media-dependent tests
+  (speed/duplex/MDI-X/autoneg; later PoE and TDR, also copper-only). `needs_portlink` rendering
+  no binding for other cases is acceptable and self-correcting — a body that reads a port
+  attribute without a binding is a lint error.
+- Memory moved in-repo to `.claude/memory/` by the parallel stream (commit `b99f0cf`); the old
+  home path is now a symlink to it, so writes land in the repo automatically.

@@ -41,7 +41,16 @@
     needs_portlink truthy if the case uses port links (renders an init_portlink FILL slot)
 -#}
 {%- set switches = switches or ['swi_a'] -%}
-{%- set all_devs = switches + (stacks or []) -%}
+{#- MINIMALITY (2026-07-30): a test binds the DUT plus at most ONE partner, and that partner
+    is the far end of the single link it binds. Anything beyond that was inferred from the
+    selected fragments' variable names, which is not evidence the test needs the device --
+    and each spurious binding becomes a topology demand a bench must satisfy for nothing
+    (T33235 bound 4 devices, used 1). A second partner is a second LINK ROLE in the profile
+    contract, not a guess here. -#}
+{%- set bound_switches = switches[:2] -%}
+{%- set dropped_switches = switches[2:] -%}
+{%- set partner = switches[1] if switches | length > 1 else 'ck_far' -%}
+{%- set all_devs = bound_switches + (stacks or []) -%}
 {%- set dev0 = all_devs[0] -%}
 {%- set dev1 = all_devs[1] if all_devs | length > 1 else 'swi_b' -%}
 {%- set has_physical = steps | selectattr('kind', 'equalto', 'physical') | list | length > 0 -%}
@@ -112,13 +121,53 @@ class TestSet(ATTestSet.TestSet):
 
     FEATURES = ['ALL']
 
+    def _ck_bind_link(self, setup, dut, misc, role):
+        """Resolve `[misc] ck_link_<role>` on THIS bench, bind it, and assert its media.
+
+        Fixed frame — do not edit or delete. Three failures it converts from silent to loud:
+          1. an undeclared role: the bench has not agreed to host this test;
+          2. `init_portlink()` returning (None, None) for a link the bench does not have —
+             a None port later renders as `interface None`, so the run fails looking like a
+             SCRIPT defect;
+          3. the bound port being the wrong MEDIA. That one cannot be caught offline: media
+             belongs to the pluggable, and the CLI accepts `polarity`/`speed 100` on fibre
+             where they are meaningless, so the run would report a PRODUCT failure that is
+             really a cabling error.
+        Raising aborts the suite on purpose: "this bench cannot host this test" is not a
+        test result. See ask-ck/pytest-create/TOPOLOGY-PROFILES.md.
+        """
+        import ck_media
+        ref = misc.get('ck_link_' + role)
+        if not ref:
+            raise RuntimeError(
+                "BENCH PROBLEM, not a product defect: this .setup declares no "
+                "ck_link_%s, so the %s link this test needs is not available here. "
+                "See TOPOLOGY-PROFILES.md." % (role, role))
+        dev_a, dev_b, _named_port = ck_media.parse_link_ref(ref)
+        dut_key = misc.get('ck_role_dut', 'swi_a')
+        far_key = dev_b if dev_a == dut_key else dev_a
+        far = setup.init_swi(far_key)
+        (near_port, far_port) = setup.init_portlink(dut, far, type1='port', type2='port')
+        if near_port is None or far_port is None:
+            raise RuntimeError(
+                "BENCH PROBLEM, not a product defect: ck_link_%s = %r but no unused "
+                "matching [portlink] exists between %s and %s." % (role, ref, dut_key, far_key))
+        status = dut.cmd('show interface %s status' % near_port.name)
+        ok, why = ck_media.assert_role_media(status, near_port.name, role)
+        if not ok:
+            raise RuntimeError(why)
+        self.log('topology: role %r -> %s %s <-> %s %s (%s)' % (
+            role, dut_key, near_port.name, far_key, far_port.name, why))
+        return near_port, far_port, far
+
     def init(self, setup):
-        # Topology comes from the .setup file, so this script is platform-independent:
-        # the [portlink] entries resolve to real port names at runtime.
+        # Topology is resolved from the .setup [misc] ROLE CONTRACT at run time, so this
+        # script names no device and no port: it binds correctly on any bench that declares
+        # the roles it needs, and fails loudly on one that does not. The role names come
+        # from TOPOLOGY-PROFILES.md; the bench says what they mean HERE.
         tb = setup.init_tb()
-        {%- for dev in switches %}
-        {{ dev }} = setup.init_swi('{{ setup_keys[loop.index0] if setup_keys and loop.index0 < setup_keys | length else dev }}')
-        {%- endfor %}
+        misc = setup.get_all_misc()
+        {{ switches[0] }} = setup.init_swi(misc.get('ck_role_dut', '{{ setup_keys[0] if setup_keys else 'swi_a' }}'))
         {%- for st in (stacks or []) %}
         {# Stack names are DETECTED as `stk_[a-z]`, so the name is already a valid .setup
            key — rewriting it positionally produced `stk_b = setup.init_stk('stk_a')`,
@@ -126,17 +175,32 @@ class TestSet(ATTestSet.TestSet):
         {{ st }} = setup.init_stk('{{ st }}')
         {%- endfor %}
         self.tb = tb
-        {%- for dev in all_devs %}
-        self.{{ dev }} = {{ dev }}
+        self.{{ switches[0] }} = {{ switches[0] }}
+        {%- for st in (stacks or []) %}
+        self.{{ st }} = {{ st }}
         {%- endfor %}
         {%- if needs_portlink %}
-        # >>> FILL: declare this case's port link(s). Bind `portA` on {{ dev0 }} at minimum —
-        #     the test bodies below reference it:
-        #     ({{ dev0 }}.portA, tb.ethA) = setup.init_portlink({{ dev0 }}, tb, type1='port')
-        {%- if all_devs | length > 1 %}
-        #     ({{ dev0 }}.portB, {{ dev1 }}.portA) = setup.init_portlink({{ dev0 }}, {{ dev1 }}, type1='port', type2='port')
+        # Bind the ONE link this case needs from the bench's role contract, assert its media,
+        # and take the PARTNER from that link's far end — no second lookup. Deterministic on
+        # purpose: this used to be a FILL slot, and the model declared links the test never
+        # used (T33235 bound 4 devices and 2 links while referencing 1 of each, so the script
+        # demanded cabling for no reason). One link => exactly one partner.
+        ({{ switches[0] }}.portA, self.ck_far_port, {{ partner }}) = self._ck_bind_link(
+            setup, {{ switches[0] }}, misc, '{{ link_role }}')
+        self.{{ partner }} = {{ partner }}
+        {%- elif switches | length > 1 %}
+        # No data link in this case, so the partner is reachable over its CONSOLE only —
+        # bound positionally because there is no link role to resolve it from.
+        {{ switches[1] }} = setup.init_swi('{{ setup_keys[1] if setup_keys | length > 1 else 'swi_b' }}')
+        self.{{ switches[1] }} = {{ switches[1] }}
         {%- endif %}
-        #     <<<
+        {%- if dropped_switches %}
+        # NOT BOUND: {{ dropped_switches | join(', ') }}.
+        # A test binds the DUT plus ONE partner (the far end of its one link). These names
+        # were only ever inferred from the vocabulary of the selected fragments, which is not
+        # evidence the test needs them — and every unused binding becomes a topology demand
+        # a bench has to satisfy for nothing. Needing a second partner means declaring a
+        # second link role in TOPOLOGY-PROFILES.md, not guessing a device here.
         {%- endif %}
 
     def configure(self):

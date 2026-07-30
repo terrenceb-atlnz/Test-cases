@@ -326,6 +326,68 @@ SSH_AUTH_SOCK=$sock ssh tb105 '
   line carrying it and kills your own session (exit 255). Use `pgrep -f "[s]cript"` to test, and
   kill by the PID you captured.
 
+## 4a. Lessons from de-stacking two IE520s on tb470 (2026-07-30) ✅
+
+Five things that cost real time and are not obvious from any doc.
+
+**A console held by minicom is off-limits — check before you drive it.** Both tb470 consoles
+were held by the operator's own `minicom` sessions. Two processes on one serial port interleave
+in *both* directions: your reads swallow bytes theirs is waiting on, and your writes land in
+their session. Check `ls /var/lock/LCK..*`, `pgrep -a minicom`, and `ps -o user,tty -p <pid>`
+before opening anything; the lock file contains the holder PID.
+
+**The console may be the ONLY CLI path.** The IE520s answer on 80/443 but have **no SSH and no
+telnet**, and enabling `ssh server` would itself need CLI access. Don't plan around the
+management network without probing it first.
+
+**A "bugged out" stack is usually a split one, and the giveaway is `err-disabled`.** Both units
+were provisioned into the same virtual chassis with their stackports uncabled, so each saw the
+other as merely `Provisioned`. One ran as a standalone Active Master; the other became a
+**`Disabled Master`** in "failover mode" with **all 26 front-panel ports `err-disabled`** —
+which is why newly-cabled links stayed down. No interface config on the healthy unit could have
+fixed a dead far end. Read `show stack detail` on *both* units before touching anything.
+
+**Never use `no stack <id> enable` to unpick this.** Per the CLI reference it "will act as a
+stand-alone master and **disable all of its ports**… can then only be accessed via its console
+port" — i.e. it *creates* the state you are trying to escape. What worked: `no stackport` on
+both 27/28 ranges, `no stack virtual-mac`, **`stack 2 renumber 1`** on the demoted unit
+(`show stack` then shows a `Pending ID`), `write`, reboot. Afterwards both read
+`Operational Status: Standalone unit` with their own MAC as the stack MAC.
+
+**Two things could not be removed, and one is a live hazard.** On the IE520,
+`port1.0.27/1.0.28` are **dedicated** stackports: `no stackport` is accepted and saved, but the
+flag returns after reboot on the real member's ports (it sticks only on an absent member's
+phantom ports). And `stack virtual-chassis-id` has **no `no` form at all** — `no stack ?` offers
+only `<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`,
+`virtual-mac`. So both units end up stack ID 1 sharing one chassis-id with live stackports:
+**do not cable 27/28 between them** or they will both claim ID 1 and land straight back in
+duplicate-master/err-disabled.
+
+### The CLI is media-blind — do not trust it to reject a nonsensical setting ✅
+
+On a **1000BASE-SX fibre** port, `speed ?` still offers `10 … 400000` and `duplex ?` still
+offers `half`, identically to a copper port. `polarity {auto|mdi|mdix}` is likewise offered on
+fibre, where MDI/MDI-X has no meaning (the docs say it applies to "a copper-based switch port").
+Nothing errors. So a speed matrix pointed at fibre records *"DUT failed to set speed 100"* — a
+false failure blamed on the product — and a polarity step is a silent no-op.
+
+Media is only knowable from the **pluggable**, via the `Type` column of
+`show interface <port> status` (`1000BASE-T`, `10GBASE-TM`, `1000BASE-SX`, or `not present` for
+an empty cage — note that value has a space in it). It cannot be inferred from a port name: on
+tb470 `port1.0.1` is a 1000BASE-T on one unit and a 10GBASE-TM on the other. `tool/pt_media.py`
+classifies it; `ask-ck/pytest-create/TOPOLOGY-PROFILES.md` explains why it must be asserted at
+run time rather than declared in a file.
+
+Also worth knowing: mismatched copper modules still link. An AT-SPTXc (1000BASE-T) against an
+AT-SP10TM (10GBASE-TM) negotiated 1000/full without complaint.
+
+### Absence from ck.db's CLI reference means UNKNOWN, not unsupported ✅
+
+`polarity` is documented for 29 products **not including `ie520`** — and both tb470 IE520s
+support it (confirmed with `polarity ?` in interface config). `ie560` is the only IE5xx in the
+harvest at all. Treat a missing product as uncovered by the docs and verify on the device;
+`stackport` behaved the same way.
+
 ## 5. Quick reference
 
 | Goal | Command |
@@ -339,5 +401,9 @@ SSH_AUTH_SOCK=$sock ssh tb105 '
 | Is a console free? | `ls /var/lock/LCK..*` · `pgrep -a minicom` · `fuser -v /dev/ttyUSBnn` |
 | Is this testbox TBv4? | `ls /etc/network/interfaces` (exists ⇒ TBv4 ⇒ `Switch()` needs `/dev/uN`, not an int) |
 | Run a legacy corpus script | extract from `ck.db` → staging copy + `.orig` → patch the copy → `python3` + `PYTHONPATH=/home/st-art` (§4) |
+| Is a console held by an operator? | `ls /var/lock/LCK..*` (file holds the PID) · `pgrep -a minicom` · `ps -o user,tty -p <pid>` — never share a serial port (§4a) |
+| Diagnose a "bugged" stack | `show stack detail` on **every** unit; `Disabled Master` + `err-disabled` ports = split stack, not a config fault (§4a) |
+| Un-stack a unit | `no stackport` on 27/28, `no stack virtual-mac`, `stack <id> renumber 1`, `write`, reboot. **Never `no stack <id> enable`** — it disables all ports (§4a) |
+| What media is in a port? | `show interface <port> status` → `Type` column. Not inferable from the port name; the CLI accepts speed/duplex/polarity on fibre regardless (§4a) |
 | Check a script is still alive | `pgrep -f "[s]cript_name"` — bracket avoids self-match; never `pkill -f` over SSH |
 | Read a framework log | `tr -d '\000' < x.log \| grep -a …` (CR line endings + embedded NULs) |

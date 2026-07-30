@@ -92,16 +92,279 @@
 >   powered off; the real DUT is an IE520). Reconciled live against the switch consoles +
 >   tb470's own NIC/MAC tables and **rewrote `tb470.setup` to the verified real rig**
 >   (original preserved as `tb470.setup.bak-2026-07-29`):
->   `swi_a = AT-IE520-28GSX` (DUT, /dev/u4, 115200), `swi_b = AR4050S-5G` (/dev/u1),
->   `swi_c = x230-10GP` (/dev/u0 **@9600**), with `[baudrates]`, `[boot_from_flash]`, empty
+>   with `[baudrates]`, `[boot_from_flash]`, empty
 >   `[power]/[stack]/[configured_stackport]/[powerlink]` skeletons, and one verified
 >   `[portlink] tb-swi_a = eth3-port1.0.23` (IE520 test port ↔ tb470 eth3, confirmed by MAC
 >   learning). Run preconditions verified live: framework present, `sudo -n` OK, python3
->   3.13.5, DUT ttys present. **Part 3b needs only a go decision now.** Still owed (documented
->   in the `.setup` header): the PDU IP + outlets, and any inter-switch data cabling. A run
+>   3.13.5, DUT ttys present. **Part 3b needs only a go decision now.** A run
 >   CONFIGURES the live IE520, so T33234/T33233 (config-only, no physical step) are the
 >   cleaner first cases; T33235 has a physical hot-insert step that auto-timeout-fails with no
 >   operator. The ⏳/"tb470.setup does not exist" claims later in this doc are STALE.
+> - ✅ **`tb470.setup` COMPLETED 2026-07-30 — and the device role names CHANGED.** Terrence
+>   supplied the two owed facts and cabled the bench further; the file on tb470
+>   (`/home/st-art/st-art/configs/tb470.setup`, 4970 B, parses clean — 8 sections, outlets
+>   typed `int`) now reads, with `tb470.setup.bak-2026-07-30` holding the 2026-07-29 version:
+>
+>   | Device | 2026-07-29 name | **2026-07-30 name** |
+>   |---|---|---|
+>   | AT-IE520-28GSX `/dev/u4` @115200 — DUT, **stack member 1** | `swi_a` | `swi_a` |
+>   | AT-IE520-28GSX `/dev/u5` @115200 — DUT, **stack member 2** (was an uncabled spare) | *absent* | **`swi_b`** |
+>   | AR4050S-5G `/dev/u1` @115200 | `swi_b` | **`swi_c`** |
+>   | x230-10GP `/dev/u0` **@9600** | `swi_c` | **`swi_d`** |
+>
+>   ⚠️ **`swi_b` now resolves to a different physical device than it did on 2026-07-29** —
+>   both names still bind successfully, so an older script's `init_swi('swi_b')` silently
+>   gets the second IE520 instead of the AR4050S. Re-check role bindings before reusing a
+>   script written against the older file.
+>   - ~~**The two IE520s are now STACKED** — `[stack] stk_a = swi_a, swi_b`.~~
+>     **SUPERSEDED the same afternoon — they were DE-STACKED. See the 2026-07-30 (pm) entry
+>     below; there is no `[stack]` section any more.**
+>   - **`[power]`/`[powerlink]` populated** — PDU `10.36.150.14` type `pdu`; AR4050S
+>     (`swi_c`) = front-panel **H → outlet 8**, x230 (`swi_d`) = front-panel **F → outlet 6**.
+>     The outlet field is **numeric, never the front-panel letter**: `Setup.py` applies
+>     `int(outTuple[2])` to any non-`awplus` type, so a letter raises `ValueError`.
+>   - **Two whole test classes are un-runnable on this bench as cabled**, and both fail for
+>     topology reasons rather than tool reasons: (a) **neither IE520 is on the PDU**, so there
+>     is no `pwr_a`/`pwr_b` and **the DUT stack cannot be power-cycled** — a stack-failover
+>     test must reboot a member via CLI, not by pulling power; (b) there is **no inter-switch
+>     DATA cabling** (the new IE-to-IE link is stackports), so the only data path on the bench
+>     is testbox↔DUT and any switch↔switch data-path test has nothing to run on.
+>   - ⏳ **Deferred to run time by Terrence:** port names are **member-scoped**, so the
+>     verified `tb-swi_a = eth3-port1.0.23` holds only while `/dev/u4` keeps **member ID 1** —
+>     if the u5 unit took member 1 the link is `port2.0.23`. Confirm with a read-only
+>     `show stack` when Part 3b actually runs; the `.setup` header flags this inline.
+> - 🛑 **[SUPERSEDED — now 2/3 runnable; see the 2026-07-30 (pm) entry] Part 3b was blocked
+>   on bench CABLING, not on the tool (found 2026-07-30 am).**
+>   With `tb470.setup` complete, all three Port (7) scripts were checked against it and
+>   **0 of 3 are runnable**: every one asks for a **switch↔switch data portlink** and the bench
+>   declares exactly one portlink, `tb-swi_a` (testbox↔DUT).
+>
+>   | Script | `init_portlink` demands | satisfiable |
+>   |---|---|---|
+>   | `3_Port_Fixed_port_test.py` | `swi_a`↔`swi_c`, `swi_a`↔`swi_b` | **0 / 2** |
+>   | `Port_Auto_MDI_MDI_test.py` (T33234) | `swi_a`↔`swi_b` | **0 / 1** |
+>   | `Port_Auto_Negotiation_test.py` (T33233) | `swi_a`↔`tb`, `swi_a`↔`swi_b` | **1 / 2** |
+>
+>   **Why this had to be caught offline:** `Setup.init_portlink()` returns **`(None, None)`**
+>   when no matching link exists — `sys.exit(2)` is reserved for fatal misconfig (null device,
+>   tb-to-tb, unknown device, invalid eth name). The skeleton unpacks the result straight into
+>   port attributes, so **both ends silently become `None`** and the script then builds CLI
+>   against `None`. A run would fail in a way that grades as a **script** defect under criteria
+>   5-6 when the cause is **bench cabling** — precisely the false signal Part 3 must not ingest.
+>   Note the stack does **not** help: `init_portlink` expands a stack and tries each member
+>   combination, but stackport cabling is not a data path.
+> - ✅ **`tool/pt_preflight.py` — the offline pre-flight topology check (built 2026-07-30).**
+>   Reads a generated script with `ast` and a bench `.setup` with `configparser`, then reports
+>   every demand the bench cannot satisfy. No LLM, no network, no hardware — same
+>   zero-token-pre-flight idea as `tests/test_prompt_examples.py`. It resolves the local
+>   variable back to the `.setup` role (`lp = setup.init_swi('swi_b')` → `init_portlink(dut,
+>   lp)`), which is the indirection a textual scan cannot follow, and models the framework's
+>   real semantics: links are **consumed** (one cable serves one call), either **orientation**
+>   matches, empty `type1`/`type2` match any interface, and a **stack** stands in for any
+>   member. Two failure classes: `LINK` (no such portlink) and `POWER` (power-cycling a device
+>   with no `[powerlink]` — the DUT-not-on-PDU case). Exit 0/1/2.
+>
+>   ```
+>   scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/
+>   python3 tool/pt_preflight.py --setup /tmp/tb470.setup          # all generated scripts
+>   ```
+>
+>   Covered by **26 tests** in `tests/test_pt_preflight.py`. Because a check that reported
+>   "unsatisfiable" unconditionally would have produced the correct 0/3 verdict above and been
+>   worthless, every "cannot" assertion is **paired with a mutation** that makes the demand
+>   satisfiable and requires the verdict to flip. The tool was also mutation-tested six ways
+>   (always-fail, always-succeed, no link consumption, no type filtering, no stack expansion,
+>   no power check) and **every mutation is caught** — see memory `mutate-before-you-claim`.
+>
+> - 🔒 **SETTLED 2026-07-30 — the `.setup` naming is FINAL; do not re-edit or re-argue it.**
+>   Terrence: *"dont touch the setup file, we will be running tests against swi_a anyway."*
+>   The `stk_a` stack is **bugged** and **no stack tests are planned** — but crucially
+>   *"we can still run tests against swi_a + swi_b when they are connected, they just arent
+>   currently **stacked**."* So **`swi_b` (the second IE520) IS a legitimate link partner**, and
+>   the current naming is right: the scripts' `swi_a`↔`swi_b` demands are exactly what a
+>   DUT↔partner port test should ask for. The earlier worry that positional role assignment in
+>   `_setup_keys_for()` had made `swi_b` a semantically wrong partner **does not apply here**.
+>   Note `[stack]` is **inert** regardless: `Setup.__init__` only parses, and device objects are
+>   created only when a script calls `init_swi`/`init_stk` — no current script calls `init_stk`,
+>   so a declared-but-unformed stack is not a run-time hazard.
+> - ⚠️ **CORRECTION to an over-claim made earlier the same day.** It was stated here that the
+>   existing IE-to-IE cable "cannot be repurposed as a data link". **That was not established.**
+>   The evidence only showed (a) `no stackport` — which returns a stacking port to a network
+>   port — is documented for x240/x250/x908gen2/x908gen3/x950/xs900mx with **no IE5xx in the
+>   validity table** (and `ie560` is the only IE5xx in the reference at all, so IE520 stacking
+>   is simply **not covered** by the harvested docs — absence there is not absence on the
+>   device), and (b) `no stack <id> enable` is the wrong instrument because it **disables all
+>   ports** on the removed member, leaving it console-only. Neither shows that two **unstacked**
+>   IE520s cannot pass data over that cabling — and per Terrence they can.
+> - ➡️ **What actually unblocks Part 3b now: ONE `[portlink]` line, no rename.** Measured with
+>   `tool/pt_preflight.py` against the installed file plus a declared `swi_a-swi_b` data link:
+>
+>   | Bench shape (current naming) | Runnable |
+>   |---|---|
+>   | As installed (only `tb-swi_a`) | 0 / 3 |
+>   | **+ `swi_a-swi_b` declared** | **2 / 3** — T33233 autoneg + T33234 MDI/MDI-X |
+>   | + `swi_a-swi_c` as well | 3 / 3 (`3_Port_Fixed_port_test.py` also needs the AR4050S) |
+>
+>   ⏳ **Owed before that line can be written: the actual port numbers at each end** of the
+>   IE-to-IE cable. Unstacked, each unit numbers its own ports from `1.0.x`, so it is likely
+>   `port1.0.27`/`port1.0.28` on both — but a `[portlink]` must never be guessed (a wrong one is
+>   hardware-specific fabrication), so this stays open until confirmed.
+>
+> - ✅ **2026-07-30 (pm) — THE IE520s WERE DE-STACKED, THE BENCH IS CABLED, AND Part 3b IS
+>   2/3 RUNNABLE.** This entry supersedes every "stacked" / "0-of-3" claim above.
+>   - **Root cause of the "bugged out" stack, found by console survey:** both IE520s were
+>     provisioned into virtual chassis **3039** but their stackports were uncabled, so each
+>     saw the other as merely `Provisioned`. u4 ran as a standalone Active Master; **u5 was a
+>     `Disabled Master` in "failover mode" with all 26 front-panel ports `err-disabled`** —
+>     which is why newly-cabled links stayed down. It was never an interface-config problem:
+>     no config on u4 could have fixed a dead far end.
+>   - **Fix applied:** `no stackport` on both 27/28 ranges + `no stack virtual-mac` on both
+>     units, **`stack 2 renumber 1`** on u5 (`show stack` showed `Pending ID 1` as the docs
+>     describe), `write`, reboot both. Deliberately **NOT** `no stack <id> enable` — that
+>     err-disables every port and strands the unit on its console, i.e. the very state being
+>     cleaned up. Pre-change `running-config` of both units was captured first.
+>   - **Verified after reboot:** both units `Operational Status: Standalone unit`, stack ID 1,
+>     Active Master, **own MAC as the stack MAC (no virtual MAC)**; u5's ports renumbered
+>     `2.0.x → 1.0.x` and **zero `err-disabled`**. Links, both ends agreeing at `a-1000/a-full`:
+>     `port1.0.1` copper and `port1.0.7` fibre between swi_a and swi_b, plus `port1.0.23`
+>     (vlan1000, `connected`) to tb470 eth3.
+>   - **`[stack]` REMOVED from `tb470.setup`** and `swi_a-swi_b = port1.0.1-port1.0.1,
+>     port1.0.7-port1.0.7` added. Installed, parses clean, and round-trip verified by fetching
+>     it back (md5 `cd1e570c77e8614340b44dd4144579a7`). Prior versions kept as
+>     `tb470.setup.bak-2026-07-30b` (the stacked morning version) and `.bak-2026-07-30`.
+>   - **`tool/pt_preflight.py` against the installed file: 2/3 runnable** — T33233 autoneg and
+>     T33234 MDI/MDI-X both RUNNABLE. `3_Port_Fixed_port_test.py` is still un-runnable for a
+>     **different, open** reason: it also wants `swi_a`↔`swi_c` (the AR4050S), which has no
+>     data cabling. Pinned by `tests/test_pt_preflight.py::test_real_scripts_on_the_live_bench`.
+>   - ⚠️ **Two limits that could NOT be removed, and one live hazard:**
+>     **(a)** On the IE520, `port1.0.27/1.0.28` are **dedicated stackports** — `no stackport`
+>     was accepted and saved but the flag returned after reboot on the real member's ports
+>     (it stuck only on the absent member's phantom ports). Consistent with `stackport` being
+>     absent from ck.db's IE5xx validity table. **(b)** `stack virtual-chassis-id` has **no
+>     `no` form** at all (`no stack ?` offers only `<1-8>`, `all`,
+>     `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`), so both
+>     units still carry `stack virtual-chassis-id 3039`. **(c) ⇒ HAZARD: both units are now
+>     stack ID 1 sharing chassis-id 3039 with live stackports. DO NOT cable
+>     `port1.0.27/1.0.28` between them** — both would claim ID 1 and drop straight back into
+>     the duplicate-master / err-disabled state. Recorded in the `.setup` header.
+>   - 🔎 **Also corrected two of my own over-claims:** the copper pluggable mismatch
+>     (AT-SPTXc 1000BASE-T vs AT-SP10TM 10GBASE-TM) was flagged as likely not to link — it
+>     negotiates 1000/full fine; and "stackports cleared so they cannot stack" was wrong per
+>     (a) above.
+>   - 📌 **Management addresses are NOT stable:** swi_a's `vlan1` is **DHCP and moved across
+>     the reboot** (`10.38.215.3 → .6`), so any doc or script quoting a fixed swi_a management
+>     IP will rot — use the console. Separately, **both IE520s carry the same static
+>     `vlan1000 10.38.215.67/27`**; it only works because swi_b's `port1.0.23` has no
+>     pluggable (its vlan1000 is down). Cabling swi_b's 1.0.23 into that segment will collide.
+>
+> - 🧱 **2026-07-30 — TOPOLOGY PROFILES: the contract generated tests target instead of a
+>   bench. New spec `TOPOLOGY-PROFILES.md` + `tool/pt_profiles.py`.** Terrence's call, and it
+>   supersedes the "teach generation to read the `.setup`" idea floated earlier the same day —
+>   which was wrong, because a bench-reading generator **silently weakens a test to fit the
+>   hardware in front of it** (a 3-switch test generated against a 2-switch bench goes green,
+>   and the loss is unfalsifiable). Generation targets a **contract**; a contract is not a bench.
+>   - **Split:** generation declares the *profile* a test needs and never reads a `.setup`; a
+>     bench declares the profiles it *implements*, in its own `[misc]`; `pt_profiles.py`
+>     **matches** them and emits a shopping list. Nothing may edit a requirement to fit a fact.
+>   - **Profiles, not one monolith** — "one canonical topology" accretes (copper/fibre/10G/PoE/
+>     hub/traffic-gen/heat-chamber) until nothing satisfies it. Claimable in pieces, so partial
+>     conformance is the normal case. Defined: `base`, `fibre`, `tblink`, `stack`.
+>   - **Roles name LINKS, not devices** — a role is a (device, link, media) triple, because one
+>     device fills two roles over two cables (tb470's `swi_b` is both copper `port1.0.1` and
+>     fibre `port1.0.7`). `[misc] ck_link_copper = swi_a-swi_b:port1.0.1`; the `:port` suffix
+>     disambiguates which of several links between a pair is meant. **This replaced a live
+>     false-green risk:** `init_portlink` takes the first unused match, so MDI/MDI-X bound
+>     copper *only because copper was listed first* in the value.
+>   - **`stack` is NOT `base`+1 device** — stacking renames every port (`1.0.x`→`N.0.x`), which
+>     leaks into portlinks, fragments and every literal. Proven live: u5's ports read `2.0.x`
+>     stacked, `1.0.x` after.
+>   - **Capabilities are HARDWARE-VERIFIED claims** (`ck_cap_swi_b = polarity`), never derived
+>     from ck.db: `polarity` is documented for 29 products **not** including `ie520`, yet both
+>     tb470 IE520s support it (console-verified). Docs absence = UNKNOWN, not unsupported.
+>   - ⚠️ **Documented limitation — media is NOT machine-verified, and no offline checker can
+>     fix it.** Copper and fibre are both `port1.0.x`, so pointing `ck_link_copper` at a fibre
+>     port *passes*. Worse, media is a property of the **pluggable**, swappable in seconds
+>     without touching any file — it already differs in the same port number across this bench
+>     (u4 `port1.0.1` 1000BASE-T vs u5 10GBASE-TM). And the **CLI is media-blind**: on the
+>     1000BASE-SX port, `speed ?` still offers `10…400000` and `duplex ?` still offers `half`.
+>     So a speed matrix bound to fibre records *"DUT failed to set speed 100"* — a false failure
+>     blamed on the product — and `polarity` on fibre is a silent no-op. `ck_link_copper` is
+>     **intent, not a guarantee**; the real guard is a run-time pluggable assertion in the
+>     script. Pinned by `test_media_is_NOT_verified_and_the_spec_says_so`.
+>   - **tb470 now claims `base, fibre, tblink` and is verified to implement all three;
+>     `stack` correctly reports NOT implemented.** Script-level preflight unchanged at 2/3.
+>   - **Tests: 23 in `tests/test_pt_profiles.py`** (gate 639→662 with the preflight split).
+>     Every conformance assertion is paired with a bench mutation that must break it — all six
+>     tried (drop capability / drop role / uncabled pair / non-endpoint port / undeclared
+>     device / unclaimed profile) are caught, plus unknown-profile. A **doc↔code drift guard**
+>     asserts the spec table and `PROFILES` list identical names; mutation-verified by adding a
+>     profile to the code only, which fails the gate.
+>
+> - 🔌 **2026-07-30 — the run-time MEDIA assertion, `tool/pt_media.py` (31 tests).** Closes the
+>   half of the media problem no offline checker can reach. A generated script reads
+>   `show interface <port> status` for the port it just bound, and `assert_role_media(out,
+>   port, 'copper')` returns a verdict whose message **names the bench as the cause, not the
+>   product** — the whole point, since the failure it prevents looks exactly like a DUT defect.
+>   - Parses the `Type` column by **column slice off the header**, not `split()` — an empty
+>     cage reports the two-word `not present`, which a token split reads as `"present"`.
+>   - Classifies to `twisted_pair` / `fibre` / `direct_attach` / `absent` / `unknown`, and
+>     **refuses `unknown` instead of assuming copper**: guessing the common case is precisely
+>     how you produce a confident wrong verdict. `direct_attach` (twinax `BASE-CR`/`BASE-CX`)
+>     is deliberately NOT twisted pair — electrically copper, but no MDI/MDIX concept, so
+>     lumping it in would reintroduce the bug in a new shape.
+>   - **Every fixture is real captured output** from both tb470 IE520s, and the parser was
+>     re-validated against the raw untouched capture (not the hand-transcribed fixtures) across
+>     all four ports: `1000BASE-T`, `10GBASE-TM`, `1000BASE-SX` ×2 — correct classification and
+>     correct role verdict in every case. The `1000BASE-T` vs `10GBASE-TM` pair sits on the
+>     **same port number** on the two units, which is the standing proof that media cannot be
+>     inferred from a port name or a file.
+>   - ✅ **WIRED into generation 2026-07-30** (see the next entry).
+>   - 📌 **Settled while doing it:** "feed generation the available devices from the `.setup`"
+>     was raised again and is still the wrong shape — under the contract generation emits
+>     **role references**, so it never needs to know a bench's devices. The lookup belongs in
+>     the *script* at run time (`setup.get_all_misc()` → `ck_role_dut` / `ck_link_copper`),
+>     which is also exactly where the concrete port — and therefore the media check — becomes
+>     available.
+>
+> - 🔗 **2026-07-30 — GENERATION now emits the contract, and binds ONLY what it uses.**
+>   Both halves of the producing side, 26 tests in `tests/test_media_assertion_wiring.py`.
+>   Gate 693 → 719.
+>   - **Emitted.** The port-link step is no longer a FILL slot. `init()` resolves the DUT from
+>     `misc.get('ck_role_dut', 'swi_a')` and binds its one link through the fixed-frame
+>     `self._ck_bind_link(setup, dut, misc, '<role>')`, which resolves `ck_link_<role>` on
+>     THIS bench, refuses a `(None, None)` portlink, and asserts the bound port's media. Role
+>     from `_detect_link_role` — defaults to `copper`, fibre wording detected. That default is
+>     safe rather than a guess: a wrong role cannot produce a wrong verdict, because the
+>     assertion stops the run and blames the bench.
+>   - **Shipped.** `files[MEDIA_HELPER_NAME] = _media_helper_source()` on every run, read from
+>     `tool/pt_media.py` so the testbox executes byte-identically what the tests cover. Guarded
+>     three ways: source identity, filename-vs-`import` agreement (two strings that could
+>     drift), and the module importing only `re`/`typing` so it stands alone off-repo. A wrong
+>     path raises instead of silently shipping nothing.
+>   - **MINIMALITY — the over-declaration root cause is now structural, not advisory.** The
+>     device set was decided at render time, before any body existed, from the selected
+>     fragments' variable vocabulary — so it could only ever over-bind (T33235: 4 devices
+>     bound, 1 used). Fixed by making the device set a CONSEQUENCE of the topology: **one link
+>     ⇒ exactly one partner, and the partner IS that link's far end**, so there is no second
+>     `init_swi()` to over-declare with (`init_swi(` now appears once). Extras are dropped and
+>     named in a `# NOT BOUND:` comment that says how to legitimately get another — declare a
+>     second link role, do not guess a device. Console-only cases keep one positional partner.
+>   - **The lint that makes dropping safe rather than reckless:** `self.linkP.cmd(...)` is
+>     valid Python and compiles, so a dropped-but-needed device would surface as
+>     `AttributeError` mid-bench-slot. A body using a device `init()` never bound is now an
+>     ERROR, catching both access shapes (`self.testSet.<dev>`, `self.<dev>.cmd`) and handling
+>     tuple-unpacked binds. Verified to produce **no false positives on what generation emits**
+>     — a frame failing its own lint would block every case.
+>   - 📌 **Scope of the media check, agreed with Terrence:** it matters only where the test
+>     asserts media-dependent behaviour (speed/duplex/MDI-X/autoneg; later PoE and TDR, also
+>     copper-only). Most cases do not care, so `needs_portlink` rendering no binding for them
+>     is acceptable — and self-correcting, since a body that does read a port attribute without
+>     a binding is an error.
+>   - ⏳ **Still open:** nothing regenerated — the three scripts in the tree are the old
+>     artifacts and preflight is still 2/3. Regenerating T33235 under the new frame is the
+>     experiment that would show whether this closes it. Separately, step `kind`
+>     misclassification (`PLAN-permutation-expander.md`) is untouched and is what actually
+>     made T33234 grade 10/10 bad.
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
@@ -472,14 +735,17 @@ ART runs depend on host-side config files that our tool does NOT generate — th
   `/home/st-art/framework` — that dir has no `configs/` at all. The real location is
   **`/home/st-art/st-art/configs/`** (473 `.setup` files). Every `configs/<hostname>.setup`
   reference above should be read against that path.
-- **State on tb470 now (CORRECTED 2026-07-29):** `configs/tb470.setup` exists and, as of
-  2026-07-29, describes the VERIFIED real bench — `swi_a`=AT-IE520-28GSX (DUT, /dev/u4),
-  `swi_b`=AR4050S-5G (/dev/u1), `swi_c`=x230-10GP (/dev/u0 @9600). It was previously the
-  worked-example placeholder (x930/AR4050S/x530); that content is preserved as
-  `tb470.setup.bak-2026-07-29`. `tb470.cfg` also exists (0 B, empty). See the status header
-  at the top of this doc for the full device map, NIC mapping, and the PDU-IP /
-  inter-switch-cabling TODOs. The tool still generates the test SCRIPT only; the
-  `.setup`/`.cfg` are environment inputs and are now present and correct.
+- **State on tb470 now (CORRECTED 2026-07-30):** `configs/tb470.setup` exists and describes
+  the VERIFIED real bench. **Device roles were RENAMED on 2026-07-30** when the two IE520s
+  were stackport-cabled — `swi_a`+`swi_b` are now the two IE520 stack members, and the
+  AR4050S/x230 moved to `swi_c`/`swi_d`. See the rename table in the status header at the top
+  of this doc; **do not use the 2026-07-29 names** (`swi_b`=AR4050S, `swi_c`=x230), which
+  survive only in dated log entries. Earlier content is preserved as
+  `tb470.setup.bak-2026-07-30` (the 3-device 07-29 version) and `tb470.setup.bak-2026-07-29`
+  (the original x930/AR4050S/x530 worked-example placeholder). `tb470.cfg` also exists
+  (0 B, empty). The PDU-IP and inter-switch-cabling TODOs are now CLOSED (both answered
+  2026-07-30). The tool still generates the test SCRIPT only; the `.setup`/`.cfg` are
+  environment inputs and are now present and correct.
 - **`.setup` schema + a real worked example: `SETUP-FILE-REFERENCE.md`** (2026-07-28d).
   Authoring `tb470.setup` no longer requires reverse-engineering the format. Note in
   particular that `[stack]`, `[configured_stackport]` and `[portlink] tb-swi_X` DECLARE

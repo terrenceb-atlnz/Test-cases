@@ -524,19 +524,24 @@ def test_duplicate_portlink_binding_is_a_lint_error():
     assert not {k: v for k, v in binds2.items() if len(v) > 1}, "false positive on distinct attrs"
 
 
-def test_self_assignments_precede_the_portlink_slot():
-    """Designed out rather than warned about. The FILL slot used to sit ABOVE the
+def test_self_assignments_precede_the_link_binding():
+    """Designed out rather than warned about. The port-link step used to sit ABOVE the
     `self.<dev> = <dev>` block, so a model that read ahead wrote `self.dut.portA` and
     crashed with AttributeError — twice, despite the slot saying "not self.". Assigning
-    first makes BOTH spellings valid and removes the trap."""
+    first makes BOTH spellings valid and removes the trap.
+
+    The link step is no longer a FILL slot (2026-07-30): it is a deterministic
+    `self._ck_bind_link(...)` call, which is what the ordering now has to follow. The
+    invariant is unchanged — only the marker moved."""
     src = SKELETON.read_text()
     m = re.search(r"def init\(self.*?def configure", src, re.S)
     assert m, "init() not found"
     body = m.group(0)
     assign = body.index("self.tb = tb")
-    slot = body.find("init_portlink")
-    assert slot > assign, (
-        "the portlink FILL slot precedes the self.<dev> assignments again — a model that "
+    bind = body.find("_ck_bind_link")
+    assert bind != -1, "init() no longer binds the link through _ck_bind_link"
+    assert bind > assign, (
+        "the link binding precedes the self.<dev> assignments again — a model that "
         "uses the attribute form there produces an AttributeError at init")
 
 

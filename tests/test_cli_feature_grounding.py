@@ -311,8 +311,11 @@ def test_skeleton_binds_devices_and_never_names_a_port():
             "verify": "show ecofriendly shows lpi", "kind": "verify"}]
     sk = pc._render_skeleton("AWPTCM-T99999", "probe", seq, [], [])
 
-    # lookups use .setup keys, not role names
-    assert "init_swi('swi_a')" in sk
+    # Lookups use .setup KEYS, never role names. Since 2026-07-30 the DUT's key comes from
+    # the bench's role contract (`[misc] ck_role_dut`) rather than a positional literal, with
+    # the corpus-standard `swi_a` as the fallback — so the script binds correctly on any
+    # conforming bench without naming a device. See TOPOLOGY-PROFILES.md.
+    assert "misc.get('ck_role_dut', 'swi_a')" in sk
     assert "init_swi('dut')" not in sk and "init_swi('lp')" not in sk
     # and no literal port name is seeded anywhere
     assert not re.search(r"""['"][^'"\n]*\bport\d+\.\d+\.\d+\b[^'"\n]*['"]""", sk), \

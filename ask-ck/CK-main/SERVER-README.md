@@ -526,6 +526,25 @@ MDI/MDI-X forced-polarity negative path (14 steps → 9).
    `TestCase_<n>` **per verification step** (each with the three `testCase*` attrs, a
    `main()` carrying the mandatory **logging contract**, and a per-case `tear_down()`),
    and the `__main__` footer.
+   **Topology contract + minimality (2026-07-30).** `init` no longer names devices or leaves
+   the port link to a FILL slot. It resolves the DUT from the bench's own role contract
+   (`misc.get('ck_role_dut', 'swi_a')`, read from the `.setup`'s `[misc]` at run time) and
+   binds its single link through the fixed-frame `self._ck_bind_link(setup, dut, misc,
+   '<role>')`, which resolves `ck_link_<role>` on that bench, refuses a `(None, None)`
+   portlink, and **asserts the bound port's media** via a shipped `ck_media.py`. Generation
+   itself still reads **no** bench file — it targets the contract, because a bench-reading
+   generator would silently weaken a test to fit the hardware present. Spec:
+   `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`; checker `tool/pt_profiles.py`; script-level
+   check `tool/pt_preflight.py`.
+   **Minimality:** the bound device set is now a *consequence* of the topology — one link ⇒
+   exactly one partner, and the partner **is** that link's far end, so there is no second
+   `init_swi()` to over-declare with. Names inferred from the selected fragments' vocabulary
+   beyond that are dropped with a `# NOT BOUND:` comment. Previously the device set was fixed
+   at render time, before any body existed, so it could only over-bind (T33235 bound 4 devices
+   and 2 links while referencing 1 of each, which made the script demand cabling for nothing).
+   Two lints enforce it: a direct `setup.init_portlink()` outside the helper is an **error**
+   (it skips the media assertion), and using a device `init()` never bound is an **error**
+   (`self.linkP.cmd(...)` compiles, then dies with `AttributeError` mid-bench-slot).
    **Objective header (2026-07-29):** the refined case objective is rendered into the skeleton
    as a `# ==== OBJECTIVE ====` comment block (`_objective_comment_lines` in `pytest_create.py`),
    so it rides into **both** the generated `.py` artifact and — because the Generate prompt

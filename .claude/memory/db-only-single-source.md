@@ -8,7 +8,15 @@ metadata:
   modified: 2026-07-20T20:30:27.143Z
 ---
 
-Terrence holds a firm product principle: **Ask-CK must be a stand-alone product with a single source of truth.** All corpus/reference lookups at runtime go to `ask-ck/var/ck.db` and NOWHERE else — no parallel JSON reads, no divergent second source. `ck.db` being gitignored is correct (it's a *derived, rebuildable cache* — `python3 tool/build_db.py --fresh` regenerates it byte-identically from tracked source exports; committing a 393 MB binary that rebuilds from inputs would bloat history and can't diff/merge). The LLM endpoint (`vllm.ai.atlnz.lc`) is NOT an "external dependency" — it's the tool's core function, scoped in. Unplanned inter-dependencies (like the huggingface model-load ping) ARE unwanted and were removed. See [[pending-approved-plans]].
+> ⚠ **PARTLY SUPERSEDED — read [[db-is-permanent-source]] first.** The DB-only *runtime*
+> invariant below still holds and is guarded. But the gitignore/"rebuildable cache" reasoning in
+> the next paragraph was **reversed on 2026-07-20**: `ck.db` is now the permanent single source
+> of truth, built ONCE, **committed via Git LFS and NOT gitignored**, with the rebuild path
+> removed. Struck through below rather than deleted, because the argument is why the decision
+> needed making. (Banner added 2026-07-30 — the newer memory pointed here, but nothing pointed
+> forward, so this file read as current if you found it first.)
+
+Terrence holds a firm product principle: **Ask-CK must be a stand-alone product with a single source of truth.** All corpus/reference lookups at runtime go to `ask-ck/var/ck.db` and NOWHERE else — no parallel JSON reads, no divergent second source. ~~`ck.db` being gitignored is correct (it's a *derived, rebuildable cache* — `python3 tool/build_db.py --fresh` regenerates it byte-identically from tracked source exports; committing a 393 MB binary that rebuilds from inputs would bloat history and can't diff/merge).~~ **← REVERSED, see the banner.** The LLM endpoint (`vllm.ai.atlnz.lc`) is NOT an "external dependency" — it's the tool's core function, scoped in. Unplanned inter-dependencies (like the huggingface model-load ping) ARE unwanted and were removed. See [[pending-approved-plans]].
 
 **PLAN-db-only-search Phase 1 EXECUTED 2026-07-20 (uncommitted; Terrence commits himself).** Runtime is now strictly DB-only:
 - `data.py load_all_data()`: 5 references repointed to db.* getters — `zephyr_master`→`db.get_target_cases()` (shape parity confirmed: identical 410 records, DB is superset adding issues/attachments), `candidates`/`candidates_dict`→`db.all_candidates()`, `decisions`→`db.get_decisions()`, `framework_surface`/`scripts_index_meta`→`db.get_json_doc(...)`. Deleted now-dead `load_json_safe`/`load_json_abs` + `json`/`os`/`BASE` imports.

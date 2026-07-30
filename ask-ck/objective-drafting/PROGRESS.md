@@ -2,7 +2,71 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-29c (by Claude)
+**Last Updated**: 2026-07-30 (by Claude)
+
+## Latest session (2026-07-30) — tb470 de-stacked and cabled, and generation now targets a TOPOLOGY CONTRACT
+
+**Focus: make Part 3b actually runnable, and fix the reason it wasn't.** Started as
+".setup housekeeping", turned into a hardware fix plus the biggest change to generation since
+the skeleton landed. Gate **612 → 719** pytest (+92 Vitest unchanged). Nothing regenerated yet.
+
+- **`tb470.setup` COMPLETE, and the bench is genuinely different.** Terrence supplied the PDU
+  (`10.36.150.14`, outlets **8**/**6** — the front-panel letters H/F are labels only; `Setup.py`
+  does `int()` on that field) and cabled the two IE520s together. Roles were renamed on his
+  call: **IE520s = `swi_a`/`swi_b`, AR4050S → `swi_c`, x230 → `swi_d`**. ⚠️ `swi_b` therefore
+  binds a *different device* than it did on 07-29 — an older script's `init_swi('swi_b')`
+  silently gets the second IE520. See memory `tb470-topology-and-setup`.
+- **The "bugged out" stack was a SPLIT stack, and the fix was hardware, not config.** Both
+  IE520s were provisioned into virtual chassis 3039 with uncabled stackports, so u5 became a
+  **`Disabled Master`** in failover mode with **all 26 front-panel ports `err-disabled`** —
+  which is why newly-cabled links stayed down. De-stacked both (`no stackport`,
+  `no stack virtual-mac`, `stack 2 renumber 1`, reboot); both now report
+  `Operational Status: Standalone unit` and **both links are up at 1000/full** (copper
+  `port1.0.1`, fibre `port1.0.7`). ⚠️ **Do not cable 27/28 between them** — IE520 stackports are
+  dedicated and `stack virtual-chassis-id` has no `no` form, so both are ID 1 in one chassis and
+  a stackport link would recreate the duplicate-master state. Full detail in `TESTBOX-ACCESS.md`
+  §4a.
+- **`tool/pt_preflight.py` — offline "can this bench run this script?".** Built because
+  `Setup.init_portlink()` returns **`(None, None)`** for an undeclared link, and the skeleton
+  unpacks that into port attributes: on `3_Port_Fixed_port_test.py` every TestCase then dies on
+  `portA.name`, reading as a *script* defect when the cause is *cabling*. It found **0/3**
+  Port (7) scripts runnable; after the new `swi_a-swi_b` links, **2/3**. The last one wants
+  `swi_a`↔`swi_c` (AR4050S, uncabled) — but that demand is a generation artifact, see below.
+- **Topology profiles: generation targets a CONTRACT, never a bench** (`TOPOLOGY-PROFILES.md`,
+  `tool/pt_profiles.py`). Terrence rejected feeding generation the bench's device list, and he
+  was right: it would silently *weaken* a test to fit the hardware present, and a false green is
+  unfalsifiable. So generation declares the **profile** it needs, a bench declares in its own
+  `[misc]` what it **implements**, and the checker matches. Profiles are claimable in pieces
+  (`base`/`fibre`/`tblink`/`stack`) because one monolithic topology accretes until nothing
+  satisfies it. **Roles name LINKS, not devices** — tb470's `swi_b` is both the copper and the
+  fibre partner over different cables. tb470 implements `base, fibre, tblink`; `stack` correctly
+  reports not implemented.
+- **The media trap this closes.** MDI/MDI-X is copper-only, the framework's `type1='port'`
+  filter cannot tell copper from fibre (both are `port1.0.x`), and **the CLI is media-blind** —
+  on the 1000BASE-SX port `speed ?` still offers `10…400000` and `duplex ?` still offers `half`.
+  So the old `swi_a-swi_b = port1.0.1-…, port1.0.7-…` bound copper *only because copper was
+  listed first*: one comma-order edit from setting `polarity mdix` into the void and reporting a
+  confident green. `tool/pt_media.py` asserts media at run time from the pluggable — the only
+  guard that survives someone swapping an SFP (u4 `port1.0.1` is 1000BASE-T, u5's is 10GBASE-TM).
+- **Generation now emits the contract AND binds only what it uses.** `init()` resolves the DUT
+  from `ck_role_dut` and binds its one link through fixed-frame `_ck_bind_link` (resolves the
+  role, refuses a `(None, None)` link, asserts media); `ck_media.py` ships with every run from
+  `tool/pt_media.py`. **Minimality:** the device set is now a *consequence* of the topology —
+  one link ⇒ one partner, and the partner **is** that link's far end, so no second `init_swi()`
+  exists to over-declare with (T33235 bound 4 devices and used 1). Extras are dropped with a
+  `# NOT BOUND:` comment. Two lints enforce it: a direct `init_portlink()` outside the helper is
+  an error, and using a device `init()` never bound is an error.
+- **Corrections worth carrying:** ck.db's CLI reference absence means **UNKNOWN, not
+  unsupported** (`polarity` isn't listed for `ie520`; the device supports it). And two of my own
+  over-claims were retracted — the copper/10G module mismatch links fine, and `no stackport` did
+  *not* clear the real member's dedicated stackports.
+- **Pending / not done:** nothing regenerated, so preflight is still 2/3 and the three scripts
+  in the tree are pre-change artifacts. Regenerating T33235 under the new frame is the
+  experiment that tests whether over-declaration was the bottleneck. Step **`kind`
+  misclassification** (`PLAN-permutation-expander.md`) is untouched and is what actually made
+  T33234 grade 10/10 bad — though the partner is now a bound, contract-resolved device, so
+  partner-side `polarity` is finally available as the automatable substitute for the faked cable
+  swap.
 
 ## Latest session (2026-07-29c) — objective→Generate (Thread B), Part 3b unblocked, model-matrix judging
 
