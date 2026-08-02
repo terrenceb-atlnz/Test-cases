@@ -164,6 +164,23 @@ pip install -r ask-ck/CK-main/requirements.txt
 Started). If using a real LLM provider you may need additional packages such as `litellm`
 or the official SDK.
 
+**Two runtime deps exist because their absence FAILS POLITELY** — the feature switches off and
+the symptom points somewhere else, so neither had a failing test until 2026-08-03:
+
+- **`paramiko`** — `pt_exec.py`'s SSH/SFTP runner, used since the testbox-execution feature
+  landed but declared in no requirements file. `import paramiko` sits inside `_connect()`, so
+  the server boots, every other tool works, and the profile probe answers
+  `{"ok": false, "detail": "SSH connection failed: No module named 'paramiko'"}` — which reads
+  as a testbox/network fault. On a fresh venv the entire **6. Run** step was dead.
+- **`fissix`** — the maintained fork of `lib2to3`, which Python **3.13 removed from the
+  stdlib**, i.e. the version this project asks you to prefer. Without it the D3 py2→py3 fragment
+  translation returns `status: "unavailable"` and legacy fragments ship untranslated behind a
+  soft-warn, silently. `pytest_create._py2_refactor_backend()` prefers stdlib `lib2to3` where it
+  still exists and falls back to `fissix`.
+
+`tests/test_dependencies_declared.py` now asserts every third-party import in `CK_server/` is
+declared, so the next one cannot hide the same way.
+
 ## Running the Server
 
 The easiest way is the root `run.sh` (a thin wrapper that forwards to the real
@@ -290,6 +307,32 @@ user through one seat (a subscription-terms problem). Legacy `claude_code` confi
 deserialize and are mapped to `claude_agent` when restored in the UI. For a genuine
 multi-user *server* that isn't per-user, use the Anthropic **API** (`api_key`), which is
 licensed for that; the code path exists though it isn't surfaced in the UI.
+
+It **is** the only headless Opus path — `claude_agent` needs a browser session and 502s from a
+script — so it is what batch/scripted runs use. That made it the first mode to be exercised on
+large artefacts, which exposed four things about the transport (all fixed 2026-08-03, see
+`llm._call_claude_code_headless`):
+
+- **`claude -p` is an agentic coding CLI, not a completion endpoint.** Invoked bare it has tools
+  and loops. A 65k-token generate prompt consumed **2,670,565 input tokens over 23 minutes for
+  $4.65 and returned an empty result** with `is_error: false` — surfaced as the misleading
+  `502 "LLM returned no python code block."` Now always `--tools ""`.
+- **`--output-format stream-json`, and every `assistant` text block is concatenated.** The
+  `json` format's `result` field carries only the FINAL assistant message, so a long answer
+  loses its *head* and what arrives is a mid-class tail that lints as an `IndentationError`.
+- **The caller's `system` message is passed** (`--append-system-prompt`); it used to be dropped
+  entirely on this path, so the CLI transport alone ran unsteered.
+- **Thinking is capped, on long calls only.** Thinking shares the output budget with the answer
+  and can consume nearly all of it. But passing `--max-thinking-tokens` at all *enables*
+  extended thinking (2,242ms → 16,426ms on a trivial prompt), so applying it unconditionally
+  timed out the health ping. `llm._is_long_call()` is the single predicate deciding this and the
+  whole-response timeout floor, so the two cannot disagree.
+
+⚠️ **Generation has a hard output ceiling of roughly 9–20 `TestCase` classes**, because the
+32,000-token cap is shared with thinking and the thinking flag bounds one *block* not the total.
+Above it a script truncates **without erroring**, sometimes on a statement boundary so it parses
+cleanly while silently testing less than it claims. `_size_overflow()` now gates this before the
+call. Full measurements: `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
 
 ### Grok CLI Subscription Mode (SuperGrok / X Premium+)
 

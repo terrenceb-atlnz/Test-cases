@@ -1,0 +1,19 @@
+# The 10 "Not Executed" AWPTCM cases Terrence supplied on 2026-07-30 for end-to-end
+# objective + refined-case + pytest generation. Titles are recorded here because the
+# case keys alone say nothing about what the batch covers, and the group spread
+# (IPv4 / Management / Switching) is what the topology demands follow from.
+#
+# All 10 are sparse by design — 6 have NO objective at all and 8 have no steps text;
+# only the title and the three corpora carry information. That is the input this
+# pipeline exists for, not a data problem to fix first.
+#
+AWPTCM-T43868   # (44)  IPv4_SNMP - SNMP v1
+AWPTCM-T43869   # (45)  IPv4_SNMP - SNMPv2c
+AWPTCM-T43870   # (46)  IPv4_SNMP - SNMPv3
+AWPTCM-T44297   # (261) Management_LLDP - LLDP-TLV
+AWPTCM-T33277   # (134) Switching_STP - RSTP (IEEE 802.1w)
+AWPTCM-T33302   # (143) Switching_VLAN - Port VLAN
+AWPTCM-T33303   # (144) Switching_VLAN - IEEE802.1Q Tag
+AWPTCM-T33304   # (145) Switching_VLAN - Multiple VLAN (Private VLAN)
+AWPTCM-T44296   # (259) Management_LLDP - LLDP
+AWPTCM-T35370   # (30)  IPv4_DHCPClient - DHCP Extended ID

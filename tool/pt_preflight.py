@@ -290,6 +290,43 @@ def _binder_of(call: ast.Call) -> Optional[str]:
     return name if name in BINDERS or name == "init_portlink" else None
 
 
+def _contract_role(call: ast.Call) -> Optional[str]:
+    """Role from a TOPOLOGY-CONTRACT binding: `init_swi(misc.get('ck_role_dut', 'swi_a'))`.
+
+    WHY THIS EXISTS
+    ---------------
+    Generation deliberately stopped naming devices (2026-07-30, TOPOLOGY-PROFILES.md): the DUT
+    is resolved from the bench's own `[misc] ck_role_dut` at RUN time, so one script binds
+    correctly on any bench that implements the roles. Preflight, written the same day, could
+    only resolve a LITERAL role — so every script written to the new contract fell into the
+    "non-literal role" branch, and with no device bound, every link demand against it became
+    unresolvable.
+
+    The damage was not just lost coverage: the verdict printed
+    `VERDICT: UN-RUNNABLE (0/2 links satisfiable)`, which reads as a definite NO. The truth was
+    "cannot determine". A confident wrong negative is worse than an admitted unknown here,
+    because the whole purpose of this tool is to decide whether to spend bench time.
+
+    Reading the literal DEFAULT is sound rather than a guess: the generated frame is fixed and
+    always emits `misc.get('<key>', '<default>')`, and the default is the role name the
+    contract specifies. `check_script` additionally prefers the bench's OWN value for the key
+    when the `.setup` declares one, so a bench that renames its roles is still checked
+    correctly.
+    """
+    f = call.args[0] if call.args else None
+    if not isinstance(f, ast.Call):
+        return None
+    # ...get('ck_role_dut', 'swi_a')
+    if not (isinstance(f.func, ast.Attribute) and f.func.attr == "get"):
+        return None
+    if len(f.args) < 2:
+        return None
+    key, default = _const_str(f.args[0]), _const_str(f.args[1])
+    if not key or not key.startswith("ck_role_") or not default:
+        return None
+    return default
+
+
 def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
     """Extract device bindings, link demands and power demands via AST.
 
@@ -315,6 +352,8 @@ def parse_script(text: str, path: Optional[Path] = None) -> ScriptDemands:
             role = TB
         else:
             role = _const_str(node.value.args[0]) if node.value.args else None
+            if role is None:
+                role = _contract_role(node.value)
             if role is None:
                 d.warnings.append(
                     f"line {node.lineno}: {binder}() called with a non-literal role — "

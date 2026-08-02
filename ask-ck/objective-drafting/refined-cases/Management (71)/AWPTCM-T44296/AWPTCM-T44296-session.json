@@ -1,0 +1,585 @@
+{
+  "key": "AWPTCM-T44296",
+  "primary": {
+    "m": "AWP-5512",
+    "c": "med",
+    "w": "show lldp (neighbor info)"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:07:46.565629+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-5512",
+        "title": "Command Line Handler: show lldp",
+        "justification": "Primary match: the 'show lldp' / 'show lldp interface' command handler case named by the decision \u2014 current and default LLDP settings",
+        "order": 0
+      },
+      {
+        "id_or_key": "AWP-5518",
+        "title": "Command Line Handler: sh lldp neighbors interface",
+        "justification": "Neighbor-information display path ('show lldp neighbors' and per-interface variant) that the case's 'neighbor info' wording points at",
+        "order": 1
+      },
+      {
+        "id_or_key": "AWP-5517",
+        "title": "Command Line Handler: show lldp neighbors detail interface",
+        "justification": "Detailed neighbor output ('show lldp neighbors detail [interface]') \u2014 the per-TLV verification depth for the same reporting surface",
+        "order": 2
+      },
+      {
+        "id_or_key": "AWP-5515",
+        "title": "Command Line Handler: show lldp interface",
+        "justification": "Interface-scoped 'show lldp interface' config/settings display; supplies the if-range argument coverage for the primary command",
+        "order": 3
+      },
+      {
+        "id_or_key": "AWP-5513",
+        "title": "Command Line Handler: show lldp statistics",
+        "justification": "'show lldp statistics' counters \u2014 the companion reporting command whose output format and global/per-port split mirror the primary case",
+        "order": 4
+      },
+      {
+        "id_or_key": "AWP-5506",
+        "title": "Command Line Handler: lldp run",
+        "justification": "'lldp run' enable/disable \u2014 the precondition step and the negative path where show output must reflect LLDP disabled",
+        "order": 5
+      },
+      {
+        "id_or_key": "AWP-5500",
+        "title": "Command Line Handler: clear lldp table",
+        "justification": "'clear lldp table' \u2014 negative/empty-table path: after clearing, neighbor info must be gone from the show output",
+        "order": 6
+      },
+      {
+        "id_or_key": "AWP-5547",
+        "title": "Enabled LLDP on a port to receive only",
+        "justification": "Receive-only port with a real neighbor connected, verified via 'sh lldp neighbor' and 'sh lldp statistics' \u2014 happy-path setup that actually populates the neighbor info",
+        "order": 7
+      }
+    ],
+    "backfilled": false
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:08:00.811403+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T9724",
+        "title": "Command Line Handler: show lldp",
+        "justification": "Direct external counterpart of the primary decision AWP-5512 'show lldp' \u2014 same command, same Command Line Handler style",
+        "order": 0
+      },
+      {
+        "id_or_key": "AWPTCM-T9729",
+        "title": "Command Line Handler: show lldp neighbors detail interface",
+        "justification": "Counterpart of confirmed AWP-5517 'show lldp neighbors detail interface' \u2014 neighbor-info display, same folder/style",
+        "order": 1
+      },
+      {
+        "id_or_key": "AWPTCM-T9730",
+        "title": "Command Line Handler: sh lldp neighbors interface",
+        "justification": "Counterpart of confirmed AWP-5518 'sh lldp neighbors interface' \u2014 per-interface neighbor info",
+        "order": 2
+      },
+      {
+        "id_or_key": "AWPTCM-T9727",
+        "title": "Command Line Handler: show lldp interface",
+        "justification": "Counterpart of confirmed AWP-5515 'show lldp interface' \u2014 sibling show-command coverage",
+        "order": 3
+      },
+      {
+        "id_or_key": "AWPTCM-T9725",
+        "title": "Command Line Handler: show lldp statistics",
+        "justification": "Counterpart of confirmed AWP-5513 'show lldp statistics' \u2014 sibling show-command coverage",
+        "order": 4
+      },
+      {
+        "id_or_key": "AWPTCM-T9718",
+        "title": "Command Line Handler: lldp run",
+        "justification": "Counterpart of confirmed AWP-5506 'lldp run' \u2014 the enable step any show-lldp neighbor test depends on",
+        "order": 5
+      },
+      {
+        "id_or_key": "AWPTCM-T47624",
+        "title": "CLI: show lldp neighbors detail",
+        "justification": "Modern (5.5.6-0) 'CLI: show lldp neighbors detail' \u2014 same neighbor-info intent with current-release output expectations",
+        "order": 6
+      },
+      {
+        "id_or_key": "AWPTCM-T47623",
+        "title": "CLI: show lldp local-info",
+        "justification": "Modern 'CLI: show lldp local-info' \u2014 paired show-output verification alongside neighbor info",
+        "order": 7
+      }
+    ],
+    "backfilled": false
+  },
+  "step3": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:08:35.501376+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "1332.1001.8",
+        "title": "Check that the information contained in the LLDP frames are consistent with the CLI",
+        "justification": "Direct hit: verifies the information in received LLDP frames matches what the CLI reports \u2014 exactly the show lldp / show lldp neighbors [detail] reporting surface named by AWP-5512, AWP-5517 and AWPTCM-T47624",
+        "order": 0
+      },
+      {
+        "id_or_key": "1341.1001.6835",
+        "title": "This test checks the maximum number LLDP neighbours that can be supported on the switch",
+        "justification": "Scaling/edge case for the neighbor table the show output renders: maximum LLDP neighbours the switch can hold, which stresses show lldp neighbors and its per-interface variant (AWP-5518 / AWPTCM-T9730)",
+        "order": 1
+      },
+      {
+        "id_or_key": "1332.1001.7",
+        "title": "This test checks the maximum number neighbours that can be supported on the switch",
+        "justification": "Companion maximum-neighbours limit test \u2014 populated neighbor table at the boundary, the condition under which show lldp neighbors output must stay correct",
+        "order": 2
+      },
+      {
+        "id_or_key": "1331.2001.27875",
+        "title": "CR27875 - LLDP - SNMP Protocol Ids (Annex F) are not aligned with local info on the switch",
+        "justification": "Local-info correctness: SNMP Annex F protocol IDs vs the switch's own local info \u2014 covers the 'show lldp local-info' pairing in AWPTCM-T47623 and the default-settings display of AWP-5512",
+        "order": 3
+      },
+      {
+        "id_or_key": "1331.1001.26525",
+        "title": "LLDP - The system capabilities TLV does not advertise the correct information",
+        "justification": "Per-TLV content correctness (system capabilities TLV) \u2014 the verification depth that 'show lldp neighbors detail interface' (AWP-5517 / AWPTCM-T9729) exists to display",
+        "order": 4
+      },
+      {
+        "id_or_key": "2015.5.1",
+        "title": "1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).",
+        "justification": "statsAgeoutsTotal counter behaviour \u2014 covers the 'show lldp statistics' companion command (AWP-5513 / AWPTCM-T9725) and the global/per-port counter split",
+        "order": 5
+      },
+      {
+        "id_or_key": "2016.5.1",
+        "title": "1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).",
+        "justification": "Second-platform/suite variant of the same statsAgeoutsTotal counter coverage for show lldp statistics",
+        "order": 6
+      },
+      {
+        "id_or_key": "6000.1002.1",
+        "title": "Use LLDP to discover links between all switches in the setup",
+        "justification": "Uses LLDP neighbor discovery to map links across the setup \u2014 a real happy-path where neighbor info must actually be populated and readable, matching AWP-5547's connected-neighbour setup",
+        "order": 7
+      }
+    ],
+    "backfilled": false
+  },
+  "step4": {
+    "objective": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+    "provenance": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info) (primary AWP-5512)\n\n## TestLink selections\n- AWP-5512: Command Line Handler: show lldp\n- AWP-5518: Command Line Handler: sh lldp neighbors interface\n- AWP-5517: Command Line Handler: show lldp neighbors detail interface\n- AWP-5515: Command Line Handler: show lldp interface\n- AWP-5513: Command Line Handler: show lldp statistics\n- AWP-5506: Command Line Handler: lldp run\n- AWP-5500: Command Line Handler: clear lldp table\n- AWP-5547: Enabled LLDP on a port to receive only\n\n## Zephyr exemplars\n- AWPTCM-T9724: Command Line Handler: show lldp\n- AWPTCM-T9729: Command Line Handler: show lldp neighbors detail interface\n- AWPTCM-T9730: Command Line Handler: sh lldp neighbors interface\n- AWPTCM-T9727: Command Line Handler: show lldp interface\n- AWPTCM-T9725: Command Line Handler: show lldp statistics\n- AWPTCM-T9718: Command Line Handler: lldp run\n- AWPTCM-T47624: CLI: show lldp neighbors detail\n- AWPTCM-T47623: CLI: show lldp local-info\n\n## ATPyLib coverage (selected ART)\n- 1332.1001.8: Check that the information contained in the LLDP frames are consistent with the CLI\n- 1341.1001.6835: This test checks the maximum number LLDP neighbours that can be supported on the switch\n- 1332.1001.7: This test checks the maximum number neighbours that can be supported on the switch\n- 1331.2001.27875: CR27875 - LLDP - SNMP Protocol Ids (Annex F) are not aligned with local info on the switch\n- 1331.1001.26525: LLDP - The system capabilities TLV does not advertise the correct information\n- 2015.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 2016.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 6000.1002.1: Use LLDP to discover links between all switches in the setup\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "objectives"
+    },
+    "confirmed": true,
+    "confirmed_at": "2026-07-30T03:08:56.612503+00:00",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up a topology of at least two directly connected devices with LLDP enabled globally and on the connected ports, and allow enough time for neighbour discovery to complete.",
+          "expectedResult": "Each device discovers the other on the connected port."
+        },
+        {
+          "description": "Verify the LLDP summary view reports the global LLDP run state, the configured timing parameters in effect, and the TLV parameters selected for advertisement.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the LLDP summary view reports the system-level identity the device advertises.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the per-port LLDP view reports each port's administrative status, its notification setting, its TLV selections and its current operational state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port to transmit-and-receive, transmit-only, receive-only and disabled in turn, and confirm the per-port view reports the administrative status actually configured in each case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the neighbour view lists one entry for every port with a discovered neighbour, reporting the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the remaining hold time reported for a neighbour decreases across successive displays and is refreshed when a further advertisement is received.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the detailed neighbour view reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, and management addresses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm any optional and organisationally-defined TLVs received from a neighbour are reported in the detailed neighbour view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a local-information view exists that reports what the device itself advertises, and confirm it is populated on a port with no neighbour present.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a single named port on both the summary and detailed neighbour views and confirm the output contains only the entry for that port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a port range on both the summary and detailed neighbour views and confirm the output contains only entries whose local port falls within the selection.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the LLDP statistics view reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the transmit and receive counters advance in step with the frame activity observed on the link across successive displays.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the corresponding clear operation resets the statistics counters to zero.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Capture the LLDP frames exchanged on the link and confirm the neighbour information reported by the CLI is consistent with the content of the frames actually received.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the reported neighbour information is consistent with the corresponding LLDP MIB objects.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the protocol identity values carried in the frames on the wire are consistent with the device's own local-information view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the advertised system capabilities correspond to the functions the device is actually performing, and confirm the reported capabilities follow a change to a relevant function.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with abbreviated forms of each display command and confirm the output is identical to that of the full command form.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a device with no neighbours discovered reports an explicit empty result rather than blank or malformed output.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP globally disabled and confirm the summary, per-port, neighbour, local-information and statistics views each yield an intelligible report rather than an error.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP disabled on a single port and confirm the per-port and neighbour views report that port's state explicitly and without error.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a port selection that matches no discovered neighbour and confirm an explicit empty result is reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port to receive-only and confirm it populates the neighbour tables from received advertisements while sending none of its own, and that the neighbouring device reports no entry for that link.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a neighbour entry is removed from the tables when its hold time expires, and that the removal increments the ageout counter.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm losing the link to a neighbour removes its entry from the tables and increments the ageout counter.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Clear the neighbour table and confirm the reported neighbour entries are emptied, then confirm subsequently received advertisements repopulate them.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP globally disabled and then re-enabled, and confirm the reported state follows each change and that neighbour entries are rediscovered after re-enabling.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP disabled and then re-enabled on a single port, and confirm the reported per-port state and that port's neighbour entry follow each change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the platform's supported maximum number of neighbours and confirm the tables hold all entries and that the summary and detailed views remain accurate and readable at that scale.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with more neighbours than the supported maximum and confirm the device behaves predictably and reports the condition intelligibly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with maximum-length system names and descriptions and confirm the output remains correctly aligned and unambiguous.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with each chassis-ID and port-ID subtype in turn and confirm each is reported correctly in both the summary and detailed neighbour views.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a neighbour advertising multiple management addresses and confirm all are reported without truncation or ambiguity.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm issuing each of these views leaves the LLDP configuration, neighbour state and counters unchanged.",
+          "expectedResult": "Views are read-only."
+        },
+        {
+          "description": "Test with an unknown or non-existent port and confirm the command is rejected with a diagnostic message, no partial output and no change of state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a malformed port range and with an unrecognised keyword, and confirm each is rejected with a diagnostic message, no partial output and no change of state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a link with one end configured not to transmit is reported by the receiving end only.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  },
+  "step5": {
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up a topology of at least two directly connected devices with LLDP enabled globally and on the connected ports, and allow enough time for neighbour discovery to complete.",
+          "expectedResult": "Each device discovers the other on the connected port."
+        },
+        {
+          "description": "Verify the LLDP summary view reports the global LLDP run state, the configured timing parameters in effect, and the TLV parameters selected for advertisement.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the LLDP summary view reports the system-level identity the device advertises.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the per-port LLDP view reports each port's administrative status, its notification setting, its TLV selections and its current operational state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port to transmit-and-receive, transmit-only, receive-only and disabled in turn, and confirm the per-port view reports the administrative status actually configured in each case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the neighbour view lists one entry for every port with a discovered neighbour, reporting the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the remaining hold time reported for a neighbour decreases across successive displays and is refreshed when a further advertisement is received.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the detailed neighbour view reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, and management addresses.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm any optional and organisationally-defined TLVs received from a neighbour are reported in the detailed neighbour view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a local-information view exists that reports what the device itself advertises, and confirm it is populated on a port with no neighbour present.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a single named port on both the summary and detailed neighbour views and confirm the output contains only the entry for that port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a port range on both the summary and detailed neighbour views and confirm the output contains only entries whose local port falls within the selection.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the LLDP statistics view reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the transmit and receive counters advance in step with the frame activity observed on the link across successive displays.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the corresponding clear operation resets the statistics counters to zero.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Capture the LLDP frames exchanged on the link and confirm the neighbour information reported by the CLI is consistent with the content of the frames actually received.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the reported neighbour information is consistent with the corresponding LLDP MIB objects.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the protocol identity values carried in the frames on the wire are consistent with the device's own local-information view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the advertised system capabilities correspond to the functions the device is actually performing, and confirm the reported capabilities follow a change to a relevant function.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with abbreviated forms of each display command and confirm the output is identical to that of the full command form.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a device with no neighbours discovered reports an explicit empty result rather than blank or malformed output.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP globally disabled and confirm the summary, per-port, neighbour, local-information and statistics views each yield an intelligible report rather than an error.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP disabled on a single port and confirm the per-port and neighbour views report that port's state explicitly and without error.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a port selection that matches no discovered neighbour and confirm an explicit empty result is reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port to receive-only and confirm it populates the neighbour tables from received advertisements while sending none of its own, and that the neighbouring device reports no entry for that link.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a neighbour entry is removed from the tables when its hold time expires, and that the removal increments the ageout counter.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm losing the link to a neighbour removes its entry from the tables and increments the ageout counter.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Clear the neighbour table and confirm the reported neighbour entries are emptied, then confirm subsequently received advertisements repopulate them.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP globally disabled and then re-enabled, and confirm the reported state follows each change and that neighbour entries are rediscovered after re-enabling.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP disabled and then re-enabled on a single port, and confirm the reported per-port state and that port's neighbour entry follow each change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the platform's supported maximum number of neighbours and confirm the tables hold all entries and that the summary and detailed views remain accurate and readable at that scale.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with more neighbours than the supported maximum and confirm the device behaves predictably and reports the condition intelligibly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with maximum-length system names and descriptions and confirm the output remains correctly aligned and unambiguous.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with each chassis-ID and port-ID subtype in turn and confirm each is reported correctly in both the summary and detailed neighbour views.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a neighbour advertising multiple management addresses and confirm all are reported without truncation or ambiguity.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm issuing each of these views leaves the LLDP configuration, neighbour state and counters unchanged.",
+          "expectedResult": "Views are read-only."
+        },
+        {
+          "description": "Test with an unknown or non-existent port and confirm the command is rejected with a diagnostic message, no partial output and no change of state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a malformed port range and with an unrecognised keyword, and confirm each is rejected with a diagnostic message, no partial output and no change of state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a link with one end configured not to transmit is reported by the receiving end only.",
+          "expectedResult": ""
+        }
+      ]
+    },
+    "provenance": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info)\n\n## Finalized objective (authoritative)\n<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "```json\n[\n  {\"description\": \"Set up a topology of at least two directly connected devices with LLDP enabled globally and on the connected ports, and allow enough time for neighbour discovery to complete.\", \"expectedResult\": \"Each device discovers the other on the connected port.\"},\n  {\"description\": \"Verify the LLDP summary view reports the global LLDP run state, the configured timing parameters in effect, and the TLV parameters selected for advertisement.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP summary view reports the system-level identity the device advertises.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the per-port LLDP view reports each port's administrative status, its notification setting, its TLV selections and its current operational state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to transmit-and-receive, transmit-only, receive-only and disabled in turn, and confirm the per-port view reports the administrative status actually configured in each case.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the neighbour view lists one entry for every port with a discovered neighbour, reporting the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the remaining hold time reported for a neighbour decreases across successive displays and is refreshed when a further advertisement is received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the detailed neighbour view reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, and management addresses.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm any optional and organisationally-defined TLVs received from a neighbour are reported in the detailed neighbour view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a local-information view exists that reports what the device itself advertises, and confirm it is populated on a port with no neighbour present.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a single named port on both the summary and detailed neighbour views and confirm the output contains only the entry for that port.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port range on both the summary and detailed neighbour views and confirm the output contains only entries whose local port falls within the selection.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP statistics view reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the transmit and receive counters advance in step with the frame activity observed on the link across successive displays.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the corresponding clear operation resets the statistics counters to zero.\", \"expectedResult\": \"\"},\n  {\"description\": \"Capture the LLDP frames exchanged on the link and confirm the neighbour information reported by the CLI is consistent with the content of the frames actually received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the reported neighbour information is consistent with the corresponding LLDP MIB objects.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the protocol identity values carried in the frames on the wire are consistent with the device's own local-information view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the advertised system capabilities correspond to the functions the device is actually performing, and confirm the reported capabilities follow a change to a relevant function.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with abbreviated forms of each display command and confirm the output is identical to that of the full command form.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a device with no neighbours discovered reports an explicit empty result rather than blank or malformed output.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and confirm the summary, per-port, neighbour, local-information and statistics views each yield an intelligible report rather than an error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled on a single port and confirm the per-port and neighbour views report that port's state explicitly and without error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port selection that matches no discovered neighbour and confirm an explicit empty result is reported.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to receive-only and confirm it populates the neighbour tables from received advertisements while sending none of its own, and that the neighbouring device reports no entry for that link.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a neighbour entry is removed from the tables when its hold time expires, and that the removal increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm losing the link to a neighbour removes its entry from the tables and increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Clear the neighbour table and confirm the reported neighbour entries are emptied, then confirm subsequently received advertisements repopulate them.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and then re-enabled, and confirm the reported state follows each change and that neighbour entries are rediscovered after re-enabling.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled and then re-enabled on a single port, and confirm the reported per-port state and that port's neighbour entry follow each change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with the platform's supported maximum number of neighbours and confirm the tables hold all entries and that the summary and detailed views remain accurate and readable at that scale.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with more neighbours than the supported maximum and confirm the device behaves predictably and reports the condition intelligibly.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with maximum-length system names and descriptions and confirm the output remains correctly aligned and unambiguous.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with each chassis-ID and port-ID subtype in turn and confirm each is reported correctly in both the summary and detailed neighbour views.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a neighbour advertising multiple management addresses and confirm all are reported without truncation or ambiguity.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm issuing each of these views leaves the LLDP configuration, neighbour state and counters unchanged.\", \"expectedResult\": \"Views are read-only.\"},\n  {\"description\": \"Test with an unknown or non-existent port and confirm the command is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a malformed port range and with an unrecognised keyword, and confirm each is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a link with one end configured not to transmit is reported by the receiving end only.\", \"expectedResult\": \"\"}\n]\n```",
+      "objective_used": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps"
+    }
+  },
+  "gaps": "The selected ART coverage is protocol- and MIB-centred: it exercises agreement between transmitted LLDP frame contents and the switch's own local information, TLV correctness for system capabilities and for Annex F protocol identifiers, maximum-neighbour scaling limits, remote-systems ageout accounting on rxInfoTTL expiry, and neighbour discovery across a multi-device setup \u2014 so the underlying data that the reporting commands draw on is reasonably well guarded. What automation does not reach is the command-line handler surface itself: the composition and layout of the show lldp, show lldp interface, show lldp neighbors, show lldp neighbors detail, show lldp local-info and show lldp statistics displays, the global-versus-per-port split of the counter output, and the presentation of default settings on an otherwise unconfigured system. Argument handling for the interface-scoped forms is likewise unaddressed \u2014 port ranges, single-port scoping, and malformed or out-of-range arguments together with the resulting error reporting. The negative and transitional states are the widest gap: LLDP administratively disabled, and the emptied neighbour table following a table clear, where the expected observation is the absence of neighbour information rather than a counter value the automated suite already samples; the receive-only port mode's effect on what the reporting commands present sits in the same category. Statistics other than the ageout counter, and the human-readable per-TLV depth of the detailed neighbour output, therefore remain manual observations.",
+  "art_string": "1332.1001.8 + 1341.1001.6835 + 1332.1001.7 + 1331.2001.27875 + 1331.1001.26525 + 2015.5.1 + 2016.5.1 + 6000.1002.1",
+  "full_session": {
+    "llm_objectives": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info) (primary AWP-5512)\n\n## TestLink selections\n- AWP-5512: Command Line Handler: show lldp\n- AWP-5518: Command Line Handler: sh lldp neighbors interface\n- AWP-5517: Command Line Handler: show lldp neighbors detail interface\n- AWP-5515: Command Line Handler: show lldp interface\n- AWP-5513: Command Line Handler: show lldp statistics\n- AWP-5506: Command Line Handler: lldp run\n- AWP-5500: Command Line Handler: clear lldp table\n- AWP-5547: Enabled LLDP on a port to receive only\n\n## Zephyr exemplars\n- AWPTCM-T9724: Command Line Handler: show lldp\n- AWPTCM-T9729: Command Line Handler: show lldp neighbors detail interface\n- AWPTCM-T9730: Command Line Handler: sh lldp neighbors interface\n- AWPTCM-T9727: Command Line Handler: show lldp interface\n- AWPTCM-T9725: Command Line Handler: show lldp statistics\n- AWPTCM-T9718: Command Line Handler: lldp run\n- AWPTCM-T47624: CLI: show lldp neighbors detail\n- AWPTCM-T47623: CLI: show lldp local-info\n\n## ATPyLib coverage (selected ART)\n- 1332.1001.8: Check that the information contained in the LLDP frames are consistent with the CLI\n- 1341.1001.6835: This test checks the maximum number LLDP neighbours that can be supported on the switch\n- 1332.1001.7: This test checks the maximum number neighbours that can be supported on the switch\n- 1331.2001.27875: CR27875 - LLDP - SNMP Protocol Ids (Annex F) are not aligned with local info on the switch\n- 1331.1001.26525: LLDP - The system capabilities TLV does not advertise the correct information\n- 2015.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 2016.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 6000.1002.1: Use LLDP to discover links between all switches in the setup\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "objectives"
+    },
+    "llm": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info) (primary AWP-5512)\n\n## TestLink selections\n- AWP-5512: Command Line Handler: show lldp\n- AWP-5518: Command Line Handler: sh lldp neighbors interface\n- AWP-5517: Command Line Handler: show lldp neighbors detail interface\n- AWP-5515: Command Line Handler: show lldp interface\n- AWP-5513: Command Line Handler: show lldp statistics\n- AWP-5506: Command Line Handler: lldp run\n- AWP-5500: Command Line Handler: clear lldp table\n- AWP-5547: Enabled LLDP on a port to receive only\n\n## Zephyr exemplars\n- AWPTCM-T9724: Command Line Handler: show lldp\n- AWPTCM-T9729: Command Line Handler: show lldp neighbors detail interface\n- AWPTCM-T9730: Command Line Handler: sh lldp neighbors interface\n- AWPTCM-T9727: Command Line Handler: show lldp interface\n- AWPTCM-T9725: Command Line Handler: show lldp statistics\n- AWPTCM-T9718: Command Line Handler: lldp run\n- AWPTCM-T47624: CLI: show lldp neighbors detail\n- AWPTCM-T47623: CLI: show lldp local-info\n\n## ATPyLib coverage (selected ART)\n- 1332.1001.8: Check that the information contained in the LLDP frames are consistent with the CLI\n- 1341.1001.6835: This test checks the maximum number LLDP neighbours that can be supported on the switch\n- 1332.1001.7: This test checks the maximum number neighbours that can be supported on the switch\n- 1331.2001.27875: CR27875 - LLDP - SNMP Protocol Ids (Annex F) are not aligned with local info on the switch\n- 1331.1001.26525: LLDP - The system capabilities TLV does not advertise the correct information\n- 2015.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 2016.5.1: 1) statsAgeoutsTotal: A count of the times that a neighbor's information is deleted from the LLDP remote systems MIB because of rxInfoTTL timer expiration (10.5.2).\n- 6000.1002.1: Use LLDP to discover links between all switches in the setup\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps",
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info)\n\n## Finalized objective (authoritative)\n<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "```json\n[\n  {\"description\": \"Set up a topology of at least two directly connected devices with LLDP enabled globally and on the connected ports, and allow enough time for neighbour discovery to complete.\", \"expectedResult\": \"Each device discovers the other on the connected port.\"},\n  {\"description\": \"Verify the LLDP summary view reports the global LLDP run state, the configured timing parameters in effect, and the TLV parameters selected for advertisement.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP summary view reports the system-level identity the device advertises.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the per-port LLDP view reports each port's administrative status, its notification setting, its TLV selections and its current operational state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to transmit-and-receive, transmit-only, receive-only and disabled in turn, and confirm the per-port view reports the administrative status actually configured in each case.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the neighbour view lists one entry for every port with a discovered neighbour, reporting the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the remaining hold time reported for a neighbour decreases across successive displays and is refreshed when a further advertisement is received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the detailed neighbour view reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, and management addresses.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm any optional and organisationally-defined TLVs received from a neighbour are reported in the detailed neighbour view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a local-information view exists that reports what the device itself advertises, and confirm it is populated on a port with no neighbour present.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a single named port on both the summary and detailed neighbour views and confirm the output contains only the entry for that port.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port range on both the summary and detailed neighbour views and confirm the output contains only entries whose local port falls within the selection.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP statistics view reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the transmit and receive counters advance in step with the frame activity observed on the link across successive displays.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the corresponding clear operation resets the statistics counters to zero.\", \"expectedResult\": \"\"},\n  {\"description\": \"Capture the LLDP frames exchanged on the link and confirm the neighbour information reported by the CLI is consistent with the content of the frames actually received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the reported neighbour information is consistent with the corresponding LLDP MIB objects.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the protocol identity values carried in the frames on the wire are consistent with the device's own local-information view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the advertised system capabilities correspond to the functions the device is actually performing, and confirm the reported capabilities follow a change to a relevant function.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with abbreviated forms of each display command and confirm the output is identical to that of the full command form.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a device with no neighbours discovered reports an explicit empty result rather than blank or malformed output.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and confirm the summary, per-port, neighbour, local-information and statistics views each yield an intelligible report rather than an error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled on a single port and confirm the per-port and neighbour views report that port's state explicitly and without error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port selection that matches no discovered neighbour and confirm an explicit empty result is reported.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to receive-only and confirm it populates the neighbour tables from received advertisements while sending none of its own, and that the neighbouring device reports no entry for that link.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a neighbour entry is removed from the tables when its hold time expires, and that the removal increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm losing the link to a neighbour removes its entry from the tables and increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Clear the neighbour table and confirm the reported neighbour entries are emptied, then confirm subsequently received advertisements repopulate them.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and then re-enabled, and confirm the reported state follows each change and that neighbour entries are rediscovered after re-enabling.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled and then re-enabled on a single port, and confirm the reported per-port state and that port's neighbour entry follow each change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with the platform's supported maximum number of neighbours and confirm the tables hold all entries and that the summary and detailed views remain accurate and readable at that scale.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with more neighbours than the supported maximum and confirm the device behaves predictably and reports the condition intelligibly.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with maximum-length system names and descriptions and confirm the output remains correctly aligned and unambiguous.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with each chassis-ID and port-ID subtype in turn and confirm each is reported correctly in both the summary and detailed neighbour views.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a neighbour advertising multiple management addresses and confirm all are reported without truncation or ambiguity.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm issuing each of these views leaves the LLDP configuration, neighbour state and counters unchanged.\", \"expectedResult\": \"Views are read-only.\"},\n  {\"description\": \"Test with an unknown or non-existent port and confirm the command is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a malformed port range and with an unrecognised keyword, and confirm each is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a link with one end configured not to transmit is reported by the receiving end only.\", \"expectedResult\": \"\"}\n]\n```",
+      "objective_used": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>"
+    },
+    "llm_steps": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T44296 \u2014 show lldp (neighbor info)\n\n## Finalized objective (authoritative)\n<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "```json\n[\n  {\"description\": \"Set up a topology of at least two directly connected devices with LLDP enabled globally and on the connected ports, and allow enough time for neighbour discovery to complete.\", \"expectedResult\": \"Each device discovers the other on the connected port.\"},\n  {\"description\": \"Verify the LLDP summary view reports the global LLDP run state, the configured timing parameters in effect, and the TLV parameters selected for advertisement.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP summary view reports the system-level identity the device advertises.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the per-port LLDP view reports each port's administrative status, its notification setting, its TLV selections and its current operational state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to transmit-and-receive, transmit-only, receive-only and disabled in turn, and confirm the per-port view reports the administrative status actually configured in each case.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the neighbour view lists one entry for every port with a discovered neighbour, reporting the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the remaining hold time reported for a neighbour decreases across successive displays and is refreshed when a further advertisement is received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the detailed neighbour view reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, and management addresses.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm any optional and organisationally-defined TLVs received from a neighbour are reported in the detailed neighbour view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a local-information view exists that reports what the device itself advertises, and confirm it is populated on a port with no neighbour present.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a single named port on both the summary and detailed neighbour views and confirm the output contains only the entry for that port.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port range on both the summary and detailed neighbour views and confirm the output contains only entries whose local port falls within the selection.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the LLDP statistics view reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the transmit and receive counters advance in step with the frame activity observed on the link across successive displays.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the corresponding clear operation resets the statistics counters to zero.\", \"expectedResult\": \"\"},\n  {\"description\": \"Capture the LLDP frames exchanged on the link and confirm the neighbour information reported by the CLI is consistent with the content of the frames actually received.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the reported neighbour information is consistent with the corresponding LLDP MIB objects.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm the protocol identity values carried in the frames on the wire are consistent with the device's own local-information view.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the advertised system capabilities correspond to the functions the device is actually performing, and confirm the reported capabilities follow a change to a relevant function.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with abbreviated forms of each display command and confirm the output is identical to that of the full command form.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify a device with no neighbours discovered reports an explicit empty result rather than blank or malformed output.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and confirm the summary, per-port, neighbour, local-information and statistics views each yield an intelligible report rather than an error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled on a single port and confirm the per-port and neighbour views report that port's state explicitly and without error.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a port selection that matches no discovered neighbour and confirm an explicit empty result is reported.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a port to receive-only and confirm it populates the neighbour tables from received advertisements while sending none of its own, and that the neighbouring device reports no entry for that link.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a neighbour entry is removed from the tables when its hold time expires, and that the removal increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm losing the link to a neighbour removes its entry from the tables and increments the ageout counter.\", \"expectedResult\": \"\"},\n  {\"description\": \"Clear the neighbour table and confirm the reported neighbour entries are emptied, then confirm subsequently received advertisements repopulate them.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP globally disabled and then re-enabled, and confirm the reported state follows each change and that neighbour entries are rediscovered after re-enabling.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set LLDP disabled and then re-enabled on a single port, and confirm the reported per-port state and that port's neighbour entry follow each change.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with the platform's supported maximum number of neighbours and confirm the tables hold all entries and that the summary and detailed views remain accurate and readable at that scale.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with more neighbours than the supported maximum and confirm the device behaves predictably and reports the condition intelligibly.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with maximum-length system names and descriptions and confirm the output remains correctly aligned and unambiguous.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with each chassis-ID and port-ID subtype in turn and confirm each is reported correctly in both the summary and detailed neighbour views.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a neighbour advertising multiple management addresses and confirm all are reported without truncation or ambiguity.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm issuing each of these views leaves the LLDP configuration, neighbour state and counters unchanged.\", \"expectedResult\": \"Views are read-only.\"},\n  {\"description\": \"Test with an unknown or non-existent port and confirm the command is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a malformed port range and with an unrecognised keyword, and confirm each is rejected with a diagnostic message, no partial output and no change of state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends.\", \"expectedResult\": \"\"},\n  {\"description\": \"Confirm a link with one end configured not to transmit is reported by the receiving end only.\", \"expectedResult\": \"\"}\n]\n```",
+      "objective_used": "<ul>\n<li>An LLDP summary view exists that reports the global LLDP run state, the configured timing and TLV parameters in effect, and the system-level identity the device advertises.</li>\n<li>A per-port LLDP view exists that reports each port's administrative status (transmit-and-receive, transmit-only, receive-only, or disabled), its notification and TLV selections, and its current operational state.</li>\n<li>A neighbour view exists that lists, for every port with a discovered neighbour, the local port, the neighbour's chassis and port identifiers, the advertised system name, the advertised capabilities and the remaining hold time.</li>\n<li>A detailed neighbour view exists that reports the full set of received TLVs for each neighbour \u2014 chassis ID and subtype, port ID and subtype, port and system descriptions, system name, supported and enabled capabilities, management addresses, and any received optional and organisationally-defined TLVs.</li>\n<li>Both the summary and detailed neighbour views are restrictable to a single named port or a port range, and the restricted output contains only entries whose local port falls within that selection.</li>\n<li>An LLDP statistics view exists that reports global and per-port frame counters \u2014 frames transmitted, received, discarded and errored, TLVs discarded and unrecognised, and neighbour ageouts \u2014 together with the time of the last remote-table change.</li>\n<li>Neighbour information reported by the CLI is consistent with the content of the LLDP frames actually exchanged on the link, and with the corresponding LLDP MIB objects.</li>\n<li>Advertised system capabilities correspond to the functions the device is actually performing, and protocol identity values are consistent between the frames on the wire and the device's own local-information view.</li>\n<li>A local-information view exists that reports what the device itself advertises, independently of any neighbour being present.</li>\n<li>Command abbreviations and the full command form produce identical output.</li>\n<li>Empty states are reported explicitly and without error: no neighbours discovered, LLDP globally disabled, a port with LLDP disabled, and a port selection that matches no neighbour each yield an intelligible report rather than blank or malformed output.</li>\n<li>A receive-only port populates the neighbour tables from received advertisements while sending none of its own, and a neighbouring device correspondingly reports no entry for that link.</li>\n<li>Neighbour entries are removed from the tables when their hold time expires or the link is lost, and each such removal increments the ageout counter.</li>\n<li>Clearing the neighbour table empties the reported neighbour entries; subsequently received advertisements repopulate them.</li>\n<li>Disabling and re-enabling LLDP globally or per port is reflected in the reported state, and neighbour entries are rediscovered after re-enabling.</li>\n<li>Statistics counters advance in step with observed frame activity, and are reset to zero by the corresponding clear operation.</li>\n<li>The neighbour tables hold entries up to the platform's supported neighbour maximum, remain accurate and readable at that scale, and behave predictably when the maximum is exceeded.</li>\n<li>Output remains correctly aligned and unambiguous for maximum-length and unusual field values \u2014 long system names and descriptions, all chassis-ID and port-ID subtypes, and multiple management addresses on one neighbour.</li>\n<li>These views are read-only: issuing them leaves LLDP configuration, neighbour state and counters unchanged.</li>\n<li>Invalid arguments \u2014 an unknown or non-existent port, a malformed range, or an unrecognised keyword \u2014 are rejected with a diagnostic message, no partial output and no change of state.</li>\n<li>LLDP-discovered adjacency across a multi-device topology matches the physical cabling, with each link reported reciprocally by both ends unless one end is configured not to transmit.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps"
+    }
+  },
+  "updated_at": "2026-07-30 03:10:28.472526+00:00",
+  "rev": 8,
+  "llm_config": {
+    "provider": "claude",
+    "auth_method": "claude_code",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": "claude-opus-5"
+  }
+}

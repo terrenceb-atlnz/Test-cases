@@ -1,0 +1,144 @@
+{
+  "cases": {
+    "AWPTCM-T43868": {
+      "generator_selections": {
+        "step1": [
+          "AWP-1232",
+          "AWP-1233",
+          "AWP-1234",
+          "AWP-17672",
+          "AWP-15157",
+          "AWP-27923",
+          "AWP-4988",
+          "AWP-3824"
+        ],
+        "step2": [
+          "AWPTCM-T15880",
+          "AWPTCM-T15881",
+          "AWPTCM-T15882",
+          "AWPTCM-T15883",
+          "AWPTCM-T6118",
+          "AWPTCM-T15903",
+          "AWPTCM-T29214",
+          "AWPTCM-T15884"
+        ],
+        "step3": [
+          "1348.6001.24",
+          "1348.6001.28",
+          "1348.6001.27",
+          "5701.1001.1",
+          "5701.1001.8",
+          "5701.1012.1",
+          "5701.1014.1"
+        ]
+      },
+      "n_zephyr_steps": 43,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43868",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43868/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 141,
+      "pt_input_steps": 42,
+      "pytest_status": "failed",
+      "pytest_status_error": "POST /api/pytest-create/gather_fragments/AWPTCM-T43868 -> 502: {\"detail\":\"ERROR: LLM call failed (claude via claude_code): CLI call timed out after 300s\"}",
+      "sequence_kinds": {
+        "setup": 3,
+        "verify": 53
+      },
+      "coverage_step2": {
+        "ok": false,
+        "warning": "1 of 42 Zephyr step(s) have NO sequence entry: [11]. Those parts of the objective would go untested \u2014 review before confirming."
+      },
+      "coverage_gap_step2": "Cannot confirm '2. Sequence': 1 of 42 Zephyr step(s) are not tested by any step in this sequence. Every Zephyr step needs at least one PyTest step or that part of the objective is not being tested.\n\nUNTESTED source step(s):\n  \u2022 Zephyr step 11: Confirm the value written by SNMP is also observable through the device's own management interface.\n\nFix the sequence (edit or re-extract) and regenerate, o",
+      "n_sequence": 56,
+      "script_selections": {
+        "3": [
+          "legacy/5704_Private_MIB/test-5704.9999-Private-Trap.py"
+        ],
+        "4": [
+          "legacy/5704_Private_MIB/test-5704.9999-Private-Trap.py"
+        ],
+        "14": [
+          "legacy/5704_Private_MIB/test-5704.9999-Private-Trap.py"
+        ],
+        "50": [
+          "legacy/5704_Private_MIB/test-5704.9999-Private-Trap.py"
+        ],
+        "11": [
+          "art/6000_link_check/test-6000.7001-memory.py"
+        ],
+        "56": [
+          "art/6000_link_check/test-6000.7001-memory.py"
+        ],
+        "9": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "12": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "13": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "17": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "30": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "32": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "1": [
+          "legacy/6902_ATPyLib_training/test-6901.1001.py",
+          "legacy/8003_x8100/test-9999.007.py",
+          "art/1366_vrf_lite/test-1366.1001.py"
+        ],
+        "2": [
+          "legacy/6902_ATPyLib_training/test-6901.1001.py",
+          "legacy/8003_x8100/test-9999.007.py",
+          "art/1335_pbr/test-1335.1001.py"
+        ],
+        "5": [
+          "legacy/6902_ATPyLib_training/test-6901.1001.py",
+          "art/1366_vrf_lite/test-1366.1001.py",
+          "legacy/6903_ATPyLib_training/test-6901.1001.py"
+        ],
+        "6": [
+          "legacy/6902_ATPyLib_training/test-6901.1001.py",
+          "legacy/8003_x8100/test-9999.007.py",
+          "legacy/8003_x8100/test-9999.050.py"
+        ],
+        "54": [
+          "art/1335_pbr/test-1335.1001.py",
+          "legacy/5049_validation_example/test-5049.2040.py"
+        ],
+        "27": [
+          "legacy/5049_validation_example/test-5049.2040.py"
+        ],
+        "22": [
+          "art/1336_acl/test-1336.101.py"
+        ],
+        "24": [
+          "art/1336_acl/test-1336.101.py"
+        ],
+        "25": [
+          "art/1336_acl/test-1336.101.py"
+        ],
+        "16": [
+          "legacy/5006_disabled_master_monitoring/test-5006.healthcheck_packet_play.py"
+        ]
+      },
+      "n_scripts_selected": 12
+    }
+  },
+  "llm": {
+    "provider": "claude",
+    "auth_method": "claude_code",
+    "model": "claude-opus-5"
+  }
+}

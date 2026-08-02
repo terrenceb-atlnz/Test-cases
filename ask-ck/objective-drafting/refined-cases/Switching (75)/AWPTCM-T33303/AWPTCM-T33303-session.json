@@ -1,0 +1,537 @@
+{
+  "key": "AWPTCM-T33303",
+  "primary": {
+    "m": "AWP-18509",
+    "c": "med",
+    "w": "802.1Q tagging on interfaces"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:02:13.647716+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWP-18509",
+        "title": "802.1Q Tagging on Ethernet Interfaces",
+        "justification": "Primary match \u2014 core 802.1Q tagging configuration and running-config verification on an interface",
+        "order": 0
+      },
+      {
+        "id_or_key": "AWP-17725",
+        "title": "AWP5-VLAN-CFG-004 - Tagged and untagged port",
+        "justification": "Switching-side tagged/untagged port configuration, the closest analogue to a Switching_VLAN 802.1Q case",
+        "order": 1
+      },
+      {
+        "id_or_key": "AWP-18528",
+        "title": "Native vlan operation on an Ethernet port",
+        "justification": "Native/untagged VLAN behaviour alongside tagged frames \u2014 supplies the untagged happy path and the no-matching-VID negative path",
+        "order": 2
+      },
+      {
+        "id_or_key": "AWP-18535",
+        "title": "Same 802.1Q VID on two different interfaces",
+        "justification": "Special condition \u2014 same VID configured on two different interfaces, a boundary case for tag assignment",
+        "order": 3
+      },
+      {
+        "id_or_key": "AWP-18493",
+        "title": "Packets with 802.1Q tag can traverse bridge",
+        "justification": "Traffic-level verification that tagged frames actually traverse the DUT, giving the forwarding/pass-fail assertions",
+        "order": 4
+      },
+      {
+        "id_or_key": "AWP-9216",
+        "title": "Forwarding on a Port belong to protocol VLAN and Tag VLAN",
+        "justification": "Forwarding on a port belonging to both protocol VLAN and tag VLAN \u2014 tagged-port forwarding precedence on switching hardware",
+        "order": 5
+      },
+      {
+        "id_or_key": "AWP-17730",
+        "title": "AWP5-VLAN-CFG-011 - All VLAN tag remove",
+        "justification": "Removal of all VLAN tagging \u2014 teardown/cleanup path and config-removal verification",
+        "order": 6
+      }
+    ],
+    "backfilled": false
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:02:28.129717+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T742",
+        "title": "802.1Q Tagging on Ethernet Interfaces",
+        "justification": "Direct 802.1Q tagging on Ethernet interfaces \u2014 same primary TestLink decision (AWP-18509), same folder family",
+        "order": 0
+      },
+      {
+        "id_or_key": "AWPTCM-T753",
+        "title": "Same 802.1Q VID on two different interfaces",
+        "justification": "Same 802.1Q VID on two different interfaces (AWP-18535) \u2014 sibling case in /802.1Q Interfaces",
+        "order": 1
+      },
+      {
+        "id_or_key": "AWPTCM-T749",
+        "title": "Native vlan operation on an Ethernet port",
+        "justification": "Native VLAN operation on an Ethernet port (AWP-18528) \u2014 untagged/native side of the same tagging feature",
+        "order": 2
+      },
+      {
+        "id_or_key": "AWPTCM-T18206",
+        "title": "AWP5-VLAN-CFG-004 - Tagged and untagged port",
+        "justification": "Tagged and untagged port (AWP-17725) \u2014 confirmed TestLink context, core tagged/untagged membership intent",
+        "order": 3
+      },
+      {
+        "id_or_key": "AWPTCM-T14665",
+        "title": "Packets with 802.1Q tag can traverse bridge",
+        "justification": "Packets with 802.1Q tag can traverse bridge (AWP-18493) \u2014 tagged-frame forwarding verification",
+        "order": 4
+      },
+      {
+        "id_or_key": "AWPTCM-T18285",
+        "title": "Forwarding on a Port belong to protocol VLAN and Tag VLAN",
+        "justification": "Forwarding on a port belonging to protocol VLAN and Tag VLAN (AWP-9216) \u2014 tagged-VLAN forwarding interaction",
+        "order": 5
+      },
+      {
+        "id_or_key": "AWPTCM-T40451",
+        "title": "Check VID 0 tagged frames on access ports can be forwarded",
+        "justification": "VID 0 tagged frames on access ports \u2014 tagged-frame handling edge case on untagged/access interfaces",
+        "order": 6
+      },
+      {
+        "id_or_key": "AWPTCM-T28820",
+        "title": "S2254.1.51 Ethernet interfaces enslaved to the global bridge are untagged members of VID1 and tagged members of all other VLANs (2..4094)",
+        "justification": "Ethernet interfaces untagged in VID1 and tagged in all other VLANs \u2014 same tagged/untagged interface membership semantics",
+        "order": 7
+      }
+    ],
+    "backfilled": false
+  },
+  "step3": {
+    "confirmed": true,
+    "confirmed_at": "2026-07-30 03:02:58.595029+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "1348.6001.31",
+        "title": "RED: TCM-1 - VLAN 802.1Q Encapsulation (Tagged)",
+        "justification": "Direct traffic-level verification that 802.1Q tagged VLAN traffic is forwarded on a tagged interface \u2014 covers the primary AWP-18509 tagging intent and the AWP-18493 / T14665 'tagged packets traverse the bridge' assertions",
+        "order": 0
+      },
+      {
+        "id_or_key": "2035.6.2",
+        "title": "Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.",
+        "justification": "Exercises the tagging/detagging functions on an interface including the optional port-and-protocol-based VLAN classification \u2014 core tag-assignment behaviour behind AWP-18509 and the protocol-VLAN + tag-VLAN interaction of AWP-9216 / T18285",
+        "order": 1
+      },
+      {
+        "id_or_key": "2034.6.2",
+        "title": "Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.",
+        "justification": "Same tagging/detagging + port-and-protocol-based classification conformance check on the other EISS clause reference \u2014 platform/clause variation of the tag assignment path, useful for cross-checking consistent behaviour",
+        "order": 2
+      },
+      {
+        "id_or_key": "2034.6.1",
+        "title": "Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.",
+        "justification": "Companion tagging/detagging classification case; supplies the second variant of the tag/detag conformance sequence, covering boundary handling such as the same VID applied via different classification inputs (AWP-18535 / T753)",
+        "order": 3
+      },
+      {
+        "id_or_key": "2035.18.9",
+        "title": "The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN",
+        "justification": "Verifies the untagged set of a VLAN is composed from Port Map entries specifying untagged transmission \u2014 the untagged/native side of interface membership behind AWP-18528 / T749, AWP-17725 / T18206 and the untagged-VID1 vs tagged-other-VLANs semantics of T28820",
+        "order": 4
+      }
+    ],
+    "backfilled": false
+  },
+  "step4": {
+    "objective": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+    "provenance": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces (primary AWP-18509)\n\n## TestLink selections\n- AWP-18509: 802.1Q Tagging on Ethernet Interfaces\n- AWP-17725: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWP-18528: Native vlan operation on an Ethernet port\n- AWP-18535: Same 802.1Q VID on two different interfaces\n- AWP-18493: Packets with 802.1Q tag can traverse bridge\n- AWP-9216: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWP-17730: AWP5-VLAN-CFG-011 - All VLAN tag remove\n\n## Zephyr exemplars\n- AWPTCM-T742: 802.1Q Tagging on Ethernet Interfaces\n- AWPTCM-T753: Same 802.1Q VID on two different interfaces\n- AWPTCM-T749: Native vlan operation on an Ethernet port\n- AWPTCM-T18206: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWPTCM-T14665: Packets with 802.1Q tag can traverse bridge\n- AWPTCM-T18285: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWPTCM-T40451: Check VID 0 tagged frames on access ports can be forwarded\n- AWPTCM-T28820: S2254.1.51 Ethernet interfaces enslaved to the global bridge are untagged members of VID1 and tagged members of all other VLANs (2..4094)\n\n## ATPyLib coverage (selected ART)\n- 1348.6001.31: RED: TCM-1 - VLAN 802.1Q Encapsulation (Tagged)\n- 2035.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.1: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2035.18.9: The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "objectives"
+    },
+    "confirmed": true,
+    "confirmed_at": "2026-07-30T03:03:23.786092+00:00",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create multiple VLANs on the device and set an Ethernet interface as a tagged member of two or more of them, leaving its untagged VLAN at the default.",
+          "expectedResult": "Configuration accepted."
+        },
+        {
+          "description": "Verify frames transmitted by the interface for each VLAN of which it is a tagged member egress with an 802.1Q tag carrying the matching VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagged frames received on the interface bearing a VID for which that interface is a tagged member, and confirm they are classified into that VLAN and forwarded within it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a single interface to hold untagged membership of one VLAN and tagged membership of one or more other VLANs simultaneously, and confirm each membership operates independently.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with untagged frames received on the interface and confirm they are classified into that interface's native/untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with priority-tagged frames received on the interface and confirm they are also classified into the native/untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify frames egressing the interface on its native/untagged VLAN leave with no VLAN tag.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames ingressing tagged with the native VID and confirm the tag is removed on egress from the untagged member interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change the native/untagged VLAN of the interface to a different VID and confirm the change is accepted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after the native VLAN change, ingress classification of untagged frames follows the new native VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after the native VLAN change, untagged egress transmission follows the new native VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the same VID as a tagged member on two or more separate interfaces and confirm those interfaces form a single forwarding domain for that VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagged frames traversing the bridge between two tagged interfaces of the same VLAN and confirm the VID, priority and payload are preserved end to end.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set an interface as a member of both a protocol-based VLAN and a tagged VLAN, and confirm each frame is forwarded into the VLAN selected by the applicable classification rule.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with untagged and priority-tagged frames matching a Protocol Template and confirm protocol-template matching takes effect for those frames.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the VID Set for a port associates each Protocol Group Identifier with a VID, and that an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove all VLAN tagged memberships from an interface and confirm the interface carries only its untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames tagged with the removed VIDs and confirm they are dropped or discarded on that interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove all remaining VLAN membership from an interface and confirm it passes no user traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with VID 0 (priority-tagged) frames received on an access/untagged interface and confirm they are forwarded in the interface's untagged VLAN rather than discarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the lowest and highest valid VIDs as tagged memberships on an interface and confirm traffic is forwarded identically to a mid-range VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a reserved or out-of-range VID configured on an interface and confirm the request is rejected with a clear error.",
+          "expectedResult": "Error reported; command rejected."
+        },
+        {
+          "description": "Confirm the interface's existing VLAN membership is unchanged after the rejected VID configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagging configuration applied for a VLAN that does not exist and confirm it is either rejected or held inactive, creating no silent forwarding for that VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with conflicting membership requests on one interface, for example two untagged VLANs, and confirm the request is rejected and the prior valid state is retained.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames tagged with a VID for which the ingress interface has no membership and confirm they are discarded and not leaked into any other VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with double-tagged and malformed 802.1Q frames arriving on a tagged interface and confirm handling is deterministic, with no forwarding into an unintended VLAN and no impact on interface stability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify VLAN membership and tagged/untagged status per interface are reportable and the reported state matches the configured state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify tagging configuration and forwarding behaviour persist unchanged across an interface link down and link up transition.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify tagging configuration persists across VLAN reconfiguration and a device restart, with forwarding behaviour resuming unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change tagged membership on an interface while traffic is running and confirm traffic on the interface's other VLANs is not disrupted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  },
+  "step5": {
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create multiple VLANs on the device and set an Ethernet interface as a tagged member of two or more of them, leaving its untagged VLAN at the default.",
+          "expectedResult": "Configuration accepted."
+        },
+        {
+          "description": "Verify frames transmitted by the interface for each VLAN of which it is a tagged member egress with an 802.1Q tag carrying the matching VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagged frames received on the interface bearing a VID for which that interface is a tagged member, and confirm they are classified into that VLAN and forwarded within it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a single interface to hold untagged membership of one VLAN and tagged membership of one or more other VLANs simultaneously, and confirm each membership operates independently.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with untagged frames received on the interface and confirm they are classified into that interface's native/untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with priority-tagged frames received on the interface and confirm they are also classified into the native/untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify frames egressing the interface on its native/untagged VLAN leave with no VLAN tag.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames ingressing tagged with the native VID and confirm the tag is removed on egress from the untagged member interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change the native/untagged VLAN of the interface to a different VID and confirm the change is accepted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after the native VLAN change, ingress classification of untagged frames follows the new native VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after the native VLAN change, untagged egress transmission follows the new native VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the same VID as a tagged member on two or more separate interfaces and confirm those interfaces form a single forwarding domain for that VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagged frames traversing the bridge between two tagged interfaces of the same VLAN and confirm the VID, priority and payload are preserved end to end.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set an interface as a member of both a protocol-based VLAN and a tagged VLAN, and confirm each frame is forwarded into the VLAN selected by the applicable classification rule.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with untagged and priority-tagged frames matching a Protocol Template and confirm protocol-template matching takes effect for those frames.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the VID Set for a port associates each Protocol Group Identifier with a VID, and that an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove all VLAN tagged memberships from an interface and confirm the interface carries only its untagged VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames tagged with the removed VIDs and confirm they are dropped or discarded on that interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove all remaining VLAN membership from an interface and confirm it passes no user traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with VID 0 (priority-tagged) frames received on an access/untagged interface and confirm they are forwarded in the interface's untagged VLAN rather than discarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the lowest and highest valid VIDs as tagged memberships on an interface and confirm traffic is forwarded identically to a mid-range VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a reserved or out-of-range VID configured on an interface and confirm the request is rejected with a clear error.",
+          "expectedResult": "Error reported; command rejected."
+        },
+        {
+          "description": "Confirm the interface's existing VLAN membership is unchanged after the rejected VID configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with tagging configuration applied for a VLAN that does not exist and confirm it is either rejected or held inactive, creating no silent forwarding for that VID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with conflicting membership requests on one interface, for example two untagged VLANs, and confirm the request is rejected and the prior valid state is retained.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with frames tagged with a VID for which the ingress interface has no membership and confirm they are discarded and not leaked into any other VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with double-tagged and malformed 802.1Q frames arriving on a tagged interface and confirm handling is deterministic, with no forwarding into an unintended VLAN and no impact on interface stability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify VLAN membership and tagged/untagged status per interface are reportable and the reported state matches the configured state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify tagging configuration and forwarding behaviour persist unchanged across an interface link down and link up transition.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify tagging configuration persists across VLAN reconfiguration and a device restart, with forwarding behaviour resuming unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change tagged membership on an interface while traffic is running and confirm traffic on the interface's other VLANs is not disrupted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.",
+          "expectedResult": ""
+        }
+      ]
+    },
+    "provenance": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces\n\n## Finalized objective (authoritative)\n<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "[\n  {\"description\": \"Create multiple VLANs on the device and set an Ethernet interface as a tagged member of two or more of them, leaving its untagged VLAN at the default.\", \"expectedResult\": \"Configuration accepted.\"},\n  {\"description\": \"Verify frames transmitted by the interface for each VLAN of which it is a tagged member egress with an 802.1Q tag carrying the matching VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames received on the interface bearing a VID for which that interface is a tagged member, and confirm they are classified into that VLAN and forwarded within it.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a single interface to hold untagged membership of one VLAN and tagged membership of one or more other VLANs simultaneously, and confirm each membership operates independently.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged frames received on the interface and confirm they are classified into that interface's native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with priority-tagged frames received on the interface and confirm they are also classified into the native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify frames egressing the interface on its native/untagged VLAN leave with no VLAN tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames ingressing tagged with the native VID and confirm the tag is removed on egress from the untagged member interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change the native/untagged VLAN of the interface to a different VID and confirm the change is accepted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, ingress classification of untagged frames follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, untagged egress transmission follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the same VID as a tagged member on two or more separate interfaces and confirm those interfaces form a single forwarding domain for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames traversing the bridge between two tagged interfaces of the same VLAN and confirm the VID, priority and payload are preserved end to end.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set an interface as a member of both a protocol-based VLAN and a tagged VLAN, and confirm each frame is forwarded into the VLAN selected by the applicable classification rule.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged and priority-tagged frames matching a Protocol Template and confirm protocol-template matching takes effect for those frames.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the VID Set for a port associates each Protocol Group Identifier with a VID, and that an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all VLAN tagged memberships from an interface and confirm the interface carries only its untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with the removed VIDs and confirm they are dropped or discarded on that interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all remaining VLAN membership from an interface and confirm it passes no user traffic.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with VID 0 (priority-tagged) frames received on an access/untagged interface and confirm they are forwarded in the interface's untagged VLAN rather than discarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the lowest and highest valid VIDs as tagged memberships on an interface and confirm traffic is forwarded identically to a mid-range VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a reserved or out-of-range VID configured on an interface and confirm the request is rejected with a clear error.\", \"expectedResult\": \"Error reported; command rejected.\"},\n  {\"description\": \"Confirm the interface's existing VLAN membership is unchanged after the rejected VID configuration.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagging configuration applied for a VLAN that does not exist and confirm it is either rejected or held inactive, creating no silent forwarding for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with conflicting membership requests on one interface, for example two untagged VLANs, and confirm the request is rejected and the prior valid state is retained.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with a VID for which the ingress interface has no membership and confirm they are discarded and not leaked into any other VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with double-tagged and malformed 802.1Q frames arriving on a tagged interface and confirm handling is deterministic, with no forwarding into an unintended VLAN and no impact on interface stability.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify VLAN membership and tagged/untagged status per interface are reportable and the reported state matches the configured state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration and forwarding behaviour persist unchanged across an interface link down and link up transition.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration persists across VLAN reconfiguration and a device restart, with forwarding behaviour resuming unchanged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change tagged membership on an interface while traffic is running and confirm traffic on the interface's other VLANs is not disrupted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.\", \"expectedResult\": \"\"}\n]",
+      "objective_used": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps"
+    }
+  },
+  "gaps": "The selected ART coverage addresses the core encapsulation and classification mechanics \u2014 tagged 802.1Q frame handling on a port, the untagged-set membership that defines untagged transmission, and the protocol-based VID-assignment rules that govern how untagged and priority-tagged frames are classified. What it does not reach is the configuration-and-observability layer the TestLink and Zephyr material centres on: running-config and operational-state confirmation of tagging on an interface, the removal and cleanup path when tagging is withdrawn, and native/untagged VLAN interaction with the no-matching-VID case. Also thin are the boundary conditions \u2014 the same VID applied across two different interfaces, VID 0 tagged frames arriving on access ports, and the default global-bridge membership model in which enslaved interfaces are untagged in one VLAN and tagged across the remainder. End-to-end forwarding of tagged frames through the device is only partly represented, and the precedence between protocol-VLAN and tag-VLAN membership on a shared port has no clear automated analogue.",
+  "art_string": "1348.6001.31 + 2035.6.2 + 2034.6.2 + 2034.6.1 + 2035.18.9",
+  "full_session": {
+    "llm_objectives": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces (primary AWP-18509)\n\n## TestLink selections\n- AWP-18509: 802.1Q Tagging on Ethernet Interfaces\n- AWP-17725: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWP-18528: Native vlan operation on an Ethernet port\n- AWP-18535: Same 802.1Q VID on two different interfaces\n- AWP-18493: Packets with 802.1Q tag can traverse bridge\n- AWP-9216: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWP-17730: AWP5-VLAN-CFG-011 - All VLAN tag remove\n\n## Zephyr exemplars\n- AWPTCM-T742: 802.1Q Tagging on Ethernet Interfaces\n- AWPTCM-T753: Same 802.1Q VID on two different interfaces\n- AWPTCM-T749: Native vlan operation on an Ethernet port\n- AWPTCM-T18206: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWPTCM-T14665: Packets with 802.1Q tag can traverse bridge\n- AWPTCM-T18285: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWPTCM-T40451: Check VID 0 tagged frames on access ports can be forwarded\n- AWPTCM-T28820: S2254.1.51 Ethernet interfaces enslaved to the global bridge are untagged members of VID1 and tagged members of all other VLANs (2..4094)\n\n## ATPyLib coverage (selected ART)\n- 1348.6001.31: RED: TCM-1 - VLAN 802.1Q Encapsulation (Tagged)\n- 2035.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.1: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2035.18.9: The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "objectives"
+    },
+    "llm": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces (primary AWP-18509)\n\n## TestLink selections\n- AWP-18509: 802.1Q Tagging on Ethernet Interfaces\n- AWP-17725: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWP-18528: Native vlan operation on an Ethernet port\n- AWP-18535: Same 802.1Q VID on two different interfaces\n- AWP-18493: Packets with 802.1Q tag can traverse bridge\n- AWP-9216: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWP-17730: AWP5-VLAN-CFG-011 - All VLAN tag remove\n\n## Zephyr exemplars\n- AWPTCM-T742: 802.1Q Tagging on Ethernet Interfaces\n- AWPTCM-T753: Same 802.1Q VID on two different interfaces\n- AWPTCM-T749: Native vlan operation on an Ethernet port\n- AWPTCM-T18206: AWP5-VLAN-CFG-004 - Tagged and untagged port\n- AWPTCM-T14665: Packets with 802.1Q tag can traverse bridge\n- AWPTCM-T18285: Forwarding on a Port belong to protocol VLAN and Tag VLAN\n- AWPTCM-T40451: Check VID 0 tagged frames on access ports can be forwarded\n- AWPTCM-T28820: S2254.1.51 Ethernet interfaces enslaved to the global bridge are untagged members of VID1 and tagged members of all other VLANs (2..4094)\n\n## ATPyLib coverage (selected ART)\n- 1348.6001.31: RED: TCM-1 - VLAN 802.1Q Encapsulation (Tagged)\n- 2035.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.7), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.8.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.2: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2034.6.1: Each instance of the tagging and detagging functions that supports the EISS (6.9), and implements the optional port-and-protocol-based VLAN classification, shall implement a VID Set, each member of which associates values of a Protocol Group Identifier (6.12.2) with a VID. Each Untagged and Priority-tagged frame received is assigned a vlan_identifier equal to the VID Set value for the receiving Port and the Protocol Group Identifier selected by matching the received frame with a Protocol Template.\n- 2035.18.9: The entries in the Port Map that specify untagged transmission compose the untagged set for the VLAN\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps",
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces\n\n## Finalized objective (authoritative)\n<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "[\n  {\"description\": \"Create multiple VLANs on the device and set an Ethernet interface as a tagged member of two or more of them, leaving its untagged VLAN at the default.\", \"expectedResult\": \"Configuration accepted.\"},\n  {\"description\": \"Verify frames transmitted by the interface for each VLAN of which it is a tagged member egress with an 802.1Q tag carrying the matching VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames received on the interface bearing a VID for which that interface is a tagged member, and confirm they are classified into that VLAN and forwarded within it.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a single interface to hold untagged membership of one VLAN and tagged membership of one or more other VLANs simultaneously, and confirm each membership operates independently.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged frames received on the interface and confirm they are classified into that interface's native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with priority-tagged frames received on the interface and confirm they are also classified into the native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify frames egressing the interface on its native/untagged VLAN leave with no VLAN tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames ingressing tagged with the native VID and confirm the tag is removed on egress from the untagged member interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change the native/untagged VLAN of the interface to a different VID and confirm the change is accepted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, ingress classification of untagged frames follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, untagged egress transmission follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the same VID as a tagged member on two or more separate interfaces and confirm those interfaces form a single forwarding domain for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames traversing the bridge between two tagged interfaces of the same VLAN and confirm the VID, priority and payload are preserved end to end.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set an interface as a member of both a protocol-based VLAN and a tagged VLAN, and confirm each frame is forwarded into the VLAN selected by the applicable classification rule.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged and priority-tagged frames matching a Protocol Template and confirm protocol-template matching takes effect for those frames.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the VID Set for a port associates each Protocol Group Identifier with a VID, and that an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all VLAN tagged memberships from an interface and confirm the interface carries only its untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with the removed VIDs and confirm they are dropped or discarded on that interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all remaining VLAN membership from an interface and confirm it passes no user traffic.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with VID 0 (priority-tagged) frames received on an access/untagged interface and confirm they are forwarded in the interface's untagged VLAN rather than discarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the lowest and highest valid VIDs as tagged memberships on an interface and confirm traffic is forwarded identically to a mid-range VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a reserved or out-of-range VID configured on an interface and confirm the request is rejected with a clear error.\", \"expectedResult\": \"Error reported; command rejected.\"},\n  {\"description\": \"Confirm the interface's existing VLAN membership is unchanged after the rejected VID configuration.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagging configuration applied for a VLAN that does not exist and confirm it is either rejected or held inactive, creating no silent forwarding for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with conflicting membership requests on one interface, for example two untagged VLANs, and confirm the request is rejected and the prior valid state is retained.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with a VID for which the ingress interface has no membership and confirm they are discarded and not leaked into any other VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with double-tagged and malformed 802.1Q frames arriving on a tagged interface and confirm handling is deterministic, with no forwarding into an unintended VLAN and no impact on interface stability.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify VLAN membership and tagged/untagged status per interface are reportable and the reported state matches the configured state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration and forwarding behaviour persist unchanged across an interface link down and link up transition.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration persists across VLAN reconfiguration and a device restart, with forwarding behaviour resuming unchanged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change tagged membership on an interface while traffic is running and confirm traffic on the interface's other VLANs is not disrupted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.\", \"expectedResult\": \"\"}\n]",
+      "objective_used": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>"
+    },
+    "llm_steps": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\n## Case\nAWPTCM-T33303 \u2014 802.1Q tagging on interfaces\n\n## Finalized objective (authoritative)\n<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).\n- Use \"Verify...\", \"Set...\", \"Test with...\", \"Confirm...\"; platform-agnostic language.\n- expectedResult usually empty or brief.\n- Output JSON array ONLY: [{\"description\": \"...\", \"expectedResult\": \"\"}, ...]",
+      "steps_response": "[\n  {\"description\": \"Create multiple VLANs on the device and set an Ethernet interface as a tagged member of two or more of them, leaving its untagged VLAN at the default.\", \"expectedResult\": \"Configuration accepted.\"},\n  {\"description\": \"Verify frames transmitted by the interface for each VLAN of which it is a tagged member egress with an 802.1Q tag carrying the matching VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames received on the interface bearing a VID for which that interface is a tagged member, and confirm they are classified into that VLAN and forwarded within it.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set a single interface to hold untagged membership of one VLAN and tagged membership of one or more other VLANs simultaneously, and confirm each membership operates independently.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged frames received on the interface and confirm they are classified into that interface's native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with priority-tagged frames received on the interface and confirm they are also classified into the native/untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify frames egressing the interface on its native/untagged VLAN leave with no VLAN tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames ingressing tagged with the native VID and confirm the tag is removed on egress from the untagged member interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change the native/untagged VLAN of the interface to a different VID and confirm the change is accepted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, ingress classification of untagged frames follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify that after the native VLAN change, untagged egress transmission follows the new native VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the same VID as a tagged member on two or more separate interfaces and confirm those interfaces form a single forwarding domain for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagged frames traversing the bridge between two tagged interfaces of the same VLAN and confirm the VID, priority and payload are preserved end to end.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set an interface as a member of both a protocol-based VLAN and a tagged VLAN, and confirm each frame is forwarded into the VLAN selected by the applicable classification rule.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with untagged and priority-tagged frames matching a Protocol Template and confirm protocol-template matching takes effect for those frames.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the VID Set for a port associates each Protocol Group Identifier with a VID, and that an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all VLAN tagged memberships from an interface and confirm the interface carries only its untagged VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with the removed VIDs and confirm they are dropped or discarded on that interface.\", \"expectedResult\": \"\"},\n  {\"description\": \"Remove all remaining VLAN membership from an interface and confirm it passes no user traffic.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with VID 0 (priority-tagged) frames received on an access/untagged interface and confirm they are forwarded in the interface's untagged VLAN rather than discarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.\", \"expectedResult\": \"\"},\n  {\"description\": \"Set the lowest and highest valid VIDs as tagged memberships on an interface and confirm traffic is forwarded identically to a mid-range VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with a reserved or out-of-range VID configured on an interface and confirm the request is rejected with a clear error.\", \"expectedResult\": \"Error reported; command rejected.\"},\n  {\"description\": \"Confirm the interface's existing VLAN membership is unchanged after the rejected VID configuration.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with tagging configuration applied for a VLAN that does not exist and confirm it is either rejected or held inactive, creating no silent forwarding for that VID.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with conflicting membership requests on one interface, for example two untagged VLANs, and confirm the request is rejected and the prior valid state is retained.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with frames tagged with a VID for which the ingress interface has no membership and confirm they are discarded and not leaked into any other VLAN.\", \"expectedResult\": \"\"},\n  {\"description\": \"Test with double-tagged and malformed 802.1Q frames arriving on a tagged interface and confirm handling is deterministic, with no forwarding into an unintended VLAN and no impact on interface stability.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify VLAN membership and tagged/untagged status per interface are reportable and the reported state matches the configured state.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify the untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration and forwarding behaviour persist unchanged across an interface link down and link up transition.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify tagging configuration persists across VLAN reconfiguration and a device restart, with forwarding behaviour resuming unchanged.\", \"expectedResult\": \"\"},\n  {\"description\": \"Change tagged membership on an interface while traffic is running and confirm traffic on the interface's other VLANs is not disrupted.\", \"expectedResult\": \"\"},\n  {\"description\": \"Verify rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.\", \"expectedResult\": \"\"}\n]",
+      "objective_used": "<ul>\n<li>An Ethernet interface configured as a tagged member of one or more VLANs transmits frames for those VLANs with an 802.1Q tag carrying the matching VID.</li>\n<li>Frames received on a tagged interface bearing a VID for which that interface is a tagged member are classified into that VLAN and forwarded within it.</li>\n<li>A single interface simultaneously holds untagged membership of one VLAN and tagged membership of one or more other VLANs, with each membership operating independently.</li>\n<li>Untagged and priority-tagged frames received on an interface are classified into that interface's native/untagged VLAN.</li>\n<li>Frames egressing an interface on its native/untagged VLAN leave with no VLAN tag, and the tag is removed on egress when the ingressing frame was tagged with the native VID.</li>\n<li>The native/untagged VLAN of an interface is changeable, and after a change ingress classification and egress untagged transmission both follow the new native VID.</li>\n<li>The same VID is configurable as a tagged member on two or more separate interfaces, and those interfaces form a single forwarding domain for that VID.</li>\n<li>Tagged frames traverse a bridge between two tagged interfaces of the same VLAN with the VID, priority and payload preserved end to end.</li>\n<li>Traffic in one VLAN remains isolated from interfaces that hold no membership of that VLAN, whether tagged or untagged.</li>\n<li>An interface belonging to both a protocol-based VLAN and a tagged VLAN forwards each frame into the VLAN selected by the applicable classification rule, with protocol-template matching taking effect for untagged and priority-tagged frames.</li>\n<li>The VID Set for a port associates each Protocol Group Identifier with a VID, and an untagged or priority-tagged frame matching a Protocol Template is assigned the corresponding VID.</li>\n<li>Removal of all VLAN tagged memberships from an interface is possible, after which the interface carries only its untagged VLAN and drops or discards frames tagged with the removed VIDs.</li>\n<li>An interface with no remaining VLAN membership passes no user traffic.</li>\n<li>VID 0 (priority-tagged) frames received on an access/untagged interface are forwarded in the interface's untagged VLAN rather than discarded.</li>\n<li>Ethernet interfaces enslaved to the global bridge default to untagged membership of VID 1 and tagged membership of all other configured VLANs in the range 2..4094.</li>\n<li>Boundary VIDs (lowest and highest valid values) are configurable as tagged memberships and forward traffic identically to mid-range VIDs.</li>\n<li>Configuration of a reserved or out-of-range VID on an interface is rejected with a clear error and leaves existing VLAN membership unchanged.</li>\n<li>Tagging configuration for a VLAN that does not exist is either rejected or held inactive, and does not create silent forwarding for that VID.</li>\n<li>Conflicting membership requests on one interface (for example two untagged VLANs) are rejected, with the prior valid state retained.</li>\n<li>Frames tagged with a VID for which the ingress interface has no membership are discarded and are not leaked into any other VLAN.</li>\n<li>Double-tagged or malformed 802.1Q frames arriving on a tagged interface are handled deterministically, with no forwarding into an unintended VLAN and no impact on interface stability.</li>\n<li>VLAN membership and tagged/untagged status per interface are reportable, and the reported state matches the configured state.</li>\n<li>The untagged set for each VLAN is reportable as the entries in the port map specifying untagged transmission.</li>\n<li>Per-VLAN and per-interface frame counters increment consistently with the tagged and untagged traffic actually forwarded.</li>\n<li>MAC addresses learned from tagged traffic appear in the forwarding database against the VID carried in the tag.</li>\n<li>Tagging configuration persists across interface link transitions, VLAN reconfiguration and device restart, with forwarding behaviour resuming unchanged.</li>\n<li>Changes to tagged membership take effect without disrupting traffic on the interface's other VLANs.</li>\n<li>Rejected tagging operations and discarded frames are observable through logs or counters sufficient to distinguish a misconfiguration from a forwarding fault.</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_code",
+      "model": "claude-opus-5",
+      "error": false,
+      "phase": "steps"
+    }
+  },
+  "updated_at": "2026-07-30 03:04:28.086641+00:00",
+  "rev": 8,
+  "llm_config": {
+    "provider": "claude",
+    "auth_method": "claude_code",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": "claude-opus-5"
+  }
+}

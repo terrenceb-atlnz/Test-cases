@@ -142,6 +142,12 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
   `_call_llm_with_meta`; hardcoded 180s subprocess timeouts). Secrets convention: `.gitignore`
   ignores `secrets.*`; loader precedent `tool/upload_refined.py::_find_secrets_file()`.
   paramiko 2.9.3 is installed.
+  > ⚠ **CORRECTED 2026-08-03:** that sentence was a fact about ONE machine, not a declaration —
+  > `paramiko` was in **no requirements file**, so on any fresh venv the whole "6. Run" step was
+  > dead. Because `import paramiko` sits inside `pt_exec._connect()`, the profile probe answered
+  > `"SSH connection failed: No module named 'paramiko'"`, which reads as a testbox/network
+  > fault. Now declared in `requirements.txt`, and `tests/test_dependencies_declared.py` asserts
+  > every third-party import in `CK_server/` is declared so the next one cannot hide this way.
   > Line numbers were deliberately dropped here (2026-07-28): they were labelled "verified"
   > but had drifted, and `wizard.py` shrank ~170 lines in `4578030`. Grep the symbol — a stale
   > line ref is worse than none, because it reads as authoritative.

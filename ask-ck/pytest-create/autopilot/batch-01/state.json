@@ -1,0 +1,536 @@
+{
+  "cases": {
+    "AWPTCM-T43868": {
+      "n_zephyr_steps": 43,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43868",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43868/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 0
+    },
+    "AWPTCM-T43869": {
+      "generator_selections": {
+        "step1": [
+          "AWP-1234",
+          "AWP-20411",
+          "AWP-20412",
+          "AWP-20413",
+          "AWP-20414",
+          "AWP-20415",
+          "AWP-22457",
+          "AWP-15157"
+        ],
+        "step2": [
+          "AWPTCM-T15882",
+          "AWPTCM-T20876",
+          "AWPTCM-T20877",
+          "AWPTCM-T20878",
+          "AWPTCM-T20879",
+          "AWPTCM-T20880",
+          "AWPTCM-T15883",
+          "AWPTCM-T29214"
+        ],
+        "step3": [
+          "1348.6001.24",
+          "1348.6001.27",
+          "1348.6001.28",
+          "1336.108.3",
+          "5701.1012.1",
+          "5701.1001.8",
+          "1331.2001.41668",
+          "2029.99.2"
+        ]
+      },
+      "n_zephyr_steps": 56,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43869",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43869/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 279
+    },
+    "AWPTCM-T43870": {
+      "generator_selections": {
+        "step1": [
+          "AWP-1237",
+          "AWP-1236",
+          "AWP-1238",
+          "AWP-20419",
+          "AWP-20423",
+          "AWP-20424",
+          "AWP-20434",
+          "AWP-6675"
+        ],
+        "step2": [
+          "AWPTCM-T15885",
+          "AWPTCM-T15884",
+          "AWPTCM-T15886",
+          "AWPTCM-T20884",
+          "AWPTCM-T20888",
+          "AWPTCM-T20889",
+          "AWPTCM-T15888"
+        ],
+        "step3": [
+          "5701.1014.1",
+          "1348.6001.24",
+          "1348.6001.27",
+          "1348.6001.28",
+          "1348.6001.25",
+          "1348.6001.26",
+          "1348.2001.20",
+          "1348.2001.2"
+        ]
+      },
+      "n_zephyr_steps": 49,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43870",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T43870/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 247
+    },
+    "AWPTCM-T44297": {
+      "generator_selections": {
+        "step1": [
+          "AWP-5551",
+          "AWP-5508",
+          "AWP-5523",
+          "AWP-5541",
+          "AWP-5552",
+          "AWP-17661",
+          "AWP-17662",
+          "AWP-5560"
+        ],
+        "step2": [
+          "AWPTCM-T9536",
+          "AWPTCM-T9720",
+          "AWPTCM-T9733",
+          "AWPTCM-T9528",
+          "AWPTCM-T9537",
+          "AWPTCM-T9763",
+          "AWPTCM-T9764",
+          "AWPTCM-T9545"
+        ],
+        "step3": [
+          "2016.5.3",
+          "1332.1001.8",
+          "2016.3.29",
+          "2015.3.29",
+          "2016.3.24",
+          "2016.3.19",
+          "1332.2001.8",
+          "1332.1001.1"
+        ]
+      },
+      "n_zephyr_steps": 29,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Management (71)/AWPTCM-T44297",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Management (71)/AWPTCM-T44297/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 169,
+      "pt_input_steps": 28,
+      "sequence_kinds": {
+        "setup": 7,
+        "verify": 41
+      },
+      "coverage_step2": {
+        "ok": true,
+        "warning": ""
+      },
+      "n_sequence": 13,
+      "trimmed": {
+        "from_steps": 48,
+        "to_steps": 13,
+        "dropped_count": 35,
+        "dropped_actions": [
+          "Clear the system description selection, then select only the system capabilities TLV on the DUT test port and capture the next LLDPDUs.",
+          "Clear the system capabilities selection, then select only the management address TLV on the DUT test port and capture the next LLDPDUs.",
+          "Select the complete set of optional TLVs \u2014 port description, system name, system description, system capabilities and management address \u2014 on the DUT test port,",
+          "Decode at least five consecutive LLDPDUs captured with the full optional TLV set selected and count occurrences of each TLV type per frame.",
+          "With management address transmission selected, capture every LLDPDU transmitted on the DUT test port across at least three transmit intervals and count manageme",
+          "Decode the management address TLV from a captured LLDPDU and read the DUT's configured management address from its running configuration and its LLDP local-info",
+          "Change the DUT's management address: issue `no management address`, then `management address <ipv4-addr>` with a different valid IPv4 address configured on the ",
+          "Associate more than one management address with the DUT test port (configure an additional management address on the device so that, where the platform supports",
+          "With all five optional TLVs selected, clear only the port description TLV on the DUT test port and capture the next LLDPDUs.",
+          "Clear only the system name TLV on the DUT test port, leaving system description, system capabilities and management address selected, and capture the next LLDPD",
+          "Clear only the system description TLV on the DUT test port, leaving system capabilities and management address selected, and capture the next LLDPDUs.",
+          "Clear only the system capabilities TLV on the DUT test port, leaving management address selected, and capture the next LLDPDUs.",
+          "Clear the management address TLV on the DUT test port and capture the next LLDPDUs.",
+          "Decode the contents of each optional TLV from a captured LLDPDU and read the corresponding local values from the DUT's own management interfaces: the interface ",
+          "Read the per-port TLV transmit-enable state from the LLDP management information base by SNMP (walk the LLDP MIB per-port TLVs-transmit-enable object) for the D",
+          "On a second DUT port (also LLDP-enabled), select a different set of optional TLVs \u2014 system description and management address only \u2014 then re-capture LLDPDUs tra",
+          "Leave a third LLDP-enabled DUT port with no optional TLVs selected and capture LLDPDUs from it (via its own link partner or a mirror of that port declared in th",
+          "Configure the DUT test port for LLDP transmit-only operation (disable LLDP reception on that port while leaving transmission enabled), keeping the full optional",
+          "Select the LLDP-MED TLV set on the DUT test port (enable MED TLV transmission for the MED capability and network policy TLVs) without altering the basic optiona",
+          "Clear the LLDP-MED TLV selections on the DUT test port, leaving the basic optional TLV selections untouched, then capture LLDPDUs.",
+          "Re-select the LLDP-MED TLV set on the DUT test port and capture LLDPDUs, decoding all TLVs of type 127.",
+          "Capture LLDPDUs from the DUT test port and decode the MED capability TLV (subtype 1) and the MED network policy TLV (subtype 2), checking each TLV's length fiel",
+          "With LLDP running and traffic ongoing, select one further optional TLV that is not currently selected on the DUT test port (do not disable LLDP, do not bounce t",
+          "With LLDP still running, clear one selected optional TLV on the DUT test port while capturing continuously across the change.",
+          "Record the DUT test port's current TLV selection state and running configuration as a baseline, then attempt to select an unsupported TLV keyword on that port (",
+          "Attempt to select an optional TLV using a deliberately misspelled form of a valid TLV keyword on the DUT test port.",
+          "Attempt a TLV selection carrying an out-of-range numeric argument (a value outside the documented range for the argument the command accepts, such as an out-of-",
+          "After each of the three rejected attempts above, re-read the DUT test port's per-port TLV selection display and its running configuration and compare them with ",
+          "Re-issue a TLV selection command for a TLV that is already selected on the DUT test port.",
+          "Issue the clear (no-form) of a TLV selection for a TLV that is already deselected on the DUT test port.",
+          "Run the DUT's operational LLDP display commands that report per-port TLV configuration for the test port and for the second DUT port.",
+          "Read the neighbour device's LLDP neighbour-detail display for its partner port, at least one transmit interval after the DUT's current selections were applied, ",
+          "Clear a subset of the optional TLVs on the DUT test port (leave at least one selected), wait for the neighbour's entry to be refreshed by a new LLDPDU, then re-",
+          "Snapshot the LLDP frame and TLV counters on both the DUT and the neighbour, then perform a series of valid TLV selection changes on the DUT test port (select a ",
+          "Display the DUT's running configuration and record the per-port LLDP TLV selection lines, save the configuration to startup, then reload the DUT and reconnect t"
+        ],
+        "why": "output-budget ceiling ~15 TestCase classes; this script covers a SUBSET of the case and is not a complete test of it"
+      },
+      "script_selections": {
+        "2": [
+          "art/1332_lldp_med/test-1332.2001.py",
+          "art/1332_lldp_med/test-1332.1001.py",
+          "art/1332_lldp_med/library_1332.py"
+        ],
+        "3": [
+          "art/1332_lldp_med/test-1332.2001.py",
+          "art/1332_lldp_med/test-1332.1001.py",
+          "art/6000_link_check/test-6000.1002-link_discovery.py"
+        ],
+        "5": [
+          "art/1332_lldp_med/test-1332.2001.py",
+          "art/1332_lldp_med/test-1332.1001.py",
+          "art/1332_lldp_med/library_1332.py"
+        ],
+        "7": [
+          "art/1332_lldp_med/test-1332.2001.py"
+        ],
+        "9": [
+          "art/1332_lldp_med/test-1332.1001.py",
+          "art/1332_lldp_med/library_1332.py"
+        ],
+        "10": [
+          "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py"
+        ],
+        "11": [
+          "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py"
+        ],
+        "12": [
+          "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py"
+        ],
+        "13": [
+          "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py"
+        ],
+        "1": [
+          "art/6000_link_check/test-6000.1002-link_discovery.py",
+          "art/6000_link_check/test-6000.1001.py",
+          "legacy/TestSuite/6901_ATPyLib_training/test-6000.1001.py"
+        ],
+        "6": [
+          "art/6000_link_check/test-6000.1002-link_discovery.py"
+        ]
+      },
+      "n_scripts_selected": 7,
+      "fragments": {
+        "pool": 40,
+        "selected": 13,
+        "dropped": 0
+      },
+      "generate": {
+        "naming": {
+          "group": "Management",
+          "name": "261_Management_LLDP_LLDP_test"
+        },
+        "code_chars": 37744,
+        "lint_errors": [
+          "line 273: calls setup.init_portlink() directly, which skips the run-time MEDIA assertion. Bind through `self._ck_bind_link(setup, <dut>, misc, '<role>')` instead \u2014 a port bound without that check can be the wrong media, and the resulting failure reads as a product defect rather than a cabling error. See ask-ck/pytest-create/TOPOLOGY-PROFILES.md"
+        ],
+        "lint_warnings": [
+          "coverage: Zephyr step(s) [3, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28] have no sequence entry \u2014 that part of the objective is NOT tested by this script"
+        ],
+        "iterations": 1,
+        "written": [
+          "/media/terrenceb/mnt/testbox_home/copilot/Test-cases/ask-ck/pytest-create/generated/Management/261_Management_LLDP_LLDP_test.py",
+          "/media/terrenceb/mnt/testbox_home/copilot/Test-cases/ask-ck/pytest-create/generated/.meta/Management/261_Management_LLDP_LLDP_test/provenance.json"
+        ]
+      },
+      "artefact_valid": false,
+      "coverage_gap_step6": "Cannot confirm '5. Generate': 20 of 28 Zephyr step(s) are not tested by any step in this sequence. Every Zephyr step needs at least one PyTest step or that part of the objective is not being tested.\n\nUNTESTED source step(s):\n  \u2022 Zephyr step 3: Verify each optional TLV is individually clearable on the same port, leaving the remaining selections in place.\n  \u2022 Zephyr step 6: Verify no single LLDPDU c",
+      "pt_done": true,
+      "pytest_status": "ok",
+      "pytest_seconds": 1152
+    },
+    "AWPTCM-T33277": {
+      "generator_selections": {
+        "step1": [
+          "AWP-9637",
+          "AWP-13049",
+          "AWP-9464",
+          "AWP-9370",
+          "AWP-7541",
+          "AWP-9431",
+          "AWP-11428",
+          "AWP-9424"
+        ],
+        "step2": [
+          "AWPTCM-T20293",
+          "AWPTCM-T20386",
+          "AWPTCM-T20454",
+          "AWPTCM-T6671",
+          "AWPTCM-T20385",
+          "AWPTCM-T20312",
+          "AWPTCM-T20353",
+          "AWPTCM-T20453"
+        ],
+        "step3": [
+          "2021.4.1",
+          "2031.10.1",
+          "2031.10.2",
+          "2021.5.5",
+          "2021.23.4",
+          "2021.23.8",
+          "2021.23.1",
+          "2021.23.7"
+        ]
+      },
+      "n_zephyr_steps": 59,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33277",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33277/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 227
+    },
+    "AWPTCM-T33302": {
+      "generator_selections": {
+        "step1": [
+          "AWP-6402",
+          "AWP-6651",
+          "AWP-27191",
+          "AWP-23330",
+          "AWP-14859",
+          "AWP-13704",
+          "AWP-6663"
+        ],
+        "step2": [
+          "AWPTCM-T18076",
+          "AWPTCM-T18055",
+          "AWPTCM-T9352",
+          "AWPTCM-T18166",
+          "AWPTCM-T8354",
+          "AWPTCM-T18208",
+          "AWPTCM-T18288"
+        ],
+        "step3": [
+          "2034.16.1"
+        ]
+      },
+      "n_zephyr_steps": 37,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33302",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33302/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 195
+    },
+    "AWPTCM-T33303": {
+      "generator_selections": {
+        "step1": [
+          "AWP-18509",
+          "AWP-17725",
+          "AWP-18528",
+          "AWP-18535",
+          "AWP-18493",
+          "AWP-9216",
+          "AWP-17730"
+        ],
+        "step2": [
+          "AWPTCM-T742",
+          "AWPTCM-T753",
+          "AWPTCM-T749",
+          "AWPTCM-T18206",
+          "AWPTCM-T14665",
+          "AWPTCM-T18285",
+          "AWPTCM-T40451",
+          "AWPTCM-T28820"
+        ],
+        "step3": [
+          "1348.6001.31",
+          "2035.6.2",
+          "2034.6.2",
+          "2034.6.1",
+          "2035.18.9"
+        ]
+      },
+      "n_zephyr_steps": 38,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33303",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33303/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 152
+    },
+    "AWPTCM-T33304": {
+      "generator_selections": {
+        "step1": [
+          "AWP-4800",
+          "AWP-9206",
+          "AWP-9207",
+          "AWP-4757",
+          "AWP-4689",
+          "AWP-4690",
+          "AWP-4767",
+          "AWP-9210"
+        ],
+        "step2": [
+          "AWPTCM-T18145",
+          "AWPTCM-T18304",
+          "AWPTCM-T18305",
+          "AWPTCM-T18135",
+          "AWPTCM-T18132",
+          "AWPTCM-T18133",
+          "AWPTCM-T18143",
+          "AWPTCM-T18306"
+        ],
+        "step3": [
+          "1331.1001.30675",
+          "1341.2001.5003",
+          "1331.1001.42563",
+          "1331.1001.27095"
+        ]
+      },
+      "n_zephyr_steps": 35,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33304",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Switching (75)/AWPTCM-T33304/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 183,
+      "pt_input_steps": 34,
+      "pytest_status": "failed",
+      "pytest_status_error": "POST /api/pytest-create/extract_sequence/AWPTCM-T33304 -> 502: {\"detail\":\"LLM returned no sequence. Raw response stored in provenance.\"}"
+    },
+    "AWPTCM-T44296": {
+      "generator_selections": {
+        "step1": [
+          "AWP-5512",
+          "AWP-5518",
+          "AWP-5517",
+          "AWP-5515",
+          "AWP-5513",
+          "AWP-5506",
+          "AWP-5500",
+          "AWP-5547"
+        ],
+        "step2": [
+          "AWPTCM-T9724",
+          "AWPTCM-T9729",
+          "AWPTCM-T9730",
+          "AWPTCM-T9727",
+          "AWPTCM-T9725",
+          "AWPTCM-T9718",
+          "AWPTCM-T47624",
+          "AWPTCM-T47623"
+        ],
+        "step3": [
+          "1332.1001.8",
+          "1341.1001.6835",
+          "1332.1001.7",
+          "1331.2001.27875",
+          "1331.1001.26525",
+          "2015.5.1",
+          "2016.5.1",
+          "6000.1002.1"
+        ]
+      },
+      "n_zephyr_steps": 41,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/Management (71)/AWPTCM-T44296",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/Management (71)/AWPTCM-T44296/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 178
+    },
+    "AWPTCM-T35370": {
+      "generator_selections": {
+        "step1": [
+          "AWP-3698",
+          "AWP-17338",
+          "AWP-20768",
+          "AWP-26628",
+          "AWP-26629",
+          "AWP-18452",
+          "AWP-15614",
+          "AWP-23701"
+        ],
+        "step2": [
+          "AWPTCM-T4610",
+          "AWPTCM-T4621",
+          "AWPTCM-T20545",
+          "AWPTCM-T2171",
+          "AWPTCM-T2172",
+          "AWPTCM-T4618",
+          "AWPTCM-T4613",
+          "AWPTCM-T4619"
+        ],
+        "step3": [
+          "2003.6.6",
+          "2003.5.15",
+          "2003.5.14",
+          "2004.12.12",
+          "2003.5.3",
+          "2003.2.1"
+        ]
+      },
+      "n_zephyr_steps": 35,
+      "export": {
+        "wrote_bundle": true,
+        "saved_to": "ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T35370",
+        "valid": true,
+        "issues": [],
+        "warnings": [],
+        "message": "Saved drop-in bundle to ask-ck/objective-drafting/refined-cases/IPv4 (44)/AWPTCM-T35370/"
+      },
+      "generator_status": "ok",
+      "generator_seconds": 134
+    }
+  },
+  "llm": {
+    "provider": "claude",
+    "auth_method": "claude_code",
+    "model": "claude-opus-5"
+  }
+}

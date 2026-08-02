@@ -2,7 +2,64 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-07-30 (by Claude)
+**Last Updated**: 2026-08-03 (by Claude)
+
+## Latest session (2026-08-03) — 10 refined cases via Opus; generation hits a hard OUTPUT CEILING; 12 transport defects fixed
+
+**Focus: take 10 "Not Executed" AWPTCM cases end-to-end (objectives → refined cases → pytest →
+judges → tb470) automatedly with Opus.** Two of the three deliverables landed; the third is
+blocked by a measured, quantified limit rather than by anything left half-done. Gate **719 → 775**
+pytest (+92 Vitest unchanged). Full record: `ask-ck/pytest-create/autopilot/RESULTS-2026-08-03.md`.
+
+- **Objectives + refined test cases: 10/10, all `valid=True`, zero warnings** — 422 refined steps
+  under `refined-cases/{IPv4 (44),Management (71),Switching (75)}/`. The inputs were nearly empty
+  (**6 of 10 had no objective at all, 8 had no steps text**), so essentially all content came from
+  the title plus the three corpora, and it is domain-correct: the SNMPv1 objective covers
+  read-only vs read-write community separation, GET-NEXT lexicographic ordering with clean
+  end-of-MIB termination, SET rejection under a read-only community, and access-list parse
+  behaviour at agent start-up. Refined-case total on disk: **42 → 53**.
+- **New tool `tool/pt_autopilot.py`** drives both wizards headlessly through the **running
+  server** (never a direct model call — the prompts, CLI grounding, coverage gate, skeleton and
+  lints *are* the product). It substitutes each review step's own LLM suggestion for the
+  reviewer's click and records that it did so, is resumable per-step across session limits, and
+  reports `compiles` separately from `lint_clean`.
+- ⚠️ **THE BLOCKER — generation is capped at ~9–20 `TestCase` classes.** The 32,000-token output
+  budget is **shared with thinking**, is not raisable, and `--max-thinking-tokens` caps a single
+  *block* not the total (measured **20,400** thinking tokens under a 2,048 cap). Above the ceiling
+  a script truncates **without erroring** — and at 21 steps it truncated on a statement boundary,
+  so `ast.parse` **succeeded** on a script missing 1 of 17 TestCases and the `__main__` entry.
+  Also note trimming step count does **not** shrink the answer: the model fills the budget (44
+  steps → 86,644 chars; trimmed to 21 → **88,593**). All 10 cases (44–78 sequence steps) are
+  3–5x over. Gated up front now by `_size_overflow()`, free and instant, with an explicit
+  `acknowledge_size_overflow` override. Measurements: `FINDINGS-generation-size-ceiling.md`.
+- **Best pytest result** (T44297 trimmed to 6 verification steps): complete + parseable, 6/6
+  TestCases, and it grades a clean sweep offline — `pt_grade.py` **C1 EXACTLY / C2 EXACTLY /
+  C3 RIGHT / C6 YES (6/6)**; `pt_judge.py` criterion 4 **n/a because every TestCase reuses a real
+  fragment** (no invented gap-fill). One lint error remains: it calls `setup.init_portlink()`
+  directly, bypassing `_ck_bind_link` and the media assertion — the 2026-07-30 guard working.
+- **The tb470 run path is VERIFIED for the first time** —
+  `profiles/tb470/check` → `ok/ssh/framework/sudo` all true, Python 3.13.5. It had never passed
+  because **`paramiko` was declared in no requirements file**; the polite failure
+  (`"SSH connection failed: No module named 'paramiko'"`) read as a lab fault. Profile must use
+  `user: terrenceb` (`st-art` does not authenticate) and the *server* needs the keyring
+  `SSH_AUTH_SOCK` — `TESTBOX-ACCESS.md` §3a.
+- **12 defects fixed, all mutation-tested (36 mutations attempted, 36 caught)**, in 3 new offline
+  test files (`subprocess.run` monkeypatched, zero tokens). Highlights: `claude -p` was running as
+  an **agent** (2.67M input tokens, 23 min, **$4.65**, empty result, `is_error:false`); its
+  `result` field returns only the **final** assistant message so long answers lost their head;
+  the caller's `system` message was **dropped entirely** on that path; `_JSON_SYSTEM_PROMPT`
+  ("no markdown fences") was being sent to the two templates that need a **fenced** block;
+  `gather_fragments` read an **unparseable** reply as an **empty** one (two cases recorded 0
+  fragments while step 3 had selected 12 scripts); and `lib2to3` was removed in Python **3.13**,
+  the version we target, silently disabling D3 py2 translation (now falls back to `fissix`).
+- **Pending / not done:** nothing regenerated for the other 9 cases (they need splitting first, or
+  chunked generation). **Three defects left OPEN by choice**, each needing a design decision:
+  generation over-declares an unused `init_stk('stk_a')` so the script demands a stack tb470 has
+  not got (the minimality guarantee covers `init_swi`, not `init_stk`, and no lint catches
+  bound-but-never-used); `pt_preflight` cannot follow `_ck_bind_link`'s run-time link resolution,
+  so no contract-based script can reach a clean RUNNABLE verdict; and `POST /fix_script` **regressed
+  a good script** (37,744 → 25,172 chars, 0 TestCases) — harmless only because it does not write
+  to disk. No hardware run happened: preflight correctly refused, so no bench time was spent.
 
 ## Latest session (2026-07-30) — tb470 de-stacked and cabled, and generation now targets a TOPOLOGY CONTRACT
 

@@ -194,8 +194,15 @@ output (`current duplex full, current speed 1000, current polarity mdix`).
 ## 3. Run an ATTestSet framework test script on a testbox 🔧
 
 This is the mechanism `pt_exec.py` (`_connect` / `RunManager._run`) uses for a PyTest
-Creator hardware run. Documented from code — not personally executed here (it needs a
-testbox profile in gitignored `secrets.testboxes.json` + a `.setup` topology file).
+Creator hardware run.
+
+> ✅ **The server-side run path is now VERIFIED end to end (2026-08-03).**
+> `POST /api/pytest-create/profiles/tb470/check` returns
+> `{"ok":true,"ssh":true,"framework":true,"sudo":true,"detail":"tb470\nPython 3.13.5"}`.
+> It had never passed before, for a reason that had nothing to do with the lab: **`paramiko`
+> was declared in no requirements file**, and because `import paramiko` sits inside
+> `_connect()`, the probe answered `"SSH connection failed: No module named 'paramiko'"` —
+> which reads as a testbox or network fault. See §3a for the two settings it needs.
 
 **Preconditions on the box:** `/home/st-art/framework` present (READ-ONLY — never write under
 it), passwordless `sudo`, `python3`. `check_profile()` probes exactly these.
@@ -224,6 +231,38 @@ SSH_AUTH_SOCK=$sock ssh "$BOX" "
 - **Framework read-only guard:** never redirect/`cp`/`rsync`/interpret into
   `/home/st-art/framework`; copy any file you must edit into the run workdir first
   (`_assert_write_allowed` / `_assert_command_allowed` enforce this in the tool).
+
+### 3a. The two things a server-side run needs that are easy to miss ✅
+
+Both verified 2026-08-03 on tb470.
+
+**1. The profile user is `terrenceb`, NOT the `st-art` default.** `st-art@tb470` does *not*
+authenticate with the keyring key — `Permission denied (publickey,password)`. `terrenceb@tb470`
+does, and it has passwordless `sudo` and `python3` 3.13.5, and can read
+`/home/st-art/framework`. So the profile must set `user` explicitly:
+
+```bash
+curl -s -X POST localhost:8000/api/pytest-create/profiles -H 'Content-Type: application/json' -d '{
+  "name":"tb470","tb_number":"470","host":"tb470","user":"terrenceb","auth":"key",
+  "setups":{"tb470":"/home/st-art/st-art/configs/tb470.setup"}}'
+curl -s -X POST localhost:8000/api/pytest-create/profiles/tb470/check
+```
+
+**2. The SERVER process needs the keyring agent, not just your shell.** `pt_exec._connect`
+falls back to `key_path` (`~/.ssh/id_rsa`, passphrase-encrypted and useless
+non-interactively) and otherwise relies on paramiko's agent support — i.e. on the *uvicorn
+process's* `SSH_AUTH_SOCK`. Started from VS Code it inherits the forwarded **Mac** agent, which
+is empty. Export the keyring socket before restarting; `run.sh` passes the environment through:
+
+```bash
+export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR:-/run/user/1971}/keyring/ssh"
+ssh-add -l                            # must list the RSA key
+./ask-ck/CK-main/run.sh --restart
+```
+
+⚠️ `run.sh` **always** passes `--reload`, so editing anything under `ask-ck/CK-main` bounces the
+server and kills in-flight LLM calls. Sequence server-code edits into idle windows during a long
+batch — this cost a mid-run case here.
 
 > Note: tb105 fronts a switch **console** (§2); a framework run needs a testbox whose
 > `.setup` declares real `tb-` portlinks to the DUT(s). tb105's `kochi_uni_tb105.setup`

@@ -24,7 +24,7 @@ import tempfile
 from models import PtSession, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
-from llm import run_prompt, extract_json_block
+from llm import run_prompt, extract_json_block, _CODE_SYSTEM_PROMPT
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 import locks
 from pt_exec import (
@@ -145,25 +145,55 @@ def _removed_stdlib_imports(tree) -> List[str]:
     return out
 
 
+def _py2_refactor_backend():
+    """The 2-to-3 refactoring engine, or (None, "") if neither is installed.
+
+    Returns (refactor_module, fixers_package_name).
+
+    Two backends because `lib2to3` was REMOVED FROM THE STDLIB IN PYTHON 3.13 — and 3.13 is
+    the version this project deliberately targets, because the PyTest Creator lints
+    generated scripts with the local interpreter and the testbox runs 3.13.5
+    (requirements.txt: "PREFER PYTHON 3.13 — match the testbox"). So the recommended
+    environment was precisely the one where this feature silently stopped working: the
+    import failed, `_translate_py2` returned "unavailable", and every legacy Py2 fragment
+    shipped untranslated behind a soft-warn. Nothing raised, so nothing said so. Measured
+    on the 2026-07-30 Opus batch: 1 py2_flagged fragment, 0 translated.
+
+    `fissix` is the maintained fork of lib2to3 with the same `refactor` API and its own
+    `fissix.fixes` package, so it is a genuine drop-in rather than a reimplementation.
+    Preference order is stdlib-first purely so nothing changes on an interpreter that still
+    ships lib2to3.
+    """
+    try:
+        from lib2to3 import refactor          # noqa: PLC0415
+        return refactor, "lib2to3.fixes"
+    except Exception:
+        pass
+    try:
+        from fissix import refactor           # noqa: PLC0415
+        return refactor, "fissix.fixes"
+    except Exception:
+        return None, ""
+
+
 def _translate_py2(code: str, name: str = "fragment") -> Tuple[str, str]:
-    """Deterministically modernize a Py2 code fragment to Py3 via lib2to3.
+    """Deterministically modernize a Py2 code fragment to Py3 via lib2to3 (or fissix).
 
     Returns (new_code, status) where status is one of:
-      - "translated"  : lib2to3 parsed it and produced (possibly changed) Py3.
+      - "translated"  : the refactorer parsed it and produced (possibly changed) Py3.
       - "clean"       : no Py2 tells to begin with (caller usually skips this path).
-      - "parse_error" : lib2to3 could not parse it — ORIGINAL code returned unchanged
+      - "parse_error" : could not parse it — ORIGINAL code returned unchanged
                         (caller must soft-warn, never ship a broken translation).
-      - "unavailable" : lib2to3 import failed (very old/stripped runtime) — original
-                        returned; caller soft-warns.
+      - "unavailable" : NEITHER lib2to3 nor fissix is installed — original returned;
+                        caller soft-warns. See _py2_refactor_backend for why there are two.
 
     Never raises: any failure degrades to returning the original code + a status the
-    caller can act on. lib2to3 wants a trailing newline and a name for error messages.
+    caller can act on. The refactorer wants a trailing newline and a name for errors.
     """
     if not _has_py2_tells(code):
         return code, "clean"
-    try:
-        from lib2to3 import refactor
-    except Exception:
+    refactor, fixers_pkg = _py2_refactor_backend()
+    if refactor is None:
         return code, "unavailable"
     try:
         # Normalize indentation FIRST. Py2 legacy source frequently mixes tabs and
@@ -173,7 +203,7 @@ def _translate_py2(code: str, name: str = "fragment") -> Tuple[str, str]:
         # py_compile. expandtabs(8) applies Python's own tab-stop rule (found by the
         # adversarial test: 9/85 translations were invalid Py3 for exactly this reason).
         norm = "\n".join(ln.expandtabs(8) for ln in code.split("\n"))
-        fixers = refactor.get_fixers_from_package("lib2to3.fixes")
+        fixers = refactor.get_fixers_from_package(fixers_pkg)
         tool = refactor.RefactoringTool(fixers)
         out = str(tool.refactor_string(norm + "\n", name))
         # refactor_string re-emits the (added) trailing newline; strip the one we added
@@ -783,6 +813,69 @@ def _strip_fill_markers(code: str) -> str:
         out.append(line)
     result = "\n".join(out)
     return result if result.endswith("\n") else result + "\n"
+
+
+# ALL THREE CONSTANTS ARE MEASURED, from one generation that ran to the output cap on
+# 2026-07-30 (AWPTCM-T44297): it delivered 86,644 chars of filled Python containing 21
+# TestCase classes, using 29,952 usable output tokens.
+#
+#   chars/token  86,644 / 29,952 = 2.89   — dense code; the generic "4 chars per token"
+#                                           rule of thumb under-counts it by ~30%, which
+#                                           would let over-budget cases through the gate.
+#   fill factor  the SAME 21 classes occupy ~52,600 chars of skeleton, so filling roughly
+#                1.65x's them. Estimating from skeleton size alone said "34 classes fit"
+#                when the real answer was 21 — advice that sends you back into the trap.
+#
+# A SECOND data point (same case trimmed to 21 sequence steps) then ran to the cap again at
+# 88,593 chars for 16 of 17 TestCase classes — an expansion of ~1.79, not 1.65. It had PASSED
+# the gate at 1.65. So the constant is set above both measurements deliberately:
+#
+#   the model writes to fill the budget it is given (~5,500 chars per TestCase here), so
+#   trimming step count alone does not shrink the answer proportionally.
+#
+# Asymmetric costs justify erring high: a false "fits" costs ~25 minutes and a few dollars to
+# discover, and yields a truncated script that may still PARSE (this one did) so only the
+# logging-contract lint catches it. A false "too big" costs one override flag.
+_CHARS_PER_OUTPUT_TOKEN = 2.89
+_FILL_EXPANSION = 1.95
+
+
+def _size_overflow(skeleton: str, sequence: list) -> str:
+    """'' if this script can fit the model's output budget, else why not.
+
+    Works in CHARS OF FILLED CODE, not skeleton chars: the model must emit the skeleton with
+    every FILL marker replaced by real code, which measured ~1.65x the skeleton. Estimating
+    against the skeleton alone is the mistake that produces a confident wrong ceiling.
+    """
+    try:
+        from llm import _CLI_MAX_THINKING_TOKENS   # noqa: PLC0415
+    except Exception:
+        _CLI_MAX_THINKING_TOKENS = 2048
+    # The 32,000 output cap is the tightest of the backends: it is the CLI's hard
+    # maxOutputTokens (not raisable) and also what this router passes as max_tokens.
+    usable_tokens = 32000 - _CLI_MAX_THINKING_TOKENS
+    usable_chars = usable_tokens * _CHARS_PER_OUTPUT_TOKEN
+    need_chars = len(skeleton) * _FILL_EXPANSION
+    if need_chars <= usable_chars:
+        return ""
+    n_tc = max(skeleton.count("class TestCase"), 1)
+    fits = max(int(n_tc * usable_chars / need_chars), 1)
+    return (
+        f"This script cannot fit the model's output budget, so generating it would return a "
+        f"script truncated mid-token with no error.\n\n"
+        f"  skeleton            {len(skeleton):,} chars, {n_tc} TestCase classes\n"
+        f"  filled code needs   ~{int(need_chars):,} chars "
+        f"(~{int(need_chars / _CHARS_PER_OUTPUT_TOKEN):,} output tokens)\n"
+        f"  usable budget       ~{int(usable_chars):,} chars "
+        f"(~{usable_tokens:,} tokens: the 32,000 cap minus {_CLI_MAX_THINKING_TOKENS} "
+        f"for thinking)\n"
+        f"  sequence steps      {len(sequence)}\n\n"
+        f"About {fits} TestCase classes is the most that fits. Options: split this case into "
+        f"smaller ones, trim the sequence to ~{fits} verification steps, or generate in "
+        f"chunks. To generate anyway and inspect the partial result, resend with "
+        f"{{\"acknowledge_size_overflow\": true}} — the script will be incomplete and will "
+        f"not compile."
+    )
 
 
 def _parse_generated_blocks(content: str) -> Dict[str, Any]:
@@ -2301,7 +2394,17 @@ async def extract_sequence(key: str, request: Request):
         # prints instead of inventing `speed=1000` — which the skeleton would then
         # stamp into every TestCase 4x over.
         "cli_reference": _cli_reference_for_case(fields),
-    }, llm_config=_llm_cfg(sess), dry_run=dry_run)
+    }, llm_config=_llm_cfg(sess),
+       # This was the ONE LLM step in this router with no explicit timeout, so it
+       # silently inherited run_prompt's 180s default while every sibling asked for
+       # 300s or 600s. Output here scales with the refined case: one sequence row
+       # (action + verify + kind) per Zephyr step, so a rich case is an
+       # emit-a-whole-artifact step like generation, not a short analysis step —
+       # hence 600s, matching generate_script rather than the 300s of the analysis
+       # steps. Found the hard way: a 42-step case timed out at exactly 180s on
+       # every attempt (2026-07-30), which reads as an LLM fault rather than a
+       # missing kwarg because the error text is the CLI's own timeout message.
+       timeout=600, dry_run=dry_run)
     if dry_run:
         return _provenance_preview(meta)
     if meta.get("error"):
@@ -2580,6 +2683,24 @@ async def gather_fragments(key: str, request: Request):
     if meta.get("error"):
         raise HTTPException(502, meta.get("content", "LLM error"))
     parsed = extract_json_block(meta.get("content", ""))
+    # AN UNREADABLE ANSWER IS NOT AN EMPTY ANSWER. extract_json_block returns None when
+    # nothing in the reply parses; without this guard that None flowed into _parsed_list,
+    # which yields [], which produced `fragments: []` — indistinguishable from the
+    # legitimate "this case has no reusable code" outcome, and confirm_step accepts an empty
+    # fragment list precisely because that outcome is real. So a corrupted reply was being
+    # recorded as a valid finding of no-reuse, and generation then ran with zero fragments
+    # while step 3 had selected a dozen scripts.
+    #
+    # Observed twice on 2026-07-30 (T43869, T44297): the reply arrived truncated at the HEAD,
+    # beginning mid-string ('test-1332.1001.py", "symbol": ...'), so it could never parse.
+    # extract_sequence already fails loudly in this situation ("LLM returned no sequence");
+    # this step just never did. A genuinely empty answer still parses — `{"steps": []}` or
+    # per-step `chosen: []` — and still reaches the no-reuse path below, so the loud failure
+    # is scoped to unparseable replies only.
+    if parsed is None:
+        raise HTTPException(502, "Could not parse the fragment reply as JSON (an unreadable "
+                                 "answer is not 'no reusable code'). Raw response stored in "
+                                 "provenance.")
 
     # New per-step schema: {steps:[{n, chosen:[{source_id, symbol, maps_to, why,
     # redundant:[{source_id, symbol, why}]}]}]}. We resolve real code for EVERY symbol
@@ -2808,6 +2929,26 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
                                 _case_payload_fields(sess)["objective"])
+
+    # SIZE GATE. The skeleton is rendered HERE, before the LLM call, so the answer's minimum
+    # size is knowable for free — and a script that cannot fit the model's output budget will
+    # come back truncated no matter how the call is made.
+    #
+    # Why this needs to be loud rather than discovered downstream: an over-budget generation
+    # does not error. It returns a script that STARTS correctly and stops mid-token — measured
+    # on AWPTCM-T44297, 86,644 chars ending inside a string literal at TestCase_21 of ~40,
+    # with 19 sequence steps silently untested. That surfaces as a lint SyntaxError, which
+    # reads as a bad model rather than an oversized task, and each discovery costs ~25 minutes
+    # and a few dollars. (Earlier variants of the same overflow cost $4.65 and $5.24 to return
+    # nothing at all.)
+    #
+    # Override rather than refuse, matching this router's coverage gate: a reviewer may well
+    # want the partial artefact to look at. But it must be a recorded choice.
+    if not (body or {}).get("acknowledge_size_overflow"):
+        over = _size_overflow(skeleton, sequence)
+        if over:
+            raise HTTPException(409, over)
+
     # Device-name reconciliation (finding #1): tell the LLM which names the reused
     # fragments use vs what init() binds, so it renames rather than emitting AttributeErrors.
     bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
@@ -2838,6 +2979,11 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "model_name": llm_cfg.get("model") or "unknown",
         "gen_date": utc_now().strftime("%Y-%m-%d"),
     }, llm_config=llm_cfg, timeout=600, dry_run=dry_run,
+       # This template asks for a FENCED python block and _parse_generated_blocks needs the
+       # fence to find the code at all — but run_prompt's default system message is the
+       # JSON steer, whose text forbids markdown fences. The request was arguing with
+       # itself. Same reason on the fix pass below.
+       system=_CODE_SYSTEM_PROMPT,
        # This step emits a whole standardized script (real runs have hit
        # ~35KB); the default 16000-token cap truncated a live generate on
        # T33234 (Part 2B, 2026-07-22) — give it more completion headroom.
@@ -3084,6 +3230,7 @@ async def fix_script(key: str, request: Request):
         "results": parsed.get("cases", []),
         "log_excerpts": excerpts,
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
+       system=_CODE_SYSTEM_PROMPT,   # fenced python out, not JSON — see generate_script
        max_tokens=32000)  # emits a whole revised script — same size profile as generate
     if dry_run:
         return _provenance_preview(meta)

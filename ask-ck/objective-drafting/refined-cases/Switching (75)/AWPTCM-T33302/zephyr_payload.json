@@ -1,0 +1,158 @@
+{
+  "AWPTCM-T33302": {
+    "objective": "<ul>\n  <li>Every switch port has a defined untagged (port/access) VLAN at all times, defaulting to the default VLAN, so an unconfigured port is a working untagged member with no additional configuration.</li>\n  <li>A port assigned as untagged member of a single VLAN forwards and learns only that VLAN's traffic; frames for other VLANs are absent from that port.</li>\n  <li>Untagged membership is exclusive \u2014 a subsequent port VLAN assignment replaces the previous one rather than accumulating, and the replacement is visible in both the per-port and per-VLAN views.</li>\n  <li>Port VLAN membership survives a reboot and a configuration save/restore cycle, and the restored membership is identical to the configured membership.</li>\n  <li>Removal of a port from a VLAN flushes only the dynamically learned forwarding entries for that VLAN on that port; entries for the same VLAN on other ports, and entries for that port in other VLANs, remain intact and continue to forward.</li>\n  <li>Statically configured filtering entries are added, modified and removed only under explicit management control, and no ageing mechanism removes them \u2014 including across a port's membership change.</li>\n  <li>Deletion of a VLAN leaves its former member ports in a deterministic, reported state (returned to the default VLAN or unassigned per platform default) with that VLAN's forwarding entries cleared.</li>\n  <li>Re-creation of a deleted VLAN yields a VLAN with no residual membership, counters or forwarding state from the earlier instance.</li>\n  <li>A VLAN is configurable in an administratively shut-down state; while shut down its member ports pass no traffic in that VLAN, and the administrative state is reported distinctly from port link state. Enabling the VLAN restores forwarding with no re-configuration of membership.</li>\n  <li>Per-port, per-VLAN packet counter instances count only frames belonging to that VLAN on that port, including for an untagged member where the frames carry no tag on the wire; unrelated ports and VLANs are unaffected by the instance.</li>\n  <li>Counter instances are clearable on demand, read back as zero after a clear, and resume accurate counting immediately.</li>\n  <li>The outcome of combining a VLAN counter instance with mirroring on the same port is deterministic and reported \u2014 either both functions coexist with correct counts, or the conflicting configuration is rejected with a specific reason and no partial state.</li>\n  <li>Dynamic VLAN classification on a port (subnet or protocol-based) takes documented precedence over the static port VLAN, and the static port VLAN is the fallback when no classifier matches; removing the classifier restores the static membership without a link event.</li>\n  <li>Broadcast, multicast and unknown-unicast flooding for a port's VLAN is confined to that VLAN's member ports, and is re-confined correctly after a dynamic reconfiguration of the classification.</li>\n  <li>Membership changes on one port cause no traffic loss, link transition or forwarding change on other ports or in other VLANs carried on the same device.</li>\n  <li>Invalid port VLAN configuration is rejected with a specific, actionable reason and leaves configuration unchanged: out-of-range or reserved VLAN identifiers, malformed identifier lists, and assignment to a VLAN that does not exist (unless documented auto-creation applies, in which case the created VLAN is reported).</li>\n  <li>Removal of a port from a VLAN it is not a member of, and re-issue of an already-effective assignment, are both benign no-ops that report clearly and change no state.</li>\n  <li>Deletion or removal of the default VLAN, or of the VLAN that a port depends on for its untagged membership while that dependency is in force, is either refused with a reason or completed with the resulting port state explicitly reported.</li>\n  <li>The command-line handler for port VLAN assignment accepts the documented syntax forms \u2014 single port, port ranges and lists, and abbreviated keywords \u2014 applies each element atomically, and rejects malformed input without applying part of the request.</li>\n  <li>Show output reports VLAN identifier and name, each member port with its tagged/untagged status, and the VLAN administrative state, consistently between per-VLAN and per-port views and consistently with the running configuration.</li>\n  <li>VLAN creation, deletion and port membership changes are observable in the event/log record with enough detail to attribute the change, and forwarding-database views reflect the change immediately after it is applied.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that every switch port reports a defined untagged (port/access) VLAN in its default state, and confirm an unconfigured port is a working untagged member of the default VLAN \u2014 forwarding and learning with no additional configuration applied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port as untagged member of a single non-default VLAN and verify it forwards and learns only that VLAN's traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm frames belonging to other VLANs are absent from that port, and that no addresses from other VLANs are learned against it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Assign the same port as untagged member of a second VLAN and confirm untagged membership is exclusive \u2014 the previous assignment is replaced rather than accumulated.",
+          "expectedResult": "Exactly one untagged VLAN reported for the port."
+        },
+        {
+          "description": "Verify the replacement is visible and consistent in both the per-port view and the per-VLAN member list.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Reboot the device and confirm the configured port VLAN membership is restored identically, with no port left reassigned or unassigned.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration, change port VLAN membership, then restore the saved configuration and confirm the restored membership is identical to the configured membership.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Populate dynamically learned forwarding entries on several ports across two VLANs, remove one port from one VLAN, and verify only that port's learned entries for that VLAN are flushed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm entries for the same VLAN on other ports, and entries for the removed port in its other VLANs, remain intact and continue to forward.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Add a statically configured filtering entry for a port and VLAN, verify it is reported as static, and confirm no ageing mechanism removes it over a period exceeding the forwarding-database ageing time.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Modify and then remove the static entry under explicit management control and confirm each change takes effect only when issued; confirm the entry persists across a change of that port's VLAN membership, or that its removal is explicitly reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Delete a VLAN that has untagged member ports and confirm those ports are left in a deterministic, reported state \u2014 returned to the default VLAN or unassigned per platform default \u2014 with that VLAN's forwarding entries cleared.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Re-create the deleted VLAN and confirm it has no residual membership, counters or forwarding state from the earlier instance.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a VLAN in an administratively shut-down state, assign member ports, and confirm those ports pass no traffic in that VLAN while it is shut down.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the VLAN administrative state is reported distinctly from member port link state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable the shut-down VLAN and confirm forwarding is restored with no re-configuration of port membership.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create a per-port, per-VLAN packet counter instance on an untagged member port, pass a known number of frames, and verify the counter counts only frames belonging to that VLAN on that port even though they carry no tag on the wire.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with traffic on unrelated ports and in other VLANs and confirm the counter instance does not count them, and that those ports and VLANs are unaffected by the presence of the instance.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Clear the counter instance on demand, read it back, then pass further known traffic and confirm counting resumes accurately.",
+          "expectedResult": "Counter reads zero after the clear."
+        },
+        {
+          "description": "Configure a VLAN counter instance together with mirroring on the same port and confirm the outcome is deterministic and reported \u2014 either both functions coexist with correct counts, or the conflicting configuration is rejected with a specific reason and no partial state is left.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply a dynamic VLAN classification (subnet- or protocol-based) to a port that already has a static port VLAN, and verify matching traffic is classified into the dynamic VLAN in documented precedence over the static port VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with traffic that matches no classifier and confirm it falls back to the static port VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the classifier and confirm the static port VLAN membership is restored without a link event on the port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify broadcast, multicast and unknown-unicast flooding for a port's VLAN \u2014 including IPv6 neighbour-discovery multicast \u2014 is confined to that VLAN's member ports only.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Reconfigure the dynamic classification with traffic running and confirm flooding is re-confined correctly to the member ports of the resulting VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change VLAN membership on one port while traffic is running on other ports and in other VLANs on the same device, and confirm no traffic loss, link transition or forwarding change occurs on them.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with out-of-range and reserved VLAN identifiers and confirm each assignment is rejected with a specific, actionable reason and leaves the configuration unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with malformed VLAN identifier lists and confirm rejection with a specific reason and no part of the request applied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Assign a port to a VLAN that does not exist and confirm either rejection with a specific reason, or documented auto-creation with the created VLAN reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove a port from a VLAN it is not a member of, and re-issue an already-effective assignment, and confirm both are benign no-ops that report clearly and change no state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to delete or remove the default VLAN, and the VLAN a port depends on for its untagged membership while that dependency is in force, and confirm each is refused with a reason or completed with the resulting port state explicitly reported.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test the port VLAN assignment handler with each documented syntax form \u2014 a single port, a port range, a port list, and abbreviated keywords \u2014 and confirm each element is accepted and applied atomically.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with input mixing valid and malformed elements in one request and confirm the whole request is rejected with no part of it applied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify show output reports the VLAN identifier and name, each member port with its tagged/untagged status, and the VLAN administrative state, consistently between the per-VLAN and per-port views and consistently with the running configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm VLAN creation, deletion and port membership changes are recorded in the event/log output with enough detail to attribute the change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm forwarding-database views reflect each membership change immediately after it is applied.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

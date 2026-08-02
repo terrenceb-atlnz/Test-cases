@@ -257,6 +257,32 @@
 >     `vlan1000 10.38.215.67/27`**; it only works because swi_b's `port1.0.23` has no
 >     pluggable (its vlan1000 is down). Cabling swi_b's 1.0.23 into that segment will collide.
 >
+> - 🛑 **2026-08-03 — Part 3b is blocked AGAIN, for a NEW and measured reason: a generation
+>   output ceiling of ~9–20 `TestCase` classes.** This supersedes "Part 3b needs only a go
+>   decision now" above — the go decision was given, and the pipeline could not produce a
+>   deliverable script for any of the 10 cases attempted.
+>   - **The run path itself is now VERIFIED** (`profiles/tb470/check` → `ok/ssh/framework/sudo`
+>     all true, Python 3.13.5). It had never passed before because **`paramiko` was declared in
+>     no requirements file**; the polite failure read as a lab fault. So the §3b precondition is
+>     genuinely satisfied for the first time.
+>   - **Why no run happened:** the 32,000-token output budget is **shared with thinking** and is
+>     not raisable; `--max-thinking-tokens` caps a single *block*, not the total (measured 20,400
+>     thinking tokens under a 2,048 cap). Above the ceiling a script truncates **without
+>     erroring** — and at 21 steps it truncated on a statement boundary, so `ast.parse`
+>     **succeeded** on a script missing a TestCase and the `__main__` entry. All 10 cases
+>     (44–78 sequence steps) are 3–5x over. Note trimming step count does **not** shrink the
+>     answer: the model fills the budget (44 steps → 86,644 chars; trimmed to 21 → **88,593**).
+>   - **Best artefact** (T44297 trimmed to 6 verification steps) is complete and parseable and
+>     grades **C1 EXACTLY / C2 EXACTLY / C3 RIGHT / C6 YES (6/6)** with criterion 4 not
+>     applicable (every TestCase reuses a real fragment). Preflight still refuses it because
+>     generation emits an **unused `init_stk('stk_a')`** — the minimality guarantee covers
+>     `init_swi` but not `init_stk`, and no lint catches bound-but-never-used.
+>   - **Gated, not silently truncating:** `_size_overflow()` refuses an over-budget case up front
+>     with an `acknowledge_size_overflow` override. Recommended fix is to **split** large refined
+>     cases; chunked generation removes the ceiling but is real work, and capping steps in the
+>     Generator trades away the coverage the objective-coverage gate exists to protect.
+>   - Full detail: `FINDINGS-generation-size-ceiling.md` + `autopilot/RESULTS-2026-08-03.md`.
+>
 > - 🧱 **2026-07-30 — TOPOLOGY PROFILES: the contract generated tests target instead of a
 >   bench. New spec `TOPOLOGY-PROFILES.md` + `tool/pt_profiles.py`.** Terrence's call, and it
 >   supersedes the "teach generation to read the `.setup`" idea floated earlier the same day —

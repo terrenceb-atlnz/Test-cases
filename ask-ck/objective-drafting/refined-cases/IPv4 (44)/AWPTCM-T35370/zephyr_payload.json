@@ -1,0 +1,150 @@
+{
+  "AWPTCM-T35370": {
+    "objective": "<ul>\n<li>An interface configured to obtain an address via DHCP with an explicitly specified client identifier sends that client identifier in its DHCPDISCOVER and DHCPREQUEST messages, and the server allocates a lease against it.</li>\n<li>The client identifier remains identical across the full lease lifecycle \u2014 DISCOVER, REQUEST, renewal, rebinding, and RELEASE \u2014 for a given interface.</li>\n<li>A client identifier derived from a named interface resolves to that interface's own identity, and remains stable across link flaps, reboots and configuration save/restore.</li>\n<li>The address obtained under an explicit client identifier is bound to the requesting interface and is reachable, with the accompanying default gateway, mask and lease parameters installed.</li>\n<li>The server-side binding record attributes the lease to the client identifier the client actually transmitted, byte-for-byte and in the correct form, with no truncated, shifted, or extra leading fields.</li>\n<li>The client-side and server-side representations of the same client identifier agree with one another.</li>\n<li>In the absence of any configured client identifier, the client falls back to its hardware address, and the binding is attributed to that hardware address.</li>\n<li>Changing the client identifier on an already-bound interface causes the prior lease to be given up and a new lease to be requested under the new identifier, rather than the old binding persisting.</li>\n<li>Removing the client identifier configuration returns the interface to default identifier behaviour without leaving the interface without an address indefinitely.</li>\n<li>A vendor-identifying class configured on the client is carried in the client's requests in the correct option encoding, including its enterprise number and associated data.</li>\n<li>A request for vendor-identifying vendor-specific information causes the client to solicit that option, and any such information returned by the server is accepted and made visible without disturbing the base lease.</li>\n<li>Vendor-identifying configuration coexists with an explicit client identifier \u2014 neither displaces nor corrupts the other in the transmitted messages.</li>\n<li>Two clients on the same segment presenting distinct client identifiers receive distinct leases; a client re-presenting a previously used identifier is offered its prior address where the server still holds that binding.</li>\n<li>Two interfaces on the same device each carrying their own client identifier obtain and retain independent leases simultaneously.</li>\n<li>DHCP client operation with an explicit client identifier behaves equivalently on an interface belonging to a non-default VRF instance, with the resulting address and route installed in that VRF only.</li>\n<li>DHCP client operation with an explicit client identifier behaves equivalently on a user-created VLAN interface as on a default one.</li>\n<li>Offers whose transaction identifier does not match the client's most recent solicitation are silently discarded, and multiple concurrent offers result in exactly one lease being accepted.</li>\n<li>An offer that does not reflect the client's identity as requested is not silently treated as a match \u2014 the client's selection is consistent with what it asked for.</li>\n<li>Client identifier values at the boundaries of the permitted length and character set are accepted and transmitted intact; values outside those bounds are rejected at configuration time with an actionable message and leave the running configuration unchanged.</li>\n<li>An identifier naming a non-existent, deleted, or non-eligible interface is rejected or handled deterministically, without a crash, a partially applied configuration, or a malformed option on the wire.</li>\n<li>Attempting the client identifier configuration on an interface not configured for DHCP address acquisition produces a clear diagnostic rather than a silent no-op.</li>\n<li>Show output for DHCP client state reports the configured and transmitted client identifier, the bound address, lease timers, and server identity, in a form consistent between client and server views.</li>\n<li>The configured client identifier and vendor-identifying settings appear in the running configuration in a re-applicable form and survive save and reload.</li>\n<li>Lease acquisition, renewal, expiry, decline and release events under an explicit client identifier are logged with enough detail to identify the interface, the identifier and the address involved.</li>\n<li>No lease loss, duplicate binding, memory growth or service disruption results from repeated configuration, removal and re-application of the client identifier over an extended period.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set an interface to obtain its address via DHCP and configure an explicitly specified client identifier on it. Confirm the configuration is accepted and reflected in the DHCP client state for that interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Trigger address acquisition on that interface and capture the exchange. Verify the configured client identifier is present in the DHCPDISCOVER and in the DHCPREQUEST, and that the server allocates a lease against it.",
+          "expectedResult": "Client identifier option present in both messages; lease offered and acknowledged."
+        },
+        {
+          "description": "Verify the address obtained under the explicit client identifier is bound to the requesting interface and is reachable, and that the accompanying default gateway, subnet mask and lease timer parameters are installed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force a lease renewal and then a rebinding on the bound interface. Confirm the client identifier transmitted in each is byte-for-byte identical to the one used at DISCOVER and REQUEST.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Release the lease from the client and verify the RELEASE message carries the same client identifier, completing an unchanged identifier across the full lease lifecycle for that interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a client identifier derived from a named interface. Verify it resolves to that interface's own identity rather than another interface's or a placeholder value.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With an interface-derived client identifier bound, flap the link and confirm the identifier presented on re-acquisition is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration, reload the device, and verify the interface-derived client identifier resolves to the same value after reboot and after a configuration save/restore cycle.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Inspect the server-side binding record for the lease. Verify it attributes the lease to the client identifier the client actually transmitted, byte-for-byte and in the correct form, with no truncation, no byte shift and no extra leading field.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Compare the client-side reported client identifier against the server-side binding representation of the same identifier. Confirm the two agree.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with no client identifier configured on a DHCP-enabled interface. Verify the client falls back to its hardware address and the server-side binding is attributed to that hardware address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On an already-bound interface, change the client identifier to a different value. Verify the prior lease is given up and a new lease is requested under the new identifier, rather than the old binding persisting.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the client identifier configuration from a bound interface. Verify the interface returns to default identifier behaviour and obtains an address, without being left without an address indefinitely.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a vendor-identifying class on the client. Verify it is carried in the client's requests using the correct option encoding, including its enterprise number and associated data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the client to request vendor-identifying vendor-specific information. Verify the client solicits that option, and that any such information returned by the server is accepted and made visible in client state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm that soliciting and receiving vendor-identifying vendor-specific information does not disturb the base lease \u2014 the bound address, timers and gateway remain intact.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure vendor-identifying settings and an explicit client identifier together on the same interface. Verify both appear correctly in the transmitted messages, with neither displacing nor corrupting the other.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with two clients on the same segment presenting distinct client identifiers. Verify each receives its own distinct lease.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Have a client re-present a previously used client identifier while the server still holds that binding. Verify the client is offered its prior address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure two interfaces on the same device, each with its own distinct client identifier. Verify both obtain and retain independent leases simultaneously.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a DHCP client interface belonging to a non-default VRF instance and an explicit client identifier configured. Verify acquisition, renewal and release behave equivalently to the default instance.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the address and associated route obtained on the non-default VRF interface are installed in that VRF only, and are absent from the default and other VRF instances.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a user-created VLAN interface configured for DHCP with an explicit client identifier. Verify acquisition and lease behaviour are equivalent to a default interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Present the client with an offer whose transaction identifier does not match its most recent solicitation. Verify the offer is silently discarded and no lease is accepted from it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Present multiple concurrent offers to a single solicitation. Verify exactly one lease is accepted and the remainder are not bound.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Present an offer that does not reflect the client's identity as requested. Verify it is not silently treated as a match, and that the client's selection remains consistent with what it asked for.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with client identifier values at the minimum and maximum permitted length and at the boundaries of the permitted character set. Verify each is accepted and transmitted intact.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with client identifier values outside the permitted length and character set. Verify each is rejected at configuration time with an actionable message and leaves the running configuration unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a client identifier naming a non-existent interface, then a deleted interface, then a non-eligible interface type. Verify each is rejected or handled deterministically, with no crash, no partially applied configuration and no malformed option on the wire.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt the client identifier configuration on an interface not configured for DHCP address acquisition. Verify a clear diagnostic is produced rather than a silent no-op.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the DHCP client show output reports the configured and the transmitted client identifier, the bound address, the lease timers and the server identity, and that these are consistent with the corresponding server-side view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the configured client identifier and vendor-identifying settings appear in the running configuration in a re-applicable form, and survive a save and reload unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Exercise lease acquisition, renewal, expiry, decline and release under an explicit client identifier. Verify each event is logged with enough detail to identify the interface, the client identifier and the address involved.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeatedly configure, remove and re-apply the client identifier on a DHCP interface over an extended period. Verify no lease loss, no duplicate binding, no memory growth and no service disruption results.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

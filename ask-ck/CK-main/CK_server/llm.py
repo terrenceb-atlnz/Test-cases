@@ -175,7 +175,99 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeo
                 pass
 
 
-def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180) -> Dict[str, Any]:
+# A headless CLI backend gets ONE shot at the whole response: the subprocess either
+# returns complete JSON or it is killed. So the caller's `timeout` is a whole-response
+# budget here — whereas on the streaming vLLM path the same number bounds only the GAP
+# BETWEEN CHUNKS (the 2026-07-22b streaming fix), and a 30s read timeout there survived a
+# 21-minute response. Every timeout the callers pass was tuned against that streaming
+# meaning, so handing the identical number to a subprocess silently asks a reasoning model
+# to finish a whole artefact in a gap-sized budget.
+#
+# Measured on the 2026-07-30 Opus batch, against refined cases of 30-45 Zephyr steps:
+# sequence extraction 375s (caller asked 180, then 600), fragment gathering >300s (caller
+# asked 300). Both failed with the CLI's own "timed out after Ns" text, which reads as a
+# model or transport fault and sends you tuning the wrong dial.
+#
+# So: floor the CLI budget, in ONE place, rather than re-tuning five call sites for one
+# backend. Precedent is right above in _call_llm_raw, which already floors local_llm's read
+# timeout to 600s for the same class of reason. This is a ceiling on pathology, not an
+# expected duration — a healthy call still returns in seconds, and 1800s matches the
+# framework-run timeout already used as this lab's "long but bounded".
+_CLI_WHOLE_RESPONSE_FLOOR = 1800
+
+# Thinking and the answer share ONE output budget (`maxOutputTokens`, 32,000 on the CLI and
+# not raisable). These are reasoning models, so uncapped thinking silently starves the
+# artefact — see the long note in _call_claude_code_headless. 2048 leaves ~30,000 for the
+# answer, which covers a ~44-TestCase script; larger cases need chunked generation, which is
+# a real limit rather than something a knob fixes (FINDINGS-generation-size-ceiling.md).
+_CLI_MAX_THINKING_TOKENS = 2048
+
+
+def _is_long_call(timeout: int) -> bool:
+    """Does this caller expect a big answer? Keyed on its requested timeout.
+
+    The one place that decides. Two behaviours hang off it — the whole-response floor and
+    the thinking cap — and both must agree, because applying either to a deliberately SHORT
+    call breaks it: the health ping asks for 30s precisely so a dead backend fails fast, and
+    it must neither hang for half an hour nor pay the ~7x latency of forced thinking.
+    """
+    return timeout >= 120
+
+
+def _cli_timeout(timeout: int) -> int:
+    """Whole-response floor for the non-streaming headless CLI backends.
+
+    Short calls stay short (see _is_long_call). Mirrors the local_llm guard.
+    """
+    return max(timeout, _CLI_WHOLE_RESPONSE_FLOOR) if _is_long_call(timeout) else timeout
+
+
+def _parse_cli_stream(raw: str):
+    """(content, envelope) from `claude -p --output-format stream-json` stdout.
+
+    Returns the model's FULL answer — every `assistant` text block concatenated in order —
+    plus the terminal `result` event as the envelope (usage, cost, is_error).
+
+    Why not just read `result`: it holds only the final assistant message. When the answer
+    spans several messages the earlier ones are silently dropped, which on a long script
+    means losing the beginning and keeping a mid-class tail. Concatenating is what makes the
+    transport carry a whole artefact.
+
+    Tolerant by construction, because the alternative to a partial answer must never be NO
+    answer: unparseable lines are skipped, and if no assistant text is found at all it falls
+    back to `result`, then to raw stdout. Also still accepts a single-object `json` payload,
+    so an older CLI (or a caller that changes the format back) keeps working.
+    """
+    texts, envelope = [], {}
+    for line in (raw or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            evt = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(evt, dict):
+            continue
+        kind = evt.get("type")
+        if kind == "assistant":
+            for block in (evt.get("message") or {}).get("content") or []:
+                if isinstance(block, dict) and block.get("type") == "text" and block.get("text"):
+                    texts.append(block["text"])
+        elif kind == "result":
+            envelope = evt
+        elif kind is None and evt.get("result") is not None:
+            envelope = evt            # single-object `json` output format
+
+    if texts:
+        return "".join(texts), (envelope or {"result": "".join(texts)})
+    if envelope.get("result") is not None:
+        return envelope["result"], envelope
+    return raw, {"stdout": raw}
+
+
+def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180,
+                               system: str = "", cap_thinking: bool = False) -> Dict[str, Any]:
     """Call the locally logged-in Claude Code CLI in headless print mode.
 
     Auth model: each user hosts this tool locally and has logged the CLI in with
@@ -183,6 +275,24 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
     templated prompt on stdin ('claude -p --output-format json') and parses the
     JSON wrapper. No API key or token is stored server-side; provenance records
     auth_method="claude_code" so exports are honest about the transport.
+
+    TWO THINGS THIS MUST DO THAT IT ORIGINALLY DID NOT (both found 2026-07-30):
+
+    `--tools ""` — **`claude -p` is an agentic coding CLI, not a completion endpoint.**
+    Invoked bare it may call tools and loop for many turns, and the JSON wrapper reports
+    only the aggregate. A 65k-token generate prompt consumed **2,670,565 input tokens over
+    ~23 minutes for $4.65 and returned an EMPTY result** — `is_error` false, so the router
+    reported the polite, misleading "LLM returned no python code block". A second attempt
+    cost $5.24 the same way. With tools disabled the identical prompt ran ONE turn. The
+    reason this survived: for the small JSON steps the agentic path happens to return
+    usable output, so the transport looks healthy until an artefact is large.
+
+    `system` — the caller's system message was being DROPPED here entirely. `run_prompt`
+    resolves one for every call (a JSON-only steer by default, a code steer for the two
+    script-emitting templates) and the HTTP backends send it; this path silently discarded
+    it, so the CLI transport alone ran with no steer at all. Passed as
+    `--append-system-prompt` so it augments the CLI's own harness prompt rather than
+    replacing it, which would strip context the CLI needs to function.
     """
     cli = shutil.which("claude")
     if not cli:
@@ -192,9 +302,42 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
         meta.update({"content": err_msg, "raw_response": {"error": "claude CLI not on PATH"}, "error": True})
         return meta
 
-    cmd = [cli, "-p", "--output-format", "json"]
+    # `--tools ""` is the CLI's documented "disable all tools". Keep it unconditional:
+    # every call through here wants one completion, never an agent session.
+    # `stream-json` rather than `json`, because the single `result` field DOES NOT CONTAIN THE
+    # WHOLE ANSWER when the model emits it across more than one message. Measured on the same
+    # prompt, same model: concatenating the streamed assistant text blocks yields a script
+    # that begins correctly at `#!/usr/bin/python3`, while `result` alone begins MID-CLASS at
+    # `    def tear_down(self):` — the head is simply gone. A mid-class fragment is still
+    # syntactically plausible Python, so it lints as an IndentationError rather than as a
+    # truncation, and nothing points at the transport. `--verbose` is required to use
+    # stream-json in print mode.
+    cmd = [cli, "-p", "--output-format", "stream-json", "--verbose", "--tools", ""]
     if model and model != "default":
         cmd += ["--model", model]
+    if system:
+        cmd += ["--append-system-prompt", system]
+    # THE OUTPUT BUDGET IS SHARED BETWEEN THINKING AND THE ANSWER, and these are reasoning
+    # models. Uncapped, thinking eats it: a live generate was observed at 31,100 thinking
+    # tokens with ZERO answer text emitted yet, against a hard `maxOutputTokens` of 32,000
+    # (not raisable — CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 leaves it at 32,000). The answer
+    # then arrives truncated, and because a truncated reply still looks like a reply, it
+    # surfaces as "no python code block" / an unparseable fragment JSON rather than as
+    # "ran out of room".
+    #
+    # So cap thinking to leave the artefact its room. This is a floor on USABLE OUTPUT, not
+    # an opinion about how much reasoning is good: on a task whose answer is ~26k tokens,
+    # every thinking token is one the answer cannot have.
+    #
+    # ONLY on long-artefact calls, because passing the flag at all TURNS EXTENDED THINKING
+    # ON: the same trivial prompt measured 2,242ms bare and 16,426ms with the flag present.
+    # Applied unconditionally it made every small call ~7x slower and pushed the 30s health
+    # ping into a timeout — i.e. the guard against silent truncation broke the one check
+    # whose whole job is to fail fast. `cap_thinking` is derived from the caller's ORIGINAL
+    # timeout by _call_llm_raw, the same signal the whole-response floor uses, so "this is a
+    # long call" is decided in one place rather than guessed twice.
+    if cap_thinking:
+        cmd += ["--max-thinking-tokens", str(_CLI_MAX_THINKING_TOKENS)]
 
     try:
         # Prompt via stdin: templated prompts can exceed argv limits.
@@ -204,19 +347,9 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
             raise RuntimeError(detail)
 
         raw = proc.stdout.strip()
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = None
-
-        if isinstance(data, dict) and data.get("result") is not None:
-            content = data["result"]
-            if data.get("is_error"):
-                raise RuntimeError(str(content)[:500])
-        else:
-            # Fallback: treat plain stdout as the response text
-            content = raw
-            data = {"stdout": raw}
+        content, data = _parse_cli_stream(raw)
+        if data.get("is_error"):
+            raise RuntimeError(str(content or data.get("result"))[:500])
 
         print(f"[LLM CLAUDE via claude_code] model={model or 'cli-default'}")
         print("[LLM CLAUDE] Prompt (first 300):", prompt[:300])
@@ -353,11 +486,19 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
 
     # Headless CLI modes (subscription accounts) need no credential here.
     if provider == "claude" and auth_method == "claude_agent":
+        # NOT given the floor below: this timeout also bounds the agent-bridge long-poll a
+        # user's browser is holding open, so stretching it to half an hour degrades the one
+        # path with a human waiting on the other end.
         return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout)
     if provider == "claude" and auth_method == "claude_code":
-        return _call_claude_code_headless(prompt, model, meta, timeout=timeout)
+        # `_is_long_call(timeout)` is the single "this call expects a big answer" signal:
+        # it both floors the subprocess budget and caps thinking. Deriving both from one
+        # predicate keeps them from disagreeing about which calls are the long ones.
+        return _call_claude_code_headless(prompt, model, meta, timeout=_cli_timeout(timeout),
+                                          system=system,
+                                          cap_thinking=_is_long_call(timeout))
     if provider == "grok" and auth_method == "grok_cli":
-        return _call_grok_cli_headless(prompt, model, meta, timeout=timeout)
+        return _call_grok_cli_headless(prompt, model, meta, timeout=_cli_timeout(timeout))
 
     credential = api_key
     if not credential:
@@ -1314,6 +1455,26 @@ _JSON_SYSTEM_PROMPT = (
     "You are a precise API that returns machine-readable output only. "
     "Respond with exactly the JSON the user's instructions specify — no prose, "
     "no explanation, no markdown fences, and no step-by-step thinking before it."
+)
+
+# NOT every template asks for JSON — pt_generate_script.jinja and pt_fix_script.jinja ask
+# for a FENCED PYTHON BLOCK, and _parse_generated_blocks requires the fence to find the
+# code at all (no unfenced fallback: without it `test_code` is None and the router answers
+# 502 "LLM returned no python code block"). Those two steps were nevertheless getting
+# _JSON_SYSTEM_PROMPT, whose text forbids the very fences the parser needs — two
+# authorities in the same request telling the model opposite things, on every backend.
+#
+# Separately, a headless coding CLI's instinct on a large artefact is to WRITE IT TO DISK
+# rather than emit it: measured 2026-07-30, Opus answered a 53-TestCase generate with
+# "Continuing by writing the artifact to disk in pieces rather than one oversized message"
+# plus a narrated Write call. Hence the explicit no-tools/no-chunking clauses — they are
+# load-bearing for the CLI transport, harmless on the HTTP ones.
+_CODE_SYSTEM_PROMPT = (
+    "You are a code generator. Return the COMPLETE artefact inline, as a single fenced "
+    "```python block, and nothing else — no prose before or after it, no plan, no summary. "
+    "You have NO tools and NO filesystem: never write, save or 'continue in pieces', and "
+    "never describe doing so. If the artefact is long, emit all of it anyway in that one "
+    "block; a truncated or narrated answer is useless to the caller."
 )
 
 

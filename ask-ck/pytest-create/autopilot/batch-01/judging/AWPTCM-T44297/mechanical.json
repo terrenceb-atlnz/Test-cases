@@ -1,0 +1,171 @@
+{
+  "case_key": "AWPTCM-T44297",
+  "script": {
+    "name": "261_Management_LLDP_LLDP_test.py",
+    "chars": 37744,
+    "generated_by": {
+      "provider": "claude",
+      "model": "claude-opus-5",
+      "auth_method": "claude_code"
+    },
+    "iterations": 2,
+    "lint_ok": false
+  },
+  "inputs": {
+    "sequence_steps": 13,
+    "verify_steps": 6,
+    "fragments_selected": 13,
+    "fragments_pool": 40,
+    "fit_decision": null
+  },
+  "caveats": [
+    "step6 (generate) is NOT confirmed"
+  ],
+  "criteria": {
+    "1_template_used": {
+      "verdict": "exactly",
+      "testcase_classes": 6,
+      "verify_steps": 6,
+      "findings": []
+    },
+    "2_snippets_used": {
+      "verdict": "exactly",
+      "tags_matched": "6/6",
+      "avg_code_overlap": 0.0,
+      "overlap_note": "low overlap == adapted, not absent; see per_step. Judges assess adaptation quality (criterion 4).",
+      "ignored_reuse": [],
+      "setup_mapped_note": "14 fragment->step mapping(s) target setup steps ([1, 2, 3, 4, 5, 6, 7]); they land in TestSet.configure() and carry no TestCase tag, so C2/C3 do not grade them",
+      "per_step": [
+        {
+          "testcase": "TestCase_1",
+          "expected_tag": "# ART 1332_lldp_med/library_1332.py lines 85-111",
+          "actual_tag": "# ART 1332_lldp_med/library_1332.py lines 85-111",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_2",
+          "expected_tag": "# ART 1332_lldp_med/library_1332.py lines 10-15",
+          "actual_tag": "# ART 1332_lldp_med/library_1332.py lines 10-15",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_3",
+          "expected_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 335-344",
+          "actual_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 335-344",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_4",
+          "expected_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "actual_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_5",
+          "expected_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "actual_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        },
+        {
+          "testcase": "TestCase_6",
+          "expected_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "actual_tag": "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136",
+          "tag_matches": true,
+          "is_gap_fill": false,
+          "code_overlap": 0.0,
+          "duplicate_tag_lines": 1
+        }
+      ]
+    },
+    "3_snippet_order": {
+      "verdict": "right",
+      "expected": [
+        "# ART 1332_lldp_med/library_1332.py lines 85-111",
+        "# ART 1332_lldp_med/library_1332.py lines 10-15",
+        "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 335-344",
+        "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136"
+      ],
+      "actual": [
+        "# ART 1332_lldp_med/library_1332.py lines 85-111",
+        "# ART 1332_lldp_med/library_1332.py lines 10-15",
+        "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 335-344",
+        "# legacy 5003_feature_limits/test-5003.0014-LLDP/lldp_class.py lines 102-136"
+      ]
+    },
+    "6_logging_contract_offline": {
+      "verdict": "yes",
+      "conformant": "6/6",
+      "note": "offline half only \u2014 the on-hardware half needs a real tb470 run (parse_framework_log over the run log); Part 3b is blocked.",
+      "per_testcase": [
+        {
+          "testcase": "TestCase_1",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_2",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_3",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_4",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_5",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        },
+        {
+          "testcase": "TestCase_6",
+          "ok": true,
+          "n_log": 2,
+          "n_verdicts": 2,
+          "n_nonempty": 2,
+          "why": []
+        }
+      ]
+    }
+  },
+  "blocked": {
+    "4_gap_fill_quality": "LLM judges + human review (not mechanical)",
+    "5_code_executes": "BLOCKED \u2014 needs a real tb470 run; configs/tb470.setup does not exist yet (physical topology prerequisite)",
+    "6_logging_on_hardware": "BLOCKED \u2014 same tb470 prerequisite"
+  }
+}

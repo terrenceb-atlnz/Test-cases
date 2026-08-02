@@ -1,0 +1,206 @@
+{
+  "AWPTCM-T43870": {
+    "objective": "<ul>\n  <li>An SNMPv3 user configured for noAuthNoPriv exists and answers GET/GETNEXT/WALK requests presented with a matching user name and no authentication or privacy parameters.</li>\n  <li>An SNMPv3 user configured for authNoPriv answers requests only when the request carries a correct authentication digest, with the message payload transmitted unencrypted.</li>\n  <li>An SNMPv3 user configured for authPriv answers requests only when the request carries both a correct authentication digest and correct privacy parameters, with the payload encrypted on the wire.</li>\n  <li>Each supported authentication algorithm (including MD5 and SHA) is selectable per user and produces a working authNoPriv and authPriv session.</li>\n  <li>Each supported privacy algorithm (including DES and AES) is selectable per user, combines with the supported authentication algorithms, and produces a working authPriv session.</li>\n  <li>A user's security level is the floor for access: a request presented at a weaker security level than the user is configured for is rejected and returns no management data.</li>\n  <li>SNMPv3 groups bind users to a security level and to read, write and notify views, and a user's effective rights are those of its group only.</li>\n  <li>A view defined from included OID subtrees exposes exactly those subtrees; objects outside them are unreachable through that view.</li>\n  <li>A view defined with an excluded subtree exposes the whole remaining object space while the excluded subtree \u2014 for example a vendor VLAN MIB \u2014 is absent from a walk and unreadable by direct GET.</li>\n  <li>A read-only assignment permits GET/GETNEXT/GETBULK and refuses SET; a read-write assignment permits SET and the resulting change is present in the running configuration.</li>\n  <li>The RFC 3411\u20133415 object groups (framework, MPD, applications, USM and VACM MIBs) are present, readable, and report values consistent with the configured users, groups and views.</li>\n  <li>An SNMP-walk from a correctly configured user traverses the permitted object space to completion without gaps, timeouts or duplicated OIDs.</li>\n  <li>A request from a configured user carrying an incorrect authentication password or privacy key yields no management data and no partial walk.</li>\n  <li>A request naming a user that is not configured on the device yields no management data and no indication of which user names exist.</li>\n  <li>A request whose privacy algorithm or key does not match the user's configuration yields no management data, and a decryption failure is accounted for rather than silently discarded.</li>\n  <li>Administrative rights over SNMPv3 credentials are privilege-gated: a maximum-privilege administrative user can create, modify and delete SNMPv3 users, passwords and privileges, while a minimum-privilege user cannot and the attempt leaves the SNMP configuration unchanged.</li>\n  <li>With the device in secure mode, SNMPv3 is the only accepted protocol version and SNMPv1 and SNMPv2c requests are refused; the permitted authentication and privacy algorithm set in secure mode is enforced at configuration time and at request time.</li>\n  <li>Authentication and privacy keys are localised to the device's SNMP engine ID, and a change of engine identity invalidates previously localised keys rather than granting access.</li>\n  <li>Messages outside the accepted time window, and replayed messages, are discarded and accounted for as such.</li>\n  <li>Changing a user's password, algorithm, group or view takes effect on subsequent requests: the new credentials and rights apply and the superseded ones no longer grant access.</li>\n  <li>Removing a user, group or view revokes the corresponding access immediately and leaves no residual reachability through another binding.</li>\n  <li>SNMPv3 users, groups and views survive a device restart and remain functional afterwards without reconfiguration.</li>\n  <li>In a virtual-chassis or stacked configuration, SNMPv3 access is served consistently through the management address, and the configured users, groups and views remain intact and usable after a master change.</li>\n  <li>Configuration display commands report the configured SNMPv3 users with their security level and algorithms, their group membership, and their view definitions, with authentication and privacy keys never rendered in plaintext.</li>\n  <li>USM error counters distinguish the failure modes \u2014 unknown user name, unsupported security level, wrong digest, decryption error and time-window violation \u2014 and increment only for the corresponding failure.</li>\n  <li>Log and debug output records SNMPv3 authentication and access-control failures with enough detail to identify the cause, without disclosing keys or passwords.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the SNMP agent is enabled and reachable from the management station, and record the device's SNMP engine ID for use in the localisation steps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up an SNMPv3 user configured for noAuthNoPriv and bind it to a group granting read access to a known view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a GET, a GETNEXT and a WALK from the noAuthNoPriv user, presenting the matching user name with no authentication or privacy parameters, and confirm each request returns management data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up an SNMPv3 user configured for authNoPriv with an authentication password, and confirm a request carrying the correct authentication digest returns management data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the authNoPriv exchange is transmitted unencrypted, with the message payload readable in a capture of the traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request to the authNoPriv user carrying no authentication parameters, and confirm it is refused and returns no management data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up an SNMPv3 user configured for authPriv with both authentication and privacy credentials, and confirm a request carrying a correct authentication digest and correct privacy parameters returns management data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the authPriv exchange is encrypted on the wire, with the message payload not readable in a capture of the traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify each supported authentication algorithm, including MD5 and SHA, is selectable per user, and confirm a user configured with each one produces a working authNoPriv session.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify each supported privacy algorithm, including DES and AES, is selectable per user, and confirm each combines with each supported authentication algorithm to produce a working authPriv session.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request presented at a weaker security level than the user is configured for \u2014 noAuthNoPriv against an authNoPriv user, and authNoPriv against an authPriv user \u2014 and confirm each is rejected and returns no management data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up SNMPv3 groups binding users to a security level and to read, write and notify views, and confirm each user's effective rights are those of its group only.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Define a view from included OID subtrees, and confirm a walk by a user assigned that view returns exactly those subtrees.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a direct GET of an object outside the included subtrees, and confirm it is unreachable through that view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Define a view with an excluded subtree \u2014 for example a vendor VLAN MIB \u2014 and confirm a walk by a user assigned that view traverses the whole remaining object space while the excluded subtree is absent.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a direct GET of an object inside the excluded subtree, and confirm it is unreadable through that view.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a read-only assignment permits GET, GETNEXT and GETBULK and refuses SET.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a read-write assignment permits SET, and confirm the resulting change is present in the running configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the RFC 3411-3415 object groups \u2014 the framework, MPD, applications, USM and VACM MIBs \u2014 are present and readable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the values reported by those object groups are consistent with the configured users, groups and views.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify an SNMP walk from a correctly configured user traverses the permitted object space to completion, with no gaps, no timeouts and no duplicated OIDs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request from a configured user carrying an incorrect authentication password, and confirm it yields no management data and no partial walk.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request from a configured user carrying an incorrect privacy key, and confirm it yields no management data and no partial walk.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request naming a user that is not configured on the device, and confirm it yields no management data and no indication of which user names exist.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a request whose privacy algorithm does not match the user's configuration, and confirm it yields no management data and that the decryption failure is accounted for rather than silently discarded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a maximum-privilege administrative user can create, modify and delete SNMPv3 users, passwords and privileges.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a minimum-privilege user attempting the same SNMPv3 credential and privilege changes, and confirm they are refused and the SNMP configuration is left unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set the device to secure mode and confirm SNMPv3 is the only accepted protocol version, with SNMPv1 and SNMPv2c requests refused.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the permitted authentication and privacy algorithm set in secure mode is enforced at configuration time, with a disallowed algorithm rejected when a user is configured.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the permitted algorithm set in secure mode is also enforced at request time, with a request presented using a disallowed algorithm refused.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify authentication and privacy keys are localised to the device's SNMP engine ID.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change the device's engine identity and confirm previously localised keys no longer grant access.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a message whose timestamp falls outside the accepted time window, and confirm it is discarded and accounted for as such.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a replayed message and confirm it is discarded and accounted for as such.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change a user's password and confirm subsequent requests succeed with the new password and are refused with the superseded one.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change a user's authentication or privacy algorithm and confirm subsequent requests succeed under the new algorithm and are refused under the superseded one.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change a user's group or view and confirm subsequent requests carry the new rights and the superseded rights no longer grant access.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove an SNMPv3 user and confirm its access is revoked immediately, with no residual reachability through another binding.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove an SNMPv3 group and a view and confirm the corresponding access is revoked immediately, with no residual reachability through another binding.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Restart the device and confirm the configured SNMPv3 users, groups and views survive and remain functional without reconfiguration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "In a virtual-chassis or stacked configuration, verify SNMPv3 access is served consistently through the management address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force a master change in the stacked configuration and confirm the configured users, groups and views remain intact and usable afterwards.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the configuration display commands report the configured SNMPv3 users with their security level and algorithms, their group membership, and their view definitions.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm no authentication or privacy key is rendered in plaintext in any configuration or status display.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the USM error counters distinguish the failure modes \u2014 unknown user name, unsupported security level, wrong authentication digest, decryption error and time-window violation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Re-run each negative case while sampling the USM error counters before and after, and confirm each counter increments only for its corresponding failure.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify log and debug output records SNMPv3 authentication and access-control failures with enough detail to identify the cause.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm no key or password appears in the log or debug output for those failures.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

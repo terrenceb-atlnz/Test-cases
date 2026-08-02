@@ -1,0 +1,150 @@
+{
+  "AWPTCM-T33304": {
+    "objective": "<ul>\n  <li>A documented, deterministic VLAN-classification precedence exists for the device, and a frame whose attributes satisfy more than one classification rule (tag, subnet, protocol, MAC, port membership) is assigned to exactly one VLAN, chosen by that precedence, on every ingress port and after every reboot or reconfiguration.</li>\n  <li>An untagged frame that matches no classification rule is assigned to the ingress port's native/default VLAN, and forwarded only within that VLAN.</li>\n  <li>An untagged frame that matches no classification rule on a port with no native VLAN \u2014 including a private-VLAN secondary port, whose native VLAN is none \u2014 is discarded at ingress rather than leaked into any VLAN.</li>\n  <li>A tagged frame is classified by its tag alone; subnet-, protocol- and MAC-based rules do not override or re-classify it, and the tag is preserved on egress from a tagged member port.</li>\n  <li>A frame classified into a VLAN of which the ingress port is not a member is discarded, not admitted to that VLAN.</li>\n  <li>Private-VLAN isolation holds irrespective of the classification path taken: secondary-port to secondary-port traffic within a private VLAN is blocked, secondary-to-promiscuous/primary traffic is permitted, and the result is identical whether the frame arrived tagged, port-classified or subnet-classified.</li>\n  <li>Private VLAN coexists with port-based VLAN configuration on the same device with both behaving as configured and neither weakening the other's membership rules.</li>\n  <li>Private VLAN coexists with tagged (802.1Q trunk) VLAN configuration, including a private-VLAN trunk port carrying both private and ordinary VLANs, with correct tagging on egress and correct isolation on ingress.</li>\n  <li>Private VLAN coexists with IP subnet-based VLAN classification, and a host whose address matches a subnet rule for a non-private VLAN is not silently placed into a private VLAN.</li>\n  <li>A native VLAN configured on a trunked private-VLAN port takes effect for untagged traffic on that port, and the configuration is accepted, persisted and reported.</li>\n  <li>Secondary ports report a native VLAN of none by default, and any attempt to give one a conflicting native VLAN is either rejected with a clear reason or applied with a defined, reported outcome \u2014 never accepted silently with different behaviour.</li>\n  <li>The maximum supported number of private VLANs can be created and remain functional while other VLAN classification methods are also configured, and the isolation and classification behaviour of each is unchanged at that scale.</li>\n  <li>An attempt to exceed the supported private-VLAN count, or to create an overlapping or conflicting classification rule, fails with a specific and actionable message, leaves the existing configuration intact, and does not partially apply.</li>\n  <li>Private-VLAN configuration on unsupported or special port types \u2014 including link-aggregation members and aggregators \u2014 is either rejected with a clear reason or supported fully; in neither case does the device crash, reboot, lock up or drop unrelated traffic.</li>\n  <li>Inter-VLAN reachability between a private-VLAN secondary host and a host in another VLAN follows the configured routing and isolation policy, and is not made possible merely by pre-populated ARP or MAC entries on either device.</li>\n  <li>DHCP clients on private-VLAN secondary and promiscuous ports obtain addresses from the intended server and scope, with DHCP traffic subject to the same isolation and classification rules as data traffic.</li>\n  <li>Show/status output identifies primary and secondary VLANs, their associations, port roles (promiscuous, host/secondary, trunk) and each port's native VLAN, and matches the classification and isolation behaviour actually observed in the forwarding path.</li>\n  <li>Per-VLAN and per-port counters, and any log or event raised for a rejected, unmatched or ambiguously classified frame, are present and consistent with the traffic offered, giving an operator enough information to attribute a drop to its cause.</li>\n  <li>Removing private-VLAN configuration, or removing a classification rule, returns the affected ports to their prior VLAN membership and forwarding behaviour with no stale associations, orphaned secondary VLANs or residual filtering left behind.</li>\n  <li>The configuration survives save and reload with identical classification precedence, private-VLAN associations, port roles and native-VLAN values, and the device remains stable throughout with no crash, memory growth or forwarding-plane fault.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the device's VLAN-classification precedence order is documented and retrievable, covering tag, IP subnet, protocol, MAC and port membership, and record that order as the expected outcome for the remaining steps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up a frame whose attributes satisfy more than one classification rule simultaneously (e.g. its source subnet matches a subnet rule, its protocol matches a protocol rule and its source MAC matches a MAC rule); verify it is assigned to exactly one VLAN, and that the VLAN chosen is the one selected by the documented precedence.",
+          "expectedResult": "Exactly one VLAN assigned, matching documented precedence."
+        },
+        {
+          "description": "Test with the same multiply-matching frame offered on each ingress port in turn; verify the resulting VLAN assignment is identical on every port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Reboot the device, then re-offer the multiply-matching frame; verify the classification result is unchanged from the pre-reboot result.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove and reapply the classification rules in a different configuration order, then re-offer the multiply-matching frame; verify the assignment still follows the documented precedence and not the configuration order.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with an untagged frame that matches no classification rule on a port that has a native/default VLAN; verify it is assigned to that native VLAN and is forwarded only to members of that VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port with no native VLAN configured and offer an untagged frame matching no classification rule; confirm the frame is discarded at ingress and is not observed egressing in any VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the unmatched-untagged-frame test on a private-VLAN secondary port whose native VLAN is none; confirm the frame is discarded at ingress rather than leaked into the private VLAN or any other VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a tagged frame whose source subnet, protocol and source MAC each match classification rules pointing at different VLANs; verify the frame is classified by its VLAN tag alone and that no subnet-, protocol- or MAC-based rule overrides or re-classifies it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the VLAN tag of that frame is preserved unchanged on egress from a tagged member port.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Offer a frame that classifies into a VLAN of which the ingress port is not a member; verify the frame is discarded and is not admitted to that VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify private-VLAN isolation: traffic offered from one secondary port to another secondary port within the same private VLAN is blocked in both directions.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify secondary-port to promiscuous-port and secondary-port to primary-VLAN traffic is permitted and forwarded as configured.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the same secondary-to-secondary and secondary-to-promiscuous flows arriving by each classification path in turn \u2014 tagged, port-classified and subnet-classified; confirm the isolation result is identical in every case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure private VLAN and port-based VLANs concurrently on the same device; verify both behave as configured and neither weakens the other's membership rules.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a private-VLAN trunk port carrying both private and ordinary tagged VLANs; verify correct tagging on egress for each VLAN and correct private-VLAN isolation on ingress.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure IP subnet-based classification for a non-private VLAN alongside private VLAN, and attach a host whose address matches that subnet rule; confirm the host is classified into the non-private VLAN and is not silently placed into a private VLAN.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a native VLAN on a trunked private-VLAN port; verify the configuration is accepted, verify untagged traffic on that port is classified into the configured native VLAN, and confirm the value is persisted and reported in status output.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify each private-VLAN secondary port reports a native VLAN of none by default.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure a conflicting native VLAN on a secondary port; confirm the attempt is either rejected with a clear reason or applied with a defined and reported outcome, and that the observed forwarding behaviour matches whichever outcome is reported \u2014 not silently accepted with different behaviour.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Create the maximum supported number of private VLANs while port-based, tagged and subnet-based classification are also configured; verify every private VLAN is created successfully and remains functional.",
+          "expectedResult": ""
+        },
+        {
+          "description": "At that maximum scale, re-run the isolation and multiply-matching classification checks; verify the behaviour of each private VLAN and each classification method is unchanged from the small-scale result.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to create one private VLAN beyond the supported maximum; confirm the attempt fails with a specific and actionable message, the existing configuration is intact, and nothing is partially applied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to create an overlapping or conflicting classification rule (for example a second rule claiming the same subnet, protocol or MAC for a different VLAN); confirm it fails with a specific and actionable message and leaves the prior rule set unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt private-VLAN configuration on unsupported or special port types, including a link-aggregation member port and the aggregator itself; confirm each attempt is either rejected with a clear reason or fully supported, and that in neither case does the device crash, reboot, lock up or drop unrelated traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify inter-VLAN reachability between a private-VLAN secondary host and a host in another VLAN follows the configured routing and isolation policy.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Pre-populate ARP and MAC entries for the remote host on both end hosts and on the device, then retest that inter-VLAN path; confirm reachability is not made possible merely by those pre-populated entries.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with DHCP clients on a private-VLAN secondary port and on a promiscuous port; verify each obtains an address from the intended server and scope, and confirm DHCP traffic is subject to the same isolation and classification rules as data traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify show/status output identifies the primary and secondary VLANs, their associations, each port's role (promiscuous, host/secondary, trunk) and each port's native VLAN, and confirm the reported state matches the classification and isolation behaviour observed in the forwarding path.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify per-VLAN and per-port counters are present and consistent with the traffic offered, including the discarded unmatched and non-member frames.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a log or event is raised for rejected, unmatched and ambiguously classified frames, and that its content is sufficient for an operator to attribute a drop to its cause.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove the private-VLAN configuration and, separately, remove a classification rule; verify the affected ports return to their prior VLAN membership and forwarding behaviour, with no stale private-VLAN associations, orphaned secondary VLANs or residual filtering remaining.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration and reload the device; verify the classification precedence, private-VLAN associations, port roles and native-VLAN values are identical to those configured before the reload, and re-run a representative classification and isolation check to confirm behaviour is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the device remained stable throughout the test, with no crash, unexpected reboot, memory growth or forwarding-plane fault, and no disruption to traffic in unrelated VLANs.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

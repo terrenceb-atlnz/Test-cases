@@ -1,0 +1,126 @@
+{
+  "AWPTCM-T44297": {
+    "objective": "<ul>\n<li>All optional TLVs available in the LLDP TLV set \u2014 port description, system name, system description, system capabilities and management address \u2014 are individually selectable and individually clearable on a per-port basis.</li>\n<li>Selecting the complete set of optional TLVs on a transmitting port results in every selected TLV being present in each transmitted LLDPDU, in addition to the mandatory TLVs.</li>\n<li>With LLDP enabled and no optional TLVs selected, transmitted LLDPDUs carry only the mandatory TLVs (chassis ID, port ID, time-to-live) and the end-of-LLDPDU marker, and no optional TLV appears on the wire.</li>\n<li>Each single-instance optional TLV appears at most once in any single LLDPDU \u2014 no LLDPDU carries duplicate port description, system name, system description or system capabilities TLVs.</li>\n<li>At least one management address TLV is present in every transmitted LLDPDU when management address transmission is selected; where multiple management addresses are associated with the port, multiple management address TLVs may be carried in one LLDPDU.</li>\n<li>Management address TLV contents reflect the management address actually configured on the device, and change to match when that address changes.</li>\n<li>The content of every transmitted TLV matches the corresponding locally configured or locally derived value as reported by the device's own management interfaces.</li>\n<li>The per-port TLV transmit-enable state held in the LLDP management information base agrees with the state selected through the command interface, port by port and TLV by TLV.</li>\n<li>Per-port independence holds: TLV selections applied to one port do not alter the TLVs transmitted on any other port, including ports with no optional TLVs selected.</li>\n<li>Optional TLV selection takes effect on a transmit-only port with the same result as on a transmit-and-receive port; receive capability is not a precondition for TLV transmission.</li>\n<li>The LLDP-MED TLV set is separately selectable from the basic optional TLV set, and MED TLV selections are reflected in transmitted LLDPDUs as the standards-defined organisationally specific TLVs.</li>\n<li>MED capability and network policy TLV contents conform to the defined TLV format and carry values consistent with the device's MED configuration.</li>\n<li>Selecting or clearing a TLV while LLDP is running takes effect on subsequent LLDPDUs without requiring LLDP or the port to be restarted, and without disrupting transmission of the remaining TLVs.</li>\n<li>An attempt to select an unsupported, misspelled or out-of-range TLV keyword is rejected with a diagnostic message, and the previously configured TLV selection is left unchanged.</li>\n<li>TLV selection commands on a port with LLDP disabled are accepted and retained as configuration, and become effective when LLDP is subsequently enabled.</li>\n<li>Repeating a selection already in effect, or clearing a TLV that is already deselected, is accepted without error and leaves the resulting state unchanged.</li>\n<li>TLV selection state is reported by the device's operational display commands, per port, distinguishing selected from unselected TLVs.</li>\n<li>TLV selection state appears in the saved and displayed running configuration in a form that restores the same selections after a device restart.</li>\n<li>A neighbour device receiving the LLDPDUs reports exactly the set of optional TLVs selected on the transmitting port, and reports no information for TLVs that were not selected.</li>\n<li>LLDP frame and TLV counters remain consistent across TLV selection changes, with no increment of error, malformed-frame or discarded-TLV counters attributable to a valid TLV selection.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set LLDP running on the device under test, with a transmitting port cabled to a neighbour device that reports received LLDP information, and an LLDPDU capture available on that link.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify each optional TLV in the set \u2014 port description, system name, system description, system capabilities and management address \u2014 is individually selectable on the port, selecting each one in turn.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify each optional TLV is individually clearable on the same port, leaving the remaining selections in place.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Select the complete set of optional TLVs on the transmitting port and confirm every selected TLV is present in each transmitted LLDPDU, in addition to the mandatory TLVs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Clear all optional TLVs with LLDP still enabled and confirm transmitted LLDPDUs carry only the chassis ID, port ID and time-to-live TLVs followed by the end-of-LLDPDU marker, with no optional TLV on the wire.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify no single LLDPDU carries a duplicate port description, system name, system description or system capabilities TLV when all of them are selected.",
+          "expectedResult": "Each single-instance TLV appears at most once per LLDPDU."
+        },
+        {
+          "description": "With management address transmission selected, confirm at least one management address TLV is present in every transmitted LLDPDU.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with multiple management addresses associated with the port and confirm one LLDPDU may carry multiple management address TLVs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the management address TLV contents match the management address actually configured on the device.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Change the configured management address and confirm subsequent LLDPDUs carry the new address in the management address TLV.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the content of each transmitted TLV matches the corresponding locally configured or locally derived value as reported by the device's own management interfaces.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the per-port TLV transmit-enable state held in the LLDP management information base agrees with the state selected through the command interface, checked port by port and TLV by TLV.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Select a different set of optional TLVs on a second port and confirm the TLVs transmitted on the first port are unaltered.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a port with no optional TLVs selected continues to transmit only mandatory TLVs while other ports transmit their selected optional TLVs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a port to transmit-only and confirm optional TLV selection takes effect there with the same transmitted result as on a transmit-and-receive port.",
+          "expectedResult": "Receive capability is not a precondition for TLV transmission."
+        },
+        {
+          "description": "Verify the LLDP-MED TLV set is selectable separately from the basic optional TLV set, with each selection leaving the other unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm selected MED TLVs are reflected in transmitted LLDPDUs as the standards-defined organisationally specific TLVs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the MED capability and network policy TLV contents conform to the defined TLV format and carry values consistent with the device's MED configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with LLDP running: select an additional TLV and confirm it appears in subsequent LLDPDUs without restarting LLDP or the port, and without disrupting transmission of the TLVs already selected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with LLDP running: clear a selected TLV and confirm it is absent from subsequent LLDPDUs while the remaining TLVs continue to be transmitted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with an unsupported, a misspelled and an out-of-range TLV keyword and confirm each attempt is rejected with a diagnostic message.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the previously configured TLV selection is left unchanged after each rejected TLV keyword.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set TLV selections on a port with LLDP disabled, confirm the commands are accepted and retained as configuration, then enable LLDP and confirm the retained selections become effective.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify repeating a selection already in effect, and clearing a TLV that is already deselected, are accepted without error and leave the resulting state unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the device's operational display commands report TLV selection state per port, distinguishing selected from unselected TLVs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the TLV selection state appears in the displayed running configuration, then save it, restart the device and confirm the same selections are restored and in effect.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the neighbour device reports exactly the set of optional TLVs selected on the transmitting port, and reports no information for TLVs that were not selected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify LLDP frame and TLV counters remain consistent across TLV selection changes, with no increment of error, malformed-frame or discarded-TLV counters attributable to a valid TLV selection.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -2801,3 +2801,124 @@ Also note for the next session: the parallel stream committed `TESTBOX-ACCESS.md
 (`aadebfe`) to the same file this session had extended with §4a. Both survived — verified by
 grep, not assumed — but that file is now actively co-edited, so re-read it before editing rather
 than patching from context.
+
+## Session Close / Handoff (2026-08-03) — 10 refined cases via Opus; generation hits a hard output ceiling; 12 transport defects fixed
+
+Task: take the 10 "Not Executed" AWPTCM cases Terrence supplied end-to-end — objectives, refined
+test cases, pytest scripts — automatedly with Opus, then judge them and attempt a tb470 run.
+Batch began 2026-07-30 and ran across several usage windows. Gate **719 → 775** pytest, 92 Vitest
+unchanged, both guards green, `ck.db` signature unchanged by tests throughout.
+
+Full decisions-and-results record, including every judgement call and its reasoning:
+`ask-ck/pytest-create/autopilot/RESULTS-2026-08-03.md`. Measurements behind the ceiling:
+`ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`. Runbook: `autopilot/RESUME.md`.
+
+### Delivered
+
+- **Objectives + refined test cases: 10/10, all `valid=True`, zero validation warnings** — 422
+  refined steps. The sources were nearly empty (**6 of 10 had no objective, 8 had no steps
+  text**), so almost all content came from the title plus the three corpora, and it is
+  domain-correct rather than padding. Refined-case total on disk **42 → 53**.
+- **`tool/pt_autopilot.py`** — headless driver for both wizards. Deliberately goes through the
+  RUNNING SERVER, never a direct model call: the prompts, CLI grounding, coverage gate, skeleton
+  and lints are the product, so a direct call would test the model instead of the pipeline. It
+  substitutes each review step's own LLM suggestion for the reviewer's click and RECORDS that,
+  so the output is honest about being machine-reviewed. Resumable per step; `--trim-verify N`
+  records every dropped step.
+- **The tb470 server-side run path, verified for the first time**: `profiles/tb470/check` →
+  `ok/ssh/framework/sudo` all true, Python 3.13.5. See `TESTBOX-ACCESS.md` §3a for the two
+  settings it needs (`user: terrenceb`, and the *server* process needing the keyring
+  `SSH_AUTH_SOCK`).
+
+### The blocker, quantified
+
+Generation is capped at roughly **9–20 `TestCase` classes**. The 32,000-token output budget is
+**shared with thinking**, is not raisable (`CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000` leaves it at
+32,000), and `--max-thinking-tokens` caps one *block* not the total — measured **20,400** thinking
+tokens under a 2,048 cap, so the room left for the answer varies run to run and cannot be
+computed in advance.
+
+Two counter-intuitive results worth carrying forward:
+
+1. **Trimming step count does not shrink the answer.** Same case: 44 steps → 86,644 chars;
+   trimmed to 21 → **88,593**. The model writes to fill the budget, becoming more verbose per
+   TestCase. So the ceiling must be expressed in TestCase classes, not steps.
+2. **Overflow can produce a script that PARSES CLEANLY.** At 21 steps the truncation landed on a
+   statement boundary, so `ast.parse` succeeded on a script missing 1 of 17 TestCases and the
+   `ts.run(sys.argv)` entry. Only the logging-contract lint revealed it. Valid Python that
+   silently tests less than it claims is the failure mode to fear here.
+
+`_size_overflow()` now refuses an over-budget case up front, instantly and for free, with an
+explicit `acknowledge_size_overflow` override (matching the router's coverage-gate pattern).
+Recommended fix is to **split** large refined cases — chunked generation removes the ceiling but
+is real work, and capping steps in the Generator silently trades away the coverage the
+objective-coverage gate exists to protect. That choice is Terrence's, which is why the ceiling
+itself was left unfixed.
+
+### Best pytest artefact
+
+T44297 trimmed to 6 verification steps: complete and parseable, 6/6 TestCases, 37,744 chars.
+Grades a clean sweep offline — `pt_grade.py` **C1 EXACTLY / C2 EXACTLY / C3 RIGHT / C6 YES
+(6/6)** — and `pt_judge.py` criterion 4 is **not applicable because every TestCase reuses a real
+fragment** (no invented gap-fill to grade). One lint error remains: it calls
+`setup.init_portlink()` directly, bypassing `_ck_bind_link` and therefore the media assertion —
+the 2026-07-30 guard catching exactly what it was built for, on the first generation that got far
+enough to trip it.
+
+### 12 defects fixed (36 mutations attempted, 36 caught)
+
+New offline suites: `tests/test_llm_call_timeouts.py`, `tests/test_dependencies_declared.py`,
+`tests/test_claude_cli_transport.py` — `subprocess.run` monkeypatched, no CLI, no tokens.
+
+- `extract_sequence` passed no `timeout`, inheriting 180s while every sibling asked 300–600s.
+- All caller timeouts were sized for the STREAMING vLLM path (where the number bounds the gap
+  *between chunks*); a CLI subprocess gets one shot at the whole response. `llm._cli_timeout`,
+  with `_is_long_call()` as the single predicate also gating the thinking cap.
+- **`claude -p` was running as an AGENT, not a completion endpoint** — tools enabled, so it
+  looped: 2,670,565 input tokens, 23 minutes, **$4.65**, **empty result** with
+  `is_error: false`, surfaced as `502 "LLM returned no python code block."` Retry cost $5.24 the
+  same way. Now `--tools ""`.
+- Its `result` field carries only the **final** assistant message, so a long answer lost its
+  HEAD and arrived as a mid-class tail that lints as `IndentationError`. Now
+  `--output-format stream-json` + concatenate every text block (`llm._parse_cli_stream`).
+- The caller's `system` message was **dropped entirely** on the `claude_code` path.
+- `_JSON_SYSTEM_PROMPT` ("no markdown fences") was being sent to the two templates that ask for
+  a **fenced** python block, which `_parse_generated_blocks` requires — the request argued with
+  itself, on every backend. Both now pass `_CODE_SYSTEM_PROMPT`.
+- `gather_fragments` treated an **unparseable** reply as an **empty** one; two cases recorded
+  0 reusable fragments while step 3 had selected 12 scripts.
+- **`paramiko` declared in no requirements file** — the whole "6. Run" step was dead on a fresh
+  venv and said so as an SSH failure.
+- **`lib2to3` removed from the stdlib in Python 3.13**, the version we tell people to prefer, so
+  D3 py2→py3 translation had silently stopped. Falls back to `fissix`.
+- `pt_preflight` could not resolve a topology-**contract** role, so it reported
+  `UN-RUNNABLE (0/2 links)` — a confident wrong negative where the truth was "cannot determine".
+- Plus one regression of my own, caught by the health check going red: scoping the thinking cap
+  to *all* calls forced extended thinking on (2,242ms → 16,426ms) and timed out the 30s ping.
+
+### Left OPEN by choice — each needs a design decision, not a default
+
+1. **Generation over-declares a stack.** `init_stk('stk_a')` is emitted, assigned, and never
+   used, so the script demands a stack tb470 has not got. The 2026-07-30 minimality work made
+   this "structurally impossible" for `init_swi` but **`init_stk` is not covered**, and no lint
+   catches a device bound-but-never-used. This is what blocked the hardware run.
+2. **`pt_preflight` cannot follow `_ck_bind_link`.** The fixed frame resolves `ck_link_<role>` at
+   run time, so no contract-based script can reach a clean RUNNABLE verdict. Suggested fix:
+   check the CONTRACT via `pt_profiles.py` rather than tracing into the helper.
+3. **`POST /fix_script` can regress a good script** — 37,744 chars / 6 TestCases in, 25,172 chars
+   / **0 TestCases** and a new syntax error out. Harmless only because `fix_script` does not
+   write to disk (the good copy survived in `history/iter-1/`), but a later `save_script` would
+   have shipped it. A fix pass that lints worse than its input should be rejected, not stored.
+
+### State at close
+
+No hardware run happened — preflight correctly refused the script (open item 1), so no bench time
+was spent, which is the tool working as designed. Nothing regenerated for the other 9 cases: they
+need splitting or chunked generation first. Workspace LLM default restored to
+`local_llm`/`vllm-fast` (it is workspace-wide and the browser UI reads it). `ck.db` shows as
+modified — that is real user traffic persisting sessions, which is correct.
+
+Two operational notes that cost time here: **`run.sh` always passes `--reload`**, so editing
+anything under `ask-ck/CK-main` bounces the server and kills in-flight LLM calls — sequence server
+edits into idle windows. And this repo is on **NFS**, so `tail` can serve a minutes-stale view of
+a log; read batch progress from `state.json`, not the log tail.

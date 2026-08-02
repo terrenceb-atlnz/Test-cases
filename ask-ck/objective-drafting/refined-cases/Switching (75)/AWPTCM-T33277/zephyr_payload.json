@@ -1,0 +1,246 @@
+{
+  "AWPTCM-T33277": {
+    "objective": "<ul>\n<li>An AWP device running RSTP forms a single loop-free active topology with third-party or legacy devices running STP (802.1D) on the same LAN, with exactly one Root Bridge elected across the mixed-protocol network.</li>\n<li>An AWP device running RSTP interoperates with devices running MSTP, with the MSTP region's CIST parameters and the RSTP device's parameters resolving to one consistent CIST active topology.</li>\n<li>An AWP device running MSTP interoperates with devices running STP, presenting the region as a single virtual bridge to the STP device and blocking all but one path.</li>\n<li>Per-port protocol migration is automatic: a port receiving STP Config or TCN BPDUs falls back to sending STP-compatible BPDUs on that port alone, while other ports continue sending RST/MST BPDUs.</li>\n<li>A port that has fallen back to STP-compatible operation returns to RSTP/MSTP operation after the legacy device stops sending STP BPDUs and the migration delay period elapses.</li>\n<li>An administrative re-check of the appropriate BPDU type on a port (management-initiated migration check) causes that port to resume transmitting its configured protocol version's BPDUs and to re-detect the peer's protocol.</li>\n<li>The configured force-protocol-version setting is authoritative: STP-compatible BPDUs and timer values on all ports when set to STP, RST BPDUs when set to RSTP, and full MSTP behaviour when set to MSTP.</li>\n<li>With force-protocol-version set to STP, rapid transitions are unavailable \u2014 a Root Port and an Edge Port each reach Forwarding only via the timer-based Listening and Learning progression, not by rapid transition.</li>\n<li>A port operating in STP-compatible mode does not use the RSTP proposal/agreement handshake and does not send or act on topology-change notifications in the rapid form.</li>\n<li>MSTP-to-RSTP boundary ports convey the full CIST information required for the RSTP neighbour to compute a consistent topology, without requiring the RSTP neighbour to be explicitly detected as such.</li>\n<li>RSTP timer defaults, ranges and semantics conform to 802.1D-2004 (hello time, forward delay, max age, transmit hold count, migration delay), and the values in effect on a port match the operating protocol version on that port.</li>\n<li>Timer values learned from the Root Bridge are used by non-root devices in the mixed-protocol topology, rather than each device's locally configured values.</li>\n<li>Bridge and port priority, path cost and root/backup path selection produce the same intended topology regardless of which protocol version each participating device runs.</li>\n<li>Disconnecting an active link in a mixed STP/RSTP/MSTP topology results in reconvergence to a loop-free topology, with an alternate or backup path taking over.</li>\n<li>Reconnecting a previously disconnected link results in reconvergence without a loop, without persistent flooding, and without leaving two ports forwarding on the same segment.</li>\n<li>Repeated disconnect/reconnect cycles on the same and on different links leave the topology stable and consistent, with no stuck port states and no residual blocking of the intended forwarding path.</li>\n<li>Reconvergence times after link loss and link restoration are consistent with the operating protocol on the affected ports \u2014 rapid where RSTP/MSTP applies end-to-end, timer-bound where a segment has fallen back to STP.</li>\n<li>End-to-end data forwarding is restored across the mixed-protocol topology after each convergence event, and no traffic loops or duplicate frames are observed during or after convergence.</li>\n<li>MAC address table entries are flushed or aged appropriately on topology change so that forwarding follows the new active topology.</li>\n<li>Per-port operational state is observable and reports role, state, and the protocol version actually in use on that port, distinguishing configured version from migrated/operating version.</li>\n<li>Neighbour and peer information is observable per port, including the detected peer protocol type and the elected Root Bridge identifier and root path cost.</li>\n<li>Spanning-tree statistics and counters are observable per port, including BPDUs transmitted and received by type (Config/TCN/RST/MST) and topology-change counts.</li>\n<li>Diagnostic and debug output for spanning tree can be enabled and disabled at a selectable level of detail, and reports protocol events including BPDU reception and transmission, migration between protocol versions, role and state transitions, timer expiry and root changes.</li>\n<li>Debug output identifies the port, protocol version and event for each logged item and does not disrupt protocol operation or convergence when enabled under load.</li>\n<li>Log and event records are generated for significant topology events \u2014 root change, port role or state change, protocol-version migration, and link loss or restoration.</li>\n<li>Invalid, malformed or out-of-range BPDUs from an interoperating device are discarded without destabilising the local protocol instance, and are counted or reported as errors.</li>\n<li>Unsupported or out-of-range configuration values for protocol version, timers and priorities are rejected with a clear indication, and previously working values remain in effect.</li>\n<li>Inconsistent timer configuration that would violate 802.1D-2004 relationships is rejected or reported, rather than silently producing an unstable topology.</li>\n<li>Configured protocol version, timers, port roles-affecting parameters and debug settings persist across a device restart, and the mixed-protocol topology reconverges to the same intended active topology after restart of any participating device.</li>\n<li>Behaviour is consistent across shared-media and point-to-point segments, and across an edge port and a non-edge port, when a legacy STP device is present on the segment.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set up a mixed-protocol LAN containing an AWP device configured for RSTP and a third-party or legacy device running STP (802.1D), with a physically redundant path between them.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that the mixed RSTP/STP network converges to a single loop-free active topology with exactly one Root Bridge elected across all participating devices.",
+          "expectedResult": "One Root Bridge; all other devices report the same Root Bridge identifier."
+        },
+        {
+          "description": "Confirm that every redundant path in the mixed RSTP/STP topology has exactly one port in a blocking (Discarding/Alternate) role, leaving no loop.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with an AWP device running RSTP connected to a device running MSTP, and verify the MSTP region's CIST parameters and the RSTP device's parameters resolve to one consistent CIST active topology.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that both the RSTP device and the MSTP region agree on the CIST Root Bridge identifier and CIST root path cost.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with an AWP device running MSTP connected to a device running STP, and verify the MSTP region is presented to the STP device as a single virtual bridge.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm that in the MSTP-to-STP topology all but one path to the STP device is blocked.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify per-port automatic protocol migration: send STP Config BPDUs to one port of an RSTP-configured device and confirm that port falls back to transmitting STP-compatible BPDUs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the migration check using STP TCN BPDUs instead of Config BPDUs and confirm the same per-port fallback occurs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm that while one port has fallen back to STP-compatible operation, all other ports on the same device continue transmitting RST or MST BPDUs unchanged.",
+          "expectedResult": "Fallback is scoped to the receiving port only."
+        },
+        {
+          "description": "Stop the legacy device from sending STP BPDUs on the migrated port, wait for the migration delay period to elapse, and verify the port returns to RSTP/MSTP operation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the port does not return to RSTP/MSTP operation before the migration delay period has elapsed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform a management-initiated migration check (administrative re-check of BPDU type) on a port that has fallen back, and verify the port resumes transmitting its configured protocol version's BPDUs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that after the management-initiated migration check the port re-detects the peer's protocol and settles on the correct operating version for that peer.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set force-protocol-version to STP and verify all ports transmit STP-compatible BPDUs and use STP timer values, regardless of the peer's protocol.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set force-protocol-version to RSTP and verify ports transmit RST BPDUs where the peer supports them.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set force-protocol-version to MSTP and verify full MSTP behaviour, including region and CIST operation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With force-protocol-version set to STP, verify a Root Port reaches Forwarding only via the timer-based Listening and Learning progression and not by rapid transition.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With force-protocol-version set to STP, verify an Edge Port also reaches Forwarding only via the timer-based Listening and Learning progression.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that a port operating in STP-compatible mode does not use the RSTP proposal/agreement handshake.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that a port operating in STP-compatible mode neither sends nor acts upon topology-change notifications in the rapid (RSTP) form.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that an MSTP-to-RSTP boundary port conveys the full CIST information required for the RSTP neighbour to compute a consistent topology.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the RSTP neighbour computes the correct topology without needing to be explicitly detected or configured as an RSTP peer.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify RSTP timer defaults conform to 802.1D-2004 for hello time, forward delay, max age, transmit hold count and migration delay.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the configurable range and semantics of each of those timers conform to 802.1D-2004.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm that the timer values actually in effect on a port match the protocol version operating on that port, including on a port that has migrated to STP-compatible operation.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure non-default timer values on the Root Bridge and verify non-root devices in the mixed-protocol topology use the timer values learned from the Root Bridge rather than their own locally configured values.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Vary bridge priority across the mixed-protocol devices and verify the intended Root Bridge is elected regardless of which protocol version each device runs.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Vary port priority and path cost across the mixed-protocol topology and verify the intended root path and backup path selection is produced in each case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disconnect an active link in the mixed STP/RSTP/MSTP topology and verify the network reconverges to a loop-free topology with the alternate or backup path taking over.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Reconnect the previously disconnected link and verify reconvergence occurs without a loop, without persistent flooding, and without leaving two ports forwarding on the same segment.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform repeated disconnect/reconnect cycles on the same link and verify the topology remains stable and consistent with no stuck port states.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform repeated disconnect/reconnect cycles on different links in the topology and verify no residual blocking of the intended forwarding path remains.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Measure reconvergence time after link loss and verify it is rapid where RSTP/MSTP applies end-to-end and timer-bound where a segment has fallen back to STP.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Measure reconvergence time after link restoration and verify it is likewise consistent with the operating protocol on the affected ports.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Pass end-to-end data traffic across the mixed-protocol topology and confirm forwarding is restored after each convergence event.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Monitor traffic during and after each convergence event and confirm no traffic loops and no duplicate frames are observed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that MAC address table entries are flushed or aged appropriately on topology change so that forwarding follows the new active topology.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify per-port operational state is observable and reports port role and port state on each participating device.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the per-port output reports the protocol version actually in use on that port and distinguishes the configured version from the migrated/operating version.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify neighbour and peer information is observable per port, including the detected peer protocol type.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the per-port neighbour information reports the elected Root Bridge identifier and the root path cost.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify spanning-tree statistics and counters are observable per port, including BPDUs transmitted and received counted by type (Config, TCN, RST, MST).",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm topology-change counts are reported per port and increment on each topology change event.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable spanning-tree diagnostic/debug output and verify it can be set to a selectable level of detail and subsequently disabled.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify debug output reports BPDU reception and transmission, migration between protocol versions, role and state transitions, timer expiry and root changes.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm each logged debug item identifies the port, the protocol version and the event.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Enable debug output while the topology is under load and confirm protocol operation and convergence are not disrupted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify log and event records are generated for root change, port role or state change, protocol-version migration, and link loss or restoration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with invalid, malformed or out-of-range BPDUs injected from an interoperating device and verify they are discarded without destabilising the local protocol instance.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm discarded invalid BPDUs are counted or reported as errors.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to configure an unsupported or out-of-range protocol version, timer and priority value, and verify each is rejected with a clear indication.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm that after each rejected configuration attempt the previously working values remain in effect and the topology is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt a timer configuration that violates the 802.1D-2004 relationships between hello time, forward delay and max age, and verify it is rejected or reported rather than silently producing an unstable topology.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Restart a participating device and verify the configured protocol version, timers, port parameters affecting roles, and debug settings persist across the restart.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the mixed-protocol topology reconverges to the same intended active topology after restart of each participating device in turn, including the Root Bridge.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a legacy STP device present on a shared-media segment and verify behaviour is consistent with that observed on a point-to-point segment.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a legacy STP device present on an edge port and on a non-edge port, and verify behaviour is consistent in both cases.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "AWPTCM-T43868": {
+    "objective": "<ul>\n<li>An SNMPv1 community configured on the device with read-only access rights, present in running configuration and surviving a restart of the SNMP agent.</li>\n<li>An SNMPv1 community configured with read-write access rights, distinct from the read-only community and independently addressable by a manager.</li>\n<li>SNMP agent enabled, listening for v1 protocol messages, and reachable from a manager on a routed and a directly attached interface.</li>\n<li>A successful SNMPv1 GET of a scalar system object returning the device's own value for that object.</li>\n<li>A successful SNMPv1 GET-NEXT and full walk of a subtree, returning objects in lexicographic order and terminating cleanly at the end of the MIB view.</li>\n<li>A successful SNMPv1 SET of a writable object using the read-write community, with the new value observable both through a subsequent GET and through the device's own management interface.</li>\n<li>Interface, system and SNMP-statistics MIB objects readable over v1 with values consistent with the device's operational state.</li>\n<li>A SET attempted with a read-only community rejected, with the object's value unchanged afterwards.</li>\n<li>A request carrying an unconfigured or misspelled community name rejected, with no varbind data returned to the requester.</li>\n<li>A request from a host excluded by the community's associated access list rejected, while the same request from a permitted host succeeds.</li>\n<li>An access list referenced by a community that names a host address parsed correctly at configuration time and at agent start-up, with no configuration-file read error and no loss of the community entry.</li>\n<li>An access list referenced by a community but not yet defined handled deterministically, with the resulting permit/deny behaviour stated and stable across a restart.</li>\n<li>A GET of a non-existent object identifier answered with the v1-appropriate error condition rather than a silent or malformed response.</li>\n<li>A SET of a read-only object, or of a value outside the object's permitted range or type, rejected with the v1-appropriate error condition and the stored value unchanged.</li>\n<li>A response whose contents would exceed the transport's message size handled without agent failure and without truncated or corrupt varbinds.</li>\n<li>The configured maximum number of v1 communities accepted, with an attempt to add one beyond the maximum refused and the existing communities left intact.</li>\n<li>Community names accepted across the supported length and character range, and names outside it refused at configuration time.</li>\n<li>v1 access unaffected by the presence of v2c communities and v3 users configured concurrently, with each version answering only its own requests.</li>\n<li>Removal of a community immediately denying further requests that use it, with no cached authorisation permitting a subsequent request.</li>\n<li>SNMP agent disabled resulting in no response to a previously working v1 request, and re-enabling restoring access without reconfiguration.</li>\n<li>v1 access available on a virtual chassis stack through the stack's management address, served identically regardless of which member is the active master.</li>\n<li>v1 access preserved across a master failover in a stack, with the community set and access lists intact on the new master.</li>\n<li>Per-member and stack-wide objects distinguishable in a v1 walk of a stacked device, reporting the true membership of the stack.</li>\n<li>SNMP input, output, error and authentication-failure counters incrementing in step with the requests and rejections generated.</li>\n<li>An authentication failure recorded \u2014 as a counter and, where enabled, as a trap or log entry \u2014 identifying the event without disclosing the offered community name in clear text.</li>\n<li>Show output for SNMP configuration listing each community with its access rights and any associated access list, matching the running configuration.</li>\n<li>Log entries for agent start, stop and configuration change present and timestamped consistently with the actions performed.</li>\n<li>No SNMP-related process restart, memory growth or system message indicating fault after sustained walk, get and set activity.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set an SNMPv1 community with read-only access rights and verify it appears in the running configuration with the correct access rights.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Restart the SNMP agent and confirm the read-only community is still present and still usable without reconfiguration.",
+          "expectedResult": "Community entry survives the restart."
+        },
+        {
+          "description": "Set a second SNMPv1 community with read-write access rights, distinct from the read-only community, and confirm both entries coexist in the running configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the SNMP agent is enabled and listening for v1 protocol messages.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a manager on a directly attached interface and confirm the device answers SNMPv1 requests.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a manager reachable over a routed interface and confirm the device answers SNMPv1 requests on that path as well.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify an SNMPv1 GET of a scalar system object returns the device's own configured value for that object.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify an SNMPv1 GET-NEXT returns the lexicographic successor of the requested object identifier.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Perform a full SNMPv1 walk of a subtree and confirm objects are returned in lexicographic order and the walk terminates cleanly at the end of the MIB view.",
+          "expectedResult": "No repeated, out-of-order or looping varbinds."
+        },
+        {
+          "description": "Verify an SNMPv1 SET of a writable object using the read-write community succeeds, and confirm the new value with a subsequent GET.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the value written by SNMP is also observable through the device's own management interface.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify interface MIB objects are readable over v1 and that reported state, speed and counters are consistent with the interfaces' operational state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify system MIB objects are readable over v1 and consistent with the device's configured identity and uptime.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify SNMP-statistics MIB objects are readable over v1 and reflect the traffic the manager has generated.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with an SNMPv1 SET issued using the read-only community and confirm it is rejected.",
+          "expectedResult": "Request refused and the object's value is unchanged afterwards."
+        },
+        {
+          "description": "Test with a request carrying an unconfigured or misspelled community name and confirm it is rejected with no varbind data returned to the requester.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Associate an access list with a community, then test with a request from a host excluded by that access list and confirm it is rejected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with the same request from a host permitted by the access list and confirm it succeeds.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify an access list that names a host address and is referenced by a community is parsed correctly at configuration time and again at agent start-up.",
+          "expectedResult": "No configuration-file read error and no loss of the community entry."
+        },
+        {
+          "description": "Configure a community that references an access list which has not yet been defined, and confirm the resulting permit or deny behaviour is deterministic and documented.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Restart the device or the SNMP agent and confirm the behaviour of the community with the undefined access list is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a GET of a non-existent object identifier is answered with the v1-appropriate error condition rather than a silent or malformed response.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a SET of a read-only object is rejected with the v1-appropriate error condition and the stored value is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify a SET carrying a value outside the object's permitted range, or of the wrong type, is rejected with the v1-appropriate error condition and the stored value is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Request a response whose contents would exceed the transport's message size and confirm the agent handles it without failing and without returning truncated or corrupt varbinds.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure the supported maximum number of v1 communities and confirm all are accepted and usable.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Attempt to add one community beyond the supported maximum and confirm it is refused with the existing communities left intact.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify community names are accepted across the supported length and character range.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify community names outside the supported length or character range are refused at configuration time.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure v2c communities and v3 users concurrently with the v1 communities and confirm v1 access is unaffected.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with requests of each version and confirm each version answers only its own requests.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove a community and confirm further requests using that community are denied immediately, with no cached authorisation permitting a subsequent request.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable the SNMP agent and confirm a previously working v1 request receives no response.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Re-enable the SNMP agent and confirm v1 access is restored without reconfiguration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On a virtual chassis stack, verify v1 access through the stack's management address is served identically regardless of which member is the active master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force a master failover on the stack and confirm v1 access is preserved with the community set and access lists intact on the new master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Walk a stacked device over v1 and confirm per-member and stack-wide objects are distinguishable and report the true membership of the stack.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify the SNMP input, output, error and authentication-failure counters increment in step with the requests and rejections generated during this test.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm an authentication failure is recorded as a counter and, where enabled, as a trap or log entry identifying the event.",
+          "expectedResult": "The offered community name is not disclosed in clear text."
+        },
+        {
+          "description": "Verify the show output for SNMP configuration lists each community with its access rights and any associated access list, matching the running configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm log entries exist for SNMP agent start, stop and configuration change, timestamped consistently with the actions performed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After sustained walk, get and set activity, confirm no SNMP-related process restart, memory growth or system message indicating fault.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

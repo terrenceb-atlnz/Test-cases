@@ -1,0 +1,122 @@
+{
+  "case_key": "AWPTCM-T44297",
+  "group": "Management",
+  "name": "261_Management_LLDP_LLDP_test",
+  "saved_at": "2026-07-30T07:58:04.372257+00:00",
+  "iterations": 2,
+  "fragments": [
+    {
+      "source_id": "art/1332_lldp_med/test-1332.2001.py",
+      "symbol": "TestSet",
+      "maps_to": [
+        1,
+        3
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.1001.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/library_1332.py",
+      "symbol": "analyse_lldp_packets",
+      "maps_to": [
+        2,
+        5,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/library_1332.py",
+      "symbol": "log_packet",
+      "maps_to": [
+        2,
+        9
+      ]
+    },
+    {
+      "source_id": "art/6000_link_check/test-6000.1002-link_discovery.py",
+      "symbol": "TestCase_1",
+      "maps_to": [
+        3,
+        6
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/test-1332.2001.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        3
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/test-1332.1001.py",
+      "symbol": "TestCase_8",
+      "maps_to": [
+        4
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/library_1332.py",
+      "symbol": "test_lldp_med_variations",
+      "maps_to": [
+        5,
+        8,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "source_id": "art/1332_lldp_med/test-1332.2001.py",
+      "symbol": "TestCase_7",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py",
+      "symbol": "lldp_net_tlv",
+      "maps_to": [
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py",
+      "symbol": "lldp_cap_tlv",
+      "maps_to": [
+        7,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "source_id": "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py",
+      "symbol": "lldp_basic",
+      "maps_to": [
+        10
+      ]
+    },
+    {
+      "source_id": "legacy/5003_feature_limits/test-5003.0014-LLDP/lldp_class.py",
+      "symbol": "lldp_end_tlv",
+      "maps_to": [
+        10
+      ]
+    }
+  ],
+  "llm": {
+    "provider": "claude",
+    "model": "claude-opus-5",
+    "auth_method": "claude_code"
+  }
+}

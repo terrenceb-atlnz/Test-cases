@@ -1,0 +1,234 @@
+{
+  "AWPTCM-T43869": {
+    "objective": "<ul>\n  <li>With no SNMP configuration present, the agent sits in its documented default state and no SNMPv2c community grants access, so v2c requests from any manager go unanswered and no object data leaves the device.</li>\n  <li>The SNMP agent's enabled state is explicitly controllable; disabling it silences all SNMPv2c responses and notifications while the stored community, view and access-list configuration remains intact and effective again on re-enable.</li>\n  <li>A configured SNMPv2c community name is accepted, held in the running configuration, and reported by the SNMP status display exactly as entered, including case.</li>\n  <li>Multiple distinct communities coexist, each with its own independently resolved access right, MIB view and source restriction.</li>\n  <li>Community names at the documented minimum and maximum length and across the documented character set are accepted; names outside those bounds are refused at configuration time with a clear diagnostic and no partial configuration left behind.</li>\n  <li>Removing a community takes effect for the next request \u2014 that community is thereafter treated as unauthenticated, with no restart, reload or reboot needed.</li>\n  <li>A read-only community satisfies Get, GetNext and GetBulk requests across its permitted objects and refuses every Set.</li>\n  <li>A read-write community satisfies read requests and applies Sets to writable objects, with the altered value observable both by a subsequent SNMP read and in the device's own configuration and state displays.</li>\n  <li>Read-only is the effective access right when none is specified, matching the documented default.</li>\n  <li>A Set directed at a read-only object \u2014 including read-only counter objects \u2014 fails with the SNMPv2c error appropriate to that object, and the object's value is unchanged.</li>\n  <li>A view that includes an OID subtree exposes every accessible object beneath it and nothing outside it; an excluded subtree is absent from walk output while the remainder of the tree still walks normally.</li>\n  <li>Overlapping include and exclude entries in one view resolve by the documented precedence, and a community bound to a view cannot reach objects the view omits regardless of its access right.</li>\n  <li>A view referenced before it is defined, or deleted while still bound to a community, leaves a defined state in which the affected community denies access rather than falling open.</li>\n  <li>A community qualified by a numbered access list answers requests only from source addresses that list permits; requests from denied sources receive no response and yield no data.</li>\n  <li>Editing or deleting the referenced access list governs subsequent requests immediately, without the community having to be re-entered.</li>\n  <li>A community bound to an access list produces a syntactically valid agent configuration: the agent starts and reloads cleanly, logs no configuration-parse or community-address read error, and continues to serve that community \u2014 including where the permitted source is expressed as a single host address.</li>\n  <li>Access-list identifiers outside the documented range are rejected, and a community referencing an undefined list denies access rather than permitting all sources.</li>\n  <li>A full walk with a valid community returns the complete documented object set for the supported MIBs, including the SNMPv2-MIB system and SNMP groups, in consistent lexicographic order, terminating correctly at the end of the accessible tree with no silent truncation or reduction in the number of objects returned.</li>\n  <li>Requests carrying an unconfigured, misspelled or wrong-case community name are rejected: no varbind data is returned, no configuration is altered, and the failure is attributable in the device log to a source address.</li>\n  <li>Version isolation holds \u2014 a v2c-only configuration does not satisfy requests of other SNMP versions, credentials belonging to another version do not unlock v2c access, and v2c-specific behaviours (GetBulk, and noSuchObject/noSuchInstance varbind exceptions in place of the v1 error-status equivalents) are present.</li>\n  <li>An SNMPv2c request bearing an unrecognised community advances the authentication-failure counters and, where notifications and a v2c IPv4 trap host are configured, emits an authenticationFailure notification to that host with the RFC 3418 notification OID, the configured community and a plausible sysUpTime; the notification is suppressed when authentication-failure trapping is disabled.</li>\n  <li>SNMP status and running-configuration output reports every community with its access right, bound view and access list, and survives a save and reload cycle unchanged.</li>\n  <li>SNMP input counters \u2014 total packets, bad community names, bad community uses and error responses \u2014 advance in step with the traffic actually offered, giving an auditable record of both accepted and rejected access attempts.</li>\n  <li>Community, view and access-list configuration is identical across all members of a stacked or virtual-chassis system and produces the same access decisions after a change of master.</li>\n  <li>Concurrent access from several managers using different communities resolves per request, each manager seeing only the objects its own view and access right allow.</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Verify that with no SNMP configuration present the agent reports its documented default state, with no SNMPv2c community configured.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with SNMPv2c Get and walk requests from a manager while no community is configured, and confirm the requests go unanswered and no object data leaves the device.",
+          "expectedResult": "No response; no varbind data returned."
+        },
+        {
+          "description": "Verify the SNMP agent's enabled state is explicitly controllable, and confirm the status display reflects each change.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With communities, views and access lists configured, disable the SNMP agent and test with Get, GetNext and GetBulk requests; confirm all SNMPv2c responses and notifications are silenced.",
+          "expectedResult": "No responses; no notifications emitted."
+        },
+        {
+          "description": "Confirm the stored community, view and access-list configuration remains intact in the running configuration while the agent is disabled.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Re-enable the agent and confirm the stored configuration is effective again without re-entry, producing the same access decisions as before.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set an SNMPv2c community name and verify it is accepted, held in the running configuration, and reported by the SNMP status display exactly as entered, including character case.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set multiple distinct communities, each with its own access right, MIB view and source restriction, and confirm all coexist in the configuration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with requests using each configured community in turn and confirm each resolves independently to its own access right, view and permitted source.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set community names at the documented minimum and maximum permitted length and confirm both are accepted and usable for requests.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set community names spanning the documented permitted character set and confirm each is accepted.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with community names shorter than the documented minimum, longer than the documented maximum, and containing characters outside the documented set; confirm each is refused at configuration time with a clear diagnostic.",
+          "expectedResult": "Each attempt rejected with a diagnostic."
+        },
+        {
+          "description": "Confirm no partial community configuration is left behind after each rejected community-name attempt.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Remove a working community and test with a request using it immediately afterwards, with no restart, reload or reboot performed; confirm it is thereafter treated as unauthenticated.",
+          "expectedResult": "No response; no data returned."
+        },
+        {
+          "description": "Confirm the remaining configured communities continue to answer requests normally after that removal.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with Get, GetNext and GetBulk requests using a read-only community across its permitted objects and confirm each returns the expected object data.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a Set using the read-only community against a writable object and confirm the Set is refused and the object's value is unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with read requests using a read-write community and confirm they are satisfied across its permitted objects.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a writable object via the read-write community and confirm the new value is returned by a subsequent SNMP read and is also reflected in the device's own configuration and state displays.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a community with no access right specified and confirm read-only is the effective right, matching the documented default, by observing a successful Get and a refused Set.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a Set directed at a read-only object using a read-write community and confirm it fails with the SNMPv2c error appropriate to that object, leaving the value unchanged.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a Set directed at a read-only counter object and confirm the same failure behaviour, with the counter continuing to advance only from offered traffic.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a view that includes an OID subtree, bind a community to it, and confirm a walk exposes every accessible object beneath that subtree and nothing outside it.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a view that excludes a subtree and confirm the excluded objects are absent from walk output while the remainder of the tree still walks normally.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Set a single view containing overlapping include and exclude entries and confirm access resolves by the documented precedence.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with a read-write community bound to a restrictive view and confirm it can neither read nor Set objects the view omits, regardless of its access right.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Bind a community to a view name that has not yet been defined and confirm the resulting state is defined, with that community denying access rather than falling open.",
+          "expectedResult": "Access denied, not granted."
+        },
+        {
+          "description": "Delete a view while a community is still bound to it and confirm that community thereafter denies access rather than gaining unrestricted access.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Qualify a community with a numbered access list and test with requests from a source address the list permits; confirm they are answered.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with requests for that same community from a source address the list denies and confirm no response is returned and no object data is disclosed.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Edit the referenced access list to permit a previously denied source and confirm subsequent requests are answered immediately, without the community being re-entered.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Delete the referenced access list and confirm subsequent requests for that community are governed immediately by the resulting state, again without re-entering the community.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm a community bound to an access list produces a syntactically valid agent configuration: the agent starts and reloads cleanly and continues to serve that community.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Inspect the device log across that reload and confirm no configuration-parse error and no community-address read error is recorded.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the bound-community reload check with the permitted source expressed as a single host address and confirm the same clean start and continued service.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with access-list identifiers outside the documented numeric range and confirm each is rejected at configuration time.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Bind a community to an undefined access list and confirm it denies access rather than permitting all sources.",
+          "expectedResult": "No response from any source."
+        },
+        {
+          "description": "Test with a full walk using a valid unrestricted community and confirm the complete documented object set for the supported MIBs is returned, including the SNMPv2-MIB system and SNMP groups.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the walk output is in consistent lexicographic order and terminates correctly at the end of the accessible tree.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Repeat the full walk and compare the number of objects returned against the previous run to confirm no silent truncation or reduction.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with requests carrying an unconfigured community name, a misspelled variant of a configured name, and a configured name in the wrong character case; confirm each is rejected with no varbind data returned.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm no configuration is altered by those rejected requests and that each failure is attributable in the device log to a source address.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with requests of other SNMP versions against the v2c-only configuration and confirm they are not satisfied.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with credentials belonging to another SNMP version and confirm they do not unlock v2c access.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm the v2c-specific behaviours are present: GetBulk is served, and noSuchObject and noSuchInstance varbind exceptions are returned in place of the v1 error-status equivalents.",
+          "expectedResult": ""
+        },
+        {
+          "description": "With notifications and a v2c IPv4 trap host configured, offer a request bearing an unrecognised community and confirm the authentication-failure counters advance.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Confirm an authenticationFailure notification is emitted to the configured trap host carrying the RFC 3418 notification OID, the community used in the request and a plausible sysUpTime.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Disable authentication-failure trapping, repeat the unrecognised-community request, and confirm the notification is suppressed.",
+          "expectedResult": "No notification sent to the trap host."
+        },
+        {
+          "description": "Verify the SNMP status and running-configuration output reports every configured community together with its access right, bound view and access list.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Save the configuration, reload the device, and confirm that output is reported unchanged and the same access decisions hold.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Note the SNMP input counters, offer a known number of valid requests, and confirm the total-packet and error-response counters advance in step with the traffic offered.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Offer a known number of requests with bad community names and with a community used outside its permitted access, and confirm the bad-community-name and bad-community-use counters advance correspondingly.",
+          "expectedResult": ""
+        },
+        {
+          "description": "On a stacked or virtual-chassis system, confirm the community, view and access-list configuration is identical across all members.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Force a change of master on that system and confirm the same access decisions are produced for each community afterwards.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Test with concurrent requests from several managers using different communities and confirm each request resolves independently, with each manager seeing only the objects its own view and access right allow.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}
