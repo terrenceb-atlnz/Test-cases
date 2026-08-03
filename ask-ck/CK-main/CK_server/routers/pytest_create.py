@@ -816,67 +816,71 @@ def _strip_fill_markers(code: str) -> str:
     return result if result.endswith("\n") else result + "\n"
 
 
-# ALL THREE CONSTANTS ARE MEASURED, from one generation that ran to the output cap on
-# 2026-07-30 (AWPTCM-T44297): it delivered 86,644 chars of filled Python containing 21
-# TestCase classes, using 29,952 usable output tokens.
+# THE OUTPUT CEILING THIS GATE DEFENDED AGAINST DOES NOT EXIST (Phase 7.4, 2026-08-03).
 #
-#   chars/token  86,644 / 29,952 = 2.89   — dense code; the generic "4 chars per token"
-#                                           rule of thumb under-counts it by ~30%, which
-#                                           would let over-budget cases through the gate.
-#   fill factor  the SAME 21 classes occupy ~52,600 chars of skeleton, so filling roughly
-#                1.65x's them. Estimating from skeleton size alone said "34 classes fit"
-#                when the real answer was 21 — advice that sends you back into the trap.
+# The gate was built on "the CLI's hard maxOutputTokens is 32,000, so an answer needing more
+# than that will be truncated mid-token". Both halves are wrong.
 #
-# A SECOND data point (same case trimmed to 21 sequence steps) then ran to the cap again at
-# 88,593 chars for 16 of 17 TestCase classes — an expansion of ~1.79, not 1.65. It had PASSED
-# the gate at 1.65. So the constant is set above both measurements deliberately:
+# 32,000 bounds ONE MESSAGE, not the answer. The CLI continues a long answer across several
+# assistant messages, and `_parse_cli_stream` concatenates them. Measured `output_tokens` on
+# the four multi-message generations stored in debug-log/no-session.jsonl:
 #
-#   the model writes to fill the budget it is given (~5,500 chars per TestCase here), so
-#   trimming step count alone does not shrink the answer proportionally.
+#     2026-07-30T06:47:37   67,326 output tokens   4 messages   40 TestCase classes
+#     2026-07-30T07:25:59   66,334               2            11
+#     2026-07-30T07:48:13   57,188               1             6
+#     2026-07-30T07:00:16   34,966               2            17
 #
-# Asymmetric costs justify erring high: a false "fits" costs ~25 minutes and a few dollars to
-# discover, and yields a truncated script that may still PARSE (this one did) so only the
-# logging-contract lint catches it. A false "too big" costs one override flag.
-_CHARS_PER_OUTPUT_TOKEN = 2.89
-_FILL_EXPANSION = 1.95
+# Every one exceeds 32,000, and every one is a COMPLETE script ending in ts.run(sys.argv).
+# What actually truncated them was `_parse_generated_blocks`, which stopped at the first
+# continuation fence (see gen_assembly). The three constants here were then fitted to that
+# parser's output and called measurements of the model.
+#
+# So the block is gone. Predicting output size from skeleton size never worked — re-measured
+# across every stored generation with the fixed recoverer, expansion runs 0.71 to 1.90
+# (median 0.90), a 2.7x spread that no single constant can represent, and `_FILL_EXPANSION`
+# was pinned at 1.95, above the top of the real range. `tool/pt_measure_expansion.py`
+# reproduces the table.
+#
+# What replaces it: EVIDENCE INSTEAD OF PREDICTION. The reply is reassembled, checked
+# against its own `ts.add_testCase(...)` manifest, and refused if it did not come back whole
+# (`_recovery_failure`). That fires on what actually arrived rather than on a guess made
+# before the call, so it cannot be wrong about a case it has never seen. `_size_estimate`
+# below is advisory only — it tells the reviewer how big this generation is likely to be,
+# and it never blocks.
+_CHARS_PER_OUTPUT_TOKEN = 2.89       # 86,644 chars / 29,952 tokens, dense Python
+
+# Re-measured 2026-08-03 across 36 recovered generations. Kept as a RANGE, because the
+# single fitted constant it replaces was the error: one number cannot carry both
+# marker-stripping (deterministic) and model verbosity (variable).
+_FILL_EXPANSION_OBSERVED = (0.71, 1.90)
 
 
-def _size_overflow(skeleton: str, sequence: list) -> str:
-    """'' if this script can fit the model's output budget, else why not.
+def _size_estimate(skeleton: str, sequence: list) -> Dict[str, Any]:
+    """Advisory size projection for a generation. NEVER blocks — see the note above.
 
-    Works in CHARS OF FILLED CODE, not skeleton chars: the model must emit the skeleton with
-    every FILL marker replaced by real code, which measured ~1.65x the skeleton. Estimating
-    against the skeleton alone is the mistake that produces a confident wrong ceiling.
+    Returned to the caller so a reviewer can see what to expect (notably: how many
+    continuation messages a large script will arrive in), without a prediction standing
+    between them and a generation that would have worked.
     """
-    try:
-        from llm import _CLI_MAX_THINKING_TOKENS   # noqa: PLC0415
-    except Exception:
-        _CLI_MAX_THINKING_TOKENS = 2048
-    # The 32,000 output cap is the tightest of the backends: it is the CLI's hard
-    # maxOutputTokens (not raisable) and also what this router passes as max_tokens.
-    usable_tokens = 32000 - _CLI_MAX_THINKING_TOKENS
-    usable_chars = usable_tokens * _CHARS_PER_OUTPUT_TOKEN
-    need_chars = len(skeleton) * _FILL_EXPANSION
-    if need_chars <= usable_chars:
-        return ""
+    lo, hi = _FILL_EXPANSION_OBSERVED
     n_tc = max(skeleton.count("class TestCase"), 1)
-    fits = max(int(n_tc * usable_chars / need_chars), 1)
-    return (
-        f"This script cannot fit the model's output budget, so generating it would return a "
-        f"script truncated mid-token with no error.\n\n"
-        f"  skeleton            {len(skeleton):,} chars, {n_tc} TestCase classes\n"
-        f"  filled code needs   ~{int(need_chars):,} chars "
-        f"(~{int(need_chars / _CHARS_PER_OUTPUT_TOKEN):,} output tokens)\n"
-        f"  usable budget       ~{int(usable_chars):,} chars "
-        f"(~{usable_tokens:,} tokens: the 32,000 cap minus {_CLI_MAX_THINKING_TOKENS} "
-        f"for thinking)\n"
-        f"  sequence steps      {len(sequence)}\n\n"
-        f"About {fits} TestCase classes is the most that fits. Options: split this case into "
-        f"smaller ones, trim the sequence to ~{fits} verification steps, or generate in "
-        f"chunks. To generate anyway and inspect the partial result, resend with "
-        f"{{\"acknowledge_size_overflow\": true}} — the script will be incomplete and will "
-        f"not compile."
-    )
+    likely_chars = (int(len(skeleton) * lo), int(len(skeleton) * hi))
+    likely_tokens = tuple(int(c / _CHARS_PER_OUTPUT_TOKEN) for c in likely_chars)
+    # One message carries ~32,000 output tokens; more than that simply continues.
+    messages = max(1, -(-likely_tokens[1] // 32000))
+    return {
+        "skeleton_chars": len(skeleton),
+        "testcase_classes": n_tc,
+        "sequence_steps": len(sequence),
+        "projected_chars": likely_chars,
+        "projected_output_tokens": likely_tokens,
+        "likely_messages": messages,
+        "note": (f"Projected {likely_chars[0]:,}-{likely_chars[1]:,} chars "
+                 f"(~{likely_tokens[0]:,}-{likely_tokens[1]:,} output tokens). "
+                 + (f"This will arrive across about {messages} assistant messages and be "
+                    f"reassembled server-side." if messages > 1 else
+                    "This fits in a single message.")),
+    }
 
 
 def _parse_generated_blocks(content: str) -> Dict[str, Any]:
@@ -2967,24 +2971,18 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
                                 extra_import_lines, fragments,
                                 _case_payload_fields(sess)["objective"])
 
-    # SIZE GATE. The skeleton is rendered HERE, before the LLM call, so the answer's minimum
-    # size is knowable for free — and a script that cannot fit the model's output budget will
-    # come back truncated no matter how the call is made.
+    # SIZE ADVICE, NOT A SIZE GATE (Phase 7.4). This used to raise 409 for any script whose
+    # projected output exceeded "32,000 tokens minus thinking". That premise is refuted: the
+    # four stored multi-message generations used 34,966 to 67,326 output tokens and every one
+    # is a COMPLETE script. 32,000 bounds a single message; the answer simply continues into
+    # the next one and is reassembled by gen_assembly.
     #
-    # Why this needs to be loud rather than discovered downstream: an over-budget generation
-    # does not error. It returns a script that STARTS correctly and stops mid-token — measured
-    # on AWPTCM-T44297, 86,644 chars ending inside a string literal at TestCase_21 of ~40,
-    # with 19 sequence steps silently untested. That surfaces as a lint SyntaxError, which
-    # reads as a bad model rather than an oversized task, and each discovery costs ~25 minutes
-    # and a few dollars. (Earlier variants of the same overflow cost $4.65 and $5.24 to return
-    # nothing at all.)
-    #
-    # Override rather than refuse, matching this router's coverage gate: a reviewer may well
-    # want the partial artefact to look at. But it must be a recorded choice.
-    if not (body or {}).get("acknowledge_size_overflow"):
-        over = _size_overflow(skeleton, sequence)
-        if over:
-            raise HTTPException(409, over)
+    # What the gate actually did was refuse large cases outright, and its remediation advice
+    # ("about N TestCase classes is the most that fits") was derived from a constant fitted to
+    # truncated parser output. The honest replacement is to say how big this is likely to be
+    # and let it run — the artefact is checked on ARRIVAL by _recovery_failure, which reasons
+    # about what was actually delivered instead of predicting it.
+    size = _size_estimate(skeleton, sequence)
 
     # Device-name reconciliation (finding #1): tell the LLM which names the reused
     # fragments use vs what init() binds, so it renames rather than emitting AttributeErrors.
@@ -3065,7 +3063,11 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     lint = _lint_generated(sess)
     _pt_persist(sess)
     return {"naming": sess.step6["naming"], "files": sess.step6["files"],
-            "iterations": sess.step6["iterations"], "lint": lint}
+            "iterations": sess.step6["iterations"], "lint": lint,
+            # Advisory only (Phase 7.4): what was projected, beside what arrived. Shown
+            # together so a reviewer can see when a projection was wrong, rather than
+            # having a wrong projection silently refuse the case before the call.
+            "size": {**size, "recovery": blocks["report"]}}
 
 
 @router.post("/save_script/{key}")

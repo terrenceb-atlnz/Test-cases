@@ -196,11 +196,18 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeo
 # framework-run timeout already used as this lab's "long but bounded".
 _CLI_WHOLE_RESPONSE_FLOOR = 1800
 
-# Thinking and the answer share ONE output budget (`maxOutputTokens`, 32,000 on the CLI and
-# not raisable). These are reasoning models, so uncapped thinking silently starves the
-# artefact — see the long note in _call_claude_code_headless. 2048 leaves ~30,000 for the
-# answer, which covers a ~44-TestCase script; larger cases need chunked generation, which is
-# a real limit rather than something a knob fixes (FINDINGS-generation-size-ceiling.md).
+# Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
+# the CLI and not raisable). These are reasoning models, so uncapped thinking silently
+# starves the artefact — measured at 31,100 thinking tokens with zero answer text emitted.
+# 2048 leaves ~30,000 of each message for the answer.
+#
+# THIS IS NOT A CEILING ON THE ANSWER. A long reply simply continues into further assistant
+# messages, which `_parse_cli_stream` concatenates and `gen_assembly` reassembles: the four
+# stored multi-message generations used 34,966-67,326 output tokens and every one is a
+# complete script. The earlier claim here — that 30,000 "covers a ~44-TestCase script" and
+# that larger cases need chunked generation as "a real limit" — came from
+# FINDINGS-generation-size-ceiling.md, which measured a defective parser's output and
+# attributed it to the model. Phase 7.4 refutes it; see the note above _size_estimate.
 _CLI_MAX_THINKING_TOKENS = 2048
 
 

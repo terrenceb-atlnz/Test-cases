@@ -236,15 +236,86 @@ def test_one_predicate_decides_which_calls_are_long(captured):
             f"behaviours disagree about whether this is a long call")
 
 
-def test_the_thinking_cap_leaves_room_for_a_real_script():
-    """The cap is only meaningful relative to what the answer needs. A ~42-TestCase
-    skeleton measures ~26,300 tokens, so the remaining budget must clear that with margin —
-    otherwise the cap is decorative and generation silently truncates again."""
-    budget = 32000
+def test_the_thinking_cap_leaves_room_in_a_single_message():
+    """The cap bounds thinking within ONE message; it is not a whole-answer budget.
+
+    This test used to assert `32000 - cap >= 28000` on the rationale that "a ~42-TestCase
+    skeleton measures ~26,300 tokens" — i.e. that one message must hold the entire script.
+    That premise is refuted (Phase 7.4): the stored multi-message generations used 34,966
+    to 67,326 output tokens and every one is complete, because the CLI continues the answer
+    into further messages. The old assertion would have gone red the moment the size gate
+    was corrected, sending the next engineer to revert the correction — which is why a test
+    encoding a known-wrong number is worse than no test at all.
+
+    What is still true, and worth pinning: uncapped thinking can consume a whole message's
+    output budget before any answer text is emitted (measured at 31,100 thinking tokens
+    with zero answer), so the cap must leave the bulk of a message for the artefact.
+    """
+    per_message_budget = 32000
     assert llm._CLI_MAX_THINKING_TOKENS <= 4096, (
-        f"thinking cap {llm._CLI_MAX_THINKING_TOKENS} is too generous: it leaves "
-        f"{budget - llm._CLI_MAX_THINKING_TOKENS} tokens for an answer that needs ~26,300")
-    assert budget - llm._CLI_MAX_THINKING_TOKENS >= 28000
+        f"thinking cap {llm._CLI_MAX_THINKING_TOKENS} is too generous: it would leave "
+        f"{per_message_budget - llm._CLI_MAX_THINKING_TOKENS} tokens of each message "
+        f"for the answer")
+    # the cap must be a small fraction of a message, not most of one
+    assert llm._CLI_MAX_THINKING_TOKENS <= per_message_budget * 0.2
+
+
+# Text that only appears where the refuted ceiling is being CORRECTED. A grep for a bad
+# claim finds it in the paragraph refuting the claim — the failure mode `_prose` exists to
+# prevent (it hit four times in one session). Here the antipattern lives in comments, which
+# `code_lines` strips wholesale, so the discriminator is context instead: a mention inside a
+# refutation is documentation, and a mention without one is a live assertion.
+_REFUTATION_MARKERS = ("refute", "no longer", "earlier claim", "used to", "does not exist",
+                       "Phase 7.4", "is refuted", "attributed it to the model")
+
+
+def test_no_surface_still_asserts_a_whole_script_must_fit_one_message():
+    """The refuted premise must not survive as a live claim for the next reader to act on.
+
+    `FINDINGS-generation-size-ceiling.md` measured a defective parser and called the result
+    the model's budget. Three code comments repeated it as fact. A comment is what the next
+    engineer reads before deciding whether a "fix" is a regression, so a stale one here is
+    how a corrected constant gets reverted.
+    """
+    import pathlib
+    server = pathlib.Path(llm.__file__).parent
+    stale = []
+    for path in (server / "llm.py", server / "routers" / "pytest_create.py"):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for i, line in enumerate(lines):
+            for phrase in ("covers a ~44-TestCase script",
+                           "larger cases need chunked generation",
+                           "cannot fit the model's output budget"):
+                if phrase not in line:
+                    continue
+                context = "\n".join(lines[max(0, i - 8):i + 8])
+                if not any(marker in context for marker in _REFUTATION_MARKERS):
+                    stale.append(f"{path.name}:{i + 1}: {phrase!r}")
+    assert not stale, (
+        "these comments still assert the refuted output ceiling as fact:\n  "
+        + "\n  ".join(stale))
+
+
+def test_that_staleness_check_can_actually_fail():
+    """A context-sensitive check that never fires is worse than none — prove it fires."""
+    import pathlib
+    import tempfile
+    asserted = "# the 32,000 cap covers a ~44-TestCase script\nx = 1\n"
+    refuted = ("# Phase 7.4: the earlier claim that it covers a ~44-TestCase script\n"
+               "# is refuted — a long answer continues into further messages.\nx = 1\n")
+    with tempfile.TemporaryDirectory() as tmp:
+        for name, body, expect_stale in (("a.py", asserted, True), ("b.py", refuted, False)):
+            path = pathlib.Path(tmp) / name
+            path.write_text(body)
+            lines = body.splitlines()
+            hits = []
+            for i, line in enumerate(lines):
+                if "covers a ~44-TestCase script" not in line:
+                    continue
+                context = "\n".join(lines[max(0, i - 8):i + 8])
+                if not any(m in context for m in _REFUTATION_MARKERS):
+                    hits.append(i)
+            assert bool(hits) is expect_stale, f"{name}: context discrimination is broken"
 
 
 # ---------------------------------------------------------------------------
