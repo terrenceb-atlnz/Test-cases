@@ -209,3 +209,72 @@ def test_end_to_end_a_registered_but_unrun_case_is_visible():
     assert parsed["status"] == "short"
     assert parsed["parsed_cases"] == 1 and parsed["expected_cases"] == 2
     assert parsed["ok"] is False
+
+
+# ------------------------------------------------ UNSUPPORTED is reconciled (2026-08-04)
+#
+# Measured across the real captured logs: 5 of 13 contain UNSUPPORTED, including the run a
+# human labelled PASS (7 of 26). And the set is STABLE — two runs of test-5700.2002 on the
+# same platform both report exactly {2, 22, 42, 62}. So UNSUPPORTED is a deterministic
+# property of (case x platform), which rules out both simple answers: treating it as green
+# loses the signal when a case newly stops being tested, and demanding an acknowledgement
+# every time fires on 38% of runs for a set that never changes.
+
+UNSUPPORTED_LOG = """\
+>> test-5700.2002.2
+<< test-5700.2002.2: UNSUPPORTED (numPassed: 0 numFailed: 0)
+>> test-5700.2002.4
+2026-02-10 08:15:47: PASS: the feature behaves
+<< test-5700.2002.4: PASS (numPassed: 1 numFailed: 0)
+"""
+
+
+def test_an_unsupported_set_matching_the_expectation_is_green():
+    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2,
+                                 expected_unsupported=["5700.2002.2"])
+    assert parsed["unsupported_status"] == "as_expected"
+    assert parsed["ok"] is True, "a stable, expected UNSUPPORTED set must not block a run"
+    assert "as expected" in parsed["verdict"]
+
+
+def test_a_newly_unsupported_case_is_a_regression():
+    """The signal my original answer lost: a case quietly stops being tested."""
+    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2, expected_unsupported=[])
+    assert parsed["unsupported_status"] == "regression"
+    assert parsed["ok"] is False
+    assert "REGRESSION" in parsed["verdict"]
+    assert "no longer being tested" in parsed["verdict"]
+
+
+def test_a_case_that_started_running_again_marks_the_expectation_stale():
+    parsed = parse_framework_log(
+        UNSUPPORTED_LOG, expected_cases=2,
+        expected_unsupported=["5700.2002.2", "5700.2002.4"])
+    assert parsed["unsupported_status"] == "stale_expectation"
+    assert parsed["ok"] is False
+    assert "STALE" in parsed["verdict"]
+
+
+def test_an_unestablished_expectation_asks_once():
+    """No recorded set yet: confirm it once, then future change is loud."""
+    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2)
+    assert parsed["unsupported_status"] == "unestablished"
+    assert parsed["ok"] is False
+    assert "no recorded expectation" in parsed["verdict"]
+
+
+def test_a_run_with_no_unsupported_cases_needs_no_expectation():
+    parsed = parse_framework_log(CLEAN_LOG, expected_cases=2)
+    assert parsed["unsupported_status"] == "none"
+    assert parsed["ok"] is True
+
+
+def test_the_real_logs_unsupported_set_is_stable_across_runs():
+    """The measurement the whole design rests on. If this fails, reconciliation is wrong."""
+    a = parse_framework_log(_fixture("framework_run_fail.log"))
+    observed = set(a["unsupported_cases"])
+    assert observed == {"5700.2002.2", "5700.2002.22", "5700.2002.42", "5700.2002.62"}
+    # the same set, supplied as the expectation, must reconcile silently
+    b = parse_framework_log(_fixture("framework_run_fail.log"),
+                            expected_unsupported=sorted(observed))
+    assert b["unsupported_status"] == "as_expected"

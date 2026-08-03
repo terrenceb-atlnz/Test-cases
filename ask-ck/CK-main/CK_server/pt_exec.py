@@ -236,7 +236,8 @@ _PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
 _FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
 
 
-def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict[str, Any]:
+def parse_framework_log(text: str, expected_cases: Optional[int] = None,
+                        expected_unsupported: Optional[List[str]] = None) -> Dict[str, Any]:
     """Parse an ATTestSet log into per-case results.
 
     Returns {cases: [{name, result, pass_msgs, fail_msgs, log_lines: [start, end]}],
@@ -337,14 +338,56 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
 
     # A case that crashed mid-way has result ERROR and contributes NO numFailed, so a
     # failure count alone still reads clean. `ok` therefore requires every case to have
-    # reached a verdict, not merely an absence of failures. UNSUPPORTED is a legitimate
-    # outcome (the feature does not apply to this platform) and is reported, not failed.
+    # reached a verdict, not merely an absence of failures.
     errored = [c["name"] for c in cases if c.get("result") in (None, "ERROR")]
-    unsupported = [c["name"] for c in cases if c.get("result") == "UNSUPPORTED"]
+    unsupported = sorted(c["name"] for c in cases if c.get("result") == "UNSUPPORTED")
     if errored and status == "ok":
         verdict = (f"{num_passed} passed, {num_failed} failed, and {len(errored)} case(s) "
                    f"did not reach a verdict ({', '.join(errored[:5])}) — those are "
                    f"errors, not passes.")
+
+    # UNSUPPORTED IS RECONCILED, NOT PASSED AND NOT FAILED (2026-08-04).
+    #
+    # Measured across the real captured logs: 5 of 13 contain UNSUPPORTED cases, including
+    # the run a human labelled PASS (7 of 26 cases). And the set is STABLE — two runs of
+    # test-5700.2002 on the same platform both report exactly {2, 22, 42, 62} unsupported,
+    # the longer run adding three more as more of the suite executed. So UNSUPPORTED is a
+    # deterministic property of (case x platform), not run-to-run noise.
+    #
+    # That rules out both simple answers. Treating it as green loses the signal when a case
+    # NEWLY becomes unsupported and quietly stops being tested. Demanding an acknowledgement
+    # every time fires on 38% of runs for a set that never changes, which is how an
+    # acknowledgement becomes a reflex. So compare against what is expected for this script
+    # on this platform: silence when it matches, loud when it CHANGES.
+    unsupported_status = "none"
+    if unsupported and expected_unsupported is None:
+        unsupported_status = "unestablished"
+    elif expected_unsupported is not None:
+        expected_set = set(expected_unsupported)
+        newly = sorted(set(unsupported) - expected_set)
+        no_longer = sorted(expected_set - set(unsupported))
+        if newly:
+            unsupported_status = "regression"
+        elif no_longer:
+            unsupported_status = "stale_expectation"
+        elif unsupported:
+            unsupported_status = "as_expected"
+
+    if unsupported_status == "regression":
+        newly = sorted(set(unsupported) - set(expected_unsupported or []))
+        verdict = (f"UNSUPPORTED REGRESSION — {len(newly)} case(s) newly report UNSUPPORTED "
+                   f"({', '.join(newly[:5])}) and are therefore no longer being tested. "
+                   f"{verdict}")
+    elif unsupported_status == "stale_expectation":
+        gained = sorted(set(expected_unsupported or []) - set(unsupported))
+        verdict = (f"EXPECTATION STALE — {len(gained)} case(s) previously UNSUPPORTED now run "
+                   f"({', '.join(gained[:5])}); update the expected set. {verdict}")
+    elif unsupported_status == "unestablished":
+        verdict = (f"{verdict} {len(unsupported)} case(s) report UNSUPPORTED and there is no "
+                   f"recorded expectation for this script on this platform yet — confirm the "
+                   f"set is intended, then record it so a future change is loud.")
+    elif unsupported_status == "as_expected":
+        verdict = f"{verdict} {len(unsupported)} UNSUPPORTED, as expected on this platform."
 
     return {
         "cases": [{k: v for k, v in c.items()} for c in cases],
@@ -355,8 +398,14 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict
         "expected_cases": expected_cases,
         "errored_cases": errored,
         "unsupported_cases": unsupported,
+        "expected_unsupported": (sorted(expected_unsupported)
+                                 if expected_unsupported is not None else None),
+        "unsupported_status": unsupported_status,
         "status": status,
-        "ok": (status == "ok" and num_failed == 0 and unparsed_fails == 0 and not errored),
+        # A drifted UNSUPPORTED set is not a clean run. An unestablished one is not either —
+        # somebody has to say the set is intended once, and that is a cheap, one-time act.
+        "ok": (status == "ok" and num_failed == 0 and unparsed_fails == 0 and not errored
+               and unsupported_status in ("none", "as_expected")),
         "verdict": verdict,
     }
 
@@ -622,7 +671,12 @@ class RunManager:
             # Expected count comes from the script that was actually uploaded, so a "short"
             # verdict is measured against what this run meant to do (Phase 11.1).
             expected = expected_case_count(files.get(test_name, ""))
-            run["parsed"] = parse_framework_log(log_text or stdout_text, expected_cases=expected)
+            # The expected UNSUPPORTED set is a property of this script on this bench
+            # profile, so it rides in on the profile and the observed set is recorded on the
+            # run for a human to promote into it (Q3, 2026-08-04).
+            run["parsed"] = parse_framework_log(
+                log_text or stdout_text, expected_cases=expected,
+                expected_unsupported=profile.get("expected_unsupported"))
             run["status"] = "done"
             run["finished_at"] = utc_now().isoformat()
             on_update(run)

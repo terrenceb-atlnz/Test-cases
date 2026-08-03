@@ -460,3 +460,61 @@ def test_no_string_fence_repair_path_was_added():
     assert out["report"]["parses"] is False, (
         "a fence inside a string literal is now being 'recovered'. That trades a loud "
         "refusal for a possible silent wrong assembly — see the note above.")
+
+
+# ------------------------- decide when clear, refuse when close (Q5/Q6, 2026-08-04)
+#
+# Measured on the three real duplicates: 434 nodes vs 14 (31x), 922 vs 0, 116 vs 0 — in two
+# of three the earlier copy does not parse at all, and the model's own assembly note confirms
+# the later one. So refusing EVERY duplicate would have rejected 2 of the 5 real replies in
+# cases the evidence already settles. The rule is: act on an unambiguous margin, escalate a
+# genuine coin-flip.
+
+def test_a_duplicate_where_only_one_parses_is_decided_not_refused():
+    partial = "class TestCase_2(TestCase):\n    def main(self):\n        x = ("
+    reply = f"```python\n{HEAD}{_case(1)}{partial}```python\n{_case(2)}{TAIL}```"
+    out = recover_script(reply)
+    assert out["report"]["parses"]
+    assert out["report"]["ambiguous_units"] == []
+    dup = out["report"]["duplicate_units"][0]
+    assert dup["kept"] == "later" and dup["ambiguous"] is False
+    assert "only one definition parses" in dup["reason"]
+
+
+def test_a_duplicate_with_a_large_margin_is_decided():
+    thin = ("class TestCase_2(TestCase):\n    def main(self):\n        pass\n")
+    fat = ("class TestCase_2(TestCase):\n    def main(self):\n"
+           + "".join(f"        self.log('step {i}')\n" for i in range(20)))
+    reply = f"```python\n{HEAD}{thin}```python\n{fat}{TAIL}```"
+    out = recover_script(reply)
+    assert out["report"]["ambiguous_units"] == []
+    assert out["report"]["duplicate_units"][0]["kept"] == "later"
+    assert "richer" in out["report"]["duplicate_units"][0]["reason"]
+
+
+def test_two_comparable_duplicates_are_refused_not_guessed():
+    """The coin-flip case. Never observed in real data — and never decided by us."""
+    a = ("class TestCase_2(TestCase):\n    def main(self):\n"
+         "        self.log('a')\n        self.passed('a')\n")
+    b = ("class TestCase_2(TestCase):\n    def main(self):\n"
+         "        self.log('b')\n        self.passed('b')\n")
+    reply = f"```python\n{HEAD}{a}```python\n{b}{TAIL}```"
+    out = recover_script(reply)
+    assert out["report"]["ambiguous_units"] == ["TestCase_2"]
+    assert out["report"]["duplicate_units"][0]["ambiguous"] is True
+
+
+def test_the_three_real_duplicates_are_all_unambiguous():
+    """Guards the threshold against drifting up into the observed cases."""
+    import gen_assembly as ga
+    # 31x is the closest real margin; the threshold must sit well below it
+    assert ga._DUPLICATE_OBVIOUS_FACTOR < 31
+
+
+def test_a_block_after_the_runner_is_now_counted_for_refusal():
+    """Q6: never observed, so refusing is free — and it beats discarding code silently."""
+    reply = (f"```python\n{HEAD}{_case(1)}{TAIL}```\n\nTo run it locally:\n\n"
+             f"```python\nimport foo_test\nfoo_test.main()\n```")
+    out = recover_script(reply)
+    assert out["report"]["blocks_after_runner"] == 1
+    assert "import foo_test" not in out["test_code"], "still must not be concatenated"

@@ -266,4 +266,62 @@ nobody wrote. A test guards against a recovery path being added later without re
 **Process note worth keeping.** I had this right originally, then changed position when
 Terrence rated the other answer higher, and designed an implementation for it. The measurement
 was identical before and after; only my confidence moved, and it moved for the wrong reason.
+---
+
+## 10. The remaining four differences, resolved 2026-08-04
+
+Reviewed against measurement rather than argument. **Three of the four landed on an option
+neither of us picked first**, and one was a bug I had introduced.
+
+### D-18 (Q3) — UNSUPPORTED is RECONCILED, not passed and not failed
+**Neither answer survived the data.** 5 of 13 real logs contain UNSUPPORTED, including the run
+a human labelled PASS (7 of 26 cases). And the set is **stable**: two runs of test-5700.2002
+on the same platform both report exactly `{2, 22, 42, 62}`, the longer run adding three more
+as more of the suite ran. UNSUPPORTED is a deterministic property of (case × platform).
+- My "report, do not fail" loses the signal when a case newly stops being tested.
+- Terrence's "never green without an ack" fires on **38% of runs** for a set that never
+  changes, and would have blocked a run a human accepted.
+**Built:** compare against a recorded expectation per script+profile. `as_expected` is green;
+`regression` (newly UNSUPPORTED — no longer tested) and `stale_expectation` (a case now runs)
+are loud; `unestablished` asks once, so a first run establishes the set.
+**Open:** the expectation currently rides in on the bench profile
+(`profile["expected_unsupported"]`). Where it should durably live — profile, session, or a
+per-case field in `ck.db` — is **your call**, and it is the one loose end in this item.
+
+### D-19 (Q4) — evidence is persisted before refusing; retry is explicit
+**Terrence was right, and the bug was worse than the question implied.** The 502 refusal fired
+**before `sess.step6` was written**, so refusing DESTROYED the whole reply — Phase 7.9's exact
+defect, re-created one layer up, for the one case where the evidence matters most.
+**Built:** the attempt (prompt, full reply, recovery report, rejected code) is recorded under
+`step6.failed_generations` (last 3) *before* the refusal, and a previously-good script is left
+untouched. Same in `fix_script`.
+**Retry stays explicit, on cost evidence:** generate calls run a median 97s, but the
+multi-message ones — exactly the ones that fail reassembly — measured **326–778s**, worst
+1,576s (26 min). An inline auto-retry would produce a 10–26 minute request the client
+abandons, on precisely the cases that trigger it.
+**Principle worth keeping:** retry only causes that are plausibly non-deterministic; refuse
+deterministic ones once, loudly.
+
+### D-20 (Q5) — decide on an unambiguous margin, refuse a coin-flip
+**Refusing every duplicate would have rejected 2 of the 5 real replies** in cases the evidence
+already settles. The three real duplicates: `TestCase_21` 14 nodes vs **434**, `TestCase_40`
+**0 (does not parse)** vs 922, `TestCase_9` **0** vs 116 — and the model's own assembly note
+says *"part 2 (`TestCase_21`–`TestCase_30`)"*, confirming the later one.
+**Built:** exactly one parses → take it. Both parse and one is ≥3× richer → take it.
+Otherwise **ambiguous**, and the reply is refused. `_DUPLICATE_OBVIOUS_FACTOR = 3` sits an
+order of magnitude below the closest real margin (31×), so it decides every observed case and
+escalates anything close. A test guards the threshold from drifting up into real data.
+
+### D-21 (Q6) — a block after the runner now REFUSES
+Terrence's answer, taken unchanged: `blocks_after_runner` is **0 across all five** replies, so
+refusing costs nothing observed and never silently discards code the model meant to include.
+**Deliberately not coupled to retry** — a model that habitually appends "to run it locally" is
+deterministic, so a second expensive call would fail identically.
+
+### Scorecard, for the record
+12 decisions compared blind: **5 matched.** Of the 7 that differed, on review **1 went my way**
+(Q12, string fences), **2 went Terrence's way** (Q4 persistence, Q6 post-runner), and **4
+landed somewhere neither of us started** (Q2 split, Q3 reconciliation, Q5 margin, and Q4's
+retry mechanism). The consistent lesson: every difference dissolved once someone measured, and
+in every case the measurement was cheap and available all along.
 

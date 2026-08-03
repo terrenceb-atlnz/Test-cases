@@ -330,13 +330,34 @@ def _richness(text: str) -> Tuple[int, int, int]:
     return (1, sum(1 for _ in ast.walk(tree)), len(text))
 
 
+# How much bigger one definition must be than the other before the choice counts as
+# OBVIOUS rather than a judgement. Measured on the three real duplicates in the stored
+# replies: 434 nodes vs 14 (31x), 922 vs 0, 116 vs 0 — i.e. in two of three the earlier copy
+# does not even parse, and the third is 31x. So 3x sits an order of magnitude below the
+# closest real case: it decides every observed duplicate and escalates anything close.
+_DUPLICATE_OBVIOUS_FACTOR = 3
+
+
 def _resolve_duplicates(units: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], List[Dict[str, Any]]]:
-    """Keep the most complete definition of any name defined more than once.
+    """Keep the clearly-more-complete definition of any name defined twice, or flag it.
 
     A continuation that re-emits a class the previous part left half-written produces two
     definitions of one name. Position is the FIRST occurrence, so declaration order is
-    preserved. Module-level runs (name ``""``) are never merged — every one is kept in
-    place, because they are statements, not definitions.
+    preserved. Module-level runs (name ``""``) are never merged — every one is kept in place,
+    because they are statements, not definitions.
+
+    DECIDE WHEN IT IS CLEAR, REFUSE WHEN IT IS CLOSE (2026-08-04). The first version always
+    took the richer definition, which is a heuristic dressed as evidence. The revision is to
+    act only on an unambiguous margin:
+
+      * exactly one of the two parses            -> take that one. Objective.
+      * both parse, one is >=3x richer           -> take it. See _DUPLICATE_OBVIOUS_FACTOR.
+      * otherwise (comparable, or neither parses) -> AMBIGUOUS. The caller refuses the reply.
+
+    Refusing *every* duplicate was considered and rejected on measurement: it would have
+    rejected 2 of the 5 real stored replies, including the 40-class one, in cases where the
+    earlier copy is unparseable garbage and the model's own assembly note says which to keep.
+    Escalating a decision that the evidence already settles is not caution, it is noise.
     """
     order: List[Tuple[str, Optional[str]]] = []
     best: Dict[str, str] = {}
@@ -350,11 +371,26 @@ def _resolve_duplicates(units: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, s
             order.append((name, None))
             continue
         prior = best[name]
-        keep_new = _richness(text) > _richness(prior)
+        p_ok, p_nodes, _ = _richness(prior)
+        n_ok, n_nodes, _ = _richness(text)
+
+        if p_ok != n_ok:                                  # exactly one parses
+            keep_new, why = bool(n_ok), "only one definition parses"
+        elif not p_ok and not n_ok:                       # neither parses
+            keep_new, why = True, ""                      # placeholder; flagged ambiguous below
+        elif n_nodes >= p_nodes * _DUPLICATE_OBVIOUS_FACTOR:
+            keep_new, why = True, f"later is {_DUPLICATE_OBVIOUS_FACTOR}x+ richer"
+        elif p_nodes >= n_nodes * _DUPLICATE_OBVIOUS_FACTOR:
+            keep_new, why = False, f"earlier is {_DUPLICATE_OBVIOUS_FACTOR}x+ richer"
+        else:
+            keep_new, why = (n_nodes > p_nodes), ""       # comparable -> ambiguous
+
         best[name] = text if keep_new else prior
         resolved.append({"unit": name, "kept": "later" if keep_new else "earlier",
+                         "reason": why or "the two definitions are comparable",
+                         "ambiguous": not why,
                          "earlier_chars": len(prior), "later_chars": len(text),
-                         "earlier_nodes": _richness(prior)[1], "later_nodes": _richness(text)[1]})
+                         "earlier_nodes": p_nodes, "later_nodes": n_nodes})
     return [(n, best[n] if n else t) for n, t in order], resolved
 
 
@@ -364,6 +400,12 @@ def _code_chunks_up_to_runner(chunks: List[str]) -> Tuple[List[str], int]:
     `ts.run(sys.argv)` is the last statement a standardized script can have, so a fenced
     block after it is commentary — typically "to run it locally:" — and concatenating it
     appended module-level code that would execute on import.
+
+    REVISED 2026-08-04: the count is now a REFUSAL reason, not a silent discard. Measured
+    frequency across the five stored replies is **zero**, so refusing costs nothing observed
+    and never quietly drops code the model meant to be part of the file. Deliberately NOT
+    coupled to retry: a model that habitually appends "to run it locally" is deterministic,
+    so a second expensive call would fail identically.
     """
     for i, chunk in enumerate(chunks):
         if _RUNNER_RX.search(chunk):
@@ -405,6 +447,7 @@ def recover_script(content: str) -> Dict[str, Any]:
         return {"test_code": None, "library": library,
                 "report": {"parts": 0, "seam_lines_dropped": [], "duplicate_units": [],
                            "blocks_after_runner": after_runner,
+                           "ambiguous_units": [],
                            "extra_libraries": extra_libraries,
                            "non_python_blocks": non_python,
                            "library_parses": _parses(library["code"]) if library else True,
@@ -421,6 +464,7 @@ def recover_script(content: str) -> Dict[str, Any]:
             "parts": len(code_chunks),
             "seam_lines_dropped": [line[-120:] for line in seam_dropped],
             "duplicate_units": duplicates,
+            "ambiguous_units": [d["unit"] for d in duplicates if d.get("ambiguous")],
             "blocks_after_runner": after_runner,
             "extra_libraries": extra_libraries,
             "non_python_blocks": non_python,

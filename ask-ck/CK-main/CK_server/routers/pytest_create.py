@@ -918,12 +918,34 @@ def _parse_generated_blocks(content: str) -> Dict[str, Any]:
 
 
 def _recovery_failure(report: Dict[str, Any]) -> str:
-    """Human-readable reason a multi-part reply could not be reassembled, else ""."""
-    if report.get("parses") and (report.get("manifest") or {}).get("ok"):
-        return ""
+    """Human-readable reason a multi-part reply could not be reassembled, else "".
+
+    Reviewed with Terrence 2026-08-04 — two reasons were added, both on the principle that
+    the assembler acts on objective evidence and escalates real ambiguity:
+
+      * `ambiguous_units` — two definitions of one name that are genuinely comparable, so
+        neither is demonstrably the right one. Deciding by a margin is fine (see
+        `_DUPLICATE_OBVIOUS_FACTOR`); deciding by a coin-flip is not.
+      * `blocks_after_runner` — a fenced block after `ts.run(sys.argv)`. Never observed, so
+        refusing is free, and it beats quietly discarding code the model meant to include.
+    """
     manifest = report.get("manifest") or {}
+    ambiguous = report.get("ambiguous_units") or []
+    after_runner = report.get("blocks_after_runner") or 0
+    if report.get("parses") and manifest.get("ok") and not ambiguous and not after_runner:
+        return ""
     bits = [f"the reply arrived in {report.get('parts')} parts and reassembly did not "
             f"produce a complete script"]
+    if ambiguous:
+        bits.append(
+            "these classes are defined twice with no clear winner, so the assembler will not "
+            "choose between them: " + ", ".join(ambiguous[:10]))
+    if after_runner:
+        bits.append(
+            f"{after_runner} fenced python block(s) appear AFTER ts.run(sys.argv), which is "
+            f"the last statement a script can have — the reply's structure is not understood, "
+            f"and guessing whether that code belongs in the file risks either dropping real "
+            f"code or appending code that runs on import")
     if not report.get("parses"):
         bits.append(report.get("diagnosis") or "the assembled code does not parse as Python")
     if manifest.get("missing"):
@@ -3139,9 +3161,37 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # A reply that spanned several messages and did not reassemble cleanly must NOT be
     # stamped, linted and persisted — that is exactly how a partial script came to be
     # reported as a successful generation for months.
+    #
+    # BUT THE EVIDENCE MUST SURVIVE THE REFUSAL (found 2026-08-04). The first version raised
+    # here, before `sess.step6` was written, so refusing DESTROYED the whole reply — which is
+    # precisely the defect Phase 7.9 exists to fix, re-created one layer up: the record meant
+    # to capture this class of failure was destroying it, and for the one case where it
+    # matters most. So the attempt is recorded first, under its own key so a previously-good
+    # script is left intact, and only then is the request refused. Retry is a deliberate,
+    # recorded action rather than a hidden second call: the generations that fail this way are
+    # the multi-message ones, measured at 326-778s, so an automatic retry would turn a slow
+    # request into one of 10-26 minutes that the client abandons.
     failure = _recovery_failure(blocks["report"])
     if failure:
-        raise HTTPException(502, f"Generation could not be reassembled: {failure}")
+        step6 = dict(sess.step6 or {})
+        attempts = list(step6.get("failed_generations") or [])
+        attempts.append({
+            "at": utc_now().isoformat(),
+            "reason": failure,
+            "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+            "prompt": meta.get("prompt", ""),
+            "response": meta.get("content", ""),
+            "recovery": blocks["report"],
+            "rejected_code": blocks["test_code"] or "",
+        })
+        # Keep the last few attempts, newest last; unbounded growth here would be a second
+        # storage problem rather than a forensic record.
+        step6["failed_generations"] = attempts[-3:]
+        sess.step6 = step6
+        _pt_persist(sess)
+        raise HTTPException(
+            502, f"Generation could not be reassembled: {failure} The full reply is saved "
+                 f"under step6.failed_generations for inspection; generate again to retry.")
     # PLAN §1.5 — authoritative re-stamp: server-known step->fragment mapping wins
     # over anything the model self-reported, so provenance is trustworthy either way.
     stamped_code = _restamp_provenance(blocks["test_code"], fragments,
@@ -3401,7 +3451,21 @@ async def fix_script(key: str, request: Request):
     # must not silently replace a working script with a partial one.
     fix_failure = _recovery_failure(blocks["report"])
     if fix_failure:
-        raise HTTPException(502, f"LLM fix could not be reassembled: {fix_failure}")
+        # Same rule as generate: record the evidence, keep the working script, then refuse.
+        step6_f = dict(sess.step6 or {})
+        attempts_f = list(step6_f.get("failed_generations") or [])
+        attempts_f.append({
+            "at": utc_now().isoformat(), "phase": "fix", "reason": fix_failure,
+            "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+            "prompt": meta.get("prompt", ""), "response": meta.get("content", ""),
+            "recovery": blocks["report"], "rejected_code": blocks["test_code"] or "",
+        })
+        step6_f["failed_generations"] = attempts_f[-3:]
+        sess.step6 = step6_f
+        _pt_persist(sess)
+        raise HTTPException(
+            502, f"LLM fix could not be reassembled: {fix_failure} The full reply is saved "
+                 f"under step6.failed_generations; the existing script is unchanged.")
     # Re-stamp (PLAN §1.5): a fix pass can shift step content, so re-derive tags
     # from the same fragment mapping rather than trust whatever survived the edit.
     fix_fragments = _selected_fragments(sess)
