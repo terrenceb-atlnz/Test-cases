@@ -763,15 +763,26 @@ async function pushToZephyr(execute) {
     // whose session is incomplete (e.g. a Complete case rehydrated via backfill
     // that carries only step4/step5, not the step1–3 selections). If you edited
     // the objective/steps, click "Export Repeatable Bundle" first, then Push.
+    // A real push carries a per-case confirmation token in the body. dry_run is a
+    // query param, so without this a production write is one character from a
+    // preview for any non-browser client. Only the execute path sends it.
     const res = await fetch(
       `/api/wizard/push_to_zephyr/${encodeURIComponent(key)}?dry_run=${execute ? 'false' : 'true'}`,
-      { method: 'POST' }
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(execute ? { confirm: key } : {}),
+      }
     );
     const data = await res.json().catch(() => ({}));
-    const body = (data && data.output) ? data.output : `HTTP ${res.status}`;
+    const body = (data && data.output) ? data.output
+      : (data && data.detail) ? data.detail
+      : `HTTP ${res.status}`;
     const header = (data && data.ok === false)
       ? `⚠ Push ${execute ? 'FAILED' : 'preview reported problems'} (exit ${data.returncode}) — check JIRA_KEY in secrets.md and output below:\n\n`
-      : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
+      : !res.ok
+        ? `⚠ Push refused (HTTP ${res.status}):\n\n`
+        : (execute ? '✓ Push complete:\n\n' : 'Dry-run preview (no changes made):\n\n');
     if (out) out.textContent = header + body;
   } catch (e) {
     if (out) out.textContent = 'Push failed: ' + e;

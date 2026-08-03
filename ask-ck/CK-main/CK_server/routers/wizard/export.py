@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import List, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 from models import (
@@ -457,7 +457,8 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
 
 
 @router.post("/push_to_zephyr/{key}")
-async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False):
+async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
+                         confirm: str = Body(default="", embed=True)):
     """Push a Complete refined case to Zephyr via tool/upload_refined.py.
 
     Shells out to the CLI (the single owner of Zephyr-write logic), which:
@@ -473,9 +474,23 @@ async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False):
     `force=false` (default) leaves the CLI's "already appears refined in Zephyr — SKIP"
     protection in place. Pass force=true only to deliberately overwrite a case that has
     already been refined upstream.
+
+    A real push (`dry_run=false`) additionally requires `confirm` in the body to equal
+    the case key. `dry_run` is a query parameter, so a real write was previously one
+    character away from a preview — and the browser-side confirm() that stood in for a
+    safeguard is not executed by curl. The token has to be typed per case, so no single
+    edit to a URL can turn a preview into a production write. It is not authentication;
+    it is the missing step between "I meant to look" and "I meant to write".
     """
     if not CASE_KEY_RE.match(key or ""):
         raise HTTPException(status_code=400, detail="invalid case key")
+
+    if not dry_run and (confirm or "").strip() != key:
+        raise HTTPException(
+            status_code=400,
+            detail=(f"a real push must be confirmed: send {{\"confirm\": \"{key}\"}} in the "
+                    f"request body. Use dry_run=true to preview with no writes."),
+        )
 
     repo_root = ASKCK_ROOT.parent           # .../Test-cases
     cli = repo_root / "tool" / "upload_refined.py"

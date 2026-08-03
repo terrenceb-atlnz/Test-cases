@@ -4,7 +4,7 @@
 Replaces / enriches objective + testScript on existing AWPTCM-Txxxx manual test cases
 and attaches the corresponding traceability.md via the attachments API.
 
-Also adds web links (from "ATPyLib Cases" and "Zephyr Cross-References (Step 3)" sections
+Also adds web links (from the "ATPyLib Cases" and "Zephyr Cross-References" sections
 in traceability.md) via POST /rest/tests/1.0/tracelink/bulk/create (for Zephyr's "Web Links").
 
 Use --only-weblinks to only do the web links part.
@@ -39,10 +39,19 @@ cases that already appear to have refined content in Zephyr (based on
 substantial objective + steps or the "Note: Related ART Tests" marker).
 Use --force to overwrite.
 
+Every payload is validated before it can reach a live case: the shape rules come
+from the server (CK_server/llm.py:validate_zephyr_payload — imported, not restated),
+plus the rule that every verification step must carry an expectedResult. An invalid
+payload is refused; --skip-validation overrides. Validation runs in --dry-run too, so
+the preview reports what would be refused. Every --execute writes an audit record to
+ask-ck/var/zephyr-push-audit.jsonl before the first network write, and a case whose
+audit record cannot be written is refused.
+
 Never modifies files on disk.
 """
 
 import argparse
+import datetime
 import glob
 import json
 import os
@@ -61,27 +70,38 @@ def load_payload(path):
     Supports both wrapped shape:
       {"AWPTCM-T12345": {"objective": "...", "testScript": {...}}}
     and direct inner shape (for flexibility).
-    Returns (key, payload_dict) or (None, None) on failure.
-    Tries a light sanitize for common authoring escapes (e.g. stray \') to be
-    tolerant of pre-existing data issues without modifying files on disk.
+    Returns (key, payload_dict, repairs) or (None, None, repairs) on failure.
+
+    `repairs` is a list of human-readable strings describing any escape-repair that
+    was needed to parse the file. It used to be silent: a malformed bundle was
+    patched in memory and pushed with no warning, so the operator could not tell a
+    clean payload from a guessed one. The repair still happens (it is tolerant of
+    pre-existing authoring damage and never modifies files on disk) but it is now
+    reported, and main() refuses to --execute a repaired payload without an
+    explicit override.
     """
     raw = None
+    repairs = []
     try:
         with open(path, "r", encoding="utf-8") as f:
             raw = f.read()
         obj = json.loads(raw)
-    except Exception:
+    except Exception as e1:
         if raw:
             # Light sanitize for common bad escapes seen in refined payloads
             try:
                 fixed = raw.replace("\\'", "'").replace("\\ ", " ")
                 obj = json.loads(fixed)
+                repairs.append(
+                    f"escape-repair applied to parse the file (\\' and '\\ '): the raw JSON "
+                    f"is invalid — {e1}"
+                )
             except Exception as e2:
                 print(f"ERROR reading {path}: {e2}", file=sys.stderr)
-                return None, None
+                return None, None, repairs
         else:
             print(f"ERROR reading {path}", file=sys.stderr)
-            return None, None
+            return None, None, repairs
 
     if isinstance(obj, dict):
         # Wrapped shape: top-level single AWPTCM- key
@@ -90,18 +110,147 @@ def load_payload(path):
             if isinstance(k, str) and k.startswith("AWPTCM-"):
                 inner = obj[k]
                 if isinstance(inner, dict):
-                    return k, inner
+                    return k, inner, repairs
         # Direct shape or unexpected: scan for AWPTCM- key
         for k, v in obj.items():
             if isinstance(k, str) and k.startswith("AWPTCM-") and isinstance(v, dict):
-                return k, v
+                return k, v, repairs
         # Fallback: if file name encodes the key
         base = os.path.basename(os.path.dirname(path))
         if base.startswith("AWPTCM-"):
-            return base, obj
+            return base, obj, repairs
 
     print(f"WARNING: could not extract AWPTCM key from {path}", file=sys.stderr)
-    return None, None
+    return None, None, repairs
+
+
+# --- validation before a live write -------------------------------------------
+#
+# The push used to send whatever JSON happened to be on disk: upload_refined.py never
+# imported a validator of any kind. The shape rules are owned by the server
+# (CK_server/llm.py:validate_zephyr_payload), so import them rather than restating
+# them here — a second copy would drift, and the drift would only show up as bad data
+# in a live Zephyr case.
+#
+# The import is lazy and FAILS CLOSED: if the server module cannot be loaded we treat
+# that as a refusal under --execute, never as a pass.
+
+_CK_SERVER_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "ask-ck", "CK-main", "CK_server",
+)
+
+# The server-injected first step. Kept as a literal here (rather than imported)
+# because the blank-expectedResult rule below must still work when the server import
+# fails — that is exactly the case where we most need to know what we are pushing.
+# CK_server/llm.py:846 is the owner; tests/test_zephyr_push_validation.py pins the two
+# spellings against each other.
+_NOTE_PREFIX = "Note: Related ART Tests linked in Traceability"
+
+
+def _server_validator():
+    """Return CK_server's validate_zephyr_payload, or None if it cannot be imported."""
+    if _CK_SERVER_DIR not in sys.path:
+        sys.path.insert(0, _CK_SERVER_DIR)
+    try:
+        from llm import validate_zephyr_payload  # CK_server import (cf. tool/pt_judge.py)
+        return validate_zephyr_payload
+    except Exception as e:                              # pragma: no cover - env-specific
+        print(f"  WARNING: could not import the server validator: {e}", file=sys.stderr)
+        return None
+
+
+def blank_expected_results(payload):
+    """Indices of verification steps that carry no expectedResult.
+
+    The server-injected traceability note is exempt: it is a pointer, not a test.
+    Every other step must say what is expected, or the step is not a test — 615 of
+    the 645 steps in the current refined corpus have none, which is the single most
+    consequential content defect a push can carry into Zephyr.
+    """
+    steps = ((payload or {}).get("testScript") or {}).get("steps") or []
+    blank = []
+    for idx, s in enumerate(steps):
+        if not isinstance(s, dict):
+            continue
+        desc = (s.get("description") or "").strip()
+        if not desc or desc.startswith(_NOTE_PREFIX):
+            continue
+        if not (s.get("expectedResult") or "").strip():
+            blank.append(idx)
+    return blank
+
+
+def validate_for_push(key, payload):
+    """Validate a payload before it is allowed to reach a live Zephyr case.
+
+    Returns {"valid": bool, "issues": [...], "warnings": [...], "checked": bool}.
+    `checked` is False when the server shape validator could not be run; callers must
+    treat that as a refusal under --execute, not as a pass.
+    """
+    issues = []
+    warnings = []
+    checked = False
+
+    validator = _server_validator()
+    if validator is not None:
+        try:
+            res = validator({key: payload}) or {}
+            issues.extend(res.get("issues") or [])
+            warnings.extend(res.get("warnings") or [])
+            checked = True
+        except Exception as e:                          # pragma: no cover - defensive
+            warnings.append(f"server validator raised: {e}")
+
+    blank = blank_expected_results(payload)
+    if blank:
+        shown = ", ".join(str(b) for b in blank[:8])
+        more = ", …" if len(blank) > 8 else ""
+        issues.append(
+            f"{len(blank)} verification step(s) have an empty expectedResult "
+            f"(step index {shown}{more}) — a step with no expected result is not a test"
+        )
+
+    return {"valid": not issues, "issues": issues, "warnings": warnings, "checked": checked}
+
+
+# --- audit log -----------------------------------------------------------------
+#
+# A real push mutates data outside this repository, in a system this project does not
+# own, and until now it left no record at all: nothing said which case was written,
+# by whom, when, or what it looked like beforehand. The log lives under ask-ck/var/,
+# which .gitignore excludes (:79) — deliberately, since it records production writes
+# and can quote case content.
+
+AUDIT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "ask-ck", "var", "zephyr-push-audit.jsonl",
+)
+
+
+def audit(event, key, **fields):
+    """Append one audit record. Returns True on success.
+
+    Callers on the --execute path must treat False as a refusal: an unlogged
+    production write is exactly the thing this log exists to prevent.
+    """
+    rec = {
+        "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "event": event,
+        "key": key,
+        "user": os.environ.get("USER") or os.environ.get("LOGNAME") or "?",
+        "pid": os.getpid(),
+        "argv": sys.argv[1:],
+    }
+    rec.update(fields)
+    try:
+        os.makedirs(os.path.dirname(AUDIT_PATH), exist_ok=True)
+        with open(AUDIT_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        return True
+    except Exception as e:
+        print(f"  AUDIT LOG WRITE FAILED ({AUDIT_PATH}): {e}", file=sys.stderr)
+        return False
 
 
 def normalize_test_script(ts):
@@ -208,10 +357,19 @@ def parse_atpylib_links(md_path):
 
 
 def parse_zephyr_links(md_path):
-    """Parse the Zephyr Cross-References (Step 3) section and return tracelink entries for the referenced Zephyr cases.
+    """Parse the Zephyr Cross-References section and return tracelink entries for the referenced Zephyr cases.
 
     Looks for AWPTCM-Txxxx keys (preferably inside markdown links) and produces
     web links back into Zephyr Scale using the standard Tests.jspa deep link.
+
+    The step number in the heading is NOT stable. The traceability template emits
+    "(Step 2)" (templates/outputs/traceability.md.jinja:23) while this parser looked
+    only for "(Step 3)" — so the regex never matched, _zephyr_links came back empty,
+    and step 4 of the advertised push silently did nothing on 12 of the 13 bundles
+    that have cross-references. parse_atpylib_links already accepted "(Step 3|4)" for
+    exactly this drift; the fix was never carried across. Accept either number, and
+    let tests/test_zephyr_push_validation.py hold the template and the parser
+    together so the next renumber is caught here rather than in production.
     """
     import re
     if not os.path.isfile(md_path):
@@ -222,7 +380,7 @@ def parse_zephyr_links(md_path):
     except Exception:
         return []
 
-    m = re.search(r'## Zephyr Cross-References \(Step 3\)\s*(.*?)(?=\n## |\Z)', content, re.DOTALL | re.IGNORECASE)
+    m = re.search(r'## Zephyr Cross-References \(Step (?:2|3)\)\s*(.*?)(?=\n## |\Z)', content, re.DOTALL | re.IGNORECASE)
     if not m:
         return []
     section = m.group(1)
@@ -835,6 +993,10 @@ MORE INFO
                     help="After successful PUT, re-GET the case and print short summary")
     ap.add_argument("--force", action="store_true",
                     help="Force update even if the case already appears refined in Zephyr")
+    ap.add_argument("--skip-validation", action="store_true",
+                    help="Push even when the payload fails validation (shape rules from the "
+                         "server, plus the rule that every verification step must carry an "
+                         "expectedResult). Off by default: an invalid payload is refused.")
     ap.add_argument("--limit", type=int, default=0, help="Process at most N cases (0 = no limit)")
     ap.add_argument("--continue-on-error", action="store_true", default=True,
                     help="Keep going after individual failures (default: on)")
@@ -873,7 +1035,7 @@ MORE INFO
     selected = []
     for p in paths:
         try:
-            key, payload = load_payload(p)
+            key, payload, repairs = load_payload(p)
         except Exception as e:
             print(f"ERROR loading {p}: {e}", file=sys.stderr)
             continue
@@ -887,7 +1049,7 @@ MORE INFO
         if not (args.keys or args.groups or args.all):
             # Require explicit selection unless --all
             continue
-        selected.append((p, key, payload, rel_group))
+        selected.append((p, key, payload, rel_group, repairs))
 
     if args.limit > 0:
         selected = selected[: args.limit]
@@ -914,8 +1076,9 @@ MORE INFO
     failures = 0
     skipped = 0
     already_present = 0
+    blocked = 0
 
-    for i, (p, key, payload, group) in enumerate(selected, 1):
+    for i, (p, key, payload, group, repairs) in enumerate(selected, 1):
         obj = payload.get("objective", "") if isinstance(payload, dict) else ""
         ts_raw = payload.get("testScript") if isinstance(payload, dict) else None
         ts = normalize_test_script(ts_raw)
@@ -942,6 +1105,39 @@ MORE INFO
         do_payload = not args.only_weblinks
         do_weblinks = bool(all_links)
         do_attach = not args.no_attach and not args.only_weblinks
+
+        # Validation gate. Only payload pushes are gated: --only-weblinks writes no
+        # objective and no steps, so an unvalidated payload cannot reach Zephyr on
+        # that path. Runs in dry-run too, so the preview reports what WOULD be
+        # refused instead of quietly previewing a push that could never succeed.
+        if do_payload:
+            verdict = validate_for_push(key, payload)
+            problems = list(verdict["issues"])
+            if not verdict["checked"]:
+                problems.insert(0, "the server shape validator could not be run "
+                                   "(refusing rather than pushing unvalidated content)")
+            if repairs:
+                for r in repairs:
+                    print(f"  REPAIRED ON LOAD: {r}", file=sys.stderr)
+                problems.append(
+                    "the payload on disk is not valid JSON and was repaired in memory to "
+                    "be read — fix the file rather than pushing a guess"
+                )
+            for w in verdict["warnings"]:
+                print(f"  validation warning: {w}", file=sys.stderr)
+
+            if problems:
+                print(f"  VALIDATION FAILED ({len(problems)}):", file=sys.stderr)
+                for it in problems:
+                    print(f"    - {it}", file=sys.stderr)
+                if not args.skip_validation:
+                    print("  %s: refusing this payload (--skip-validation overrides)"
+                          % ("WOULD BLOCK" if dry_run else "BLOCKED"), file=sys.stderr)
+                    blocked += 1
+                    continue
+                print("  --skip-validation given: pushing anyway", file=sys.stderr)
+            else:
+                print("  validation: OK", file=sys.stderr)
 
         # Skip logic only applies to payload updates. For --only-weblinks we always proceed with links.
         if do_payload and status == "refined" and not args.force:
@@ -982,6 +1178,26 @@ MORE INFO
         # Order matters (Terrence's spec): strip the title first, then create the
         # new version, then upload the payload so objective+testScript land on the
         # new version.
+        #
+        # Log the intent BEFORE the first write, with the pre-push state, so the
+        # record survives a crash mid-sequence — a case can be left title-fixed and
+        # version-bumped but not uploaded, and that partial state needs to be
+        # reconstructable. A log that cannot be written blocks the case.
+        if not audit(
+            "push.intent", key,
+            group=group, path=os.path.relpath(p, root),
+            force=bool(args.force), skip_validation=bool(args.skip_validation),
+            before={"status": status, "objective_chars": cur_obj_len, "steps": cur_steps},
+            proposed={"objective_chars": len(obj), "steps": len(ts.get("steps", [])),
+                      "weblinks": len(all_links)},
+            actions={"payload": do_payload, "attach": do_attach, "weblinks": do_weblinks,
+                     "fix_title": bool(args.fix_title), "new_version": bool(args.new_version)},
+        ):
+            print("  BLOCKED: refusing to write to Zephyr without an audit record.",
+                  file=sys.stderr)
+            blocked += 1
+            continue
+
         ok = True
 
         if ok and args.fix_title:
@@ -1053,14 +1269,22 @@ MORE INFO
         # Count one success per case that completed its requested actions cleanly.
         if ok:
             successes += 1
+        audit("push.outcome", key, ok=bool(ok))
 
-    print(f"\nSummary: {successes} ok, {failures} failed, {skipped} skipped, {already_present} already-present", file=sys.stderr)
+    print(f"\nSummary: {successes} ok, {failures} failed, {blocked} blocked by validation, "
+          f"{skipped} skipped, {already_present} already-present", file=sys.stderr)
+    if blocked:
+        print(f"{blocked} case(s) did not reach Zephyr because the payload failed validation. "
+              f"Fix the payload — or pass --skip-validation if you have decided to push it "
+              f"anyway.", file=sys.stderr)
     if dry_run:
         print("Re-run with --execute to apply changes.", file=sys.stderr)
     elif already_present > 0 and not args.force:
         print("Tip: some cases were skipped because they already had refined content.", file=sys.stderr)
 
-    sys.exit(0 if failures == 0 else 1)
+    # A blocked case is a non-zero exit: the server surfaces returncode as `ok`, and a
+    # push that refused half its cases must not read as success in the UI.
+    sys.exit(0 if (failures == 0 and blocked == 0) else 1)
 
 
 if __name__ == "__main__":
