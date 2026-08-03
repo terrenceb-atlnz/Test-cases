@@ -211,3 +211,59 @@ but it will show up as friction before it shows up as value.
 | Phase 11.4 first hardware run | not attempted | your instruction: read-only bench |
 | Regenerating the 53 bundles | not done | needs your sign-off on the new steps prompt (D-12) |
 | `git push` | **blocked** | the push was refused by the permission layer; commits are local. **You may need to push manually, or approve it.** |
+---
+
+## 9. REVISED 2026-08-04 after review with Terrence
+
+Two decisions were re-opened with more evidence. Both changed.
+
+### D-17 REVISED — the lint gate is split by AUTHORITY, and the prompt bug is fixed
+**Was:** a lint error blocks confirmation, no override.
+**Now:** 14 errors are **blocking and never overridable** (syntax, missing structure, an
+unfilled `>>> FILL` marker, `self.` before assignment, an unbound device or port —
+AttributeError on the testbox — a duplicate portlink binding, bad imports, the truncation
+detector, and a completeness check that could not run). 5 are **policy, overridable with a
+recorded reason** (the four logging-contract rules, and a direct `setup.init_portlink()`).
+
+**What changed my mind — the evidence, not the argument.** Across the 4 stored sessions with
+a lint result, T33233/T33234/T33235 are 0 errors. **Exactly one error has ever fired**, on
+**T44297, the best script we have generated**: *"line 273: calls setup.init_portlink()
+directly, which skips the run-time MEDIA assertion."* Under a blanket no-override rule that
+script is permanently unconfirmable. And the model was **following our prompt**: the generate
+prompt said *"bind every device you use in `TestSet.init`"* and pointed at `init_portlink()`,
+while `_ck_bind_link` — the sanctioned wrapper the lint demands — **appeared in the prompt
+zero times**. The lint was failing the model for complying with our instructions.
+
+**So the prompt bug is fixed first** (Phase 7.8): rule 3 now says `init()` is fixed frame, do
+not add bindings, do not call `init_portlink()` yourself, and says why (the media assertion).
+`tests/test_prompt_agrees_with_lint.py` now asserts that every enforced rule is actually
+conveyed by the prompt — a rule enforced in code that no instruction ever gave is a trap.
+**Unrecognised errors default to blocking**, and `tests/test_lint_error_classes.py` enumerates
+all 19 so a new check cannot drift into "overridable" unnoticed.
+
+### D-05 REVISED — no string-fence recovery, and now with a reason recorded
+**Was:** accept the limitation. **Briefly became:** add a candidate reading for fences inside
+string literals. **Now:** firmly no recovery — diagnosis only.
+
+Terrence's challenge was the right one: *"is this a plan for an eventuality that has yet to
+arise, and could the solution itself create issues?"* Both halves hold.
+
+- **Frequency is zero.** No triple-backtick in 830 corpus scripts, 1,250 harvested CLI sample
+  outputs, or the 5 stored generations. (The precursor is common — the model writes
+  markdown-style inline code in comments constantly, 76 such tokens across those five
+  replies — so the case is plausible, just unobserved.)
+- **The fix would have been worse than the gap.** Seam repair is sound because its candidate
+  readings differ by ONE LINE, so "it parses" is strong evidence. A string-fence candidate
+  moves where the code boundaries are, so candidates differ structurally — and among
+  structurally different assemblies "it parses" is a weak filter, because plenty of wrong
+  Python parses. It would have converted a **loud refusal into a possible silent wrong
+  assembly**: precisely the failure class the adversarial review found seven of.
+
+What shipped instead is `gen_assembly.diagnose_unrecoverable` — it names the fence-in-a-string
+signature so a future occurrence arrives as a diagnosis rather than a `SyntaxError` on a line
+nobody wrote. A test guards against a recovery path being added later without re-arguing this.
+
+**Process note worth keeping.** I had this right originally, then changed position when
+Terrence rated the other answer higher, and designed an implementation for it. The measurement
+was identical before and after; only my confidence moved, and it moved for the wrong reason.
+

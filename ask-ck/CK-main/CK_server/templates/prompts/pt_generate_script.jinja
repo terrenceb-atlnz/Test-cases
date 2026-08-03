@@ -56,8 +56,15 @@ Reviewer note: {{ f.why }}
    artifact carries, not a FILL marker, so do not rewrite, summarise, or delete it.
 2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
    commands only; NEVER put `self.passed()`/`self.failed()` there.
-3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %};
-   bind every device you use in `TestSet.init`.
+3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %}.
+   **`TestSet.init()` IS FIXED FRAME — DO NOT ADD BINDINGS TO IT, and do not call
+   `setup.init_portlink()` or `setup.init_swi()` yourself.** The frame already resolves the
+   topology from the bench's role contract and binds every device and port this script is
+   entitled to, through its own `_ck_bind_link()` helper, which additionally asserts the
+   bound port's MEDIA. Binding a port any other way skips that assertion, and a port that is
+   the wrong media produces a failure that reads as a product defect rather than a cabling
+   error. Use only the names listed above; if you believe you need a device the frame did not
+   bind, the sequence is wrong — say so in a comment rather than binding it.
 3b. **HOUSE IDIOMS — use these, they are what the 830-script corpus does.** The counts are
    why; do not substitute your own equivalents.
    - **Enter config mode with `dev.mode(')#')`** (4,812 uses), NOT `dev.cmd('conf t')`
@@ -78,7 +85,7 @@ Reviewer note: {{ f.why }}
      the topology, never a literal):
      ```python
      dev = self.testSet.{{ bound_devices[0] if bound_devices else 'dut' }}
-     port = dev.portA                      # a SwitchPort bound by init_portlink()
+     port = dev.portA                      # a SwitchPort the fixed init() frame bound
      dev.mode(')#')
      dev.cmd('interface {}'.format(port.name))
      dev.cmd('<the interface-level command>')
@@ -136,8 +143,10 @@ Reviewer note: {{ f.why }}
    **A port name is CLI TEXT, never a Python identifier.** It may appear only inside a
    string (`dut.cmd('interface {}'.format(port))`); writing it as an attribute —
    `self.dut.port1.0.1` — is a SyntaxError.
-   **NEVER HARDCODE A PORT NAME.** Take it from the .setup topology via the attribute
-   `init_portlink()` bound in `TestSet.init` (`port = dut.portA`), the way the corpus does
+   **NEVER HARDCODE A PORT NAME.** Take it from the attribute the fixed `TestSet.init()`
+   frame already bound for you (`port = dut.portA` — see rule 3; the frame resolves it from
+   the bench role contract and asserts its media, so never call `init_portlink()`
+   yourself), the way the corpus does
    (10,578 bound-attribute uses vs 350 literals, and most of those are
    deliberately-invalid inputs to negative tests). In `portA.B.C`: **A is the STACK MEMBER**
    (1 on a standalone, 1-8 across a stack), **B is the BAY** (0 = base board, 1+ = a

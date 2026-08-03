@@ -909,6 +909,11 @@ def _parse_generated_blocks(content: str) -> Dict[str, Any]:
     # Cross-check against the script's own ts.add_testCase(...) manifest: the one
     # completeness signal that does not come from this parser.
     report["manifest"] = gen_assembly.manifest_check(test_code or "")
+    # Say WHY an unrecoverable reply was unrecoverable (Phase 7.8). Diagnosis only — there is
+    # deliberately no repair path for a fence inside a string literal; see the long note on
+    # gen_assembly.diagnose_unrecoverable.
+    if not report.get("parses"):
+        report["diagnosis"] = gen_assembly.diagnose_unrecoverable(content or "", test_code or "")
     return {"test_code": test_code, "library": library, "report": report}
 
 
@@ -920,7 +925,7 @@ def _recovery_failure(report: Dict[str, Any]) -> str:
     bits = [f"the reply arrived in {report.get('parts')} parts and reassembly did not "
             f"produce a complete script"]
     if not report.get("parses"):
-        bits.append("the assembled code does not parse as Python")
+        bits.append(report.get("diagnosis") or "the assembled code does not parse as Python")
     if manifest.get("missing"):
         bits.append("these registered test cases are not defined: "
                     + ", ".join(manifest["missing"][:10]))
@@ -1629,6 +1634,39 @@ def _coverage_gate_error(sess: PtSession, step: int) -> str:
     return "\n".join(lines)
 
 
+# PHASE 7.8 — WHICH LINT ERRORS A HUMAN MAY OVERRIDE.
+#
+# The only lint error that has ever fired on a real generation was on T44297, the best script
+# we have produced: "calls setup.init_portlink() directly, which skips the run-time MEDIA
+# assertion". The script compiled and ran; it bypassed one of our checks. And the model was
+# following the generate prompt, which told it to bind devices in TestSet.init and pointed it
+# at init_portlink() (fixed in the same pass). Under a blanket no-override rule that script is
+# permanently unconfirmable because of OUR prompt bug — which is the argument for splitting.
+#
+# The split is by AUTHORITY, not severity:
+#   * the artefact provably cannot work  -> nobody's judgement helps. Regenerate.
+#   * the script runs but breaks a house rule -> the reviewer is the right authority.
+#
+# Anything unrecognised is treated as BLOCKING. A new error is therefore strict until someone
+# classifies it, rather than silently overridable — and
+# tests/test_lint_error_classes.py fails until it is listed, so the choice is explicit.
+_POLICY_LINT_MARKERS = (
+    "has no self.log()",                       # logging contract
+    "has no non-empty",                        # ...no textual verdict
+    "self.passed()/self.failed() (empty reason",   # ...empty verdict reason
+    "missing a leading",                       # ...provenance tag
+    "calls setup.init_portlink() directly",    # house binding idiom; script still runs
+)
+
+
+def _split_lint_errors(errors: List[str]) -> Tuple[List[str], List[str]]:
+    """(blocking, policy). Unrecognised errors are blocking — strict by default."""
+    blocking, policy = [], []
+    for err in errors:
+        (policy if any(m in str(err) for m in _POLICY_LINT_MARKERS) else blocking).append(err)
+    return blocking, policy
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -2147,7 +2185,14 @@ def _lint_generated(sess: PtSession) -> dict:
                       f"— the script has NOT been checked for completeness")
         result_coverage = None
 
+    blocking, policy = _split_lint_errors(errors)
     result = {"ok": not errors, "errors": errors, "warnings": warnings,
+              # PHASE 7.7/7.8 — two kinds of error, two different authorities.
+              # `blocking` means the artefact provably cannot work (it will not compile, or
+              # it dies with AttributeError on the testbox, or it is short). No override.
+              # `policy` means the script runs but breaks a house rule — the reviewer is the
+              # right authority, so it is overridable WITH A RECORDED REASON.
+              "blocking_errors": blocking, "policy_errors": policy,
               "coverage": result_coverage,
               "checked_at": utc_now().isoformat()}
     step6["lint"] = result
@@ -2419,23 +2464,50 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
         if gap:
             raise HTTPException(409, gap)
 
-    # PHASE 7.7 — CONFIRMING A SCRIPT REQUIRES A CLEAN LINT. `confirm_step` never looked
-    # at `lint.ok`, so a script with hard lint ERRORS — including the completeness error
-    # that is the only way to spot a cleanly-parsing truncated script — could be signed
-    # off and carried into the run and export stages. Confirming is a human asserting the
-    # step is CORRECT; it must not be possible while the machine checks say it is not.
+    # PHASE 7.7/7.8 — CONFIRMING A SCRIPT REQUIRES A CLEAN LINT, with two authorities.
     #
-    # Deliberately not overridable: unlike the coverage gap (where a source step can be
-    # genuinely untestable and the reviewer's judgement is the right authority), a lint
-    # error means the artefact itself is broken. Regenerate it.
+    # `confirm_step` never looked at the lint at all, so a script with hard errors —
+    # including the completeness error that is the only way to spot a cleanly-parsing
+    # truncated script — could be signed off and carried into the run and export stages.
+    # Confirming is a human asserting the step is CORRECT; it must not be possible while
+    # the machine checks say it is not.
+    #
+    # But not every error is the same kind of thing (see _POLICY_LINT_MARKERS). A script
+    # that cannot compile, or that dies with AttributeError on the testbox, or that covers
+    # fewer steps than the approved sequence, is broken and no judgement helps — regenerate.
+    # A script that runs but breaks a house rule is the reviewer's call, so it is overridable
+    # with a REASON that is recorded on the session, matching how the objective-coverage gap
+    # beside this already works.
     if step == 6:
         lint = (getattr(sess, "step6", None) or {}).get("lint") or {}
         if not lint:
             raise HTTPException(409, "Lint the generated script before confirming it.")
-        if lint.get("errors"):
+        # Older sessions were linted before the split existed; fall back to treating every
+        # recorded error as blocking rather than silently letting them all through.
+        blocking = lint.get("blocking_errors")
+        if blocking is None:
+            blocking, _ = _split_lint_errors(lint.get("errors") or [])
+        if blocking:
             raise HTTPException(
-                409, "This script has lint errors and cannot be confirmed:\n  - "
-                     + "\n  - ".join(str(e) for e in lint["errors"][:10]))
+                409, "This script has errors that cannot be overridden — regenerate it:\n  - "
+                     + "\n  - ".join(str(e) for e in blocking[:10]))
+        policy = lint.get("policy_errors")
+        if policy is None:
+            _, policy = _split_lint_errors(lint.get("errors") or [])
+        if policy:
+            reason = str((body or {}).get("acknowledge_lint_policy") or "").strip()
+            if not reason:
+                raise HTTPException(
+                    409, "This script breaks house rules that a reviewer may accept. To "
+                         "confirm anyway, resend with {\"acknowledge_lint_policy\": "
+                         "\"<why>\"} — the reason is recorded on the session:\n  - "
+                         + "\n  - ".join(str(e) for e in policy[:10]))
+            step6 = getattr(sess, "step6", None) or {}
+            acks = list(step6.get("policy_acknowledgements") or [])
+            acks.append({"at": utc_now().isoformat(), "reason": reason[:500],
+                         "errors": [str(e) for e in policy]})
+            step6["policy_acknowledgements"] = acks
+            sess.step6 = step6
 
     _confirm(sess, step_key)
     _invalidate_from(sess, step)

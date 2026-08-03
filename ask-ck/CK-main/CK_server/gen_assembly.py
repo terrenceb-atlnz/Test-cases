@@ -431,6 +431,44 @@ def recover_script(content: str) -> Dict[str, Any]:
     }
 
 
+def diagnose_unrecoverable(content: str, code: str) -> str:
+    """Why an assembly failed to parse, when the cause is a fence we cannot disambiguate.
+
+    NOT a repair. Deliberately so: the tempting fix — add "treat this fence as being inside a
+    string literal" as another candidate reading — would make things worse. Seam repair is
+    sound because its candidates differ by ONE LINE, so "it parses" is strong evidence the
+    right one was picked. A string-fence candidate moves where the code boundaries are, so the
+    candidates differ structurally, and once you choose among structurally different
+    assemblies "it parses" is a weak filter (plenty of wrong Python parses). That converts a
+    loud refusal into a possible SILENT wrong assembly — the exact failure class this module
+    exists to prevent.
+
+    Measured frequency of the underlying case: **zero**. No triple-backtick appears in the 830
+    corpus scripts, the 1,250 harvested CLI sample outputs, or the five stored generations. The
+    precursor habit is common though — the model writes markdown-style inline code in comments
+    and docstrings constantly (`show lldp interface <port>`, `[misc] ck_link_<role>`), 76 such
+    tokens across those five replies — so the distance to a collision is one docstring that
+    quotes our own fence convention. If that ever happens, this makes it arrive as a diagnosis
+    instead of a bare SyntaxError pointing at a line nobody wrote.
+    """
+    if not code:
+        return ""
+    try:
+        ast.parse(code)
+        return ""
+    except (SyntaxError, ValueError) as exc:
+        detail = f"{exc}"
+    # An unterminated string in the assembled code, plus a fence adjacent to quote characters
+    # in the original reply, is the signature.
+    suspicious = re.findall(r"""['"][^'"\n]*`{3,}|`{3,}[^'"\n]*['"]""", content or "")
+    hint = ""
+    if suspicious:
+        hint = (" A triple-backtick appears next to quote characters in the reply, so a fence "
+                "inside a string literal or docstring most likely split the code at the wrong "
+                "place. This is not recoverable by reassembly — regenerate.")
+    return f"the assembled script does not parse ({detail}).{hint}"
+
+
 def manifest_check(code: str) -> Dict[str, Any]:
     """Cross-check a recovered script against its own `ts.add_testCase(...)` manifest.
 

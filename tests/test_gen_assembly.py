@@ -417,3 +417,46 @@ def test_recovers_the_five_stored_replies():
         assert manifest_check(code)["ok"], f"record {idx} failed its own manifest"
         # every stored reply ends in ts.run(sys.argv): nothing was ever truncated
         assert "ts.run(sys.argv)" in code
+
+
+# ------------------------------------------------ diagnosis, NOT recovery (Phase 7.8)
+#
+# A fence inside a string literal stays unrecoverable ON PURPOSE. Adding "treat this fence
+# as being inside a string" as another candidate reading would enlarge the candidate set
+# from readings that differ by one line to readings that differ structurally — and once the
+# candidates differ structurally, "it parses" stops being strong evidence and starts being a
+# weak filter. That would turn a loud refusal into a possible SILENT wrong assembly, which
+# is the failure class this module exists to prevent. Measured frequency of the underlying
+# case: zero, across 830 corpus scripts, 1,250 CLI samples and 5 stored generations.
+
+def test_an_unrecoverable_reply_explains_itself():
+    from gen_assembly import diagnose_unrecoverable
+    reply = (f"```python\n{HEAD}class TestCase_1(TestCase):\n    def main(self):\n"
+             f"        self.log('use ``` to fence')\n{TAIL}```")
+    out = recover_script(reply)
+    assert out["report"]["parses"] is False
+    note = diagnose_unrecoverable(reply, out["test_code"] or "")
+    assert "does not parse" in note
+    assert "string literal or docstring" in note, \
+        "the fence-in-a-string signature should be named, not left as a bare SyntaxError"
+    assert "regenerate" in note
+
+
+def test_diagnosis_is_silent_when_the_script_is_fine():
+    from gen_assembly import diagnose_unrecoverable
+    code = HEAD + _case(1) + TAIL
+    assert diagnose_unrecoverable(f"```python\n{code}```", code) == ""
+
+
+def test_no_string_fence_repair_path_was_added():
+    """Guard against the fix we deliberately did not build.
+
+    If a future change starts *recovering* these replies rather than refusing them, this
+    fails and the reasoning above has to be re-argued rather than quietly overturned.
+    """
+    reply = (f"```python\n{HEAD}class TestCase_1(TestCase):\n    def main(self):\n"
+             f"        self.log('use ``` to fence')\n{TAIL}```")
+    out = recover_script(reply)
+    assert out["report"]["parses"] is False, (
+        "a fence inside a string literal is now being 'recovered'. That trades a loud "
+        "refusal for a possible silent wrong assembly — see the note above.")

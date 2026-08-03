@@ -85,13 +85,48 @@ def test_confirm_step_refuses_a_script_with_lint_errors():
     assert 'lint.get("errors")' in body or "lint['errors']" in body
 
 
-def test_the_lint_gate_is_not_overridable():
-    """A broken artefact is not a judgement call, unlike the coverage gap beside it."""
+def test_a_blocking_error_is_never_overridable():
+    """A provably broken artefact is not a judgement call — no flag may bypass it.
+
+    Revised 2026-08-04. This test previously asserted NO lint error was overridable. That
+    was wrong on the evidence: the only error ever to fire on a real generation was a house
+    rule (direct `init_portlink()`) on our best script, caused by our own prompt telling the
+    model to do it. A blanket rule made that script permanently unconfirmable. The split is
+    by authority — see `_POLICY_LINT_MARKERS`.
+    """
     body = _segment(_function("confirm_step"))
-    gate = body[body.index("step == 6"):]
-    assert "acknowledge" not in gate.split("_confirm(")[0], (
-        "the lint gate accepts an override flag. A lint ERROR means the script itself is "
-        "broken — regenerate it rather than acknowledging it.")
+    gate = body[body.index("step == 6"):body.index("_confirm(")]
+    blocking = gate[:gate.index("policy")] if "policy" in gate else gate
+    assert "acknowledge" not in blocking, (
+        "the blocking branch accepts an override flag. A script that cannot compile, dies "
+        "with AttributeError, or is short must be regenerated, not acknowledged.")
+
+
+def test_a_policy_error_is_overridable_only_with_a_recorded_reason():
+    body = _segment(_function("confirm_step"))
+    gate = body[body.index("step == 6"):body.index("_confirm(")]
+    assert "acknowledge_lint_policy" in gate
+    assert "policy_acknowledgements" in gate, \
+        "the override must be recorded on the session, not merely accepted"
+    # a bare boolean flag is not a reason
+    assert "reason" in gate
+
+
+def test_unrecognised_errors_default_to_blocking():
+    """Strict by default: a new error is not silently overridable."""
+    router = ROUTER.read_text(encoding="utf-8")
+    fn = _segment(_function("_split_lint_errors"))
+    assert "policy if any(" in fn or "_POLICY_LINT_MARKERS" in fn
+    # the ternary must put the UNMATCHED case in `blocking`
+    assert re.search(r"policy if any\(.*?\) else blocking", fn, re.DOTALL), (
+        "an error that matches no policy marker must land in `blocking`")
+
+
+def test_an_older_lint_result_without_the_split_is_treated_as_blocking():
+    """Sessions linted before the split must not become wholly overridable."""
+    gate = _segment(_function("confirm_step"))
+    assert "_split_lint_errors(lint.get(\"errors\")" in gate, \
+        "a lint result predating the split must be re-classified, not waved through"
 
 
 def test_an_unlinted_script_cannot_be_confirmed():
