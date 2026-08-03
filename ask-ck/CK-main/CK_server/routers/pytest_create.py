@@ -26,6 +26,7 @@ from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
 from llm import run_prompt, extract_json_block, _CODE_SYSTEM_PROMPT
 import db as dbx   # aliased: several functions here have a `db` filter parameter
+import gen_assembly
 import locks
 from pt_exec import (
     load_profiles, save_profiles, redact_profile, normalize_profile,
@@ -879,17 +880,53 @@ def _size_overflow(skeleton: str, sequence: list) -> str:
 
 
 def _parse_generated_blocks(content: str) -> Dict[str, Any]:
-    """Extract test + optional 'LIBRARY: <name>' python blocks from LLM output."""
-    blocks = re.findall(r"(?:^|\n)(LIBRARY:\s*(\S+)\s*\n)?```(?:python)?\s*\n(.*?)```",
-                        content, re.DOTALL)
-    test_code, library = None, None
-    for _, lib_name, code in blocks:
-        code = _strip_fill_markers(code.strip() + "\n")
-        if lib_name:
-            library = {"name": lib_name.strip(), "code": code}
-        elif test_code is None:
-            test_code = code
-    return {"test_code": test_code, "library": library}
+    """Extract test + optional 'LIBRARY: <name>' python blocks from LLM output.
+
+    This used to be one non-greedy regex, and THAT REGEX IS WHY THE "OUTPUT CEILING"
+    APPEARED TO EXIST. The CLI splits a long answer across assistant messages that each
+    re-open a ```python fence, so `(.*?)``` ` stopped at the *continuation's opening* fence
+    and the rest was dropped — usually mid-token, which reads as model truncation. On the
+    five stored replies it kept 21 of 40 classes, 16/17, 9/11, 6/6 and 0/6, and those exact
+    figures were published as the model's budget. See gen_assembly for the full account.
+
+    Assembly now lives in `gen_assembly.recover_script`, and the recovery report is returned
+    alongside so callers can refuse a script that did not come back whole rather than stamp,
+    lint and persist a known-broken one.
+    """
+    recovered = gen_assembly.recover_script(content or "")
+    test_code = recovered["test_code"]
+    if test_code:
+        test_code = _strip_fill_markers(test_code.strip() + "\n")
+    library = recovered["library"]
+    if library:
+        library = {"name": library["name"],
+                   "code": _strip_fill_markers(library["code"].strip() + "\n")}
+    report = dict(recovered["report"])
+    # Cross-check against the script's own ts.add_testCase(...) manifest: the one
+    # completeness signal that does not come from this parser.
+    report["manifest"] = gen_assembly.manifest_check(test_code or "")
+    return {"test_code": test_code, "library": library, "report": report}
+
+
+def _recovery_failure(report: Dict[str, Any]) -> str:
+    """Human-readable reason a multi-part reply could not be reassembled, else ""."""
+    if report.get("parses") and (report.get("manifest") or {}).get("ok"):
+        return ""
+    manifest = report.get("manifest") or {}
+    bits = [f"the reply arrived in {report.get('parts')} parts and reassembly did not "
+            f"produce a complete script"]
+    if not report.get("parses"):
+        bits.append("the assembled code does not parse as Python")
+    if manifest.get("missing"):
+        bits.append("these registered test cases are not defined: "
+                    + ", ".join(manifest["missing"][:10]))
+    if manifest.get("without_main"):
+        bits.append("these test cases have no main(): "
+                    + ", ".join(manifest["without_main"][:10]))
+    if report.get("seam_lines_dropped"):
+        bits.append(f"{len(report['seam_lines_dropped'])} partial line(s) were dropped at "
+                    f"message seams")
+    return "; ".join(bits) + "."
 
 
 # PLAN §1.5 — inline source-provenance tags. `db` on the scripts table is one of
@@ -2995,6 +3032,12 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     blocks = _parse_generated_blocks(meta.get("content", ""))
     if not blocks["test_code"]:
         raise HTTPException(502, "LLM returned no python code block.")
+    # A reply that spanned several messages and did not reassemble cleanly must NOT be
+    # stamped, linted and persisted — that is exactly how a partial script came to be
+    # reported as a successful generation for months.
+    failure = _recovery_failure(blocks["report"])
+    if failure:
+        raise HTTPException(502, f"Generation could not be reassembled: {failure}")
     # PLAN §1.5 — authoritative re-stamp: server-known step->fragment mapping wins
     # over anything the model self-reported, so provenance is trustworthy either way.
     stamped_code = _restamp_provenance(blocks["test_code"], fragments,
@@ -3007,9 +3050,16 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
                   "library": blocks["library"]},
         "iterations": prev.get("iterations", 0) + 1,
         "confirmed": False,
+        # Phase 7.9 — the reply is stored WHOLE. It used to be cut at 20,000 chars with no
+        # marker, so every stored generation was incomplete and the primary evidence for
+        # transport defects was destroyed by the record meant to capture them; the
+        # multi-part replies that exposed the fence bug are 37k-173k chars. `recovery` is
+        # the assembly audit trail: how many messages the answer spanned, what was dropped
+        # at each seam, and the model's own assembly notes.
         "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
                        "prompt": meta.get("prompt", ""),
-                       "response": meta.get("content", "")[:20000]},
+                       "response": meta.get("content", ""),
+                       "recovery": blocks["report"]},
     }
     _invalidate_from(sess, 6)
     lint = _lint_generated(sess)
@@ -3239,6 +3289,11 @@ async def fix_script(key: str, request: Request):
     blocks = _parse_generated_blocks(meta.get("content", ""))
     if not blocks["test_code"]:
         raise HTTPException(502, "LLM fix returned no python code block.")
+    # Same rule as generate: a fix pass that came back in pieces and did not reassemble
+    # must not silently replace a working script with a partial one.
+    fix_failure = _recovery_failure(blocks["report"])
+    if fix_failure:
+        raise HTTPException(502, f"LLM fix could not be reassembled: {fix_failure}")
     # Re-stamp (PLAN §1.5): a fix pass can shift step content, so re-derive tags
     # from the same fragment mapping rather than trust whatever survived the edit.
     fix_fragments = _selected_fragments(sess)

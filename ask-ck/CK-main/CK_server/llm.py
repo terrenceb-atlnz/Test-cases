@@ -19,6 +19,7 @@ Real LLM only (no MOCK/demo fallbacks). Requires valid credentials or configured
 """
 
 import os
+import itertools
 import json
 import re
 import shutil
@@ -238,7 +239,7 @@ def _parse_cli_stream(raw: str):
     back to `result`, then to raw stdout. Also still accepts a single-object `json` payload,
     so an older CLI (or a caller that changes the format back) keeps working.
     """
-    texts, envelope = [], {}
+    texts, envelope, message_ids, synthesized = [], {}, [], []
     for line in (raw or "").splitlines():
         line = line.strip()
         if not line:
@@ -251,18 +252,80 @@ def _parse_cli_stream(raw: str):
             continue
         kind = evt.get("type")
         if kind == "assistant":
-            for block in (evt.get("message") or {}).get("content") or []:
-                if isinstance(block, dict) and block.get("type") == "text" and block.get("text"):
-                    texts.append(block["text"])
+            message = evt.get("message") or {}
+            chunks = [b["text"] for b in message.get("content") or []
+                      if isinstance(b, dict) and b.get("type") == "text" and b.get("text")]
+            if not chunks:
+                continue
+            # KEEP THE CLI'S OWN ERROR TEXT OUT OF THE ARTEFACT. When a run hits the
+            # output cap the CLI appends a SYNTHESIZED assistant message carrying
+            # "API Error: Claude's response exceeded the N output token maximum...".
+            # It is not model output, and concatenating it put English prose on the end
+            # of the generated script, where the assembler would treat it as code.
+            # Real API messages are id'd `msg_...`; the synthesized one carries a UUID.
+            #
+            # FAIL OPEN. A message with NO id is kept: dropping real model output is far
+            # worse than keeping one line of CLI error text, and this class of filter is
+            # exactly where an over-eager rule silently eats an artefact. Only an id that
+            # is present AND not a `msg_` id marks a message as synthesized.
+            msg_id = str(message.get("id") or "")
+            if msg_id and not msg_id.startswith("msg_"):
+                synthesized.extend(chunks)
+                continue
+            texts.extend(chunks)
+            message_ids.append(message.get("id"))
         elif kind == "result":
             envelope = evt
         elif kind is None and evt.get("result") is not None:
             envelope = evt            # single-object `json` output format
 
+    # PHASE 7.1 — DO NOT DISCARD THE TRUNCATION SIGNAL.
+    #
+    # Both HTTP backends raise when a reply stops on `max_tokens`; this path read no
+    # completion signal at all, so a generation that ran out of output budget returned
+    # HTTP 200 and was stamped, linted, persisted and written to disk exactly like a
+    # complete one. With nothing to the contrary, a truncated script is indistinguishable
+    # from a short one.
+    #
+    # THE SIGNAL IS NOT WHERE YOU WOULD EXPECT IT. Captured live against CLI 2.1.207
+    # (`CLAUDE_CODE_MAX_OUTPUT_TOKENS=200`, a deliberately over-long prompt): `stop_reason`
+    # is `null` on EVERY genuine assistant message, including the ones that actually hit
+    # the cap. The only truthy value in the whole stream sits on the CLI's synthesized
+    # error message, and it reads "stop_sequence", not "max_tokens". Reading assistant
+    # `stop_reason` therefore detects nothing — the first version of this fix did exactly
+    # that and was dead code.
+    #
+    # What the CLI does emit, on the terminal `result` event:
+    #     is_error: true, terminal_reason: "api_error",
+    #     result: "API Error: Claude's response exceeded the 200 output token maximum..."
+    # so that is what we read.
+    if envelope:
+        envelope = dict(envelope)
+        result_text = str(envelope.get("result") or "")
+        envelope["truncated"] = bool(
+            envelope.get("is_error")
+            and (envelope.get("terminal_reason") == "api_error"
+                 or "output token maximum" in result_text))
+
     if texts:
-        return "".join(texts), (envelope or {"result": "".join(texts)})
+        joined = "".join(texts)
+        # Text-BLOCK seams, recorded for forensics. Deliberately not called message
+        # boundaries: one assistant message can carry several text blocks (a thinking
+        # block plus a text block share an id), so these are block offsets, and
+        # `message_count` counts distinct message ids.
+        env = dict(envelope) if envelope else {"result": joined}
+        env["text_block_count"] = len(texts)
+        env["message_count"] = len(set(mid for mid in message_ids if mid))
+        env["text_block_boundaries"] = list(itertools.accumulate(len(t) for t in texts))[:-1]
+        if synthesized:
+            env["cli_error_text"] = "".join(synthesized)[:2000]
+        return joined, env
     if envelope.get("result") is not None:
         return envelope["result"], envelope
+    if synthesized:
+        # No model text and no result event, but the CLI said something: surface THAT
+        # rather than the raw stdout, which is where its diagnosis would otherwise die.
+        return "", {"stdout": raw, "cli_error_text": "".join(synthesized)[:2000]}
     return raw, {"stdout": raw}
 
 
@@ -348,8 +411,19 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
 
         raw = proc.stdout.strip()
         content, data = _parse_cli_stream(raw)
+        # PHASE 7.1 — say WHICH failure this was. `data["result"]` carries the CLI's own
+        # diagnosis ("API Error: Claude's response exceeded the N output token maximum");
+        # `content` is the answer text, so raising on `content` first showed 500 characters
+        # of the artefact and hid the reason entirely. Prefer the diagnosis, and name the
+        # budget case explicitly so it cannot be read as a model or prompt fault.
+        if data.get("truncated"):
+            raise RuntimeError(
+                f"the model ran out of output budget after {len(content or ''):,} characters "
+                f"across {data.get('message_count', 1)} message(s) — the answer is "
+                f"incomplete. CLI reported: "
+                f"{str(data.get('result') or data.get('cli_error_text') or '')[:300]}")
         if data.get("is_error"):
-            raise RuntimeError(str(content or data.get("result"))[:500])
+            raise RuntimeError(str(data.get("result") or content)[:500])
 
         print(f"[LLM CLAUDE via claude_code] model={model or 'cli-default'}")
         print("[LLM CLAUDE] Prompt (first 300):", prompt[:300])

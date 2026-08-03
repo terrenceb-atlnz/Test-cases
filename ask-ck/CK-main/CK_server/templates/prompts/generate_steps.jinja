@@ -1,16 +1,56 @@
 You are drafting Zephyr-ready verification steps for a manual test case.
 The objective below is finalized (user-reviewed). Derive the steps from it.
 
+An objective bullet states an END STATE — what should be true. A step is a PROCEDURE — what
+someone does, with what data, and how they tell whether it worked. Restating a bullet with
+"Verify " in front of it is NOT a step: it adds no test-design information, and a tester
+cannot execute it.
+
 ## Case
 {{ case_key }}{% if primary and primary.w %} — {{ primary.w }}{% endif %}
 
 ## Finalized objective (authoritative)
 {{ objective }}
-
+{% if testlink_selections %}
+## TestLink selections (evidence — reuse their concrete values where they fit)
+{% for s in testlink_selections %}- {{ s.id_or_key }}: {{ s.title }}
+{% endfor %}{% endif %}{% if zephyr_selections %}
+## Zephyr exemplars (evidence — match their level of detail)
+{% for s in zephyr_selections %}- {{ s.key or s.id_or_key }}: {{ s.title }}
+{% endfor %}{% endif %}{% if atp_selections %}
+## ATPyLib coverage (selected ART)
+{% for s in atp_selections %}- {{ s.id_or_key or s.id or s }}: {{ s.title or s.description or '' }}
+{% endfor %}{% endif %}{% if gaps %}
+## Known coverage gaps
+{{ gaps }}
+{% endif %}
 ## Rules
 - The FIRST step is injected server-side as a traceability note — DO NOT generate it.
 - Generate ONLY the subsequent verification steps exercising the objective's artefacts.
-- One or a few steps per major objective bullet (positive / negative / special / reporting as applicable).
-- Use "Verify...", "Set...", "Test with...", "Confirm..."; platform-agnostic language.
-- expectedResult usually empty or brief.
-- Output JSON array ONLY: [{"description": "...", "expectedResult": ""}, ...]
+- Cover each major objective bullet: positive, negative, special conditions, reporting.
+- EVERY step must name the test data it uses (values, counts, interfaces, timings) and the
+  measurement — the command, counter, log or observation the tester reads.
+- EVERY step must have a non-empty expectedResult stating the OBSERVABLE outcome: what the
+  measurement should show, with the value or bound it is compared against. "Passes",
+  "works", "is correct" and "as expected" are not outcomes.
+- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT
+  and a partner), never a device model or a port number.
+- Platform-agnostic language: no product names, no hardcoded port strings.
+
+## Output format — this example IS the specification; match its level of detail
+[
+  {
+    "description": "With the partner link up, set the LLDP transmit interval to 5 seconds on the DUT test port and leave the hold multiplier at its default of 4.",
+    "expectedResult": "The running configuration reports a transmit interval of 5 seconds; the neighbour's advertised TTL is 20 seconds (5 x 4)."
+  },
+  {
+    "description": "Capture LLDPDUs on the partner port for 30 seconds and count the frames received.",
+    "expectedResult": "6 +/- 1 LLDPDUs are received (30s / 5s interval), each carrying the mandatory Chassis ID, Port ID and TTL TLVs."
+  },
+  {
+    "description": "Set the transmit interval to 0, which is below the supported minimum.",
+    "expectedResult": "The DUT rejects the value with a range error and the previously configured interval of 5 seconds remains in effect."
+  }
+]
+
+Output the JSON array ONLY. No prose, no markdown fence.

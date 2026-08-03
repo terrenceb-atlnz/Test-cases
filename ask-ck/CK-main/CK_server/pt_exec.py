@@ -9,6 +9,7 @@ Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-crea
   threading.Thread so runs survive the HTTP request and are pollable.
 """
 
+import contextvars
 import json
 import os
 import re
@@ -400,13 +401,39 @@ class RunManager:
 
     def start(self, key: str, run: dict, profile: dict, files: Dict[str, str],
               setup_remote: str, local_run_dir: Path, on_update) -> None:
-        """Launch the run thread. `files` = {filename: code}. `on_update(run)` persists."""
+        """Launch the run thread. `files` = {filename: code}. `on_update(run)` persists.
+
+        THIS IS WHY NO TEST CASE HAD EVER EXECUTED (Phase 11.0, 2026-08-03).
+
+        A new `threading.Thread` starts with a FRESH `contextvars.Context` — it inherits
+        nothing. `llm.current_session_id` is a ContextVar, and `locks.current_holder()`
+        reads it, so the run thread's holder was `''` while the browser tab that started
+        the run held a live, heartbeated lock on the same case. The thread's very first
+        `on_update` — `run["status"] = "connecting"`, before SSH is even attempted — was
+        therefore rejected by `locks.require_can_write` with `LockConflictError`. Because
+        that call sits inside the connect `try/except`, the user was told
+        **"SSH connect failed: … the case is locked"**: a lock defect wearing a lab
+        fault's clothing, which is why five sessions went looking at the bench.
+
+        Reproduced against the real `locks` module:
+
+            holder in main thread          : 'browser-tab-abc'   can write: YES
+            holder inside RunManager thread: ''                  can write: NO
+
+        `copy_context()` captures the request's values HERE, on the calling thread, where
+        they are still live — `main.py` resets the ContextVar in a `finally` when the
+        request ends, and a copy is unaffected by that reset. Copying the whole context
+        rather than threading one `holder=` argument through fixes every ContextVar at
+        once, including the one `llm_debug` uses to name its log file: background work was
+        being written to `debug-log/no-session.jsonl` for the same reason.
+        """
         with self._lock:
             if self.is_running(key):
                 raise RuntimeError("a run is already active for this case")
+            ctx = contextvars.copy_context()
             t = threading.Thread(
-                target=self._run, name=f"pt-run-{key}",
-                args=(run, profile, files, setup_remote, local_run_dir, on_update),
+                target=ctx.run, name=f"pt-run-{key}",
+                args=(self._run, run, profile, files, setup_remote, local_run_dir, on_update),
                 daemon=True)
             self._threads[key] = t
             t.start()

@@ -1,0 +1,2 @@
+{"type": "assistant", "message": {"id": "msg_011Cdf9muxQHkxA3yWF7B9yn", "role": "assistant", "stop_reason": null, "stop_sequence": null, "content": [{"type": "text", "text": "Hello there, friend!"}]}}
+{"type": "result", "subtype": "success", "is_error": false, "terminal_reason": "completed", "stop_reason": "end_turn", "result": "Hello there, friend!", "usage": {"input_tokens": 1, "output_tokens": 10}}
