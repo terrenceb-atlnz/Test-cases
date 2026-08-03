@@ -25,10 +25,24 @@ quoting (190 mine + 18 theirs).
   or working-tree contents — especially in a session-close summary, which is exactly what the next
   session acts on.
 - Never carry a status observation forward across a long stretch of work. Treat "the gate was
-  green an hour ago" as unknown, not as green.
+  green an hour ago" as unknown, not as green. **This recurred on 2026-08-04**, in the same
+  shape: two `git push` attempts were refused by the permission layer, and I then reported
+  "N commits local, push needs your approval" in several successive turns. The push had
+  meanwhile succeeded (by Terrence or the other stream) and `origin/main` held everything;
+  `git status -sb` would have said so at any point. A *blocked* action is as perishable an
+  observation as a green gate — re-check it before restating it, not just before claiming it
+  the first time.
 - When committing, stage **explicit paths**, never `git add -A` — the other stream's uncommitted
   work sits in the same files (see the 27g batches, where `pytest_create.py` had to be split
   hunk-by-hunk to avoid sweeping in their step-label change).
+- **`git add <paths>` is NOT enough. Use `git commit -- <pathspec>` every time.** A bare
+  `git commit` commits whatever is *already in the index*, including work someone else — or an
+  earlier session — left staged. 2026-08-04: `ask-ck/var/ck.db` was staged before the session
+  began; eight commits passed an explicit pathspec and were clean, one used `git add -- <paths>`
+  followed by a bare `git commit`, and that one swept a new ~460 MB LFS object onto `origin`.
+  Not harmful (it is a valid LFS pointer holding real session traffic, and `ck.db` belongs in
+  the repo) but it was neither intended nor asked for, and I had asserted the opposite without
+  checking `git show --name-only`.
 - Test counts drift for the same reason; prefer "my layers: N" over an unqualified repo-wide total,
   or re-measure.
 

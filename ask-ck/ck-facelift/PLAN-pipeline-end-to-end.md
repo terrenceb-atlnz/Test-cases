@@ -16,8 +16,37 @@
 > | **Phase 7.6** (chunked generation) | ❌ **WITHDRAWN.** Measured 67,326 output tokens in one call — see below. |
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
 > | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
+> | **Phase 7.8** (generate-prompt contradictions) | ✅ **Rule 3 DONE** 2026-08-04 (`9c1a553`) — it was producing the only lint error that has ever fired. Rules 1/8, the untrimmed device list and the on-code FILL markers remain. |
 > | **Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
+>
+> ### 2026-08-04 — decisions reviewed with Terrence; six changed
+>
+> The autonomous run's judgement calls were reviewed as a blind experiment (12 presented as
+> neutral questions; **5 matched**, and of the 7 that differed **4 landed on an option neither
+> of us picked**). Everything is recorded in
+> [`DECISIONS-FOR-REVIEW.md`](DECISIONS-FOR-REVIEW.md) §9–12. What changed in the plan's terms:
+>
+> - **Phase 7.7's no-override rule was too strict and is now split by authority.** 14 lint
+>   errors block with no override; 5 are house rules a reviewer may accept with a recorded
+>   reason. The trigger: the only error ever to fire on a real generation was a house rule, on
+>   our best script, **earned by following our own prompt** — so 7.8's rule-3 fix landed first.
+> - **A refusal must not destroy the evidence.** The 502 fired before `sess.step6` was written,
+>   re-creating Phase 7.9's defect one layer up. Attempts now persist to
+>   `step6.failed_generations` before refusing.
+> - **Phase 11.1's scope is capped.** Run results owe four things and no more — consistent,
+>   readable, formatted for automation, no gaps. Expected-UNSUPPORTED sets, drift states and
+>   provisional flags were built and then **deleted as scope creep**: judging what a run *means*
+>   is Test Composer's job. `results_complete` states whether the results are trustworthy, which
+>   is deliberately not "the test passed".
+> - **Two claims from 2026-08-03c are withdrawn:** `x230v2` as a capability anchor (it is a lossy
+>   framework label over the device's real `AT-x230-18GT V2`), and "UNSUPPORTED is a
+>   deterministic property of (case × platform)" — only 1 of 4 real cases is a platform
+>   capability; three are bench state (`No USB media present`).
+>
+> **Still unreviewed and worth doing before Phase 2.4:** the steps prompt's actual text, and
+> which 14 lint errors are blocking vs which 5 are policy. Both get much harder to change once
+> 53 cases are regenerated against them.
 >
 > ### 2026-08-03c — what changed in the plan itself
 >

@@ -2,7 +2,83 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-03c (by Claude)
+**Last Updated**: 2026-08-04 (by Claude)
+
+## Latest session (2026-08-04) — the decisions got reviewed, and review changed 6 of them
+
+**Terrence reviewed the autonomous run's decisions as a blind experiment**: I presented 12 of
+them as neutral questions without revealing my choices, he answered, and we compared. **5 of 12
+matched.** Of the 7 that differed, review moved 1 my way, 2 his way, and **4 landed on an option
+neither of us had picked.** Every difference dissolved once someone measured — and in every case
+the measurement was cheap and had been available the whole time.
+
+Full record with rationale: [`DECISIONS-FOR-REVIEW.md`](../ck-facelift/DECISIONS-FOR-REVIEW.md),
+sections 9–12. Gate **895 → 944** pytest (+92 Vitest); 4 commits, all pushed.
+
+### What review actually caught
+
+- **The lint gate was punishing the model for our prompt bug (`9c1a553`).** The only lint error
+  ever to fire on a real generation was `calls setup.init_portlink() directly` — on T44297, the
+  best script we have. And the generate prompt said *"bind every device you use in
+  `TestSet.init`"* and pointed at `init_portlink()`, while never once mentioning
+  `_ck_bind_link`, the wrapper the lint demands. My no-override rule made that script
+  **permanently unconfirmable**. Prompt fixed first; the 19 errors are now split by authority —
+  14 blocking, 5 overridable with a recorded reason — and a new test asserts every enforced rule
+  is actually conveyed by the prompt.
+- **A fix I nearly built would have re-opened the silent-loss hole (`9c1a553`).** I proposed
+  recovering fences-inside-string-literals by adding another candidate reading. Terrence asked
+  whether it was "a plan for an eventuality that has yet to arise" whose "solution itself could
+  be creating issues". Both true: frequency is **zero** across 830 corpus scripts, 1,250 CLI
+  samples and 5 generations, and the fix would have enlarged the candidate set from readings
+  differing by one line to readings differing *structurally* — at which point "it parses" stops
+  being evidence and a loud refusal becomes a possible silent wrong assembly. Shipped a
+  diagnosis instead, plus a test guarding against the recovery path being added later.
+- **My 502 refusal was destroying the evidence (`1282bcf`).** It fired before `sess.step6` was
+  written, so refusing lost the whole reply — Phase 7.9's exact defect, re-created one layer up,
+  for the one case where the record matters most. Attempts now save to
+  `step6.failed_generations` before the refusal.
+- **Refusing every duplicate class would have rejected 40% of real replies (`1282bcf`).** The
+  three real duplicates are unambiguous — two have an earlier copy that does not parse at all,
+  the third is 14 nodes vs 434, and the model's own assembly note confirms the later one. Now:
+  decide on an unambiguous margin, refuse a genuine coin-flip.
+- **My UNSUPPORTED reconciliation could never report green (`d53b1db`).** A real UNSUPPORTED
+  case reports its own inapplicability *as a failure line*, so it carries `numFailed >= 1`; `ok`
+  required `numFailed == 0`, making every branch unreachable. My synthetic fixture used
+  `numFailed: 0`, which no real log does. **Second time an invented fixture masked a real bug**
+  in this work.
+- **Then the whole reconciliation was cut as scope creep (`21be04c`).** Terrence: *"Results are
+  Pass / Fail / Unsupported, determined per-step… Our current goals regarding logs are:
+  Consistent results / Readable results / Formatted appropriately for future automation / No
+  gaps in results."* Expected sets, regression/stale states and provisional flags are all gone —
+  they judged what a run *means*, which is Test Composer's job.
+
+### Corrections to the 2026-08-03c record
+
+- **`x230v2` is weaker evidence than I presented, and the wrong anchor.** Traced properly: the
+  framework runs `sh sys` at 11:29:00 and the device replies `AT-x230-18GT V2` (board 691, serial
+  `A10719G254500012`), from which the framework derives `platform family x230v2` — a **lossy**
+  normalisation that drops the port-count variant.
+- **"UNSUPPORTED is a deterministic property of (case × platform)" was WRONG.** Only 1 of the 4
+  real UNSUPPORTED cases is a platform capability; the other three are `No USB media present` —
+  **bench state**. The stability I measured was two runs on an untouched bench, generalised from
+  n=2. Terrence's original objection (this belongs to bench configuration, in Test Composer) was
+  right for a reason I had not yet found.
+- **`ask-ck/var/ck.db` was committed in `1282bcf`, contrary to what I reported.** One commit used
+  a bare `git commit` while the file sat pre-staged from before the session; the other eight
+  passed an explicit pathspec. It is a valid LFS pointer holding real session traffic, so not
+  harmful and not an invariant breach — but unintended, and I asserted the opposite without
+  checking. Left in place: reverting would discard real traffic and rewriting pushed history is
+  worse.
+
+### Pick up here
+
+1. **Phase 11.4 — the first hardware run.** Still the deliverable everything points at. Nothing
+   has touched tb470.
+2. **Review the steps prompt's text and the lint classification** — the two decisions still
+   unreviewed that are hardest to unwind once 53 cases are regenerated against them.
+3. Then Phase 2.4 (regenerate the 53), and Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12.
+4. Recorded for Test Composer, not acted on: case `.62`'s UNSUPPORTED verdict conceals a second
+   failure (`Problem occurred whilst setting boot environment on swi_a, abort`).
 
 ## Latest session (2026-08-03c) — the ceiling is dead in code, and the run path is unblocked
 

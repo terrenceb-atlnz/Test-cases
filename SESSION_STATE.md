@@ -3059,3 +3059,73 @@ explicit pathspecs so it was never included. **Do not `git checkout` it.**
 offline and nothing has touched tb470; (2) sign off the steps prompt, then Phase 2.4 regenerate;
 (3) read DECISIONS-FOR-REVIEW.md, especially D-03, D-15 and D-17. Stations 14 and 16 are still
 not walked through.
+
+## Session Close / Handoff (2026-08-04) — decisions reviewed; 6 of 12 changed on measurement
+
+**Note on the 2026-08-03c entry above:** three of its claims are superseded here — the
+`x230v2` platform anchor, "UNSUPPORTED is a deterministic property of (case × platform)", and
+"commits used explicit pathspecs so `ck.db` was never included". See *Corrections* below.
+
+**Ask:** review the decisions taken during the autonomous run. Run as a **blind experiment** —
+I presented 12 as neutral questions without revealing my choices, Terrence answered, we
+compared. **5 of 12 matched.** Of the 7 that differed, review moved 1 my way, 2 his, and **4 to
+an option neither of us picked first.** Every difference dissolved once someone measured, and
+the measurement was cheap and available all along.
+
+**Shipped — 4 commits, all pushed. Gate 895 → 944 pytest, 92 Vitest:**
+
+- `9c1a553` — **the lint gate was punishing the model for our prompt bug.** The only lint error
+  ever to fire on a real generation (`calls setup.init_portlink() directly`, on T44297, our best
+  script) was earned by a model following a prompt that said *"bind every device you use in
+  `TestSet.init`"* and never mentioned `_ck_bind_link`. My no-override rule made that script
+  permanently unconfirmable. Prompt fixed; 19 errors split by authority (14 blocking,
+  5 overridable with a recorded reason); a new test asserts every enforced rule is conveyed by
+  the prompt. Also: **no** string-fence recovery — the fix I proposed would have traded a loud
+  refusal for a possible silent wrong assembly, and the underlying case has **never occurred**
+  (0 across 830 corpus scripts, 1,250 CLI samples, 5 generations).
+- `1282bcf` — the four remaining differences. **My 502 was destroying the evidence** (it fired
+  before `sess.step6` was written; attempts now persist to `step6.failed_generations` first).
+  Duplicate classes decide on an unambiguous margin and refuse a coin-flip — refusing all of
+  them would have rejected 2 of the 5 real replies. A block after `ts.run()` refuses (0
+  occurrences, so free). Retry stays **explicit**: the calls that fail reassembly measured
+  326–778s, so an inline retry builds a 10–26 minute request the client abandons.
+- `d53b1db` — **my UNSUPPORTED reconciliation could never report green.** A real UNSUPPORTED
+  case reports its own inapplicability *as a failure line*, so it carries `numFailed >= 1`; `ok`
+  required `numFailed == 0`. Every branch was unreachable, and my synthetic fixture used
+  `numFailed: 0`, which no real log does.
+- `21be04c` — **the whole reconciliation cut as scope creep.** Terrence: *"Results are Pass /
+  Fail / Unsupported, determined per-step… goals regarding logs are: Consistent results /
+  Readable results / Formatted appropriately for future automation / No gaps in results."*
+  Expected sets, regression/stale states and provisional flags deleted. `ok` renamed
+  `results_complete` — the results are *trustworthy*, which is a separate question from whether
+  the test passed.
+
+**Corrections to the record:**
+
+1. **`x230v2` is real but the wrong anchor.** The framework runs `sh sys` and the device replies
+   `AT-x230-18GT V2` (board 691, serial `A10719G254500012`); the framework derives
+   `platform family x230v2` — a lossy normalisation dropping the port-count variant.
+2. **"UNSUPPORTED is deterministic per (case × platform)" was wrong.** Only 1 of 4 real cases is
+   a platform capability; three are `No USB media present` — **bench state**. I generalised from
+   n=2 runs on an untouched bench. Terrence's objection that this belongs to bench configuration
+   (Test Composer) was right for a reason I had not found.
+3. **`ask-ck/var/ck.db` WAS committed, in `1282bcf`.** One commit used a bare `git commit` while
+   the file sat pre-staged from before the session; the other eight passed an explicit pathspec.
+   Valid LFS pointer, real session traffic, no invariant breach — but unintended, and I asserted
+   the opposite without running `git show --name-only`. **Left in place**: reverting discards
+   real traffic and rewriting pushed history is worse.
+4. **I reported "N commits local, push needs approval" for several turns after it was false.**
+   Two push attempts were refused by the permission layer; the push then succeeded by another
+   hand and `origin/main` held everything. A *blocked* action is as perishable as a green gate.
+   Both lessons are now in `shared-tree-status-has-short-shelf-life`.
+
+**Gate at close:** 944 passed / 1 skipped, 92 Vitest, both guards OK, `ck.db` untouched by
+tests. Working tree clean; `origin/main` == `HEAD`.
+
+**Pick up here:** (1) **Phase 11.4, the first hardware run** — still the deliverable everything
+points at, nothing has touched tb470; (2) review the **steps prompt text** and the **lint
+classification**, the two unreviewed decisions hardest to unwind once 53 cases are regenerated
+against them; (3) Phase 2.4 regenerate; (4) Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12 untouched.
+Left for Test Composer: case `.62`'s UNSUPPORTED verdict conceals a second failure
+(`Problem occurred whilst setting boot environment on swi_a, abort`).
+

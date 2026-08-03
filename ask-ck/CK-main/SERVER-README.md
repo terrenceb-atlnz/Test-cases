@@ -538,6 +538,53 @@ Coverage is recomputed and stored (`step2.coverage`) on both `extract_sequence` 
 decision, not a silent pass. Built after a re-extraction silently dropped T33234's entire
 MDI/MDI-X forced-polarity negative path (14 steps → 9).
 
+**Lint gate on Confirm, split by AUTHORITY (2026-08-04).** `confirm_step` also refuses
+**5. Generate** while the lint reports errors — it previously never looked at the lint at all,
+so a script with hard errors could be signed off and carried into the run and export stages.
+The 19 lint errors are two different kinds of thing, so they have two different authorities:
+
+- **blocking (14)** — the artefact provably cannot work: a syntax error, missing structure, a
+  surviving `>>> FILL` marker, `self.` used before the assignment block, a device or port the
+  fixed `init()` frame never bound (an `AttributeError` on the testbox), a bad framework
+  import, a duplicate portlink binding, fewer TestCase classes than the approved sequence, or
+  a completeness check that could not run. **No override — regenerate.**
+- **policy (5)** — the script runs but breaks a house rule: the four logging-contract checks,
+  and calling `setup.init_portlink()` directly instead of through the frame's
+  `_ck_bind_link()`. Overridable with `{"acknowledge_lint_policy": "<why>"}`; the reason is
+  recorded on the session in `step6.policy_acknowledgements`.
+
+Anything unrecognised is treated as blocking, so a newly-added check is strict until someone
+classifies it. *Why the split exists:* the only lint error ever to fire on a real generation
+was the `init_portlink` one, on the best script we have produced — and the generate prompt was
+telling the model to bind devices in `TestSet.init` while never mentioning `_ck_bind_link`.
+A blanket no-override rule made that script permanently unconfirmable because of a prompt bug.
+The prompt was fixed in the same pass, and `tests/test_prompt_agrees_with_lint.py` now asserts
+that every rule the lint enforces is actually conveyed by the prompt.
+
+**Run results: consistent, readable, no gaps (2026-08-04).** `parse_framework_log` reports one
+outcome per case — `PASS` / `FAIL` / `UNSUPPORTED`, plus `ERROR` for a case that never reached
+a verdict — as a `counts` dict beside the log's verbatim `numPassed`/`numFailed`, and a single
+readable line with **both tallies labelled**, because "N passed" is ambiguous between cases and
+assertions and the log reports both:
+
+```
+cases: 1 passed, 10 failed, 4 unsupported, 1 no verdict (of 16); assertions: 60 passed, 43 failed
+  — 1 case(s) did not reach a verdict (5700.2002.90).
+```
+
+`results_complete` means the **results are trustworthy** — the run produced results, every
+registered case reported a verdict, and no failure line is unattributed. It deliberately does
+*not* mean the test passed; that is `counts["FAIL"] == 0`, asked separately. Conflating the two
+is the original defect: a run that never started parsed to `0 passed, 0 failed`, which read as
+a clean sweep to every count-based check. Expected-case count comes from the script's own
+`ts.add_testCase(...)` registrations, read from the AST.
+
+> Note an UNSUPPORTED case reports its own inapplicability **as a failure line**
+> (`!!FAIL: DUT does not support USB Media`), so it contributes to `numFailed` while being
+> classified UNSUPPORTED. That is why the verdict reads case results rather than counters.
+> Judging whether a case *should* have been unsupported, and tracking that across runs, is
+> **Test Composer's** job, not this layer's.
+
 **Gated flow (sidebar steps, each with an explicit Confirm):**
 1. **Cases** — pick a Complete case, Load Case & Continue.
 2. **Sequence** — LLM extracts a prescriptive sequence of automatable steps from the
