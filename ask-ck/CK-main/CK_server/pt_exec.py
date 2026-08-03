@@ -9,6 +9,7 @@ Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-crea
   threading.Thread so runs survive the HTTP request and are pollable.
 """
 
+import ast
 import contextvars
 import json
 import os
@@ -235,13 +236,31 @@ _PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
 _FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
 
 
-def parse_framework_log(text: str) -> Dict[str, Any]:
+def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict[str, Any]:
     """Parse an ATTestSet log into per-case results.
 
     Returns {cases: [{name, result, pass_msgs, fail_msgs, log_lines: [start, end]}],
-             numPassed, numFailed, unparsed_fails}
+             numPassed, numFailed, unparsed_fails, status, expected_cases, verdict}
     log_lines are 0-based indexes into the stripped-line list, used to pull
     excerpts for the LLM fix prompt.
+
+    PHASE 11.1 — EMPTY MUST NOT EQUAL SUCCESS. A run that never started parses to zero
+    cases, zero passed and zero failed, which is indistinguishable from a clean sweep by
+    every downstream check: `numFailed == 0` reads as green. That matters because the most
+    likely first-run outcome is exactly this shape — `_ck_bind_link` aborting correctly on
+    a bench problem produces a log with no case results at all.
+
+    So the parser now states a `status` rather than leaving it to be inferred from counts:
+
+        empty_log   nothing to parse
+        no_results  the log has content but not one case result  <- the dangerous one
+        short       fewer case results than the script registered
+        ok          every expected case reported
+
+    `expected_cases` comes from the script's own `ts.add_testCase(...)` registrations, so
+    "short" is measured against what the script meant to run, not against a guess. This
+    must be in place before the first hardware run or the first verdict is untrustworthy
+    by construction.
     """
     lines = text.splitlines()
     cases: List[dict] = []
@@ -289,12 +308,76 @@ def parse_framework_log(text: str) -> Dict[str, Any]:
         current["log_lines"][1] = len(lines) - 1
         cases.append(current)
 
+    num_passed = sum(c.get("numPassed", len(c["pass_msgs"])) for c in cases)
+    num_failed = sum(c.get("numFailed", len(c["fail_msgs"])) for c in cases)
+
+    if not (text or "").strip():
+        status = "empty_log"
+    elif not cases:
+        status = "no_results"
+    elif expected_cases is not None and len(cases) < expected_cases:
+        status = "short"
+    else:
+        status = "ok"
+
+    # One line a human or a grader can act on. NEVER "0 failed" for a run that did not
+    # produce results — that is the sentence this whole function exists to stop printing.
+    if status == "empty_log":
+        verdict = "NO RESULTS — the run produced no log output at all."
+    elif status == "no_results":
+        verdict = ("NO RESULTS — the log has content but not one test case reported. "
+                   "The script almost certainly aborted before its first case (a bench or "
+                   "binding problem), so this is NOT a pass.")
+    elif status == "short":
+        verdict = (f"INCOMPLETE — {len(cases)} of {expected_cases} registered test cases "
+                   f"reported. The run stopped early; the missing cases are untested, not "
+                   f"passing.")
+    else:
+        verdict = f"{num_passed} passed, {num_failed} failed across {len(cases)} case(s)."
+
+    # A case that crashed mid-way has result ERROR and contributes NO numFailed, so a
+    # failure count alone still reads clean. `ok` therefore requires every case to have
+    # reached a verdict, not merely an absence of failures. UNSUPPORTED is a legitimate
+    # outcome (the feature does not apply to this platform) and is reported, not failed.
+    errored = [c["name"] for c in cases if c.get("result") in (None, "ERROR")]
+    unsupported = [c["name"] for c in cases if c.get("result") == "UNSUPPORTED"]
+    if errored and status == "ok":
+        verdict = (f"{num_passed} passed, {num_failed} failed, and {len(errored)} case(s) "
+                   f"did not reach a verdict ({', '.join(errored[:5])}) — those are "
+                   f"errors, not passes.")
+
     return {
         "cases": [{k: v for k, v in c.items()} for c in cases],
-        "numPassed": sum(c.get("numPassed", len(c["pass_msgs"])) for c in cases),
-        "numFailed": sum(c.get("numFailed", len(c["fail_msgs"])) for c in cases),
+        "numPassed": num_passed,
+        "numFailed": num_failed,
         "unparsed_fails": unparsed_fails,
+        "parsed_cases": len(cases),
+        "expected_cases": expected_cases,
+        "errored_cases": errored,
+        "unsupported_cases": unsupported,
+        "status": status,
+        "ok": (status == "ok" and num_failed == 0 and unparsed_fails == 0 and not errored),
+        "verdict": verdict,
     }
+
+
+def expected_case_count(code: str) -> Optional[int]:
+    """How many test cases the script registers, from its own `ts.add_testCase(...)` calls.
+
+    Read from the AST rather than by regex so `add_testCase(X('arg'))` counts too. Returns
+    None when the script cannot be parsed, so a caller can tell "no expectation" apart from
+    "expected zero".
+    """
+    try:
+        tree = ast.parse(code or "")
+    except (SyntaxError, ValueError):
+        return None
+    count = 0
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "add_testCase"):
+            count += 1
+    return count
 
 
 def failure_excerpts(text: str, parsed: Dict[str, Any], context: int = 15,
@@ -536,7 +619,10 @@ class RunManager:
                 sftp.close()
 
             run["exit_code"] = exit_code
-            run["parsed"] = parse_framework_log(log_text or stdout_text)
+            # Expected count comes from the script that was actually uploaded, so a "short"
+            # verdict is measured against what this run meant to do (Phase 11.1).
+            expected = expected_case_count(files.get(test_name, ""))
+            run["parsed"] = parse_framework_log(log_text or stdout_text, expected_cases=expected)
             run["status"] = "done"
             run["finished_at"] = utc_now().isoformat()
             on_update(run)
