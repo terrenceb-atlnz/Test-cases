@@ -2922,3 +2922,77 @@ Two operational notes that cost time here: **`run.sh` always passes `--reload`**
 anything under `ask-ck/CK-main` bounces the server and kills in-flight LLM calls — sequence server
 edits into idle windows. And this repo is on **NFS**, so `tail` can serve a minutes-stale view of
 a log; read batch progress from `state.json`, not the log tail.
+
+---
+
+## Session Close / Handoff (2026-08-03b) — full-pipeline audit; Phase −1 shipped; the output ceiling is refuted
+
+**Ask:** turn the pipeline's failures into one ordered plan, "from beginning (no objectives is
+never ok) to the end (we never executed ANY test cases, over multiple sessions)", leaving no
+stone unturned.
+
+**Deliverable:** `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` (~1,750 lines) — 16-station
+walkthrough, 14 phases, decisions recorded inline. Built from a 27-agent adversarially-verified
+audit: **284 findings, 206 CONFIRMED, 77 PARTLY, 1 unverified, 0 refuted**, 3.5M subagent tokens.
+
+**Two findings that reorder the work:**
+
+1. **The generation output ceiling does not exist.** `_parse_generated_blocks`
+   (`pytest_create.py:883`) uses a non-greedy fence regex; the CLI splits long answers across
+   assistant messages that each re-open a ```python fence, so the regex stops at the
+   *continuation's opening* fence and discards the rest — usually mid-token, which read as model
+   truncation. Replay of the five stored replies in `debug-log/no-session.jsonl`: 42 classes sent
+   / 21 kept; 17/16; 12/9; 6/6; and the "D15 regression" 6 classes sent / **0 kept**. **All five
+   end in `ts.run(sys.argv)`.** The parser-kept figures are exactly the numbers published in
+   `FINDINGS-generation-size-ceiling.md` and `RESULTS-2026-08-03.md`, so those documents measured
+   parser output and called it model output. Invalidates the ~9–20 class ceiling,
+   `_size_overflow`'s three "measured" constants, chunked generation (costed XL), and D15.
+2. **The reason nothing has ever executed on hardware is a `ContextVar` lock defect.**
+   `RunManager._run` is a `threading.Thread`; `llm.current_session_id` is a `ContextVar`, which a
+   new thread does not inherit, so the run thread is locked out by the browser tab that started
+   it — before SSH — and reports "SSH connect failed: … the case is locked". Reproduced offline.
+   D13/the stack demand is not the blocker: preflight is not wired into the run path at all.
+
+**Shipped:** Phase −1 (`949004f`, `0743889`). The Zephyr push imported no validator and pushed
+whatever was on disk; it now validates (server shape rules imported and **failing closed**, plus
+every non-note step must carry an `expectedResult`), makes the silent escape-repair loud and
+blocking, requires `{"confirm": "<key>"}` for a real write, and audits every `--execute` to
+`ask-ck/var/zephyr-push-audit.jsonl` before the first network call — no record, no push. A
+heading mismatch (`(Step 3)` parsed vs `(Step 2)` emitted) had been silently dropping Zephyr
+web-links: **2 → 86 across 12 bundles**. `parse_atpylib_links` had been fixed for the identical
+drift 30 lines above and it was never carried across. 28 new tests; 9-mutation harness, all
+caught.
+
+**The gate now refuses all 53 committed bundles** — 618 of 648 verification steps have no
+expected result. That is the honest state of the corpus, not a tooling fault, and it makes
+Phase 2 (`generate_steps.jinja`) a hard blocker on re-enabling the push rather than a successor
+to it.
+
+**Decisions:** the 43 cases already live in Zephyr (`6f254e7`, 2026-07-22) will be **re-pushed and
+stay at v2.0** — no v3.0; `TARGET_MAJOR_VERSION = 2` already enforces it. Zephyr therefore keeps
+no version trail, so the local audit log carries the replaced content, and a re-push needs
+`--force` (a deliberate CLI run, not the button). Also settled: backfill `ck.db` behind a
+migration mechanism; regenerate all 53 after Phases 1–4; triage rather than author all 305 empty
+cases.
+
+**Corrections to earlier entries:** the `ck.db` build timeline in the 2026-08-03 record is
+backwards — `build_db.py:506` uses `datetime.utcnow()`, so `built_at 2026-07-20T01:16` is UTC =
+13:16 local and the extractor was fixed **6h12m before** the build (cross-check:
+`meta.src_mtime:scripts_index.json` = 13:12:30 local). The fix existed; the build re-used a
+five-day-old intermediate. Memory `claude-code-cli-transport-contract` asserted the output
+ceiling as fact and has been corrected.
+
+**Gate at close:** 803 pytest passed / 1 skipped, 92 Vitest, both guards OK, `ck.db` untouched by
+tests. `ask-ck/var/ck.db` shows modified in `git status` — that is the WAL checkpoint folding in
+real session traffic, deliberately left unstaged; **do not `git checkout` it.**
+
+**Pick up here:** (1) fix `_parse_generated_blocks` and re-measure before re-fitting any size
+constant; (2) Phase 11.0 — propagate the lock holder into the `RunManager` thread; (3) Phase 2 —
+`generate_steps.jinja:15-16` tells the model expected results are "usually empty" *and* shows an
+empty one as its only example. Stations 14 and 16 are written into the plan but were never walked
+through with Terrence.
+
+**Operational note:** the mutation harness edits tracked files in place. An interrupt killed it
+between mutating and reverting and left `generator.js` corrupted in the working tree; the test
+suite caught it immediately. It now snapshots targets, restores from `atexit`/`SIGINT`, and
+refuses to start dirty.

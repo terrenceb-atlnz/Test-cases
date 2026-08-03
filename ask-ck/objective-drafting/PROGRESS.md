@@ -2,9 +2,90 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-03 (by Claude)
+**Last Updated**: 2026-08-03b (by Claude)
 
-## Latest session (2026-08-03) — 10 refined cases via Opus; generation hits a hard OUTPUT CEILING; 12 transport defects fixed
+## Latest session (2026-08-03b) — full-pipeline audit (284 findings): the output ceiling is a PARSER BUG, and Phase −1 ships
+
+**Focus: "no objectives is never OK" through to "we have never executed a single test case" —
+one plan, in pipeline order, leave no stone unturned.** Deliverable is
+[`ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md`](../ck-facelift/PLAN-pipeline-end-to-end.md)
+(~1,750 lines): a 16-station walkthrough of the pipeline, 14 phases, decisions recorded inline.
+Built from a 27-agent adversarially-verified audit — **284 findings, 206 CONFIRMED, 77 PARTLY,
+0 refuted.** Gate **775 → 803** pytest (+92 Vitest unchanged).
+
+### The two results that change what to do next
+
+- **The generation "output ceiling" does not exist — it is a fence-parser defect.** Replaying the
+  five stored replies in `CK_server/debug-log/no-session.jsonl` through the real
+  `_parse_generated_blocks` regex (`pytest_create.py:883`): the model sent 173,351 chars /
+  **42 TestCase classes** and the parser kept 21; the "D15 regression" reply was a complete
+  6-class script from which it kept **0**. **All five replies end in `ts.run(sys.argv)` — nothing
+  ever truncated.** The CLI splits long answers across assistant messages, each re-opening a
+  ` ```python ` fence, and the non-greedy `(.*?)``` ` stops at the *continuation's opening* fence,
+  usually mid-token. The model even labels its parts and closes with plain-English assembly
+  instructions; the parser discards those too. **The parser-kept figures are, to the character,
+  the numbers in `FINDINGS-generation-size-ceiling.md` and `RESULTS-2026-08-03.md`** — both
+  documents measured parser output and called it model output. This invalidates the ~9–20 class
+  ceiling, `_size_overflow`'s three constants, **chunked generation (the plan's largest item,
+  costed XL)**, and D15's diagnosis. Recovery is not uniform (the 4-part reply re-emits a partial
+  *class*), so assembly must work at class granularity — S/M, not XL.
+- **The reason nothing has ever run on hardware is a `ContextVar` lock defect, not the bench.**
+  `RunManager._run` is a `threading.Thread`, and `llm.current_session_id` is a `ContextVar` that a
+  new thread does not inherit — so the run thread's first `_pt_persist` is locked out **by the very
+  browser tab that started it**, before SSH is attempted, and the failure surfaces as "SSH connect
+  failed: … the case is locked". Reproduced offline against the real `locks` module. D13/the stack
+  demand is *not* the blocker — preflight is not wired into the run path at all.
+
+### Shipped
+
+- **Phase −1 (`949004f`, `0743889`) — the Zephyr push validates, confirms and audits before it
+  writes.** It previously imported no validator at all and pushed whatever JSON was on disk.
+  Now: shape rules **imported** from `llm.validate_zephyr_payload` (one owner) and **failing
+  closed**; every non-note step must carry an `expectedResult`; the silent escape-repair is loud
+  and blocking; a real push needs `{"confirm": "<key>"}`; every `--execute` writes an audit record
+  to `ask-ck/var/zephyr-push-audit.jsonl` *before* the first network call, and a case whose record
+  cannot be written is refused. **The gate refuses all 53 committed bundles** (618 of 648 steps
+  have no expected result) — the honest state of the corpus.
+- **A heading mismatch was silently dropping Zephyr web-links.** The parser looked for
+  `(Step 3)`; the template emits `(Step 2)`. `parse_atpylib_links` had already been fixed for the
+  same drift 30 lines above and it was never carried across. **2 links → 86, across 12 bundles.**
+- 28 tests in `tests/test_zephyr_push_validation.py`, all offline; a 9-mutation harness, all 9
+  caught. The first pass left one asleep, which is why the harness exists.
+
+### Decisions taken
+
+- **The 43 cases already live in Zephyr (`6f254e7`, 2026-07-22) will be re-pushed, staying at
+  v2.0.** No v3.0. `TARGET_MAJOR_VERSION = 2` already enforces this. Consequence: Zephyr keeps no
+  version trail, so the local audit log carries the replaced content; and a re-push needs
+  `--force`, so it is a deliberate CLI run, not the button.
+- Backfill `ck.db` behind a migration mechanism; regenerate all 53 refined cases after Phases 1–4;
+  triage the 305 empty cases rather than authoring all of them.
+
+### Corrections to the record
+
+- **The `ck.db` build timeline was backwards.** `build_db.py:506` writes `built_at` with
+  `datetime.utcnow()`, so `2026-07-20T01:16` is UTC = 13:16 local and the extractor was fixed
+  **6h12m before** the build, not after. Cross-check: `meta.src_mtime:scripts_index.json` =
+  13:12:30 local. No race — the build simply re-used a five-day-old intermediate.
+- Memory `claude-code-cli-transport-contract` asserted the output ceiling as fact; corrected.
+
+### Pick up here
+
+1. **Fix `_parse_generated_blocks`** (`pytest_create.py:883`) to assemble across inner fences,
+   then re-measure. Everything in Phases 7–9 is calibrated against parser output, so this comes
+   before any constant is re-fitted.
+2. **Phase 11.0** — propagate the lock holder into the `RunManager` thread (or
+   `contextvars.copy_context()`), with a test. Small, and it unblocks the endgame.
+3. **Phase 2** — `generate_steps.jinja:15-16` says "expectedResult usually empty or brief" *and*
+   its only example is `""`. That one line is why 95% of steps have no pass criteria, and it is
+   now a hard blocker on re-enabling the push.
+4. Stations 14 (preflight) and 16 (judging) are written into the plan but were never walked
+   through with Terrence.
+
+## Session (2026-08-03) — 10 refined cases via Opus; generation hits a hard OUTPUT CEILING; 12 transport defects fixed
+
+> **⚠ Superseded in part by 2026-08-03b (above): the "OUTPUT CEILING" in this entry is a
+> fence-parser defect, not a model limit. The measurements below are parser output.**
 
 **Focus: take 10 "Not Executed" AWPTCM cases end-to-end (objectives → refined cases → pytest →
 judges → tb470) automatedly with Opus.** Two of the three deliverables landed; the third is

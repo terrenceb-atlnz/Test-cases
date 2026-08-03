@@ -1,5 +1,36 @@
 # Script generation has a hard output ceiling of ~15 TestCase classes
 
+> ## ⚠ REFUTED 2026-08-03 — there is no ceiling. This document measures a PARSER DEFECT.
+>
+> The premise is wrong and the numbers below are **parser output, not model output**. Replaying
+> the five stored replies in `CK_server/debug-log/no-session.jsonl` through the real
+> `_parse_generated_blocks` regex (`routers/pytest_create.py:883`):
+>
+> | reply | model emitted | parser kept |
+> |---|---|---|
+> | 2026-07-30T06:47:37 | 173,351 chars / **42 TestCase classes** | 86,656 / 21 |
+> | 07:00:16 | 96,070 / 17 | 88,602 / 16 |
+> | 07:25:59 | 48,702 / 12 | 42,331 / 9 |
+> | 07:48:13 | 37,674 / 6 | 37,661 / 6 |
+> | 07:56:58 (the "D15 regression") | 49,546 / 6 | 25,171 / **0** |
+>
+> **Every reply is complete — all five end in `ts.run(sys.argv)`.** Nothing truncated. The CLI
+> splits long answers across assistant messages, each re-opening a ` ```python ` fence, and the
+> non-greedy `(.*?)``` ` stops at the *continuation's opening* fence, discarding everything after
+> part 1 — usually mid-token, which is why it presented as model truncation. Verified seam at
+> offset 25,181 of the 07:56:58 reply: it cuts inside
+> `self.log('LLDP transmit interval in effect: {}` and the next part re-emits that line. The
+> model labels each part (`# ---- continuation … part 2: TestCase_21 onwards ----`) and closes
+> with plain-English assembly instructions naming which duplicate to discard; the parser throws
+> those away too.
+>
+> **The "kept" column above is exactly the measurement table in this document.** What follows is
+> therefore an accurate record of a bug's output and an inaccurate explanation of its cause.
+> `_size_overflow`'s three constants are fitted to these figures and need re-deriving from model
+> output. Current source of truth:
+> [`ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md`](../ck-facelift/PLAN-pipeline-end-to-end.md),
+> Phase 7. Kept unedited below as the historical record.
+
 **Found 2026-07-30** during the 10-case Opus autopilot batch. Everything here is measured on
 real runs; the numbers are the point, and two earlier versions of this document had the
 mechanism wrong, so the evidence for each claim is stated inline.

@@ -56,5 +56,21 @@ Verify with: `python3 tool/pt_grade.py` and grep the scripts for `(speed|duplex|
 Still open: the model occasionally emits `framework.ATLibrary`, a hallucinated import the
 existing lint correctly rejects.
 
+**Coverage limit found 2026-08-03 — the grounding is real but INERT for most cases.** The fix
+above works where it fires; it often does not fire. Measured against `ck.db`:
+
+- **Only 1,250 of 6,323 `cli_commands` rows (20%) have a `sample_output`.** Where no variant of
+  a command has one, the model is exactly as unanchored as before the fix.
+- **~591 of 3,297 distinct command names (18%) are stored DE-HYPHENATED**, taken from doc-page
+  slugs — `show spanningtree` where the row's own `syntax` column holds
+  `show spanning-tree [interface <port-list>]`. `detect_commands` matches literal stored names,
+  so **correctly-spelled AlliedWare Plus text never matches those rows.** (The exact count
+  depends on the detection heuristic; 18% is a conservative floor.)
+- Net effect measured across the 53 refined cases: **1 case receives real CLI sample output.**
+
+So "we ground the prompt in real CLI output" is true of the mechanism and false of most runs.
+Fixing it is normalisation (match on a de-hyphenated *and* hyphenated form) plus harvesting more
+sample output — not a change to `prompt_block`, which ranks correctly once it has candidates.
+
 Related: [[part3-grading-session]], [[physical-interaction-steps]] (T33235 step 6's
 shutdown/no-shutdown substitution is a separate, non-CLI defect).

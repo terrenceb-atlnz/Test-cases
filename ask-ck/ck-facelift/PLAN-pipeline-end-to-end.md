@@ -2,8 +2,28 @@
 
 > ## Status (read first)
 >
-> **Status:** DRAFT, awaiting Terrence's approval. Written 2026-08-03 from a 12-stage
-> adversarially-verified audit. No code written yet.
+> **Status:** ACTIVE. Written 2026-08-03 from a 12-stage adversarially-verified audit —
+> 27 agents, **284 findings, 206 CONFIRMED, 77 PARTLY, 1 unverified, 0 refuted.**
+>
+> | | |
+> |---|---|
+> | **Phase −1.1 – −1.4** | ✅ **DONE** 2026-08-03 (`949004f`, `0743889`). 28 tests, 9 mutations all caught. |
+> | **Phase −1.5, −1.6** | Deferred with reasons recorded in Phase −1. |
+> | **Phase −1.7** (43 live cases) | Decided: re-push, stay at v2.0. Executes after Phases 1–4. |
+> | **Phases 0 – 12** | Not started. |
+>
+> **Two things happened after the first draft that change the order** — both reproduced
+> independently before being written down:
+> 1. **The output ceiling does not exist** (see below). Phase 7 is rewritten; chunked generation,
+>    the largest item in this plan, is withdrawn.
+> 2. **Phase 11.0** — a `ContextVar` lock defect, not the bench, is why nothing has ever executed.
+>
+> **Recommended deviation from strict pipeline order:** fix `_parse_generated_blocks` first.
+> Every measurement in Phases 7–9 is calibrated against its output, so re-fitting a constant
+> before that lands is wasted work. Phase 2 (`generate_steps.jinja`) is also now a hard blocker
+> on re-enabling the push, rather than a successor to Phase −1.
+>
+> **Not yet walked through with Terrence:** Stations 14 (preflight) and 16 (judging).
 >
 > **Why this plan exists.** Terrence, 2026-08-03: *"I want to fix these issues in order from
 > beginning (no objectives is never ok) to the end (we never executed ANY test cases, over
@@ -297,7 +317,7 @@ weight reading as live capability.
 
 **CLI grounding is inert for most cases.** `ck.db` stores command names **with hyphens
 stripped**, taken from doc-page slugs: `show spanningtree` where the syntax column itself holds
-`show spanning-tree [interface <port-list>]`. Measured: **776 of 2,872 distinct commands are
+`show spanning-tree [interface <port-list>]`. Measured: **~591 of 3,297 distinct command names (18%, a conservative floor — the exact count depends on the detection heuristic) are
 de-hyphenated.** `detect_commands` matches literal names, so correctly-spelled AlliedWare Plus
 text never matches. Consequences:
 
@@ -610,7 +630,7 @@ and no script ever has.
 
 - **Does:** the anchor that stops invented CLI output.
 - **Breaks:** **`ck.db` stores command names de-hyphenated** from doc-page slugs —
-  `show spanningtree` where its own syntax column says `show spanning-tree`. **776 of 2,872
+  `show spanningtree` where its own syntax column says `show spanning-tree`. **~591 of 3,297
   commands.** The RSTP case writes "spanning-tree" three times and gets **zero grounding** while
   2,388 chars of real output sit unreachable. Across 53 cases **only 19 get any grounding, 15 get
   none** — and **the flagship prompt's 18,773-char grounding block contained zero sample output**
@@ -1060,7 +1080,7 @@ again.
 **The highest-leverage fix in the plan.** It is a data-normalisation problem, it needs no LLM,
 and it unblocks the anchor for Phases 2, 3, 5 and 12.
 
-**4.1 — De-hyphenation.** 776 of 2,872 distinct commands are stored hyphen-stripped from doc-page
+**4.1 — De-hyphenation.** ~591 of 3,297 distinct command names (18%, a conservative floor — the exact count depends on the detection heuristic) are stored hyphen-stripped from doc-page
 slugs while their own `syntax` column holds the correct spelling. Derive the real command name
 from `syntax` at read time (or normalise via 0.1) and match both forms.
 
