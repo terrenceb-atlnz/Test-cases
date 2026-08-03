@@ -2119,16 +2119,32 @@ def _lint_generated(sess: PtSession) -> dict:
                 f"that part of the objective is NOT tested by this script")
         # The script must also render a TestCase per verify step; a shortfall means the
         # model dropped steps the sequence did cover.
+        #
+        # PHASE 7.7 — THIS IS AN ERROR, NOT A WARNING. It is the one check that detects a
+        # CLEANLY-PARSING truncated script: a reply cut between classes compiles, passes
+        # every structural assertion, and differs from a complete one only in how many
+        # TestCases it contains. The plan calls this "the one to fear", and it was
+        # advisory — so the artefact that most needs stopping was the one that sailed
+        # through. A genuinely untestable SOURCE step is a different question and stays a
+        # warning above; this is the script failing to cover a sequence the reviewer
+        # already approved.
         verify_steps = [s for s in ((sess.step2 or {}).get("sequence") or [])
                         if _step_kind(s) != "setup"]
         n_cases = len(re.findall(r"^class TestCase_\d+\(", code, re.M))
         if verify_steps and n_cases < len(verify_steps):
-            warnings.append(
-                f"coverage: {n_cases} TestCase classes for {len(verify_steps)} "
+            errors.append(
+                f"incomplete: {n_cases} TestCase classes for {len(verify_steps)} "
                 f"non-setup sequence steps — {len(verify_steps) - n_cases} step(s) have "
-                f"no test case in the generated script")
-    except Exception as e:                       # never fail linting over the extra check
-        print(f"[pt] coverage check skipped: {e}")
+                f"no test case in the generated script. The script compiles, so this is "
+                f"the only signal that it is short; regenerate rather than confirm it.")
+    except Exception as e:
+        # NARROWED (Phase 7.7). This used to swallow every exception, including one raised
+        # by the completeness check itself — so the check could be dead and the lint would
+        # still report ok. A failure to RUN the check is now itself an error: unknown is
+        # not the same as clean.
+        print(f"[pt] coverage check failed: {type(e).__name__}: {e}")
+        errors.append(f"coverage/completeness check could not run ({type(e).__name__}: {e}) "
+                      f"— the script has NOT been checked for completeness")
         result_coverage = None
 
     result = {"ok": not errors, "errors": errors, "warnings": warnings,
@@ -2402,6 +2418,24 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
         gap = _coverage_gate_error(sess, step)
         if gap:
             raise HTTPException(409, gap)
+
+    # PHASE 7.7 — CONFIRMING A SCRIPT REQUIRES A CLEAN LINT. `confirm_step` never looked
+    # at `lint.ok`, so a script with hard lint ERRORS — including the completeness error
+    # that is the only way to spot a cleanly-parsing truncated script — could be signed
+    # off and carried into the run and export stages. Confirming is a human asserting the
+    # step is CORRECT; it must not be possible while the machine checks say it is not.
+    #
+    # Deliberately not overridable: unlike the coverage gap (where a source step can be
+    # genuinely untestable and the reviewer's judgement is the right authority), a lint
+    # error means the artefact itself is broken. Regenerate it.
+    if step == 6:
+        lint = (getattr(sess, "step6", None) or {}).get("lint") or {}
+        if not lint:
+            raise HTTPException(409, "Lint the generated script before confirming it.")
+        if lint.get("errors"):
+            raise HTTPException(
+                409, "This script has lint errors and cannot be confirmed:\n  - "
+                     + "\n  - ".join(str(e) for e in lint["errors"][:10]))
 
     _confirm(sess, step_key)
     _invalidate_from(sess, step)
