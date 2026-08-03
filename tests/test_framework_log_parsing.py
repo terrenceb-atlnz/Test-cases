@@ -1,14 +1,17 @@
-"""`parse_framework_log` — the function every run verdict derives from, previously untested.
+"""`parse_framework_log` — the function every run result derives from, previously untested.
 
 PHASE 11.1/11.2. `validate()` and `fix_script` both decide what happened from this parser's
-output, and it had no test and no fixture log. The specific danger is that a run which never
-started parses to zero cases, zero passed and zero failed — and `numFailed == 0` reads as a
-clean sweep to every downstream check.
+output, and it had no test and no fixture log. The original danger: a run that never started
+parses to zero cases, zero passed and zero failed — and `numFailed == 0` reads as a clean
+sweep to every count-based check. That is the most likely FIRST hardware run outcome, since
+`_ck_bind_link` aborting correctly on a bench problem produces exactly that log.
 
-That is not a hypothetical shape. It is the most likely FIRST hardware run outcome:
-`_ck_bind_link` aborting correctly on a bench problem produces exactly this log. So the
-parser now states a status instead of leaving it to be inferred from counts, and this file
-pins each state before any real run happens.
+SCOPE (Terrence, 2026-08-04). What this layer owes: **consistent results, readable results,
+formatted for future automation, no gaps in results.** Results are PASS / FAIL / UNSUPPORTED
+per case, plus ERROR for a case that never reached a verdict. Judging whether an UNSUPPORTED
+case *should* have been unsupported, tracking expected sets across runs, and deciding what a
+run means belong to the next step (Test Composer). An earlier version of this file tested all
+of that — it was scope creep and has been removed.
 """
 import pathlib
 import re
@@ -40,6 +43,24 @@ FAILING_LOG = """\
 << test-5700.2001.10: FAIL (numPassed: 1 numFailed: 1)
 """
 
+# All three outcomes in one log. The UNSUPPORTED case is REALISTIC: it detects its own
+# inapplicability at run time and reports that as a FAILURE line, so it carries
+# numFailed >= 1 while being classified UNSUPPORTED. All four in the captured log look like
+# this. An earlier fixture here used `numFailed: 0`, which no real log does — and that hid a
+# defect where a single UNSUPPORTED case made a whole run unreportable.
+MIXED_LOG = """\
+>> test-a
+2026-02-09 11:41:55: PASS: configuration saved
+2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media
+<< test-a: UNSUPPORTED (numPassed: 1 numFailed: 1)
+>> test-b
+2026-02-10 08:15:47: PASS: the feature behaves
+<< test-b: PASS (numPassed: 1 numFailed: 0)
+>> test-c
+2026-02-10 08:15:48: !!FAIL: expected 6 LLDPDUs, observed 0
+<< test-c: FAIL (numPassed: 0 numFailed: 1)
+"""
+
 # A bench/binding abort: real output, real traceback, not one case result.
 ABORTED_LOG = """\
 2026-08-03 10:00:01: Loading setup file tb470.setup
@@ -67,61 +88,109 @@ def main():
 """
 
 
-# ------------------------------------------------------------------- the dangerous states
+def _fixture(name):
+    return (pathlib.Path(__file__).parent / "fixtures" / name).read_text(
+        encoding="utf-8", errors="replace")
 
-def test_a_run_that_never_started_is_not_a_pass():
-    """THE defect. Zero cases, zero failures — and every count-based check reads green."""
+
+# --------------------------------------------------------- consistent: one bucket per case
+
+def test_every_case_lands_in_exactly_one_bucket():
+    parsed = parse_framework_log(MIXED_LOG, expected_cases=3)
+    assert parsed["counts"] == {"PASS": 1, "FAIL": 1, "UNSUPPORTED": 1, "ERROR": 0}
+    assert sum(parsed["counts"].values()) == parsed["parsed_cases"]
+
+
+def test_an_unsupported_case_is_not_counted_as_a_failing_case():
+    """Its own !!FAIL line inflates numFailed; that must not make it a FAIL."""
+    parsed = parse_framework_log(MIXED_LOG, expected_cases=3)
+    assert parsed["numFailed"] == 2, "counters stay verbatim from the log"
+    assert parsed["failed_cases"] == ["c"], "only the genuinely failing case is a FAIL"
+    assert parsed["unsupported_cases"] == ["a"]
+
+
+def test_a_case_that_never_closed_is_an_ERROR_not_a_pass():
+    """A crash mid-case leaves a header with no footer."""
+    log = ">> test-5700.2001.10\n2026-02-10 08:15:47: PASS: something\n"
+    parsed = parse_framework_log(log, expected_cases=1)
+    assert parsed["cases"][0]["result"] == "ERROR"
+    assert parsed["counts"]["ERROR"] == 1
+
+
+# --------------------------------------------------------------------- readable + parseable
+
+def test_the_summary_labels_cases_and_assertions_separately():
+    """"N passed" is ambiguous between cases and assertions, and the log reports both.
+
+    The captured passing run is 11 cases / 78 assertions. Conflating them is a mistake made
+    while writing this function, so the summary names which tally is which.
+    """
+    parsed = parse_framework_log(MIXED_LOG, expected_cases=3)
+    assert parsed["verdict"] == ("cases: 1 passed, 1 failed, 1 unsupported (of 3); "
+                                 "assertions: 2 passed, 2 failed")
+
+
+def test_a_clean_run_summarises_as_all_passed():
+    parsed = parse_framework_log(CLEAN_LOG, expected_cases=2)
+    assert parsed["verdict"] == ("cases: 2 passed, 0 failed, 0 unsupported (of 2); "
+                                 "assertions: 3 passed, 0 failed")
+    assert parsed["results_complete"] is True
+
+
+def test_counters_are_reported_verbatim_and_never_restated():
+    parsed = parse_framework_log(_fixture("framework_run_fail.log"))
+    assert (parsed["numPassed"], parsed["numFailed"]) == (60, 43)
+
+
+# --------------------------------------------------------------------------- no gaps
+
+def test_results_complete_is_about_gaps_not_about_passing():
+    """A run can be complete and still have failures. The two questions stay separate."""
+    parsed = parse_framework_log(MIXED_LOG, expected_cases=3)
+    assert parsed["results_complete"] is True, "every registered case reported a verdict"
+    assert parsed["counts"]["FAIL"] == 1, "...and one of them failed"
+
+
+def test_a_run_that_never_started_reports_no_results():
+    """THE original defect: zero cases and zero failures read as a clean sweep."""
     parsed = parse_framework_log(ABORTED_LOG, expected_cases=2)
     assert parsed["status"] == "no_results"
-    assert parsed["ok"] is False, "a run with no results must never be ok"
-    assert parsed["numFailed"] == 0        # the trap: this is still zero
-    assert parsed["numPassed"] == 0
-    assert "NO RESULTS" in parsed["verdict"]
-    assert "not a pass" in parsed["verdict"].lower()
+    assert parsed["verdict"].startswith("NO RESULTS")
+    assert "NOT a pass" in parsed["verdict"]
+    assert parsed["results_complete"] is False
+    assert parsed["numFailed"] == 0          # the trap: still zero
+    assert parsed["counts"] == {"PASS": 0, "FAIL": 0, "UNSUPPORTED": 0, "ERROR": 0}
 
 
 def test_an_empty_log_is_distinguished_from_an_aborted_one():
     parsed = parse_framework_log("", expected_cases=2)
     assert parsed["status"] == "empty_log"
-    assert parsed["ok"] is False
-    assert "NO RESULTS" in parsed["verdict"]
+    assert parsed["results_complete"] is False
+    assert "no log output at all" in parsed["verdict"]
 
 
-def test_a_short_run_reports_the_missing_cases_as_untested():
-    """Stopping after case 1 of 2 is not "1 passed" — case 2 is untested, not passing."""
-    parsed = parse_framework_log(CLEAN_LOG, expected_cases=5)
+def test_a_short_run_names_the_missing_cases_as_untested():
+    parsed = parse_framework_log(MIXED_LOG, expected_cases=9)
     assert parsed["status"] == "short"
-    assert parsed["ok"] is False
-    assert parsed["parsed_cases"] == 2 and parsed["expected_cases"] == 5
-    assert "INCOMPLETE" in parsed["verdict"]
-    assert "untested" in parsed["verdict"]
+    assert parsed["results_complete"] is False
+    assert "only 3 of 9" in parsed["verdict"]
+    assert "untested, not passing" in parsed["verdict"]
 
 
-def test_zero_failures_alone_never_makes_a_run_ok():
-    """Property: `ok` must require results, not merely the absence of failures."""
-    for log, expected in ((ABORTED_LOG, 2), ("", 2), (CLEAN_LOG, 9)):
-        parsed = parse_framework_log(log, expected_cases=expected)
-        assert parsed["numFailed"] == 0
-        assert parsed["ok"] is False, "zero failures was treated as success"
+def test_a_case_with_no_verdict_is_a_gap():
+    log = MIXED_LOG + ">> test-d\n2026-02-10 08:15:49: PASS: partial\n"
+    parsed = parse_framework_log(log, expected_cases=4)
+    assert parsed["counts"]["ERROR"] == 1
+    assert parsed["results_complete"] is False
+    assert "no verdict" in parsed["verdict"]
 
 
-# ----------------------------------------------------------------------- the normal states
-
-def test_a_clean_run_is_ok():
-    parsed = parse_framework_log(CLEAN_LOG, expected_cases=2)
-    assert parsed["status"] == "ok"
-    assert parsed["ok"] is True
-    assert (parsed["numPassed"], parsed["numFailed"]) == (3, 0)
-    assert parsed["parsed_cases"] == 2
-    assert "3 passed" in parsed["verdict"]
-
-
-def test_a_failing_run_is_parsed_and_not_ok():
-    parsed = parse_framework_log(FAILING_LOG, expected_cases=1)
-    assert parsed["status"] == "ok"          # it RAN; the status is about completeness
-    assert parsed["ok"] is False             # ...but it failed
-    assert parsed["numFailed"] == 1
-    assert parsed["cases"][0]["fail_msgs"] == ["expected 6 LLDPDUs, observed 0"]
+def test_an_unattributed_failure_line_is_a_gap():
+    log = "2026-02-10 08:15:49: !!FAIL: something failed outside any case\n" + MIXED_LOG
+    parsed = parse_framework_log(log, expected_cases=3)
+    assert parsed["unparsed_fails"] == 1
+    assert parsed["results_complete"] is False
+    assert "could not be attributed" in parsed["verdict"]
 
 
 def test_no_expectation_still_parses():
@@ -129,53 +198,41 @@ def test_no_expectation_still_parses():
     parsed = parse_framework_log(CLEAN_LOG)
     assert parsed["expected_cases"] is None
     assert parsed["status"] == "ok"
-    assert parsed["ok"] is True
-
-
-def test_a_case_that_never_closed_is_an_error_not_a_pass():
-    """A crash mid-case leaves a header with no footer. It must not read as passing."""
-    log = ">> test-5700.2001.10\n2026-02-10 08:15:47: PASS: something\n"
-    parsed = parse_framework_log(log, expected_cases=1)
-    assert parsed["cases"][0]["result"] == "ERROR"
-    assert parsed["ok"] is False
+    assert parsed["results_complete"] is True
 
 
 # --------------------------------------------------- against REAL captured framework logs
 #
 # Two runs of the 5700_bootloader suite on an x230v2, committed under tests/fixtures/.
 # Hashed credentials in the device config echo were redacted; nothing else was touched.
-# Without a real log, a parser test only proves the parser agrees with the format its
-# author imagined.
+# Without a real log, a parser test only proves the parser agrees with the format its author
+# imagined — which is exactly what happened on the first attempt at this file.
 
-def _fixture(name):
-    return (pathlib.Path(__file__).parent / "fixtures" / name).read_text(
-        encoding="utf-8", errors="replace")
-
-
-def test_a_real_passing_run_parses_as_a_clean_sweep():
+def test_a_real_passing_run_is_a_clean_sweep():
     parsed = parse_framework_log(_fixture("framework_run_pass.log"))
-    assert parsed["parsed_cases"] == 11
-    assert (parsed["numPassed"], parsed["numFailed"]) == (78, 0)
-    assert parsed["status"] == "ok" and parsed["ok"] is True
-    assert {c["result"] for c in parsed["cases"]} == {"PASS"}
+    assert parsed["counts"] == {"PASS": 11, "FAIL": 0, "UNSUPPORTED": 0, "ERROR": 0}
+    assert parsed["results_complete"] is True
+    assert parsed["verdict"] == ("cases: 11 passed, 0 failed, 0 unsupported (of 11); "
+                                 "assertions: 78 passed, 0 failed")
 
 
-def test_a_real_failing_run_parses_every_verdict_kind():
-    """The captured failure carries FAIL, UNSUPPORTED, ERROR and PASS in one log."""
+def test_a_real_failing_run_carries_every_outcome_kind():
+    """The captured failure has FAIL, UNSUPPORTED, ERROR and PASS in one log."""
     parsed = parse_framework_log(_fixture("framework_run_fail.log"))
     assert parsed["parsed_cases"] == 16
-    assert (parsed["numPassed"], parsed["numFailed"]) == (60, 43)
-    assert parsed["ok"] is False
-    assert {"FAIL", "UNSUPPORTED", "ERROR", "PASS"} <= {c["result"] for c in parsed["cases"]}
+    assert parsed["counts"]["PASS"] == 1
+    assert parsed["counts"]["FAIL"] == 10
+    assert parsed["counts"]["UNSUPPORTED"] == 4
+    assert parsed["counts"]["ERROR"] == 1
+    assert parsed["results_complete"] is False, "one case reached no verdict — that is a gap"
     assert parsed["unparsed_fails"] == 0, "every !!FAIL line was attributed to a case"
 
 
 def test_the_real_logs_are_told_apart():
-    """The whole point: a green run and a red run must not produce the same verdict."""
     good = parse_framework_log(_fixture("framework_run_pass.log"))
     bad = parse_framework_log(_fixture("framework_run_fail.log"))
-    assert good["ok"] is True and bad["ok"] is False
     assert good["verdict"] != bad["verdict"]
+    assert good["counts"]["FAIL"] == 0 and bad["counts"]["FAIL"] > 0
 
 
 def test_no_credential_survives_in_the_committed_fixtures():
@@ -194,8 +251,7 @@ def test_expected_case_count_reads_the_scripts_own_registrations():
 
 def test_expected_case_count_counts_registrations_with_arguments():
     """A regex for `add_testCase(X())` misses this and silently under-counts."""
-    code = SCRIPT.replace("TestCase_1()", "TestCase_1('arg')")
-    assert expected_case_count(code) == 2
+    assert expected_case_count(SCRIPT.replace("TestCase_1()", "TestCase_1('arg')")) == 2
 
 
 def test_expected_case_count_returns_none_for_unparseable_code():
@@ -203,127 +259,8 @@ def test_expected_case_count_returns_none_for_unparseable_code():
 
 
 def test_end_to_end_a_registered_but_unrun_case_is_visible():
-    """The two halves together: what the script meant to run vs what the log shows."""
-    expected = expected_case_count(SCRIPT)
-    parsed = parse_framework_log(FAILING_LOG, expected_cases=expected)
+    """What the script meant to run, against what the log shows."""
+    parsed = parse_framework_log(FAILING_LOG, expected_cases=expected_case_count(SCRIPT))
     assert parsed["status"] == "short"
     assert parsed["parsed_cases"] == 1 and parsed["expected_cases"] == 2
-    assert parsed["ok"] is False
-
-
-# ------------------------------------------------ UNSUPPORTED is reconciled (2026-08-04)
-#
-# Measured across the real captured logs: 5 of 13 contain UNSUPPORTED, including the run a
-# human labelled PASS (7 of 26). And the set is STABLE — two runs of test-5700.2002 on the
-# same platform both report exactly {2, 22, 42, 62}. So UNSUPPORTED is a deterministic
-# property of (case x platform), which rules out both simple answers: treating it as green
-# loses the signal when a case newly stops being tested, and demanding an acknowledgement
-# every time fires on 38% of runs for a set that never changes.
-
-# A REALISTIC UNSUPPORTED case. It detects its own inapplicability at run time and reports
-# that as a FAILURE line, so the case carries numFailed >= 1 while being classified
-# UNSUPPORTED. All four in the captured log look like this. My first version of this fixture
-# used `numFailed: 0`, which no real log does — and that hid the fact that "ok requires
-# numFailed == 0" made every reconciliation branch unreachable.
-UNSUPPORTED_LOG = """\
->> test-5700.2002.2
-2026-02-09 11:41:55: PASS: configuration saved
-2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media
-<< test-5700.2002.2: UNSUPPORTED (numPassed: 1 numFailed: 1)
->> test-5700.2002.4
-2026-02-10 08:15:47: PASS: the feature behaves
-<< test-5700.2002.4: PASS (numPassed: 1 numFailed: 0)
-"""
-
-
-def test_an_unsupported_set_matching_the_expectation_is_green():
-    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2,
-                                 expected_unsupported=["5700.2002.2"])
-    assert parsed["unsupported_status"] == "as_expected"
-    assert parsed["ok"] is True, "a stable, expected UNSUPPORTED set must not block a run"
-    assert "as expected" in parsed["verdict"]
-
-
-def test_a_newly_unsupported_case_is_a_regression():
-    """The signal my original answer lost: a case quietly stops being tested."""
-    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2, expected_unsupported=[])
-    assert parsed["unsupported_status"] == "regression"
-    assert parsed["ok"] is False
-    assert "REGRESSION" in parsed["verdict"]
-    assert "no longer being tested" in parsed["verdict"]
-
-
-def test_a_case_that_started_running_again_is_loud_but_does_not_fail_the_run():
-    """Good news, or a false positive in the script's own capability check — either way a
-    human decides, and a run whose case results are fine is not failed for it."""
-    parsed = parse_framework_log(
-        UNSUPPORTED_LOG, expected_cases=2,
-        expected_unsupported=["5700.2002.2", "5700.2002.4"])
-    assert parsed["unsupported_status"] == "stale_expectation"
-    assert parsed["ok"] is True, "a case that started working must not fail the run"
-    assert "SUPPORT CHANGED" in parsed["verdict"]
-    assert "false positive" in parsed["verdict"]
-
-
-def test_an_unestablished_expectation_is_provisional_not_blocking():
-    """The first run must be able to come back green — it is the run we care most about."""
-    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2)
-    assert parsed["unsupported_status"] == "unestablished"
-    assert parsed["unsupported_provisional"] is True
-    assert parsed["ok"] is True, "the first hardware run must not be blocked by an unset expectation"
-    assert "PROVISIONAL" in parsed["verdict"]
-
-
-def test_a_run_with_no_unsupported_cases_needs_no_expectation():
-    parsed = parse_framework_log(CLEAN_LOG, expected_cases=2)
-    assert parsed["unsupported_status"] == "none"
-    assert parsed["ok"] is True
-
-
-def test_the_real_logs_unsupported_set_is_stable_across_runs():
-    """The measurement the whole design rests on. If this fails, reconciliation is wrong."""
-    a = parse_framework_log(_fixture("framework_run_fail.log"))
-    observed = set(a["unsupported_cases"])
-    assert observed == {"5700.2002.2", "5700.2002.22", "5700.2002.42", "5700.2002.62"}
-    # the same set, supplied as the expectation, must reconcile silently
-    b = parse_framework_log(_fixture("framework_run_fail.log"),
-                            expected_unsupported=sorted(observed))
-    assert b["unsupported_status"] == "as_expected"
-
-
-def test_an_unsupported_case_does_not_fail_the_run_via_its_failure_counter():
-    """THE defect my first fixture hid. Real UNSUPPORTED cases carry numFailed >= 1.
-
-    All four in the captured log do:
-        << test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
-    so a rule of "ok requires numFailed == 0" could never pass a run containing even an
-    entirely expected UNSUPPORTED case, and every reconciliation branch was unreachable.
-    """
-    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2,
-                                 expected_unsupported=["5700.2002.2"])
-    assert parsed["numFailed"] >= 1, "the fixture must carry the real counter shape"
-    assert parsed["failed_cases"] == [], "no case actually reported FAIL"
-    assert parsed["ok"] is True, \
-        "an expected UNSUPPORTED case failed the run through its assertion counter"
-
-
-def test_the_reported_counters_still_match_the_log_verbatim():
-    """The counters are the log's own numbers and must not be quietly adjusted."""
-    parsed = parse_framework_log(_fixture("framework_run_fail.log"))
-    assert (parsed["numPassed"], parsed["numFailed"]) == (60, 43)
-
-
-def test_a_real_failing_case_still_fails_the_run():
-    parsed = parse_framework_log(FAILING_LOG, expected_cases=1)
-    assert parsed["failed_cases"] == ["5700.2001.10"]
-    assert parsed["ok"] is False
-
-
-def test_the_verdict_is_judged_on_case_results_not_counters():
-    """A log where counters look bad but every case verdict is fine."""
-    log = (">> test-a\n"
-           "2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media\n"
-           "<< test-a: UNSUPPORTED (numPassed: 0 numFailed: 1)\n")
-    parsed = parse_framework_log(log, expected_cases=1, expected_unsupported=["a"])
-    assert parsed["numFailed"] == 1 and parsed["failed_cases"] == []
-    assert parsed["ok"] is True
+    assert parsed["results_complete"] is False

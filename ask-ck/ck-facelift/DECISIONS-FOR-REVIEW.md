@@ -380,4 +380,69 @@ support and let a human verify."* The verdict now says `SUPPORT CHANGED`, names 
 states both readings — the platform gained the capability, or the script's own capability check
 is a false positive — while leaving `ok` decided by the actual case results. A `regression`
 (a case newly UNSUPPORTED, i.e. newly untested) still blocks.
+---
+
+## 12. Q3 traced to the device, and then CUT BACK — 2026-08-04
+
+### Where `x230v2` actually comes from (Terrence asked; I had not checked)
+
+Traced through the device console capture, not the test log:
+
+| Time | What happened |
+|---|---|
+| 11:29:00 | framework runs `sh sys` on the DUT over the serial console `/dev/u0` |
+| 11:29:01 | the DEVICE replies: `Base 691 Base **AT-x230-18GT V2** X1-0 A10719G254500012` |
+| 11:29:39 | the framework emits `platform type is x230v2` / `platform family x230v2` |
+
+So it **is** evidence-based — it traces to the device's own `show system` output. But it is a
+**lossy normalisation**: `AT-x230-18GT V2` → `x230v2` drops `18GT`, the port count and media
+variant. The framework's own adjacent line says *"platform **family**"*, which is the honest
+word — a family label collapses variants that may differ in capability.
+
+### And my "deterministic property of (case × platform)" claim was WRONG
+
+Mapping each UNSUPPORTED case to its own stated reason:
+
+| Case | Reason | Depends on |
+|---|---|---|
+| `.2` | `DUT does not support USB Media` | platform capability |
+| `.22` | `No USB media present, test unsupported` | **bench state** |
+| `.42` | `No USB media present, test unsupported` | **bench state** |
+| `.62` | `No USB media present, test unsupported` | **bench state** |
+
+**Only 1 of 4 is a platform property.** Three are "did someone plug a USB stick in" — same
+device, same platform, different day, different answer. The stability I measured was two runs
+on a bench nobody had touched, and I generalised n=2 into a design principle. Terrence's
+original objection — that this belongs to **bench configuration**, in Test Composer — was
+right for a reason I had not yet found.
+
+### D-18/D-22/D-23 WITHDRAWN — the whole reconciliation was scope creep
+
+**Terrence:** *"I see that a lot of scope creep regarding the return of results, what to do
+with logs, etc. That's for the next step. Our current goals regarding logs are: Consistent
+results / Readable results / Formatted appropriately for future automation / No gaps in
+results."*
+
+Correct, and the expectation machinery (expected sets, `regression` / `stale_expectation` /
+`unestablished` / provisional flags) has been **deleted**. It was judging what a run *means*,
+which is Test Composer's job. What remains is exactly the four goals:
+
+- **Consistent** — one bucket per case: PASS / FAIL / UNSUPPORTED, plus ERROR for a case that
+  never reached a verdict. `sum(counts.values()) == parsed_cases`, always.
+- **Readable** — one line, with the two tallies **labelled**: `cases: 1 passed, 10 failed,
+  4 unsupported, 1 no verdict (of 16); assertions: 60 passed, 43 failed`. Labelled because
+  "N passed" is ambiguous between cases and assertions — the captured run is 11 cases / 78
+  assertions, and I conflated them myself while writing the function.
+- **Formatted for automation** — a `counts` dict keyed by outcome, beside the log's verbatim
+  counters.
+- **No gaps** — `results_complete` means the RESULTS are trustworthy (the run produced
+  results, every registered case reported a verdict, no unattributed failure line). It
+  deliberately does **not** mean "the test passed"; that is `counts["FAIL"] == 0`, which a
+  caller asks directly. Keeping the two apart is the point — conflating them is the original
+  empty-equals-success defect.
+
+**Left for Test Composer, explicitly:** whether an UNSUPPORTED case *should* be unsupported,
+tracking sets across runs, and the observation that case `.62`'s UNSUPPORTED verdict conceals
+a second failure (`Problem occurred whilst setting boot environment on swi_a, abort`). That
+last one is recorded here rather than acted on.
 

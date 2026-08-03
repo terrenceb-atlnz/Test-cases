@@ -236,8 +236,7 @@ _PASS_LINE = re.compile(r"^PASS:\s*(.*)$")
 _FAIL_LINE = re.compile(r"^!!FAIL:\s*(.*)$")
 
 
-def parse_framework_log(text: str, expected_cases: Optional[int] = None,
-                        expected_unsupported: Optional[List[str]] = None) -> Dict[str, Any]:
+def parse_framework_log(text: str, expected_cases: Optional[int] = None) -> Dict[str, Any]:
     """Parse an ATTestSet log into per-case results.
 
     Returns {cases: [{name, result, pass_msgs, fail_msgs, log_lines: [start, end]}],
@@ -346,102 +345,78 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None,
                    f"did not reach a verdict ({', '.join(errored[:5])}) — those are "
                    f"errors, not passes.")
 
-    # AN UNSUPPORTED CASE POLLUTES numFailed, SO THE VERDICT READS CASE RESULTS INSTEAD.
+    # ONE OUTCOME PER CASE, AND NO GAPS. That is the whole job here (Terrence, 2026-08-04):
+    # consistent results, readable results, formatted for future automation, no gaps. Judging
+    # whether an UNSUPPORTED case *should* have been unsupported, tracking expected sets, or
+    # deciding what a run means, all belong to the next step (Test Composer) and were scope
+    # creep — they have been removed.
     #
-    # Found 2026-08-04, and it made the reconciliation below unreachable. A real UNSUPPORTED
-    # case detects its own inapplicability at run time and says so as a FAILURE line, then the
-    # framework classifies the case UNSUPPORTED:
+    # An UNSUPPORTED case reports its own inapplicability AS A FAILURE LINE, so it carries
+    # numFailed >= 1 while being classified UNSUPPORTED. All four in the captured log do:
     #
     #     !!FAIL: DUT does not support USB Media
     #     << test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
     #
-    # All four UNSUPPORTED cases in the captured log carry numFailed >= 1. So a rule of
-    # "ok requires numFailed == 0" can never pass a run containing even an entirely expected
-    # UNSUPPORTED case. My first synthetic fixture used `numFailed: 0`, which is not what real
-    # logs look like, and it hid this completely.
-    #
-    # The fix is to judge on CASE RESULTS, which is what the framework's own verdicts are for.
-    # Assertion counters stay reported verbatim — never restated, because they are the log's
-    # own numbers — but they do not decide the outcome.
+    # So the assertion counters cannot classify a case. The framework's own per-case verdict
+    # does. Counters are still reported verbatim — they are the log's numbers, not ours.
     failed_cases = [c["name"] for c in cases if c.get("result") == "FAIL"]
 
-    # UNSUPPORTED IS RECONCILED, NOT PASSED AND NOT FAILED (2026-08-04).
-    #
-    # Measured across the real captured logs: 5 of 13 contain UNSUPPORTED cases, including
-    # the run a human labelled PASS (7 of 26 cases), and the set is STABLE — two runs of
-    # test-5700.2002 both report exactly {2, 22, 42, 62}. Treating it as green loses the
-    # signal when a case NEWLY becomes unsupported and quietly stops being tested; demanding
-    # an acknowledgement every time fires on 38% of runs for a set that never changes.
-    #
-    # WHAT THIS IS *NOT* KEYED ON, deliberately (Terrence, 2026-08-04): the platform. The
-    # scripts must stay hardware-agnostic, and they already detect capability at run time
-    # themselves — that is what produces the UNSUPPORTED verdict in the first place. Keying an
-    # expectation on a platform label would import platform-awareness into the verdict layer
-    # to re-derive something the script already established. The expectation is therefore a
-    # caller-supplied parameter, and where it durably lives is a Test Composer question,
-    # not one to answer here.
-    unsupported_status = "none"
-    if unsupported and expected_unsupported is None:
-        unsupported_status = "unestablished"
-    elif expected_unsupported is not None:
-        expected_set = set(expected_unsupported)
-        newly = sorted(set(unsupported) - expected_set)
-        no_longer = sorted(expected_set - set(unsupported))
-        if newly:
-            unsupported_status = "regression"
-        elif no_longer:
-            unsupported_status = "stale_expectation"
-        elif unsupported:
-            unsupported_status = "as_expected"
+    # Exactly one bucket per case. ERROR covers a case that never reached a verdict, which is
+    # a GAP rather than an outcome and is why it is counted separately and never as a pass.
+    counts = {"PASS": 0, "FAIL": 0, "UNSUPPORTED": 0, "ERROR": 0}
+    for c in cases:
+        counts[c.get("result") if c.get("result") in counts else "ERROR"] += 1
 
-    if unsupported_status == "regression":
-        newly = sorted(set(unsupported) - set(expected_unsupported or []))
-        verdict = (f"UNSUPPORTED REGRESSION — {len(newly)} case(s) newly report UNSUPPORTED "
-                   f"({', '.join(newly[:5])}) and are therefore no longer being tested. "
-                   f"{verdict}")
-    elif unsupported_status == "stale_expectation":
-        # A case that started running again is GOOD NEWS, and it may equally be a false
-        # positive in the script's own capability check. Say so loudly, let a human decide,
-        # and do not fail a run whose actual case results are fine (Terrence, 2026-08-04).
-        gained = sorted(set(expected_unsupported or []) - set(unsupported))
-        verdict = (f"SUPPORT CHANGED — {len(gained)} case(s) previously UNSUPPORTED now run "
-                   f"({', '.join(gained[:5])}). Either the platform gained the capability or "
-                   f"the script's capability check is a false positive; verify, then update "
-                   f"the expected set. {verdict}")
-    elif unsupported_status == "unestablished":
-        # Provisional: usable immediately, visibly not yet trusted. The first hardware run
-        # can be green, and every later change is still loud.
-        verdict = (f"{verdict} {len(unsupported)} case(s) report UNSUPPORTED "
-                   f"({', '.join(unsupported[:5])}). No expectation was recorded, so this set "
-                   f"is PROVISIONAL — confirm it is intended and record it, after which any "
-                   f"change is reported.")
-    elif unsupported_status == "as_expected":
-        verdict = f"{verdict} {len(unsupported)} UNSUPPORTED, as expected."
+    # Readable, and stable enough to parse later. The two tallies are LABELLED, because
+    # "N passed" is ambiguous between cases and assertions and the log reports both — the
+    # captured passing run is 11 cases and 78 assertions, and conflating them is a mistake
+    # made while writing this very function.
+    if status in ("empty_log", "no_results"):
+        summary = "NO RESULTS"
+    else:
+        summary = (f"cases: {counts['PASS']} passed, {counts['FAIL']} failed, "
+                   f"{counts['UNSUPPORTED']} unsupported")
+        if counts["ERROR"]:
+            summary += f", {counts['ERROR']} no verdict"
+        summary += (f" (of {len(cases)}); assertions: {num_passed} passed, "
+                    f"{num_failed} failed")
+
+    gaps = []
+    if status == "empty_log":
+        gaps.append("the run produced no log output at all")
+    elif status == "no_results":
+        gaps.append("the log has content but not one test case reported, so the script "
+                    "aborted before its first case — this is NOT a pass")
+    elif status == "short" and expected_cases is not None:
+        gaps.append(f"only {len(cases)} of {expected_cases} registered case(s) reported; the "
+                    f"rest are untested, not passing")
+    if counts["ERROR"]:
+        gaps.append(f"{counts['ERROR']} case(s) did not reach a verdict "
+                    f"({', '.join(errored[:5])})")
+    if unparsed_fails:
+        gaps.append(f"{unparsed_fails} failure line(s) could not be attributed to a case")
+
+    verdict = summary + ("" if not gaps else " — " + "; ".join(gaps) + ".")
 
     return {
         "cases": [{k: v for k, v in c.items()} for c in cases],
-        # Verbatim from the log, never restated. Note an UNSUPPORTED case contributes to
-        # numFailed — see the comment above `failed_cases`.
+        # Verbatim from the log. Note an UNSUPPORTED case contributes to numFailed.
         "numPassed": num_passed,
         "numFailed": num_failed,
         "unparsed_fails": unparsed_fails,
+        # One bucket per case — the machine-readable form of the summary line.
+        "counts": counts,
         "parsed_cases": len(cases),
         "expected_cases": expected_cases,
         "failed_cases": failed_cases,
         "errored_cases": errored,
         "unsupported_cases": unsupported,
-        "expected_unsupported": (sorted(expected_unsupported)
-                                 if expected_unsupported is not None else None),
-        "unsupported_status": unsupported_status,
-        # True while the observed UNSUPPORTED set has not been confirmed by a human. The run
-        # may still be green; this marks the expectation as untrusted, not the result.
-        "unsupported_provisional": unsupported_status == "unestablished",
         "status": status,
-        # Judged on CASE RESULTS, not assertion counters. A case that newly stopped being
-        # tested (`regression`) is not a clean run; a case that started working again is
-        # reported loudly but does not fail the run.
-        "ok": (status == "ok" and not failed_cases and not errored and unparsed_fails == 0
-               and unsupported_status != "regression"),
+        # NOT "the test passed" — this says the RESULTS are trustworthy: the run produced
+        # results, every registered case reported a verdict, and no failure line is
+        # unattributed. Whether the product passed is `counts["FAIL"] == 0`, which a caller
+        # can ask directly. Keeping those two questions apart is the point.
+        "results_complete": (status == "ok" and not counts["ERROR"] and not unparsed_fails),
         "verdict": verdict,
     }
 
@@ -707,12 +682,8 @@ class RunManager:
             # Expected count comes from the script that was actually uploaded, so a "short"
             # verdict is measured against what this run meant to do (Phase 11.1).
             expected = expected_case_count(files.get(test_name, ""))
-            # The expected UNSUPPORTED set is a property of this script on this bench
-            # profile, so it rides in on the profile and the observed set is recorded on the
-            # run for a human to promote into it (Q3, 2026-08-04).
-            run["parsed"] = parse_framework_log(
-                log_text or stdout_text, expected_cases=expected,
-                expected_unsupported=profile.get("expected_unsupported"))
+            run["parsed"] = parse_framework_log(log_text or stdout_text,
+                                                expected_cases=expected)
             run["status"] = "done"
             run["finished_at"] = utc_now().isoformat()
             on_update(run)
