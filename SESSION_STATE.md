@@ -3129,3 +3129,46 @@ against them; (3) Phase 2.4 regenerate; (4) Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 1
 Left for Test Composer: case `.62`'s UNSUPPORTED verdict conceals a second failure
 (`Problem occurred whilst setting boot environment on swi_a, abort`).
 
+
+---
+
+## Session Close / Handoff (2026-08-04b) — tb470 DHCP repair; no repo code changed
+
+**Scope:** lab hardware only. Terrence asked for help with `isc-dhcp-server.service` failing on
+tb470 with exit 1 and "nothing in journalctl"; it became an end-to-end trace of why a switch
+could not install an IDevID certificate. No Ask-CK code was touched. Docs updated:
+`TESTBOX-ACCESS.md` §4b (new), `ask-ck/objective-drafting/PROGRESS.md` (2026-08-04b entry),
+memory `tb470-topology-and-setup`.
+
+**Gate at close:** 944 passed / 1 skipped pytest, 92 Vitest (8 files), both guards OK, `ck.db`
+untouched by tests. Identical to 2026-08-04a — no drift.
+
+**The durable finding:** only `10.38.215.0/24` has an upstream return path, and **tb470 has no
+NAT whatsoever** (`nft list ruleset` = 0 bytes, `iptables` not installed). `ip_forward=1` sends
+lab traffic out with its source intact, so any segment renumbered off that range loses all
+off-segment reachability while looking like a DNS fault. `dig -b <src> @1.1.1.1` separates
+*destination unreachable* from *source unroutable* in one command. See `TESTBOX-ACCESS.md` §4b
+for the full set, including that a failing `isc-dhcp-server` hides its reason from unprivileged
+`journalctl`, that `dhcpd -t` passes on configs that cannot start, and that a client holding a
+lease from a de-configured subnet is wedged rather than NAK'd.
+
+**Narrow correction to the 2026-08-04a handoff.** That entry's "nothing has touched tb470"
+remains true of the *test-run* path — Phase 11.4 has still not run a script against the bench —
+but tb470's **host** config did change today: `INTERFACESv4` is now `"eth1 eth3"` and
+`dhcpd.conf` carries a new `10.38.215.64/27` subnet for eth3 (range `.68–.94`). eth3's address
+is unchanged at `10.38.215.65/27`; it was renumbered to `10.37.101.1/27` mid-session at
+Terrence's direction and reverted once the capture proved the range unroutable.
+
+**What I got wrong, and it matters for next time.** Before the renumber I flagged two risks — the
+`named` binding on `10.38.215.65` and the two devices on the old segment — and both turned out
+harmless (`named` re-binds itself; the device was a DHCP client and simply re-acquired). The risk
+I did **not** flag, upstream routability, was the one that broke everything. Checking whether a
+range is routed is one `dig -b` away and I did it only after the failure. The lesson is narrow
+and mechanical: before moving a segment, test the target range's return path from the host first.
+
+**Pick up here:** unchanged from 2026-08-04a — (1) Phase 11.4, the first hardware run; (2) the
+steps prompt text and lint classification; (3) Phase 2.4 regenerate. Before (1), read
+`TESTBOX-ACCESS.md` §4b; the bench host config is not as 2026-08-04a left it. Four items were
+raised with Terrence and deliberately left undone: the `example.org` domain-name default, the
+eth1 pool overlapping static mgmt addresses, a wrong `broadcast-address` in the eth1 subnet, and
+an unexplained 1–2 s ARP for `10.38.215.66`. All four are recorded in the PROGRESS.md entry.

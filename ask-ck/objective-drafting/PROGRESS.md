@@ -4,6 +4,66 @@
 
 **Last Updated**: 2026-08-04 (by Claude)
 
+## Latest session (2026-08-04b) — lab-hardware detour: tb470 DHCP repaired, and a bench-wide routing constraint found
+
+**No repo code changed.** Terrence asked for help with a failed `isc-dhcp-server.service` on
+tb470; it turned into tracing why a switch could not install an IDevID certificate. Everything
+shipped here is host config on tb470 plus documentation. Gate re-run at close: **944 passed / 1
+skipped pytest, 92 Vitest, both guards OK, `ck.db` untouched** — unchanged from 2026-08-04a.
+
+**The one fact worth carrying forward:** **only `10.38.215.0/24` has an upstream return path,
+and tb470 has no NAT at all** (`nft list ruleset` is 0 bytes, `iptables` is not installed). Any
+lab segment renumbered off that range silently loses all off-segment reachability, and it
+presents as "DNS is broken", not as a routing error. `dig -b <src> @1.1.1.1` isolates it in one
+command. Full write-up in [`TESTBOX-ACCESS.md`](../../TESTBOX-ACCESS.md) §4b.
+
+### What happened
+
+- **The service failure was a config edit, not a service fault.** `dhcpd.conf` had its working
+  `10.38.215.0/27` subnet commented out and a `10.37.101.0/27` block put in its place, while
+  dhcpd was configured to listen only on eth1 (`10.38.215.1/27`) — no subnet matched the one
+  interface, so it refused to listen and exited 1. Two traps here: the reason is invisible to
+  unprivileged `journalctl` (LSB init wrapper), and `dhcpd -t` **passes** on a config that
+  cannot start, because it validates syntax only.
+- **eth3 was renumbered to `10.37.101.1/27` at Terrence's direction and then reverted the same
+  day**, once a packet capture proved the new range had no return path. The renumber is **not**
+  in effect; eth3 is `10.38.215.65/27`, exactly where the day started. I flagged the named
+  binding and the two devices on the old segment as risks beforehand, but did **not** anticipate
+  upstream routability — that was the one that actually bit.
+- **A packet capture, not inference, closed it.** The switch was asking `1.1.1.1` for
+  `pool.ntp.org` / `time.google.com` / `time.nist.gov` and then
+  `proxy.idevid-test.weconnecttheweb.co.nz`, with **zero responses and not one TCP packet** in
+  33 packets. After the revert the same trace showed NTP exchanges completing, the proxy
+  resolving to `13.251.196.8`, and two full TLS 1.3 sessions with no alerts.
+- **The error text was the tell.** `Failed to connect to IDevID proxy - Operation timeout`
+  became `Failed to get signed certificate ... device is disabled`. A substantive rejection
+  proves the whole path works — what remains is a provisioning-registry matter outside the bench.
+
+### tb470 host config, net of the revert
+
+`INTERFACESv4` is now `"eth1 eth3"` (was `"eth1"`), and `dhcpd.conf` gained a `10.38.215.64/27`
+subnet for eth3 with range `.68–.94` (`.65` is eth3 itself; `.66`/`.67` left clear for statics),
+with the `10.37.101.0/27` block commented out. Every edit has a timestamped `.bak` beside it in
+`/etc/dhcp/` and `/etc/default/`. A device on eth3 holds `10.38.215.68`.
+
+### Left undone, deliberately — both flagged to Terrence, neither adopted
+
+1. **`option domain-name "example.org";`** — Debian sample default, still handed to every client
+   on both segments, which then appends it to every lookup.
+2. **The eth1 pool `10.38.215.2–10` overlaps the switches' static mgmt addresses** (x230 is
+   statically `.2`). dhcpd's ping-check abandoned `.2` mid-handshake rather than double-allocate,
+   but ping-check only catches a host answering at that instant.
+3. **`option broadcast-address 10.38.215.32`** in the eth1 subnet is wrong (should be `.31`;
+   `.32` is eth2's network address). Pre-existing, ran that way for ~3 weeks, left alone rather
+   than fold an unrelated change into a repair.
+4. **Something on tb470 ARPs for `10.38.215.66` every 1–2 s and never resolves.** Pre-existing,
+   unrelated to IDevID; no socket in `syn-sent`, no reference in `/etc` or the st-art configs, so
+   not chased further.
+
+**Phase 11.4 is still the deliverable and is still untouched** — this session did not run a test
+script against tb470. It did, however, change bench host config, so re-read §4b before the first
+hardware run rather than assuming the bench is as 2026-08-04a left it.
+
 ## Latest session (2026-08-04) — the decisions got reviewed, and review changed 6 of them
 
 **Terrence reviewed the autonomous run's decisions as a blind experiment**: I presented 12 of

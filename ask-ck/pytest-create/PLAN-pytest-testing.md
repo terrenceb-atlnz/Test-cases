@@ -1,5 +1,14 @@
 # PyTest Creator — Testing & Standardization Plan
 
+> **Bench note (2026-08-04b) — no phase advanced, but tb470's HOST config changed.** A DHCP
+> repair session altered tb470 outside this plan's scope: `INTERFACESv4` is now `"eth1 eth3"` and
+> `dhcpd.conf` serves a new `10.38.215.64/27` subnet on eth3 (range `.68–.94`). eth3's own address
+> is unchanged (`10.38.215.65/27`). It also established a constraint that binds any future bench
+> work: **only `10.38.215.0/24` has an upstream return path and tb470 has no NAT**, so a segment
+> moved off that range loses off-segment reachability while presenting as a DNS fault. Read
+> `TESTBOX-ACCESS.md` §4b before the Phase 11.4 hardware run. Phase 11.4 itself is **still
+> untouched** — no script has been run against tb470.
+>
 > **Security note (2026-07-27):** the adversarial review hardened files this plan covers —
 > `pt_exec.py` (SSH exec now `shlex`-quoted + framework-guard extended to redirection/interpreter/
 > `rsync`/`install`/`cp -t`) and `routers/pytest_create.py` (`/run` `setup` path metachar-validated;

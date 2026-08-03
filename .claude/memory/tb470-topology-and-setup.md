@@ -1,11 +1,11 @@
 ---
 name: tb470-topology-and-setup
-description: tb470 real bench topology + the corrected tb470.setup WRITTEN 2026-07-29 (backup kept); PDU = 10.36.150.14 outlets 8/6 (2026-07-30), no inter-switch data cabling, DUT not on PDU
+description: tb470 real bench topology + the corrected tb470.setup WRITTEN 2026-07-29 (backup kept); PDU = 10.36.150.14 outlets 8/6 (2026-07-30), no inter-switch data cabling, DUT not on PDU; ONLY 10.38.215.0/24 has upstream return path and tb470 has NO NAT (2026-08-04); DHCP served on eth1+eth3
 metadata: 
   node_type: memory
   type: project
   originSessionId: 2a141e3e-5a6e-4153-b006-2e724f5ec026
-  modified: 2026-07-29T23:20:23.482Z
+  modified: 2026-08-03T20:48:41.048Z
 ---
 
 Reconciling `configs/tb470.setup` (on tb470, at `/home/st-art/st-art/configs/`) against the
@@ -122,8 +122,51 @@ instead of the AR4050S. Re-check role bindings before reusing any pre-07-30 scri
   do not stack.
 
 **tb470 host NICs:** eth1 `00:f0:4d:00:77:16` = 10.38.215.1/27 UP (shared mgmt segment, all
-switches); eth2 `...:17` = 10.38.215.33 **DOWN**; eth3 `...:18` = 10.38.215.65 UP (data →
+switches); eth2 `...:17` = 10.38.215.33 **DOWN**; eth3 `...:18` = 10.38.215.65/27 UP (data →
 IE520 1.0.23). Device logins: **manager/friend** (public AW+ default; also in secrets.md).
+
+**🔑 ONLY `10.38.215.0/24` HAS UPSTREAM RETURN PATH — and tb470 has NO NAT.** Learned the hard
+way 2026-08-04: eth3 was renumbered to `10.37.101.1/27` and every client on it lost all
+off-segment reachability. `nft list ruleset` is **0 bytes** and `iptables` is **not installed**,
+so `ip_forward=1` forwards with the source address intact and nothing upstream routes
+`10.37.101.0/27` back. Proof, from the host itself:
+
+| `dig @1.1.1.1` sourced from | result |
+|---|---|
+| `10.38.215.1` / `.65` | NOERROR, 4 answers, ~150 ms |
+| `10.37.101.1` | **timed out** |
+
+**⇒ Never move a tb470 lab segment off `10.38.215.0/24` without adding NAT first.** eth3 was
+reverted the same day; the renumber is NOT in effect. `named` needs no attention either way —
+it has no explicit `listen-on`, binds all interfaces and re-binds on renumber within ~60 s
+by itself (but it is **not** a usable resolver: `named.conf.options` has only `directory`, no
+zones or forwarders, and it times out on every address).
+
+**tb470 serves DHCP on BOTH eth1 and eth3** (`isc-dhcp-server`, `INTERFACESv4="eth1 eth3"` —
+was `"eth1"` before 2026-08-04). Subnets in `/etc/dhcp/dhcpd.conf`: `10.38.215.0/27` range
+`.2–.10` (eth1) and `10.38.215.64/27` range `.68–.94` (eth3, added 2026-08-04; `.65`=eth3,
+`.66`/`.67` deliberately left clear for statics). Traps:
+
+- **A client holding a lease from a subnet you stop serving gets WEDGED, not NAK'd.** dhcpd logs
+  `unknown lease <ip>` and sends **nothing** — `authoritative;` only NAKs for subnets it knows
+  about — so the client re-REQUESTs its dead address for minutes. Bounce the client
+  (`no ip address dhcp` / `ip address dhcp`) instead of waiting.
+- **`option domain-name "example.org";`** is still the Debian sample default and is handed to
+  every client, which then appends it to lookups (`…weconnecttheweb.co.nz.example.org`). Wasted
+  round trip; would break short-name lookups.
+
+- **The eth1 pool `10.38.215.2–10` overlaps the switches' STATIC mgmt addresses** (x230
+  `vlan100` = .2). dhcpd's ping-check abandoned .2 rather than double-allocating it, but
+  ping-check only catches a host answering at that instant — a rebooting device can still be
+  handed an in-use static address. This is a likely cause of the mgmt-IP drift noted above.
+- **`option broadcast-address 10.38.215.32` in the eth1 subnet block is wrong** (should be
+  `.31`; `.32` is eth2's network address). Pre-existing, left in place deliberately.
+
+**A failing `isc-dhcp-server` shows nothing in unprivileged `journalctl`.** The unit is an LSB
+init wrapper that only reports "failed!"; the real reason is logged by `dhcpd` itself and needs
+**`sudo journalctl -u isc-dhcp-server`**. Also: `dhcpd -t` passes on a config that cannot
+start, because it validates syntax only — a subnet declaration that matches no interface
+address is valid but yields "Not configured to listen on any interfaces!" and exit 1.
 
 **Discovery method that worked (Terrence's steer):** NOT LLDP (off everywhere). Cross-match
 `show ip interface brief` / `show arp` / `show mac address-table` against tb470's own NIC
