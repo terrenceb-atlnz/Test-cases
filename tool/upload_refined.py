@@ -1183,11 +1183,27 @@ MORE INFO
         # record survives a crash mid-sequence — a case can be left title-fixed and
         # version-bumped but not uploaded, and that partial state needs to be
         # reconstructable. A log that cannot be written blocks the case.
+        #
+        # The record carries the FULL prior objective + testScript, not just their
+        # sizes. Zephyr keeps NO version history of these pushes by design (Terrence,
+        # 2026-08-03: the 43 live cases stay at v2.0 and are overwritten in place —
+        # a working copy, not a version-controlled one). That decision is about
+        # Zephyr; it is precisely WHY a local record is worth keeping, because a
+        # re-push that writes a worse objective over a better one is otherwise
+        # unrecoverable. A few hundred KB, gitignored, never read by the server.
+        before = {"status": status, "objective_chars": cur_obj_len, "steps": cur_steps}
+        if current:
+            before["objective"] = current.get("objective")
+            before["testScript"] = current.get("testScript")
+            before["name"] = current.get("name")
+        else:
+            before["read_failed"] = True
+
         if not audit(
             "push.intent", key,
             group=group, path=os.path.relpath(p, root),
             force=bool(args.force), skip_validation=bool(args.skip_validation),
-            before={"status": status, "objective_chars": cur_obj_len, "steps": cur_steps},
+            before=before,
             proposed={"objective_chars": len(obj), "steps": len(ts.get("steps", [])),
                       "weblinks": len(all_links)},
             actions={"payload": do_payload, "attach": do_attach, "weblinks": do_weblinks,
@@ -1218,6 +1234,13 @@ MORE INFO
         if ok and args.new_version:
             # create_new_version is idempotent toward v2.0 and logs what it did.
             v_ok, v_info = create_new_version(key, token, dry_run=False)
+            # Record what it actually did rather than inferring it from the
+            # does-this-look-refined heuristic. action == "skipped" means the case was
+            # already at v2.0, so nothing was cloned and the payload below overwrites
+            # that version in place.
+            action = v_info.get("action") if isinstance(v_info, dict) else None
+            audit("push.version", key, ok=bool(v_ok), info=v_info,
+                  overwrites_in_place=(action == "skipped"))
             if not v_ok:
                 ok = False
                 failures += 1

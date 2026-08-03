@@ -214,6 +214,77 @@ def test_audit_writes_a_record(tmp_path, monkeypatch):
     assert rec["ts"] and rec["user"] and "argv" in rec
 
 
+def test_the_process_never_creates_a_third_version():
+    """'Re-push, keep it v2.0' (2026-08-03 decision) is what the tool already does:
+    create_new_version bumps 1.0 -> 2.0 and no-ops at 2.0 or above, so a re-push
+    updates the working copy in place and can never produce 3.0."""
+    assert ur.TARGET_MAJOR_VERSION == 2
+
+
+def test_the_audit_record_keeps_the_prior_content(tmp_path, monkeypatch):
+    """Zephyr keeps no version history of these pushes, so this log is the only place
+    the replaced objective survives.
+
+    The v2.0 decision means a re-push overwrites in place. That is deliberate on the
+    Zephyr side and is not something to defend against — but it does mean a push that
+    writes a worse objective over a better one is unrecoverable without a local record.
+    """
+    log = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(ur, "AUDIT_PATH", str(log))
+    live = {
+        "name": "(4) Auto MDI/MDI-X",
+        "objective": "<ul><li>the objective about to be replaced</li></ul>",
+        "testScript": {"type": "STEP_BY_STEP",
+                       "steps": [{"description": "old step", "expectedResult": "old"}]},
+    }
+    monkeypatch.setattr(ur, "get_jira_key", lambda: "fake-token")
+    monkeypatch.setattr(ur, "fetch_case", lambda key, token: live)
+    monkeypatch.setattr(ur, "fix_title", lambda *a, **k: ("unchanged", "n", "n"))
+    monkeypatch.setattr(ur, "create_new_version",
+                        lambda key, token, dry_run=True: (True, {"action": "skipped", "major": 2}))
+    monkeypatch.setattr(ur, "put_case", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(ur, "attach_file", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(ur, "post_tracelinks", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(sys, "argv",
+                        ["upload_refined.py", "--execute", "--skip-validation", "--force",
+                         "--new-version", "--keys", "AWPTCM-T33235"])
+    with pytest.raises(SystemExit):
+        ur.main()
+
+    events = [json.loads(l) for l in log.read_text(encoding="utf-8").strip().splitlines()]
+    assert [e["event"] for e in events] == ["push.intent", "push.version", "push.outcome"], \
+        "the intent record must precede the first write"
+    before = events[0]["before"]
+    assert before["objective"] == live["objective"], "prior objective was not captured"
+    assert before["testScript"] == live["testScript"], "prior steps were not captured"
+    assert before["name"] == live["name"]
+
+
+def test_an_in_place_overwrite_is_observed_not_inferred(tmp_path, monkeypatch):
+    """Whether the old content survives depends on the VERSION, not on how refined the
+    case looks. create_new_version reports action == 'skipped' when the case is already
+    at v2.0 — that, and only that, means the push overwrites in place."""
+    log = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(ur, "AUDIT_PATH", str(log))
+    monkeypatch.setattr(ur, "get_jira_key", lambda: "fake-token")
+    monkeypatch.setattr(ur, "fetch_case", lambda key, token: {"objective": "old", "name": "n"})
+    monkeypatch.setattr(ur, "fix_title", lambda *a, **k: ("unchanged", "n", "n"))
+    monkeypatch.setattr(ur, "create_new_version",
+                        lambda key, token, dry_run=True: (True, {"action": "skipped", "major": 2}))
+    monkeypatch.setattr(ur, "put_case", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(ur, "attach_file", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(ur, "post_tracelinks", lambda *a, **k: (True, 200))
+    monkeypatch.setattr(sys, "argv",
+                        ["upload_refined.py", "--execute", "--skip-validation", "--force",
+                         "--new-version", "--keys", "AWPTCM-T33235"])
+    with pytest.raises(SystemExit):
+        ur.main()
+
+    version = [json.loads(l) for l in log.read_text(encoding="utf-8").strip().splitlines()
+               if json.loads(l)["event"] == "push.version"]
+    assert version and version[0]["overwrites_in_place"] is True
+
+
 def test_audit_reports_failure_instead_of_raising(monkeypatch):
     """An unwritable log must return False so the caller can refuse — not explode,
     and above all not silently continue into a production write."""

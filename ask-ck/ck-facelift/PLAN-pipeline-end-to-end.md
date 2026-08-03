@@ -43,13 +43,44 @@
 > matter** — several changed the work, not just the wording, and each is recorded inline in the
 > phase it affects rather than in a separate list.
 >
-> **The headline blocker is cheaper than we thought.** The 2026-08-03 session concluded the
-> output ceiling was irreducible and deliberately left it unfixed. Stage F refutes the premise:
-> the installed CLI (v2.1.207, **verified directly**) exposes `--effort`, `--session-id`,
-> `--resume` and `--fork-session`, none of which `llm.py` passes. Separately, **40.9% of the
-> generated script is verbatim re-emission of the server's own skeleton**, and the CLI transport
-> **discards the `stop_reason` both HTTP backends already act on**. Three cheap fixes may raise
-> the ceiling enough that chunked generation is unnecessary. See Phase 7.
+> **THE OUTPUT CEILING DOES NOT EXIST.** This is the largest correction in the audit, it was
+> found by two independent completeness critics, and I reproduced it end to end before writing
+> it down. Replaying the five stored replies in `debug-log/no-session.jsonl` through the real
+> `_parse_generated_blocks` regex ([pytest_create.py:883]):
+>
+> | reply | model emitted | parser kept | `ts.run(sys.argv)` present |
+> |---|---|---|---|
+> | 06:47:37 | 173,351 chars / **42 classes** | 86,656 / 21 | yes |
+> | 07:00:16 | 96,070 / 17 | 88,602 / 16 | yes |
+> | 07:25:59 | 48,702 / 12 | 42,331 / 9 | yes |
+> | 07:48:13 | 37,674 / 6 | 37,661 / 6 | yes |
+> | 07:56:58 (the "D15 regression") | 49,546 / 6 | 25,171 / **0** | yes |
+>
+> **Every reply is complete.** The CLI splits long answers across assistant messages, each
+> re-opening a ```` ```python ```` fence, and the non-greedy `(.*?)``` ` stops at the
+> *continuation's opening* fence — discarding everything after part 1, usually mid-token, which
+> is exactly what "truncation" looked like. Verified seam at offset 25,181 of the 07:56:58
+> reply: it cuts inside `self.log('LLDP transmit interval in effect: {}` and the next part
+> re-emits that line. The model **labels each part** (`# ---- continuation … part 2: TestCase_21
+> onwards ----`) and closes with plain-English assembly instructions naming which duplicate to
+> discard — and the parser throws those away too.
+>
+> The parser-kept figures are, to the character, the numbers in
+> `FINDINGS-generation-size-ceiling.md` and `RESULTS-2026-08-03.md`. **Those documents measured
+> parser output and called it model output**, and every decision downstream inherits it.
+>
+> What this invalidates: the ~9–20 class ceiling (42 arrived in one call); `_size_overflow`'s
+> three constants, whose docstring claims "ALL THREE CONSTANTS ARE MEASURED"; **chunked
+> generation, the single largest item in this plan, costed XL**; and D15's diagnosis. It does
+> not invalidate the transport findings — the installed CLI (v2.1.207, verified) does expose
+> `--effort`, `--session-id`, `--resume` and `--fork-session` that `llm.py` never passes, and
+> the CLI transport still discards the `stop_reason` both HTTP backends act on. Those become
+> small optimisations rather than the headline. See Phase 7, now rewritten.
+>
+> Recovery is **not** uniform, and the plan must budget for that: a naive strip-and-join fixes
+> 07:00:16 only; line-level de-duplication of the re-emitted partial line additionally fixes
+> 07:56:58; the four-part 06:47:37 reply re-emits a whole partial **class**, so assembly has to
+> work at class granularity. S/M, not the ~20 lines a first read suggests — and not XL.
 >
 > **Ordering.** Strict pipeline order as asked, with **one exception taken out of order and
 > justified in Phase −1** — it can damage production data outside this repo.
@@ -142,6 +173,71 @@ non-zero, so the UI cannot report a refused push as success.
 > the exposure was never the transport, it was that no *second* fact was required. The
 > confirmation token supplies that. All 14 of those tests still pass unchanged.
 
+**−1.7 NEW, and it needs your decision — 43 cases are ALREADY live in production Zephyr.**
+
+Raised by a completeness critic, verified directly:
+`6f254e7 2026-07-22 generator: Push-to-Zephyr button + title-cleanup + v2.0 versioning;
+all 43 cases pushed`. This plan treated the push purely as a *future* risk and never asked what
+had already gone out. What is already out there:
+
+- **43 AWPTCM cases at version 2.0**, in the company QA record, outside this repo and outside
+  git — every one produced by the **title-only objective prompt** that is this plan's headline
+  defect (Phase 1).
+- Each carries an attached `traceability.md` with the defects Phase 3 documents — "Objective:
+  No" rendered for cross-references that *do* have objectives, a blank `Folder:` on every line,
+  and a provenance sentence citing `data/zephyr_full/`.
+- **No record of which 43, what payload, or when.** `ask-ck/var/zephyr-push-audit.jsonl` does
+  not exist on disk — confirmed. The audit log arrived with −1.4, five weeks late. The only
+  reconstruction available is git history plus whatever Zephyr's own version log retained.
+
+This forces a call that has to be made **before** regeneration, not after, because it decides
+whether the regenerated bundles are additive or corrective:
+
+**DECIDED (2026-08-03): re-push the 43, and keep them at v2.0.** No v3.0.
+
+The tooling already does exactly this and needs no change to honour it: `TARGET_MAJOR_VERSION
+= 2` and `create_new_version` returns `{"action": "skipped"}` for any case already at v2.0 or
+beyond, so `--new-version` is a no-op there and the payload updates v2.0 in place. Re-running is
+capped by construction; it can never produce 3.0.
+
+Two consequences follow:
+
+1. **Zephyr keeps no version history of these pushes — so the local audit log does.**
+   > *"I don't want a snapshot, I want a working copy. no version control required."*
+   > — Terrence, 2026-08-03, **scoped to Zephyr.** In Zephyr: stay at v2.0, overwrite in
+   > place, no v3.0 and no version trail. That is settled.
+   >
+   > It does **not** extend to the local record, and reading it that way was my error — I
+   > briefly stripped the content capture out on the strength of it. The Zephyr decision is
+   > in fact the reason to keep a local copy: with no version trail upstream, a re-push that
+   > writes a worse objective over a better one is otherwise unrecoverable.
+
+   *Built:* `push.intent` captures the full prior `objective`, `testScript` and `name`, and a
+   `push.version` record states whether the write landed in place — **observed** from
+   `create_new_version`'s reported action, not inferred.
+   > A first cut inferred "in place" from `status == "refined"`, the does-this-look-refined
+   > heuristic. A test with a small live case (63-char objective, 1 step → `partial`) caught
+   > it: the heuristic and the version are different questions, and only the version decides
+   > whether the old text survives.
+
+   The log stays local and disposable: `ask-ck/var/*` is gitignored, the server never reads
+   it, and it is a few hundred KB for all 43.
+
+2. **A re-push needs `--force`.** All 43 classify as `refined`, so the CLI's own "already
+   appears refined — SKIP" guard fires on every one. `--force` is opt-in and the UI deliberately
+   does not send it (pinned by `test_ui_does_not_send_force`), so the re-push must be a
+   deliberate CLI run, not a button. That is the right shape for it — leave the UI as it is.
+
+Sequence: Phases 1–4 → regenerate all 53 → the new validator must pass → then
+`--execute --force --new-version --verify` over the 43, in batches, with the audit log retained.
+
+> **Also worth stating plainly:** the gate built in −1.1 now refuses **all 53** bundles, so the
+> push is effectively disabled until the `expectedResult` defect is fixed. A critic argues that
+> makes Phase 2 a hard *blocker* on Phase −1 rather than a successor to it — otherwise the
+> choice is between shipping steps with no pass criteria and shipping nothing. That is correct,
+> and it is an argument for pulling the `generate_steps.jinja` fix forward, not for weakening
+> the gate.
+
 **−1.5 DEFERRED — blocked on Phase 3.7.** There is no machine-confirmed marker to read yet;
 the acknowledgement has nothing to key on. Build it with 3.7.
 
@@ -165,9 +261,19 @@ objectives must be *authored*, grounded in other corpora, and gated.
 
 **2. `ck.db` was built from a stale intermediate, and half a megabyte of real content is
 missing.** `meta.built_at = 2026-07-20T01:16`, from a `zephyr_cases.jsonl` generated
-**2026-07-15 13:37** — but `tool/extract_zephyr_xml.py` was fixed at **2026-07-20 07:03**, five
-hours and forty-seven minutes *after* the build. Four extractor fixes never reached the
-permanent DB:
+**2026-07-15 13:37**. Four extractor fixes never reached the permanent DB:
+
+> **CORRECTION — this plan had the timeline backwards, and the verifier caught it.**
+> An earlier draft said `tool/extract_zephyr_xml.py` was fixed "five hours and forty-seven
+> minutes *after* the build", implying a race. It is the opposite. `build_db.py:506` writes
+> `built_at` with `datetime.utcnow()`, so `2026-07-20T01:16:07` is **UTC** = **13:16 local**.
+> The extractor was fixed at **07:03:44 +1200** — **6h12m before** the build. Decisive
+> cross-check: `meta.src_mtime:scripts_index.json` = **13:12:30 local**, 3m37s before
+> `built_at`; were `built_at` local, the build would predate its own input by twelve hours.
+>
+> So the correct story is worse than a race: **the fix already existed, and the build simply
+> re-used a five-day-old intermediate instead of re-running it.** No timing accident to
+> excuse it, and nothing about the permanence invariant caused it.
 
 | Content | In ck.db |
 |---|---|
