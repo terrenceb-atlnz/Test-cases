@@ -2996,3 +2996,66 @@ through with Terrence.
 between mutating and reverting and left `generator.js` corrupted in the working tree; the test
 suite caught it immediately. It now snapshots targets, restores from `atexit`/`SIGINT`, and
 refuses to start dirty.
+
+## Session Close / Handoff (2026-08-03c) — parser fix, run path unblocked, size gate deleted
+
+**Ask:** *"Please perform as many Phases as possible. Leave all decisions for me until the very
+end, if possible. Make a best-effort guess to temporarily bypass blockers, and then record your
+choices and make a note for us to review said decisions."* Autonomous run against
+`ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md`.
+
+**Constraints Terrence set before the run:** tb470 **read-only** (preflight/console reads
+allowed, no config push, no script execution); **ck.db migration permitted, production Zephyr
+push not**; and I implement while independent skeptics adversarially verify each fix.
+
+**Shipped — four commits, gate 803 → 895 pytest (+92 Vitest unchanged):**
+
+- `f0a94af` — **the parser fix** (`CK_server/gen_assembly.py`), Phase 2.1–2.3, Phase 7.1, 7.9,
+  Phase 11.0. All five stored replies recover COMPLETELY (21→40 classes; **0→6** on the "D15
+  regression"); generation refuses a reply that did not reassemble. `RunManager.start` carries a
+  `contextvars.copy_context()`, so the run thread is no longer locked out by the tab that
+  started it. `generate_steps.jinja` rewritten, and now renders the four corpus fields
+  `_synthesis_context` had always built for it and it never referenced.
+- `5f4af0a` — **the size gate is deleted**, not recalibrated. Measured `output_tokens`:
+  67,326 / 66,334 / 57,188 / 34,966, every one over the 32,000 "hard cap" and every one a
+  complete script. 32,000 bounds a MESSAGE. `acknowledge_size_overflow` went with it — it had
+  no caller and was unreachable from either the browser or `pt_autopilot`.
+- `86c062a` — `parse_framework_log` states a status and verdict; "nothing ran" can no longer
+  read as "everything passed". Real captured fixtures, two hashed credentials redacted.
+- `81c9c94` — a short script is a lint ERROR and cannot be confirmed.
+
+**Two corrections to the 2026-08-03b record:**
+
+1. **Phase 7.1 as written is wrong.** It says "capture `stop_reason` and raise". Captured live
+   against CLI 2.1.207, `stop_reason` is **null on every genuine assistant message, including
+   ones that hit the cap**; the only truthy value is on a message the CLI synthesizes, and it
+   reads `stop_sequence`, never `max_tokens`. My first implementation followed the plan and was
+   **dead code** — a skeptic caught it and I reproduced the refutation before rewriting against
+   the `result` envelope. Structural captures committed at `tests/fixtures/cli_stream_*.jsonl`.
+2. **Phase 7.6 (chunked generation) is withdrawn** on the 67,326-token measurement above.
+
+**The adversarial verification earned its cost.** My first `gen_assembly` had **seven ways to
+silently delete real code while reporting a clean recovery** — including deleting the
+`ts = TestSuite(...)` every framework script depends on, which would have produced a `NameError`
+on the bench while every check here reported success. Rewritten so each rule is decided by
+evidence: seam repair picks the reading that parses and drops least; unit spans stop at the next
+column-0 statement; duplicates resolve on AST richness, not character count; a block after the
+runner is commentary. Fences inside string literals remain unrecoverable but are now DETECTED
+and refused rather than shipped.
+
+**Everything I decided without Terrence is in `ask-ck/ck-facelift/DECISIONS-FOR-REVIEW.md`** —
+17 entries, each with the rejected alternative and how to overturn it.
+
+**NOT done, deliberately:** no hardware run (read-only constraint); no Zephyr push; **the 53
+bundles are NOT regenerated** — the new steps prompt is unit-tested but unproven against a live
+model, and regenerating spends real tokens against a prompt Terrence has not reviewed.
+
+**Gate at close:** 895 passed / 1 skipped, 92 Vitest, both guards OK, `ck.db` untouched by
+tests. `ask-ck/var/ck.db` shows modified and **staged** in `git status` — that predates this
+session (WAL checkpoint folding real traffic). It was left exactly as found; commits used
+explicit pathspecs so it was never included. **Do not `git checkout` it.**
+
+**Pick up here:** (1) Phase 11.4, the first hardware run — everything is fixed and proved
+offline and nothing has touched tb470; (2) sign off the steps prompt, then Phase 2.4 regenerate;
+(3) read DECISIONS-FOR-REVIEW.md, especially D-03, D-15 and D-17. Stations 14 and 16 are still
+not walked through.

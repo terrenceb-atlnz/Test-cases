@@ -10,7 +10,39 @@
 > | **Phase −1.1 – −1.4** | ✅ **DONE** 2026-08-03 (`949004f`, `0743889`). 28 tests, 9 mutations all caught. |
 > | **Phase −1.5, −1.6** | Deferred with reasons recorded in Phase −1. |
 > | **Phase −1.7** (43 live cases) | Decided: re-push, stay at v2.0. Executes after Phases 1–4. |
-> | **Phases 0 – 12** | Not started. |
+> | **Parser fix** (the recommended deviation) | ✅ **DONE** 2026-08-03c (`f0a94af`). `CK_server/gen_assembly.py`; all five stored replies recover COMPLETELY. |
+> | **Phase 2.1 – 2.3** | ✅ **DONE** 2026-08-03c (`f0a94af`). Prompt rewritten + the four corpus fields it never rendered. **2.4 (regenerate 53) NOT done** — needs sign-off. |
+> | **Phase 7.1, 7.4, 7.5, 7.7, 7.9** | ✅ **DONE** 2026-08-03c (`f0a94af`, `5f4af0a`, `81c9c94`). |
+> | **Phase 7.6** (chunked generation) | ❌ **WITHDRAWN.** Measured 67,326 output tokens in one call — see below. |
+> | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
+> | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
+> | **Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12** | Not started. |
+> | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
+>
+> ### 2026-08-03c — what changed in the plan itself
+>
+> **Phase 7.6 is withdrawn, and Phase 7.4 was more wrong than recorded.** The gate's premise —
+> that the CLI's 32,000 `maxOutputTokens` bounds the answer — is false. Measured `output_tokens`
+> on the stored multi-message generations: **67,326 / 66,334 / 57,188 / 34,966**, every one over
+> the "hard cap" and every one a complete script. 32,000 bounds a *message*. So the blocking
+> gate is deleted rather than recalibrated, and `acknowledge_size_overflow` went with it (it had
+> no caller and was unreachable).
+>
+> **Phase 7.1 as written is wrong and was implemented differently.** It says "capture
+> `stop_reason` and raise". Captured live against CLI 2.1.207, `stop_reason` is **null on every
+> genuine assistant message, including ones that hit the cap**; the only truthy value is on a
+> message the CLI synthesizes, and it reads `stop_sequence`. Detection reads the `result`
+> envelope instead. Structural captures are committed at `tests/fixtures/cli_stream_*.jsonl`.
+>
+> **The first parser fix was wrong in seven ways and an adversarial reviewer caught all of them.**
+> It silently deleted real code — including the `ts = TestSuite(...)` every framework script
+> depends on — while reporting a clean recovery. Rewritten so each rule is decided by evidence:
+> seam repair picks the reading that parses and drops least, unit spans stop at the next column-0
+> statement, duplicates resolve on AST richness rather than character count, and a block after
+> the runner is commentary. **Every judgement call is recorded in
+> [`DECISIONS-FOR-REVIEW.md`](DECISIONS-FOR-REVIEW.md) for Terrence to overturn.**
+>
+> **Still not walked through with Terrence:** Stations 14 (preflight) and 16 (judging).
 >
 > **Two things happened after the first draft that change the order** — both reproduced
 > independently before being written down:

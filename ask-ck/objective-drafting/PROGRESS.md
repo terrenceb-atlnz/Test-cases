@@ -2,7 +2,70 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-03b (by Claude)
+**Last Updated**: 2026-08-03c (by Claude)
+
+## Latest session (2026-08-03c) — the ceiling is dead in code, and the run path is unblocked
+
+**Ask: "perform as many Phases as possible, leave all decisions for me until the very end,
+make a best-effort guess to bypass blockers and record them."** Autonomous run against
+[`PLAN-pipeline-end-to-end.md`](../ck-facelift/PLAN-pipeline-end-to-end.md). Every judgement
+call is in [`DECISIONS-FOR-REVIEW.md`](../ck-facelift/DECISIONS-FOR-REVIEW.md) — 17 entries,
+each with the alternative rejected. **Gate 803 → 895 pytest** (+92 Vitest unchanged).
+
+Standing constraints Terrence set before the run: tb470 **read-only** (no config push, no
+script execution), **ck.db migration allowed / production Zephyr push not**, and skeptics
+adversarially verify each fix before commit.
+
+### Shipped
+
+- **The parser fix (`f0a94af`) — `CK_server/gen_assembly.py`.** All five stored replies now
+  recover **completely**: every class registered by `ts.add_testCase(...)` is defined, carries
+  a `main()`, and the whole script parses. 21→40 classes on the big one, **0→6** on the "D15
+  regression". Generation now **refuses** a reply that did not reassemble, instead of stamping,
+  linting and persisting a partial script behind an HTTP 200.
+- **Phase 11.0 (`f0a94af`) — the run path is open.** `RunManager.start` carries a
+  `contextvars.copy_context()`, so the run thread no longer gets locked out by the browser tab
+  that started it. Verified by mutation (revert → 3 tests red). A repo-wide guard refuses any
+  other uncarried thread. **Not yet proven on hardware** — that is Phase 11.4 and it needs you.
+- **Phase 2.1–2.3 (`f0a94af`).** `generate_steps.jinja` no longer says expectedResult is
+  "usually empty" *and* shows an empty one as its only example. It also now renders
+  `testlink_selections` / `zephyr_selections` / `atp_selections` / `gaps` — **all four were
+  built by `_synthesis_context` for every call and never referenced**, so step synthesis worked
+  from strictly less evidence than the stage before it.
+- **Phase 7.4/7.5 (`5f4af0a`) — the size gate is deleted.** Not recalibrated: its premise is
+  false. Measured `output_tokens` on the stored multi-message generations — **67,326 / 66,334 /
+  57,188 / 34,966** — every one over the 32,000 "hard cap" and every one a complete script.
+  32,000 bounds a *message*. `tool/pt_measure_expansion.py` re-measures expansion at 0.71–1.90
+  (median 0.90) against the fitted constant of 1.95. The booby-trap test that pinned the refuted
+  premise is gone, replaced by a staleness guard over the comments that repeated it.
+- **Phase 11.1/11.2 (`86c062a`) — "nothing ran" no longer reads as "everything passed".**
+  `parse_framework_log` states a status and a verdict; `ok` requires results to exist and every
+  case to reach a verdict. Real captured fixtures from an x230v2 bootloader run (one clean, one
+  genuinely failing), with two hashed device credentials redacted.
+- **Phase 7.7 (`81c9c94`).** A script with fewer TestCase classes than the approved sequence is
+  now a lint **error**, not a warning — it is the only signal that a cleanly-parsing script is
+  short — and `confirm_step` refuses to sign off a script with lint errors.
+
+### What the adversarial verification actually caught
+
+**Both skeptics refuted my work, and both were right.** The truncation-signal fix was **dead
+code**: `stop_reason` is null on every genuine assistant message even when truncated, and the
+only truthy value sits on a message the CLI synthesizes. Reproduced independently before
+rewriting it against the `result` envelope. The first parser was worse — **seven ways to
+silently delete real code while reporting a clean recovery**, including eating the
+`ts = TestSuite(...)` every framework script needs. Rewritten so every rule is decided by
+evidence rather than heuristic.
+
+### Pick up here
+
+1. **Phase 11.4 — the first hardware run.** Everything is fixed and proved offline; nothing has
+   touched tb470. This is the deliverable the whole plan points at.
+2. **Sign off the new steps prompt, then Phase 2.4** — regenerate the 53 bundles. They stay
+   non-compliant with the Zephyr gate until then, and the new prompt is unit-tested but
+   **unproven against a live model**.
+3. **Read `DECISIONS-FOR-REVIEW.md`** — 17 calls made without you, three worth arguing about
+   (D-03 blocks-after-runner, D-15 UNSUPPORTED handling, D-17 the non-overridable lint gate).
+4. Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12 are untouched.
 
 ## Latest session (2026-08-03b) — full-pipeline audit (284 findings): the output ceiling is a PARSER BUG, and Phase −1 ships
 

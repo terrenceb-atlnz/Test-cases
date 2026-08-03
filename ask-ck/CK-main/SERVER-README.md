@@ -328,11 +328,25 @@ large artefacts, which exposed four things about the transport (all fixed 2026-0
   timed out the health ping. `llm._is_long_call()` is the single predicate deciding this and the
   whole-response timeout floor, so the two cannot disagree.
 
-⚠️ **Generation has a hard output ceiling of roughly 9–20 `TestCase` classes**, because the
-32,000-token cap is shared with thinking and the thinking flag bounds one *block* not the total.
-Above it a script truncates **without erroring**, sometimes on a statement boundary so it parses
-cleanly while silently testing less than it claims. `_size_overflow()` now gates this before the
-call. Full measurements: `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
+- **A long answer arrives in SEVERAL messages, and is reassembled.** `32,000` bounds one
+  message, not the answer: measured `output_tokens` on the stored multi-message generations are
+  **67,326 / 66,334 / 57,188 / 34,966**, and every one is a complete script.
+  `_parse_cli_stream` concatenates the assistant text blocks and `CK_server/gen_assembly.py`
+  stitches the continuation seams back together, resolving classes a continuation re-emits.
+  A reply that does **not** reassemble cleanly is refused (502) rather than persisted.
+- **Truncation is detected on the `result` envelope, not on `stop_reason`.** Captured against
+  CLI 2.1.207, `stop_reason` is `null` on every genuine assistant message *including ones that
+  hit the cap*; the only truthy value sits on a message the CLI synthesizes to carry its error,
+  and that message's text is filtered out so it cannot land inside the generated script.
+
+> **Previously documented here as "a hard output ceiling of roughly 9–20 `TestCase` classes",
+> gated by `_size_overflow()`. That was refuted on 2026-08-03 and both are gone.** The ceiling
+> was a defect in `_parse_generated_blocks`, which stopped at the first *continuation* fence and
+> discarded the rest of the reply — usually mid-token, which read as model truncation. The
+> gate's three "measured" constants were fitted to that parser's output. The real protection is
+> now applied on arrival (reassembly + the completeness lint) instead of predicted before the
+> call. See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the ⚠-bannered
+> `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
 
 ### Grok CLI Subscription Mode (SuperGrok / X Premium+)
 

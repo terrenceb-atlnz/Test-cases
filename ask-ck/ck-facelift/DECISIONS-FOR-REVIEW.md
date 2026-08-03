@@ -145,7 +145,65 @@ output is not. **First thing to check tomorrow.**
 
 ---
 
-## 5. Blocked / not done, and why
+## 5. The size gate (Phase 7.4/7.5)
+
+### D-13 — The blocking size gate is DELETED, not recalibrated
+**Chose:** removed the 409 entirely; `_size_estimate` is advisory and never blocks.
+**Why not just fix the constants:** the premise is wrong, not the numbers. The gate assumed
+the CLI's 32,000 `maxOutputTokens` is the whole answer budget. Measured `output_tokens` on
+the stored multi-message generations: **67,326 / 66,334 / 57,188 / 34,966** — every one over
+32,000, every one a complete script. 32,000 bounds a *message*; the answer continues.
+**Consequence:** a very large case will now attempt generation where it used to be refused
+up front. It costs tokens to find out. The protection moved to arrival-time
+(`_recovery_failure` + the completeness lint), which reasons about what was delivered.
+**Also removed:** `acknowledge_size_overflow`, whose override path had no caller — neither
+the browser nor `pt_autopilot` could send it, so the documented escape hatch was unreachable.
+
+### D-14 — Expansion is recorded as a RANGE, not a constant
+Re-measured across 36 recovered generations: **0.71–1.90, median 0.90**, against
+`_FILL_EXPANSION = 1.95`. One number cannot carry both marker-stripping (deterministic) and
+model verbosity (variable). `tool/pt_measure_expansion.py` reproduces the table.
+
+---
+
+## 6. Run verdicts (Phase 11.1)
+
+### D-15 — `ok` requires results, and every case reaching a verdict
+**Chose:** `parse_framework_log` states a `status` (`empty_log` / `no_results` / `short` /
+`ok`) plus a plain-English `verdict`, and `ok` requires results to exist AND no case to be
+left in `ERROR`.
+**Why:** zero cases parsed to `0 passed, 0 failed`, and every downstream check reads
+`numFailed`. "Nothing ran" and "everything passed" were the same value — and "nothing ran"
+is the most likely first-run outcome.
+**Found while writing the tests:** a case that crashes mid-way is `ERROR` and contributes no
+`numFailed`, so a failure count alone *still* read clean. Fixed.
+**Judgement call:** `UNSUPPORTED` is reported, not failed — it is a legitimate outcome. If
+you would rather an UNSUPPORTED case block a green verdict, that is a one-line change.
+
+### D-16 — The log fixtures are real, and redacted
+Committed two captured runs of the 5700_bootloader suite on an x230v2. **Two hashed device
+credentials in the config echo were redacted** (`password 8 <REDACTED-HASH>`); nothing else
+was altered, and a test asserts no credential survives in either fixture. My first fixtures
+used an invented log format the real regexes cannot read — worth knowing, because such a
+test proves only that the parser agrees with the format its author imagined.
+
+---
+
+## 7. Confirmation gate (Phase 7.7)
+
+### D-17 — A lint error blocks confirmation, with NO override
+**Chose:** the TestCase-shortfall check becomes an `error`; `confirm_step` refuses step 6
+while `lint.errors` is non-empty, or if the script was never linted.
+**Deliberate asymmetry:** the objective-coverage gap beside it stays a warning with an
+acknowledge flag, because a source step can be genuinely untestable and you are the right
+authority. A lint error means the artefact is broken — regenerate it. A test pins the
+asymmetry so neither drifts into the other.
+**Consequence:** cases that were previously confirmable may now refuse. That is the intent,
+but it will show up as friction before it shows up as value.
+
+---
+
+## 8. Blocked / not done, and why
 
 | Item | Status | Reason |
 |---|---|---|

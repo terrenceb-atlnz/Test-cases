@@ -53,12 +53,33 @@ same defect. Recovery is **not** uniform: a naive join fixes 07:00:16, line-leve
 additionally fixes 07:56:58, and 06:47:37 re-emits a whole partial *class* — so assembly must
 work at class granularity.
 
-**How to apply:** before blaming a model for short or broken generated output, **replay the raw
-reply from `debug-log/*.jsonl` and count what the model actually sent** — the stored artefact is
-parser output, not model output, so every downstream measurement inherits the defect. Note the
-debug-log is gitignored (`.gitignore:70`), so this evidence is local-only and disposable.
-See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7; the ceiling table in
-`ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md` and `autopilot/RESULTS-2026-08-03.md`
-records parser output and should be read with that correction in hand. Related:
+## FIXED 2026-08-03c — and two facts about this transport that cost a session to learn
+
+Assembly now lives in `CK_server/gen_assembly.py` (`recover_script`), which recovers all five
+replies **completely** — every class registered by `ts.add_testCase(...)` defined, carrying a
+`main()`, and parsing. Generation **refuses** a reply that did not reassemble instead of
+persisting a partial script behind an HTTP 200.
+
+**1. 32,000 output tokens bounds ONE MESSAGE, not the answer.** Measured `output_tokens` on
+the stored multi-message generations: **67,326 / 66,334 / 57,188 / 34,966** — all over the
+"hard cap", all complete scripts. The size gate built on that premise is deleted. So there is
+no ceiling to design around: a long answer simply continues into the next message.
+
+**2. `stop_reason` is USELESS for detecting truncation here.** Captured live against CLI
+2.1.207 with `CLAUDE_CODE_MAX_OUTPUT_TOKENS=200`: it is `null` on **every genuine assistant
+message, including the ones that hit the cap**. The only truthy value in the stream sits on a
+message the CLI *synthesizes* to carry the error, whose `id` is a UUID rather than `msg_…`,
+and it reads `stop_sequence` — never `max_tokens`. The real signal is on the terminal
+`result` event: `is_error` + `terminal_reason == "api_error"` + `"output token maximum"` in
+the result text. That synthesized message's text also gets concatenated into the answer, so
+it must be filtered out or English prose lands on the end of the generated script.
+Structural captures are committed at `tests/fixtures/cli_stream_*.jsonl`.
+
+**How to apply:** before blaming a model for short or broken generated output, **replay the
+raw reply from `debug-log/*.jsonl` and count what the model actually sent** — any artefact
+stored before 2026-08-03c is parser output, not model output. The debug-log is gitignored
+(`.gitignore:70`), so that evidence is local-only and disposable; the committed fixtures are
+not. The ceiling tables in `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md` and
+`autopilot/RESULTS-2026-08-03.md` record parser output and carry that correction. Related:
 [[vllm-reasoning-model-path]], [[workspace-llm-default-gotcha]], [[generator-cli-hallucination]],
-[[mutate-before-you-claim]].
+[[mutate-before-you-claim]], [[silent-degradation-audit-2026-07-30]].
