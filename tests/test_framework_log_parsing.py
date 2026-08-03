@@ -220,9 +220,16 @@ def test_end_to_end_a_registered_but_unrun_case_is_visible():
 # loses the signal when a case newly stops being tested, and demanding an acknowledgement
 # every time fires on 38% of runs for a set that never changes.
 
+# A REALISTIC UNSUPPORTED case. It detects its own inapplicability at run time and reports
+# that as a FAILURE line, so the case carries numFailed >= 1 while being classified
+# UNSUPPORTED. All four in the captured log look like this. My first version of this fixture
+# used `numFailed: 0`, which no real log does — and that hid the fact that "ok requires
+# numFailed == 0" made every reconciliation branch unreachable.
 UNSUPPORTED_LOG = """\
 >> test-5700.2002.2
-<< test-5700.2002.2: UNSUPPORTED (numPassed: 0 numFailed: 0)
+2026-02-09 11:41:55: PASS: configuration saved
+2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media
+<< test-5700.2002.2: UNSUPPORTED (numPassed: 1 numFailed: 1)
 >> test-5700.2002.4
 2026-02-10 08:15:47: PASS: the feature behaves
 << test-5700.2002.4: PASS (numPassed: 1 numFailed: 0)
@@ -246,21 +253,25 @@ def test_a_newly_unsupported_case_is_a_regression():
     assert "no longer being tested" in parsed["verdict"]
 
 
-def test_a_case_that_started_running_again_marks_the_expectation_stale():
+def test_a_case_that_started_running_again_is_loud_but_does_not_fail_the_run():
+    """Good news, or a false positive in the script's own capability check — either way a
+    human decides, and a run whose case results are fine is not failed for it."""
     parsed = parse_framework_log(
         UNSUPPORTED_LOG, expected_cases=2,
         expected_unsupported=["5700.2002.2", "5700.2002.4"])
     assert parsed["unsupported_status"] == "stale_expectation"
-    assert parsed["ok"] is False
-    assert "STALE" in parsed["verdict"]
+    assert parsed["ok"] is True, "a case that started working must not fail the run"
+    assert "SUPPORT CHANGED" in parsed["verdict"]
+    assert "false positive" in parsed["verdict"]
 
 
-def test_an_unestablished_expectation_asks_once():
-    """No recorded set yet: confirm it once, then future change is loud."""
+def test_an_unestablished_expectation_is_provisional_not_blocking():
+    """The first run must be able to come back green — it is the run we care most about."""
     parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2)
     assert parsed["unsupported_status"] == "unestablished"
-    assert parsed["ok"] is False
-    assert "no recorded expectation" in parsed["verdict"]
+    assert parsed["unsupported_provisional"] is True
+    assert parsed["ok"] is True, "the first hardware run must not be blocked by an unset expectation"
+    assert "PROVISIONAL" in parsed["verdict"]
 
 
 def test_a_run_with_no_unsupported_cases_needs_no_expectation():
@@ -278,3 +289,41 @@ def test_the_real_logs_unsupported_set_is_stable_across_runs():
     b = parse_framework_log(_fixture("framework_run_fail.log"),
                             expected_unsupported=sorted(observed))
     assert b["unsupported_status"] == "as_expected"
+
+
+def test_an_unsupported_case_does_not_fail_the_run_via_its_failure_counter():
+    """THE defect my first fixture hid. Real UNSUPPORTED cases carry numFailed >= 1.
+
+    All four in the captured log do:
+        << test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
+    so a rule of "ok requires numFailed == 0" could never pass a run containing even an
+    entirely expected UNSUPPORTED case, and every reconciliation branch was unreachable.
+    """
+    parsed = parse_framework_log(UNSUPPORTED_LOG, expected_cases=2,
+                                 expected_unsupported=["5700.2002.2"])
+    assert parsed["numFailed"] >= 1, "the fixture must carry the real counter shape"
+    assert parsed["failed_cases"] == [], "no case actually reported FAIL"
+    assert parsed["ok"] is True, \
+        "an expected UNSUPPORTED case failed the run through its assertion counter"
+
+
+def test_the_reported_counters_still_match_the_log_verbatim():
+    """The counters are the log's own numbers and must not be quietly adjusted."""
+    parsed = parse_framework_log(_fixture("framework_run_fail.log"))
+    assert (parsed["numPassed"], parsed["numFailed"]) == (60, 43)
+
+
+def test_a_real_failing_case_still_fails_the_run():
+    parsed = parse_framework_log(FAILING_LOG, expected_cases=1)
+    assert parsed["failed_cases"] == ["5700.2001.10"]
+    assert parsed["ok"] is False
+
+
+def test_the_verdict_is_judged_on_case_results_not_counters():
+    """A log where counters look bad but every case verdict is fine."""
+    log = (">> test-a\n"
+           "2026-02-09 11:41:55: !!FAIL: DUT does not support USB Media\n"
+           "<< test-a: UNSUPPORTED (numPassed: 0 numFailed: 1)\n")
+    parsed = parse_framework_log(log, expected_cases=1, expected_unsupported=["a"])
+    assert parsed["numFailed"] == 1 and parsed["failed_cases"] == []
+    assert parsed["ok"] is True

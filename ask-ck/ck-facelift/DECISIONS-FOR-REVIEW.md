@@ -324,4 +324,60 @@ deterministic, so a second expensive call would fail identically.
 landed somewhere neither of us started** (Q2 split, Q3 reconciliation, Q5 margin, and Q4's
 retry mechanism). The consistent lesson: every difference dissolved once someone measured, and
 in every case the measurement was cheap and available all along.
+---
+
+## 11. Q3 re-reviewed 2026-08-04 — Terrence was right twice, and I had shipped a dead branch
+
+### D-18 REVISED — no platform key, and the reconciliation was UNREACHABLE
+
+**Terrence's challenge:** *"Im mildly concerned with the detail of x230v2, is this just an
+arbitrary name or is this an actually evidence-based assertation? I'd also like to point out
+that the scripts should be platform-agnostic, so they should rely on the bench configuration
+(which is a step to be taken in the FUTURE project, Test Composer)."*
+
+**On `x230v2`:** not arbitrary, but weaker than I presented it. It is the framework's own label,
+emitted while deciding **licence bundles** (`No license bundles require loading on swi_a for
+platform family x230v2`), and I never verified how it is computed. I offered it as a capability
+contract on the strength of an incidental log line.
+
+**On the architecture: he is right, and it makes the whole idea unnecessary.** The scripts
+already detect capability at run time themselves — that is what *produces* the UNSUPPORTED
+verdict:
+
+    !!FAIL: DUT does not support USB Media
+    !!FAIL: DUT supports SD Card but no SD Card installed
+    !!FAIL: No USB media present, test unsupported
+
+Keying an expectation on a platform label would import platform-awareness into the verdict
+layer to re-derive something the script has already established, against
+`scripts-must-be-hardware-agnostic`. **Q3a and Q3b are parked**: no platform extraction, no
+durable-storage decision. The expectation stays a caller-supplied parameter, and where it
+lives is a Test Composer question.
+
+### THE BUG THIS REVIEW EXPOSED — my reconciliation could never report green
+
+A real UNSUPPORTED case reports its own inapplicability **as a failure line**, so the case
+carries `numFailed >= 1` while being classified UNSUPPORTED. All four in the captured log do:
+
+    << test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
+
+`ok` required `numFailed == 0`, so **no run containing even a fully expected UNSUPPORTED case
+could ever be green** — every branch I built was unreachable. My synthetic fixture used
+`numFailed: 0`, which no real log does, and it hid the defect completely. That is the *second
+time* an invented fixture masked a real bug in this work (the first was the log format itself).
+The verdict now reads **case results**, not assertion counters; the counters are still reported
+verbatim because they are the log's own numbers.
+
+### D-22 (Q3c) — an unrecorded UNSUPPORTED set is PROVISIONAL, not blocking
+The first run can be green. The set is reported, marked `unsupported_provisional`, and any
+later change is still loud. Rationale: blocking the first hardware run — the one this whole
+plan points at — on an expectation nobody has had a chance to record is friction with no
+safety gain, and the set is visible either way.
+
+### D-23 (Q3d) — a case that started running again is LOUD but does not fail the run
+**Terrence:** *"This could be the result of a false positive. Loudly identify the change in
+support and let a human verify."* The verdict now says `SUPPORT CHANGED`, names the cases, and
+states both readings — the platform gained the capability, or the script's own capability check
+is a false positive — while leaving `ok` decided by the actual case results. A `regression`
+(a case newly UNSUPPORTED, i.e. newly untested) still blocks.
 

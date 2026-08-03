@@ -346,19 +346,40 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None,
                    f"did not reach a verdict ({', '.join(errored[:5])}) — those are "
                    f"errors, not passes.")
 
+    # AN UNSUPPORTED CASE POLLUTES numFailed, SO THE VERDICT READS CASE RESULTS INSTEAD.
+    #
+    # Found 2026-08-04, and it made the reconciliation below unreachable. A real UNSUPPORTED
+    # case detects its own inapplicability at run time and says so as a FAILURE line, then the
+    # framework classifies the case UNSUPPORTED:
+    #
+    #     !!FAIL: DUT does not support USB Media
+    #     << test-5700.2002.2: UNSUPPORTED (numPassed: 2 numFailed: 1)
+    #
+    # All four UNSUPPORTED cases in the captured log carry numFailed >= 1. So a rule of
+    # "ok requires numFailed == 0" can never pass a run containing even an entirely expected
+    # UNSUPPORTED case. My first synthetic fixture used `numFailed: 0`, which is not what real
+    # logs look like, and it hid this completely.
+    #
+    # The fix is to judge on CASE RESULTS, which is what the framework's own verdicts are for.
+    # Assertion counters stay reported verbatim — never restated, because they are the log's
+    # own numbers — but they do not decide the outcome.
+    failed_cases = [c["name"] for c in cases if c.get("result") == "FAIL"]
+
     # UNSUPPORTED IS RECONCILED, NOT PASSED AND NOT FAILED (2026-08-04).
     #
     # Measured across the real captured logs: 5 of 13 contain UNSUPPORTED cases, including
-    # the run a human labelled PASS (7 of 26 cases). And the set is STABLE — two runs of
-    # test-5700.2002 on the same platform both report exactly {2, 22, 42, 62} unsupported,
-    # the longer run adding three more as more of the suite executed. So UNSUPPORTED is a
-    # deterministic property of (case x platform), not run-to-run noise.
+    # the run a human labelled PASS (7 of 26 cases), and the set is STABLE — two runs of
+    # test-5700.2002 both report exactly {2, 22, 42, 62}. Treating it as green loses the
+    # signal when a case NEWLY becomes unsupported and quietly stops being tested; demanding
+    # an acknowledgement every time fires on 38% of runs for a set that never changes.
     #
-    # That rules out both simple answers. Treating it as green loses the signal when a case
-    # NEWLY becomes unsupported and quietly stops being tested. Demanding an acknowledgement
-    # every time fires on 38% of runs for a set that never changes, which is how an
-    # acknowledgement becomes a reflex. So compare against what is expected for this script
-    # on this platform: silence when it matches, loud when it CHANGES.
+    # WHAT THIS IS *NOT* KEYED ON, deliberately (Terrence, 2026-08-04): the platform. The
+    # scripts must stay hardware-agnostic, and they already detect capability at run time
+    # themselves — that is what produces the UNSUPPORTED verdict in the first place. Keying an
+    # expectation on a platform label would import platform-awareness into the verdict layer
+    # to re-derive something the script already established. The expectation is therefore a
+    # caller-supplied parameter, and where it durably lives is a Test Composer question,
+    # not one to answer here.
     unsupported_status = "none"
     if unsupported and expected_unsupported is None:
         unsupported_status = "unestablished"
@@ -379,33 +400,48 @@ def parse_framework_log(text: str, expected_cases: Optional[int] = None,
                    f"({', '.join(newly[:5])}) and are therefore no longer being tested. "
                    f"{verdict}")
     elif unsupported_status == "stale_expectation":
+        # A case that started running again is GOOD NEWS, and it may equally be a false
+        # positive in the script's own capability check. Say so loudly, let a human decide,
+        # and do not fail a run whose actual case results are fine (Terrence, 2026-08-04).
         gained = sorted(set(expected_unsupported or []) - set(unsupported))
-        verdict = (f"EXPECTATION STALE — {len(gained)} case(s) previously UNSUPPORTED now run "
-                   f"({', '.join(gained[:5])}); update the expected set. {verdict}")
+        verdict = (f"SUPPORT CHANGED — {len(gained)} case(s) previously UNSUPPORTED now run "
+                   f"({', '.join(gained[:5])}). Either the platform gained the capability or "
+                   f"the script's capability check is a false positive; verify, then update "
+                   f"the expected set. {verdict}")
     elif unsupported_status == "unestablished":
-        verdict = (f"{verdict} {len(unsupported)} case(s) report UNSUPPORTED and there is no "
-                   f"recorded expectation for this script on this platform yet — confirm the "
-                   f"set is intended, then record it so a future change is loud.")
+        # Provisional: usable immediately, visibly not yet trusted. The first hardware run
+        # can be green, and every later change is still loud.
+        verdict = (f"{verdict} {len(unsupported)} case(s) report UNSUPPORTED "
+                   f"({', '.join(unsupported[:5])}). No expectation was recorded, so this set "
+                   f"is PROVISIONAL — confirm it is intended and record it, after which any "
+                   f"change is reported.")
     elif unsupported_status == "as_expected":
-        verdict = f"{verdict} {len(unsupported)} UNSUPPORTED, as expected on this platform."
+        verdict = f"{verdict} {len(unsupported)} UNSUPPORTED, as expected."
 
     return {
         "cases": [{k: v for k, v in c.items()} for c in cases],
+        # Verbatim from the log, never restated. Note an UNSUPPORTED case contributes to
+        # numFailed — see the comment above `failed_cases`.
         "numPassed": num_passed,
         "numFailed": num_failed,
         "unparsed_fails": unparsed_fails,
         "parsed_cases": len(cases),
         "expected_cases": expected_cases,
+        "failed_cases": failed_cases,
         "errored_cases": errored,
         "unsupported_cases": unsupported,
         "expected_unsupported": (sorted(expected_unsupported)
                                  if expected_unsupported is not None else None),
         "unsupported_status": unsupported_status,
+        # True while the observed UNSUPPORTED set has not been confirmed by a human. The run
+        # may still be green; this marks the expectation as untrusted, not the result.
+        "unsupported_provisional": unsupported_status == "unestablished",
         "status": status,
-        # A drifted UNSUPPORTED set is not a clean run. An unestablished one is not either —
-        # somebody has to say the set is intended once, and that is a cheap, one-time act.
-        "ok": (status == "ok" and num_failed == 0 and unparsed_fails == 0 and not errored
-               and unsupported_status in ("none", "as_expected")),
+        # Judged on CASE RESULTS, not assertion counters. A case that newly stopped being
+        # tested (`regression`) is not a clean run; a case that started working again is
+        # reported loudly but does not fail the run.
+        "ok": (status == "ok" and not failed_cases and not errored and unparsed_fails == 0
+               and unsupported_status != "regression"),
         "verdict": verdict,
     }
 
