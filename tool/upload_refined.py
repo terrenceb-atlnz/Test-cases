@@ -160,25 +160,20 @@ def _server_validator():
         return None
 
 
-def blank_expected_results(payload):
-    """Indices of verification steps that carry no expectedResult.
-
-    The server-injected traceability note is exempt: it is a pointer, not a test.
-    Every other step must say what is expected, or the step is not a test — 615 of
-    the 645 steps in the current refined corpus have none, which is the single most
-    consequential content defect a push can carry into Zephyr.
-    """
-    steps = ((payload or {}).get("testScript") or {}).get("steps") or []
-    blank = []
-    for idx, s in enumerate(steps):
-        if not isinstance(s, dict):
-            continue
-        desc = (s.get("description") or "").strip()
-        if not desc or desc.startswith(_NOTE_PREFIX):
-            continue
-        if not (s.get("expectedResult") or "").strip():
-            blank.append(idx)
-    return blank
+# THE BLANK-expectedResult RULE IS DELETED, NOT DISABLED.
+#
+# It used to refuse any push whose verification steps had no expectedResult ("a step with
+# no expected result is not a test"), and it refused all 53 committed bundles. The premise
+# was wrong. A Zephyr manual step is MEANT to leave the field empty — Terrence's design
+# ruling, recorded in memory `expected-results-deliberately-absent`: a tester reading the
+# objective plus a non-prescriptive step reasons out what should happen, and stating it
+# narrows them to reproducing that exact result instead of producing evidence of function.
+#
+# The rule's own history is why this is a deletion rather than a flag. Phase −1 (`949004f`)
+# asserted the premise here; hours later D-12 (`f0a94af`) rewrote `generate_steps.jinja` to
+# satisfy it, justified by THIS gate refusing the corpus. Circular. Leaving the function
+# behind, even unused, invites the same loop — so it goes, and `llm.synthesize_steps` now
+# forces the field empty at generation.
 
 
 def validate_for_push(key, payload):
@@ -201,15 +196,6 @@ def validate_for_push(key, payload):
             checked = True
         except Exception as e:                          # pragma: no cover - defensive
             warnings.append(f"server validator raised: {e}")
-
-    blank = blank_expected_results(payload)
-    if blank:
-        shown = ", ".join(str(b) for b in blank[:8])
-        more = ", …" if len(blank) > 8 else ""
-        issues.append(
-            f"{len(blank)} verification step(s) have an empty expectedResult "
-            f"(step index {shown}{more}) — a step with no expected result is not a test"
-        )
 
     return {"valid": not issues, "issues": issues, "warnings": warnings, "checked": checked}
 

@@ -2,9 +2,11 @@ You are drafting Zephyr-ready verification steps for a manual test case.
 The objective below is finalized (user-reviewed). Derive the steps from it.
 
 An objective bullet states an END STATE — what should be true. A step is a PROCEDURE — what
-someone does, with what data, and how they tell whether it worked. Restating a bullet with
-"Verify " in front of it is NOT a step: it adds no test-design information, and a tester
-cannot execute it.
+someone does, and under what conditions. A step must add test-design information the bullet
+does not already carry: the setup, the data, the variation, the thing being exercised.
+Re-wording a bullet adds nothing and is not a step — whatever verb it opens with. "Verify …"
+is a perfectly good way to begin a real step and many steps here should use it; the fault is
+restatement, never the word.
 
 ## Case
 {{ case_key }}{% if primary and primary.w %} — {{ primary.w }}{% endif %}
@@ -28,12 +30,18 @@ cannot execute it.
 - The FIRST step is injected server-side as a traceability note — DO NOT generate it.
 - Generate ONLY the subsequent verification steps exercising the objective's artefacts.
 - Cover each major objective bullet: positive, negative, special conditions, reporting.
-- EVERY step must name the test data it uses (values, counts, interfaces, timings) in its
-  description, and the measurement the tester reads — the command, counter, log or
-  observation — in either the description or the expectedResult.
-- EVERY step must have a non-empty expectedResult stating the OBSERVABLE outcome: what the
-  measurement should show, with the value or bound it is compared against. "Passes",
-  "works", "is correct" and "as expected" are not outcomes.
+- Keep each step high-level enough to be reusable across platforms, but specific enough to
+  be testable. Naming exact values, counts and timings is the PyTest script's job, not this
+  one — a manual step that dictates them narrows the tester to one way of exercising the
+  feature instead of leaving them to produce evidence that it works.
+- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The
+  tester reads the objective and the step and reasons out what should happen; stating the
+  outcome narrows them to producing exactly that result instead of evidence that the
+  feature works. The objective already carries the expected outcomes.
+- Say WHAT is being exercised, not which command to type. Proving the step was taken —
+  capturing `show` output as evidence — is the generated PyTest script's job, and naming
+  commands or device registers here invents mechanisms that may not exist and narrows the
+  tester besides.
 - Where a step depends on topology, say which roles it needs (e.g. two links between the DUT
   and a partner), never a device model or a port number.
 - Platform-agnostic language: no product names, no hardcoded port strings.
@@ -41,16 +49,20 @@ cannot execute it.
 ## Output format — this example IS the specification; match its level of detail
 [
   {
-    "description": "With the partner link up, set the LLDP transmit interval to 5 seconds on the DUT test port and leave the hold multiplier at its default of 4.",
-    "expectedResult": "The running configuration reports a transmit interval of 5 seconds; the neighbour's advertised TTL is 20 seconds (5 x 4)."
+    "description": "Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.",
+    "expectedResult": ""
   },
   {
-    "description": "Capture LLDPDUs on the partner port for 30 seconds and count the frames received.",
-    "expectedResult": "6 +/- 1 LLDPDUs are received (30s / 5s interval), each carrying the mandatory Chassis ID, Port ID and TTL TLVs."
+    "description": "Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.",
+    "expectedResult": ""
   },
   {
-    "description": "Set the transmit interval to 0, which is below the supported minimum.",
-    "expectedResult": "The DUT rejects the value with a range error and the previously configured interval of 5 seconds remains in effect."
+    "description": "Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.",
+    "expectedResult": ""
+  },
+  {
+    "description": "Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.",
+    "expectedResult": ""
   }
 ]
 

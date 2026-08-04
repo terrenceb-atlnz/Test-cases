@@ -38,41 +38,62 @@ def _example_steps():
 
 # ------------------------------------------------------------------ the example is the spec
 
-def test_every_example_step_has_a_non_empty_expected_result():
-    """The defect, pinned. The old example's only expectedResult was the empty string."""
+def test_every_example_step_has_an_EMPTY_expected_result():
+    """THE REVERSAL, pinned. A Zephyr manual step carries no expected result.
+
+    This asserted the exact opposite until 2026-08-05. Blank is the design — a tester
+    reading the objective plus a non-prescriptive step reasons out what should happen, and
+    stating it narrows them to reproducing that result instead of producing evidence of
+    function. See memory `expected-results-deliberately-absent`; the example matters most
+    because `prompt-examples-are-the-spec` — the model copies what it is shown.
+    """
     steps = _example_steps()
     assert steps, "the example must contain at least one step"
-    empty = [s["description"][:40] for s in steps if not (s.get("expectedResult") or "").strip()]
-    assert not empty, f"example steps with no expectedResult teach the model to omit it: {empty}"
-
-
-def test_example_expected_results_state_an_observable_value():
-    """"Passes" / "works as expected" are not outcomes. Each example must show a real one."""
-    vague = ("as expected", "works correctly", "is correct", "passes", "successful",
-             "no errors", "behaves properly")
-    for step in _example_steps():
-        result = step["expectedResult"].lower()
-        assert not any(v in result for v in vague), \
-            f"vague expectedResult in the example: {step['expectedResult']!r}"
-        # something measurable: a number, a bound, or a named observable
-        assert re.search(r"\d", result), \
-            f"expectedResult with no measurable value: {step['expectedResult']!r}"
+    filled = [s["description"][:40] for s in steps if (s.get("expectedResult") or "").strip()]
+    assert not filled, \
+        f"example steps WITH an expectedResult teach the model to write them: {filled}"
 
 
 def test_example_steps_are_procedures_not_restated_end_states():
-    """A step must be executable. The old prompt's own rule produced "Verify <bullet>"."""
+    """A step must add test-design information the bullet does not already carry.
+
+    THIS NO LONGER BANS THE WORD "Verify". It used to, and that was an over-reach: the
+    defect was measured as SIMILARITY (best-match of each step to its objective bullet
+    across all 645 steps; AWPTCM-T33303 at 0.98), then encoded lexically as a ban on one
+    opening verb. "Verify …" is a legitimate and common way to open a real step — the
+    process doc's own worked examples use it — so the ban forbade a valid construction
+    while doing nothing about a restatement phrased any other way.
+
+    What the example must actually demonstrate is a procedure: an action plus the
+    conditions or data it acts on. A bare end-state restatement has neither.
+    """
     for step in _example_steps():
         desc = step["description"].strip()
-        assert not desc.lower().startswith("verify "), (
-            f"the example opens a step with 'Verify ' — that is the grammatical "
-            f"transposition Phase 2 exists to stop: {desc[:60]!r}")
+        assert len(desc.split()) >= 8, \
+            f"example step is too thin to carry a procedure: {desc!r}"
+        # Deliberately NOT pattern-matched further. Three lexical proxies for a semantic
+        # property have already had to be undone here (the "Verify" ban, a vague-word list,
+        # a has-a-digit test), each one forbidding something legitimate. Length is the only
+        # honest mechanical signal; whether a step is a procedure is a review judgement.
 
 
-def test_example_steps_name_their_test_data():
-    """Test data (values, counts, timings) must appear in the example, not just the prose."""
-    with_data = [s for s in _example_steps() if re.search(r"\d", s["description"])]
-    assert len(with_data) >= 2, \
-        "the example must demonstrate concrete test data in the step description"
+def test_example_steps_do_not_dictate_exact_values():
+    """THE REVERSAL. Naming exact values, counts and timings is the PyTest script's job.
+
+    This required the opposite — at least two example steps containing a digit — which is
+    the rule from the WRONG LAYER. A Zephyr manual step should stay high-level enough to be
+    reusable across platforms (`OBJECTIVE_DRAFTING_PROCESS.md` Step 2); dictating "5
+    seconds" and "6 +/- 1 LLDPDUs" narrows the tester to one way of exercising the feature
+    instead of leaving them to produce evidence that it works.
+
+    Ranges and named conditions ("the supported range", "below the minimum") are the right
+    level and carry no digit, which is why a digit was never the signal it was read as.
+    """
+    hardcoded = [s["description"] for s in _example_steps()
+                 if re.search(r"\b\d+\s*(seconds?|ms|s|packets?|frames?|Mbps)\b",
+                              s["description"], re.IGNORECASE)]
+    assert not hardcoded, \
+        f"example steps dictate exact values the tester must reproduce: {hardcoded}"
 
 
 def test_example_is_valid_json_in_the_shape_the_parser_expects():
@@ -96,15 +117,27 @@ def test_example_does_not_hardcode_a_port_or_a_product():
 
 # ------------------------------------------------------------------------ the prose contract
 
-def test_the_usually_empty_instruction_is_gone():
-    """The single sentence that produced 618 empty expected results."""
-    assert "usually empty" not in flat(TEXT).lower(), \
-        "the prompt still tells the model expectedResult is usually empty"
+def test_prose_requires_an_empty_expected_result():
+    """The prompt must SAY it, not only demonstrate it in the example.
+
+    Replaces `test_prose_requires_a_non_empty_expected_result`, which required the
+    opposite. The 618-blank corpus was never a defect — see
+    `expected-results-deliberately-absent`.
+    """
+    body = flat(TEXT).lower()
+    assert "leave `expectedresult` empty" in body or "leave expectedresult empty" in body, \
+        "the prompt must instruct that expectedResult is left empty"
 
 
-def test_prose_requires_a_non_empty_expected_result():
-    assert "non-empty expectedresult" in flat(TEXT).lower(), \
-        "the prompt must state the expectedResult requirement, not only demonstrate it"
+def test_the_field_is_also_forced_empty_server_side():
+    """A prompt rule is a request; this requirement is enforced in code as well.
+
+    `synthesize_steps` normalises every generated step, so a model that fills the field
+    anyway — or a future prompt edit — cannot put expected results back into the corpus.
+    """
+    source = (SERVER / "llm.py").read_text(encoding="utf-8")
+    assert '"expectedResult": ""} for s in llm_steps]' in source, \
+        "synthesize_steps no longer forces expectedResult empty"
 
 
 def test_prose_distinguishes_an_end_state_from_a_procedure():

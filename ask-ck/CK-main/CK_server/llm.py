@@ -927,15 +927,14 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
 
     # Fallback regex for numbered steps (handles markdown too).
     #
-    # PHASE 2 — THIS PATH CANNOT SATISFY THE PROMPT, so it has to announce itself. A
-    # numbered list carries no expectedResult, so every step it produces is blank — the
-    # exact defect Phase 2.1 rewrote `generate_steps.jinja` to eliminate (618 of 648 steps
-    # empty across the 53 bundles). It used to return those steps indistinguishably from a
-    # compliant JSON parse, so "the model ignored the format" and "the model complied"
-    # produced identical output and nothing downstream could tell them apart: the blank
-    # expectedResults were only ever caught at PUSH time, by `upload_refined.validate_for_push`.
-    # Recording the source lets the caller say which happened. Cf. the silent-degradation
-    # audit (2026-07-30) — an unparseable reply must never read as a well-formed empty one.
+    # THIS PATH IS A DEGRADED PARSE, so it has to announce itself. The model was asked for a
+    # JSON array; a numbered list means it ignored that, and the regex recovers descriptions
+    # only — any structure the reply carried beyond the description text is silently lost.
+    #
+    # NOT flagged because the recovered steps have a blank `expectedResult`: blank is the
+    # intended shape (see `steps_report`). Flagged because an unparseable reply used to be
+    # indistinguishable from a well-formed one, which is the silent-degradation pattern from
+    # the 2026-07-30 audit — a parse failure must never read as a clean result.
     if not steps:
         step_lines = re.findall(r"^\s*(?:\d+[\.\)]|\-)\s*(.+)$", cleaned, re.MULTILINE)
         for line in step_lines:
@@ -969,33 +968,36 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
     }
 
 
-def steps_compliance(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Audit synthesized steps against the rule `generate_steps.jinja` states.
+def steps_report(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Describe synthesized steps. Deliberately does NOT score `expectedResult`.
 
-    PHASE 2. The prompt requires a non-empty `expectedResult` on every verification step,
-    and until now NOTHING checked whether the reply obeyed it: `validate_zephyr_payload`
-    inspects shape, the traceability note and the step count, but never reads
-    `expectedResult`. The only real gate is `upload_refined.validate_for_push`, which runs
-    at the Zephyr push — so a non-compliant generation was discovered a whole pipeline
-    stage late, after the tokens were already spent.
+    THIS FUNCTION USED TO SCORE BLANK EXPECTED RESULTS AS NON-COMPLIANT. That was wrong,
+    and the reason is a design ruling that had never been written down (memory
+    `expected-results-deliberately-absent`):
 
-    Deliberately advisory, and deliberately NOT part of `validate_zephyr_payload`: that
-    function is the shared push gate, and a generation-time report must not change what
-    the push refuses. This only makes the state visible where it is produced.
+        A Zephyr manual step is MEANT to leave `expectedResult` empty. A human reading the
+        objective plus a non-prescriptive step can reason out what should happen. Stating
+        it does active harm — the tester then performs the test in whatever way produces
+        exactly that stated result, instead of producing EVIDENCE OF FUNCTION.
 
-    `steps` is the FINAL list including the server-injected traceability note at index 0,
-    which legitimately carries no expectedResult and is excluded.
+    The objective already carries the expected outcomes; `pt_generate_script.jinja` rule 1a
+    calls its bullets "the AUTHORITATIVE expected results the whole script exists to prove".
+    A per-step expected result duplicates that and narrows it.
+
+    How the old behaviour got here, since it looked well-founded: Phase −1 (`949004f`) added
+    a push gate asserting "a step with no expected result is not a test"; hours later D-12
+    (`f0a94af`) rewrote the prompt to satisfy that gate, justified by the gate refusing the
+    corpus. Circular — and the governing plan's goal was "a test actually ran", i.e. script
+    execution, so step drafting was swept in as an obstacle rather than reviewed as a Test
+    Case Generator design question.
+
+    What IS still worth reporting is parse integrity (`steps_source`, set by the caller) and
+    invented device mechanisms — neither depends on `expectedResult` being filled in.
+
+    `steps` is the FINAL list including the server-injected traceability note at index 0.
     """
     verification = [s for s in (steps or [])[1:] if isinstance(s, dict)]
-    blank = [i for i, s in enumerate(verification, start=1)
-             if not str(s.get("expectedResult") or "").strip()]
-    return {
-        "verification_steps": len(verification),
-        "blank_expected_results": len(blank),
-        # 1-based positions among the verification steps, so a reviewer can go straight there.
-        "blank_step_numbers": blank,
-        "compliant": bool(verification) and not blank,
-    }
+    return {"verification_steps": len(verification)}
 
 
 # Canonical first testScript step. Full TL/Zephyr/ART mappings live only in
@@ -1304,14 +1306,26 @@ def synthesize_steps(
     # way the validator already does (validate_zephyr_payload, :717).
     if llm_steps and _is_traceability_note(llm_steps[0].get("description", "")):
         llm_steps = llm_steps[1:]
+
+    # A ZEPHYR MANUAL STEP CARRIES NO EXPECTED RESULT. Terrence's design ruling, recorded in
+    # memory `expected-results-deliberately-absent`: a tester reading the objective plus a
+    # non-prescriptive step reasons out what should happen, and STATING it does active harm —
+    # they then perform the test in whatever way produces exactly that result, instead of
+    # producing evidence of function. The objective already carries the expected outcomes.
+    #
+    # Enforced HERE rather than only asked for in the prompt, because a prompt rule is a
+    # request and this is a requirement: D-12 showed how easily the field creeps back once
+    # something downstream starts wanting it. The key is kept (the Zephyr payload schema is
+    # {description, expectedResult}) and always empty.
+    llm_steps = [{**s, "expectedResult": ""} for s in llm_steps]
     final_steps = [note_step] + llm_steps
 
-    # PHASE 2 — report compliance with the prompt's own rule at the point of generation,
-    # instead of leaving it to be discovered at the Zephyr push. `steps_source` says whether
-    # the model answered in the requested JSON; the fallback cannot carry an expectedResult
-    # at all, so a "numbered_list" source explains a fully-blank result rather than leaving
-    # it to look like a model that just didn't comply.
-    quality = {**steps_compliance(final_steps),
+    # Describe what came back. Nothing here scores `expectedResult` — a blank one is the
+    # DESIGN (see steps_report), so grading it would be grading the intended outcome.
+    # `steps_source` is parse integrity only: "numbered_list" means the model ignored the
+    # requested JSON and the regex fallback ran, so structure was lost in parsing. An
+    # unparseable reply must never read as a well-formed one.
+    quality = {**steps_report(final_steps),
                "steps_source": steps_struct.get("steps_source", "none")}
 
     provenance = {

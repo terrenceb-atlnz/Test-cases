@@ -51,39 +51,33 @@ def _payload(steps, objective=None):
 
 # --- −1.1  validate before a live write ----------------------------------------
 
-def test_blank_expected_result_blocks_the_push():
-    """A step with no expected result is not a test. 615 of 645 in the corpus have none."""
+def test_blank_expected_results_do_not_block_the_push():
+    """THE REVERSAL. A blank expectedResult is the DESIGN, so it cannot block a push.
+
+    This file used to assert the opposite ("a step with no expected result is not a test"),
+    and that rule refused all 53 committed bundles. The premise was wrong — see memory
+    `expected-results-deliberately-absent`. Worse, it was self-justifying: this gate
+    asserted the premise (`949004f`), then hours later D-12 (`f0a94af`) rewrote
+    `generate_steps.jinja` to satisfy the gate, citing the gate refusing the corpus.
+
+    If this test fails, someone has reinstated the rule. Read the memory first.
+    """
     p = _payload([{"description": "Verify LLDP neighbours appear", "expectedResult": ""}])
     v = ur.validate_for_push("AWPTCM-T33235", p)
-    assert v["valid"] is False
-    assert any("expectedResult" in i for i in v["issues"]), v["issues"]
+    assert v["valid"] is True, v["issues"]
+    assert not any("expectedResult" in i for i in v["issues"]), v["issues"]
+
+
+def test_the_helper_that_scored_blanks_is_gone():
+    """Deleted rather than left unused, so the circular loop cannot re-form around it."""
+    assert not hasattr(ur, "blank_expected_results")
 
 
 def test_a_complete_payload_passes():
-    p = _payload([
-        {"description": "Verify LLDP neighbours appear",
-         "expectedResult": "show lldp neighbors lists the peer's chassis ID"},
-    ])
+    p = _payload([{"description": "Verify LLDP neighbours appear", "expectedResult": ""}])
     v = ur.validate_for_push("AWPTCM-T33235", p)
     assert v["valid"] is True, v["issues"]
     assert v["checked"] is True, "the server shape validator did not run"
-
-
-def test_the_traceability_note_is_exempt_from_the_expected_result_rule():
-    """The server-injected first step is a pointer, not a test — it has no result."""
-    p = _payload([
-        {"description": "Verify X", "expectedResult": "X happens"},
-    ])
-    assert ur.blank_expected_results(p) == []
-
-
-def test_blank_indices_are_reported_so_the_operator_can_find_them():
-    p = _payload([
-        {"description": "Verify A", "expectedResult": "a"},
-        {"description": "Verify B", "expectedResult": ""},
-        {"description": "Verify C", "expectedResult": "   "},
-    ])
-    assert ur.blank_expected_results(p) == [2, 3]
 
 
 def test_shape_rules_come_from_the_server_not_a_second_copy():
@@ -365,12 +359,16 @@ def test_the_ui_sends_the_token_only_on_execute():
 
 # --- the end-to-end refusal, offline -------------------------------------------
 
-def test_main_blocks_the_current_corpus_and_exits_nonzero(monkeypatch, capsys):
-    """Run the real CLI over the real bundles, offline, and require a refusal.
+def test_main_no_longer_blocks_the_corpus_over_blank_expected_results(monkeypatch, capsys):
+    """Run the real CLI over a real bundle, offline, and require it to pass.
 
-    Every one of the 53 committed payloads has at least one verification step with no
-    expected result, so a correct gate refuses all 53. That is the honest state of the
-    corpus; Phases 1–4 are what change it.
+    This test used to assert the opposite — that a correct gate refuses all 53 committed
+    payloads because each has verification steps with no expected result. It did refuse
+    them, and the refusal was wrong: blank is the intended shape. The corpus was never the
+    problem, so validation must no longer stand in front of it.
+
+    The shape rules (traceability note, objective, step count) still apply and are covered
+    above; this asserts only that a blank expectedResult is not among them.
     """
     monkeypatch.setattr(ur, "get_jira_key", lambda: None)
     monkeypatch.setattr(ur, "fetch_case", lambda key, token: None)
@@ -379,10 +377,8 @@ def test_main_blocks_the_current_corpus_and_exits_nonzero(monkeypatch, capsys):
     with pytest.raises(SystemExit) as e:
         ur.main()
     err = capsys.readouterr().err
-    assert e.value.code != 0, "a blocked push must not exit 0"
-    assert "VALIDATION FAILED" in err
-    assert "WOULD BLOCK" in err
-    assert "blocked by validation" in err
+    assert e.value.code == 0, f"a valid corpus must not be blocked: {err}"
+    assert "blocked by validation" not in err or "0 blocked by validation" in err
 
 
 def test_an_unwritable_audit_log_blocks_the_write(monkeypatch, capsys):
@@ -412,9 +408,16 @@ def test_an_unwritable_audit_log_blocks_the_write(monkeypatch, capsys):
 
 
 def test_skip_validation_is_available_but_off_by_default(monkeypatch, capsys):
-    """The override exists — deliberately pushing a known-imperfect case stays possible."""
+    """The override exists — deliberately pushing a known-imperfect case stays possible.
+
+    Driven by a payload the SHAPE rules reject (no traceability note), because blank
+    expected results no longer fail validation and so can no longer exercise the override.
+    """
     monkeypatch.setattr(ur, "get_jira_key", lambda: None)
     monkeypatch.setattr(ur, "fetch_case", lambda key, token: None)
+    monkeypatch.setattr(ur, "validate_for_push",
+                        lambda key, payload: {"valid": False, "issues": ["shape: no note"],
+                                              "warnings": [], "checked": True})
     monkeypatch.setattr(sys, "argv",
                         ["upload_refined.py", "--dry-run", "--skip-validation",
                          "--keys", "AWPTCM-T33235"])
