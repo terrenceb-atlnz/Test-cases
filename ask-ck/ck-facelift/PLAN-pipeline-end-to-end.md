@@ -11,7 +11,7 @@
 > | **Phase −1.5, −1.6** | Deferred with reasons recorded in Phase −1. |
 > | **Phase −1.7** (43 live cases) | Decided: re-push, stay at v2.0. Executes after Phases 1–4. |
 > | **Parser fix** (the recommended deviation) | ✅ **DONE** 2026-08-03c (`f0a94af`). `CK_server/gen_assembly.py`; all five stored replies recover COMPLETELY. |
-> | **Phase 2.1 – 2.3** | ✅ **DONE** 2026-08-03c (`f0a94af`). Prompt rewritten + the four corpus fields it never rendered. **2.4 (regenerate 53) NOT done** — needs sign-off. |
+> | **Phase 2.1 – 2.3** | ✅ **DONE** 2026-08-03c (`f0a94af`); prompt **reviewed and signed off 2026-08-05**, plus generation-time compliance reporting (see below). **2.4 (regenerate 53) NOT done** — no longer blocked on a review, but still needs the go-ahead to spend the tokens. |
 > | **Phase 7.1, 7.4, 7.5, 7.7, 7.9** | ✅ **DONE** 2026-08-03c (`f0a94af`, `5f4af0a`, `81c9c94`). |
 > | **Phase 7.6** (chunked generation) | ❌ **WITHDRAWN.** Measured 67,326 output tokens in one call — see below. |
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
@@ -45,9 +45,46 @@
 >   deterministic property of (case × platform)" — only 1 of 4 real cases is a platform
 >   capability; three are bench state (`No USB media present`).
 >
-> **Still unreviewed and worth doing before Phase 2.4:** the steps prompt's actual text, and
-> which 14 lint errors are blocking vs which 5 are policy. Both get much harder to change once
-> 53 cases are regenerated against them.
+> ### 2026-08-05 — both pre-2.4 reviews are DONE; Phase 2.4 is unblocked
+>
+> The two items held open above ("still unreviewed, and worth doing before Phase 2.4") were
+> reviewed with Terrence and are now closed.
+>
+> - **The lint authority split STANDS AS WRITTEN — 14 blocking / 5 policy, no
+>   reclassification.** All 19 errors were re-read against the rule that defines the split
+>   ("does the reviewer's judgement help?"). Three were argued for change and all three were
+>   declined: moving the no-verdict contract error to blocking; softening
+>   `coverage/completeness check could not run` (it punishes OUR defect, not the artefact);
+>   and softening the `framework_surface` import miss (it blocks against an index `ck.db`
+>   can never rebuild). Fail-closed was preferred in each case. **Do not re-raise these
+>   without new evidence — they are settled, not unexamined.** The enumeration in
+>   `tests/test_lint_error_classes.py` remains the authority, and still fails on any
+>   unclassified new error.
+> - **The steps prompt text is SIGNED OFF**, with one wording fix and one real defect found
+>   behind it. Every rule was checked against the code: the "first step is injected
+>   server-side" claim is true (`llm.py:build_traceability_note`), the topology rule names
+>   roles rather than devices, and all four context fields it renders are really built by
+>   `_synthesis_context`. Fixed: the measurement rule demanded the read in the *description*
+>   while two of the three examples put it in `expectedResult` — and per
+>   `prompt-examples-are-the-spec` the model follows the example, so the rule as worded could
+>   not hold. It now permits either field.
+>
+> **The defect the review found — the new expectedResult rule had NO enforcement at
+> generation** (fixed 2026-08-05). `parse_llm_to_structured`'s numbered-list fallback sets
+> `expectedResult` to `""` for every step unconditionally, and returned them
+> indistinguishably from a compliant JSON parse; `validate_zephyr_payload` never reads
+> `expectedResult` at all. The only gate was `upload_refined.validate_for_push`, a pipeline
+> stage later — so the way to discover a blank regeneration was to push it, and a reply that
+> ignored the requested format was indistinguishable from a model that simply did not comply.
+> Verified by running the real parser, not by reading it. Now `parse_llm_to_structured`
+> reports `steps_source` (`json` / `numbered_list` / `none`), `steps_compliance()` audits
+> blanks excluding the injected note, and `synthesize_steps` returns `steps_quality` and
+> persists it in provenance — so Phase 2.4 can be audited per case as it runs. Deliberately
+> **advisory**: `validate_zephyr_payload` is the shared push gate and its verdict is
+> unchanged, pinned by a test. 12 tests, 9 mutations all caught. Gate 1006 → 1018.
+>
+> **Phase 2.4 is no longer blocked on a review.** It still needs the explicit go-ahead to
+> spend the tokens.
 >
 > ### 2026-08-03c — what changed in the plan itself
 >

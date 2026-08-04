@@ -28,8 +28,9 @@ cannot execute it.
 - The FIRST step is injected server-side as a traceability note — DO NOT generate it.
 - Generate ONLY the subsequent verification steps exercising the objective's artefacts.
 - Cover each major objective bullet: positive, negative, special conditions, reporting.
-- EVERY step must name the test data it uses (values, counts, interfaces, timings) and the
-  measurement — the command, counter, log or observation the tester reads.
+- EVERY step must name the test data it uses (values, counts, interfaces, timings) in its
+  description, and the measurement the tester reads — the command, counter, log or
+  observation — in either the description or the expectedResult.
 - EVERY step must have a non-empty expectedResult stating the OBSERVABLE outcome: what the
   measurement should show, with the value or bound it is compared against. "Passes",
   "works", "is correct" and "as expected" are not outcomes.

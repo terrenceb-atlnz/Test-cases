@@ -910,6 +910,7 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
     # string-aware extractor rather than a greedy `\[\s*\{.*\}\s*\]` regex, which spanned
     # across two arrays / into trailing prose and dropped all steps (adversarial-review).
     steps = []
+    steps_source = "none"
     try:
         parsed = extract_json_block(cleaned)
         if isinstance(parsed, list):
@@ -921,14 +922,28 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
                     })
     except Exception:
         pass
+    if steps:
+        steps_source = "json"
 
-    # Fallback regex for numbered steps (handles markdown too)
+    # Fallback regex for numbered steps (handles markdown too).
+    #
+    # PHASE 2 — THIS PATH CANNOT SATISFY THE PROMPT, so it has to announce itself. A
+    # numbered list carries no expectedResult, so every step it produces is blank — the
+    # exact defect Phase 2.1 rewrote `generate_steps.jinja` to eliminate (618 of 648 steps
+    # empty across the 53 bundles). It used to return those steps indistinguishably from a
+    # compliant JSON parse, so "the model ignored the format" and "the model complied"
+    # produced identical output and nothing downstream could tell them apart: the blank
+    # expectedResults were only ever caught at PUSH time, by `upload_refined.validate_for_push`.
+    # Recording the source lets the caller say which happened. Cf. the silent-degradation
+    # audit (2026-07-30) — an unparseable reply must never read as a well-formed empty one.
     if not steps:
         step_lines = re.findall(r"^\s*(?:\d+[\.\)]|\-)\s*(.+)$", cleaned, re.MULTILINE)
         for line in step_lines:
             desc = line.strip()
             if desc and not desc.lower().startswith(('thinking', 'project', 'note:')):
                 steps.append({"description": desc, "expectedResult": ""})
+        if steps:
+            steps_source = "numbered_list"
 
     # Objective: extract <ul>...</ul> or fall back to first paragraph as list
     objective_match = re.search(r"<ul>.*?</ul>", cleaned, re.DOTALL | re.IGNORECASE)
@@ -947,7 +962,39 @@ def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
 
     return {
         "objective": objective,
-        "testScript": {"type": "steps", "steps": steps}
+        "testScript": {"type": "steps", "steps": steps},
+        # How the steps were obtained: "json" (the format the prompt asks for),
+        # "numbered_list" (the fallback — guaranteed blank expectedResults), "none".
+        "steps_source": steps_source,
+    }
+
+
+def steps_compliance(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Audit synthesized steps against the rule `generate_steps.jinja` states.
+
+    PHASE 2. The prompt requires a non-empty `expectedResult` on every verification step,
+    and until now NOTHING checked whether the reply obeyed it: `validate_zephyr_payload`
+    inspects shape, the traceability note and the step count, but never reads
+    `expectedResult`. The only real gate is `upload_refined.validate_for_push`, which runs
+    at the Zephyr push — so a non-compliant generation was discovered a whole pipeline
+    stage late, after the tokens were already spent.
+
+    Deliberately advisory, and deliberately NOT part of `validate_zephyr_payload`: that
+    function is the shared push gate, and a generation-time report must not change what
+    the push refuses. This only makes the state visible where it is produced.
+
+    `steps` is the FINAL list including the server-injected traceability note at index 0,
+    which legitimately carries no expectedResult and is excluded.
+    """
+    verification = [s for s in (steps or [])[1:] if isinstance(s, dict)]
+    blank = [i for i, s in enumerate(verification, start=1)
+             if not str(s.get("expectedResult") or "").strip()]
+    return {
+        "verification_steps": len(verification),
+        "blank_expected_results": len(blank),
+        # 1-based positions among the verification steps, so a reviewer can go straight there.
+        "blank_step_numbers": blank,
+        "compliant": bool(verification) and not blank,
     }
 
 
@@ -1259,6 +1306,14 @@ def synthesize_steps(
         llm_steps = llm_steps[1:]
     final_steps = [note_step] + llm_steps
 
+    # PHASE 2 — report compliance with the prompt's own rule at the point of generation,
+    # instead of leaving it to be discovered at the Zephyr push. `steps_source` says whether
+    # the model answered in the requested JSON; the fallback cannot carry an expectedResult
+    # at all, so a "numbered_list" source explains a fully-blank result rather than leaving
+    # it to look like a model that just didn't comply.
+    quality = {**steps_compliance(final_steps),
+               "steps_source": steps_struct.get("steps_source", "none")}
+
     provenance = {
         "steps_prompt": steps_prompt,
         "steps_response": steps_llm,
@@ -1268,12 +1323,16 @@ def synthesize_steps(
         "model": steps_meta.get("model", "default"),
         "error": steps_meta.get("error", False),
         "phase": "steps",
+        # Persisted with the session (step5.provenance / full_session.llm_steps), so a
+        # batch regeneration can be audited per case without re-reading every payload.
+        "steps_quality": quality,
     }
 
     core = {
         "objective": obj,
         "testScript": {"type": "steps", "steps": final_steps},
         "provenance": provenance,
+        "steps_quality": quality,
     }
     validation = validate_zephyr_payload({session.get("key", "unknown"): {
         "objective": obj,
@@ -1313,6 +1372,9 @@ def synthesize_objectives_and_steps(session: Dict[str, Any], llm_config: Optiona
         "testScript": steps_out.get("testScript"),
         "gaps": obj_out.get("gaps") or "",
         "provenance": provenance,
+        # Same signal as the split path, so the legacy combined call is not the one
+        # place a non-compliant generation stays invisible.
+        "steps_quality": steps_out.get("steps_quality"),
     }
     validation = steps_out.get("validation") or validate_zephyr_payload(
         {session.get("key", "unknown"): core}
