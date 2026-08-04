@@ -187,8 +187,8 @@ The easiest way is the root `run.sh` (a thin wrapper that forwards to the real
 launcher at `ask-ck/CK-main/run.sh`; either path works):
 
 ```bash
-# With a real API key
-LLM_API_KEY=sk-... ./run.sh
+# The LLM backend is chosen in the UI (Configure page) — there is no key to pass here
+./run.sh
 
 # Fast restart — prompt-free background start / stop+start
 ./run.sh --bg          # background, no prompts
@@ -243,24 +243,31 @@ The script automatically:
 ### Manual equivalent
 
 ```bash
-LLM_API_KEY=sk-... PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
+PYTHONPATH=ask-ck/CK-main python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Alternative (cd into the server dir):
 
 ```bash
 cd ask-ck/CK-main/CK_server
-LLM_API_KEY=sk-... PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
+PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
 ```
 
-**Environment variables for LLM**:
+**Choosing the LLM backend**: on the Configure page, not in the environment.
 
-```bash
-export LLM_API_KEY=sk-...
-export LLM_BASE_URL=https://api.openai.com/v1   # or your Grok/Claude-compatible endpoint
-```
+The permitted backends are an allowlist — `models.SUPPORTED_AUTH_METHODS`: `local_llm`
+(the org vLLM, the default), `claude_agent`, `claude_code`, `grok_cli`. The set is a
+**governance control**, closed at two layers: `set_llm_config` 400s on anything else, and
+`_call_llm_raw` refuses to dispatch even if a stored session names a retired backend.
 
-Real LLM (API key or local CLI login) is required. MOCK/demo mode has been removed.
+`LLM_API_KEY` and `LLM_BASE_URL` **were removed on 2026-08-04** along with the `api_key` /
+`account` auth methods. They let a caller supply their own key and endpoint, so the tool
+could be pointed at an arbitrary third-party model provider — a capability we do not want
+and do not want to imply we have. There is no environment-key fallback and no configurable
+endpoint; the vLLM address is fixed in code. Pinned by `tests/test_llm_backend_allowlist.py`
+(including a structural check that the env channel has not been reintroduced).
+
+Real LLM (org vLLM or a local CLI login) is required. MOCK/demo mode has been removed.
 
 ### Claude — per-user local agent (shared-server safe; the UI Claude mode)
 

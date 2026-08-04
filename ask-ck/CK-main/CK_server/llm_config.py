@@ -27,23 +27,29 @@ from typing import Any, Optional
 
 import db
 from local_llm_key import get_local_llm_key
-from models import LLMConfig, model_to_dict
+from models import SUPPORTED_AUTH_METHODS, LLMConfig, model_to_dict
 
 log = logging.getLogger(__name__)
 
 
 def llm_is_active(cfg: Optional[LLMConfig]) -> bool:
-    """True when the config can actually drive synthesis (CLI mode or stored key)."""
+    """True when the config can actually drive synthesis (CLI mode or stored key).
+
+    A config naming a backend outside `SUPPORTED_AUTH_METHODS` is NOT active, even if it
+    carries a credential. Before 2026-08-04 a stored `api_key`/`token` alone made a config
+    "active"; a session persisted back then would otherwise report ready here and be
+    refused at the transport, which reads as an outage rather than as a retired backend.
+    """
     if not cfg:
         return False
     am = (getattr(cfg, "auth_method", None) or "").lower()
+    if am not in SUPPORTED_AUTH_METHODS:
+        return False
     if am in ("claude_code", "claude_agent", "grok_cli"):
         return True
     if am == "local_llm":
-        # Key lives server-side (secrets.local.json / env), never on the config.
+        # Key lives server-side (secrets.local.json), never on the config.
         return bool(get_local_llm_key())
-    if getattr(cfg, "api_key", None) or getattr(cfg, "token", None):
-        return True
     return False
 
 

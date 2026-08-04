@@ -13,11 +13,13 @@ Run with the helper script (recommended):
   ./drafting-tool/run.sh
 
   # Examples
-  LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
   PORT=9000 ./ask-ck/CK-main/run.sh
 
 Or manually from ask-ck/CK-main:
-  LLM_API_KEY=sk-... python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
+  python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000 --reload
+
+The LLM backend is chosen on the Configure page and is limited to an approved set
+(models.SUPPORTED_AUTH_METHODS). There is no environment-key fallback.
 
 The server binds LOOPBACK by default: it has no authentication, and push_to_zephyr can
 spend the server's own JIRA_KEY against live cases. Exposing it on the network is a

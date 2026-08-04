@@ -9,7 +9,13 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from starlette.concurrency import run_in_threadpool
 
-from models import LLMConfig, model_to_dict, safe_session_dict
+from models import (
+    RETIRED_AUTH_METHODS,
+    SUPPORTED_AUTH_METHODS,
+    LLMConfig,
+    model_to_dict,
+    safe_session_dict,
+)
 from llm import _health_ping, check_claude_cli, check_grok_cli
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from llm_config import llm_is_active, load_global_llm, save_global_llm
@@ -125,15 +131,22 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     (sessions/_workspace_llm.json) and load_case copies it onto any case that has
     no active config.
 
-    Supports two styles:
-    - "api_key": classic developer key (from the provider's console)
-    - "claude_code": headless Claude Code CLI mode (Claude only). No credential is
-      collected — calls run through the locally installed `claude` CLI, which the
-      hosting user has logged in with their Claude Team account. Usage bills
-      against that subscription seat, not API credits.
+    Only `SUPPORTED_AUTH_METHODS` are accepted, and the set is a governance control
+    rather than a convenience list — see the comment on it in `models.py`:
+    - "local_llm": the org's self-hosted vLLM. The default. The key is entered here and
+      stored server-side; the ENDPOINT IS FIXED IN CODE and is not configurable.
+    - "claude_agent": the Claude Code CLI on the user's OWN machine, via the browser
+      bridge. No credential is collected; each user spends their own seat.
+    - "claude_code": headless Claude Code CLI on the server host (Claude only). Same
+      destination as claude_agent; single-user hosting only, not offered in the UI.
+    - "grok_cli": headless Grok CLI (subscription OAuth). No credential is collected.
 
-    Legacy "account" configs (old token-paste flow) are still accepted and treated
-    like api_key. Credentials are stored server-side only and never returned.
+    REFUSED (2026-08-04): "api_key" and legacy "account", which took a caller-supplied
+    key and a free-form `base_url` and so could point the tool at any third-party model
+    endpoint. `api_key` / `token` / `base_url` in the request body are now IGNORED —
+    no supported backend takes a browser-supplied credential or endpoint. An
+    unrecognised auth_method is a 400; it used to be silently downgraded to "api_key",
+    which turned a typo into an unintended backend.
     """
     sess = None
     if key:
@@ -142,18 +155,28 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         sess = sessions.get(key) or load_persisted(key)
 
     provider = (body.get("provider") or "grok").lower().strip()
-    auth_method = (body.get("auth_method") or "api_key").lower().strip()
-    api_key = body.get("api_key")
-    token = body.get("token")
-    base_url = body.get("base_url")
+    auth_method = (body.get("auth_method") or "local_llm").lower().strip()
     model = body.get("model")
 
-    if provider not in ("grok", "claude", "openai"):
-        provider = "grok"
+    # Checked BEFORE the coercion below. It used to sit after it, so "mock" was rewritten
+    # to "grok" and this branch could never fire — a validation that read as enforced and
+    # was not.
     if provider == "mock":
         raise HTTPException(400, "MOCK provider removed. Use grok, claude or openai with real auth.")
-    if auth_method not in ("api_key", "account", "claude_code", "claude_agent", "grok_cli", "local_llm"):
-        auth_method = "api_key"
+    if provider not in ("grok", "claude", "openai"):
+        provider = "grok"
+    if auth_method in RETIRED_AUTH_METHODS:
+        raise HTTPException(
+            400,
+            f"auth_method '{auth_method}' is no longer supported. This tool talks only to "
+            f"approved backends ({', '.join(SUPPORTED_AUTH_METHODS)}); a caller-supplied "
+            f"API key or endpoint is not one of them.",
+        )
+    if auth_method not in SUPPORTED_AUTH_METHODS:
+        raise HTTPException(
+            400,
+            f"unknown auth_method '{auth_method}'. Supported: {', '.join(SUPPORTED_AUTH_METHODS)}.",
+        )
     if auth_method in ("claude_code", "claude_agent") and provider != "claude":
         raise HTTPException(400, "Claude Code modes are only available for the Claude provider.")
     if auth_method == "grok_cli" and provider != "grok":
@@ -161,22 +184,17 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     if auth_method == "local_llm":
         # The radio always pairs local_llm with openai; coerce rather than 400.
         provider = "openai"
-        # Key (re-)entered on the Configure page: persist server-side, then make
-        # sure it can never land in cfg / the session / the response below.
+        # Key (re-)entered on the Configure page: persist server-side, where it can
+        # never land in cfg / the session / the response below.
         new_key = (body.get("local_llm_key") or "").strip()
         if new_key:
             set_local_llm_key(new_key)
-        api_key = None
-        token = None
 
-    # Build the config (credentials stay on server)
+    # Build the config. NO credential and NO endpoint is taken from the request: the
+    # local_llm key went to the server-side store just above, and every other supported
+    # backend authenticates through a CLI the operator logged in themselves. Anything the
+    # caller sent as api_key / token / base_url is deliberately dropped on the floor.
     cfg = LLMConfig(provider=provider, auth_method=auth_method)
-    if api_key:
-        cfg.api_key = api_key
-    if token:
-        cfg.token = token
-    if base_url:
-        cfg.base_url = base_url
 
     if model:
         cfg.model = model
@@ -209,8 +227,9 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     safe_config = {
         "provider": cfg.provider,
         "auth_method": cfg.auth_method,
-        "has_key": bool(cfg.api_key or cfg.token) or
-                   (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
+        # No `cfg.api_key or cfg.token` term any more: nothing populates them, so readiness
+        # is entirely "is the CLI installed / is the server-side vLLM key stored".
+        "has_key": (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
                    (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))) or
                    (auth_method == "local_llm" and bool(local_llm_key_set)),
         "model": cfg.model,

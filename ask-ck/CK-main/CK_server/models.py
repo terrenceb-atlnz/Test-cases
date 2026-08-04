@@ -55,10 +55,39 @@ class StepState(BaseModel):
     # captured, while keeping the two provenances distinguishable.
     backfilled: bool = False
 
+# The BACKENDS THIS TOOL MAY TALK TO. Anything not on this list is refused outright —
+# `set_llm_config` 400s and `_call_llm_raw` errors without dispatching.
+#
+# This is a GOVERNANCE CONTROL, not a convenience list (added 2026-08-04 for the AI
+# governance review). Every entry has a fixed, known destination:
+#   local_llm    -> the org's self-hosted vLLM. Internal. No data leaves the org.
+#   claude_agent -> the Claude CLI on the USER's own workstation, via the browser bridge.
+#                   Each user spends their own seat; the server holds no credential.
+#   claude_code  -> the Claude CLI on the SERVER host. Same destination as claude_agent
+#                   (Anthropic), so no new egress; single-user hosting only, not in the UI.
+#   grok_cli     -> the locally logged-in Grok CLI (subscription OAuth).
+#
+# REMOVED 2026-08-04: "api_key" and legacy "account". They accepted a caller-supplied key
+# and a free-form base_url, so the tool could be pointed at an arbitrary third-party model
+# endpoint — a capability we do not want and do not want to imply we have. The paired
+# LLM_API_KEY / LLM_BASE_URL environment fallbacks went with them. Old persisted sessions
+# naming a removed method are refused at call time rather than silently downgraded.
+SUPPORTED_AUTH_METHODS = ("local_llm", "claude_agent", "claude_code", "grok_cli")
+
+# Auth methods that once worked and are now deliberately refused. Kept NAMED (rather than
+# just absent) so the refusal can say what happened instead of "unknown auth method".
+RETIRED_AUTH_METHODS = ("api_key", "account")
+
+
 class LLMConfig(BaseModel):
     """Per-session LLM login config.
 
-    - api_key: classic developer key (HTTP calls against the provider's API)
+    The permitted backends are `SUPPORTED_AUTH_METHODS` above; see that comment for what
+    each one talks to and why the set is closed.
+
+    - local_llm: the organization's self-hosted vLLM (OpenAI-compatible). The DEFAULT.
+      Key is resolved server-side (Configure page -> secrets.local.json) and never
+      supplied by the browser; the endpoint is fixed in code, not configurable.
     - claude_agent: browser-brokered Claude Code CLI on the USER's own machine
       (Claude only). For a shared server: each user runs ck-agent locally and their
       prompts execute against THEIR OWN seat — seats are never shared. The current
@@ -69,13 +98,16 @@ class LLMConfig(BaseModel):
     - grok_cli: headless Grok CLI mode (Grok/xAI only). Uses the locally
       installed + logged-in `grok` CLI (SuperGrok or X Premium+ via `grok login --oauth`).
       No separate xAI API key. Auth and billing against the subscription.
-    - account: legacy value from the old (non-functional) "paste a session token"
-      flow; still accepted for old session files and treated like api_key.
     """
     provider: str = "grok"  # "grok", "claude", "openai" (real providers only; no mock)
-    auth_method: str = "api_key"  # "api_key", "claude_code", "grok_cli", or legacy "account"
-    api_key: Optional[str] = None      # Direct API key
-    token: Optional[str] = None        # Legacy token field (account mode)
+    auth_method: str = "local_llm"  # must be one of SUPPORTED_AUTH_METHODS
+    # api_key / token / base_url are INERT. Nothing populates them any more — no supported
+    # auth method takes a caller-supplied credential or endpoint. They remain declared so
+    # sessions persisted before 2026-08-04 still deserialize; their values are never used
+    # (local_llm overwrites base_url with the fixed org endpoint, and the CLI modes need
+    # no credential at all). Do not reintroduce a code path that reads them.
+    api_key: Optional[str] = None
+    token: Optional[str] = None
     base_url: Optional[str] = None
     model: Optional[str] = None
 

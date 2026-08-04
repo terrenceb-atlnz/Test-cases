@@ -183,8 +183,16 @@ def test_a_stale_headless_config_still_resyncs(monkeypatch):
     ({"auth_method": "claude_agent"}, True),
     ({"auth_method": "grok_cli"}, True),
     ({"auth_method": "claude_code"}, True),
-    ({"auth_method": "openai", "api_key": "sk-x"}, True),
+    # CHANGED 2026-08-04 (was True). A stored credential no longer makes a config active
+    # on its own — the backend has to be on `SUPPORTED_AUTH_METHODS`. Note the case that
+    # used to pass here names "openai" as the AUTH METHOD, which was never a valid one;
+    # it reported ready purely because a key was present. That "has a key => usable"
+    # fallback is the generic-API-key path retired in the governance batch, so this row
+    # now pins the opposite. See tests/test_llm_backend_allowlist.py.
+    ({"auth_method": "openai", "api_key": "sk-x"}, False),
     ({"auth_method": "openai"}, False),
+    ({"auth_method": "api_key", "api_key": "sk-x"}, False),
+    ({"auth_method": "account", "token": "tok-x"}, False),
 ])
 def test_llm_is_active(cfg, expected):
     import llm_config

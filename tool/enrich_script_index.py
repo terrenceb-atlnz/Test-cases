@@ -86,7 +86,8 @@ def run_enrichment(limit: int = 50, batch_size: int = 10) -> int:
     llm_cfg = _load_workspace_llm()
     if not llm_cfg:
         print("NOTE: no workspace LLM login found (sessions/_workspace_llm.json); "
-              "falling back to LLM_API_KEY env / default provider.", file=sys.stderr)
+              "falling back to the default backend (the org vLLM). There is no "
+              "LLM_API_KEY env fallback — it was removed 2026-08-04.", file=sys.stderr)
 
     done = 0
     with open(ENRICH_JSONL, "a", encoding="utf-8") as out:

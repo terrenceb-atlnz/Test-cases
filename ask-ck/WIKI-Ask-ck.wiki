@@ -1,0 +1,259 @@
+''Process documentation for the AI governance review. Owner: Terrence Beach. Last updated: 4 August 2026.''
+
+'''Ask CK''' is a local workbench that turns sparse, manually-written AWPTCM test cases into refined Zephyr test cases, and then into runnable Allied Telesis <code>framework</code> test scripts. It contains two flows that run in sequence, each with a human confirmation gate at every stage.
+
+This page documents the end-to-end process, states exactly where AI is involved and where it is not, and lists the review steps that stand between a model's output and anything reaching a production system.
+
+__TOC__
+
+== At a glance ==
+
+{| class="wikitable"
+! Question !! Answer
+|-
+| What does it produce? || Refined Zephyr test cases (objective + steps + traceability), and Python test scripts for the Allied Telesis <code>framework</code>
+|-
+| Who uses it? || Currently one operator (Terrence Beach). It is a single-user, localhost tool with no authentication.
+|-
+| Where does it run? || A workstation on the lab network. FastAPI backend, browser front end, binds <code>127.0.0.1</code> by default.
+|-
+| Which AI models? || The organisation's self-hosted vLLM endpoint by default. Claude and Grok are selectable alternatives — see [[#Models and data handling]].
+|-
+| Does AI write to Zephyr? || '''No.''' No model has any credential or network path to Jira. Writes are performed by a separate command-line tool, from a bundle a human exported, behind a typed per-case confirmation.
+|-
+| How many AI touchpoints? || 12 — 7 in the Generator, 5 in PyTest Creator. All are listed below.
+|-
+| Can a stage proceed without human review? || No. Every stage has an explicit Confirm action, and downstream stages are blocked until it is given.
+|}
+
+== Objective / Test Case Generator ==
+
+Takes a sparse AWPTCM case and produces a refined case: a declarative objective, Zephyr-ready test steps, and a traceability record. Output is a bundle on disk; pushing it to Zephyr is a separate, deliberate act.
+
+=== 1. Cases — select and load ===
+Operator picks a case from the Open/Partial or Complete list and loads it.
+
+* '''AI involved:''' No.
+* '''Review:''' Operator chooses the case.
+
+=== 2. TestLink — historical case review ===
+The tool shows the recorded primary decision for the case plus candidate historical TestLink cases. The operator can search (keyword and semantic, no AI) or press '''Suggest''', which asks the model to shortlist relevant cases.
+
+* '''AI involved:''' '''Optional.''' <code>suggest_testlink</code> prompt. Advisory ranking only.
+* '''Deterministic alternative:''' Keyword + vector search over the local database, always available.
+* '''Review gate:''' Operator ticks which cases apply into a "chosen" table and presses '''Confirm'''. Only the chosen table is carried forward — model suggestions that are not ticked are discarded.
+
+=== 3. Zephyr — cross-reference review ===
+Same pattern against the Zephyr corpus: related existing Zephyr cases are surfaced for cross-referencing.
+
+* '''AI involved:''' '''Optional.''' <code>suggest_zephyr</code> prompt. Advisory ranking only.
+* '''Review gate:''' Operator confirms the chosen cross-references.
+
+=== 4. ATPyLib — automation coverage review ===
+Shows scored candidate ART/ATPyLib automated suites, so the operator can record what automation already covers and where the gaps are.
+
+* '''AI involved:''' '''Optional.''' <code>suggest_atp</code> and <code>analyze_atp_coverage</code> prompts. Advisory.
+* '''Review gate:''' Operator confirms which ART suites actually apply.
+
+=== 5. Objectives — synthesis ===
+The model drafts the declarative objective artefacts from the confirmed selections of the three review stages above. This is a core AI step, not an optional one.
+
+* '''AI involved:''' '''Yes.''' <code>generate_objectives</code> prompt.
+* '''Input:''' Only the material the operator confirmed in the previous stages, drawn from the local database.
+* '''Review gate:''' The objective is '''editable free text'''. The operator rewrites it as needed and presses '''Confirm'''. Editing an upstream stage marks the objective stale and forces re-confirmation.
+
+=== 6. Test Steps — synthesis and export ===
+The model drafts Zephyr-ready test steps from the finalised objective. At export time a further call drafts the traceability gaps section.
+
+* '''AI involved:''' '''Yes.''' <code>generate_steps</code>, plus <code>generate_gaps</code> at export.
+* '''Review gate:''' Steps are editable and must be saved and confirmed. '''Export''' then writes <code>traceability.md</code> and <code>zephyr_payload.json</code> to disk. A case is only "Complete" once that bundle exists.
+* '''Export is not a push.''' Nothing has reached Zephyr at this point.
+
+== PyTest Creator ==
+
+Takes a Complete case from the Generator and produces a runnable <code>framework</code> (ATTestSet/ATTestCase) script, runs it on real lab hardware, and iterates. Nothing here touches Jira or Zephyr.
+
+=== 1. Cases — select a Complete case ===
+* '''AI involved:''' No.
+
+=== 2. Sequence — extract automatable steps ===
+The model converts the refined case into a prescriptive sequence of automatable steps, classified as setup / verify / physical / manual.
+
+* '''AI involved:''' '''Yes.''' <code>pt_extract_sequence</code> prompt, grounded in the real AlliedWare Plus command reference held locally (6,323 commands, 1,250 with captured sample output).
+* '''Review gate:''' Rows are editable. Save, then '''Confirm'''. Confirmation is additionally blocked by a deterministic '''objective-coverage check''' — every Zephyr step must map to at least one sequence step, and the error names each untested step. Override requires an explicit <code>acknowledge_coverage_gap</code>, recorded on the session.
+
+=== 3. Script Search — find reusable scripts ===
+Searches the local script corpus (~830 scripts) for existing scripts that do all, some, or none of the sequence.
+
+* '''AI involved:''' '''Optional.''' <code>pt_match_scripts</code> prompt for ranking. Keyword and semantic search are the non-AI path.
+* '''Review gate:''' Operator ticks what to reuse, then '''Confirm'''.
+
+=== 4. Fragments — gather reusable code ===
+Pulls the actual code out of the selected scripts. Fragment boundaries are resolved '''deterministically''' from real source locations, not by the model. Legacy Python 2 code is modernised mechanically via the standard-library <code>lib2to3</code>, and the result is verified to parse before use.
+
+* '''AI involved:''' '''Yes''' — <code>pt_gather_fragments</code> selects which fragments are relevant. The '''extraction and translation of the code itself is deterministic.'''
+* '''Review gate:''' Operator unticks anything unwanted, then '''Confirm'''.
+
+=== 5. Generate — fill the script skeleton ===
+The model fills a '''fixed skeleton template''' rather than composing a script freely: one TestCase class per verification step, a mandatory logging contract, suite and per-case teardown, and a topology contract that resolves devices by role at run time.
+
+* '''AI involved:''' '''Yes.''' <code>pt_generate_script</code> prompt.
+* '''Deterministic controls applied to the output:'''
+** A '''19-rule conformance lint''', split by authority: '''14 blocking errors''' (the script provably cannot work — syntax, missing structure, unfilled placeholder markers, an unbound device, a bad import, truncation) that '''cannot be overridden''', and '''5 policy rules''' (house style, e.g. the logging contract) overridable only with a written reason recorded on the session.
+** Source provenance is stamped '''server-side from fragment metadata''' — the model's own claims about where code came from are never trusted.
+** A reply that does not reassemble cleanly is '''refused''', not saved. The full reply is retained for inspection.
+** A script covering fewer steps than the approved sequence is a blocking lint error.
+* '''Review gate:''' Operator edits, lints, saves, then '''Confirms'''. Confirmation is refused while blocking lint errors exist.
+
+=== 6. Run — execute on lab hardware ===
+The script is uploaded over SSH to a nominated testbox and run against real switches. Results are parsed into per-TestCase PASS / FAIL / UNSUPPORTED (plus ERROR for a case that reached no verdict).
+
+* '''AI involved:''' No. This is SSH and log parsing.
+* '''Controls:''' The shared testbox <code>framework</code> directory is '''read-only''', enforced by a guard in the test suite and by checks in the execution path. A pre-flight check reports whether the target bench can physically satisfy the script's cabling requirements before it runs, so a missing cable is not misreported as a script defect.
+
+=== 7. Validate — final validation and fix loop ===
+Final Validation passes only when every TestCase is PASS with zero failures. On failure, '''Fix with LLM''' sends the failure back to the model and loops back to '''Generate'''.
+
+* '''AI involved:''' '''Yes.''' <code>pt_fix_script</code> prompt.
+* '''Review gate:''' Every loop re-enters '''Generate''' and must clear the same lint and confirmation gates. '''Promotion of a script into the shared ART suite is entirely manual''' and outside this tool.
+
+== Where AI is involved — summary ==
+
+{| class="wikitable"
+! Stage !! AI? !! Prompt !! What the model produces !! Human gate
+|-
+! colspan="5" style="text-align:left;" | Objective / Test Case Generator
+|-
+| 1. Cases || No || — || — || Operator selects
+|-
+| 2. TestLink || Optional || <code>suggest_testlink</code> || A shortlist of candidates || Tick + Confirm
+|-
+| 3. Zephyr || Optional || <code>suggest_zephyr</code> || A shortlist of candidates || Tick + Confirm
+|-
+| 4. ATPyLib || Optional || <code>suggest_atp</code>, <code>analyze_atp_coverage</code> || Coverage assessment || Tick + Confirm
+|-
+| 5. Objectives || '''Yes''' || <code>generate_objectives</code> || Draft objective text || Edit + Confirm
+|-
+| 6. Test Steps || '''Yes''' || <code>generate_steps</code>, <code>generate_gaps</code> || Draft Zephyr steps || Edit + Save + Confirm + Export
+|-
+| Push to Zephyr ''(separate action)'' || '''No''' || — || — || Validation, then typed per-case confirmation
+|-
+! colspan="5" style="text-align:left;" | PyTest Creator
+|-
+| 1. Cases || No || — || — || Operator selects
+|-
+| 2. Sequence || '''Yes''' || <code>pt_extract_sequence</code> || Automatable step sequence || Edit + Confirm + coverage check
+|-
+| 3. Script Search || Optional || <code>pt_match_scripts</code> || Ranked reuse candidates || Tick + Confirm
+|-
+| 4. Fragments || '''Yes''' || <code>pt_gather_fragments</code> || Which fragments are relevant || Untick + Confirm
+|-
+| 5. Generate || '''Yes''' || <code>pt_generate_script</code> || The test script || Lint + Edit + Confirm
+|-
+| 6. Run || No || — || — || Operator triggers the run
+|-
+| 7. Validate || '''Yes''' || <code>pt_fix_script</code> || A repair attempt || Re-enters Generate and its gates
+|}
+
+== Where AI is deliberately NOT involved ==
+
+These are the parts a reviewer should know are mechanical, because they are the controls that bound what the AI can do:
+
+* '''All corpus data.''' TestLink, Zephyr, ART/ATPyLib, the script corpus and the AlliedWare Plus CLI reference are held in a local SQLite database. Search is keyword (FTS5) and vector similarity. Nothing is invented at retrieval time.
+* '''Fragment extraction and Python 2→3 translation.''' Boundaries come from real source locations; translation is <code>lib2to3</code> and the result is verified to parse.
+* '''Provenance stamping.''' Recorded server-side from metadata, never from the model's self-report.
+* '''Conformance lint.''' 19 fixed rules.
+* '''The objective-coverage check.''' A mechanical mapping test.
+* '''Script execution and log parsing.'''
+* '''The Zephyr payload validator.''' Fixed shape rules; fails closed.
+* '''Everything that writes to Jira/Zephyr.''' See below.
+
+== Models and data handling ==
+
+The active model is a workspace-wide setting. Three backends are offered:
+
+{| class="wikitable"
+! Backend !! Where it runs !! Does case data leave the organisation?
+|-
+| '''Local LLM (org vLLM)''' — ''the default'' || Self-hosted and internal (<code>vllm.ai.atlnz.lc</code>), OpenAI-compatible. Two models: Fast and Thinking. || '''No'''
+|-
+| Claude Code CLI || The CLI logged in on the '''operator's own workstation''', reached through the browser — the server holds no Claude credential and each user spends their own seat. Haiku / Sonnet / Opus. || '''Yes''' — prompt content is sent to Anthropic
+|-
+| Grok CLI || A locally logged-in Grok CLI (OAuth subscription). No key is stored by the server. || '''Yes''' — prompt content is sent to xAI
+|}
+
+'''The set is closed, and closed in code rather than by convention.''' The server holds an allowlist of permitted backends; anything else is refused at two independent layers — the configuration endpoint rejects it outright, and the transport refuses to dispatch even if a stored configuration names it. Specifically:
+
+* There is '''no bring-your-own-key mode'''. No supported backend accepts a credential supplied by the caller; a key or token sent in a request is discarded.
+* There is '''no configurable endpoint'''. The internal vLLM address is fixed in code, and a caller-supplied endpoint is discarded. An operator cannot point the tool at an arbitrary third-party model provider.
+* There are '''no environment-variable overrides'''. The previous <code>LLM_API_KEY</code> / <code>LLM_BASE_URL</code> fallbacks were removed on 4 August 2026 — they were an operator-invisible channel that could redirect traffic without appearing anywhere in the interface.
+* An '''unrecognised backend is an error, not a default'''. It previously fell back to the generic-key path, so a typo selected a backend rather than failing.
+
+A fourth backend exists for back-compatibility and is '''not offered in the interface''': the Claude CLI running on the server host rather than the operator's own machine. Its destination is Anthropic, the same as the Claude option above, so it adds no egress that is not already documented here.
+
+These controls are covered by automated tests that assert the refusals hold and that the removed environment channel has not been reintroduced.
+
+'''This should be an explicit governance decision.''' The tool ''can'' send test-case content to external providers, and external models were used during development for model comparison. Day-to-day operation defaults to the internal vLLM endpoint. If the group wants external backends disabled outright, that is a small change and it should be recorded as a policy, not left to the operator's radio-button choice.
+
+What is sent in a prompt: the case text, the corpus material the operator confirmed, and relevant script or CLI-reference extracts. No credentials are ever included in a prompt.
+
+'''Transparency:''' every AI panel in the interface can display and copy the '''exact prompt''' that will be sent, rendered live without sending anything and costing zero tokens. Prompts are Jinja templates held in the repository and are reviewable as source. A per-session request log is written locally for debugging.
+
+== Writing to Zephyr / Jira ==
+
+This is the only part of the system that mutates anything outside the workstation, and it is deliberately the most constrained.
+
+* '''No model is in this path.''' Generation and pushing are separate acts, separated by an explicit export to disk.
+* '''The server never holds the Jira credential.''' Pushing shells out to a command-line tool which reads the token from a local, version-control-excluded secrets file.
+* '''Preview is the default.''' A push request defaults to dry-run; a real write requires an explicit flag ''and'' a body containing the case key typed by hand, so no single URL edit can turn a preview into a production write.
+* '''Validation fails closed.''' The payload is checked against fixed shape rules — including that every step has an expected result — before any network write. A payload that fails is refused.
+* '''Versioning is bounded.''' A case is taken to version 2.0 and no further; repeat pushes overwrite v2.0 in place rather than accumulating versions.
+* '''Overwrite protection is opt-in.''' The tool skips cases that already look refined upstream unless the operator explicitly forces it.
+* '''Every real write is audited locally''' to <code>zephyr-push-audit.jsonl</code> — including the ''full prior content'' of the case — '''before''' the first network call. If the audit record cannot be written, the push is refused. This exists because Zephyr keeps no version history of these pushes by design, so a push that overwrites a better objective with a worse one would otherwise be unrecoverable.
+
+=== Current state ===
+
+* '''53''' refined bundles exist on disk.
+* '''43''' cases are live in Zephyr at v2.0, pushed in a single operation on '''22 July 2026'''.
+* '''No push has run since.''' The validator added on 3 August 2026 currently refuses the present bundles because their steps lack expected results; they will be regenerated and re-pushed at v2.0.
+
+== Usage and API footprint ==
+
+Stated plainly, because the honest answer matters more than a confident one:
+
+* '''There is no per-user usage telemetry.''' The tool records one row per case worked on, overwritten in place, with no user attribution and no timestamp of first use. It cannot currently report how much it is used or by whom. Adding a usage counter is straightforward and is not yet done.
+* '''Jira API call volume is not measured.''' The audit log described above counts ''cases pushed'', not HTTP requests, and it was only added on 3 August 2026 — after the only production push. Request counts for the July push are therefore an '''estimate reconstructed from the source code''', in the order of 600–1,000 requests concentrated on a single day. The authoritative figures would come from Jira-side access logs for the token used.
+* '''Dry-run previews are not free''' — a preview still issues read requests per case. This was not previously obvious and is worth knowing when interpreting usage spikes.
+
+== Security posture ==
+
+* '''No authentication.''' The tool is designed for localhost, single-user operation and binds <code>127.0.0.1</code>; exposing it on the network requires a deliberate override. Multi-user identity and per-case locking are planned but not built.
+* Credentials live in version-control-excluded files and are redacted from anything serialised to the browser or to disk.
+* Hardened in a full adversarial review (July 2026): stored-XSS sanitisation, path-traversal guards, quoted and validated SSH commands, SSH host-key pinning, CORS lockdown.
+* The shared testbox <code>framework</code> tree is read-only and guarded.
+* '''Known gap:''' with no authentication, two browser tabs on the same case can overwrite each other's work. This is live today and is the first phase of the planned locking work.
+
+== Quality controls ==
+
+A single command runs the full gate: two invariant guards, '''966''' backend tests and '''92''' front-end tests (verified 4 August 2026). Notably, some tests '''execute the AI prompts' own code examples''' against real captured device output, because where a prompt's prose and its examples disagree the model follows the example — several defects in generated scripts were traced to wrong examples in our own prompt files, and these now catch them before any tokens are spent.
+
+There is no CI runner; the gate is run manually before and after each change.
+
+== Known limitations ==
+
+Listed so the review is working from the real picture:
+
+# No authentication and no multi-user support; concurrent edits can conflict.
+# No usage or per-user telemetry.
+# Jira API call volume is unmeasured for anything before 3 August 2026.
+# The two external backends (Claude, Grok) remain selectable by the operator. The backend set is closed and enforced, but whether ''those two'' should be available at all is a policy question for the group, not a technical gap.
+# The audit log is local to one workstation and is excluded from version control.
+# End-to-end validation on real hardware is not yet complete — the first full hardware run is the current priority.
+
+== See also ==
+
+* Source and detailed technical documentation are held in the project repository (<code>SERVER-README.md</code>, <code>ARCHITECTURE.md</code>).
+* Process source of truth for the Generator: <code>OBJECTIVE_DRAFTING_PROCESS.md</code>.
+
+[[Category:Test Automation]]
+[[Category:AI Governance]]

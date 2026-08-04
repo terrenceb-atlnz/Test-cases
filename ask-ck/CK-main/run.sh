@@ -7,7 +7,6 @@
 #   ./ask-ck/CK-main/run.sh --bg            # background, no prompt (fast restart)
 #   ./ask-ck/CK-main/run.sh --stop          # stop a backgrounded server
 #   ./ask-ck/CK-main/run.sh --restart       # --stop then --bg (fast restart)
-#   LLM_API_KEY=sk-... ./ask-ck/CK-main/run.sh
 #   PORT=9000 ./ask-ck/CK-main/run.sh
 #   HOST=0.0.0.0 ./ask-ck/CK-main/run.sh   # EXPOSE ON THE LAN — see the note below
 #
@@ -67,8 +66,9 @@ if [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
   source "$REPO_ROOT/.venv/bin/activate"
 fi
 
-# Sensible defaults - real use required (no MOCK). Provide LLM_API_KEY or use CLI logins (grok login / claude /login)
-: "${LLM_API_KEY:=}"
+# Sensible defaults - real use required (no MOCK). The backend is chosen on the LLM
+# Configure page (local vLLM / Claude CLI / Grok CLI); LLM_API_KEY and LLM_BASE_URL were
+# removed 2026-08-04 — there is no environment-key fallback and no configurable endpoint.
 : "${PORT:=8000}"
 # Bind to loopback by DEFAULT. Ask-CK has no authentication of any kind, and several
 # endpoints have real-world side effects — most sharply
@@ -83,7 +83,7 @@ fi
 : "${HOST:=127.0.0.1}"
 
 echo "🚀 Starting Ask CK (server-backed) - real LLM only"
-echo "   LLM_API_KEY=${LLM_API_KEY:-'(not set - use grok_cli or claude_code)'}"
+echo "   LLM:  choose a backend on the Configure page (local vLLM / Claude CLI / Grok CLI)"
 echo "   Host: ${HOST}"
 echo "   Port: ${PORT}"
 echo "   URL:  http://localhost:${PORT}/   (use http://, not https://)"

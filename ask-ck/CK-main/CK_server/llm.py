@@ -4,13 +4,16 @@ LLM integration for server-backed drafting tool.
 Uses prompt templating for repeatable inputs (Jinja templates inject selections + process principles).
 Post-processes LLM responses with parsers for repeatable outputs (Objectives as <ul> + steps).
 
-Real LLM support:
-- Per-session login (set via /set_llm_config):
-  - "api_key": direct keys
-  - "claude_code": local Claude Code CLI (Team subscription)
+Real LLM support — the permitted backends are `models.SUPPORTED_AUTH_METHODS`, and that
+set is a governance control (see the comment on it). Set via /set_llm_config:
+  - "local_llm": the org's self-hosted vLLM. The default. Endpoint fixed in code.
+  - "claude_agent": Claude Code CLI on the USER's own machine, via the browser bridge.
+  - "claude_code": headless Claude Code CLI on the server host (Team subscription).
   - "grok_cli": local Grok CLI (SuperGrok / X Premium+ subscription via OAuth at x.ai)
 - No separate API key needed for the CLI modes; auth lives with the locally logged-in CLI.
-- Set LLM_API_KEY / LLM_BASE_URL env as fallback (OpenAI-compatible for Grok etc., Anthropic native for Claude)
+- There is NO caller-supplied-key mode and NO configurable endpoint. "api_key"/"account"
+  and the LLM_API_KEY / LLM_BASE_URL environment fallbacks were removed 2026-08-04: they
+  let the tool be pointed at an arbitrary third-party model provider. Do not re-add them.
 - Better error handling + logging of exact prompts/responses (for full provenance per SERVER-README.md)
 - Capture of prompts + raw responses returned to caller for storage in session.
 
@@ -32,6 +35,7 @@ import requests  # fallback, or use openai litellm for more providers later
 
 import llm_debug
 from local_llm_key import get_local_llm_key
+from models import RETIRED_AUTH_METHODS, SUPPORTED_AUTH_METHODS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROMPTS_DIR = os.path.join(BASE_DIR, "templates", "prompts")
@@ -470,7 +474,7 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     return meta
 
 
-def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False, system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
+def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "local_llm", timeout: int = 180, session_id: str = "", template: str = "", dry_run: bool = False, system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
     """Instrumented wrapper around _call_llm_raw (same signature + `template`).
 
     Times the call, normalizes token usage from the raw response
@@ -506,11 +510,11 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     return meta
 
 
-def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "api_key", timeout: int = 180, session_id: str = "", system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
+def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None, base_url: Optional[str] = None, model: str = "default", auth_method: str = "local_llm", timeout: int = 180, session_id: str = "", system: str = "", max_tokens: Optional[int] = None) -> Dict[str, Any]:
     """Core LLM caller with multi-provider support. Real use only - no MOCK or demo fallbacks.
 
-    Supports multiple login styles (chosen in the UI):
-    - "api_key": classic developer API key (HTTP calls).
+    Supports the approved login styles only — `models.SUPPORTED_AUTH_METHODS`, enforced
+    below. There is no caller-supplied-key mode and no configurable endpoint.
     - "claude_agent": browser-brokered local Claude Code CLI on the USER's machine
       (shared-server safe — each user spends their own seat; needs session_id).
     - "claude_code": headless Claude Code CLI on the SERVER host (single-user hosting only).
@@ -524,7 +528,31 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
     If no valid credential and not using a supported headless CLI auth_method, the call will error.
     """
     provider = (provider or "").lower()
-    auth_method = (auth_method or "api_key").lower()
+    auth_method = (auth_method or "local_llm").lower()
+
+    # THE BACKEND ALLOWLIST — enforced here, at the transport, not only at the endpoint
+    # that sets the config. `set_llm_config` already 400s on a retired method, but a
+    # session persisted before 2026-08-04 can still carry `auth_method: "api_key"`, and
+    # loading one must not quietly resume calling a third-party endpoint. Refuse it
+    # instead: the operator re-picks a backend on the Configure page.
+    if auth_method not in SUPPORTED_AUTH_METHODS:
+        if auth_method in RETIRED_AUTH_METHODS:
+            err_msg = (
+                f"ERROR: LLM call refused — auth_method '{auth_method}' was retired on "
+                f"2026-08-04. This tool talks only to approved backends "
+                f"({', '.join(SUPPORTED_AUTH_METHODS)}). Choose one on the LLM Configure page."
+            )
+        else:
+            err_msg = (
+                f"ERROR: LLM call refused — unknown auth_method '{auth_method}'. "
+                f"Supported: {', '.join(SUPPORTED_AUTH_METHODS)}."
+            )
+        print(err_msg)
+        return {
+            "prompt": prompt, "model": model, "provider": provider,
+            "auth_method": auth_method, "content": err_msg,
+            "raw_response": {"error": "unsupported auth_method"}, "error": True,
+        }
 
     if auth_method == "local_llm":
         # Org-hosted vLLM (OpenAI-compatible) — rides the standard OpenAI HTTP
@@ -587,7 +615,9 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             err_msg = ("ERROR: LLM call failed (local_llm): no Local LLM key is stored on the server. "
                        "Enter your key on the LLM Configure page (or export LOCAL_LLM_KEY) and retry.")
         else:
-            err_msg = f"ERROR: LLM call failed ({provider} via {auth_method}): No credential provided and not using headless CLI mode. Set LLM_API_KEY or use grok_cli / claude_code auth_method with local login."
+            err_msg = (f"ERROR: LLM call failed ({provider} via {auth_method}): no credential and "
+                       f"not a headless CLI mode. Pick a backend on the LLM Configure page "
+                       f"({', '.join(SUPPORTED_AUTH_METHODS)}) — there is no environment-key fallback.")
         print(err_msg)
         meta.update({
             "content": err_msg,
@@ -1026,9 +1056,9 @@ def generate_coverage_gaps(session: Dict[str, Any], llm_config: Optional[Dict] =
     }
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
-    base_url = cfg.get("base_url") or os.environ.get("LLM_BASE_URL")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
+    base_url = cfg.get("base_url")
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
 
     try:
@@ -1080,9 +1110,9 @@ def _resolve_llm_runtime(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
     """Resolve provider/auth/credential/model from session login or env (no MOCK)."""
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
-    base_url = cfg.get("base_url") or os.environ.get("LLM_BASE_URL")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
+    base_url = cfg.get("base_url")
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
     return {
         "cfg": cfg,
@@ -1148,7 +1178,7 @@ def synthesize_objectives(session: Dict[str, Any], llm_config: Optional[Dict] = 
         "objective_prompt": objective_prompt,
         "objective_response": obj_llm,
         "provider": obj_meta.get("provider", "unknown"),
-        "auth_method": obj_meta.get("auth_method", "api_key"),
+        "auth_method": obj_meta.get("auth_method", "local_llm"),
         "model": obj_meta.get("model", "default"),
         "error": obj_meta.get("error", False),
         "phase": "objectives",
@@ -1231,7 +1261,7 @@ def synthesize_steps(
         "steps_response": steps_llm,
         "objective_used": obj,
         "provider": steps_meta.get("provider", "unknown"),
-        "auth_method": steps_meta.get("auth_method", "api_key"),
+        "auth_method": steps_meta.get("auth_method", "local_llm"),
         "model": steps_meta.get("model", "default"),
         "error": steps_meta.get("error", False),
         "phase": "steps",
@@ -1341,8 +1371,8 @@ def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any
 
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
 
     context = {
         "case_key": session.get("key"),
@@ -1353,7 +1383,7 @@ def suggest_relevant_atp(session: Dict[str, Any], candidates: List[Dict[str, Any
         "candidates": candidates,
     }
 
-    base_url = cfg.get("base_url") or os.environ.get("LLM_BASE_URL")
+    base_url = cfg.get("base_url")
     model = cfg.get("model") or os.environ.get("LLM_MODEL", "default")
 
     prompt = render_prompt("suggest_atp.jinja", context)
@@ -1379,8 +1409,8 @@ def suggest_relevant_testlink(
         return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else []
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
     context = {
         "case_key": session.get("key"),
         "primary": session.get("primary"),
@@ -1393,7 +1423,7 @@ def suggest_relevant_testlink(
         prompt,
         provider=provider,
         api_key=credential,
-        base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
+        base_url=cfg.get("base_url"),
         model=model,
         auth_method=auth_method,
         session_id=cfg.get("session_id", ""),
@@ -1420,8 +1450,8 @@ def suggest_relevant_zephyr(
         return {"dry_run": True, "prompt": "", "note": "no candidates"} if dry_run else []
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
     context = {
         "case_key": session.get("key"),
         "primary": session.get("primary"),
@@ -1436,7 +1466,7 @@ def suggest_relevant_zephyr(
         provider=provider,
         api_key=credential,
         session_id=cfg.get("session_id", ""),
-        base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
+        base_url=cfg.get("base_url"),
         model=model,
         auth_method=auth_method,
         template="suggest_zephyr",
@@ -1458,8 +1488,8 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
 
     cfg = llm_config or {}
     provider = (cfg.get("provider") or "").lower()
-    auth_method = (cfg.get("auth_method") or "api_key").lower()
-    credential = cfg.get("api_key") or cfg.get("token") or os.environ.get("LLM_API_KEY")
+    auth_method = (cfg.get("auth_method") or "local_llm").lower()
+    credential = cfg.get("api_key") or cfg.get("token")
     headless = (provider == "claude" and auth_method == "claude_code") or (provider == "grok" and auth_method == "grok_cli")
 
     # Real LLM path only. Falls through to keyword fallback on error.
@@ -1489,7 +1519,7 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
             prompt,
             provider=provider,
             api_key=credential,
-            base_url=cfg.get("base_url") or os.environ.get("LLM_BASE_URL"),
+            base_url=cfg.get("base_url"),
             model=_model,
             auth_method=auth_method,
             session_id=cfg.get("session_id", ""),
