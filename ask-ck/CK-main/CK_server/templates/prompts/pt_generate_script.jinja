@@ -35,7 +35,10 @@ Reviewer note: {{ f.why }}
 {% endif %}
 ## Rules for filling the slots (violating any makes the output unusable)
 1. **Keep the three logging-contract calls in every `main()`**, filling their content:
-   - `self.log('STEP <n>: ...')` — keep as the first line (the step start).
+   - `self.log('STEP <n>: ...')` — keep it as the first STATEMENT of `main()` (the step
+     start). Rule 8's provenance comment is the first LINE, directly above it: the two
+     rules do not compete for the same slot, and the server re-stamps that comment
+     authoritatively afterwards, so never drop or move the log call to make room for it.
    - Replace `output = ''` with the REAL observation the step verifies (device output
      via `self.testSet.<dev>.cmd(...)`, a measurement, a packet capture, etc.), then
      keep the `self.log('OBSERVED: ...')` line.

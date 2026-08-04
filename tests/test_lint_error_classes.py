@@ -54,6 +54,11 @@ BLOCKING = [
     "structure: TestCase_1 missing testCaseDesc",
     "structure: missing ts.run(sys.argv) __main__ entry",
     "contract: unfilled template placeholder on line 42 — every `>>>` marker is an instruction",
+    # PHASE 7.8 — the placeholder CODE, now that the markers beside it are strippable.
+    # Both are the "runs green having tested nothing" shape: no reviewer judgement turns an
+    # unfilled slot into a test, so neither is overridable.
+    "contract: TestCase_1.main() line 131 still branches on `if False:` — the skeleton's placeholder",
+    "contract: TestCase_1.main() line 129 leaves `output = ''` and never reassigns it — the observation",
     "init(): uses `self.` before the self.<dev> assignment block (line 3 of init) — AttributeError",
     "line 12: reads `portA` but the script never calls `self._ck_bind_link(...)`, so no port link",
     "line 88: uses device `swi_c` but init() never binds `self.swi_c` — this compiles and then dies",

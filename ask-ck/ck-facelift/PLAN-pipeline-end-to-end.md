@@ -16,7 +16,7 @@
 > | **Phase 7.6** (chunked generation) | ❌ **WITHDRAWN.** Measured 67,326 output tokens in one call — see below. |
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
 > | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
-> | **Phase 7.8** (generate-prompt contradictions) | ✅ **Rule 3 DONE** 2026-08-04 (`9c1a553`) — it was producing the only lint error that has ever fired. Rules 1/8, the untrimmed device list and the on-code FILL markers remain. |
+> | **Phase 7.8** (generate-prompt contradictions) | ✅ **DONE** — rule 3 2026-08-04 (`9c1a553`), the rest 2026-08-05. Untrimmed device list, on-code FILL markers and the rules 1/8 clash all closed, plus a fourth defect found while fixing them (the stripper's verb allowlist). 20 tests, 12 mutations all caught. |
 > | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `tool/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
 > | **Phases 0, 1, 3, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
@@ -85,6 +85,48 @@
 >
 > **Phase 2.4 is no longer blocked on a review.** It still needs the explicit go-ahead to
 > spend the tokens.
+>
+> ### 2026-08-05b — Phase 7.8 closed; the scaffolding no longer earns the model a lint error
+>
+> All three remaining items were verified by running the code, not by reading it, and two
+> were producing **blocking** lint errors — the sharper form of the T44297 problem, since
+> blocking has no override at all.
+>
+> - **The prompt named devices `init()` does not bind.** Rule 3 rendered `_detect_topology`'s
+>   raw switch list, but the skeleton caps the bound set at the DUT plus one partner. Measured:
+>   detected `['swi_a','swi_b','swi_c']` vs skeleton `['swi_a','swi_b','tb']` — wrong in BOTH
+>   directions, since naming `swi_c` invites the blocking "uses device … but init() never
+>   binds", while the testbox `tb` IS bound and was never mentioned. `bound_devices` is now
+>   read back off the rendered skeleton (`_skeleton_bound_devices`), so the prompt cannot
+>   disagree with the frame that does the binding. Re-deriving the cap here instead would
+>   have been a second copy of `switches[:2]`, free to drift.
+> - **Eight `>>> FILL` markers sat on code lines** (the plan said four), where
+>   `_strip_fill_markers` documents it cannot remove them — so each survivor was a blocking
+>   "unfilled template placeholder". All are on their own comment lines now.
+> - **A FOURTH defect, found while fixing the third:** the stripper matched
+>   `>>> (FILL|replace|remove)` while the lint errors on ANY `>>>`, so
+>   `# >>> adjust operator timeout (s) <<<` was unstrippable AND a hard error even once it
+>   sat on its own line. The stripper now matches the marker SHAPE, so it removes exactly
+>   what the lint punishes.
+> - **Rules 1 and 8 both claimed the first line of `main()`.** Reworded — rule 1 owns the
+>   first STATEMENT, rule 8's comment the first LINE. Prompt coherence only: this one was
+>   NOT producing the lint error the plan implied, because `_restamp_provenance` inserts the
+>   tag authoritatively regardless of what the model wrote.
+>
+> **The trap in this fix, and what it forced.** The markers were the ONLY detection of an
+> unfilled verification slot — there has never been a lint for `if False:` or `output = ''`
+> — and that detection worked *because* the marker shared a line with code. Moving the
+> markers would have silently deleted it. So the placeholder CODE is now checked directly:
+> `if False:` / `if True:` in a TestCase `main()`, and `output = ''` never reassigned. Both
+> are classified **blocking** — the "runs green having tested nothing" shape. The empty-
+> observation check requires *never reassigned* on purpose: the physical step legitimately
+> seeds `output = ''` before its poll loop, and a blanket text match would condemn a correct
+> script. A test pins that false positive shut.
+>
+> 20 tests; 12 mutations all caught. One initially SURVIVED — reverting the call site to the
+> untrimmed list left every test green, because they all exercised the helper directly and
+> none pinned the wiring. A correct helper nobody calls fixes nothing; the wiring is now
+> pinned too. Gate 1018 → 1040 pytest, 92 Vitest, both guards, `ck.db` untouched.
 >
 > ### 2026-08-03c — what changed in the plan itself
 >

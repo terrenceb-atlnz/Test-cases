@@ -211,7 +211,8 @@ class TestSet(ATTestSet.TestSet):
         {%- endfor %}
         # >>> FILL: the configuration commands for the setup step(s) above, e.g.
         #     self.{{ dev0 }}.mode(')#'); self.{{ dev0 }}.cmd('interface {}'.format(self.{{ dev0 }}.portA.name)) <<<
-        pass  # >>> remove once the setup commands are filled in <<<
+        # >>> remove the `pass` below once the setup commands are filled in <<<
+        pass
         {%- else %}
         pass  # no suite-level setup required for this case
         {%- endif %}
@@ -232,10 +233,13 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
 {%- if step.kind == 'physical' %}
         # PHYSICAL: the operator acts on the hardware, then we poll for the state change.
         dut = self.testSet.{{ dev0 }}
-        port = dut.portA  # >>> FILL: the init_portlink() attribute for this link <<<
+        # >>> FILL: the init_portlink() attribute for this link <<<
+        port = dut.portA
         self.log({{ ('OPERATOR: ' ~ (step.action | default('perform the physical action', true))) | pyliteral }})
-        want = 'connected'  # >>> FILL: 'connected' after insert, 'notconnect' after removal <<<
-        deadline = time.time() + 120  # >>> adjust operator timeout (s) <<<
+        # >>> FILL: 'connected' after insert, 'notconnect' after removal <<<
+        want = 'connected'
+        # >>> adjust operator timeout (s) <<<
+        deadline = time.time() + 120
         output = ''
         while time.time() < deadline:
             # Scoped to ONE port, so a plain substring test here is safe.
@@ -245,24 +249,28 @@ class TestCase_{{ step.n }}(ATTestCase.TestCase):
             self.log({{ ('Waiting for operator: ' ~ (step.action | default('', true))) | pyliteral }})
             time.sleep(2)
         self.log('OBSERVED: {}'.format(output))
-        if want in output:  # >>> replace with the real verification condition <<<
+        # >>> replace with the real verification condition <<<
+        if want in output:
             self.passed({{ (step.verify | default('expected state change observed', true)) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('operator action / state change not observed within timeout', true)) | pyliteral }})
 {%- elif step.kind == 'manual' %}
         # MANUAL: a check the device cannot self-report (LED, physical seating).
         self.log({{ ('OPERATOR CHECK: ' ~ (step.verify | default('confirm the manual check', true))) | pyliteral }})
-        ok = yesNo({{ ((step.verify | default('Did the check pass', true)) ~ ' - press Y/N') | pyliteral }})  # >>> FILL: phrase the question <<<
+        # >>> FILL: phrase the question <<<
+        ok = yesNo({{ ((step.verify | default('Did the check pass', true)) ~ ' - press Y/N') | pyliteral }})
         self.log('OBSERVED: operator answered {}'.format('Y' if ok else 'N'))
         if ok:
             self.passed({{ (step.verify | default('operator confirmed', true)) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('operator did not confirm', true)) | pyliteral }})
 {%- else %}
-        output = ''  # >>> FILL: the real observation (see rule 1) <<<
+        # >>> FILL: the real observation (see rule 1) <<<
+        output = ''
         self.log('OBSERVED: {}'.format(output))
         # >>> FILL: verify — {{ (step.verify | default('', true)) | replace('\n', ' ') }} <<<
-        if False:  # >>> replace with the real condition <<<
+        # >>> replace with the real condition <<<
+        if False:
             self.passed({{ (step.verify | default('verification met', true)) | pyliteral }})
         else:
             self.failed({{ (step.verify | default('verification not met', true)) | pyliteral }})

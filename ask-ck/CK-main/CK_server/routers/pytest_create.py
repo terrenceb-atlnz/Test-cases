@@ -786,7 +786,14 @@ def _meta_dir(group: str, name: str) -> Path:
 # are pure comments, so dropping every comment line that mentions a marker OR
 # closes one removes the guidance without touching filled-in code (real code is
 # never a pure comment). See templates/pt_script_template.py.jinja for shapes.
-_FILL_MARKER_RX = re.compile(r">>>\s*(FILL|replace|remove)\b", re.IGNORECASE)
+#
+# MATCHES THE SHAPE, NOT A VERB LIST (Phase 7.8). This was
+# `>>>\s*(FILL|replace|remove)\b`, while `_lint_generated` errors on ANY surviving
+# `>>>` — so the template's `# >>> adjust operator timeout (s) <<<` was unstrippable
+# AND a hard lint error, with no way for the model to win but to delete a comment it
+# was never told about. The stripper must remove exactly what the lint punishes,
+# wherever it can safely do so; any other split leaves a gap of exactly this kind.
+_FILL_MARKER_RX = re.compile(r">>>")
 
 
 def _strip_fill_markers(code: str) -> str:
@@ -1254,6 +1261,62 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
         keys.append(f"swi_{letters[nxt]}" if nxt < len(letters) else name)
         nxt += 1
     return keys
+
+
+# Bound in init() but not a DEVICE the model reaches with `self.testSet.<name>.cmd(...)`.
+# `ck_far_port` is the far end of the bound link — a SwitchPort, not a switch.
+_NON_DEVICE_BOUND_ATTRS = frozenset({"ck_far_port"})
+
+
+def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
+    """The device names `TestSet.init()` ACTUALLY binds, read from the rendered skeleton.
+
+    PHASE 7.8. Rule 3 of the generate prompt renders this as "init binds: ...", and it used
+    to be handed `_detect_topology`'s raw switch list — which is NOT what gets bound. The
+    skeleton caps the bound set at the DUT plus one partner (`switches[:2]`, with the
+    remainder recorded as `dropped_switches`), so the prompt was wrong in BOTH directions:
+
+        _detect_topology  -> ['swi_a', 'swi_b', 'swi_c']      what the prompt claimed
+        skeleton binds    -> ['swi_a', 'swi_b', 'tb']         what init() really does
+
+    Naming a dropped device invites `self.testSet.swi_c`, which earns the BLOCKING lint
+    "uses device `swi_c` but init() never binds `self.swi_c`" — our own prompt producing an
+    error the reviewer cannot override. In the other direction the testbox `tb` is bound and
+    was never mentioned, so the model could not use it.
+
+    Reading the rendered skeleton rather than re-deriving the cap keeps one authority: the
+    frame that does the binding. A second copy of `switches[:2]` here would be free to drift
+    from the template's.
+
+    `dut` is placed first when given — the prompt uses `bound_devices[0]` as the device in
+    its worked example, and source order puts `self.tb` (the testbox) first.
+    """
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(skeleton)
+    except SyntaxError:
+        return []
+    names: List[str] = []
+    for node in ast_mod.walk(tree):
+        if not (isinstance(node, ast_mod.FunctionDef) and node.name == "init"):
+            continue
+        for sub in ast_mod.walk(node):
+            if not isinstance(sub, ast_mod.Assign):
+                continue
+            targets: List[Any] = []
+            for t in sub.targets:
+                # `(dut.portA, self.ck_far_port, lp) = self._ck_bind_link(...)`
+                targets.extend(t.elts if isinstance(t, (ast_mod.Tuple, ast_mod.List)) else [t])
+            for t in targets:
+                if (isinstance(t, ast_mod.Attribute)
+                        and isinstance(t.value, ast_mod.Name) and t.value.id == "self"
+                        and t.attr not in _NON_DEVICE_BOUND_ATTRS
+                        and t.attr not in names):
+                    names.append(t.attr)
+    if dut and dut in names:
+        names.remove(dut)
+        names.insert(0, dut)
+    return names
 
 
 # parents[2]=CK_server (cf. _TEMPLATES_DIR), [3]=CK-main, [4]=ask-ck, [5]=repo root.
@@ -1798,6 +1861,57 @@ def _lint_generated(sess: PtSession) -> dict:
                     f"contract: unfilled template placeholder on line {_i} — every `>>>` "
                     f"marker is an instruction to you and must be deleted once the slot is "
                     f"filled: {_line.strip()[:80]}")
+
+        # 2a. THE PLACEHOLDER CODE ITSELF, not the comment that used to sit beside it.
+        #
+        # PHASE 7.8. Until now the ONLY thing detecting an unfilled verification slot was
+        # the trailing `# >>> replace with the real condition <<<` marker on the `if False:`
+        # line — and that marker could not be stripped server-side precisely BECAUSE it
+        # shared a line with code, which is what made it a hard lint error in the first
+        # place. Moving the template's markers onto their own comment lines (so the stripper
+        # can remove them) would therefore have deleted the detection along with the noise.
+        # So detect the placeholder CODE, which is what actually matters: a marker is a
+        # comment, but `if False:` is a test that can never pass and `output = ''` is a
+        # verdict reached without ever looking at the device.
+        #
+        # ERRORS, not warnings: both are the "script runs green having tested nothing"
+        # shape, and no reviewer judgement makes an unfilled slot into a test.
+        for _c in cases:
+            _main = next((n for n in _c.body if isinstance(n, ast_mod.FunctionDef)
+                          and n.name == "main"), None)
+            if _main is None:
+                continue
+            for _sub in ast_mod.walk(_main):
+                # `if False:` / `if True:` — the skeleton's placeholder condition, left in.
+                if (isinstance(_sub, ast_mod.If) and isinstance(_sub.test, ast_mod.Constant)
+                        and isinstance(_sub.test.value, bool)):
+                    errors.append(
+                        f"contract: {_c.name}.main() line {_sub.lineno} still branches on "
+                        f"`if {_sub.test.value}:` — the skeleton's placeholder verification "
+                        f"condition was never replaced, so this step's verdict is fixed "
+                        f"before the device is consulted and the test can never "
+                        f"{'fail' if _sub.test.value else 'pass'}")
+            # `output = ''` that is never reassigned: the observation slot was left empty,
+            # so `self.log('OBSERVED: ...')` reports nothing and any verdict built on it is
+            # vacuous. The PHYSICAL step shape legitimately seeds `output = ''` before its
+            # poll loop and reassigns it inside, so requiring "never reassigned" is what
+            # keeps this off a correct script rather than a blanket text match.
+            _assigns: Dict[str, List[Any]] = {}
+            for _sub in ast_mod.walk(_main):
+                if isinstance(_sub, ast_mod.Assign) and len(_sub.targets) == 1 and \
+                        isinstance(_sub.targets[0], ast_mod.Name):
+                    _assigns.setdefault(_sub.targets[0].id, []).append(_sub)
+            for _name, _nodes in _assigns.items():
+                if len(_nodes) != 1:
+                    continue                      # reassigned somewhere — really used
+                _v = _nodes[0].value
+                if (isinstance(_v, ast_mod.Constant) and _v.value == ""
+                        and _name in ("output", "out", "result")):
+                    errors.append(
+                        f"contract: {_c.name}.main() line {_nodes[0].lineno} leaves "
+                        f"`{_name} = ''` and never reassigns it — the observation slot was "
+                        f"not filled, so OBSERVED logs an empty string and the verdict is "
+                        f"reached without reading the device")
 
         # `self.<dev>` used in init() BEFORE the assignment block (2026-07-28). A real bug
         # in the first generated scripts: `init_portlink(self.dut, ...)` ran three lines
@@ -3115,7 +3229,15 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # Device-name reconciliation (finding #1): tell the LLM which names the reused
     # fragments use vs what init() binds, so it renames rather than emitting AttributeErrors.
     bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
-    device_note = _fragment_device_note(fragments, bound_devs)
+    # PHASE 7.8 — what init() BINDS, not what the text mentions. The skeleton caps the set
+    # at the DUT plus one partner, so `bound_devs` over-reports (and omits the testbox it
+    # does bind); telling the model about a dropped device earns a BLOCKING lint. Read it
+    # back off the frame that did the binding — see _skeleton_bound_devices.
+    skeleton_devs = _skeleton_bound_devices(skeleton, bound_devs[0] if bound_devs else "")
+    # The reconciliation note maps switch VARIABLES onto .setup [switch] KEYS positionally,
+    # so it takes the switch names only (never `tb`), narrowed to the ones really bound.
+    note_devs = [d for d in bound_devs if d in set(skeleton_devs)] or bound_devs
+    device_note = _fragment_device_note(fragments, note_devs)
 
     llm_cfg = _llm_cfg(sess)
     fragments_ctx = [{**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"),
@@ -3133,7 +3255,7 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "skeleton": skeleton,
         "fragments": fragments_ctx,
         "device_note": device_note,
-        "bound_devices": bound_devs,
+        "bound_devices": skeleton_devs or bound_devs,
         "py2_flagged": py2_flagged,
         "framework_surface": _framework_surface_slice(data, extra_mods),
         # Real CLI syntax + sample output for the commands this case uses, so the model
