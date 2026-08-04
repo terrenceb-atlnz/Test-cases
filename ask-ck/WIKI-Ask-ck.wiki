@@ -189,7 +189,9 @@ The active model is a workspace-wide setting. Three backends are offered:
 * There are '''no environment-variable overrides'''. The previous <code>LLM_API_KEY</code> / <code>LLM_BASE_URL</code> fallbacks were removed on 4 August 2026 — they were an operator-invisible channel that could redirect traffic without appearing anywhere in the interface.
 * An '''unrecognised backend is an error, not a default'''. It previously fell back to the generic-key path, so a typo selected a backend rather than failing.
 
-A fourth backend exists for back-compatibility and is '''not offered in the interface''': the Claude CLI running on the server host rather than the operator's own machine. Its destination is Anthropic, the same as the Claude option above, so it adds no egress that is not already documented here.
+A fourth backend exists and is '''not offered in the interface''', for a reason worth stating rather than glossing: the Claude option above is '''brokered through the operator's browser''' — the server queues the prompt, the browser tab relays it to the Claude CLI on that person's own machine, and posts the answer back. That is deliberate, and it is what stops a shared server pooling a single Claude seat. It also means that mode '''cannot work without a live browser tab''', so it is unusable for any automated batch run.
+
+The fourth backend is the same Claude CLI invoked directly on the server host, with no browser in the loop, and it exists to serve exactly those unattended runs. It is kept out of the interface because interactive use of it would spend the ''server's'' seat rather than the operator's — the problem the browser-brokered mode was built to solve. Its destination is Anthropic, identical to the option above, so '''it adds no egress beyond what is already documented here'''.
 
 These controls are covered by automated tests that assert the refusals hold and that the removed environment channel has not been reintroduced.
 

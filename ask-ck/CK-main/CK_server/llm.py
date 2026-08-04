@@ -517,12 +517,15 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
     below. There is no caller-supplied-key mode and no configurable endpoint.
     - "claude_agent": browser-brokered local Claude Code CLI on the USER's machine
       (shared-server safe — each user spends their own seat; needs session_id).
-    - "claude_code": headless Claude Code CLI on the SERVER host (single-user hosting only).
+    - "claude_code": the same Claude CLI run directly on the SERVER host. Not in the UI
+      (interactive use would spend the server's seat) but NOT dead: claude_agent needs a
+      browser tab to relay through, so it cannot run headless — this is the path every
+      unattended batch run takes. See the note in models.LLMConfig.
     - "grok_cli": headless Grok CLI (SuperGrok / X Premium+ subscription via OAuth).
       No key/token stored by server; auth lives in the local CLI's login.
     - "local_llm": the organization's self-hosted vLLM endpoint (OpenAI-compatible).
-      Key is server-resolved (Configure page -> secrets.local.json, env fallback);
-      never supplied by the browser. Model = vllm-fast | vllm-thinking.
+      Key is server-resolved (Configure page -> secrets.local.json); never supplied by
+      the browser, and there is no env fallback. Model = vllm-fast | vllm-thinking.
 
     provider: "grok" | "claude" | "openai" (no "mock")
     If no valid credential and not using a supported headless CLI auth_method, the call will error.

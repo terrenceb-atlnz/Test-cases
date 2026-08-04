@@ -63,8 +63,10 @@ class StepState(BaseModel):
 #   local_llm    -> the org's self-hosted vLLM. Internal. No data leaves the org.
 #   claude_agent -> the Claude CLI on the USER's own workstation, via the browser bridge.
 #                   Each user spends their own seat; the server holds no credential.
-#   claude_code  -> the Claude CLI on the SERVER host. Same destination as claude_agent
-#                   (Anthropic), so no new egress; single-user hosting only, not in the UI.
+#   claude_code  -> the SAME Claude CLI, run directly on the SERVER host. Exists because
+#                   claude_agent is browser-brokered and therefore CANNOT run headless —
+#                   batch tooling has no tab to relay through (see the note on it below).
+#                   Same destination as claude_agent (Anthropic), so no new egress.
 #   grok_cli     -> the locally logged-in Grok CLI (subscription OAuth).
 #
 # REMOVED 2026-08-04: "api_key" and legacy "account". They accepted a caller-supplied key
@@ -93,8 +95,16 @@ class LLMConfig(BaseModel):
       prompts execute against THEIR OWN seat — seats are never shared. The current
       UI-selectable Claude mode.
     - claude_code: headless Claude Code CLI on the SERVER host (Claude only). Uses the
-      server machine's own `claude` login — single-user hosting only. Retained for
-      back-compat; not offered in the UI (shared use would pool one seat).
+      server machine's own `claude` login. NOT offered in the UI — interactive use would
+      spend the SERVER's seat, the very thing claude_agent exists to avoid.
+
+      It is NOT dead back-compat, and deleting it would break working tooling. It predates
+      claude_agent (2026-07-13 vs 07-15) but acquired a distinct job when claude_agent took
+      over the UI: claude_agent is brokered through a browser tab, so it cannot run
+      HEADLESS at all. Any unattended process — the autopilot batch driver, the corpus
+      enrichment tool, a shell run — has no tab to relay through, and
+      tool/enrich_script_index.py explicitly rewrites claude_agent -> claude_code for
+      exactly that reason. Transport contract pinned by tests/test_claude_cli_transport.py.
     - grok_cli: headless Grok CLI mode (Grok/xAI only). Uses the locally
       installed + logged-in `grok` CLI (SuperGrok or X Premium+ via `grok login --oauth`).
       No separate xAI API key. Auth and billing against the subscription.
