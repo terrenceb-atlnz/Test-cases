@@ -446,3 +446,134 @@ tracking sets across runs, and the observation that case `.62`'s UNSUPPORTED ver
 a second failure (`Problem occurred whilst setting boot environment on swi_a, abort`). That
 last one is recorded here rather than acted on.
 
+
+---
+
+## 13. Phase 4 — CLI grounding, executed 2026-08-04
+
+**Session:** autonomous, at your direction ("proceed as far as possible, store any decisions
+until the end"). **All six sub-items 4.1–4.6 are implemented.** Gate **966 → 1006** pytest
+(+40 new, all mutation-verified), 92 Vitest unchanged, both guards, `ck.db` untouched.
+
+**Measured effect**, replaying all 53 refined cases through the real injection path
+(`detect_commands` + `feature_commands` + `prompt_block`, mirroring
+`routers/pytest_create.py:1509-1524`). Both columns use the SAME harness, so this is a fair
+before/after and not a redefinition:
+
+| | Before | After |
+|---|---|---|
+| Zero commands detected — no grounding at all | 15 | **10** |
+| Commands detected, but no real output | 19 | **0** |
+| Real device output or worked usage present | 19 | **43** |
+
+Set-diff of the zero-detection cases: **5 fixed** (T33277, T33279, T37861, T37865, T43817),
+**0 regressed**. Both of the plan's named verification targets pass — T33277 reaches
+`show spanning-tree`'s 2,388 chars; T44297 reaches `lldp tlv-select`.
+
+### D-24 — All of it is READ-TIME. Nothing normalises `ck.db`
+
+`ask-ck/var/ck.db` is the permanent single source of truth: built once, shipped via LFS,
+`build_db.py` refuses to rebuild, no migration framework. 4.1 offers "derive at read time
+(or normalise via 0.1)" and 4.5 says "re-classify from the data already in ck.db". So the
+repair lives in `cli_lookup.py` and re-derives on the way out.
+
+**Rejected:** patching the `command`/`syntax`/`sample_output` columns. It would have been
+the repo's first in-place mutation of the permanent DB — the same call you made for Phase 1
+of case-locking — and it couples the fix to a rebuild that cannot happen.
+
+**To overturn:** the derivation is three pure functions (`norm_cmd`, `real_command_name`,
+`reclassify`); a future migration could run them once and drop the read-time layer.
+
+### D-25 — Re-derive from `pre_blocks`, not from the `syntax` column
+
+`pre_blocks` holds every `<pre>` block **verbatim** on 6,305 of 6,323 rows, so the
+classification is redone from the ORIGINAL input rather than un-picked from a lossy result.
+Rows without it fall back to the stored columns untouched, and a recovery that finds nothing
+can never erase what the harvest already stored (`sample = sample or recovered`).
+
+### D-26 — The harvester is fixed too, but the live path does not depend on it
+
+`harvest_cli_docs.classify()` now uses the same general prompt regex. Since `ck.db` is never
+rebuilt this changes nothing today; it stops a future harvest re-creating the defect. The two
+implementations are pinned to agree by test, because two copies of one rule is how this comes
+back.
+
+### D-27 — Precision over recall in every classifier
+
+`cli_lookup`'s own FEATURE_ALIASES header sets the rule: *"a wrong alias injects
+confidently-wrong grounding, which is worse than none"*. A syntax template misread as device
+output would hand the model a fabricated output format under a heading that says "match these
+formats exactly" — the exact failure Phase 4 exists to stop. So: `syntax` is always the
+fallback classification, never `sample_output`; a block under 3 lines stays syntax; a
+placeholder-dense block stays syntax; an ambiguous abbreviation is **refused, not guessed**.
+
+**Cost of this choice:** some real output is still filed as syntax. I did not chase it.
+
+### D-28 — 4.4's premise is partly wrong: `tables` CANNOT replace the speed prose
+
+4.4 says surface `cli_commands.tables` *"replacing 18 lines of hand-written prose about
+`speed` forms"* (`pt_extract_sequence.jinja:76-98`). On inspection those 18 lines hold **three
+different kinds** of knowledge and the tables only supply one:
+
+| The prose says | Status |
+|---|---|
+| The three `speed` **forms** (`speed 1000` FORCES / `speed auto 1000` NEGOTIATES / `no speed`) | **KEPT.** `tables` holds a value matrix, not form semantics. `tests/test_prompt_examples.py::test_speed_rule_covers_every_documented_form` already pins that the prompt must convey these, and it is right to. |
+| **"Do NOT assert which speeds a given port supports: the CLI reference does not state it"** | **CORRECTED — this is now false.** `tables` states exactly that, per port type. The instruction was telling the model to ignore real grounding. |
+| **HALF DUPLEX IS IMPOSSIBLE AT ≥1 Gig** | **KEPT UNTOUCHED.** The prompt itself notes no reference page states it (memory `awplus-speed-duplex-constraint` agrees). Deleting it would lose knowledge nothing can re-supply. |
+
+So 4.4 shipped as **additive** (tables now render as `legal values:`) plus a one-sentence
+correction, not as a deletion. The rewritten sentence keeps the original safety intent: the
+table is keyed by port **type**, and which type a given bench port is remains unknown at
+generation time, so the outcome still gets expressed in words rather than a fixed verdict.
+
+**This is the decision most worth your eye** — it is a prompt-text edit, and prompt text is
+one of the two things you flagged as hardest to unwind.
+
+### D-29 — 4.6 ships `Default` and `Mode` only
+
+`notes` has `Overview`, `Default`, `Mode`, `Example`, `Usage notes`, `Related commands`.
+Shipped: **Default** and **Mode** — short, factual, directly assertable ("what does this read
+before I touch it", "which config mode must the script be in"). Rejected: `Overview` (restates
+the command in prose), `Example` (a lead-in sentence with no content), and **`Related
+commands`, deliberately — it invites the model to reach for commands the case never named.**
+
+### D-30 — Added a `spanning-tree` FEATURE_ALIASES entry, because 4.1 alone cannot hit the target
+
+The plan's own verification target is T33277 → `show spanning-tree`'s 2,388 chars.
+De-hyphenation cannot get there: T33277 names the protocol in **prose** ("spanning-tree
+statistics and counters", "spanning tree can be enabled", "spanning-tree diagnostic") and
+never writes a command, so there is no lexical path to the row. That is precisely what
+FEATURE_ALIASES exists for, and its header sets the criterion — *"add entries as real cases
+surface them"*. This is a real case surfacing one.
+
+`stp` is deliberately **absent** from the prose list: three letters in an acronym-dense corpus
+is the ambiguous alias the header warns against, and `rstp`/`mstp`/`spanning tree` cover every
+real mention across the 53 cases. Pinned by test.
+
+### D-31 — Worked examples now ground a command that prints nothing
+
+Not in the plan; found while verifying the flagship case. `lldp tlv-select` — the command
+T44297 is entirely about — has **0 chars** of `sample_output` because it is a config command
+that prints nothing, but **12 real worked example lines** showing the correct form.
+`prompt_block` rendered neither syntax examples nor usage, so the one command that mattered
+reached the model with no evidence at all. It now emits `real usage:` when there is no output.
+
+### Corrections to the plan's own numbers
+
+Recorded because the plan states them as measurements, and mine differ. Both are heuristic;
+mine are stated with their method so you can re-derive them.
+
+| Plan | Mine | Why |
+|---|---|---|
+| "~591 of 3,297" then "1,090 of 4,035 pairs" store a hyphen-losing name | **768 of 3,297 distinct names** | Mine requires a syntax-token prefix to normalise-match the stored name exactly, and stops at the first placeholder. The plan flags its own figure as "a conservative floor — depends on the detection heuristic". |
+| 4.5 strands "404,041 chars in 559 rows" | **735 rows / 586,740 chars** candidate; **607 rows / 269,603 chars actually recovered** | Two distinct causes, measured separately: 157 rows with a non-`awplus` hostname, and 735 with promptless multi-line output. "Recovered" counts only rows that gained a `sample_output` they did not have. |
+| Baseline "15 zero / 37 no-output / 1 with output" | **15 / 19 / 19** | Zero-detection agrees exactly. The other two differ because the plan counted only blocks containing an `awplus` prompt line as real output; mine counts any rendered output section. Before/after in this section uses one harness throughout. |
+
+### Not done, and why
+
+- **A second measurement pass over the remaining 10 zero-detection cases.** They name no
+  command and no aliased feature; each would need a FEATURE_ALIASES entry, and inventing ten
+  at once is exactly the auto-derivation the table's header forbids. They should come one real
+  case at a time.
+- **`Usage notes` from `notes`** — often long and prose-shaped. Left out under D-27's budget
+  rule; easy to add if you want it.

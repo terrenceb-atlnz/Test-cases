@@ -38,6 +38,203 @@ def _conn() -> sqlite3.Connection:
     return sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
 
 
+# =============================================================================
+# PHASE 4 — read-time repair of the harvested reference
+#
+# Everything below fixes the STORED data at READ time. It must stay that way:
+# `ask-ck/var/ck.db` is the permanent single source of truth, built once and shipped via
+# Git LFS. `tool/build_db.py` refuses to rebuild it, there is no migration framework, and
+# 4.5's own wording is "re-classify from the data already in ck.db — no re-fetch, no
+# network". So none of this normalises the database; it re-derives on the way out.
+#
+# The three defects, each measured against the real ck.db (2026-08-04):
+#
+#  1. COMMAND NAMES LOSE THEIR HYPHENS. `command` is derived from the doc-page slug, which
+#     either drops a hyphen (`lockout-time` -> `lockouttime`) or turns it into an
+#     underscore that then became a space (`2fa-registration` -> `2fa registration`). The
+#     row's OWN `syntax` holds the correct spelling. 768 of 3,297 distinct command names
+#     are recoverable this way. Consequence, on the flagship LLDP case: writing the command
+#     CORRECTLY found nothing —
+#         detect_commands('configure lldp tlv-select port-description') -> []
+#     while the misspelling matched. Grounding rewarded getting it wrong.
+#
+#  2. THE PROMPT REGEX ONLY KNOWS THE HOSTNAME `awplus`. `harvest_cli_docs.classify()`
+#     splits blocks on /^awplus.*[#>]/, so every page whose examples use a different
+#     hostname — `Node_1(config)#`, `master_1#`, `controller-1(config)#` — has its worked
+#     examples AND the device reply after them filed as *syntax*. 157 rows, 569 blocks,
+#     63,064 chars; 154 of those rows have an empty `sample_output` as a direct result.
+#
+#  3. OUTPUT WITH NO PROMPT LINE AT ALL IS FILED AS SYNTAX. A block can be a genuine
+#     device reply shown without the command above it. 735 rows hold multi-line,
+#     placeholder-sparse blocks in `syntax`; 606 of them have no `sample_output`.
+#
+# WHY RE-DERIVE FROM `pre_blocks` RATHER THAN PATCH THE `syntax` COLUMN: `pre_blocks`
+# holds every <pre> block verbatim on 6,305 of 6,323 rows, so the classification can be
+# redone from the ORIGINAL input rather than un-picked from a lossy result. Rows without
+# `pre_blocks` fall back to the stored columns unchanged.
+#
+# PRECISION OVER RECALL, DELIBERATELY. This module's own FEATURE_ALIASES comment states
+# the rule: "a wrong alias injects confidently-wrong grounding, which is worse than none".
+# A syntax template misread as device output would hand the model a fake output format to
+# match — the exact failure Phase 4 exists to stop. So every classifier below refuses when
+# unsure, and `syntax` is the fallback classification, never `sample_output`.
+# =============================================================================
+
+# A prompt line: hostname, an optional (config…) mode, then '#' or '>', then a command.
+# Anchored and length-bounded so it cannot fire on prose containing '>' (a syntax
+# alternation like `{a|b} > c` has no leading bare hostname token) and requires something
+# after the sigil, so a bare `awplus#` trailing line is not read as a command.
+_PROMPT_ANY_RX = re.compile(
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\([^)\n]{0,31}\))?[ \t]*[#>][ \t]*(?=\S)", re.M)
+
+# Placeholder metacharacters that mark a SYNTAX template rather than device output.
+_PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
+
+# Cache: one alias index per database path. Building it scans every row.
+_ALIAS_CACHE: Dict[str, dict] = {}
+
+
+def norm_cmd(s: str) -> str:
+    """Hyphen- and space-insensitive normal form of a command name.
+
+    `lockout-time`, `lockouttime` and `lockout time` all collapse to `lockouttime`, which
+    is what lets a correctly-spelled command find a slug-mangled row.
+    """
+    return re.sub(r"[-\s_]+", "", (s or "").lower())
+
+
+def real_command_name(command: str, syntax: List[str]) -> Optional[str]:
+    """The correctly-spelled command name, recovered from its own syntax lines.
+
+    Returns the SHORTEST prefix of syntax tokens whose normalised form equals the stored
+    command's, or None when no prefix matches. Shortest matters: `atmf area` must not
+    absorb `<area-name>` from `atmf area <area-name> password`.
+
+    Stops at the first argument placeholder, so a command name can never be built out of
+    parameter syntax.
+    """
+    target = norm_cmd(command)
+    if not target:
+        return None
+    for syn in syntax or []:
+        acc: List[str] = []
+        for tok in (syn or "").split():
+            if tok[:1] in "<{[|":          # argument syntax begins — name is complete
+                break
+            acc.append(tok)
+            cand = " ".join(acc)
+            if norm_cmd(cand) == target:
+                return cand
+    return None
+
+
+def reclassify(pre_blocks: List[str]) -> tuple:
+    """Re-split raw <pre> blocks into (syntax, examples, sample_output).
+
+    Supersedes `harvest_cli_docs.classify()` at read time. Two differences, both defects
+    2 and 3 above: any hostname counts as a prompt, and a promptless block that looks like
+    device output is treated as output instead of syntax.
+    """
+    syntax: List[str] = []
+    examples: List[dict] = []
+    best: Optional[str] = None
+
+    def _consider(text: Optional[str]) -> None:
+        nonlocal best
+        if text and (best is None or len(text) > len(best)):
+            best = text
+
+    for b in pre_blocks or []:
+        if not b or not b.strip():
+            continue
+        if _PROMPT_ANY_RX.search(b):
+            lines = b.split("\n")
+            cmd_line = lines[0].strip()
+            reply = "\n".join(lines[1:]).rstrip()
+            examples.append({"cmd": cmd_line, "output": reply or None})
+            _consider(reply or None)
+            continue
+
+        # No prompt anywhere. Output, or a syntax template?
+        lines = [ln for ln in b.split("\n") if ln.strip()]
+        if len(lines) < 3:
+            syntax.append(b)                       # too short to judge — stays syntax
+            continue
+        dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln))
+        if dense / len(lines) > 0.4:
+            syntax.append(b)                       # placeholder-dense — a template
+            continue
+        _consider(b.rstrip())                      # multi-line, plain: device output
+
+    return syntax, examples, best
+
+
+def _alias_index(conn: sqlite3.Connection) -> dict:
+    """{normalised name -> {"stored": [...], "real": <best real spelling>}} for every row.
+
+    One pass over `cli_commands`, cached per database. Lets a caller write a command the
+    way the CLI actually spells it and still reach the row stored under the slug spelling.
+    """
+    key = str(DB)
+    hit = _ALIAS_CACHE.get(key)
+    if hit is not None:
+        return hit
+
+    idx: Dict[str, dict] = {}
+    try:
+        rows = conn.execute(
+            "SELECT command, syntax, pre_blocks FROM cli_commands "
+            "WHERE command IS NOT NULL").fetchall()
+    except sqlite3.OperationalError:
+        return {}
+
+    for cmd, syn, pre in rows:
+        try:
+            syn_list = json.loads(syn or "[]")
+        except Exception:
+            syn_list = []
+        if pre:
+            try:
+                syn_list = reclassify(json.loads(pre))[0] or syn_list
+            except Exception:
+                pass
+        n = norm_cmd(cmd)
+        if not n:
+            continue
+        e = idx.setdefault(n, {"stored": [], "real": None})
+        if cmd not in e["stored"]:
+            e["stored"].append(cmd)
+        rn = real_command_name(cmd, syn_list)
+        # Prefer the spelling that actually carries hyphens; between two candidates take
+        # the one with more, since the slug form is the hyphen-poor one by construction.
+        if rn and (e["real"] is None or rn.count("-") > e["real"].count("-")):
+            e["real"] = rn
+    _ALIAS_CACHE[key] = idx
+    return idx
+
+
+def resolve_command(name: str, conn: Optional[sqlite3.Connection] = None) -> List[str]:
+    """Stored command name(s) matching `name`, however it is hyphenated.
+
+    `resolve_command('lldp tlv-select')` -> ['lldp tlvselect'].
+    Returns [] when the reference does not know the command at all (4.3's flagging path).
+    """
+    c = conn or _conn()
+    entry = _alias_index(c).get(norm_cmd(name))
+    return list(entry["stored"]) if entry else []
+
+
+def display_name(stored: str, conn: Optional[sqlite3.Connection] = None) -> str:
+    """The correctly-spelled name for a stored command, for prompts and reports.
+
+    Falls back to the stored spelling when nothing better is recoverable, so this is
+    always safe to render.
+    """
+    c = conn or _conn()
+    entry = _alias_index(c).get(norm_cmd(stored))
+    return (entry.get("real") if entry else None) or stored
+
+
 def lookup(command: str, product: Optional[str] = None,
            conn: Optional[sqlite3.Connection] = None) -> List[dict]:
     """Every stored variant of `command`, newest-content first.
@@ -47,29 +244,105 @@ def lookup(command: str, product: Optional[str] = None,
     so a caller can see (for example) that `duplex` drops `half` on x930/x950.
     """
     c = conn or _conn()
+    # 4.1 — accept the command spelled the way the CLI actually spells it. The stored name
+    # is slug-derived and hyphen-poor, so an exact-match lookup on `lldp tlv-select` found
+    # nothing. Resolve through the alias index first, then fall back to the literal name so
+    # a caller passing the stored spelling is unaffected.
+    targets = resolve_command(command, c) or [command]
+    ph = ",".join("?" for _ in targets)
+
     if product:
         rows = c.execute(
             "SELECT k.content_sha, k.command, k.page, k.cmd_group, k.syntax, "
-            "       k.examples, k.sample_output "
+            "       k.examples, k.sample_output, k.pre_blocks, k.tables, k.notes "
             "FROM cli_commands k JOIN cli_command_products p "
             "  ON p.content_sha = k.content_sha "
-            "WHERE k.command = ? AND p.product = ?", (command, product)).fetchall()
+            f"WHERE k.command IN ({ph}) AND p.product = ?",
+            (*targets, product)).fetchall()
     else:
         rows = c.execute(
             "SELECT content_sha, command, page, cmd_group, syntax, examples, "
-            "       sample_output FROM cli_commands WHERE command = ?",
-            (command,)).fetchall()
+            "       sample_output, pre_blocks, tables, notes FROM cli_commands "
+            f"WHERE command IN ({ph})", tuple(targets)).fetchall()
 
     out = []
-    for sha, cmd, page, group, syn, ex, sample in rows:
+    for sha, cmd, page, group, syn, ex, sample, pre, tbls, nts in rows:
         prods = [r[0] for r in c.execute(
             "SELECT product FROM cli_command_products WHERE content_sha = ? "
             "ORDER BY product", (sha,))]
+        syntax = _loads_list(syn)
+        examples = _loads_list(ex)
+
+        # 4.5 — re-classify from the verbatim <pre> blocks. The stored split used an
+        # `awplus`-only prompt regex, so pages using any other hostname had their examples
+        # AND the device reply filed as syntax (157 rows), and promptless output blocks
+        # went the same way (735 rows). Re-deriving recovers both. `or` guards keep a
+        # recovery that finds nothing from erasing what was already stored.
+        if pre:
+            try:
+                r_syn, r_ex, r_sample = reclassify(json.loads(pre))
+                syntax = r_syn or syntax
+                examples = r_ex or examples
+                sample = sample or r_sample
+            except Exception:
+                pass                            # malformed pre_blocks — keep stored values
+
         out.append({"command": cmd, "page": page, "cmd_group": group,
-                    "syntax": json.loads(syn or "[]"),
-                    "examples": json.loads(ex or "[]"),
-                    "sample_output": sample, "products": prods})
+                    "display": display_name(cmd, c),
+                    "syntax": syntax,
+                    "examples": examples,
+                    "sample_output": sample,
+                    "tables": _loads_list(tbls),
+                    # `notes` is a JSON OBJECT ({Overview, Default, Mode, Usage notes, …}),
+                    # not an array — reading it as a list silently yielded [] on all 6,323
+                    # rows and would have made 4.6 look implemented while shipping nothing.
+                    "notes": _loads_obj(nts),
+                    "products": prods})
     return out
+
+
+def _loads_list(raw) -> list:
+    """JSON array from a column, tolerating null and malformed content."""
+    try:
+        v = json.loads(raw or "[]")
+    except Exception:
+        return []
+    return v if isinstance(v, list) else []
+
+
+def _value_tables(tables: Optional[list]) -> List[list]:
+    """The tables that are LEGAL-VALUE MATRICES, not prose laid out in cells.
+
+    Doc pages use <table> for both. A value matrix is narrow (2–3 columns) and its cells
+    are short; a prose table has one wide cell per row and would dump paragraphs into the
+    prompt, which is bulk rather than signal. Keeps at most two per command.
+    """
+    out: List[list] = []
+    for tbl in tables or []:
+        if not isinstance(tbl, list) or len(tbl) < 2:
+            continue
+        rows = [r for r in tbl if isinstance(r, list) and r]
+        if len(rows) < 2:
+            continue
+        widths = [len(r) for r in rows]
+        if max(widths) > 3:
+            continue
+        longest = max((len(str(c)) for r in rows for c in r), default=0)
+        if longest > 90:                    # a paragraph in a cell — prose, not values
+            continue
+        out.append(rows)
+        if len(out) == 2:
+            break
+    return out
+
+
+def _loads_obj(raw) -> dict:
+    """JSON object from a column, tolerating null and malformed content."""
+    try:
+        v = json.loads(raw or "{}")
+    except Exception:
+        return {}
+    return v if isinstance(v, dict) else {}
 
 
 def search(query: str, limit: int = 10,
@@ -148,6 +421,29 @@ FEATURE_ALIASES: Dict[str, dict] = {
         # The port-naming question is handled where it belongs — port names come from the
         # .setup topology, never hardcoded — not by second-guessing variant choice here.
     },
+    "spanning-tree": {
+        # ADDED 2026-08-04, Phase 4, by the criterion this table sets for itself: a real
+        # case surfaced the need. `AWPTCM-T33277` is the plan's own verification target —
+        # "assert T33277 resolves to show spanning-tree's 2,388 chars of real output" — and
+        # de-hyphenation ALONE cannot get there. Its text names the protocol in prose
+        # ("spanning-tree statistics and counters", "spanning tree can be enabled",
+        # "spanning-tree diagnostic") and never once writes a command, so there is no
+        # lexical path from the case to `show spanningtree`. The row was in ck.db with its
+        # 2,388 chars the whole time; nothing could reach it.
+        #
+        # `stp` is deliberately ABSENT from `prose`. Three letters inside a corpus full of
+        # protocol acronyms is exactly the ambiguous alias the header warns against, and
+        # `rstp`/`mstp`/`spanning tree` already cover every real mention in the 53 cases.
+        "prose": ["spanning tree", "spanning-tree", "rstp", "mstp", "802.1d", "802.1w",
+                  "802.1s", "root bridge", "cist"],
+        # Real CLI only, and only commands that carry recovered output worth grounding on:
+        # `show spanning-tree` 2,388 chars, `statistics` 769, `brief` 484, `mst config` 275.
+        "commands": ["show spanningtree", "show spanningtree brief",
+                     "show spanningtree statistics", "show spanningtree mst config",
+                     "spanningtree mode"],
+        "output_terms": ["spanning tree", "root path cost", "root port", "bridge priority",
+                         "forwarding", "blocking", "cist"],
+    },
 }
 
 
@@ -225,7 +521,11 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
             return (hits, len(x["products"]), len(x["sample_output"] or ""))
 
         v = max(variants, key=_rank)
-        chunk = [f"### {v['command']}"]
+        # 4.1 — head the block with the CORRECT spelling, not the slug-derived one. The
+        # prompt says "match these formats exactly", so showing `lldp tlvselect` above
+        # syntax that reads `lldp tlv-select` hands the model two spellings and blesses the
+        # wrong one.
+        chunk = [f"### {v.get('display') or v['command']}"]
         for s in v["syntax"][:4]:
             chunk.append(f"    {s}")
         # flag genuine per-product syntax differences rather than silently picking one
@@ -268,6 +568,41 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
                         chunk.append(
                             f"    (NOTE: this field is family-specific — not printed on "
                             f"{fams}…; prefer the feature-specific show command there)")
+
+        # No device output for this command? Then the worked examples ARE the grounding.
+        # `lldp tlv-select` — the command the flagship LLDP case is entirely about — has
+        # 0 chars of sample_output because it is a config command that prints nothing, but
+        # 12 real example lines showing the correct form. prompt_block rendered NEITHER, so
+        # the one command that mattered reached the model with no evidence at all.
+        elif v["examples"]:
+            shown = [e.get("cmd") for e in v["examples"] if e.get("cmd")][:3]
+            if shown:
+                chunk.append("  real usage:")
+                chunk += [f"    {s}" for s in shown]
+
+        # 4.4 — the legal-argument matrices. 5,368 rows carry them and none reached a
+        # prompt. This is the per-port-type value table (`speed`: which numbers a fibre SFP
+        # versus an RJ-45 copper port actually accepts), which is exactly the fabrication
+        # the grounding block exists to prevent, and which no hand-written prose in the
+        # prompt supplies — see the note in the Phase 4 write-up about what `tables` does
+        # and does not replace.
+        for tbl in _value_tables(v.get("tables")):
+            chunk.append("  legal values:")
+            for row in tbl[:10]:
+                cells = " | ".join(str(x).strip()[:58] for x in row if str(x).strip())
+                if cells:
+                    chunk.append(f"    {cells}")
+
+        # 4.6 — `Default` and `Mode` from the release notes. Deliberately only those two:
+        # they are short, factual and directly assertable ("what does this read before I
+        # touch it", "which config mode must the script be in"). `Overview` restates the
+        # command in prose, `Example` is a lead-in sentence with no content, and
+        # `Related commands` invites the model to reach for commands the case never named.
+        nts = v.get("notes") or {}
+        facts = [(k, nts.get(k)) for k in ("Default", "Mode") if (nts.get(k) or "").strip()]
+        for k, val in facts:
+            chunk.append(f"  {k.lower()}: {' '.join(str(val).split())[:160]}")
+
         parts.append("\n".join(chunk))
     if not parts:
         return ""
@@ -304,22 +639,193 @@ def detect_commands(text: str, limit: int = 12,
     SAFE_SINGLE = {"speed", "duplex", "polarity", "tcpdump", "ping", "traceroute",
                    "shutdown", "mtu", "bandwidth", "flowcontrol", "switchport"}
 
+    # 4.1 — match the CORRECT spelling too. `command` is slug-derived and loses hyphens,
+    # so scanning for stored names alone means a step that writes `lldp tlv-select`
+    # properly matches nothing while the misspelling matches. Each stored name is searched
+    # under every spelling that normalises to it, and the STORED name is what we return so
+    # `lookup()` still resolves; use `display_name()` to render it.
+    idx = _alias_index(c)
+    probes: List[tuple] = []                    # (search_text, stored_name)
+    for name in names:
+        if not name:
+            continue
+        forms = {name}
+        real = (idx.get(norm_cmd(name)) or {}).get("real")
+        if real:
+            forms.add(real)
+        for f in forms:
+            probes.append((f, name))
+
+    # Longest search text first, so `show interface status` still beats `show interface`.
+    probes.sort(key=lambda p: len(p[0]), reverse=True)
+
     hits: List[str] = []
     spans: List[tuple] = []
-    for name in sorted(names, key=len, reverse=True):
-        if len(name) < 4:                       # 'do', 'end' etc. are pure noise
+    for text_form, stored in probes:
+        if len(text_form) < 4:                  # 'do', 'end' etc. are pure noise
             continue
-        if " " not in name and name not in SAFE_SINGLE:
+        if " " not in text_form and text_form not in SAFE_SINGLE:
             continue                            # single generic word — too ambiguous
-        for m in re.finditer(r"(?<![a-z0-9])" + re.escape(name) + r"(?![a-z0-9])", low):
+        if stored in hits:
+            continue                            # already found under another spelling
+        for m in re.finditer(
+                r"(?<![a-z0-9])" + re.escape(text_form.lower()) + r"(?![a-z0-9])", low):
             if any(s <= m.start() and m.end() <= e for s, e in spans):
-                break                           # already covered by a longer command
+                # 4.2 — THIS WAS `break`, WHICH ABANDONED THE COMMAND ENTIRELY.
+                # A first occurrence sitting inside a longer match made grounding depend on
+                # SENTENCE ORDER: "show interface status; then speed on that interface"
+                # dropped `show interface` from the second clause because the first was
+                # covered. Keep looking for an uncovered occurrence instead.
+                continue
             spans.append((m.start(), m.end()))
-            hits.append(name)
+            hits.append(stored)
             break
         if len(hits) >= limit:
             break
     return hits
+
+
+def detect(text: str, limit: int = 12,
+           conn: Optional[sqlite3.Connection] = None) -> dict:
+    """`detect_commands` plus the correct spellings and what could NOT be resolved.
+
+    4.3's reporting half. `detect_commands` returns stored names for lookup; this adds the
+    display spellings a prompt should show, and the abbreviations that stayed ambiguous —
+    which a caller should surface rather than drop, because a silently-omitted command is
+    indistinguishable from a command the reference genuinely lacks.
+    """
+    c = conn or _conn()
+    found = detect_commands(text, limit=limit, conn=c)
+    return {
+        "commands": found,
+        "display": [display_name(x, c) for x in found],
+        "unrecognised": unresolved_abbreviations(text, conn=c),
+    }
+
+
+# `no <cmd>` negates, `do <cmd>` escapes to exec mode. Neither is part of the name.
+_LEAD_NOISE = ("no ", "do ", "default ")
+
+
+def check_commands(candidates: List[str],
+                   conn: Optional[sqlite3.Connection] = None) -> dict:
+    """Which candidate command strings does the reference actually know?
+
+    4.3's flagging primitive, for callers holding explicit CLI strings (a sequence's
+    command fields, a fragment's issued commands). Returns
+    `{"known": {candidate: stored_name}, "unknown": [candidate, …]}`.
+
+    Handles the two forms the plan calls out:
+      * NEGATED — a leading `no`/`do`/`default` is stripped before resolving, so
+        `no lldp tlv-select` resolves to the same row as `lldp tlv-select`.
+      * ABBREVIATED — `sh int` resolves to `show interface` only when the expansion is
+        UNIQUE across the whole reference; an ambiguous abbreviation is reported unknown
+        rather than guessed, because a wrong expansion injects grounding for a command the
+        script never issues.
+    """
+    c = conn or _conn()
+    known: Dict[str, str] = {}
+    unknown: List[str] = []
+    for raw in candidates or []:
+        cand = " ".join((raw or "").split())
+        if not cand:
+            continue
+        probe = cand.lower()
+        for lead in _LEAD_NOISE:
+            if probe.startswith(lead):
+                probe = probe[len(lead):].strip()
+                break
+        # A CLI line is `command + arguments`, so resolve the LONGEST leading token prefix
+        # that is a command and let the rest be arguments: `no lldp tlv-select all` has to
+        # reach `lldp tlv-select`, with `all` understood as a parameter. Longest-first so
+        # `show interface status` is not shortened to `show interface`.
+        toks = probe.split()
+        stored = None
+        for n in range(len(toks), 0, -1):
+            head = " ".join(toks[:n])
+            got = resolve_command(head, c)
+            if got:
+                stored = got[0]
+                break
+            got = _expand_abbreviation(head, c)
+            if got:
+                stored = got
+                break
+        if stored:
+            known[cand] = stored
+        else:
+            unknown.append(cand)
+    return {"known": known, "unknown": unknown}
+
+
+def _command_token_lists(conn: sqlite3.Connection) -> List[tuple]:
+    """[(stored_name, [real tokens])] for every distinct command. Cached with the index."""
+    idx = _alias_index(conn)
+    key = str(DB) + "::tokens"
+    hit = _ALIAS_CACHE.get(key)
+    if hit is not None:
+        return hit["rows"]
+    rows = []
+    for entry in idx.values():
+        for stored in entry["stored"]:
+            spelling = entry.get("real") or stored
+            rows.append((stored, spelling.split()))
+    _ALIAS_CACHE[key] = {"rows": rows}
+    return rows
+
+
+def _expand_abbreviation(probe: str,
+                         conn: Optional[sqlite3.Connection] = None) -> Optional[str]:
+    """Stored name for an AW+ abbreviation, but only when the expansion is UNIQUE.
+
+    Every token must be a prefix of the corresponding command token, and the abbreviation
+    must have at least as many tokens as it needs to be unambiguous. Returns None on zero
+    or multiple matches — see the docstring on `check_commands` for why guessing is worse
+    than reporting.
+    """
+    toks = probe.split()
+    if not toks or any(len(t) < 2 for t in toks):
+        return None
+    matches = []
+    for stored, cmd_toks in _command_token_lists(conn or _conn()):
+        if len(cmd_toks) != len(toks):
+            continue
+        if all(ct.lower().startswith(t) for ct, t in zip(cmd_toks, toks)):
+            matches.append(stored)
+            if len(matches) > 1:
+                return None                      # ambiguous — refuse
+    return matches[0] if len(matches) == 1 else None
+
+
+def unresolved_abbreviations(text: str,
+                             conn: Optional[sqlite3.Connection] = None) -> List[str]:
+    """CLI-looking lines in `text` that the reference cannot resolve to any command.
+
+    Scoped to lines that are unambiguously CLI — a quoted string or a `no`-prefixed
+    directive — rather than guessing at prose, so this reports real gaps instead of
+    flagging every English sentence.
+    """
+    c = conn or _conn()
+    cands: List[str] = []
+    for m in re.finditer(r"""['"]([a-z][a-z0-9 .\-]{5,60})['"]""", text or "", re.I):
+        cands.append(m.group(1))
+    for m in re.finditer(r"^\s*(no\s+[a-z][a-z0-9 .\-]{4,60})\s*$", text or "",
+                         re.I | re.M):
+        cands.append(m.group(1))
+    if not cands:
+        return []
+    res = check_commands(cands, c)
+    # Only report things that at least LOOK like a command: two or more words, and a first
+    # word that some real command also starts with. Otherwise every quoted English phrase
+    # in a sequence description would be flagged as a missing CLI command.
+    firsts = {t[0] for _, t in _command_token_lists(c) if t}
+    out: List[str] = []
+    for u in res["unknown"]:
+        w = u.lower().split()
+        if len(w) >= 2 and (w[0] in firsts or (w[0] in ("no", "do") and len(w) >= 3)):
+            if u not in out:
+                out.append(u)
+    return out
 
 
 def stats(conn: Optional[sqlite3.Connection] = None) -> dict:

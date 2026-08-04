@@ -87,8 +87,11 @@ Convert this manual test case into a prescriptive sequence of automatable test s
   numeric form is testing the opposite of what it claims. Same distinction for `duplex`.
   When a step calls for an UNSUPPORTED or mismatched setting, use a REAL value from the set
   that the media may not support, or force a mismatch against the partner — never an
-  invented number. Do NOT assert which speeds a given port supports: that is a hardware
-  property the CLI reference does not state, so express the expectation in plain words
+  invented number. The REAL CLI REFERENCE above now lists the legal values per PORT TYPE
+  under `legal values:` (a 100Base-FX fibre SFP accepts only `100`; an RJ-45 copper port
+  accepts `10` through `10000`) — take unsupported-value choices from there rather than
+  inventing one. But that table is keyed by port TYPE, and which type a given bench port
+  is remains unknown at generation time, so still express the outcome in plain words
   ("link should not come up if the partner cannot match") rather than as a fixed verdict.
 - **HALF DUPLEX IS IMPOSSIBLE AT 1 Gig AND ABOVE.** Physical constraint, not a CLI one, so
   no reference page states it — the `duplex` page lists `{auto|full|half}` unconditionally

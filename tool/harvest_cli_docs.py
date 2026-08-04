@@ -67,6 +67,13 @@ _CMDPAGE_RX = re.compile(r"([a-z0-9\-]+_cmd/[A-Za-z0-9_\-.]+\.html)")
 _TAG_RX = re.compile(r"<[^>]+>")
 # A CLI prompt line marks a worked example; the switch's reply follows it.
 _PROMPT_RX = re.compile(r"^\s*awplus[^\n]*[#>]", re.M)
+# Phase 4.5: ANY hostname, not just `awplus`. Doc pages use `Node_1(config)#`, `master_1#`
+# and `controller-1(config)#`, and the awplus-only form filed all of those as syntax.
+# Kept byte-identical to cli_lookup._PROMPT_ANY_RX — a test pins that they agree.
+_PROMPT_ANY_RX = re.compile(
+    r"^[ \t]*[A-Za-z][\w.\-]{0,31}(?:\([^)\n]{0,31}\))?[ \t]*[#>][ \t]*(?=\S)", re.M)
+# Placeholder metacharacters that mark a SYNTAX template rather than device output.
+_PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
 
 
 SCHEMA = """
@@ -160,24 +167,52 @@ def classify(blocks: List[str]) -> Tuple[List[str], List[dict], Optional[str]]:
     """Split <pre> blocks into syntax lines, worked examples, and the best sample output.
 
     Shapes observed on real pages:
-      - syntax:  `duplex {auto|full|half}`            (no awplus prompt)
+      - syntax:  `duplex {auto|full|half}`            (no prompt line)
       - example: `awplus# configure terminal ...`     (prompt lines only)
       - output:  `awplus#show interface` + the switch's multi-line reply
+      - output:  a bare multi-line reply with NO command line above it
+
+    PHASE 4.5 — this used to require the literal hostname `awplus` and treated every other
+    block as syntax, which stranded real device output in the `syntax` column on 735 rows
+    (606 of them ending up with no `sample_output` at all). Two causes: doc pages that use
+    a different hostname (`Node_1(config)#`, `master_1#`, `controller-1(config)#`), and
+    output shown without the command above it.
+
+    THE LIVE PATH DOES NOT DEPEND ON THIS FIX. `ask-ck/var/ck.db` is built once and never
+    rebuilt, so the rows already stored keep their old split; `cli_lookup.reclassify()`
+    re-derives at READ time from the verbatim `pre_blocks` column. This is fixed so a
+    future harvest cannot reintroduce the defect, and the two implementations are pinned
+    to agree by `tests/test_cli_grounding_phase4.py`.
     """
-    syntax, examples, best = [], [], None
+    from typing import Optional as _Opt  # local: keep the module's import block untouched
+    syntax: List[str] = []
+    examples: List[dict] = []
+    best = None
+
     for b in blocks:
-        if not b:
+        if not b or not b.strip():
             continue
-        if not _PROMPT_RX.search(b):
+        if _PROMPT_ANY_RX.search(b):
+            lines = b.split("\n")
+            cmd_line = lines[0].strip()
+            reply = "\n".join(lines[1:]).rstrip()
+            examples.append({"cmd": cmd_line, "output": reply or None})
+            # the richest reply is the most useful thing to show a generator
+            if reply and (best is None or len(reply) > len(best)):
+                best = reply
+            continue
+
+        lines = [ln for ln in b.split("\n") if ln.strip()]
+        if len(lines) < 3:
             syntax.append(b)
             continue
-        lines = b.split("\n")
-        cmd_line = lines[0].strip()
-        reply = "\n".join(lines[1:]).rstrip()
-        examples.append({"cmd": cmd_line, "output": reply or None})
-        # the richest reply is the most useful thing to show a generator
-        if reply and (best is None or len(reply) > len(best)):
-            best = reply
+        dense = sum(1 for ln in lines if _PLACEHOLDER_RX.search(ln))
+        if dense / len(lines) > 0.4:
+            syntax.append(b)
+            continue
+        text = b.rstrip()
+        if best is None or len(text) > len(best):
+            best = text
     return syntax, examples, best
 
 

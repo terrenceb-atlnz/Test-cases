@@ -17,7 +17,8 @@
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
 > | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
 > | **Phase 7.8** (generate-prompt contradictions) | ✅ **Rule 3 DONE** 2026-08-04 (`9c1a553`) — it was producing the only lint error that has ever fired. Rules 1/8, the untrimmed device list and the on-code FILL markers remain. |
-> | **Phases 0, 1, 3, 4, 5, 6, 8, 9, 10, 12** | Not started. |
+> | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `tool/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
+> | **Phases 0, 1, 3, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
 >
 > ### 2026-08-04 — decisions reviewed with Terrence; six changed
