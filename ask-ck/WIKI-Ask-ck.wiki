@@ -217,13 +217,68 @@ This is the only part of the system that mutates anything outside the workstatio
 * '''43''' cases are live in Zephyr at v2.0, pushed in a single operation on '''22 July 2026'''.
 * '''No push has run since.''' The validator added on 3 August 2026 currently refuses the present bundles because their steps lack expected results; they will be regenerated and re-pushed at v2.0.
 
-== Usage and API footprint ==
+=== API footprint ===
 
 Stated plainly, because the honest answer matters more than a confident one:
 
-* '''There is no per-user usage telemetry.''' The tool records one row per case worked on, overwritten in place, with no user attribution and no timestamp of first use. It cannot currently report how much it is used or by whom. Adding a usage counter is straightforward and is not yet done.
 * '''Jira API call volume is not measured.''' The audit log described above counts ''cases pushed'', not HTTP requests, and it was only added on 3 August 2026 — after the only production push. Request counts for the July push are therefore an '''estimate reconstructed from the source code''', in the order of 600–1,000 requests concentrated on a single day. The authoritative figures would come from Jira-side access logs for the token used.
-* '''Dry-run previews are not free''' — a preview still issues read requests per case. This was not previously obvious and is worth knowing when interpreting usage spikes.
+* '''A push is many requests, not one.''' Each case costs roughly seven calls on the full path — read the case, read its version, upload the payload, list attachments, replace the attachment, resolve the numeric id, set the web links — before the conditional ones (title fix, version creation, attachment deletions).
+* '''Dry-run previews are not free.''' A preview issues read requests per case even though it writes nothing. This was not previously obvious and is worth knowing when interpreting a usage spike.
+
+== Token usage and prompt provenance ==
+
+Everything in this section is about the '''AI''' side of the ledger — what each model call costs, what exactly was sent, and what stops an unreviewed instruction reaching a model.
+
+=== Per-call token accounting ===
+
+Every LLM request in the system funnels through a single function, which records the call after it completes — '''success or failure''' — and each call reports its own token usage:
+
+{| class="wikitable"
+! Recorded per request !! Detail
+|-
+| Tokens in / out || Normalised across every transport into one shape: input, output, total, and cost where the provider reports it. Displayed in the interface as an <code>N in / M out</code> badge on the panel that made the call.
+|-
+| Which prompt || The template name (e.g. <code>generate_objectives</code>), the panel, and the API endpoint
+|-
+| Which backend || Provider, model, auth method
+|-
+| Timing and outcome || Duration in milliseconds, plus the error and its detail when the call failed
+|-
+| The full text || The complete prompt sent and the complete response received
+|}
+
+Two deliberate properties are worth putting in front of a reviewer:
+
+* '''Unreported usage is shown as unknown, never estimated.''' Some transports (the Grok CLI's plain-text output, for instance) report no token counts. The badge then reads "— tok" rather than a guess. A number on screen is always a number the provider actually returned.
+* '''Cached input still counts as input.''' Where a provider bills cache reads and cache creation separately, both are folded into the input figure rather than being quietly dropped.
+
+Records go to a per-session log on disk (one line per request) and an in-memory buffer the interface can query. '''Credentials are structurally excluded''': each record is assembled from an explicit whitelist of fields, and no credential field is on it. The internal vLLM key never enters that data at all — it is resolved server-side and never travels with the request metadata.
+
+The log is a local debugging aid, excluded from version control, and it is '''not''' a usage-reporting system — see the limitation below.
+
+=== Prompt provenance ===
+
+'''Every AI panel can show the exact prompt it will send, before sending it.''' The interface renders the real prompt — the same text, built through the same code path, from the same confirmed data — and displays it for inspection or copying, '''without contacting any model and at zero token cost'''. Pressing refresh re-renders it live as the operator's selections change.
+
+This was built so a prompt could be pasted into a competing model for comparison, but it is equally the answer to "what did you actually send it?" — the question a review of an AI-assisted process eventually asks. The answer is not reconstructed from memory or inferred from the output; it is the artefact itself, reproducible on demand.
+
+Together with the per-request log, that gives two independent records: what ''would'' be sent (renderable at any time, for free) and what ''was'' sent (captured at the time, with its response and token cost).
+
+=== Safeguards on the prompts themselves ===
+
+The prompts are not free text an operator types. They are '''fixed templates held in version control''', reviewable as source, and rendered server-side from confirmed data. An operator chooses ''what goes in'' — which cases, which suites, which fragments — and never rewrites the instruction itself.
+
+Several controls keep those templates honest:
+
+* '''The prompts' own examples are executed as tests.''' Where a prompt's prose and its worked example disagree, the model follows the '''example''' — so an example is not documentation, it is the specification the model actually implements. The test suite runs the examples against real captured device output and fails if one is wrong, before any tokens are spent. This was not theoretical: five defects in generated scripts were traced to incorrect examples in our own prompt files, including one that would have produced a '''false failure blamed on the product'''.
+* '''Enforced rules must be conveyed by the prompt.''' A test asserts that every rule the automated lint rejects is actually stated in the prompt. The trigger was real: the only lint error ever to fire on a genuine generation was earned by a model faithfully following an instruction that contradicted the rule, which made our best script permanently unconfirmable. A rule enforced in code that no instruction ever conveyed does not catch a model defect — it manufactures one.
+* '''Instructions must not contradict each other.''' A single request must not carry two authorities telling the model opposite things. One real instance: a system-level instruction forbidding markdown fences was being attached to the two prompts whose output parser ''requires'' a fenced code block.
+* '''Model self-reports are not trusted.''' Source provenance stamped into generated scripts is derived server-side from fragment metadata, never from the model's claim about where code came from.
+* '''Output is validated, not assumed.''' Generated scripts pass a 19-rule conformance lint; a reply that does not reassemble cleanly is refused rather than saved.
+
+=== What this does not cover ===
+
+'''There is no per-user usage telemetry, and no aggregate token reporting.''' Per-call token counts are captured and displayed, but they are not totalled anywhere, and nothing attributes them to a person: the tool stores one row per case worked on, overwritten in place, with no user identity and no record of first use. It therefore cannot currently answer "how much has this been used, and by whom" — only "what did this particular call cost". The per-request records already carry the fields a report would need, so building one is a small piece of work rather than new instrumentation; it simply has not been done.
 
 == Security posture ==
 
@@ -244,7 +299,7 @@ There is no CI runner; the gate is run manually before and after each change.
 Listed so the review is working from the real picture:
 
 # No authentication and no multi-user support; concurrent edits can conflict.
-# No usage or per-user telemetry.
+# Token usage is captured '''per call''' but never aggregated, and nothing attributes it to a person — so "how much, by whom" is unanswerable today.
 # Jira API call volume is unmeasured for anything before 3 August 2026.
 # The two external backends (Claude, Grok) remain selectable by the operator. The backend set is closed and enforced, but whether ''those two'' should be available at all is a policy question for the group, not a technical gap.
 # The audit log is local to one workstation and is excluded from version control.
