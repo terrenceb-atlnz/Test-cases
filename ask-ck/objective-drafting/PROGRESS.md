@@ -2,7 +2,58 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-05 (by Claude)
+**Last Updated**: 2026-08-05b (by Claude)
+
+## Latest session (2026-08-05b) — T33233 through the whole tool: grounding is not the objective, and the tool has no scope boundary
+
+**The arc.** Picked up Phase 2.4 by regenerating **T33233 (Port - Auto Negotiation)**. It became a
+working demonstration of *how* the tool should be used and where it fails — four findings, each
+proven against the case, ending in a tightened hybrid output that passes the design doc.
+
+1. **Regenerating from empty selections bypasses the tool.** The three pilot sessions have empty
+   Steps 1–3, so regenerating the objective/steps was just the LLM writing from the case title +
+   its own knowledge — no corpus grounding, no traceability. "We wouldn't need the tool for that."
+2. **Grounding restores traceability but breaks platform-agnosticism.** Driven properly
+   (`load_case` → `suggest_testlink/zephyr/atp` → `confirm_step` → `synthesize_objectives/steps`,
+   Opus/`claude_code` throughout) the objective became traceable — but it enumerated specific media
+   (copper 10-Gig SFP, 1-Gig fibre) and named LLDP TLVs, because it grounded against
+   *product-specific* TestLink cases. Platform-agnosticism is an **absolute** (Terrence), and the
+   violation drifted straight into the steps. Grounding on product-specific corpus cases
+   *manufactures* the violation.
+3. **The tool has no scope-boundary model → cross-case scope bleed.** Its relevance scoring can't
+   tell "this case is *about* auto-neg" from "this case *mentions* auto-neg while testing something
+   else." It pulled in siblings that are their own dedicated cases: MDI/MDIX → **T33234** (the
+   literal next-door sibling in the same Port template), LLDP TLVs → **T44297**, EcoMode/LPI →
+   **T33383**, fixed speed/duplex → **T33235/T33236**. The `AWP-12283` "ecofriendly/lpi" hit first
+   celebrated as "recovering EcoMode" was the same bug.
+4. **Hybrid human-tool is the way.** The tool's real value was surfacing two genuine additions (an
+   explicit negative-failure artefact + renegotiation) and the evidence; human judgment enforced
+   scope + agnosticism. Neither side produces the right output alone.
+
+**What shipped for T33233.** A tightened, in-scope, platform-agnostic objective (**9 bullets**) +
+steps (**6**), reviewed against `OBJECTIVE_DRAFTING_PROCESS.md` — **passes Step 1 and Step 2**,
+including the platform-reusable rule (L208) the grounded version failed. Persisted to the `ck.db`
+wizard session (real traffic; change is in WAL, so git sees no `ck.db` diff) and to the git-tracked
+bundle: `zephyr_payload.json` + `AWPTCM-T33233-session.json` updated, grounded selections + ART
+string cleared, `traceability.md` left as the honest empty original. The doc's own worked T33233
+example (Step 2, ~L249–256) itself scope-creeps (an LPI step) — flagged, not fixed, per Terrence.
+
+**Gate at close:** 1060 pytest / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` signature
+unchanged by tests. No code changed this session — only test-case content + docs.
+
+**State the next session must know:**
+- **T33233 is DONE** (hybrid-tightened, passes the design doc). **T33234 and T33235 still hold
+  their pilot-era wrong content** and are NOT done — but do **not** just "regenerate" them.
+- **Phase 2.4 methodology changed.** Pure/autonomous regeneration is refuted here: it either
+  bypasses the tool (empty selections) or bleeds sibling scope + breaks agnosticism (grounded).
+  Regeneration must be **hybrid** — tool for evidence/ideas, human for scope + agnosticism — and
+  each case's grounding must be **scope-filtered against its sibling cases** before synthesis.
+- **Six commits still sit ahead of `origin/main`** (unchanged); push still needs the keyring
+  `SSH_AUTH_SOCK` or Terrence. See memory `objective-grounding-scope-and-agnosticism`.
+
+**Pick up here:** (1) T33234/T33235 via the hybrid method (scope-filtered grounding, agnostic
+language); (2) decide whether Phase 2.4's "regenerate all 53" needs re-scoping to hybrid;
+(3) Phase 11.4 first hardware run; (4) push the local commits.
 
 ## Latest session (2026-08-05) — the Test Case Generator's step layer was drifting toward the script layer; four rules reversed, three safeguards added
 

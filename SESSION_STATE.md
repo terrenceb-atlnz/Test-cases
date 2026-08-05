@@ -3229,3 +3229,27 @@ layer and needs the keyring `SSH_AUTH_SOCK` or Terrence.
 
 **Pick up here:** (1) Phase 2.4 regenerate, starting with the three pilot cases done correctly —
 needs the token go-ahead; (2) Phase 11.4 first hardware run; (3) push the local commits.
+
+## Session Close / Handoff (2026-08-05b)
+
+Did **T33233** (Port - Auto Negotiation) end-to-end through the tool and, in doing so, established
+what Phase 2.4 actually requires. Four proven findings: (1) regenerating from empty selections
+bypasses the tool (LLM-from-title, no traceability); (2) grounding restores traceability but
+breaks **platform-agnosticism** (an absolute) because it grounds against *product-specific*
+TestLink cases — the objective enumerated media and named LLDP TLVs, and it drifted into the
+steps; (3) the tool has **no scope-boundary model**, so grounding bled in sibling test cases'
+concerns — MDI/MDIX (T33234), LLDP (T44297), EcoMode/LPI (T33383), fixed speed/duplex
+(T33235/6); (4) **hybrid human-tool** is the answer.
+
+**Shipped:** a tightened, in-scope, platform-agnostic T33233 objective (9 bullets) + steps (6)
+that **passes `OBJECTIVE_DRAFTING_PROCESS.md` Steps 1 and 2**. Persisted to the `ck.db` wizard
+session (real traffic → WAL, so git shows no `ck.db` change) and the git-tracked bundle
+(`zephyr_payload.json` + `session.json` updated, selections + ART string cleared, `traceability.md`
+kept as the honest empty original). Gate green and unchanged: 1060/1 pytest, 92 Vitest, guards OK.
+No code changed — content + docs only.
+
+**Superseding note:** the prior handoff's "regenerate T33233/4/5 first under the corrected prompt"
+is **partly superseded** — T33233 is done, but the *method* is not plain regeneration: it must be
+**hybrid + scope-filtered** (see PROGRESS 2026-08-05b and memory
+`objective-grounding-scope-and-agnosticism`). T33234/T33235 remain to do that way. Six commits
+still sit ahead of `origin/main`.
