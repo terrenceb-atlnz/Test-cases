@@ -129,6 +129,13 @@ request context to inherit.
 ## 4. Step generation (Phase 2)
 
 ### D-12 — `generate_steps.jinja` rewritten; every step must carry an expectedResult
+> ⚠️ **REVERSED 2026-08-05.** The "every step must carry an expectedResult" half of this decision
+> was wrong: a Zephyr manual step is *meant* to leave the field empty (memory
+> `expected-results-deliberately-absent`). The premise was circular — a push gate asserted it,
+> then this prompt was changed to satisfy the gate. `synthesize_steps` now forces the field
+> empty and the push gate rule is deleted. The Phase 2.2 half (rendering the four context
+> fields) stands. See PLAN-pipeline-end-to-end.md §2026-08-05c.
+
 **Chose:** deleted *"expectedResult usually empty or brief"*, rewrote the example to show
 filled expected results with measurable values, required test data + measurement method per
 step, and removed *"one or a few steps per major objective bullet"* (the rule that produced

@@ -11,7 +11,7 @@
 > | **Phase −1.5, −1.6** | Deferred with reasons recorded in Phase −1. |
 > | **Phase −1.7** (43 live cases) | Decided: re-push, stay at v2.0. Executes after Phases 1–4. |
 > | **Parser fix** (the recommended deviation) | ✅ **DONE** 2026-08-03c (`f0a94af`). `CK_server/gen_assembly.py`; all five stored replies recover COMPLETELY. |
-> | **Phase 2.1 – 2.3** | ✅ **DONE** 2026-08-03c (`f0a94af`); prompt **reviewed and signed off 2026-08-05**, plus generation-time compliance reporting (see below). **2.4 (regenerate 53) NOT done** — no longer blocked on a review, but still needs the go-ahead to spend the tokens. |
+> | **Phase 2.1 – 2.3** | ⚠️ **PARTLY REVERSED 2026-08-05c** — the sign-off below was wrong. The steps prompt had drifted from `OBJECTIVE_DRAFTING_PROCESS.md` Step 2: a Zephyr manual step is *meant* to have an empty `expectedResult`, so the D-12 non-empty rule is gone, enforced empty at generation. See §2026-08-05c and memory `expected-results-deliberately-absent`. **2.4 (regenerate 53) NOT done** — needs the go-ahead to spend the tokens; the three pilot sessions (T33233/4/5) currently hold *wrong* non-blank results and are to be regenerated. |
 > | **Phase 7.1, 7.4, 7.5, 7.7, 7.9** | ✅ **DONE** 2026-08-03c (`f0a94af`, `5f4af0a`, `81c9c94`). |
 > | **Phase 7.6** (chunked generation) | ❌ **WITHDRAWN.** Measured 67,326 output tokens in one call — see below. |
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
@@ -46,6 +46,10 @@
 >   capability; three are bench state (`No USB media present`).
 >
 > ### 2026-08-05 — both pre-2.4 reviews are DONE; Phase 2.4 is unblocked
+>
+> ⚠️ **The "steps prompt SIGNED OFF" bullet in this section was REVERSED the same day — see
+> §2026-08-05c below.** The sign-off checked every rule against the *code* and passed a prompt
+> that contradicted its *design spec*. The lint-authority half of this section still stands.
 >
 > The two items held open above ("still unreviewed, and worth doing before Phase 2.4") were
 > reviewed with Terrence and are now closed.
@@ -85,6 +89,34 @@
 >
 > **Phase 2.4 is no longer blocked on a review.** It still needs the explicit go-ahead to
 > spend the tokens.
+>
+> ### 2026-08-05c — the steps prompt sign-off was WRONG; four rules reversed to match the design
+>
+> Reviewing the wizard prompts against `OBJECTIVE_DRAFTING_PROCESS.md` (Steps 1–2), not just the
+> code, showed the steps prompt had accumulated **script-layer rules at the manual-case layer.**
+> Terrence ruled on each; all four came out the doc's way, and the doc was right every time.
+>
+> 1. **`expectedResult` is meant to be EMPTY.** A tester reading the objective + a
+>    non-prescriptive step reasons out what should happen; stating it narrows them to
+>    reproducing that result instead of producing evidence of function. D-12's non-empty rule
+>    (introduced hours after a push gate asserted the same premise, then justified by that gate
+>    refusing the corpus — circular) is gone. `synthesize_steps` now **forces the field empty**
+>    in code; the `blank_expected_results` push gate is **deleted**. Memory:
+>    `expected-results-deliberately-absent`.
+> 2. **The "Verify …" ban is removed.** The defect was similarity (T33303 at 0.98), encoded as a
+>    ban on one word; "Verify" opens many legitimate steps.
+> 3. **Naming exact values/counts/timings is the SCRIPT's job**, not the manual case's.
+> 4. **CLI grounding at the wizard layer is reverted wholesale** (`cli_grounding.py` deleted).
+>    `show` output proving a step was taken belongs in the generated script; Phase 4's grounding
+>    stays where it was, in the two PyTest Creator prompts.
+>
+> The worked example was rewritten to the high-level, empty-`expectedResult` style (it is the
+> spec the model copies). **Three safeguards** added against this recurring: a whitelist of the
+> context a wizard prompt may receive, a device-vocabulary ban on the two wizard prompts only
+> (Creator prompts exempt by design), and a layer header in all four prompts naming the
+> governing spec (`tests/test_prompt_layer_boundaries.py`, 22 tests / 6 mutations). Root cause
+> and base rate: memories `pipeline-layer-contract`, `autonomous-judgement-divergence`. Working
+> agreement recorded in `CLAUDE.md` "How we work". Committed `bab4e35` + the safeguards commit.
 >
 > ### 2026-08-05b — Phase 7.8 closed; the scaffolding no longer earns the model a lint error
 >

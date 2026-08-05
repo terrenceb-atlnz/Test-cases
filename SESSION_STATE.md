@@ -3172,3 +3172,60 @@ steps prompt text and lint classification; (3) Phase 2.4 regenerate. Before (1),
 raised with Terrence and deliberately left undone: the `example.org` domain-name default, the
 eth1 pool overlapping static mgmt addresses, a wrong `broadcast-address` in the eth1 subnet, and
 an unexplained 1–2 s ARP for `10.38.215.66`. All four are recorded in the PROGRESS.md entry.
+
+## Session Close / Handoff (2026-08-05) — step layer realigned to its design; drift safeguards added
+
+**Scope:** the Test Case Generator's step-drafting layer, plus process guardrails. Began as
+"run Phase 2.4" (regenerate the 53 refined cases) and became a layer-contract cleanup once a
+three-case pilot, tested against real hardware, showed the generated steps were wrong in a way
+no check could see.
+
+**Gate at close:** 1060 passed / 1 skipped pytest, 92 Vitest (8 files), both guards OK, `ck.db`
+untouched by tests.
+
+**The finding.** `generate_steps.jinja` had drifted from `OBJECTIVE_DRAFTING_PROCESS.md` Step 2,
+accumulating PyTest-script requirements at the manual-case layer. A rule-by-rule review on
+2026-08-05 (recorded in the plan as a sign-off) checked every rule against the *code* and passed
+a prompt that contradicted its *design spec* — the exact failure the new `/orient` rule targets.
+Reviewing against the doc, with Terrence ruling on each, reversed four rules, all the doc's way:
+
+1. **`expectedResult` is meant to be empty** — a tester reasons the outcome from the objective +
+   a non-prescriptive step; stating it skews them toward reproducing that result instead of
+   producing evidence of function. D-12's non-empty rule (introduced circularly: a push gate
+   asserted the premise, the prompt was then changed to satisfy the gate, citing the gate) is
+   gone. Forced empty in `synthesize_steps`; `blank_expected_results` push gate deleted.
+2. **"Verify" ban removed** — the defect was similarity (T33303 at 0.98), miscoded as a word ban.
+3. **Exact values/counts/timings** are the script's job, removed from the manual-case prompt.
+4. **Wizard CLI grounding reverted wholesale** — `cli_grounding.py` deleted; `show` output
+   belongs in the generated script (Phase 4 grounding stays in the two Creator prompts).
+
+**Root cause, and what was built against it.** The blind-review base rate (5 of 12,
+2026-08-04) plus all four of today's reversals tracing to one autonomous commit says the same
+thing: verification confirms what *is*, never what *should be*, so a wrong premise with strong
+evidence behind it sails through. Institutionalised as: memory `autonomous-judgement-divergence`
+(the base rate + why the apparatus misses it), memory `pipeline-layer-contract` (what each of the
+four stages is for, confirmed against the specs), memory `expected-results-deliberately-absent`
+(the ruling, so it is not re-litigated a third time), a `CLAUDE.md` "How we work" section
+(Terrence's words: no time pressure, propose don't decide, an observation is not an instruction),
+an `/orient` step (read the design doc before changing a prompt/gate/rule), and three code
+safeguards in `tests/test_prompt_layer_boundaries.py` — a context whitelist on the wizard
+prompts, a device-vocabulary ban on the two wizard prompts only (Creator prompts exempt **by
+design**, asserted), and a `{#- LAYER/SPEC #}` header on all four pipeline prompts. 22 tests, 6
+mutations all caught.
+
+**Also this session:** Phase 7.8 closed (`a549fb4`) — the generate scaffolding no longer earns a
+blocking lint; placeholder *code* (`if False:`, unfilled `output = ''`) is detected directly.
+
+**Hardware (tb470, read-only).** Drove the x230-10GP on `/dev/u0` to test the pilot's T33233
+steps. 1 of 9 executable as written; the rest asserted on nonexistent mechanisms (no error
+counter exists by any command on that box). Confirmed the fabrication was a layer problem, not a
+grounding gap. swi_a/swi_b (`u4`/`u5`) were held by Terrence's own minicom.
+
+**State next session must know:** the `ck.db` wizard sessions for **T33233/T33234/T33235 carry
+wrong non-blank `expectedResult`s** from the pilot — regenerate them first under the corrected
+prompt (the git-tracked bundles still hold the correct originals; regeneration overwrites the
+sessions). **Six commits sit ahead of `origin/main`**; the push was refused by the permission
+layer and needs the keyring `SSH_AUTH_SOCK` or Terrence.
+
+**Pick up here:** (1) Phase 2.4 regenerate, starting with the three pilot cases done correctly —
+needs the token go-ahead; (2) Phase 11.4 first hardware run; (3) push the local commits.

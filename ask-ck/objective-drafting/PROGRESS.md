@@ -2,7 +2,68 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-04 (by Claude)
+**Last Updated**: 2026-08-05 (by Claude)
+
+## Latest session (2026-08-05) — the Test Case Generator's step layer was drifting toward the script layer; four rules reversed, three safeguards added
+
+**The through-line:** a design review of the step-generation prompt (against
+`OBJECTIVE_DRAFTING_PROCESS.md`, not just the code) found it had accumulated **PyTest-script
+requirements at the manual-case layer.** Terrence ruled on each; the design doc was right every
+time. This started as "run Phase 2.4" and became a layer-contract cleanup because the pilot
+output was wrong in a way the tooling could not see.
+
+**Gate at close:** 1060 pytest / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db`
+untouched by tests. (Up from 1006 at session start: +Phase 7.8, +compliance reporting since
+partly reversed, +layer-boundary safeguards.)
+
+### What shipped (commits)
+
+- `4b7b85f` — generation-time compliance reporting for steps. **Partly superseded same day** by
+  `bab4e35` (the `expectedResult`-scoring half was the wrong premise).
+- `a549fb4` — **Phase 7.8 closed.** The generate scaffolding no longer earns the model a
+  blocking lint: the prompt named devices `init()` never binds, eight `>>> FILL` markers sat on
+  code lines the stripper can't touch, and a fourth defect (stripper verb-allowlist vs the lint
+  matching any `>>>`). Placeholder *code* (`if False:`, unfilled `output = ''`) is now detected
+  directly, since moving the markers removed the only prior signal. 20 tests, 12 mutations.
+- `bab4e35` — **four step-prompt rules reversed to match the design** (see the plan's
+  §2026-08-05c for the full account and memory `expected-results-deliberately-absent`):
+  `expectedResult` is *meant* to be empty (forced empty in `synthesize_steps`; push gate rule
+  deleted); the "Verify" ban removed; "name exact values/counts/timings" removed as a
+  script-layer rule; wizard CLI grounding reverted wholesale (`cli_grounding.py` deleted).
+- **Uncommitted at close (this wrap commits them):** three layer-boundary safeguards
+  (`tests/test_prompt_layer_boundaries.py` + `{#- LAYER/SPEC #}` headers in all four pipeline
+  prompts), the `CLAUDE.md` "How we work" agreement, the `/orient` read-the-design-doc rule, and
+  two new memories (`pipeline-layer-contract`, `autonomous-judgement-divergence`).
+
+### Hardware validation (tb470, read-only)
+
+Drove the **x230-10GP on `/dev/u0`** (console; login `manager`/`friend`) to test the pilot's
+regenerated T33233 steps against real output. **1 of 9 steps was executable as written** (step 5,
+the link-stability poll, ran clean 6/6). The rest asserted on mechanisms that do not exist —
+"advertised-capability counter", "operational mode register", "error counters" (no command on
+that box produces one: `show interface counters`, `show platform table port counters` both
+`% Invalid input`). This is what proved the fabrication was a *layer* problem, not a grounding
+gap. Note swi_a/swi_b (`u4`/`u5`, the DUT and its only cabled partner) were held by Terrence's
+own `minicom` — the two data-linked switches are the ones usually occupied. Media-blindness (§4a
+of TESTBOX-ACCESS) reconfirmed: `speed ?` offers 10–400000 and `duplex ?` offers `half` on a
+1000BASE-T port regardless.
+
+### State the next session must know
+
+- **`ck.db` wizard sessions for T33233/T33234/T33235 hold WRONG non-blank `expectedResult`s**
+  from the pilot (persisted before the design ruling). The git-tracked `refined-cases` bundles
+  still have the correct originals; regeneration will overwrite the sessions. **Regenerate these
+  three first** under the corrected prompt as the start of Phase 2.4.
+- **Six local commits ahead of `origin/main`** after this wrap (4 prior + 2 from wrap); the push
+  was refused by the permission layer earlier — needs the keyring `SSH_AUTH_SOCK`, or Terrence.
+
+### Pick up here
+
+1. **Phase 2.4** — regenerate the 53 bundles against the corrected (empty-`expectedResult`,
+   high-level) prompt, starting by re-doing the three pilot cases correctly. Needs the go-ahead
+   to spend tokens.
+2. **Phase 11.4** — first real hardware run (still not done; read TESTBOX-ACCESS §4b first).
+3. **Hygiene** — push the six local commits.
 
 ## Latest session (2026-08-04b) — lab-hardware detour: tb470 DHCP repaired, and a bench-wide routing constraint found
 
