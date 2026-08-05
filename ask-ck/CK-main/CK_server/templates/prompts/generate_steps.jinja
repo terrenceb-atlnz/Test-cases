@@ -1,3 +1,15 @@
+{#-
+  LAYER: Test Case Generator — step 5 (Zephyr manual testScript steps).
+  SPEC:  ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md, Step 2.
+  MUST NOT contain: expected results, exact values/counts/timings, CLI commands, device
+  field names or registers. The manual case is deliberately NON-prescriptive; prescription
+  enters at PyTest Creator step 2 (pt_extract_sequence.jinja), which is "extract a
+  PRESCRIPTIVE test-step sequence". `show` output proving a step was taken belongs in the
+  generated SCRIPT (pt_generate_script.jinja), never here.
+  On 2026-08-05 four rules that had drifted in from the script layer were reversed. Read
+  the SPEC before changing a rule here — a review against the code alone passed all four.
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
 You are drafting Zephyr-ready verification steps for a manual test case.
 The objective below is finalized (user-reviewed). Derive the steps from it.
 

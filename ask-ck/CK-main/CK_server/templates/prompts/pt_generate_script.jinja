@@ -1,3 +1,17 @@
+{#-
+  LAYER: PyTest Creator — step 6 (script generation).
+  SPEC:  ask-ck/pytest-create/TEMPLATE-SPEC.md (fixed frame vs free slots) and
+         ask-ck/pytest-create/LOGGING-CONTRACT.md (what every main() must emit).
+  THE JOB IS THE MARKERS. LOGGING-CONTRACT.md §2: "The script's job is only to emit the
+  right PASS/FAIL markers inside each case." `show` output is the OBSERVED evidence INSIDE
+  a marker — perfect CLI capture with an empty passed() produces no per-step evidence and
+  fails criterion 6. Real CLI grounding BELONGS here; do not apply the Test Case
+  Generator's "no device vocabulary" rule to this file.
+  MUST NOT: alter the fixed frame; put passed()/failed() in configure()/tear_down() (setup,
+  not a test); hand-write timestamps, `>>`/`<<` headers or TEST_CASE_* blocks (the
+  framework's — duplicating them corrupts parsing).
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
 You are completing a STANDARDIZED Allied Telesis test script. A fixed skeleton has
 already been generated from the reviewed step sequence. Your job is to FILL THE SLOTS
 marked `# >>> FILL ... <<<` (and replace the placeholder `output = ''` / `if False:`

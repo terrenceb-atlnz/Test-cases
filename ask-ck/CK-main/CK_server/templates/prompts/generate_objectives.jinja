@@ -1,3 +1,13 @@
+{#-
+  LAYER: Test Case Generator — step 4 (the objective's artefact bullets).
+  SPEC:  ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md, Step 1.
+  MUST NOT contain: procedure ("Verify that...", "Set the port..."), exact values, or any
+  device specifics. An objective states declarative END STATES, platform-agnostic and
+  reusable across similar manual cases — it is the contract the steps and the script both
+  answer to (pt_generate_script.jinja rule 1a calls these bullets "the AUTHORITATIVE
+  expected results the whole script exists to prove").
+  This block is a Jinja comment: it never renders and is never sent to the model.
+-#}
 You are an expert test-case objective writer. Strict principles:
 - Objectives are declarative lists of artefacts — "what should be true" (end states), not "verify" or instructions.
 - Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.

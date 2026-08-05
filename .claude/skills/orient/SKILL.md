@@ -65,6 +65,16 @@ waste. Instead treat these as standing rules for later in the session:
 - **Before touching any subsystem, read its plan's status header first.** Find plans by glob,
   never by a list written down here: `ls ask-ck/*/PLAN-*.md`. Settled decisions in a status
   header are settled — do not re-litigate them.
+- **Before changing a prompt, a gate or a rule, read its DESIGN DOCUMENT — not just its code
+  and tests.** A plan says what was done; a design doc says what the thing is *for*, and only
+  the second can tell you a rule is wrong. On 2026-08-05 the steps prompt was reviewed rule by
+  rule against the implementation, signed off, and turned out to contain three rules
+  contradicting `OBJECTIVE_DRAFTING_PROCESS.md` — every check performed was
+  consistency-with-code, none was conformance-with-design. The wizard's authority is that doc
+  (Steps 1–2); the PyTest Creator's is `ask-ck/pytest-create/PLAN-pytest-*.md` plus
+  `TOPOLOGY-PROFILES.md`. A doc banner that disclaims *data-access paths* is not disclaiming
+  the method — read what it actually scopes. See memories `pipeline-layer-contract` and
+  `autonomous-judgement-divergence`.
 - **Before any work that touches lab hardware** — SSH to a testbox, driving a switch console,
   running a framework or legacy corpus script against a real DUT — read `TESTBOX-ACCESS.md`
   in full. It carries environment facts that cost real time to rediscover (the
