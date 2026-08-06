@@ -1,6 +1,6 @@
 {
   "AWPTCM-T33235": {
-    "objective": "<ul><li>A port configured to a fixed speed establishes a link at exactly the configured speed with a compliant partner.</li><li>A port configured to a fixed speed and duplex (full or half) reports the configured fixed values (not Auto) in interface status.</li><li>Link establishment succeeds at supported fixed speeds (e.g. 10, 100, 1000) with matching partner settings.</li><li>When an unsupported speed is configured, the link does not come up or is correctly reported as down.</li><li>Hot-insert of a supported pluggable while the port is in fixed speed mode results in link coming up at the configured fixed rate.</li><li>Show interface and status commands accurately reflect the fixed speed, duplex, and current link state.</li></ul>",
+    "objective": "<ul>\n<li>A port configured to a fixed speed establishes a link at exactly the configured speed with a compliant partner.</li>\n<li>A link establishes at each supported fixed speed with a matching partner.</li>\n<li>When an unsupported speed is configured, or the partner is set to an incompatible speed, the link does not come up (or is correctly reported as down), and the port does not enter an unstable or inconsistent state.</li>\n<li>The port accurately reports the configured fixed speed (not Auto) together with the current link status.</li>\n<li>A fixed-speed configuration is retained across a pluggable hot-insert/hot-remove, with the link re-establishing at the configured fixed speed.</li>\n<li>After the configured fixed speed is changed, the port re-resolves to the new speed cleanly, without retaining a stale rate.</li>\n</ul>",
     "testScript": {
       "type": "steps",
       "steps": [
@@ -9,27 +9,23 @@
           "expectedResult": ""
         },
         {
-          "description": "Set the port to a supported fixed speed and full duplex (e.g. 1000/Full). Confirm the link comes up at exactly that speed/duplex, the port reports the fixed speed (not Auto), and traffic can be forwarded.",
+          "description": "Set the port to a supported fixed speed. Confirm the link comes up at exactly that speed, the port reports the fixed speed (not Auto), and traffic is forwarded.",
           "expectedResult": ""
         },
         {
-          "description": "Repeat for other supported fixed speeds on the media type (100/Full, 1000/Full, etc. as applicable). Confirm link establishment at the exact configured rate and correct reporting in each case.",
+          "description": "Repeat across the other supported fixed speeds with a matching partner. Confirm link establishment at the exact configured speed and correct reporting in each case.",
           "expectedResult": ""
         },
         {
-          "description": "Test fixed speed with half and full duplex where supported. Confirm correct link-up and reporting for each duplex setting at the fixed speed.",
+          "description": "Configure an unsupported speed on the port, or force a speed mismatch with the partner. Confirm the link does not come up (or is correctly reported as down), and the port remains in a stable, consistent state.",
           "expectedResult": ""
         },
         {
-          "description": "Configure an unsupported speed on the port (or force mismatch with partner). Confirm link does not come up or is reported down, and status reflects the misconfiguration.",
+          "description": "Hot-insert and hot-remove a supported pluggable while the port is set to a fixed speed. Confirm the link re-establishes at the configured fixed speed and the fixed configuration is retained.",
           "expectedResult": ""
         },
         {
-          "description": "Hot-insert / hot-remove supported pluggables or change cables while port is set to fixed speed. Confirm link state updates correctly and fixed configuration is retained after re-insertion where applicable.",
-          "expectedResult": ""
-        },
-        {
-          "description": "Verify show interface and related status commands accurately reflect the fixed speed/duplex configuration and current link state.",
+          "description": "Change the configured fixed speed on an established link and confirm the port re-resolves to the new speed cleanly, with reported speed and link status reflecting the new value and no stale rate retained.",
           "expectedResult": ""
         }
       ]

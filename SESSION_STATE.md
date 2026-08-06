@@ -3253,3 +3253,39 @@ is **partly superseded** — T33233 is done, but the *method* is not plain regen
 **hybrid + scope-filtered** (see PROGRESS 2026-08-05b and memory
 `objective-grounding-scope-and-agnosticism`). T33234/T33235 remain to do that way. Six commits
 still sit ahead of `origin/main`.
+
+## Session Close / Handoff (2026-08-06)
+
+Two continuations of the 2026-08-05b work.
+
+**(A) Finished the pilot trio's wizard content.** **T33234 (Auto MDI/MDI-X)** and **T33235 (Fixed
+port Speed)** tightened by the same hybrid + scope-filtered method as T33233. T33234: stripped
+speed/duplex to polarity-only, then reframed around **copper straight-through / copper crossover
+cables** (dropping the inherited "insert a pluggable" storyline — MDI/MDIX is a twisted-pair copper
+concept, not an SFP one) and added one explicit **copper 1000BASE-T SFP** bullet/step; 8 bullets /
+6 steps. T33235: stripped duplex (that's T33236) and specific rates (→ "each supported fixed
+speed"), kept pluggable framing (fixed speed spans media); 6 bullets / 6 steps. Both persisted
+byte-for-byte to the git bundles **and** the `ck.db` wizard sessions (real traffic → WAL);
+`traceability.md` untouched. **The trio is done at the wizard layer.**
+
+**(B) Started the trio through PyTest Creator — generation only.** Decisions (Terrence): Generate
++ Lint, **stop before hardware Run**; I drive via the server API; model **Opus/`claude_code`**
+(workspace LLM switched from `vllm-fast`). **T33233** driven clear→load→extract_sequence→confirm→
+suggest_scripts (Terrence: include **all 15** matches)→gather_fragments (33)→generate (Opus,
+189s)→**lint clean**. 9 TestCases, hardware-agnostic, physical operator-prompt steps, ≥1G-half-
+duplex negative, stale-state renegotiation check; the MDI/MDIX matches contributed only generic
+helpers (no polarity CLI leaked). Written to a **non-destructive review copy**
+`generated/Port/Port_Auto_Negotiation_test.REVIEW.py`; the pt-T33233 session holds step6
+**unconfirmed/unsaved** ("keep it, leave as is, continue later"). **T33234/T33235 NOT yet run
+through PyTest Creator** — their `pt-` sessions still hold 2026-07-29 pre-cleanup content; each
+needs a `clear_session` first.
+
+**Template question closed with no change:** the per-case `testCaseDesc`/`testCaseRef`/
+`testCaseMethod` attrs don't control LLM drift, but the ART corpus *populates* them (desc 98% /
+method 86% / ref 61% real across 2095 cases), the lint requires them, and `testCaseRef` is a
+deliberate traceability improvement — so kept as-is. (Framework runtime consumption of desc/method
+for its log headers is unverifiable offline; a hardware run would settle it.)
+
+**Gate:** 1060/1 pytest, 92 Vitest, guards OK, `ck.db` unchanged by tests. No server/tool code
+changed. **Pick up:** run T33234 + T33235 through PyTest Creator the same way (Opus/`claude_code`),
+then confirm/save + decide on hardware Run (Part 3b, read `TESTBOX-ACCESS.md`).

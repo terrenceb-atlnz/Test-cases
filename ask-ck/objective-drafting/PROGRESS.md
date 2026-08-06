@@ -2,7 +2,81 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-05b (by Claude)
+**Last Updated**: 2026-08-06 (by Claude)
+
+## Latest session (2026-08-06) — T33234 + T33235 tightened via the hybrid method; the pilot trio started through PyTest Creator (T33233 generated, lint-clean)
+
+**Two threads this session, both continuations of the 2026-08-05b work.**
+
+**(A) Finished the pilot trio's wizard content (hybrid + scope-filtered, same method as T33233).**
+
+- **T33234 (Port - Auto MDI/MDI-X).** Pilot content bled LPI/EcoMode (that's T33383) and bound
+  polarity to speed/duplex (T33233/5/6). Terrence's calls: strip speed/duplex to **polarity
+  only**; step 0 → note-only (match T33233). Then a second, sharper correction from Terrence: the
+  inherited "insert a supported pluggable" storyline is **wrong for MDI/MDIX** — polarity is a
+  twisted-pair **copper/RJ45** concept, and "pluggable" reads as an optical SFP. Reframed around
+  **copper straight-through / copper crossover cables** (both checked), dropped the pluggable
+  insert/remove storyline, re-anchored renegotiation to a cable swap, and **added one explicit
+  copper (1000BASE-T) SFP bullet + step** (his call — copper SFPs do auto-MDI/MDIX). Final: 8
+  bullets / 6 steps. Naming the medium here is *not* an agnosticism violation — MDI/MDIX only
+  exists on copper, so it describes the feature (contrast T33233, where naming media WAS a
+  violation).
+- **T33235 (Port - Fixed port Speed).** Pilot bled duplex heavily (that's T33236) and named
+  specific rates (10/100/1000, 1000/Full — non-agnostic). Terrence's call: **strip to speed-only**;
+  rates → "each supported fixed speed". Kept the pluggable/hot-insert framing (fixed speed spans
+  media, unlike MDI/MDIX). Final: 6 bullets / 6 steps.
+- Both persisted **both ways**, byte-for-byte verified: git-tracked `zephyr_payload.json` bundles
+  (uncommitted → committed this wrap) **and** the `ck.db` wizard sessions via the running server's
+  `save_objective`(+confirm)/`save_steps` endpoints (real traffic → WAL, so no git `ck.db` diff).
+  `traceability.md` left untouched for both (Terrence's call). **The pilot trio (T33233/4/5) is now
+  done at the wizard layer.**
+
+**(B) Started the trio through PyTest Creator — generation only, stop before hardware Run.**
+Decisions (Terrence): depth = **Generate + Lint, stop before Run**; **I drive via the server API**;
+model = **Opus via `claude_code`** (workspace LLM switched from `vllm-fast`; CLI v2.1.207). Key
+mechanic learned: PyTest Creator ingests objective/steps from the **bundle `zephyr_payload.json`**
+(`_find_refined_case`), not the wizard `ck.db` session — and `load_case` **reuses an existing
+`pt-` session** if present, so each case must be `clear_session`'d first to pick up the tightened
+content (the three `pt-` sessions dated 2026-07-29, pre-cleanup).
+
+- **T33233 driven through the full generation pipeline**: clear → load → extract_sequence (11 rows,
+  coverage OK, physical steps caught) → confirm → suggest_scripts (15 partial matches; Terrence
+  chose **include all 15**, not my scope-filtered subset — validated: the MDI/MDIX scripts
+  contributed only generic port/link helpers, **no polarity CLI leaked in**) → gather_fragments (33)
+  → generate_script (Opus, 189s) → **lint clean (0 blocking, 0 policy)**. 9 TestCases, hardware-
+  agnostic topology binding, physical operator-prompt+poll steps, the ≥1G-half-duplex-impossible
+  rule used as the negative case, stale-state check on renegotiation. Script written to a
+  non-destructive review copy: `generated/Port/Port_Auto_Negotiation_test.REVIEW.py` (the pt-T33233
+  session holds the generated step6, **unconfirmed, unsaved** — Terrence: "keep it, leave as is,
+  continue later").
+- **T33234 / T33235 NOT yet run through PyTest Creator** — their `pt-` sessions still hold the
+  2026-07-29 pre-cleanup content.
+
+**A template question, investigated and closed with NO change.** Terrence asked whether the per-case
+`testCaseDesc`/`testCaseRef`/`testCaseMethod` attrs control drift (if not, remove them + drop the
+lint requirement). Findings: they do **not** feed the generating LLM (no drift control), but the
+conformance lint requires all three ([pytest_create.py:1799]), `testCaseRef` is a deliberate
+traceability improvement (template forces the AWPTCM key; corpus often has `'None'`), and the
+**ART corpus DOES populate them** — `testCaseDesc` 98%, `testCaseMethod` 86%, `testCaseRef` 61%
+real (288 literally `'None'`) across 2095 TestCases. Since the criterion was "remove only if the
+ART suites don't fill them out," and they do → **kept all three, no template/lint/contract change.**
+(Correcting a mid-session overstatement of mine: they're populated corpus convention, not "pure
+metadata.") Framework *runtime* consumption of desc/method for its `TEST_CASE_*` log headers remains
+unverifiable offline — a hardware run (Part 3b) would settle it.
+
+**Gate at close:** 1060 pytest / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` signature
+unchanged by tests. **No server/tool code changed** — only test-case content, docs, and `ck.db`
+via legitimate real traffic (wizard sessions, the pt-T33233 regen, and the workspace-LLM switch to
+Opus/`claude_code`).
+
+**State the next session must know / pick up here:**
+- **Pilot trio wizard content is DONE** (T33233/4/5). **PyTest Creator generation is IN PROGRESS**:
+  only T33233 is generated (unconfirmed/unsaved); **T33234 + T33235 still need clear→…→generate→lint**
+  the same way (workspace LLM is currently **Opus/`claude_code`**; `vllm-fast` was the prior default).
+- The `.REVIEW.py` is a **review copy left untracked on purpose** — not committed, not the tool's
+  saved artifact. Confirm+save for T33233 (and whether to commit review copies at all) is deferred.
+- **Hardware Run (Part 3b, tb470) still deferred** — read `TESTBOX-ACCESS.md` first; it would also
+  answer the framework-log-consumption question above.
 
 ## Latest session (2026-08-05b) — T33233 through the whole tool: grounding is not the objective, and the tool has no scope boundary
 

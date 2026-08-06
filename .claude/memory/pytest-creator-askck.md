@@ -37,3 +37,27 @@ scripts go to `generated/<Group>/<Name>.py` with names the user can edit at crea
 testbox profiles need `tb_number` + IP minimum, stored in gitignored `secrets.testboxes.json`;
 server runs via `ask-ck/CK-main/run.sh` on port 8000. Reaching a device by hand:
 [[testbox-console-access]].
+
+Facts confirmed 2026-08-06 (driving the API end-to-end for the pilot trio):
+
+- **Input source = the refined BUNDLE, not the wizard `ck.db` session.** `_find_refined_case`
+  reads `refined-cases/**/zephyr_payload.json`; objective/steps come from there. So editing a case
+  via the wizard is not enough — the git bundle is what PyTest Creator ingests. (They were kept in
+  sync this session by persisting both.)
+- **`load_case` REUSES an existing `pt-<key>` session** and only re-reads the bundle when none
+  exists. To pick up changed content you MUST `clear_session/<key>` first, else you regenerate off
+  stale input. (The pilot `pt-` sessions were 2026-07-29 pre-cleanup.)
+- **Pipeline drive order (generate+lint, no hardware):** clear_session → load_case →
+  extract_sequence → confirm_step/2 (coverage gate) → suggest_scripts → save_matches
+  ({stepN:[ids]}) → confirm_step/3 → gather_fragments → save_fragments ({keep:[{source_id,symbol}]})
+  → confirm_step/5 → generate_script (also runs an initial lint) → lint_script → confirm_step/6
+  (needs clean lint; policy errors overridable with a recorded reason). LLM steps are slow
+  (extract/generate ~60-200s on Opus/`claude_code`, 300-600s server timeouts) — run with a long
+  client timeout or they read as failures.
+- **`testCaseDesc`/`testCaseRef`/`testCaseMethod` stay** — they don't control LLM drift, but the
+  ART corpus populates them (desc 98% / method 86% / ref 61% real of 2095 cases), the conformance
+  lint requires all three (`_lint_generated`, structural error), and the template's `testCaseRef`
+  = the AWPTCM key is a deliberate traceability improvement over the corpus's frequent `'None'`.
+  Do not re-propose removing them without new evidence. Whether the framework harness reads
+  desc/method at runtime for `TEST_CASE_*` log headers is unverifiable offline (framework tree not
+  mounted here) — a hardware run settles it.

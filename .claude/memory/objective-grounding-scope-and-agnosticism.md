@@ -34,3 +34,15 @@ T33233 example itself scope-creeps (an LPI step) — the doc is not a clean scop
 
 This is the standing method for Phase 2.4 (regenerate the 53): not autonomous. See
 [[pipeline-layer-contract]], [[autonomous-judgement-divergence]], and PROGRESS §2026-08-05b.
+
+**Trio done at the wizard layer (2026-08-06).** T33234 + T33235 finished the same way. Two
+scope-line lessons worth keeping: (1) **T33234 (MDI/MDI-X)** — naming the medium is NOT always an
+agnosticism violation. MDI/MDIX only exists on twisted-pair **copper**, so framing it around
+"copper straight-through / copper crossover cables" *describes the feature*; contrast T33233 where
+naming media was a violation because auto-neg spans media. The tell: does the feature exist on other
+media? If no, name it. Also dropped the inherited "insert a pluggable" storyline (that's SFP/optical
+language wrongly carried from T33233) and added one explicit copper-1000BASE-T-SFP artefact. (2)
+**T33235 (Fixed Speed)** — duplex belongs to sibling T33236, so stripped to speed-only; specific
+rates (10/100/1000) are non-agnostic → "each supported fixed speed". All three persisted to both the
+git bundle and the `ck.db` wizard session; `traceability.md` left untouched. Next layer is PyTest
+Creator — see [[pytest-creator-askck]].

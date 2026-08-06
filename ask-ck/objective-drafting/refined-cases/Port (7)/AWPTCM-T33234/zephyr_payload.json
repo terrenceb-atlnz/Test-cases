@@ -1,43 +1,31 @@
 {
   "AWPTCM-T33234": {
-    "objective": "<ul><li>A port with no pluggable present defaults to automatic MDI/MDI-X polarity handling.</li><li>Inserting a supported pluggable results in successful polarity resolution and link establishment.</li><li>A port configured for Auto speed and duplex resolves MDI or MDIX polarity correctly with a compliant link partner.</li><li>Link establishment succeeds for straight-through and crossover cables under Auto polarity and when one or both sides are forced to MDI or MDIX.</li><li>The port accurately reports the resolved polarity setting (MDI or MDIX) together with speed and duplex.</li><li>Link status is correctly reported as up once automatic polarity handling completes.</li><li>Automatic MDI/MDI-X handling produces a working link across supported configurations and cable types with a compliant partner.</li><li>Polarity resolution functions as expected when used together with LPI (ecofriendly) features on supported ports.</li></ul>",
+    "objective": "<ul>\n<li>A copper port defaults to automatic MDI/MDI-X polarity handling.</li>\n<li>Under automatic polarity handling, a link establishes with a compliant partner over a copper straight-through cable and over a copper crossover cable.</li>\n<li>When one or both sides are forced to a fixed MDI or MDIX polarity, the link establishes in compatible combinations and fails predictably — no link is established (or it is correctly reported as down) — in incompatible ones, without the port entering an unstable or inconsistent state.</li>\n<li>The port accurately reports the resolved polarity (MDI or MDIX).</li>\n<li>Link status is correctly reported as up once automatic polarity resolution completes.</li>\n<li>After the cable is swapped between straight-through and crossover, the port re-resolves polarity cleanly, without retaining stale resolved state.</li>\n<li>Automatic MDI/MDI-X handling resolves polarity correctly on a copper (1000BASE-T) SFP module, establishing a link over both straight-through and crossover copper cables.</li>\n<li>Automatic MDI/MDI-X handling produces a working link across the supported copper cable and port types with a compliant partner.</li>\n</ul>",
     "testScript": {
       "type": "steps",
       "steps": [
         {
-          "description": "The testing for this is covered by the auto test : https://wiki.atlnz.lc/awpwiki/index.php/5000_mdi_mdix<br />https://jira.atlnz.lc/secure/Tests.jspa#/testCase/AWPTCM-T37856<br />Note: the automated test covers multiple test cases.<br /><br />Note: Related ART Tests linked in Traceability.",
+          "description": "Note: Related ART Tests linked in Traceability.",
           "expectedResult": ""
         },
         {
-          "description": "Verify default behavior with no pluggable present. Confirm the port defaults to automatic MDI/MDI-X polarity handling and reports the default configuration.",
+          "description": "Confirm a copper port defaults to automatic MDI/MDI-X polarity handling. With a compliant partner, confirm the link establishes over a copper straight-through cable and again over a copper crossover cable, with polarity resolved correctly in each case.",
           "expectedResult": ""
         },
         {
-          "description": "Insert a supported pluggable while the port is set to Auto. Confirm polarity is automatically resolved and a link is established with a compliant partner.",
+          "description": "Force one or both sides to a fixed MDI or MDIX polarity across the supported combinations. Confirm the link establishes in compatible combinations and fails predictably — the link does not come up (or is correctly reported as down) — in incompatible ones, with the port remaining in a stable, consistent state.",
           "expectedResult": ""
         },
         {
-          "description": "Set the port to Auto for speed, duplex, and polarity. Test with link partner configured for MDI and MDIX (both sides on Auto). Confirm polarity resolves correctly and link establishes for both straight-through and crossover cables.",
+          "description": "Confirm the port accurately reports the resolved polarity (MDI or MDIX) and that link status is correctly reported as up once automatic polarity resolution completes.",
           "expectedResult": ""
         },
         {
-          "description": "Configure one side to Auto and the other to forced MDI or MDIX. Verify successful link establishment in compatible combinations and correct link-down behavior in incompatible combinations.",
+          "description": "On an established link, swap the cable between straight-through and crossover and confirm the port re-resolves polarity cleanly, with reported polarity and link status reflecting the new outcome and no stale state retained.",
           "expectedResult": ""
         },
         {
-          "description": "Confirm the port accurately reports the resolved polarity (MDI or MDIX) together with the negotiated speed and duplex values.",
-          "expectedResult": ""
-        },
-        {
-          "description": "Verify link status is correctly reported as up once polarity resolution completes, and that the link remains stable across supported configurations and cable types.",
-          "expectedResult": ""
-        },
-        {
-          "description": "Hot-insert and hot-remove supported pluggables while the port is set to Auto polarity. Confirm polarity negotiation and link status update correctly on insertion and removal.",
-          "expectedResult": ""
-        },
-        {
-          "description": "Where the platform and media support it, test with LPI (Low Power Idle) enabled and disabled on Auto-negotiated links with varying polarity settings. Confirm LPI behavior and stable link.",
+          "description": "Repeat the automatic polarity check on a copper (1000BASE-T) SFP module: confirm the link establishes over both a copper straight-through cable and a copper crossover cable, with polarity resolved and reported correctly in each case.",
           "expectedResult": ""
         }
       ]
