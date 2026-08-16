@@ -1,11 +1,11 @@
 ---
 name: tb470-topology-and-setup
-description: tb470 real bench topology + the corrected tb470.setup WRITTEN 2026-07-29 (backup kept); PDU = 10.36.150.14 outlets 8/6 (2026-07-30), no inter-switch data cabling, DUT not on PDU; ONLY 10.38.215.0/24 has upstream return path and tb470 has NO NAT (2026-08-04); DHCP served on eth1+eth3
+description: tb470 real bench topology + the corrected tb470.setup; **2026-08-11: BOTH IE520s ARE NOW ON THE PDU (10.36.150.14, u4=outlet 4 "D", u5=outlet 5 "E") — the "DUT cannot be power-cycled" blocker is GONE**; the setup file had the two IE520 S/N+MAC pairs on the OPPOSITE consoles (live: u4=264A23052, u5=264A23066); ONLY 10.38.215.0/24 has upstream return path and tb470 has NO NAT (2026-08-04); DHCP on eth1+eth3; stack state churns — a destacked unit KEEPS its old stack ID and its port1.0.x go phantom, silently
 metadata: 
   node_type: memory
   type: project
   originSessionId: 2a141e3e-5a6e-4153-b006-2e724f5ec026
-  modified: 2026-08-03T20:48:41.048Z
+  modified: 2026-08-11T00:30:00.000Z
 ---
 
 Reconciling `configs/tb470.setup` (on tb470, at `/home/st-art/st-art/configs/`) against the
@@ -17,7 +17,99 @@ matches reality — see [[part3-grading-session]].
 clean — 8 sections, outlets typed `int`). Backups in the same dir: `.bak-2026-07-30` (the
 2026-07-29 3-device version), `.bak-2026-07-29` (the 681 B example-derived placeholder).
 
-## CURRENT STATE (2026-07-30 pm) — DE-STACKED, cabled, 2/3 runnable
+## CURRENT STATE (2026-08-11) — read this first; everything below is HISTORY
+
+**✅ BOTH IE520s ARE NOW ON THE PDU.** Fitted 2026-08-11: `/dev/u4` (swi_a) = outlet **4**
+(front-panel "D"), `/dev/u5` (swi_b) = outlet **5** ("E"), same PDU `10.36.150.14`. **This
+retires the repeated "neither IE520 is on the PDU / the DUT cannot be power-cycled" statement
+throughout the rest of this file** — it was the single thing blocking the 5700 bootloader
+suites here. `tb470.setup` gained `pwr_a`/`pwr_b` + two `[powerlink]` lines (backup
+`.bak-2026-08-11`). Letter→number is **A–H = 1–8**.
+
+**⚠️ THE TWO IE520s WERE RECORDED ON THE WRONG CONSOLES.** Read from the devices 2026-08-11
+(`show system serialnumber`, `show stack`):
+
+| Console | S/N | MAC | hostname |
+|---|---|---|---|
+| `/dev/u4` = swi_a | `264A23052` | `84e3.2787.09c0` | `awplus` (factory-reset 2026-08-10) |
+| `/dev/u5` = swi_b | `264A23066` | `84e3.2787.0740` | `u5` |
+
+`tb470.setup` (and the 2026-07-29 console list further down this file) had those two S/N+MAC
+pairs on the **opposite** consoles. The pairs are internally consistent, so it is a swap, not
+a one-field typo — either the USB console cables were exchanged, or 2026-07-30 transcribed it
+backwards. **Unresolved which.** The role bindings are unaffected (swi_a is still `/dev/u4`),
+but swi_a is a different physical unit than the file claimed. Corrected in `tb470.setup`.
+
+**State of `264A23066` (u5) — previously UNKNOWN, now read:** standalone, stack ID 1, Active
+Master, but still carries a **Provisioned member 2**, so its phantom `port2.0.x` range is
+present in `show interface brief`. `vlan1 = 10.38.215.66/27` admin-up but protocol DOWN;
+`vlan100 = 192.168.100.2/24` running; no vlan1000. `port1.0.23` = `notconnect`, Type
+**`not present`** (no pluggable). Both units confirm `Operational Status: Standalone unit`.
+
+**u4 after its factory reset:** `vlan1 = 169.254.42.42/16` — **APIPA, i.e. the DHCP client is
+finding no server**, because every port but `port1.0.7` is down. It is NOT still on the
+`10.38.215.69` lease recorded on 2026-08-10. `port1.0.23` = `notconnect` with a 1000BASE-T
+pluggable fitted. Neither unit has a `vlan1000` any more, so the old "both carry the same
+static 10.38.215.67/27" hazard no longer applies.
+
+**No tb↔DUT link is up.** `eth2` and `eth3` both report `Link detected: no`; on both IE520s
+every front-panel port is down except `port1.0.7` (the inter-switch fibre, up both ends). The
+`port1.0.1` copper inter-switch link is DOWN. The eth3 cable was moved on 2026-08-11 for the
+5700 campaign, so `[portlink] tb-swi_a = eth3-port1.0.23` is declared but **not live**.
+
+**IE520 TFTP boot needs a USB-Ethernet dongle — see [[ie520-tftp-boot-needs-usb-nic]].**
+
+## CURRENT STATE (2026-08-10) — HISTORY
+
+**Stack state on this bench CHURNS. Never trust a recorded stack state — run `show stack`.**
+Between 2026-07-30 and 2026-08-10 the two IE520s were **re-stacked** into one stack
+(hostname `u5`; member 1 = S/N `264A23066`, member 2 = S/N `264A23052`), directly
+contradicting the "both standalone" state recorded below. Terrence then destacked the u4 unit
+again mid-session for a parallel workflow.
+
+**⚠️ THE SILENT TRAP — a destacked unit KEEPS its old stack ID.** After that destack, the unit
+on `/dev/u4` (S/N `264A23052`, MAC `84e3.2787.09c0`) was standalone but still **stack ID 2**:
+
+    ID   Pending ID  MAC address        Status  Role
+    1    -           -                  -       Provisioned      <- phantom, absent member
+    2    -           84e3.2787.09c0     Ready   Active Master
+    Operational Status                 Standalone unit
+
+So its REAL ports were `port2.0.x`, and the whole `port1.0.x` range was phantom:
+`Hardware is Provisioned, address is 0000.0000.0000`. **This fails silently** — `show interface
+brief` still lists a full `port1.0.x` range (status `provisioned`), and config naming those
+ports is ACCEPTED with no error. It cost an afternoon: `ip address dhcp client-id port1.0.6`
+encoded DHCP **option 61 as `00:00:00:00:00:00`**, which reads exactly like a product defect
+and is not one. Verified by contrast: `port1.0.23` = `Provisioned/0000.0000.0000` while
+`port2.0.23` = `Link is UP, Hardware is Ethernet` with real counters.
+
+**⇒ Before ANY test step that names a port on a standalone unit, check `show stack` reads
+ID 1.** Renumber with `stack <old-id> renumber 1` (config mode) + reboot if it does not.
+
+**Remedy applied 2026-08-10 (with sign-off), unit `264A23052` only:** `erase startup-config`,
+`stack 2 renumber 1`, `reboot`. Now: **standalone stack ID 1**, hostname `awplus`,
+`port1.0.6` = `Hardware is Ethernet 84e3.2787.09c0`, `port1.0.23` = the live tb470 uplink.
+Config wiped — **no SNMP, no NTP, no `vlan100`** (was `192.168.100.2/24`). Only current config
+is the DHCP client: `interface vlan1 / ip address dhcp client-id port1.0.6 hostname dhcp-test`,
+leasing `10.38.215.69/27` from tb470. Login is back to the `manager`/`friend` default.
+
+**State of the OTHER IE520 (`264A23066`) is UNKNOWN** — it was stack member 1 and was not
+touched after the destack. Check it before assuming anything.
+
+**A factory-defaulted AW+ device FORCES a password change at first login.** It accepts
+`manager`/`friend`, then demands `Enter new password:` before granting a prompt. Automation
+that only knows `login:`/`Password:` will feed its next command into that dialog (mine typed
+`enable` as the new password). Any procedure starting from factory default needs a step for it.
+
+**tb470 host services, verified 2026-08-10 — both already configured, do not "set them up":**
+- **NTP:** chrony 4.6.1 already serves the lab (`allow 10.0.0.0/8`, `local stratum 10`, bound
+  `0.0.0.0:123`), synced upstream at stratum 3. A client pointed at `10.38.215.65` syncs in one
+  poll and lands at stratum 4.
+- **DHCP:** isc-dhcp-server is LIVE with ~14 active leases — `10.38.215.2-10` on eth1,
+  `10.38.215.68-94` on eth3. **Do not add a subnet to a wire that already has a pool**; two
+  subnets on one interface make dhcpd's pool selection ambiguous for every client on it.
+
+## CURRENT STATE (2026-07-30 pm) — SUPERSEDED, kept for the de-stacking procedure
 
 **The two IE520s are NOT a stack.** They were both provisioned into virtual chassis **3039**
 with uncabled stackports, so each saw the other as `Provisioned`: u4 was a standalone Active
