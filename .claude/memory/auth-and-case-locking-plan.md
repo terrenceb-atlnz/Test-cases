@@ -22,9 +22,10 @@ never tracked work.
 case is enough. Sessions are keyed by case with **no owner column**; `db.py:918 _write_session` is
 an unconditional whole-blob upsert (`ON CONFLICT DO UPDATE SET payload=excluded.payload`); 32 write
 paths reach it (14 `_persist_session`, 18 `_pt_persist`). Second write silently wins, no error, no
-trace. NOTE this does not contradict the review's refutation of `wizard.py:1648` — that was a
-within-request race and the refutation was correct; this is read-modify-write across *separate*
-requests, which event-loop serialisation cannot prevent.
+trace. NOTE this does not contradict the review's refutation of the within-request race once
+cited as `wizard.py:1648` (that file is now the `routers/wizard/` package — the line number is
+dead) — the refutation was correct; this is read-modify-write across *separate* requests,
+which event-loop serialisation cannot prevent.
 
 **`X-CK-Session` is NOT a credential.** `static/js/session.js` invents it in the browser and the
 server never verifies it. It correctly scopes agent-bridge jobs per TAB (deliberately per-tab, not

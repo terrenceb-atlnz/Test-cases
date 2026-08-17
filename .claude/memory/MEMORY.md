@@ -43,6 +43,7 @@
 - [DB-only single source](db-only-single-source.md) — runtime DB-only invariant holds, but its gitignore reasoning is SUPERSEDED by [db-is-permanent-source]; Ask-CK must be stand-alone w/ ck.db as sole runtime source; DB-only Phase 1 + guard + offline model done 2026-07-20
 - [DB is permanent source](db-is-permanent-source.md) — ck.db built ONCE = permanent source of truth; commit via LFS, DELETE couriers, NO rebuild/APIs/re-fetch (supersedes "gitignore it")
 - [Testbox framework is read-only](testbox-framework-readonly.md) — /home/st-art/framework must never be written/edited/mutated; copy locally to edit; guards in pt_exec.py + tool/guard_framework_readonly.py
+- [grep shim honors .gitignore](grep-shim-honors-gitignore.md) — `grep` is a FUNCTION wrapping ugrep `--ignore-files`, so it silently returns 0 hits inside .venv/ node_modules/ ask-ck/var/ — indistinguishable from real absence; use `command grep` for anything you will state as a count (measured 2026-08-17: 0 vs the true 12,209)
 
 <!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
 - [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 7-step flow; tracker at ask-ck/pytest-create/PLAN-pytest-creator.md; Part 3b needs tb470 wiring

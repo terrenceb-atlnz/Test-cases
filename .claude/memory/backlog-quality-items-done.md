@@ -16,7 +16,8 @@ time (Terrence commits).
   (success/warning/error/busy, theme-aware, escapeHtml'd). Wired into `generator.js` exportBundle +
   synthesizeObjectives + synthesizeSteps. Static banner divs `#export-status`/`#objective-status`/
   `#steps-status` in `index.html` (export-status made STATIC after review, not generated).
-- **Output-gen hardening**: `wizard.py::export` now REFUSES to write the drop-in bundle when
+- **Output-gen hardening**: the wizard's `export` handler (now `routers/wizard/export.py:340`,
+  after the 2026-07-29 package split) REFUSES to write the drop-in bundle when
   `validate_zephyr_payload` fails hard issues (previously printed + wrote anyway). New
   `ExportResponse.wrote_bundle` bool. Blocked message is stale-bundle-aware (a prior on-disk bundle
   still marks the case Complete via `_refined_complete_keys` — don't falsely claim "NOT Complete").

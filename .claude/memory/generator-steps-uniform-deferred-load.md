@@ -23,10 +23,16 @@ search/suggest button did it again.
 **How to apply:** when touching Generator step data, don't add anything to `load_case`.
 Prefer ONE `/step_candidates/{key}/{step}` endpoint over per-step bespoke handlers so the
 symmetry is structural, not a convention three call sites must remember. Watch for the
-inverse mistake too: the code's own comments are unreliable here — `wizard.py:1053-1057`
-claims the module keeps no private copy of the relevance scorer while
+inverse mistake too: the code's own comments are unreliable here — a comment in the wizard
+claimed the module keeps no private copy of the relevance scorer while
 `_ZREF_GENERIC_TOKENS` + `_score_zephyr_candidate` are exactly that, and
 `static/js/generator.js:71` still references the long-removed load-time LLM call.
+
+> **Paths re-checked 2026-08-17.** `routers/wizard.py` no longer exists — it became the
+> `routers/wizard/` **package** on 2026-07-29 (`reviews` / `config` / `synthesis` / `export`
+> + `_shared.py`), so every `wizard.py:NNNN` line number in this memory is dead. The
+> review/search handlers are now in `routers/wizard/reviews.py`; the shared scorer is
+> `CK_server/db.py:155`. Re-grep for the symbol rather than trusting a line number.
 
 Corollary: **prefer `db.*` search + `db._relevance_score` over bespoke per-step scorers.**
 `db.search_zephyr` (FTS-indexed, shared scorer, same exclude semantics) already did what
