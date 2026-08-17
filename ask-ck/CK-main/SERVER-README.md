@@ -913,11 +913,27 @@ Still accepted, unchanged: **no authentication on any endpoint.** `HOST=0.0.0.0`
 safe configuration. Note `X-CK-Session` is **not** a credential — the browser tab invents it and
 the server never verifies it; it is a per-tab correlation id for the agent bridge only.
 
-**This is now tracked work, not just a caveat:** `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`
-(multi-user identity + per-case session locking). Phase 1 of that plan — locking — also fixes a
-concurrency bug that is live *today* even single-user: session writes are unconditional whole-blob
-overwrites keyed by case with no owner, so two tabs editing one case silently destroy each other's
-work.
+**This is tracked work, not just a caveat:** `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`
+(multi-user identity + per-case session locking).
+
+**Phase 1 — locking — is DONE (2026-07-29).** It closed a concurrency bug that did not need a
+second user: session writes are unconditional whole-blob overwrites keyed by case with no owner,
+so two tabs editing one case silently destroyed each other's work. `CK_server/locks.py` now holds
+a lock per `(tool, case)`; a tab that does not hold it gets a **read-only view** of the last saved
+state rather than an error, and the handler mutates nothing on that path. An optimistic `rev`
+compare-and-swap (`locks.next_rev`, applied at both persist choke points) backstops the window an
+in-memory lock cannot cover — a restart, or a second process.
+
+Two deliberate deviations from the plan's §4 design, both forced by the `ck.db` invariant: the
+lock registry is an **in-process dict, not a table**, and `rev` rides **inside the session payload
+JSON, not a column** — a durable `case_locks` table would have been the repo's first in-place
+schema mutation of the permanent database. **The registry is authoritative only because the server
+runs as one process** (`uvicorn … --reload`, no `--workers`; the nginx example proxies a single
+upstream). Running multi-worker without promoting it to a shared store **silently reintroduces the
+overwrite bug** — `locks.py`'s module docstring carries the same warning.
+
+Phases 2 (identity) and 3 (attribution + TLS) remain **planned**, gated on the organisation's
+identity decision.
 
 ## Testing
 
