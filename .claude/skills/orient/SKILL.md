@@ -104,6 +104,32 @@ not a guarantee.** Verify before reporting a memory as missing, and before actin
 a memory reflects what was true when it was written, so if it names a file, function or flag,
 confirm that still exists.
 
+### How fresh is what you are about to trust?
+
+A memory claims to be **current truth**, which is exactly what makes a stale one dangerous — it
+misleads with authority, where a stale `SESSION_STATE.md` entry is obviously history. `/wrap`
+§5a stamps `verified: YYYY-MM-DD` in the frontmatter of any memory a session actually
+re-checked against the code. Before leaning on one, look:
+
+```bash
+# freshness of the memories you are about to rely on. Anchor the pattern to the
+# frontmatter field — a bare `verified:` also matches the word in a memory's BODY.
+grep -LE '^[[:space:]]*verified:' .claude/memory/*.md          # never re-checked
+grep -HE '^[[:space:]]*verified:' .claude/memory/*.md | sort -t: -k3   # stamped, oldest first
+```
+
+An **unstamped** memory is not wrong — most simply predate the convention (added 2026-08-17).
+It means nobody has re-checked it against the code, so treat its file paths and symbol names as
+claims to confirm, not facts. This is cheap insurance against a real event: on 2026-08-17 six
+memories were still citing `routers/wizard.py`, gone since 2026-07-29, and one instructed the
+next session to add a `case_locks` table — an option that had been deliberately rejected.
+
+The mechanical half of that check is available on demand and is **not** in the gate:
+
+```bash
+./tool/check_memory_refs.py       # dead path citations + file:LINE citations; -v shows skips
+```
+
 ## 5. Confirm the invariants (flag immediately if any is violated)
 
 1. **`ask-ck/var/ck.db` is the permanent single source of truth** — built once, shipped via

@@ -89,6 +89,60 @@ memory content in the index. Delete memories that turned out to be wrong.
 Don't record what the repo already records (code structure, past fixes, git history). Don't
 record what only mattered inside this conversation.
 
+### 5a. Re-verify the memories you actually USED — this is the important half
+
+**For every memory you read or relied on this session, confirm its claims still hold, and
+stamp it.** Not all 64 — you have no basis to judge the ones you never touched. The ones you
+leaned on are exactly the ones where you have just been in the code and *can* tell.
+
+A memory is meant to read as **current truth**. That is what separates it from `SESSION_STATE.md`
+or a PLAN body, which are frozen history and must not be rewritten. So a memory that has gone
+stale does not merely age — it actively misleads the next session, with authority.
+
+Both failure modes are real and only the first is mechanical:
+
+- **A path died.** On 2026-08-17 six memories still cited `routers/wizard.py` and line numbers
+  inside it; that file became the `routers/wizard/` package on 2026-07-29. The rename also
+  *dropped the underscore prefixes* (`_can_synthesize` → `generator/gates.py: can_synthesize`),
+  so grepping the old symbol failed too. Caught by §5b below.
+- **A sentence stopped being true.** The same day, a memory still said per-case locking was
+  "Plan only — no code written" and the overwrite bug was "LIVE TODAY". `locks.py` had shipped
+  on 2026-07-29. Worse, its *How to apply* told the next session to add a `case_locks` table —
+  the one option that had been deliberately rejected, because it would mutate the permanent
+  `ck.db`. **No tool catches this.** Only you, having just read the subsystem, can.
+
+When a memory checks out, stamp it in the frontmatter so the next session can see how fresh it
+is. When it doesn't, fix it — and if a claim was load-bearing and wrong, say so in the body
+rather than silently editing it away.
+
+```yaml
+metadata:
+  type: project
+  verified: 2026-08-17      # you confirmed this against the code TODAY
+```
+
+Never stamp a memory you did not actually check. An unverified memory is honest; a falsely
+stamped one is the same defect this whole step exists to prevent.
+
+### 5b. Run the mechanical check
+
+```bash
+./tool/check_memory_refs.py        # add -v to see what it skipped, and why
+```
+
+It reports memory citations naming a repo path that no longer exists, plus any `file.py:123`
+line citations (those rot silently even while the file exists — prefer the symbol name).
+
+**It is advisory and deliberately NOT in the gate.** A first pass over 64 memories gave 130 raw
+hits of which one was real: memories legitimately name files on other machines, files deleted
+on purpose and cited as history, and artifacts named as deployed rather than as stored. A
+blocking check at that signal-to-noise would just train everyone to ignore it. Memory rot
+misleads a future session; it does not break the software.
+
+Three ways to clear a finding — pick the honest one, don't just silence it: correct the path
+(usually it moved — grep the symbol), state on that line that the thing is gone, or add it to
+`ALLOW` in the script **with a reason**.
+
 ## 6. Staleness sweep
 
 Grep tracked `.md` plus `setup.sh` for claims that contradict the invariants — that the server

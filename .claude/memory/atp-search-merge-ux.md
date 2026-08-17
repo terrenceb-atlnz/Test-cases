@@ -4,6 +4,7 @@ description: "ATP manual keyword search \"looks broken\" but works — results m
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-08-17
   originSessionId: 44eaefa5-0d37-409d-9546-d1d1a4aec6a6
 ---
 

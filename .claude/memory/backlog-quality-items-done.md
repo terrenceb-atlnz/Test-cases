@@ -4,6 +4,7 @@ description: "The 4 reconciled quality-backlog items (error UX, output hardening
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-08-17
   originSessionId: 1bde0fea-252d-4064-957c-c1795f0b4689
   modified: 2026-07-26T20:30:20.701Z
 ---

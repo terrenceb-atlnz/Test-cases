@@ -1,14 +1,18 @@
 ---
 name: commit-and-push-on-session-end
-description: "During the END_OF_SESSION doc-sync, Claude SHOULD commit AND push to main — don't wait for Terrence"
+description: "During the end-of-session doc-sync (the /wrap skill), Claude SHOULD commit AND push to main — don't wait for Terrence"
 metadata: 
   node_type: memory
   type: feedback
+  verified: 2026-08-17
   originSessionId: fd3dcdc4-34c2-4084-99e5-a506a9647de6
   modified: 2026-07-28T20:28:39.197Z
 ---
 
-When running the **end-of-session doc-sync flow** (`END_OF_SESSION_PROMPT.md`), Claude should **commit the changes and push to `main`** as the final step — do not stop at "leaving the commit to you."
+When running the **end-of-session doc-sync flow** — now the **`/wrap` skill**
+(`.claude/skills/wrap/SKILL.md`); the old `END_OF_SESSION_PROMPT.md` no longer exists —
+Claude should **commit the changes and push to `main`** as the final step — do not stop at
+"leaving the commit to you."
 
 **Why:** Terrence explicitly removed the old standing preference on 2026-07-22b ("i DO want you to commit… and pushes"). The prior pattern — every handoff note reading "All uncommitted at session end — Terrence commits himself" — is **superseded**. Committing directly to `main` is the established workflow for this repo (all recent history is direct-to-main; no PR/branch dance).
 

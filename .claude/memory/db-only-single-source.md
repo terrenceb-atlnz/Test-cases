@@ -4,6 +4,7 @@ description: Ask-CK runtime must read corpora ONLY from ck.db; DB-only Phase 1 e
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-08-17
   originSessionId: af1ba771-27d5-4322-ab94-c73bbe631619
   modified: 2026-07-20T20:30:27.143Z
 ---
