@@ -4,6 +4,69 @@
 
 **Last Updated**: 2026-08-17 (by Claude)
 
+## Latest session (2026-08-17b) — a short orientation session: one forward-looking doc claim had gone false, and the unpinned-dependency observation got a sharper edge
+
+**No code, no test-case content.** An `/orient` that found one real defect, corrected it, and
+answered a question. The pilot trio did **not** advance — see "pick up here" below.
+
+**(A) A "pick up here" bullet had gone false, and that is the dangerous kind.** PROGRESS's
+2026-08-06 entry told the next session the `.REVIEW.py` was *"a review copy left untracked on
+purpose — not committed"*, and posed **"whether to commit review copies at all"** as an open
+decision. The file **is** tracked: it was swept into `6d95352 "memory updates"` (2026-08-17
+11:29) alongside 12 memory files — incidentally, not by decision. The claim was **true when
+written** and went false eleven days later, which is why it survived: nothing was wrong at the
+time, and no tool checks a prose claim about git state.
+
+Fixed by **annotating, not rewriting** — the 08-06 text is accurate history and rewriting it
+would falsify the record (same convention as `aa367d9`/`62ef3ad`: frozen logs get banners).
+The substantive consequence is not the tracking status but the *shape of the question*: it is
+no longer a choice to make in advance, it is a committed fact to **ratify or revert**.
+
+Worth noting **`SESSION_STATE.md` needed no change** — it says only "written to a
+non-destructive review copy", which remains true. Two docs described the same artifact; only
+one made the claim that rotted. Checking both rather than assuming symmetry is what kept a
+correct log from being "corrected".
+
+**(B) The unpinned-dependency observation, examined.** The 08-17 finding (`requirements.txt`
+uses `>=`, so a cold install produced `uvicorn 0.52.3` / `sentence-transformers 5.7.0` against
+the existing venv's `0.51.0` / `5.6.1`) is fully explained by `>=` semantics: a floor with no
+ceiling resolves to whatever is newest *on the day you install*, and the file says as much
+("lower bounds known to work as of 2026-07-16"). Working as written.
+
+The sharper edge is the one that observation did not name: **there is no upper bound**, so
+`pydantic>=2.9` will install pydantic **3.0** the day it ships, and `torch>=2.2` /
+`sentence-transformers>=3.0` are the same shape. 5.6.1 → 5.7.0 is harmless; a major is not, and
+nothing in the file distinguishes them. Two local conditions make it bite harder: there is **no
+CI runner and no lockfile**, so a breaking release is found by whoever next runs `setup.sh` and
+there is no record of what previously resolved to diff against; and this project **lints
+generated scripts with the local interpreter** against a testbox running 3.13.5 — unpinned
+packages are that same "validating environment ≠ running environment" gap one layer up.
+
+**No action taken** — flagged only, at Terrence's standing rule. If addressed later: a committed
+`pip freeze` lockfile *beside* the existing floors (keeps `requirements.txt` readable as intent
+while making resolution reproducible), or at minimum upper bounds on the four majors.
+
+**Gate:** 1060 passed / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` signature
+unchanged — identical to the session-open baseline, as expected for a docs-only session.
+
+**State the next session must know / pick up here:**
+- **The pilot trio is UNCHANGED and is still the active thread.** Re-verified against `ck.db`
+  this session: `pt-AWPTCM-T33234` and `pt-AWPTCM-T33235` still carry `updated_at` of
+  **2026-07-29**, and their stored objectives still contain the pre-cleanup "pluggable present"
+  storyline — so they genuinely hold stale content and each still needs a `clear_session` before
+  `load_case`, which otherwise reuses the existing `pt-` session. Workspace LLM confirmed still
+  **Opus / `claude_code`** (the `_workspace_llm` row).
+- **Two questions were put to Terrence and not answered** (the session wrapped instead), so both
+  are still open: whether to commit the doc fix immediately or at wrap, and whether to start
+  T33234 through PyTest Creator pausing at `suggest_scripts` for the include-which-matches call
+  (as was done for T33233, where he chose all 15).
+- **New standing priority from Terrence: IE520 testing, after the trio is settled.** Not started.
+  Five IE520 memories already exist (`ie520-two-bootloaders`, `ie520-bootloader-console-driving`,
+  `ie520-spiflash-goes-dark`, `ie520-tftp-boot-needs-usb-nic`) plus `bootloader-media-parse-bug`
+  and `read-the-transcripts-before-driving-hardware` — all **unstamped**, so verify before
+  leaning on them, and read `TESTBOX-ACCESS.md` in full first.
+- **T33233 confirm+save of step6 remains deferred**, unchanged.
+
 ## Latest session (2026-08-17) — the gate was dead and `setup.sh` was silently worse; then the README was split into a navigational entry point + CHANGELOG
 
 **No test-case content this session — environment, docs and memory only.** Started as
@@ -157,6 +220,11 @@ Opus/`claude_code`).
   the same way (workspace LLM is currently **Opus/`claude_code`**; `vllm-fast` was the prior default).
 - The `.REVIEW.py` is a **review copy left untracked on purpose** — not committed, not the tool's
   saved artifact. Confirm+save for T33233 (and whether to commit review copies at all) is deferred.
+  > **Correction (2026-08-17):** true when written, **false now** — the file *is* tracked. It was
+  > swept into `6d95352 "memory updates"` alongside 12 memory files, incidentally rather than by
+  > decision. So "whether to commit review copies at all" is no longer an open choice made in
+  > advance; it is a committed fact to ratify or revert. Nothing else in this bullet changed:
+  > it is still a review copy, still not the tool's saved artifact.
 - **Hardware Run (Part 3b, tb470) still deferred** — read `TESTBOX-ACCESS.md` first; it would also
   answer the framework-log-consumption question above.
 

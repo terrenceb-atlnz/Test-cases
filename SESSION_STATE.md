@@ -3348,3 +3348,47 @@ hardware Run (Part 3b — read `TESTBOX-ACCESS.md`). Two open observations, no a
 `sentence-transformers 5.7.0` against the existing venv's `0.51.0` / `5.6.1` — nothing pins two
 seats to the same stack; and a `setup.sh`-only venv cannot run the gate, because `pytest` is in
 `requirements-dev.txt` (correct by design, and it now fails loudly with the right command).
+
+## Session Close / Handoff (2026-08-17b) — a forward-looking doc claim had gone false; the unpinned-dependency observation examined
+
+**Docs only — no code, no test-case content, and the pilot trio did not advance.**
+
+**(A) One false claim, corrected by annotation.** `/orient` verified the open items against
+reality rather than the docs and found that PROGRESS's 2026-08-06 entry told the next session
+the `.REVIEW.py` was *"a review copy left untracked on purpose — not committed"*, and posed
+"whether to commit review copies at all" as a decision still to make. The file **is** tracked —
+swept into `6d95352 "memory updates"` (2026-08-17 11:29) along with 12 memory files,
+incidentally rather than deliberately. The claim was **true when written** and went false eleven
+days later, which is exactly why nothing caught it: it was never wrong at the time, and no tool
+checks a prose assertion about git state. Corrected with a dated banner rather than a rewrite,
+since the 08-06 text is accurate history. The real consequence is the shape of the question —
+no longer a choice to make in advance, but a committed fact to **ratify or revert**.
+
+**This entry's own 08-06 predecessor needed no correction** and got none: it says only "written
+to a non-destructive review copy", which is still true. Two docs described the same artifact and
+only one had rotted; checking both instead of assuming symmetry is what stopped a correct log
+from being "fixed".
+
+**(B) The `>=` question, answered.** The 08-17 observation is fully explained by `>=` semantics
+— a floor with no ceiling resolves to whatever is newest on the install date, and
+`requirements.txt` says so itself. Working as written, not a bug. The sharper edge it did not
+name: **no upper bound**, so `pydantic>=2.9` takes pydantic 3.0 on release day, as would
+`torch>=2.2` and `sentence-transformers>=3.0`; 5.6.1 → 5.7.0 is harmless and a major is not,
+and the file cannot tell them apart. Compounded by no CI runner and no lockfile (a break is
+found by whoever next runs `setup.sh`, with no record of the prior resolution to diff), and by
+this project linting generated scripts with the local interpreter against a 3.13.5 testbox —
+the same "validating environment ≠ running environment" gap one layer up. **Flagged, not acted
+on.** Cheapest fix if wanted: a committed `pip freeze` lockfile beside the existing floors, or
+upper bounds on the four majors.
+
+**Gate:** 1060 passed / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` signature
+unchanged — identical to the session-open baseline. `check_memory_refs.py` clean. **No memory
+was stamped**: none was read this session, and §5a forbids stamping unverified ones.
+
+**Pick up:** the trio is exactly where 2026-08-06 left it — **T33234 + T33235 still need
+PyTest Creator generation** (Opus/`claude_code`; each needs `clear_session` first — their `pt-`
+rows and stale pre-cleanup objectives were re-verified in `ck.db` this session). **Two questions
+went unanswered** and remain open: commit timing for the doc fix, and whether to start T33234
+pausing at `suggest_scripts` for the include-which-matches call. **New standing priority from
+Terrence: IE520 testing once the trio is settled** — six related memories exist, all unstamped,
+and `TESTBOX-ACCESS.md` must be read in full first.
