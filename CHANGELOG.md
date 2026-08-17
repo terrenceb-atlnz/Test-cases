@@ -12,6 +12,36 @@ current working thread see
 
 ---
 
+## 2026-08-17 — The README stopped being a status document
+
+Its *Current Status* table had become a changelog held inside table cells — the PyTest Creator
+row was a single ~7,000-character line spanning three weeks — which made it unreadable as a
+table and awkward as history. The README is now navigational only (what the system is, quick
+start, the four invariants, the gate, the data, the tools, the documentation map): **405 lines
+/ 55 KB → 247 / 13.7 KB**. This file is where the history went.
+
+Consequences worth knowing:
+
+- **`/wrap` and `/orient` were repointed in the same change.** `/orient` now reads this file's
+  newest entry and skips the README, which no longer changes session to session; `/wrap` knows
+  this file as an append-only dated log and no longer expects a feature-status table.
+- **Test counts were removed from the README on purpose.** It claimed **775** against a real
+  **1060** — that is the number that rots fastest, and the gate prints it. Corpus figures that
+  remain were re-measured against `ck.db`, not copied.
+- Defects fixed in passing: the logo was a broken link, a stray `=D` sat on line 2, the
+  copyright block appeared twice, a dead `../AGENTS.md` was referenced, and `setup.sh` was
+  described as doing a **"DB build"** — it does not, and must not, which contradicted
+  invariant #1.
+- **Pointer cleanup across the tree**, 14 broken relative links → 8. The 8 that remain are
+  deliberate: one is a *format example* inside backticks, five are repo-root-relative paths
+  whose targets all exist, and two name `routers/wizard.py` inside **dated** entries. That file
+  became the `wizard/` package on 2026-07-29, but a frozen log gets a banner, never an edit.
+
+Six memories that cited `routers/wizard.py` were corrected the same day — tracing where each
+symbol actually went, because the split also **dropped the underscore prefixes**
+(`_can_synthesize` → `generator/gates.py: can_synthesize`, `_relevance_score` → `db.py`), so
+grepping the old names would have failed too.
+
 ## 2026-08-17 — The venv stopped being relocatable, loudly and silently
 
 The working tree moved from `copilot/Test-cases` to `claude/Test-cases`. A Python venv is

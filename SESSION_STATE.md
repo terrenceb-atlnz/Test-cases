@@ -3289,3 +3289,62 @@ for its log headers is unverifiable offline; a hardware run would settle it.)
 **Gate:** 1060/1 pytest, 92 Vitest, guards OK, `ck.db` unchanged by tests. No server/tool code
 changed. **Pick up:** run T33234 + T33235 through PyTest Creator the same way (Opus/`claude_code`),
 then confirm/save + decide on hardware Run (Part 3b, read `TESTBOX-ACCESS.md`).
+
+## Session Close / Handoff (2026-08-17) — the gate was dead, `setup.sh` was silently worse, and the README stopped being a status document
+
+**Environment, docs and memory only — no test-case content changed.** Began as `/orient`,
+which found the gate unrunnable before any work started.
+
+**(A) A relocated venv, and three scripts that trusted it.** The tree moved
+`copilot/Test-cases` → `claude/Test-cases`. A venv is **not relocatable**: `pip` bakes an
+absolute shebang into every console script and `activate` hardcodes its absolute
+`VIRTUAL_ENV`, so 30 files (29 in `.venv/bin/` + `pyvenv.cfg`) pointed at a dead path.
+`.venv/bin/python` kept working because it is a *relative* symlink — which is precisely what
+hid the failure. `tool/run_tests.sh` died loudly (`bad interpreter`), but **`setup.sh` failed
+silently and that was the dangerous one**: its reuse probe hit the surviving symlink, so it
+announced "Reusing existing virtual environment", sourced the stale `activate`, and ran bare
+`python3 -m pip install` — which with the venv's `bin/` off `PATH` resolves to **system Python
+3.10**, installing the whole dependency set into the user's site-packages while printing
+success at every step. §4b/§4c were verifying the wrong interpreter for the same reason, and
+`run.sh` would have booted the server on 3.10 with no `sentence-transformers` (the documented
+"silently degrades to keyword-only search" trap). Fixed by rewriting the baked paths in place,
+adding a **§3b relocation detector** to `setup.sh`, and making all three scripts call the venv
+interpreter explicitly. Commit `d28889b`.
+
+**Verified by running it, not reading it.** Three sandboxed `setup.sh` runs, all exit 0,
+covering relocated / healthy / absent-venv branches; the cold run built a venv from empty (62
+packages) that then **booted the real app** — FastAPI imports, `db.startup_check()` healthy,
+embedding model loading fully offline. Real venv, user site-packages, `~/.gitconfig` and the
+`ck.db` signature were byte-identical before and after. The non-obvious safety layer worth
+reusing: **rewrite the sandbox venv's baked path to `/nonexistent/...`** first, so a *failed*
+repair cannot reach the real venv.
+
+**(B) README rewritten; `CHANGELOG.md` created.** The *Current Status* table had become a
+changelog held in table cells (one ~7,000-character row). 405 lines / 55 KB → **247 / 13.7 KB**,
+navigational only. All dated narrative moved to a new root `CHANGELOG.md` with the *why*
+preserved. Fixed along the way: broken logo link, a stray `=D`, a duplicated copyright block, a
+dead `../AGENTS.md`, a false "setup.sh does a DB build" claim (contradicted invariant #1), and
+a stale **775** test count vs the real **1060** — counts are now absent from the README on
+purpose, since that is the number that rots fastest. Commit `aa367d9`.
+
+**(C) Pointers cleaned (14 broken links → 8) and (D) six memories corrected** off the dead
+`routers/wizard.py` path — tracing where each symbol actually moved, since the 2026-07-29 split
+also dropped the underscore prefixes. New memory `grep-shim-honors-gitignore`: `grep` here
+wraps `ugrep --ignore-files`, so it honours `.gitignore` and reported **0** hits inside `.venv`
+where the truth was **12,209** — a zero that reads exactly like real absence. Commit `96f5357`.
+
+The 8 remaining broken links are deliberate, each read before being left: a format example in
+backticks, five root-relative paths whose targets exist, and two `wizard.py` mentions inside
+**dated** entries — frozen logs get banners, not edits.
+
+**Gate:** 1060/1 pytest, 92 Vitest (8 files), guards OK, `ck.db` unchanged by tests. All three
+commits pushed; tree clean and level with `origin/main`.
+
+**Pick up:** the test-case thread is exactly where 2026-08-06 left it — **T33234 + T33235 still
+need PyTest Creator generation** (Opus/`claude_code`, `clear_session` each first; their `pt-`
+rows still read 2026-07-29, re-verified this session), then confirm/save and the deferred
+hardware Run (Part 3b — read `TESTBOX-ACCESS.md`). Two open observations, no action taken:
+`requirements.txt` is unpinned (`>=`), so a cold install now yields `uvicorn 0.52.3` /
+`sentence-transformers 5.7.0` against the existing venv's `0.51.0` / `5.6.1` — nothing pins two
+seats to the same stack; and a `setup.sh`-only venv cannot run the gate, because `pytest` is in
+`requirements-dev.txt` (correct by design, and it now fails loudly with the right command).
