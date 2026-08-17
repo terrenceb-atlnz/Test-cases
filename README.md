@@ -14,6 +14,7 @@
 > [`COPYRIGHT`](COPYRIGHT).
 
 ---
+**Please don't clone this without contacting first! **
 
 Ask CK is a server-backed test-engineering workbench for the **AWPTCM** test-case program.
 It takes a sparse Zephyr manual test case, enriches it into a refined case with declarative
