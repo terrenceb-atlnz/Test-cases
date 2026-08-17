@@ -330,25 +330,61 @@ else
   "$PY" -m venv "$VENV_DIR"
 fi
 
-# --- 4. Activate + install deps --------------------------------------------
-# shellcheck disable=SC1091
-source "$VENV_DIR/bin/activate"
+# --- 3b. Repair a RELOCATED venv --------------------------------------------
+# A venv is not relocatable: `activate` and every console script in bin/ hardcode the
+# ABSOLUTE path the venv was built at. Moving the tree leaves bin/python working (it is a
+# relative symlink) while everything else points into thin air — so the reuse check above
+# passes and setup.sh would happily carry on against a broken venv.
+#
+# That is not hypothetical. The copilot/ -> claude/ move (2026-08-17) did exactly this:
+# `activate` exported a VIRTUAL_ENV that no longer existed and prepended a non-existent
+# bin/ to PATH, so every `python3 -m pip install` below would have installed the entire
+# dependency set into the USER's site-packages under /usr/bin/python3 while printing
+# success — leaving the venv untouched and the seat silently broken.
+VENV_REAL="$(cd "$VENV_DIR" && pwd)"
+VENV_BAKED="$(sed -n 's/^[[:space:]]*export VIRTUAL_ENV=//p' "$VENV_DIR/bin/activate" 2>/dev/null | head -1 | tr -d '"')"
+if [ -n "$VENV_BAKED" ] && [ "$VENV_BAKED" != "$VENV_REAL" ]; then
+  echo "▶ Repairing relocated virtual environment"
+  echo "    built at: $VENV_BAKED"
+  echo "    now at:   $VENV_REAL"
+  # bin/ + pyvenv.cfg are the only functional references; the thousands of matches under
+  # lib/ are .pyc caches whose baked path only ever shows up in a traceback.
+  if command grep -rl -- "$VENV_BAKED" "$VENV_DIR/bin" "$VENV_DIR/pyvenv.cfg" 2>/dev/null \
+       | xargs -r sed -i "s|${VENV_BAKED}|${VENV_REAL}|g"; then
+    echo "    ✓ rewrote the baked paths in bin/ + pyvenv.cfg"
+  else
+    echo "    ✗ could not rewrite the baked paths. Recreate the venv by hand:" >&2
+    echo "        rm -rf .venv && ./setup.sh" >&2
+    exit 1
+  fi
+fi
+
+# --- 4. Install deps --------------------------------------------------------
+# Call the venv's interpreter EXPLICITLY rather than sourcing `activate` and relying on
+# bare `python3` resolving through PATH. If the venv is ever relocated again, a bare
+# `python3` silently becomes the SYSTEM interpreter and every step below succeeds against
+# the wrong environment; "$VENV_PY" cannot. This also keeps the sqlite-vec (4b) and ck.db
+# (4c) checks honest — they must report on the interpreter the server will actually use.
+VENV_PY="$VENV_DIR/bin/python"
+export VIRTUAL_ENV="$VENV_REAL"
+export PATH="$VENV_DIR/bin:$PATH"
+echo "▶ Using interpreter: $("$VENV_PY" -c 'import sys; print(sys.executable, sys.version.split()[0])')"
 echo "▶ Upgrading pip"
-python3 -m pip install --upgrade pip >/dev/null
+"$VENV_PY" -m pip install --upgrade pip >/dev/null
 
 # Install the CPU-only PyTorch wheel FIRST so requirements' torch resolves to the
 # small CPU build instead of the large default (CUDA) wheel. Best-effort — if it
 # fails (offline / unsupported platform), the requirements step still tries.
 echo "▶ Installing PyTorch (CPU wheel)"
-python3 -m pip install --index-url https://download.pytorch.org/whl/cpu torch \
+"$VENV_PY" -m pip install --index-url https://download.pytorch.org/whl/cpu torch \
   || echo "  ⚠ CPU torch install failed; requirements.txt will fall back to the default wheel."
 
 echo "▶ Installing dependencies from $REQ_FILE"
-python3 -m pip install -r "$REQ_FILE"
+"$VENV_PY" -m pip install -r "$REQ_FILE"
 
 # --- 4b. Vector-search capability check (sqlite-vec needs enable_load_extension) ---
 echo "▶ Checking semantic/hybrid search capability"
-if python3 - <<'PYEOF'
+if "$VENV_PY" - <<'PYEOF'
 import sys
 try:
     try:
@@ -375,7 +411,7 @@ echo "▶ Verifying ck.db (shipped via Git LFS; not rebuilt)"
 if [ ! -s ask-ck/var/ck.db ]; then
   echo "✗ ask-ck/var/ck.db is missing or empty. Run 'git lfs pull' to materialize it."; exit 1
 fi
-python3 - <<'PY' || { echo "✗ ck.db present but not readable/populated — check 'git lfs pull'."; exit 1; }
+"$VENV_PY" - <<'PY' || { echo "✗ ck.db present but not readable/populated — check 'git lfs pull'."; exit 1; }
 import sys; sys.path.insert(0, "ask-ck/CK-main/CK_server")
 import db
 chk = db.startup_check()

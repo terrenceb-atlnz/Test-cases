@@ -13,8 +13,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Everything runs as `"$PY" -m <tool>`, never as a .venv/bin/ console script. A venv is
+# NOT relocatable: pip bakes an ABSOLUTE shebang into every console script, so moving the
+# tree turns `.venv/bin/pytest` into "bad interpreter" while `.venv/bin/python` — a
+# RELATIVE symlink to the system interpreter — keeps working. That is exactly what the
+# copilot/ -> claude/ move did (2026-08-17): the whole gate died at the pytest step even
+# though the venv itself was perfectly healthy. `-m` reads the module out of the venv's
+# site-packages and never consults a shebang, so the gate now survives any future move.
 PY=".venv/bin/python"
-PYTEST=".venv/bin/pytest"
 if [[ ! -x "$PY" ]]; then
   echo "ERROR: repo-local .venv not found. Run ./setup.sh first." >&2
   exit 2
@@ -40,12 +46,12 @@ PYTHONNOUSERSITE=1 "$PY" tool/ckdb_signature.py > "$_CKDB_SIG_BEFORE"
 
 echo
 echo "== pytest =="
-if [[ ! -x "$PYTEST" ]]; then
+if ! PYTHONNOUSERSITE=1 "$PY" -c 'import pytest' 2>/dev/null; then
   echo "pytest not installed in .venv — install dev deps:" >&2
-  echo "  .venv/bin/pip install -r ask-ck/CK-main/requirements-dev.txt" >&2
+  echo "  $PY -m pip install -r ask-ck/CK-main/requirements-dev.txt" >&2
   exit 2
 fi
-PYTHONNOUSERSITE=1 "$PYTEST" -q
+PYTHONNOUSERSITE=1 "$PY" -m pytest -q
 
 echo
 echo "== frontend units (vitest/jsdom) =="

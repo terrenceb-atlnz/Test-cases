@@ -61,9 +61,23 @@ esac
 cd "$SCRIPT_DIR"
 
 # Use the repo-local virtual environment automatically if it exists.
-if [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
-  # shellcheck disable=SC1091
-  source "$REPO_ROOT/.venv/bin/activate"
+#
+# Resolve its interpreter DIRECTLY rather than sourcing `activate` and trusting the PATH
+# it sets. `activate` hardcodes the ABSOLUTE path the venv was built at, so after the tree
+# moved (copilot/ -> claude/, 2026-08-17) it exported a VIRTUAL_ENV that no longer existed
+# and prepended a non-existent bin/ to PATH. Bare `python3` then silently fell through to
+# /usr/bin/python3 — a DIFFERENT interpreter (3.10) with a different site-packages, which
+# still had fastapi but NOT sentence-transformers. The server would have started and
+# degraded to keyword-only search, the exact silent failure README.md:129 warns about.
+# `.venv/bin/python` is a relative symlink, so it survives a move; prefer it and say so.
+VPY="$REPO_ROOT/.venv/bin/python"
+if [ -x "$VPY" ]; then
+  export VIRTUAL_ENV="$REPO_ROOT/.venv"
+  export PATH="$REPO_ROOT/.venv/bin:$PATH"
+else
+  echo "⚠ No repo-local .venv at $REPO_ROOT/.venv — falling back to system python3."
+  echo "  Run ./setup.sh to build it; without it the server may lack its dependencies."
+  VPY="python3"
 fi
 
 # Sensible defaults - real use required (no MOCK). The backend is chosen on the LLM
@@ -119,7 +133,7 @@ if [ "$RUN_MODE" = "bg" ]; then
   # shell records its own PID, then exec-chains into uvicorn (keeping that PID),
   # so we capture the real server PID and can stop the whole group with --stop.
   setsid bash -c 'echo $$ >"$1"; shift; exec "$@"' _ "$PID_FILE" \
-    python3 -m uvicorn CK_server.main:app --host "$HOST" --port "$PORT" --reload "$@" \
+    "$VPY" -m uvicorn CK_server.main:app --host "$HOST" --port "$PORT" --reload "$@" \
     >>"$LOG_FILE" 2>&1 &
   sleep 2
   CK_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
@@ -134,7 +148,7 @@ if [ "$RUN_MODE" = "bg" ]; then
   fi
 else
   echo "▶ Running in the foreground (Ctrl-C to stop)."
-  exec python3 -m uvicorn \
+  exec "$VPY" -m uvicorn \
     CK_server.main:app \
     --host "${HOST}" \
     --port "${PORT}" \
