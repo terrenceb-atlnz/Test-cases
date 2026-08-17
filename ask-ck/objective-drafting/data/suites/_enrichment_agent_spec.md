@@ -5,7 +5,7 @@
 
 You are enriching ONE ATPyLib regression test suite for the "Test-cases" project.
 
-**Project context** (see [../README.md](../README.md)): The goal is to improve AWPTCM Manual Test Cases by deriving Objectives from TestLink history + enriched Automated Suites, and to record many-to-one Test Suite → Manual Case mappings. The enrichment interprets "what these Test Suites are testing FOR" to support fuzzy matching and Objective synthesis.
+**Project context** (see [the root README](../../../../README.md)): The goal is to improve AWPTCM Manual Test Cases by deriving Objectives from TestLink history + enriched Automated Suites, and to record many-to-one Test Suite → Manual Case mappings. The enrichment interprets "what these Test Suites are testing FOR" to support fuzzy matching and Objective synthesis.
 
 Goal: append a log-derived, intent-focused analysis to each automated test case's description. This allows the suites to contribute context for synthesizing Objectives on Manual Test Cases and to support many-to-one mappings (interpreting "what the suite is testing FOR"). Produce `suite_<SID>_enriched.json` IDENTICALLY to the existing gold examples (suites 1330 and 1351 already done in the same folder — read one if helpful).
 

@@ -1,6 +1,6 @@
 # Source System Links
 
-**For overall project framing and purpose**, see [README.md](../README.md).
+**For overall project framing and purpose**, see [README.md](README.md).
 
 API Docs: https://support.smartbear.com/zephyr-scale-cloud/api-docs/
 

@@ -50,7 +50,8 @@ of the handoff log carried most of the value. Budget accordingly:
 |---|---|---|
 | `ask-ck/objective-drafting/PROGRESS.md` | **`head -60`** — the newest entry only | Highest value per line in the repo. Newest entries are at the TOP and are current truth. Read further only where that entry points forward. |
 | `SESSION_STATE.md` | the **last** `## Session Close / Handoff` entry (`tail`) | Long-form history; the tail is the only current part. Watch for "superseded by …" notes that make older docs wrong. |
-| `README.md` | the **feature-status table** only | Whole-file read is not warranted at orientation. |
+| `CHANGELOG.md` | **`head -40`** — the newest dated entry only | The dated feature history, newest first (split out of the README's old status table on 2026-08-17). Tells you what shipped most recently and *why*. |
+| `README.md` | **skip at orientation** unless the task needs it | It is now a short navigational entry point (what the system is, quick start, the invariants, the doc map) — not a status document. Nothing in it changes session to session, so it is not worth the budget. |
 | `ask-ck/CK-main/SERVER-README.md` | **headings first** (`grep -n '^#'`), then only the sections today's task touches | This is the primary technical reference and the deepest well in the repo — read it *on demand*, not cover to cover. |
 
 Skip the `CK_server/README.md` and `CK_server/static/js/README.md` stubs while orienting; the

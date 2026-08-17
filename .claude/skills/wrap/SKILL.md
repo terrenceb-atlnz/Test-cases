@@ -33,8 +33,11 @@ E2E must not.
 
 ## 2. Living reference docs — edit in place to describe the CURRENT system
 
-- `README.md` — repo entry: setup, getting started, **feature-status table**, data-layer
-  overview. Update the table and anything whose setup or behaviour changed.
+- `README.md` — repo entry: what the system is, quick start, the four invariants, the data
+  overview, the tools, and the documentation map. It is **navigational, not a status
+  document** (the feature-status table it used to carry became `CHANGELOG.md` on
+  2026-08-17). Touch it only when setup, an invariant, an entry point or a doc pointer
+  actually changed — **not** to record that something shipped.
 - `ask-ck/CK-main/SERVER-README.md` — the deep technical reference (architecture, data layer,
   endpoints, admin panel, LLM config, workflow). Most substantive changes land here.
 - `ask-ck/CK-main/CK_server/README.md` — thin pointer stub; touch only if the pointers moved.
@@ -51,6 +54,12 @@ E2E must not.
 - `SESSION_STATE.md` — add a `## Session Close / Handoff (YYYY-MM-DD…)` entry at the **end**.
   If an older entry is now wrong, add a one-line "superseded by …" note pointing at the new
   entry — do **not** edit the old text. The log's value is that it is frozen.
+- `CHANGELOG.md` — add a `## YYYY-MM-DD — <what changed>` entry at the **top**, but only when
+  a session changed the *product*: a feature, a gate, an invariant, a contract, a defect a
+  future reader would trip over. Record **why**, not just what — that reasoning is the whole
+  reason this file exists rather than `git log`. Content-only work (drafting cases, running
+  the wizard) belongs in `PROGRESS.md`, not here. Same rule as the others: append, never
+  rewrite an older entry.
 
 Convert relative dates to absolute ("last Tuesday" is useless in three months).
 

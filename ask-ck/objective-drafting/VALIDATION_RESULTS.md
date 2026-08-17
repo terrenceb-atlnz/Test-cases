@@ -3,7 +3,7 @@
 **Scope**: All 116 enriched suites validated against ART source pages  
 **Method**: Direct comparison of test_id sets extracted from enriched JSON vs ART HTML pages
 
-**Project context**: See [../README.md](../README.md). This validation ensures the enriched Automated Test Suites accurately support deriving Objectives for Manual AWPTCM Test Cases and many-to-one suite mappings.
+**Project context**: See [the root README](../../README.md). This validation ensures the enriched Automated Test Suites accurately support deriving Objectives for Manual AWPTCM Test Cases and many-to-one suite mappings.
 
 ---
 

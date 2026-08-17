@@ -7,9 +7,10 @@
 **For next sessions / handoff**: See **[../../objective-drafting/PROGRESS.md](../../objective-drafting/PROGRESS.md)** (current status, open tasks, technical debt, backlog with estimates, and handoff checklist).
 
 Also cross-reference higher-level:
-- Root `../../../SESSION_STATE.md` and `../../../README.md`
-- `../../objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`
-- External `AGENTS.md` (via root README references, if present)
+- Root [`README.md`](../../../README.md) — framing, quick start, the four invariants, doc map
+- Root [`CHANGELOG.md`](../../../CHANGELOG.md) — what changed, when, and why
+- Root [`SESSION_STATE.md`](../../../SESSION_STATE.md) — broader session history
+- [`../../objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`](../../objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md)
 
 This file is intentionally minimal. Please refer to `SERVER-README.md` for:
 - How to run the server (`../run.sh`)

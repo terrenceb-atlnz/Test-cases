@@ -158,10 +158,10 @@ pydantic, …) from `requirements.txt` — this is the supported way; the old ad
 pip install -r ask-ck/CK-main/requirements.txt
 ```
 
-**Python 3.13 is preferred** (the testbox runs 3.13.5): the PyTest Creator `py_compile`s generated scripts with the venv's interpreter while they execute on the testbox, so a version mismatch lints the wrong language version — see root `README.md` → *Python version: match the testbox*.
+**Python 3.13 is preferred** (the testbox runs 3.13.5): the PyTest Creator `py_compile`s generated scripts with the venv's interpreter while they execute on the testbox, so a version mismatch lints the wrong language version — see root `README.md` → *Requirements, manual setup, and the Python-version rule*.
 
-`setup.sh` does this for you inside a repo-local `.venv` (see root `README.md` → Getting
-Started). If using a real LLM provider you may need additional packages such as `litellm`
+`setup.sh` does this for you inside a repo-local `.venv` (see root `README.md` → *Quick
+start*). If using a real LLM provider you may need additional packages such as `litellm`
 or the official SDK.
 
 **Two runtime deps exist because their absence FAILS POLITELY** — the feature switches off and
@@ -1021,10 +1021,12 @@ This SERVER-README.md is the single source of operational instructions.
 **For future sessions**: Start with `ask-ck/objective-drafting/PROGRESS.md`. It contains current status, completed work, open tasks, technical debt, prioritized backlog with effort estimates, and a handoff checklist.
 
 Cross-reference higher-level project docs every session:
-- Root `README.md` (overall project framing, status, and links to AGENTS.md)
+- Root `README.md` (project framing, quick start, the four invariants, the documentation map —
+  navigational, **not** a status document)
+- Root `CHANGELOG.md` (what changed, when, and why)
 - Root `SESSION_STATE.md` (broader session history)
+- Root `TESTBOX-ACCESS.md` (read in full before touching lab hardware)
 - `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
-- External `AGENTS.md` (access patterns and environment details, as referenced from root README)
 
 ---
 

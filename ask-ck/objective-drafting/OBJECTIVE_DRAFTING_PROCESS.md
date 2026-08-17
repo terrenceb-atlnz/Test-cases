@@ -507,7 +507,10 @@ Example snippet for the Zephyr section (with required web links):
 
 ---
 
-See the main `Test-cases/README.md` and reference exports such as `zephyr-scale-tests-export*.xml` for current state and the desired output format.
+For **current state** see [`PROGRESS.md`](PROGRESS.md) (newest entry at the top); for how the
+system got here see the root [`CHANGELOG.md`](../../CHANGELOG.md). The root
+[`README.md`](../../README.md) covers framing and setup. Reference exports such as
+`zephyr-scale-tests-export*.xml` show the desired output format.
 
 ---
 
@@ -587,12 +590,13 @@ See `README.md`, `tool/`, and `data/decisions/` for supporting scripts and prior
 - ~30+ cases fully processed through the workflow across groups: Port (~7), IPv4 variants (ARP/DHCP/Static/BGP/VRF ~10+), PoE/LED/Sanity (~5), Switching (~4), Auth/Security (~4), Management (~2), Bootloader (~1).
 - Recent focus: IPv4 areas (T43849 Local Proxy ARP, T43851 DHCP ARP Probe, T43853 120-day lease, T43854 DNS Relay, T43855 IPv4 Static, T43858 BGPv4, T43859 VRF-Lite traceroute).
 - Workflow validated on thin Zephyr cases, VRF isolation, platform variation, and mixed TL/ART sources.
-- See [SESSION_STATE.md](SESSION_STATE.md) for full chronological activity, detailed lessons learned per batch/case, exact lists, and wrap-up.
+- See [SESSION_STATE.md](../../SESSION_STATE.md) for full chronological activity, detailed lessons learned per batch/case, exact lists, and wrap-up.
 
 **Recommended next actions:**
 - Process remaining high-confidence decisions from dec_05+ (e.g. T43859 siblings, T43860 IP Route Filter, dec_06+ PoE/ECMP/stack cases).
 - Consider adding a small helper script in `tool/` (e.g. `scaffold_case.py`) to initialize new `refined-cases/<key>/` directories.
 - When ready, feed `zephyr_payload.json` files into upload tooling targeting Zephyr Scale `objective` + `testScript`.
-- Periodic sync of lessons/counts back to this doc and README.md.
+- Periodic sync of lessons/counts back to this doc and [`PROGRESS.md`](PROGRESS.md). (Counts
+  no longer live in the root `README.md` — it stopped being a status document on 2026-08-17.)
 
-*Document maintained as a living template. All case-specific history and lessons moved to `refined-cases/` subdirectories and [SESSION_STATE.md](SESSION_STATE.md).*
+*Document maintained as a living template. All case-specific history and lessons moved to `refined-cases/` subdirectories and [SESSION_STATE.md](../../SESSION_STATE.md).*

@@ -98,7 +98,7 @@ This file serves as persistent memory for the Ask CK / objective drafting projec
 
 See also `PROGRESS.md` (in this directory) for current implementation status, backlog, and handoff notes for future sessions. Operational docs: `../CK-main/SERVER-README.md`.
 
-Higher-level cross-references: Root `SESSION_STATE.md`, root `README.md`, and `OBJECTIVE_DRAFTING_PROCESS.md` (this directory). The external `AGENTS.md` (referenced from root) provides broader context.
+Higher-level cross-references: root [`README.md`](../../README.md) (framing, quick start, the four invariants), root [`CHANGELOG.md`](../../CHANGELOG.md) (what changed and why), root [`SESSION_STATE.md`](../../SESSION_STATE.md), and [`OBJECTIVE_DRAFTING_PROCESS.md`](OBJECTIVE_DRAFTING_PROCESS.md) (this directory).
 
 ## New Insights from 2026-07-03 Session — Zephyr Step 2 Omission + Full Grok Subscription CLI + UI Simplification
 

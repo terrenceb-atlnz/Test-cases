@@ -76,7 +76,7 @@ My enrichment script:
 - Script was **more compliant** than original enriched files
 - Fix recovered previously-lost suites
 - Both cohorts (original and new) are now complete and consistent
-- Ready for use in Objective synthesis and many-to-one Test Suite to Manual Case mappings (see ../README.md)
+- Ready for use in Objective synthesis and many-to-one Test Suite to Manual Case mappings (see the root `README.md`)
 
 ## Files
 - `ENRICHMENT_STATE.md` – Enrichment state and next steps
@@ -84,4 +84,4 @@ My enrichment script:
 - `test_id_description.json` – Flat: 10,157 tests with metadata
 - `test_id_description.csv` – Spreadsheet view
 
-**Project context**: See [../README.md](../README.md) for the full framing. This analysis supports interpreting Automated Test Suites (via log enrichment) to provide context/Objectives for Manual Test Cases and enable many-to-one mappings.
+**Project context**: See [the root README](../../README.md) for the full framing. This analysis supports interpreting Automated Test Suites (via log enrichment) to provide context/Objectives for Manual Test Cases and enable many-to-one mappings.
