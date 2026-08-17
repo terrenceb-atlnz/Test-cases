@@ -235,11 +235,17 @@ assistant if you are not using Claude Code.
 
 **Security posture:** designed for **localhost / single user**. The server binds `127.0.0.1`
 by default (LAN exposure is an explicit `HOST=0.0.0.0`) and there is still **no
-authentication**; multi-user identity and per-case locking are planned in
+authentication**. **Per-case locking is DONE** (Phase 1, 2026-07-29): `CK_server/locks.py`
+holds a lock per (tool, case) so a second tab gets a read-only view instead of silently
+overwriting the first — the whole-blob session write that made that possible is still there,
+with an optimistic `rev` compare-and-swap as backstop. The registry is **in-process on
+purpose** (a durable table would have been the first in-place schema change to the permanent
+`ck.db`), so running multi-worker would silently reintroduce the overwrite bug — `locks.py`
+says so prominently. Multi-user **identity** (Phase 2) and attribution + TLS (Phase 3) remain
+planned in
 [`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`](ask-ck/ck-facelift/PLAN-auth-and-case-locking.md),
-whose Phase 1 also closes a live concurrency bug (two tabs on one case silently overwrite each
-other). Never commit credentials — `secrets.md`, `secrets.local.json` and
-`secrets.testboxes.json` are gitignored.
+gated on an organisational decision. Never commit credentials — `secrets.md`,
+`secrets.local.json` and `secrets.testboxes.json` are gitignored.
 
 > **Note:** primary development is on an internal machine; this GitHub tree is a published
 > copy. On 2026-07-13 the repo was restructured (`drafting-tool/` → `ask-ck/CK-main/`; root
