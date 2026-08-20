@@ -14,14 +14,13 @@ async function setLLMConfig() {
 
   // Determine method from radio (the radios now directly select the subscription provider+mode)
   const methodRadios = document.querySelectorAll('input[name="llmAuthMethod"]');
-  let auth_method = 'grok_cli';
+  let auth_method = 'local_llm';
   for (let r of methodRadios) {
     if (r.checked) { auth_method = r.value; break; }
   }
 
-  let provider = 'grok';
+  let provider = 'openai';   // org vLLM rides the OpenAI-compatible path
   if (auth_method === 'claude_agent' || auth_method === 'claude_code') provider = 'claude';
-  else if (auth_method === 'local_llm') provider = 'openai';   // org vLLM rides the OpenAI-compatible path
 
   const body = { provider, auth_method };
   // CLI subscription modes require no credential here
@@ -72,13 +71,6 @@ async function setLLMConfig() {
         alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude' -> /login, then retry.");
       } else {
         alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nStart it: cd ask-ck/agent && ./run-agent.sh — then click 'Check my local agent'.");
-      }
-    } else if (auth_method === 'grok_cli') {
-      const cli = data.llm_config.grok_cli || {};
-      if (cli.available) {
-        alert(`Grok CLI subscription mode enabled (CLI: ${cli.version || 'found'}). Calls use your local 'grok login' SuperGrok/X Premium+ session.`);
-      } else {
-        alert('Grok CLI mode set, but the CLI was NOT found.\n\n' + (cli.hint || 'Install grok CLI and run grok login --oauth, then re-apply.'));
       }
     } else if (auth_method === 'local_llm') {
       const keyEl = document.getElementById('localLlmKey');
@@ -179,7 +171,7 @@ export function normalizeLLMConfig(config) {
   const am = (c.auth_method || '').toLowerCase();
   // Session dict does not include has_key; treat CLI + server-keyed modes as configured
   if (c.has_key === undefined) {
-    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm';
+    c.has_key = !!(c.api_key || c.token) || am === 'claude_agent' || am === 'claude_code' || am === 'local_llm';
   }
   return c;
 }
@@ -192,7 +184,7 @@ export function updateLLMStatus(config) {
   c = normalizeLLMConfig(c);
   const provider = c.provider || '';
   const am = (c.auth_method || '').toLowerCase();
-  const cliMode = (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm');
+  const cliMode = (am === 'claude_agent' || am === 'claude_code' || am === 'local_llm');
   const hasCred = !!(c.has_key || c.api_key || c.token || cliMode);
 
   let text = '';
@@ -207,14 +199,13 @@ export function updateLLMStatus(config) {
     ok = c.local_llm_key_set !== false;
     if (!ok) text += ' — ⚠ no key stored on server';
   } else {
-    const p = provider === 'grok' ? 'Grok (xAI)' : (provider === 'claude' ? 'Claude' : provider);
+    const p = provider === 'claude' ? 'Claude' : provider;
     let m = ' (API key)';
     if (am === 'claude_agent') {
       const cm = c.model ? c.model.charAt(0).toUpperCase() + c.model.slice(1) : 'default';
       m = ` (Claude — my local machine · ${cm})`;
     }
     else if (am === 'claude_code') m = ' (Claude Code CLI)';
-    else if (am === 'grok_cli') m = ' (Grok CLI subscription)';
     text = `Using ${p}${m}`;
     ok = true;
   }
@@ -241,17 +232,15 @@ function updateLLMDefaults() {
   } else if (checked && checked.value === 'local_llm') {
     modelInput.placeholder = '(model set by Fast/Thinking toggle)';
   } else {
-    modelInput.placeholder = '(Grok CLI default)';
+    modelInput.placeholder = '(CLI default)';
   }
 }
 
 export function updateAuthMethodUI() {
   // Radios now directly choose the subscription CLI mode (no dropdown, no API key)
-  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'grok_cli';
+  const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value || 'local_llm';
   const agentBtn = document.getElementById('agentStatusBtn');
-  const grokBtn = document.getElementById('grokCliStatusBtn');
   const agentInstr = document.getElementById('claudeAgentInstructions');
-  const grokInstr = document.getElementById('grokCliInstructions');
   const localRow = document.getElementById('localLlmRow');
   const claudeRow = document.getElementById('claudeAgentRow');
 
@@ -261,18 +250,8 @@ export function updateAuthMethodUI() {
   if (method === 'claude_agent') {
     if (agentBtn) agentBtn.classList.remove('hidden');
     if (agentInstr) agentInstr.classList.remove('hidden');
-    if (grokBtn) grokBtn.classList.add('hidden');
-    if (grokInstr) grokInstr.classList.add('hidden');
-  } else if (method === 'local_llm') {
-    // Org vLLM: no CLI to check, no instruction panels
-    if (agentBtn) agentBtn.classList.add('hidden');
-    if (agentInstr) agentInstr.classList.add('hidden');
-    if (grokBtn) grokBtn.classList.add('hidden');
-    if (grokInstr) grokInstr.classList.add('hidden');
   } else {
-    // grok_cli
-    if (grokBtn) grokBtn.classList.remove('hidden');
-    if (grokInstr) grokInstr.classList.remove('hidden');
+    // Org vLLM (local_llm): no CLI to check, no instruction panels
     if (agentBtn) agentBtn.classList.add('hidden');
     if (agentInstr) agentInstr.classList.add('hidden');
   }
@@ -302,7 +281,7 @@ export function restoreLLMUI() {
   // Prefer active session config; fall back to last applied / localStorage
   let c = S.currentSession && S.currentSession.llm_config;
   const am = c && (c.auth_method || '').toLowerCase();
-  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'grok_cli' || am === 'local_llm' || c.api_key || c.token || c.has_key);
+  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'local_llm' || c.api_key || c.token || c.has_key);
   if (!sessionActive) {
     c = window.lastLLMConfig || null;
     if (!c) {
@@ -315,8 +294,8 @@ export function restoreLLMUI() {
   if (!c || !c.provider) return;
 
   // Set method from saved config (no provider dropdown; radios embody the choice)
-  let method = c.auth_method || 'grok_cli';
-  if (method === 'account' || method === 'api_key') method = 'grok_cli';  // legacy mappings
+  let method = c.auth_method || 'local_llm';
+  if (method === 'account' || method === 'api_key') method = 'local_llm';  // legacy mappings
   if (method === 'claude_code') method = 'claude_agent';  // server-local CLI removed from UI; map to per-user agent
   const radios = document.querySelectorAll('input[name="llmAuthMethod"]');
   for (let r of radios) {

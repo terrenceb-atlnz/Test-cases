@@ -260,7 +260,7 @@
     <div id="panel-llm-config" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use your own locally logged-in subscription — Grok CLI (SuperGrok / X Premium+) or the Claude Code CLI on <em>your own machine</em>. No developer API keys. Apply / Login saves the workspace default; it is applied to cases as they load. On a shared Ask CK server, the Claude option runs against <strong>your own</strong> Claude seat via the local agent — seats are never shared.</div>
+        <div class="section-description">Use your own locally logged-in subscription — the Claude Code CLI on <em>your own machine</em>. No developer API keys. Apply / Login saves the workspace default; it is applied to cases as they load. On a shared Ask CK server, the Claude option runs against <strong>your own</strong> Claude seat via the local agent — seats are never shared.</div>
 
         <div class="radio-group">
           <label class="radio-label">
@@ -269,10 +269,6 @@
           <label class="radio-label">
             <input type="radio" name="llmAuthMethod" value="claude_agent"> Claude Code CLI (my local machine)
           </label>
-          <label class="radio-label">
-            <input type="radio" name="llmAuthMethod" value="grok_cli"> Grok CLI
-          </label>
-          <button id="grokCliStatusBtn" data-action="checkGrokCLIStatus" class="btn btn-secondary btn-compact-small">Check Grok CLI</button>
           <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check my local agent</button>
 
           <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
@@ -320,17 +316,6 @@
           4. Click <strong>"Apply / Login"</strong>. Leave Model blank to use the CLI's default.<br><br>
           <em>Usage counts against your own Claude seat's limits. If a call fails, make sure the agent is still running and you're logged in.</em>
           <div id="agentStatusResult" class="status-result"></div>
-        </div>
-
-        <div id="grokCliInstructions" class="instructions-panel">
-          <strong>Grok CLI — Headless Mode (SuperGrok / X Premium+ Subscription)</strong><br><br>
-          Synthesis calls run through the local <code>grok</code> CLI using its OAuth login. No xAI API key is entered here.<br><br>
-          1. Ensure the <code>grok</code> CLI is installed (commonly at ~/.grok/bin/grok).<br>
-          2. In a terminal run <code>grok login --oauth</code> (or <code>grok login</code>) and complete the browser OAuth with your subscription account.<br>
-          3. Click <strong>"Check Grok CLI"</strong> to verify.<br>
-          4. Select the option and click <strong>"Apply / Login"</strong>. Leave Model blank for CLI default.<br><br>
-          <em>Usage counts against your SuperGrok / X Premium+ subscription.</em>
-          <div id="grokCliStatusResult" class="status-result"></div>
         </div>
       </div>
     </div>

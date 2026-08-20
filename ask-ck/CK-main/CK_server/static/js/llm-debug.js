@@ -7,7 +7,7 @@
 // in debug-log/<session>.jsonl. See ask-ck/ck-facelift/PLAN-llm-observability.md.
 //
 // Token counts are shown honestly: transports that don't report usage
-// (grok CLI plain output, agent bridge) render as "— tok", never estimated.
+// (the agent bridge) render as "— tok", never estimated.
 import { S } from './state.js';
 
 const llmDebugByPanel = {};   // panel id -> newest record seen for that panel

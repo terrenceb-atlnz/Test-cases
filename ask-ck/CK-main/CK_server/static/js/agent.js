@@ -87,26 +87,7 @@ async function checkLocalAgent() {
   }
 }
 
-async function checkGrokCLIStatus() {
-  const resultDiv = document.getElementById('grokCliStatusResult');
-  if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking Grok CLI…</em>';
-  try {
-    const res = await fetch('/api/wizard/grok_cli_status');
-    const s = await res.json();
-    if (resultDiv) {
-      if (s.available) {
-        resultDiv.innerHTML = `<span class="status-ok">&#10003; Grok CLI found</span> — ${escapeHtml(s.version || '')} <span class="status-muted">(${escapeHtml(s.path || '')})</span><br><span class="status-muted">Note: login state verified on first call. Make sure you ran 'grok login' with your subscription.</span>`;
-      } else {
-        resultDiv.innerHTML = `<span class="status-err">&#10007; Not found.</span> ${escapeHtml(s.hint || '')}`;
-      }
-    }
-  } catch (e) {
-    if (resultDiv) resultDiv.innerHTML = `<span class="status-err">Status check failed: ${escapeHtml(String(e))}</span>`;
-  }
-}
-
-
 // Register this tool's data-action handlers.
 registerActions({
-  checkLocalAgent, checkGrokCLIStatus,
+  checkLocalAgent,
 });
