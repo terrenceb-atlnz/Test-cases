@@ -1,10 +1,12 @@
 // DB-search tools: merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP.
 //
 // Merge only updates the candidate bus (window.current*) and re-renders both
-// tables. Search results land in the top ("candidates") table for the user to
-// tick + Choose. LLM suggestions (precheckIds) are moved straight into the
-// chosen list — the LLM's picks are its recommended shortlist. Row selection
-// and confirm live in chosen.js.
+// tables. BOTH search results and LLM suggestions land in the top ("candidates")
+// table for the user to tick + Choose — nothing is promoted to the chosen list
+// on the user's behalf, so accepting the LLM's picks is an explicit act of
+// judgement about whether the search was any good. The `precheckIds` option
+// still promotes straight to the chosen bus, but no caller uses it today. Row
+// selection and confirm live in chosen.js.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { renderStepTables } from './tables.js';
@@ -188,8 +190,7 @@ async function suggestTestLinkWithLLM() {
       score: s.score != null ? s.score : 0.85,
       source: 'llm',
     }));
-    const ids = rows.map(r => r.id).filter(Boolean);
-    mergeTestLinkCandidates(rows, { precheckIds: ids, source: 'llm' });
+    mergeTestLinkCandidates(rows, { source: 'llm' });
     ok = true;
   } catch (e) {
     alert('Suggest TestLink with LLM failed: ' + e);
@@ -262,8 +263,7 @@ async function suggestZephyrWithLLM() {
       score: s.score != null ? s.score : 0.85,
       source: 'llm',
     }));
-    const ids = rows.map(r => r.key).filter(Boolean);
-    mergeZephyrCandidates(rows, { precheckIds: ids, source: 'llm' });
+    mergeZephyrCandidates(rows, { source: 'llm' });
     ok = true;
   } catch (e) {
     alert('Suggest Zephyr with LLM failed: ' + e);
@@ -335,8 +335,7 @@ async function suggestATPWithLLM() {
       score: s.score !== undefined ? s.score : 0.85,
       source: 'llm',
     }));
-    const ids = rows.map(r => r.id).filter(Boolean);
-    mergeATPCandidates(rows, { precheckIds: ids, source: 'llm' });
+    mergeATPCandidates(rows, { source: 'llm' });
     ok = true;
   } catch (e) {
     alert('Suggest with LLM failed: ' + e);
