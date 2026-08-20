@@ -35,6 +35,13 @@ export async function ckBrokerLoop() {
   if (ckBrokerRunning) return;      // single loop per tab
   ckBrokerRunning = true;
   while (true) {
+    // The loop must not outlive the mode that started it. ckAgentModeActive() was
+    // written for exactly this and was never wired in, so a tab switched to
+    // local_llm/claude_code kept long-polling forever for jobs that can never be
+    // queued — and on a server outage fell back to a 2s retry, polling HARDER than
+    // when it had work. Clearing the flag lets a later switch back to claude_agent
+    // start a fresh loop via either caller in llm.js.
+    if (!ckAgentModeActive()) { ckBrokerRunning = false; return; }
     try {
       // Long-poll for the next job (server holds up to ~25s). Header added by patchFetch.
       const res = await fetch(`/api/agent/next?session=${encodeURIComponent(CK_SESSION_ID)}&wait=25`);
