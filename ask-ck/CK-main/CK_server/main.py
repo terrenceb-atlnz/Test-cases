@@ -42,6 +42,7 @@ import sys
 import re
 import threading
 import time
+import hashlib
 
 # Ensure we can import sibling modules when run from project root
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -336,6 +337,54 @@ async def process_page():
     </html>
     """
     return HTMLResponse(page)
+
+# --- Frontend build identity (stale-tab guard) -------------------------------
+# Hashed from the static tree ON DISK — deliberately not a startup constant and
+# not the git SHA, because neither would move in the cases that actually strand
+# a tab. Static assets are served straight off disk, so an edit is live with NO
+# restart (md5 of the file equals md5 of the served bytes while the process
+# keeps running), and an UNCOMMITTED edit leaves the SHA untouched. mtime+size
+# over the ~24 static files notices a changed asset without reading any of them.
+#
+# Cached for a few seconds: every open tab polls this, so an unguarded version
+# would turn a room full of browsers into a stat storm on every tick.
+_BUILD_TTL_S = 5.0
+_build_cache = {"stamp": "", "at": 0.0}
+_build_lock = threading.Lock()
+
+
+def _static_build_id() -> str:
+    """sha256 (truncated) over each static file's path, mtime_ns and size."""
+    now = time.monotonic()
+    with _build_lock:
+        if _build_cache["stamp"] and (now - _build_cache["at"]) < _BUILD_TTL_S:
+            return _build_cache["stamp"]
+    parts = []
+    for root, _dirs, files in os.walk(static_dir):
+        for name in files:
+            fp = os.path.join(root, name)
+            try:
+                st = os.stat(fp)
+            except OSError:
+                continue  # vanished mid-walk; a later tick will see the tree settle
+            parts.append(f"{os.path.relpath(fp, static_dir)}:{st.st_mtime_ns}:{st.st_size}")
+    stamp = hashlib.sha256("\n".join(sorted(parts)).encode()).hexdigest()[:16]
+    with _build_lock:
+        _build_cache["stamp"] = stamp
+        _build_cache["at"] = now
+    return stamp
+
+
+@app.get("/api/version")
+async def api_version():
+    """Identity of the frontend this server is serving right now.
+
+    The browser records it at load and re-checks periodically; a change means
+    that tab is running superseded modules and should reload. Touches neither
+    the DB nor the LLM — every open tab polls it.
+    """
+    return {"build": _static_build_id()}
+
 
 @app.get("/health")
 async def health():

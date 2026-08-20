@@ -15,6 +15,7 @@ import './generator.js';
 import './chosen.js';
 import './db-search.js';
 import './agent.js';
+import './version.js';    // side-effect: stale-tab guard (polls /api/version)
 
 // Fetch a stub tool router's /status message into a placeholder status element.
 async function loadToolStatus(apiName, elId) {
