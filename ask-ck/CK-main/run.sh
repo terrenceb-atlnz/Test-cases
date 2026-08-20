@@ -102,7 +102,6 @@ echo "   Host: ${HOST}"
 echo "   Port: ${PORT}"
 echo "   URL:  http://localhost:${PORT}/   (use http://, not https://)"
 echo
-echo "Note: MOCK/demo mode removed. Configure subscription CLI login or API key for real testing."
 echo
 
 export PYTHONPATH="$SCRIPT_DIR"

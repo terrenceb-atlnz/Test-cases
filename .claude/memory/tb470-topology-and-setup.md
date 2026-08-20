@@ -1,11 +1,11 @@
 ---
 name: tb470-topology-and-setup
-description: tb470 real bench topology + the corrected tb470.setup; **2026-08-11: BOTH IE520s ARE NOW ON THE PDU (10.36.150.14, u4=outlet 4 "D", u5=outlet 5 "E") — the "DUT cannot be power-cycled" blocker is GONE**; the setup file had the two IE520 S/N+MAC pairs on the OPPOSITE consoles (live: u4=264A23052, u5=264A23066); ONLY 10.38.215.0/24 has upstream return path and tb470 has NO NAT (2026-08-04); DHCP on eth1+eth3; stack state churns — a destacked unit KEEPS its old stack ID and its port1.0.x go phantom, silently
+description: tb470 real bench topology + the corrected tb470.setup; **2026-08-18: the two IE520s ARE A STACK (chassis-id 3439, NOT 3039), virtual-mac ENABLED (VMAC 0000.cd37.0d6f), stack on port1.0.28<->port2.0.27, resiliency link vlan4093 on port1.0.27<->port2.0.28 — and `no stackport` on 27/28 DOES stick across a reboot, correcting the old "the flag returns" claim**; both IE520s on the PDU (10.36.150.14, u4=outlet 4 "D", u5=outlet 5 "E"); the setup file had the two IE520 S/N+MAC pairs on the OPPOSITE consoles (live: u4=264A23052, u5=264A23066); ONLY 10.38.215.0/24 has upstream return path and tb470 has NO NAT (2026-08-04); DHCP on eth1+eth3; stack state churns — ALWAYS run `show stack`, and a destacked unit KEEPS its old stack ID and its port1.0.x go phantom, silently
 metadata: 
   node_type: memory
   type: project
   originSessionId: 2a141e3e-5a6e-4153-b006-2e724f5ec026
-  modified: 2026-08-11T00:30:00.000Z
+  modified: 2026-08-18T08:30:00.000Z
 ---
 
 Reconciling `configs/tb470.setup` (on tb470, at `/home/st-art/st-art/configs/`) against the
@@ -17,7 +17,60 @@ matches reality — see [[part3-grading-session]].
 clean — 8 sections, outlets typed `int`). Backups in the same dir: `.bak-2026-07-30` (the
 2026-07-29 3-device version), `.bak-2026-07-29` (the 681 B example-derived placeholder).
 
-## CURRENT STATE (2026-08-11) — read this first; everything below is HISTORY
+## CURRENT STATE (2026-08-18) — read this first; everything below is HISTORY
+
+**⚠️ THE TWO IE520s ARE A STACK, and the chassis-id is now `3439` (0xd6f), NOT `3039`.**
+Left this way at the end of the 17688 session. Verify with `show stack` — this bench churns.
+
+| | member 1 | member 2 |
+|---|---|---|
+| console | `/dev/u5` | `/dev/u4` |
+| S/N | `264A23066` | `264A23052` |
+| MAC | `84e3.2787.0740` | `84e3.2787.09c0` |
+| bootloader | `9.1.0` | `pauld` dev build |
+| role at session end | Active Master (`awplus`) | Backup Member (`awplus-2`) |
+
+- **`stack virtual-mac` is ENABLED** (this session enabled it) → **VMAC `0000.cd37.0d6f`**, which
+  encodes the chassis-id (`0d6f` = 3439). `show stack` reads `Stack MAC address 0000.cd37.0d6f
+  (Virtual MAC)`. Enabling it needs `write` + reboot.
+- **Stacking link is a SINGLE pair: `port1.0.28` ↔ `port2.0.27`.**
+- **Resiliency link is `vlan4093` on `port1.0.27` ↔ `port2.0.28`** (the *other* former stackport
+  pair). `stack resiliencylink <vlan>` takes a **dedicated VLAN**, not a port; ports then join it
+  with `switchport resiliencylink` (interface mode) and carry *only* resiliency traffic.
+- **`interface vlan1 / ip address 10.38.215.20/27`** was added so a split would generate learnable
+  traffic. ⚠️ **Consider removing** — while stacked it is harmless, but any future split puts
+  **two units on that address**, on the only segment with an upstream return path.
+- **`no stackport` was applied to `port1.0.25`, `port1.0.26`, `port1.0.27`, `port2.0.28`.**
+- Both members **netboot via TFTP** from tb470 (`IE520-tb470.rel`) — member 2 as well as member 1,
+  confirmed from its bootloader banner. Boot config `flash:/stack.cfg`.
+
+**🐛 OPEN PRODUCT DEFECT — the resiliency link does not work on this build.** Whichever member
+holds the **backup role** receives 100% of the master's healthcheck multicasts error-free and
+never registers them: `show stack resiliencylink` reads `Failed` on the backup
+(= "Not receiving any healthchecks from the Active Master") while it transmits **zero** replies.
+Reproduced across **4 port pairs** (1000BASE-SX 1G, 10GBASE-SR 10G matched *and* mismatched
+numbering, and the 10G copper stacking PHYs), **both units**, **both roles**, **both bootloader
+builds**, and 4 reboots — so port/media/unit/bootloader are all excluded; the fault tracks the
+ROLE. Consequence: pulling the stacking cables yields **TWO ACTIVE MASTERS sharing one VMAC and
+one IP**, not a Disabled-Master — the neighbour switch then sees the same bridge ID on two ports
+and blackholes one. **This blocks TEST 17688 steps 3–7.** Software: `IE520-tb470.rel`,
+`tomahawk_ie520-continuous`, built 2026-08-10. Full evidence + verdict table:
+`~/old test runs/IE520/stack-tests/after-action-17688.md`.
+
+**✅ CORRECTION — `no stackport` DOES stick on the dedicated stackports 27/28.** The older claim
+below (and in `TESTBOX-ACCESS.md` §4a) that "the flag returns after reboot on the real member's
+ports" **did not reproduce**: `no stackport` on `port1.0.27` and `port2.0.28` survived a full
+stack reboot, both came back as ordinary `switchport`s in vlan 1, and the stack ran normally on
+the remaining pair. Two mechanics that still apply: `no stackport` needs `write` + reboot to take
+effect, and `switchport resiliencylink` is **rejected** on a port while it is still a stackport
+(`% The command is not available for this interface`) — so repurposing 27/28 is a two-pass job.
+`stack virtual-chassis-id` still has **no `no` form** (not retested 2026-08-18).
+
+**The 27/28 cabling hazard still stands, but scope it correctly:** it applies to **two
+_standalone_ units both claiming stack ID 1 with the same chassis-id**. On a *properly formed*
+stack, one 27/28 pair was repurposed as a resiliency link with no ill effect.
+
+## CURRENT STATE (2026-08-11) — HISTORY
 
 **✅ BOTH IE520s ARE NOW ON THE PDU.** Fitted 2026-08-11: `/dev/u4` (swi_a) = outlet **4**
 (front-panel "D"), `/dev/u5` (swi_b) = outlet **5** ("E"), same PDU `10.36.150.14`. **This
@@ -135,6 +188,13 @@ validity table), and `stack virtual-chassis-id` has **no `no` form** (`no stack 
 `<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`).
 So both units are stack ID 1 sharing chassis-id 3039 with live stackports — cabling 27/28
 would put both back into duplicate-master / err-disabled.
+
+> **🔴 SUPERSEDED 2026-08-18 — do not act on the paragraph above.** Two of its facts are now
+> wrong: (1) **`no stackport` DOES stick on 27/28** across a reboot — see CURRENT STATE
+> (2026-08-18) at the top; (2) the chassis-id is **`3439`**, not `3039`, and the units are a
+> **stack (ID 1 + ID 2)**, not two standalone ID-1 units. The *hazard itself* survives but only
+> in its original scope: two **standalone** units both claiming ID 1 with a shared chassis-id.
+> `stack virtual-chassis-id` having no `no` form was not retested and is carried forward.
 
 **Links verified both ends at `a-1000/a-full`:** `port1.0.1` copper — and note the modules
 DIFFER (AT-SPTXc 1000BASE-T on swi_a vs AT-SP10TM 10GBASE-TM on swi_b) yet negotiate 1 G

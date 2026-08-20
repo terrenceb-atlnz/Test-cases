@@ -371,14 +371,33 @@ both 27/28 ranges, `no stack virtual-mac`, **`stack 2 renumber 1`** on the demot
 (`show stack` then shows a `Pending ID`), `write`, reboot. Afterwards both read
 `Operational Status: Standalone unit` with their own MAC as the stack MAC.
 
-**Two things could not be removed, and one is a live hazard.** On the IE520,
-`port1.0.27/1.0.28` are **dedicated** stackports: `no stackport` is accepted and saved, but the
-flag returns after reboot on the real member's ports (it sticks only on an absent member's
-phantom ports). And `stack virtual-chassis-id` has **no `no` form at all** — `no stack ?` offers
-only `<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`,
-`virtual-mac`. So both units end up stack ID 1 sharing one chassis-id with live stackports:
-**do not cable 27/28 between them** or they will both claim ID 1 and land straight back in
-duplicate-master/err-disabled.
+**⚠️ CORRECTED 2026-08-18 — `no stackport` DOES stick on 27/28.** This paragraph previously
+said that on the IE520 `port1.0.27/1.0.28` are dedicated stackports where `no stackport` "is
+accepted and saved, but the flag returns after reboot on the real member's ports". **That did
+not reproduce.** Measured on a healthy two-member stack running `IE520-tb470.rel`
+(`tomahawk_ie520-continuous`, built 2026-08-10): `no stackport` on `port1.0.27` **and**
+`port2.0.28` — both *real* members' ports, not phantom ones — survived a full stack reboot
+cleanly. Afterwards `show running-config interface port1.0.27` read `switchport /
+switchport mode access`, `show interface status` listed both in **vlan 1 rather than
+`stackport`**, and the stack ran normally on the single remaining pair
+(`Stack port1.0.28 status  Learnt neighbor 2, connected port2.0.27`,
+`Operational Status: Normal operation`). Both were then successfully repurposed as a
+**resiliency link**. Either the behaviour changed in this software, or the 2026-07-30
+observation had another cause — **re-verify before relying on either statement.** Note
+`no stackport` still needs `write` + reboot to take effect, and `switchport resiliencylink`
+is rejected on a port while it is still a stackport (`% The command is not available for this
+interface`), so repurposing 27/28 is necessarily a two-pass operation.
+Evidence: `~/old test runs/IE520/stack-tests/after-action-17688.md`.
+
+**Still true: `stack virtual-chassis-id` has no `no` form at all** — `no stack ?` offers only
+`<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`.
+(Not retested 2026-08-18; carried forward from 2026-07-30.)
+
+**The live hazard stands, but scope it correctly.** It applies to **two _standalone_ units that
+both claim stack ID 1 while sharing one chassis-id**: **do not cable 27/28 between them** or they
+land straight back in duplicate-master/err-disabled. It does **not** mean 27/28 can never carry
+anything else — on a *properly formed* stack one 27/28 pair was repurposed as a resiliency link
+with the stack running on the other pair, with no ill effect.
 
 ### The CLI is media-blind — do not trust it to reject a nonsensical setting ✅
 
