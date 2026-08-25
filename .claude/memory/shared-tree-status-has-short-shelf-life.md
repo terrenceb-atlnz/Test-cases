@@ -6,6 +6,7 @@ metadata:
   type: feedback
   modified: 2026-07-27T03:36:26.274Z
   originSessionId: 7daaa873-01d4-42ab-836d-65d158c2ca74
+  verified: 2026-08-26
 ---
 
 The Test-cases working tree is shared with an **active parallel stream** (2026-07-27g: CLI-docs

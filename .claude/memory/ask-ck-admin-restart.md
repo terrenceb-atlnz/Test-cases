@@ -6,7 +6,19 @@ metadata:
   type: project
   originSessionId: b69a0140-ff36-4d22-bc3a-819e30838064
   modified: 2026-07-20T01:01:57.863Z
+  verified: 2026-08-26
 ---
+
+**SUPERSEDED FOR THE HOSTED SERVER (2026-08-26): manage it with `ck`, never `run.sh --stop`.**
+The dev server this memory describes became a LAN-hosted systemd user service
+(`ask-ck.service`, see [[askck-lan-hosting]]). `run.sh --stop/--restart` now pkills uvicorn
+behind systemd's back — the unit self-heals via `Restart=always`, but the right commands are
+`ck on|off|restart|reload|status|logs` (or `systemctl --user … ask-ck`). Everything below about
+the ADMIN PANEL still holds and was re-verified 2026-08-26: its Restart button touches a
+watched `.py` so `--reload` cycles the app **in-process** — the service MainPID does not exit,
+so the button is safe against the hosted service by construction (measured: MainPID unchanged
+across a reload). `run.sh` flags remain correct for a NON-hosted context (another checkout, a
+scratch copy).
 
 Ask CK server restart/admin was streamlined 2026-07-20 (uncommitted working tree; Terrence commits himself). See [[pending-approved-plans]].
 

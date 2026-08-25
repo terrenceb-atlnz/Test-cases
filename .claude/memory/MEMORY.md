@@ -24,7 +24,7 @@
 - [CLI fabrication starts at step 2](cli-fabrication-originates-step2.md) — `speed=1000` originates in Sequence Extraction, not Generate; skeleton repeats it 4×/TestCase; step6 amplifies 13→57
 - [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; resourcing gap (prompt shows zero sample output), not model quality
 - [Part 3 grading session](part3-grading-session.md) — 2026-07-27: judges = Opus + vllm-fast (NOT plan's vllm-thinking); T33235 generated; tb470 configs = /home/st-art/st-art/configs; Part 3b blocked — cause identified 2026-08-03, see [[run-thread-contextvar-lock]] (not the bench)
-- [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users, use `_step_label()`
+- [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users; frontend labels CONFORM as of 2026-08-26 (4 leaks fixed labels-only)
 - [Stale session connection bug](stale-session-connection-bug.md) — server returns 200 but the write never reaches ck.db (thread-local conn goes stale after external writes; `_pt_persist` swallows failures); restart + verify `updated_at`
 - [Workspace LLM default gotcha](workspace-llm-default-gotcha.md) — headless curl 502s "needs a browser session id" unless `_workspace_llm` is local_llm; per-case llm_config is NOT authoritative since the §9 fix
 - [PyTest artefact-review worklist](pytest-artefact-review-worklist.md) — T33233 review findings #1/2/4/5/7 DONE; #3 partial; D1/D2/D3 all RESOLVED+implemented 2026-07-27
@@ -34,7 +34,8 @@
 - [User prefers manual UI testing](user-prefers-manual-ui-testing.md) — skip Playwright, give a manual test checklist instead
 - [The .log IS the deliverable](log-is-the-deliverable.md) — for lab test cases the per-case `<case-id>.log` is enough; do NOT write an `after-action-<id>.md` for every test, only when Terrence asks (qualifies orient-ie520 §8, which still holds for a whole campaign)
 - [Pending approved plans](pending-approved-plans.md) — ES-split + DB-migration + LLM-observability ALL executed & committed (incl. post-review fixes, 47833de)
-- [Ask CK admin + restart](ask-ck-admin-restart.md) — fast restart via ./run.sh --bg/--restart (root wrapper; not setup.sh); hidden admin panel by double-clicking CK's face
+- [Ask CK LAN hosting](askck-lan-hosting.md) — **since 2026-08-26 the server of record is http://10.33.22.17:8000/** (systemd user unit ask-ck.service + fstab automount + local `ck` command, NONE of it in the repo); manage with `ck`/systemctl --user, NEVER run.sh --stop; Restart=always is deliberate; no auth + DHCP lease caveats
+- [Ask CK admin + restart](ask-ck-admin-restart.md) — run.sh flags for NON-hosted contexts; the HOSTED server is managed via [[askck-lan-hosting]]'s `ck` instead; the hidden admin panel (double-click CK's face) is service-safe — its restart is an in-process --reload cycle
 - [ATP search merge UX](atp-search-merge-ux.md) — the "ATP search doesn't work" report; RESOLVED 2026-07-16 (two-table shortlist + relevance scoring + pool re-scoring)
 - [PyTest Creator LLM-config bug](pytest-creator-llm-config-bug.md) — LLM endpoints silently used wrong backend; fixed by centralizing workspace-LLM apply in both routers (2026-07-20, committed)
 - [LLM health-check button](llm-health-check-button.md) — button by "key stored" note pings the LLM for a hello (BUILT + committed 2026-07-20, 47833de)

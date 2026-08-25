@@ -6,7 +6,15 @@ metadata:
   type: project
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T01:30:11.264Z
+  verified: 2026-08-26
 ---
+
+**2026-08-26: the frontend now CONFORMS.** A Playwright sweep found four places where internal
+numbers leaked into visible text (worst: "Review in 6. Generate" after an LLM fix — 6 is Run);
+all were fixed labels-only, internal `stepN` keys and `data-args='[N]'` untouched, exactly as
+this memory prescribes. The mapping below stays the ground truth for any code that renders a
+step number; sequence steps are additionally labelled "Sequence step N" now, because the two
+step vocabularies used to collide in one view.
 
 In PyTest Creator the internal `stepN` session keys and the numbers shown on screen
 **diverged** when the old step 4 (Fit Decision) was folded into Fragments:

@@ -6,6 +6,7 @@ metadata:
   type: project
   originSessionId: 5eff94ba-b305-4e2c-8e60-efda5ba8e420
   modified: 2026-07-28T04:16:43.800Z
+  verified: 2026-08-26
 ---
 
 `ask-ck/var/ck.db` is **WAL-mode**. A committed write lands in `ask-ck/var/ck.db-wal` and
