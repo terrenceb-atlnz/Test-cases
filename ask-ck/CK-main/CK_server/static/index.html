@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/styles.css?v=26">
+<link rel="stylesheet" href="/static/styles.css?v=27">
 </head>
 <body>
 <div class="layout">
@@ -260,7 +260,7 @@
     <div id="panel-llm-config" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use your own locally logged-in subscription — the Claude Code CLI on <em>your own machine</em>. No developer API keys. Apply / Login saves the workspace default; it is applied to cases as they load. On a shared Ask CK server, the Claude option runs against <strong>your own</strong> Claude seat via the local agent — seats are never shared.</div>
+        <div class="section-description">Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys. Apply / Login saves the workspace default; it is applied to cases as they load. The two Claude options differ in <em>whose seat pays</em>: <strong>my local machine</strong> brokers each call through an agent on the user's own box, so seats are never shared; <strong>this server</strong> runs <code>claude</code> here and spends this server's single seat for everyone. Pick the second only for a shared or headless deployment.</div>
 
         <div class="radio-group">
           <label class="radio-label">
@@ -268,6 +268,9 @@
           </label>
           <label class="radio-label">
             <input type="radio" name="llmAuthMethod" value="claude_agent"> Claude Code CLI (my local machine)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="llmAuthMethod" value="claude_code"> Claude Code CLI (this server)
           </label>
           <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check my local agent</button>
 
@@ -304,7 +307,19 @@
           <label class="radio-label">
             <input type="radio" name="claudeMode" value="opus"> Opus
           </label>
-          <span class="justification-note">Runs as <code>claude --model &lt;name&gt;</code> on your own seat.</span>
+          <span class="justification-note" id="claudeModeNote">Runs as <code>claude --model &lt;name&gt;</code> on your own seat.</span>
+        </div>
+
+        <div id="claudeCodeInstructions" class="instructions-panel hidden">
+          <strong>Claude Code CLI — on this server (one shared seat)</strong><br><br>
+          The server runs <code>claude</code> itself, so nothing needs installing on any client
+          and a remote seat works with no local agent. The trade-off is the one
+          <em>Claude Code CLI (my local machine)</em> exists to avoid: every call spends
+          <strong>this server's</strong> Claude seat, and its limits are shared by everyone
+          using the page.<br><br>
+          Pick this for a shared or headless deployment where per-user seats are not
+          practical. Pick <em>my local machine</em> when each user should spend their own seat.
+          <div id="claudeCodeStatusResult" class="status-result"></div>
         </div>
 
         <div id="claudeAgentInstructions" class="instructions-panel hidden">
@@ -545,7 +560,7 @@
     <div id="panel-pt-cases" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">PyTest Creator — Cases</div>
-        <div class="section-description">Pick a case to generate pytest code for (only Generator-Complete cases with a refined <code>zephyr_payload.json</code> are listed). <b>Open/Partial</b> = PyTest work not yet fully validated; <b>Complete</b> = generated + validated here (step 8). Selection is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator or validating one here.</div>
+        <div class="section-description">Pick a case to generate pytest code for (only Generator-Complete cases with a refined <code>zephyr_payload.json</code> are listed). <b>Open/Partial</b> = PyTest work not yet fully validated; <b>Complete</b> = generated + validated here (step 7). Selection is independent of the Generator's loaded case. Use <b>Refresh</b> after exporting new cases in the Generator or validating one here.</div>
         <div class="mt-2">
           <div class="compact-flex mb-1">
             <label class="case-select-label" for="ptCaseSelOpen" id="ptCaseSelOpenLabel">Open/Partial</label>
@@ -627,7 +642,7 @@
 
         <div class="compact-flex mt-2">
           <button data-action="ptSaveFragments" class="btn btn-compact">Save Selections</button>
-          <button data-action="ptConfirm" data-args='[5]' class="btn btn-compact">Confirm</button>
+          <button data-action="ptConfirm" data-args='[5]' class="btn btn-compact">Confirm Step 4</button>
         </div>
         <div id="pt-frag-prov" class="mt-2"></div>
       </div>
@@ -649,7 +664,7 @@
           <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM)</button>
           <button data-action="ptLintScript" class="btn btn-compact">Lint</button>
           <button data-action="ptSaveScript" class="btn btn-compact">Save to generated/</button>
-          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm</button>
+          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm Step 5</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
@@ -667,17 +682,18 @@
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 6. Run <span id="pt-badge-7" class="badge hidden">Confirmed</span></div>
         <div class="section-description">Execute the confirmed script on a testbox. Pick a stored testbox (or add a new one), choose the .setup, run, and watch the parsed results.</div>
+        <div id="pt-run-case" class="mt-2 mb-2"></div>
         <div class="compact-flex mb-2">
           <label class="justification-note">Testbox:</label>
           <select id="pt-run-profile" class="form-select" style="width:auto"></select>
           <button data-action="ptCheckProfile" class="btn btn-compact">Check Connection</button>
           <label class="justification-note">Setup:</label>
           <select id="pt-run-setup" class="form-select" style="width:auto"></select>
-          <input id="pt-run-setup-path" class="form-input form-input-small" placeholder="…or remote .setup path">
+          <input id="pt-run-setup-path" class="form-input" style="width:22ch" placeholder="…or remote .setup path">
         </div>
         <div class="compact-flex mb-2">
           <button data-action="ptRun" class="btn btn-primary btn-compact" id="pt-run-btn">Run on Testbox</button>
-          <button data-action="ptConfirm" data-args='[7]' class="btn btn-compact">Confirm</button>
+          <button data-action="ptConfirm" data-args='[7]' class="btn btn-compact">Confirm Step 6</button>
           <span id="pt-run-status" class="justification-note"></span>
         </div>
         <div id="pt-run-results" class="mb-2"></div>
@@ -690,10 +706,11 @@
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 7. Validate <span id="pt-badge-8" class="badge hidden">Confirmed</span></div>
         <div class="section-description">Final Validation: latest run finished, every TestCase PASS, zero failures. On failures, loop back with an LLM fix; on all-PASS, confirm to close out.</div>
+        <div id="pt-validate-case" class="mt-2 mb-2"></div>
         <div class="compact-flex mb-2">
           <button data-action="ptValidate" class="btn btn-primary btn-compact">Run Final Validation</button>
           <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix with LLM (from failures)</button>
-          <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 8 (close out)</button>
+          <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 7 (close out)</button>
         </div>
         <div id="pt-validate-status" class="justification-note mb-2"></div>
         <div id="pt-validate-result"></div>
@@ -743,6 +760,6 @@
   </main>
 </div>
 
-<script type="module" src="/static/js/main.js?v=27"></script>
+<script type="module" src="/static/js/main.js?v=28"></script>
 </body>
 </html>

@@ -72,6 +72,23 @@ async function setLLMConfig() {
       } else {
         alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nStart it: cd ask-ck/agent && ./run-agent.sh — then click 'Check my local agent'.");
       }
+    } else if (auth_method === 'claude_code') {
+      // Mirrors the claude_agent branch, but the CLI being probed is the
+      // SERVER's — reported by the backend as llm_config.claude_cli, so no
+      // browser-side probe exists or is wanted here.
+      const cli = data.llm_config.claude_cli || {};
+      const el = document.getElementById('claudeCodeStatusResult');
+      if (el) {
+        el.textContent = cli.available
+          ? `✓ server CLI ready${cli.version ? ` — ${cli.version}` : ''}${cli.path ? ` (${cli.path})` : ''}`
+          : `✗ no usable claude CLI on the server${cli.hint ? ` — ${cli.hint}` : ''}`;
+      }
+      const cm = body.model ? ` — ${body.model} model` : '';
+      if (cli.available) {
+        alert(`Claude Code CLI (this server) enabled${cm}.\n\nCalls run on the SERVER and spend THIS SERVER'S Claude seat, shared by everyone using this page. No local agent is needed.`);
+      } else {
+        alert("Claude Code CLI (this server) selected, but the server has no usable 'claude' CLI.\n\nInstall Claude Code on the server host and run 'claude' -> /login there.");
+      }
     } else if (auth_method === 'local_llm') {
       const keyEl = document.getElementById('localLlmKey');
       if (keyEl) keyEl.value = '';   // write-only field: never leave the key in the DOM
@@ -134,7 +151,7 @@ export async function applyClaudeMode() {
   // model immediately (no Apply click). Only meaningful when claude_agent is the
   // selected method. Stays quiet — this is an incidental toggle, not a login.
   const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value;
-  if (method !== 'claude_agent') return;
+  if (method !== 'claude_agent' && method !== 'claude_code') return;
   const cm = document.querySelector('input[name="claudeMode"]:checked');
   const model = (cm && cm.value) || 'sonnet';
 
@@ -243,18 +260,28 @@ export function updateAuthMethodUI() {
   const agentInstr = document.getElementById('claudeAgentInstructions');
   const localRow = document.getElementById('localLlmRow');
   const claudeRow = document.getElementById('claudeAgentRow');
+  const codeInstr = document.getElementById('claudeCodeInstructions');
+  const modeNote = document.getElementById('claudeModeNote');
 
   if (localRow) localRow.classList.toggle('hidden', method !== 'local_llm');
-  if (claudeRow) claudeRow.classList.toggle('hidden', method !== 'claude_agent');
-
-  if (method === 'claude_agent') {
-    if (agentBtn) agentBtn.classList.remove('hidden');
-    if (agentInstr) agentInstr.classList.remove('hidden');
-  } else {
-    // Org vLLM (local_llm): no CLI to check, no instruction panels
-    if (agentBtn) agentBtn.classList.add('hidden');
-    if (agentInstr) agentInstr.classList.add('hidden');
+  // BOTH Claude modes carry a model, so the Haiku/Sonnet/Opus row belongs to
+  // each of them — gating it on claude_agent alone made the row vanish under
+  // claude_code even though `claude --model` still applies.
+  const isClaude = (method === 'claude_agent' || method === 'claude_code');
+  if (claudeRow) claudeRow.classList.toggle('hidden', !isClaude);
+  if (modeNote) {
+    modeNote.innerHTML = method === 'claude_code'
+      ? 'Runs as <code>claude --model &lt;name&gt;</code> on <b>this server\'s</b> seat.'
+      : 'Runs as <code>claude --model &lt;name&gt;</code> on your own seat.';
   }
+
+  // The local-agent button and its instructions are about the USER's machine —
+  // meaningless under claude_code, which runs on the server and needs nothing
+  // installed client-side.
+  const wantsAgent = (method === 'claude_agent');
+  if (agentBtn) agentBtn.classList.toggle('hidden', !wantsAgent);
+  if (agentInstr) agentInstr.classList.toggle('hidden', !wantsAgent);
+  if (codeInstr) codeInstr.classList.toggle('hidden', method !== 'claude_code');
 
   // Placeholder only (no reverse call into this function)
   updateLLMDefaults();
@@ -296,16 +323,19 @@ export function restoreLLMUI() {
   // Set method from saved config (no provider dropdown; radios embody the choice)
   let method = c.auth_method || 'local_llm';
   if (method === 'account' || method === 'api_key') method = 'local_llm';  // legacy mappings
-  if (method === 'claude_code') method = 'claude_agent';  // server-local CLI removed from UI; map to per-user agent
   const radios = document.querySelectorAll('input[name="llmAuthMethod"]');
   for (let r of radios) {
     r.checked = (r.value === method);
   }
 
-  if (method === 'claude_agent') {
+  if (method === 'claude_agent' || method === 'claude_code') {
     // Restore the Haiku/Sonnet/Opus toggle from the saved model. Only override
     // when the config carries one of the known aliases — a restore whose model
     // is missing/"default" must NOT silently reset a chosen model.
+    // Covers BOTH Claude modes: gating this on claude_agent alone left the
+    // model row showing its markup default (Sonnet) under claude_code while
+    // the stored model was opus — the same disagreement between the UI and the
+    // real config that the claude_agent remap used to cause.
     if (c.model === 'haiku' || c.model === 'sonnet' || c.model === 'opus') {
       document.querySelectorAll('input[name="claudeMode"]').forEach((r) => {
         r.checked = (r.value === c.model);
@@ -336,7 +366,8 @@ export function restoreLLMUI() {
   // Keep model field in sync when present (not for local_llm / claude_agent —
   // their model is the toggle, not the free-text field)
   const modelInput = document.getElementById('llmModel');
-  if (modelInput && c.model && !modelInput.value && method !== 'local_llm' && method !== 'claude_agent') {
+  if (modelInput && c.model && !modelInput.value && method !== 'local_llm'
+      && method !== 'claude_agent' && method !== 'claude_code') {
     modelInput.value = c.model;
   }
 

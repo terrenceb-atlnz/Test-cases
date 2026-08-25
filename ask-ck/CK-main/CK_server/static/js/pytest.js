@@ -7,6 +7,7 @@ import { goToPanel } from './nav.js';
 import { recordLLMDebug } from './llm-debug.js';
 import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
 import { onCaseLoaded, registerReloader } from './locks.js';
+import { rememberCase } from './session-restore.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
 registerReloader('pt', ptLoadCase);
@@ -85,18 +86,19 @@ async function ptRefreshCases() {
   const nOpen = openSel ? Array.from(openSel.options).filter(o => o.value).length : 0;
   const nDone = doneSel ? Array.from(doneSel.options).filter(o => o.value).length : 0;
   if (st) st.textContent = `Case lists refreshed — ${nOpen} open/partial, ${nDone} complete. `
-    + 'A case appears here only once it has a refined zephyr_payload.json (export it in the Objective/Test Case Generator first); it moves to Complete once its PyTest script passes Final Validation (step 8).';
+    + 'A case appears here only once it has a refined zephyr_payload.json (export it in the Objective/Test Case Generator first); it moves to Complete once its PyTest script passes Final Validation (step 7).';
   if (btn) btn.disabled = false;
 }
 
-async function ptLoadCase() {
-  if (!S.ptCase.key) { alert('Select a completed case first.'); return; }
+export async function ptLoadCase() {
+  if (!S.ptCase.key) { alert('Select a case first (Open/Partial, or Complete to revisit one).'); return; }
   const st = ptStatusEl('pt-load-status');
   const d = await ptApi(`/load_case/${S.ptCase.key}`, { method: 'POST' }, st);
   if (!d) return;
   ptSession = d.session;
   ptCaseInfo = { title: d.case_title, group_display: d.group_display,
                  objective: d.objective, steps: d.steps };
+  rememberCase('pt', S.ptCase.key, true);   // survives a refresh (session-restore.js)
   updatePtBadges();
   // Per-case lock (PLAN-auth-and-case-locking.md Phase 1): read-only banner + disabled
   // inputs when another tab/user holds it; heartbeat + release-on-close when we do.
@@ -459,14 +461,14 @@ function ptRenderSteps() {
       const ok = (_ptStepChosen[s.n] || []).length > 0;
       const cur = i === _ptCurStep ? ' pt-pill-current' : '';
       return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" `
-        + `data-action="ptGoStep" data-args='[${i}]' title="Step ${s.n}${ok ? ' — covered' : ' — no script yet'}">`
+        + `data-action="ptGoStep" data-args='[${i}]' title="Sequence step ${s.n}${ok ? ' — covered' : ' — no script yet'}">`
         + `${ok ? '✓' : '✗'} ${s.n}</button>`;
     }).join('');
     sumEl.innerHTML = `<div class="pt-stepnav">
-      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} steps covered${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
+      <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} sequence steps covered${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
       <div class="pt-stepnav-btns">
         <button class="btn btn-compact" data-action="ptPrevStep" ${_ptCurStep === 0 ? 'disabled' : ''}>‹ Prev</button>
-        <span class="pt-stepnav-pos">Step ${_ptCurStep + 1} of ${seq.length}</span>
+        <span class="pt-stepnav-pos">Sequence step ${_ptCurStep + 1} of ${seq.length}</span>
         <button class="btn btn-compact" data-action="ptNextStep" ${_ptCurStep === seq.length - 1 ? 'disabled' : ''}>Next ›</button>
       </div>
       <div class="pt-pill-row">${pills}</div>
@@ -483,13 +485,13 @@ function ptRenderSteps() {
   el.innerHTML = `<div class="pt-step-block">
       <div class="pt-step-head">
         <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? '✓' : '✗'}</span>
-        <b>Step ${n}</b> — ${escapeHtml(s.action || '')}
+        <b>Sequence step ${n}</b> — ${escapeHtml(s.action || '')}
         <span class="justification-note">${ok ? `${chosenIds.size} chosen` : 'no script yet'}</span>
       </div>
       <div class="justification-note pt-step-verify">verify: ${escapeHtml(s.verify || '')}</div>
 
       <div class="compact-flex mt-1 mb-2">
-        <button class="btn btn-primary btn-compact" data-action="ptSuggestStep" data-args='[${n}]' id="pt-suggest-step-${n}">Suggest for step ${n} (LLM)</button>
+        <button class="btn btn-primary btn-compact" data-action="ptSuggestStep" data-args='[${n}]' id="pt-suggest-step-${n}">Suggest for sequence step ${n} (LLM)</button>
         <input type="text" class="form-input form-input-search pt-step-q" data-step="${n}" placeholder="keyword search this step…">
         <button class="btn btn-compact" data-action="ptSearchStep" data-args='[${n}]'>Search</button>
         <span class="justification-note" id="pt-step-status-${n}"></span>
@@ -498,13 +500,13 @@ function ptRenderSteps() {
       <div class="pt-step-sub">Candidates <span class="justification-note">— tick rows and Choose to shortlist them for this step</span></div>
       ${_ptMatchTable(cands, n, 'cand')}
       <div class="compact-flex mt-1 mb-2">
-        <button class="btn btn-compact" data-action="ptChooseMatches" data-args='[${n}]'>↓ Choose ticked for step ${n}</button>
+        <button class="btn btn-compact" data-action="ptChooseMatches" data-args='[${n}]'>↓ Choose ticked for sequence step ${n}</button>
       </div>
 
-      <div class="pt-step-sub">Chosen for this step <span class="justification-note">— reused for step ${n}; tick and Remove to move back up</span></div>
+      <div class="pt-step-sub">Chosen for this sequence step <span class="justification-note">— reused for sequence step ${n}; tick and Remove to move back up</span></div>
       ${_ptMatchTable(chosenRecs, n, 'chosen')}
       <div class="compact-flex mt-1">
-        <button class="btn btn-compact" data-action="ptClearChosen" data-args='[${n}]'>↑ Remove ticked from step</button>
+        <button class="btn btn-compact" data-action="ptClearChosen" data-args='[${n}]'>↑ Remove ticked from sequence step</button>
       </div>
       <div id="pt-source-view" class="mt-2"></div>
     </div>`;
@@ -553,7 +555,7 @@ async function ptSuggestStep(stepN) {
   _ptAddCands(stepN, d.matches || []);
   ptRenderSteps();
   const el = document.getElementById(`pt-step-status-${stepN}`);
-  if (el) el.textContent = `${(d.matches || []).length} match(es) for step ${stepN}.`;
+  if (el) el.textContent = `${(d.matches || []).length} match(es) for sequence step ${stepN}.`;
 }
 
 // Per-step keyword search — links every result to this step.
@@ -568,7 +570,7 @@ async function ptSearchStep(stepN) {
   _ptAddCands(stepN, recs);
   ptRenderSteps();
   const el = document.getElementById(`pt-step-status-${stepN}`);
-  if (el) el.textContent = `${recs.length} hit(s) for "${q}" — linked to step ${stepN}.`;
+  if (el) el.textContent = `${recs.length} hit(s) for "${q}" — linked to sequence step ${stepN}.`;
 }
 
 async function ptSaveMatches() {
@@ -707,13 +709,13 @@ function ptRenderFragSteps() {
     const pills = seq.map((s, i) => {
       const ok = stepHasSel(s.n);
       const cur = i === _ptFragStep ? ' pt-pill-current' : '';
-      return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" data-action="ptFragGoStep" data-args='[${i}]' title="Step ${s.n}${ok ? ' — has a selected fragment' : ' — none selected'}">${ok ? '✓' : '✗'} ${s.n}</button>`;
+      return `<button class="pt-pill ${ok ? 'pt-pill-ok' : 'pt-pill-gap'}${cur}" data-action="ptFragGoStep" data-args='[${i}]' title="Sequence step ${s.n}${ok ? ' — has a selected fragment' : ' — none selected'}">${ok ? '✓' : '✗'} ${s.n}</button>`;
     }).join('');
     sumEl.innerHTML = staleBanner + `<div class="pt-stepnav">
       <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} steps with a selected fragment${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
       <div class="pt-stepnav-btns">
         <button class="btn btn-compact" data-action="ptFragPrevStep" ${_ptFragStep === 0 ? 'disabled' : ''}>‹ Prev</button>
-        <span class="pt-stepnav-pos">Step ${_ptFragStep + 1} of ${seq.length}</span>
+        <span class="pt-stepnav-pos">Sequence step ${_ptFragStep + 1} of ${seq.length}</span>
         <button class="btn btn-compact" data-action="ptFragNextStep" ${_ptFragStep === seq.length - 1 ? 'disabled' : ''}>Next ›</button>
       </div>
       <div class="pt-pill-row">${pills}</div>
@@ -758,7 +760,7 @@ function ptRenderFragSteps() {
   el.innerHTML = `<div class="pt-step-block">
       <div class="pt-step-head">
         <span class="badge ${ok ? 'badge-success' : 'badge-low'}">${ok ? '✓' : '✗'}</span>
-        <b>Step ${n}</b> — ${escapeHtml(s.action || '')}
+        <b>Sequence step ${n}</b> — ${escapeHtml(s.action || '')}
         <span class="justification-note">${ok ? `${selCount} selected` : 'no fragment selected'}</span>
       </div>
       <div class="justification-note pt-step-verify">verify: ${escapeHtml(s.verify || '')}</div>
@@ -940,6 +942,23 @@ function ptProfileLabel(name, p) {
   return `${name} — ${p.tb_number || '?'} (${p.host || '?'})`;
 }
 
+// Both the Run and Validate panels used to name no case at all, which on a
+// shared server meant the two most consequential panels — one runs code on
+// hardware, the other closes a case out — gave no way to tell WHAT they were
+// about to act on. Mirrors the line renderPtSeqPanel already draws.
+function ptRenderCaseLine(elId, extra) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!S.ptCase.key || !ptSession) {
+    el.innerHTML = '<em class="review-empty">No case loaded — go to </em>'
+      + '<a href="#" data-action="goToPanel" data-args="[&quot;panel-pt-cases&quot;]">1. Cases</a>.';
+    return;
+  }
+  el.innerHTML = `<b>Case:</b> <span class="sel-label">${escapeHtml(S.ptCase.key)}</span>`
+    + (ptCaseInfo && ptCaseInfo.title ? ` — ${escapeHtml(ptCaseInfo.title)}` : '')
+    + (extra || '');
+}
+
 export async function renderPtRunPanel() {
   await ptLoadProfiles();
   const sel = document.getElementById('pt-run-profile');
@@ -949,16 +968,40 @@ export async function renderPtRunPanel() {
       `<option value="${escapeHtml(n)}" ${n === cur ? 'selected' : ''}>${escapeHtml(ptProfileLabel(n, p))}</option>`).join('')
     + '<option value="__add__">➕ Add new testbox…</option>';
   ptProfileSelected(sel);
+  // Same shape as ptUpdateGenPath(): step6 stores naming {group,name}, no path.
+  const naming = ((ptSession || {}).step6 || {}).naming || {};
+  const script = (naming.group && naming.name)
+    ? `generated/${naming.group}/${naming.name}.py` : null;
+  ptRenderCaseLine('pt-run-case', script
+    ? ` — will run <code>${escapeHtml(script)}</code>` : '');
+  ptSyncRunButton();
   ptRenderRuns();
   updatePtBadges();
+}
+
+// "Run on Testbox" is the primary action and was always enabled, so the most
+// consequential click in the tool was a dead one until a testbox was picked
+// (ptRun only then alerted "Select a testbox."). Gate the affordance instead.
+// Deliberately does NOT fight locks.js: when the lock layer has disabled the
+// button it owns that state and we leave it alone.
+export function ptSyncRunButton() {
+  const btn = document.getElementById('pt-run-btn');
+  const sel = document.getElementById('pt-run-profile');
+  if (!btn || !sel) return;
+  if (btn.getAttribute('data-ck-lock-disabled') === '1') return;
+  const ready = !!sel.value && sel.value !== '__add__';
+  btn.disabled = !ready;
+  btn.title = ready ? '' : 'Select a testbox first';
 }
 
 export function ptProfileSelected(sel) {
   if (sel.value === '__add__') {
     sel.value = '';
+    ptSyncRunButton();
     goToPanel('panel-pt-testbox');
     return;
   }
+  ptSyncRunButton();
   const p = ptProfiles[sel.value];
   const setupSel = document.getElementById('pt-run-setup');
   setupSel.innerHTML = '';
@@ -1041,6 +1084,7 @@ async function ptPollRun(runId) {
 // --- Step 8: Validate ------------------------------------------------------------
 
 export function renderPtValidatePanel() {
+  ptRenderCaseLine('pt-validate-case', '');
   const el = document.getElementById('pt-validate-result');
   if (!ptSession) { el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
   const s8 = ptSession.step8 || {};
@@ -1078,7 +1122,7 @@ async function ptFixScript() {
   if (!d) return;
   await ptRefreshSession();
   ptStatusEl('pt-validate-status').textContent =
-    `Revised (iteration ${d.iterations}); previous code archived. Review in 6. Generate, then re-run.`;
+    `Revised (iteration ${d.iterations}); previous code archived. Review in 5. Generate, then re-run.`;
   goToPanel('panel-pt-gen');
 }
 

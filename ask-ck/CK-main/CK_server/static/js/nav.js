@@ -1,6 +1,7 @@
 // Sidebar accordion + panel/step navigation.
 import { registerActions } from './actions.js';
 import { S } from './state.js';
+import { rememberPanel } from './session-restore.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
 import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
 import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
@@ -16,8 +17,20 @@ export function initSidebarAccordion() {
       n = n.nextElementSibling;
     }
     label.classList.add('collapsible');
+    // Keyboard reachability. actions.js already activates div[role="button"] on
+    // Enter/Space, but that support was unreachable here: every section starts
+    // collapsed, and a bare <div> header is not focusable — so a keyboard-only
+    // user could not open a section to get at the nav items inside it.
+    label.setAttribute('role', 'button');
+    label.tabIndex = 0;
+    label.setAttribute('aria-expanded', 'false');
+    if (!label.id) label.id = `sidebar-section-label-${i}`;
     label.dataset.sectionIndex = String(i);
-    body.forEach(el => { el.classList.add('sidebar-section-body'); el.dataset.sectionIndex = String(i); });
+    body.forEach(el => {
+      el.classList.add('sidebar-section-body');
+      el.dataset.sectionIndex = String(i);
+      el.setAttribute('aria-labelledby', label.id);
+    });
     // caret indicator
     if (!label.querySelector('.section-caret')) {
       const caret = document.createElement('span');
@@ -32,7 +45,7 @@ export function initSidebarAccordion() {
 
 function collapseAllSections() {
   document.querySelectorAll('.sidebar .sidebar-section-label.collapsible')
-    .forEach(l => l.classList.remove('section-open'));
+    .forEach(l => { l.classList.remove('section-open'); l.setAttribute('aria-expanded', 'false'); });
   document.querySelectorAll('.sidebar .sidebar-section-body')
     .forEach(b => b.classList.add('section-collapsed'));
 }
@@ -40,7 +53,7 @@ function collapseAllSections() {
 function openSidebarSection(i) {
   collapseAllSections();  // accordion: only one open
   const label = document.querySelector(`.sidebar-section-label.collapsible[data-section-index="${i}"]`);
-  if (label) label.classList.add('section-open');
+  if (label) { label.classList.add('section-open'); label.setAttribute('aria-expanded', 'true'); }
   document.querySelectorAll(`.sidebar-section-body[data-section-index="${i}"]`)
     .forEach(b => b.classList.remove('section-collapsed'));
 }
@@ -63,6 +76,7 @@ function expandSectionForActivePanel(panelId) {
 }
 export function goToPanel(panelId) {
   S.currentPanel = panelId;
+  rememberPanel(panelId);   // so a refresh returns here (session-restore.js)
   // Exactly one .tool-panel card visible at a time
   document.querySelectorAll('.tool-panel').forEach((el) => {
     el.classList.toggle('hidden', el.id !== panelId);
@@ -147,7 +161,7 @@ export function updatePageHeader() {
     'panel-zt-link': { title: 'Zephyr Templating Tool', desc: 'Step 3: Link Test Scripts — under construction.' },
     'panel-zt-tbd': { title: 'Zephyr Templating Tool', desc: 'Step 4: TBD — under construction.' },
     'panel-tc-tbd': { title: 'Test Composer', desc: 'Step 1: TBD — under construction.' },
-    'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select a completed case to turn into a framework test script.' },
+    'panel-pt-cases': { title: 'PyTest Creator', desc: 'Select an Open/Partial case to turn into a framework test script.' },
     'panel-pt-seq': { title: 'PyTest Creator', desc: 'Step 2: identify the prescriptive test-step sequence, then confirm.' },
     'panel-pt-search': { title: 'PyTest Creator', desc: 'Step 3: search the script databases for full/partial coverage, then confirm.' },
     'panel-pt-frag': { title: 'PyTest Creator', desc: 'Step 4: gather reusable code fragments, then confirm.' },

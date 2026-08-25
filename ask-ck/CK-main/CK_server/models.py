@@ -92,11 +92,23 @@ class LLMConfig(BaseModel):
       supplied by the browser; the endpoint is fixed in code, not configurable.
     - claude_agent: browser-brokered Claude Code CLI on the USER's own machine
       (Claude only). For a shared server: each user runs ck-agent locally and their
-      prompts execute against THEIR OWN seat — seats are never shared. The current
-      UI-selectable Claude mode.
+      prompts execute against THEIR OWN seat — seats are never shared.
     - claude_code: headless Claude Code CLI on the SERVER host (Claude only). Uses the
-      server machine's own `claude` login. NOT offered in the UI — interactive use would
-      spend the SERVER's seat, the very thing claude_agent exists to avoid.
+      server machine's own `claude` login.
+
+      UI EXCLUSION REVERSED 2026-08-26, deliberately, at Terrence's direction
+      (PLAN-llm-mode-selection.md Option A). This entry used to read "NOT offered in
+      the UI — interactive use would spend the SERVER's seat, the very thing
+      claude_agent exists to avoid". That reasoning still describes the trade-off
+      correctly, but keeping the mode out of the UI did not prevent the spend — it
+      only stopped the UI from telling the truth about it. `restoreLLMConfigUI` mapped
+      claude_code onto the claude_agent radio, so a server on claude_code showed a
+      checked "my local machine", offered a local-agent check that could not work, and
+      started a browser broker loop that could never be handed a job; every remote
+      seat's Apply then wrote the broken value back for everybody. claude_code is now a
+      first-class radio ("Claude Code CLI (this server)") whose panel states plainly
+      that it spends this server's shared seat. Server-seat spending is therefore a
+      normal, visible affordance rather than an out-of-band curl.
 
       It is NOT dead back-compat, and deleting it would break working tooling. It predates
       claude_agent (2026-07-13 vs 07-15) but acquired a distinct job when claude_agent took

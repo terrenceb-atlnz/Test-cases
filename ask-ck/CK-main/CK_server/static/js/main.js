@@ -7,7 +7,9 @@ import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
 import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from './llm.js';
-import { ptProfileSelected } from './pytest.js';
+import { ptProfileSelected, ptLoadCase } from './pytest.js';
+import { readSnapshot, waitForOptions, hasOption } from './session-restore.js';
+import { onPtCaseSelectChange } from './cases.js';
 import { openAdminPanel } from './admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
 import './provenance.js';        // side-effect: provRefresh/provCopy* actions (shared)
@@ -30,6 +32,12 @@ async function loadToolStatus(apiName, elId) {
   } catch (_) { /* leave placeholder text when offline */ }
 }
 
+// Read the pre-refresh snapshot FIRST. goToPanel() records wherever it moves to,
+// so the boot default ('panel-main', below) overwrites the stored panel before an
+// async restore could read it — the restore then faithfully returned to
+// 'panel-main' every time.
+const BOOT_SNAPSHOT = readSnapshot();
+
 initSidebarAccordion();
 initCases();
 updateAuthMethodUI();
@@ -40,21 +48,58 @@ loadWorkspaceLLMConfig();       // cold-load: reflect the persisted login (incl.
 loadToolStatus('zephyr-tool', 'zt-info-status');
 loadToolStatus('test-composer', 'tc-status');
 
-// Prefer first open/partial case if none chosen (no demo auto-load of a specific key)
-setTimeout(() => {
-  const openSel = document.getElementById('caseSelOpen');
-  if (openSel && !openSel.value) {
-    for (let i = 0; i < openSel.options.length; i++) {
-      const v = openSel.options[i].value;
-      if (v && v !== '') {
-        openSel.selectedIndex = i;
-        onCaseSelectChange(openSel);
-        break;
-      }
+// Restore where the user was before a refresh, then fall back to the old
+// default (first open/partial case) only when there is nothing to restore.
+// This waits on the case lists rather than firing on a fixed timeout — the old
+// 200ms guess raced initCases()' fetch on a cold load.
+async function restoreUiState() {
+  const snap = BOOT_SNAPSHOT;
+
+  // --- Generator: selecting IS loading, so the dropdown is the whole state ---
+  const genSel = await waitForOptions('caseSelOpen');
+  if (snap.genKey && (hasOption('caseSelOpen', snap.genKey) || hasOption('caseSelDone', snap.genKey))) {
+    const which = hasOption('caseSelOpen', snap.genKey) ? 'caseSelOpen' : 'caseSelDone';
+    const sel = document.getElementById(which);
+    sel.value = snap.genKey;
+    onCaseSelectChange(sel);
+  } else if (genSel && !genSel.value && !snap.genKey) {
+    // Unchanged pre-existing default: prefer the first open/partial case.
+    for (let i = 0; i < genSel.options.length; i++) {
+      if (genSel.options[i].value) { genSel.selectedIndex = i; onCaseSelectChange(genSel); break; }
+    }
+  }
+
+  // --- PyTest Creator: selection and load are separate, so re-load only a case
+  // that was actually loaded. This re-acquires its lock, exactly as the user's
+  // own click did before the refresh.
+  let ptRestored = false;
+  if (snap.ptKey) {
+    await waitForOptions('ptCaseSelOpen');
+    const which = hasOption('ptCaseSelOpen', snap.ptKey) ? 'ptCaseSelOpen'
+                : hasOption('ptCaseSelDone', snap.ptKey) ? 'ptCaseSelDone' : null;
+    if (which) {
+      const sel = document.getElementById(which);
+      sel.value = snap.ptKey;
+      onPtCaseSelectChange(sel);
+      if (snap.ptLoaded) { await ptLoadCase(); ptRestored = true; }
+    }
+  }
+
+  // --- Panel last: ptLoadCase() navigates to 2. Sequence on success, which
+  // would otherwise overwrite the panel the user was actually on.
+  const panel = snap.panel;
+  if (panel && document.getElementById(panel)) {
+    const isPt = panel.startsWith('panel-pt-');
+    // Don't drop the user into a PyTest panel whose case failed to come back.
+    if (!isPt || ptRestored || panel === 'panel-pt-cases' || panel === 'panel-pt-testbox') {
+      goToPanel(panel);
+    } else {
+      goToPanel('panel-pt-cases');
     }
   }
   updatePageHeader();
-}, 200);
+}
+restoreUiState();
 
 // Form-control bindings that were previously inline onchange/onkeydown attributes.
 document.querySelectorAll('input[name="llmAuthMethod"]').forEach((radio) => {

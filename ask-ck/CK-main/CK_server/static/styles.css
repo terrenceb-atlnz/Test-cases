@@ -1335,6 +1335,11 @@ h2 {
 .btn-compact { font-size:12px; height:auto; padding:6px 10px; flex:0 0 auto; }
 .btn-small { font-size:11px; min-width: 90px; border-radius: 999px; flex:0 0 auto; padding:4px 10px; }
 .form-select.mb-1 { width:auto; max-width:480px; min-width:240px; font-size:13px; }
+/* A case-select pair must not size to its own longest option: an empty bucket
+   collapsed to the 240px min-width beside a full one at the 480px max, so the
+   Open/Partial and Complete dropdowns rendered visibly different widths. Fix
+   the width so the pair always lines up, in both tools. */
+.case-select.form-select.mb-1 { width:480px; max-width:100%; }
 .case-select-label {
   display: block;
   font-size: 11px;

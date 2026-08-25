@@ -1,6 +1,7 @@
 // Case-select plumbing shared by the Generator and PyTest Creator.
 import { S } from './state.js';
 import { updatePageHeader } from './nav.js';
+import { rememberCase } from './session-restore.js';
 
 function fillCaseSelect(sel, grouped, placeholder) {
   if (!sel) return;
@@ -57,13 +58,14 @@ export function onCaseSelectChange(sourceSel) {
   const doneSel = document.getElementById('caseSelDone');
   handleCasePairChange(openSel, doneSel, sourceSel, (key, title) => {
     S.currentKey = key;
+    rememberCase('gen', key);
     window.currentCaseTitle = title;
     syncHiddenCaseSel(key);
     updatePageHeader();
   });
 }
 
-function onPtCaseSelectChange(sourceSel) {
+export function onPtCaseSelectChange(sourceSel) {
   // PyTest Creator: two dropdowns (Open/Partial + Complete), mutually exclusive like
   // the Generator's pair. Must never touch S.currentKey / #caseSel / the page header —
   // those belong to the Generator's loaded case.
@@ -71,6 +73,7 @@ function onPtCaseSelectChange(sourceSel) {
   const doneSel = document.getElementById('ptCaseSelDone');
   handleCasePairChange(openSel, doneSel, sourceSel, (key, title) => {
     S.ptCase = { key: key, title: title };
+    rememberCase('pt', key, false);   // selected, not yet loaded
     const s = document.getElementById('pt-selected-summary');
     if (s) s.textContent = key ? `Selected: ${key}` : '';
   });

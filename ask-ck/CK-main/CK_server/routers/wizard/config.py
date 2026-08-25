@@ -138,7 +138,11 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     - "claude_agent": the Claude Code CLI on the user's OWN machine, via the browser
       bridge. No credential is collected; each user spends their own seat.
     - "claude_code": headless Claude Code CLI on the server host (Claude only). Same
-      destination as claude_agent; single-user hosting only, not offered in the UI.
+      destination as claude_agent, but spends the SERVER's seat, shared by every user
+      of the page. Offered in the UI as of 2026-08-26 — the "not offered in the UI"
+      exclusion was reversed deliberately (see the claude_code entry in `models.py`
+      and PLAN-llm-mode-selection.md Option A); hiding it never stopped the spend, it
+      only stopped the UI from reporting the active mode honestly.
     - "grok_cli": headless Grok CLI (subscription OAuth). No credential is collected.
 
     REFUSED (2026-08-04): "api_key" and legacy "account", which took a caller-supplied
