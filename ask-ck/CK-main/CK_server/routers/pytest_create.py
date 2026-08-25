@@ -2808,6 +2808,44 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
     return {"matches": matches, "mechanical_considered": len(mech)}
 
 
+# Fields of a step-3 match record worth persisting on the session. A whitelist,
+# not the whole record: mechanical-search rows drag scoring internals along, and
+# the session payload is the permanent ck.db row — keep it to what the UI renders
+# and downstream prompts consume.
+_MATCH_PERSIST_FIELDS = ("id", "title", "db", "coverage", "reason", "covers_steps")
+
+
+def _match_slim(m: dict) -> dict:
+    return {k: m[k] for k in _MATCH_PERSIST_FIELDS if k in m}
+
+
+def _persist_step_matches(sess: PtSession, step_n: int, matches: List[dict]) -> None:
+    """Merge one step's LLM suggestions into step3.step_matches and persist.
+
+    Why (2026-08-26, Terrence): per-step suggestions used to live only in browser
+    JS — a hard reload lost the candidates AND degraded already-chosen rows to
+    db='other' / coverage='?' because nothing server-side held their records. The
+    whole-case suggest DID persist (step3.matches), but it left the UI on
+    2026-08-20-ish, so nothing persisted at all. Merge is by id with the newest
+    verdict winning, so a re-suggest refreshes coverage/why without dropping
+    candidates the page already showed.
+
+    Deliberately does NOT unconfirm step 3 and does NOT _invalidate_from(3):
+    candidates are not selections — only save_matches changes what downstream
+    consumes, and it keeps its invalidation.
+    """
+    step3 = sess.step3 or {}
+    sm = dict(step3.get("step_matches") or {})
+    merged = {m0.get("id"): _match_slim(m0) for m0 in (sm.get(str(step_n)) or [])
+              if isinstance(m0, dict) and m0.get("id")}
+    for m0 in matches or []:
+        if isinstance(m0, dict) and m0.get("id"):
+            merged[m0["id"]] = _match_slim(m0)
+    sm[str(step_n)] = list(merged.values())
+    sess.step3 = {**step3, "step_matches": sm}
+    _pt_persist(sess)
+
+
 @router.post("/suggest_scripts_step/{key}/{step_n}")
 async def suggest_scripts_step(key: str, step_n: int, request: Request,
                                body: dict = Body(default={})):
@@ -2816,8 +2854,10 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
     Unlike the global suggest (which fans matches out across the whole sequence), this
     scopes the LLM to a single step so a reviewer can fill a specific gap. Every returned
     match is linked to this step by construction (covers_steps forced to [step_n]); the
-    frontend drops them into that step's candidate list. Not persisted to step3.matches —
-    the reviewer chooses per step and saves the whole map via save_matches.
+    frontend drops them into that step's candidate list. Persisted to
+    step3.step_matches[step] (2026-08-26) so suggestions — and their coverage/why
+    verdicts — survive a reload and a closed browser; the reviewer still chooses
+    per step and saves the map via save_matches.
     """
     data = _data(request)
     sess = _pt_get(key)
@@ -2855,17 +2895,25 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
             "case_key": key, "sequence": one_seq,
             "user_inputs": user_inputs, "candidates": candidates,
         }, llm_config=_llm_cfg(sess), timeout=300)
-        if not meta.get("error"):
-            parsed = extract_json_block(meta.get("content", ""))
-            valid_ids = {c["id"] for c in candidates}
-            llm_matches = [m for m in _parsed_list(parsed, "matches")
-                           if isinstance(m, dict) and m.get("id") in valid_ids
-                           and m.get("coverage") in ("full", "partial")]
+        # AN ERROR IS NOT "NO MATCHES" (2026-08-26). This used to swallow LLM
+        # failures into a 200 with matches=[], so a backend outage — and now a
+        # user's Stop — read as "the LLM found nothing for this step". Same
+        # silent-degradation shape gather_fragments already fails loudly on.
+        # The whole-case suggest keeps its documented mechanical fallback; this
+        # per-step path has no fallback to offer, so say what happened.
+        if meta.get("error"):
+            raise HTTPException(502, meta.get("content", "LLM error"))
+        parsed = extract_json_block(meta.get("content", ""))
+        valid_ids = {c["id"] for c in candidates}
+        llm_matches = [m for m in _parsed_list(parsed, "matches")
+                       if isinstance(m, dict) and m.get("id") in valid_ids
+                       and m.get("coverage") in ("full", "partial")]
 
     mech_by_id = {c["id"]: c for c in mech}
     # Force covers_steps to this step — every result is linked to it by construction.
     matches = [{**mech_by_id.get(m["id"], {"id": m["id"]}), **m, "covers_steps": [step_n]}
                for m in llm_matches]
+    _persist_step_matches(sess, step_n, matches)
     return {"matches": matches, "mechanical_considered": len(mech), "step_n": step_n}
 
 
@@ -2893,7 +2941,19 @@ async def save_matches(key: str, body: dict = Body(...)):
                 seen.add(sid)
                 out.append(sid)
         clean[str(step_k)] = out
-    sess.step3 = {**(sess.step3 or {}), "selections": clean,
+    # Record snapshots for the chosen ids (2026-08-26): keyword-search picks have
+    # no LLM verdict persisted anywhere, so after a reload a chosen row degraded
+    # to db='other' / coverage='?' / empty why. The client sends its cached record
+    # per chosen id; whitelisted and kept on the session so the chosen tables
+    # render with full fidelity forever after.
+    recs_in = body.get("records") or {}
+    stored = dict((sess.step3 or {}).get("records") or {})
+    if isinstance(recs_in, dict):
+        for sid, rec in recs_in.items():
+            if isinstance(sid, str) and sid and isinstance(rec, dict):
+                slim = _match_slim({**rec, "id": sid})
+                stored[sid] = slim
+    sess.step3 = {**(sess.step3 or {}), "selections": clean, "records": stored,
                   "user_inputs": body.get("user_inputs", (sess.step3 or {}).get("user_inputs", "")),
                   "confirmed": False}
     _invalidate_from(sess, 3)
@@ -2943,6 +3003,37 @@ async def gather_fragments(key: str, request: Request):
     # Offer the LLM ALL scripts the reviewer chose in step 3 (no cap — per-step
     # selection can legitimately span many). scripts_ctx carries only symbol names +
     # one-line descriptions (not source), so this stays cheap even for large selections.
+    # Step-3 review context (2026-08-26): which steps chose each script, with what
+    # coverage verdict and WHY. Until now scripts reached the fragment prompt as
+    # bare symbol lists, so the LLM chose fragments blind to the reasons the
+    # scripts were selected at all — the coverage/why the reviewer (and the match
+    # LLM) produced in step 3 went nowhere. Per-step verdicts (step_matches) win
+    # over whole-case ones (matches), then chosen-record snapshots (records).
+    sels_map = (sess.step3 or {}).get("selections") or {}
+    step_matches = (sess.step3 or {}).get("step_matches") or {}
+    flat_matches = {m.get("id"): m for m in ((sess.step3 or {}).get("matches") or [])
+                    if isinstance(m, dict)}
+    rec_snaps = (sess.step3 or {}).get("records") or {}
+    chosen_steps: Dict[str, list] = {}
+    if isinstance(sels_map, dict):
+        for n, ids in sels_map.items():
+            for sid in ids or []:
+                chosen_steps.setdefault(sid, []).append(n)
+
+    def _review_for(sid: str) -> List[dict]:
+        out = []
+        for n in chosen_steps.get(sid, []):
+            m = next((x for x in (step_matches.get(str(n)) or [])
+                      if isinstance(x, dict) and x.get("id") == sid), None)                 or flat_matches.get(sid) or rec_snaps.get(sid)
+            entry = {"step": n}
+            if isinstance(m, dict):
+                if m.get("coverage"):
+                    entry["coverage"] = m["coverage"]
+                if m.get("reason"):
+                    entry["why"] = m["reason"]
+            out.append(entry)
+        return out
+
     scripts_ctx = []
     for sid in selections:
         rec = _script_record(data, sid)
@@ -2956,7 +3047,7 @@ async def gather_fragments(key: str, request: Request):
             symbols.append({"kind": "class", "name": c["class"], "desc": c["desc"] or c["method"][:120]})
         for h in rec.get("helpers", []):
             symbols.append({"kind": "function", "name": h["name"], "desc": h.get("doc", "")})
-        scripts_ctx.append({"id": sid, "symbols": symbols})
+        scripts_ctx.append({"id": sid, "symbols": symbols, "review": _review_for(sid)})
 
     meta = await run_in_threadpool(run_prompt, "pt_gather_fragments.jinja", {
         "case_key": key, "sequence": sequence, "scripts": scripts_ctx,

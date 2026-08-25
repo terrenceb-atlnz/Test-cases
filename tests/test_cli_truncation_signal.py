@@ -154,7 +154,7 @@ def test_the_headless_caller_raises_and_names_the_budget(monkeypatch):
     """The old message was "LLM returned no python code block", which sent three sessions
     after the wrong dial. The raise must say what actually happened."""
     monkeypatch.setattr(llm.shutil, "which", lambda _n: "/usr/bin/claude")
-    monkeypatch.setattr(llm.subprocess, "run", lambda *a, **k: _FakeProc(TRUNCATED))
+    monkeypatch.setattr(llm, "_run_cli", lambda *a, **k: _FakeProc(TRUNCATED))
     meta = llm._call_claude_code_headless("hi", "m", {}, timeout=60)
     assert meta.get("error") is True
     message = meta.get("content") or ""
@@ -165,7 +165,7 @@ def test_the_headless_caller_raises_and_names_the_budget(monkeypatch):
 
 def test_a_normal_reply_still_succeeds(monkeypatch):
     monkeypatch.setattr(llm.shutil, "which", lambda _n: "/usr/bin/claude")
-    monkeypatch.setattr(llm.subprocess, "run", lambda *a, **k: _FakeProc(NORMAL))
+    monkeypatch.setattr(llm, "_run_cli", lambda *a, **k: _FakeProc(NORMAL))
     meta = llm._call_claude_code_headless("hi", "m", {}, timeout=60)
     assert not meta.get("error")
     assert meta["content"].strip()

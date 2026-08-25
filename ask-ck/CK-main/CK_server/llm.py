@@ -27,6 +27,9 @@ import json
 import re
 import shutil
 import subprocess
+import threading
+
+import llm_inflight
 import contextvars
 import time
 from jinja2 import Environment, FileSystemLoader
@@ -49,6 +52,10 @@ current_session_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_s
 # Read only by llm_debug.record(); never persisted to session configs.
 current_panel_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_panel_id", default="")
 current_request_path: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_request_path", default="")
+# X-CK-LLM-Call — a browser-generated id for ONE LLM call, so the UI can poll live
+# progress and fire a true server-side cancel. Bound by the same middleware as the
+# ContextVars above; empty for non-browser callers. See llm_inflight.py.
+current_llm_call_id: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_llm_call_id", default="")
 
 env = Environment(loader=FileSystemLoader(PROMPTS_DIR))
 
@@ -118,6 +125,107 @@ def check_grok_cli() -> Dict[str, Any]:
     return {"available": True, "path": path, "version": version, "hint": None}
 
 
+_CANCEL_MSG = "cancelled by user (stopped from the UI; no result kept)"
+
+
+def _run_cli(cmd, input_text=None, timeout: int = 180):
+    """Run a headless LLM CLI with live progress and a true cancel handle.
+
+    Replaces the transports' blocking `subprocess.run` (2026-08-26, Terrence):
+    that call exposed nothing until the CLI exited — no way to stop a wrong
+    click (the tokens kept spending) and no way to show progress. Semantics are
+    preserved exactly where the transports depend on them:
+
+      * returns a CompletedProcess (cmd, returncode, stdout, stderr), text mode;
+      * raises subprocess.TimeoutExpired after killing the process on deadline
+        (subprocess.run kills the child the same way);
+      * prompt via stdin when `input_text` is given — fed from a thread because
+        templated prompts exceed the 64 KiB pipe buffer, and a blocking write
+        alongside a blocking read is the classic feed deadlock communicate()
+        exists to avoid;
+      * raises RuntimeError(_CANCEL_MSG) when the in-flight registry killed it.
+
+    What it adds: `start_new_session=True` so cancel/timeout can kill the WHOLE
+    process group (the claude CLI spawns children); a stdout reader thread that
+    counts stream-json lines/chars into llm_inflight as they arrive (the CLI
+    streams events live — buffering them was subprocess.run's doing, not the
+    CLI's); and a cancel handle (SIGTERM to the group, SIGKILL 5s later if
+    ignored) registered under the browser's call id.
+    """
+    import os
+    import signal
+
+    call_id = current_llm_call_id.get("")
+    proc = subprocess.Popen(cmd,
+                            stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            text=True, start_new_session=True)
+
+    def _kill(sig):
+        try:
+            os.killpg(os.getpgid(proc.pid), sig)
+        except (ProcessLookupError, PermissionError, OSError):
+            pass
+
+    if call_id:
+        def _cancel():
+            _kill(signal.SIGTERM)
+            t = threading.Timer(5.0, lambda: proc.poll() is None and _kill(signal.SIGKILL))
+            t.daemon = True
+            t.start()
+        llm_inflight.set_cancel(call_id, _cancel)
+
+    out_parts: list = []
+    err_parts: list = []
+
+    # context-free: pipe pump — touches only proc + the closed-over buffers;
+    # progress goes to llm_inflight keyed by call_id captured in the parent.
+    def _feed():
+        try:
+            proc.stdin.write(input_text)
+            proc.stdin.close()
+        except Exception:
+            pass  # CLI died early — its returncode/stderr carry the story
+
+    def _read_out():
+        try:
+            for line in proc.stdout:
+                out_parts.append(line)
+                llm_inflight.add_progress(call_id, chars=len(line), events=1)
+        except Exception:
+            pass
+
+    def _read_err():
+        try:
+            err_parts.append(proc.stderr.read())
+        except Exception:
+            pass
+
+    threads = [threading.Thread(target=_read_out, daemon=True),   # context-free: pipe pump (see _feed note)
+               threading.Thread(target=_read_err, daemon=True)]  # context-free: pipe pump (see _feed note)
+    if input_text is not None:
+        threads.append(threading.Thread(target=_feed, daemon=True))  # context-free: pipe pump (see _feed note)
+    for t in threads:
+        t.start()
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill(signal.SIGKILL)   # subprocess.run also kills on timeout
+        proc.wait()
+        for t in threads:
+            t.join(timeout=2)
+        raise
+    finally:
+        if call_id:
+            llm_inflight.set_cancel(call_id, None)
+    for t in threads:
+        t.join(timeout=5)
+    if llm_inflight.is_cancelled(call_id):
+        raise RuntimeError(_CANCEL_MSG)
+    return subprocess.CompletedProcess(cmd, proc.returncode,
+                                       "".join(out_parts), "".join(err_parts))
+
+
 def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180) -> Dict[str, Any]:
     """Call the locally logged-in Grok CLI in single-turn headless mode.
 
@@ -148,7 +256,7 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeo
         if model and model not in ("", "default"):
             cmd += ["--model", model]
 
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        proc = _run_cli(cmd, timeout=timeout)
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
             raise RuntimeError(detail)
@@ -414,8 +522,9 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
         cmd += ["--max-thinking-tokens", str(_CLI_MAX_THINKING_TOKENS)]
 
     try:
-        # Prompt via stdin: templated prompts can exceed argv limits.
-        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout)
+        # Prompt via stdin: templated prompts can exceed argv limits. _run_cli is
+        # subprocess.run with a kill handle + live stream-json progress (llm_inflight).
+        proc = _run_cli(cmd, input_text=prompt, timeout=timeout)
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
             raise RuntimeError(detail)
@@ -468,7 +577,20 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
         meta.update({"content": ("ERROR: Claude-agent mode needs a browser session id but none was "
                                  "provided. Reload the Ask CK page."), "error": True})
         return meta
-    result = registry.submit(session_id, prompt, model, timeout)
+    # True cancel (2026-08-26): the job's Event is the one thing submit blocks
+    # on, so cancelling = stamp a cancelled result and set the Event. The user's
+    # local agent may still finish its call on their own machine, but the result
+    # is discarded (the job is gone from the registry when it posts back).
+    _cid = current_llm_call_id.get("")
+    def _on_start(job):
+        def _cancel():
+            job.result = {"content": f"ERROR: LLM call failed (claude via claude_agent): {_CANCEL_MSG}",
+                          "error": True, "cancelled": True}
+            job.event.set()
+        llm_inflight.set_cancel(_cid, _cancel)
+    result = registry.submit(session_id, prompt, model, timeout,
+                             on_start=_on_start if _cid else None)
+    llm_inflight.set_cancel(_cid, None)
     meta.update({"content": result.get("content", ""), "raw_response": result,
                  "error": bool(result.get("error")), "provider": "claude"})
     return meta
@@ -498,10 +620,21 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
             "model": model, "auth_method": auth_method, "template": template,
             "usage": None, "error": False, "dry_run": True,
         }
+    # Register with the in-flight registry (progress polling + true cancel).
+    # Placed AFTER the dry_run return above: a dry run sends nothing, so there
+    # is nothing to watch or stop. Registered even with no browser call id —
+    # register() no-ops on "" — so this stays zero-cost for headless callers.
+    call_id = current_llm_call_id.get("")
+    llm_inflight.register(call_id, template=template, auth_method=auth_method)
     start = time.monotonic()
-    meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
-                         model=model, auth_method=auth_method, timeout=timeout,
-                         session_id=session_id, system=system, max_tokens=max_tokens)
+    try:
+        meta = _call_llm_raw(prompt, provider=provider, api_key=api_key, base_url=base_url,
+                             model=model, auth_method=auth_method, timeout=timeout,
+                             session_id=session_id, system=system, max_tokens=max_tokens)
+        if llm_inflight.is_cancelled(call_id):
+            meta["cancelled"] = True
+    finally:
+        llm_inflight.finish(call_id)
     duration_ms = int((time.monotonic() - start) * 1000)
     meta["template"] = template
     meta["usage"] = llm_debug.normalize_usage(meta.get("auth_method", auth_method),
@@ -772,9 +905,15 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             reasoning_parts: list = []
             finish = None
             usage = None
+            _cid = current_llm_call_id.get("")
             with requests.post(endpoint, headers=headers, json=payload,
                                timeout=http_timeout, stream=True) as resp:
                 resp.raise_for_status()
+                # True cancel (2026-08-26): closing the response tears the SSE
+                # stream down mid-generation, so the line iterator raises on its
+                # next read and the cancelled check below names the reason. vLLM
+                # stops generating when the client goes away.
+                llm_inflight.set_cancel(_cid, resp.close)
                 # SSE responses are Content-Type: text/event-stream, and requests'
                 # get_encoding_from_headers maps ANY "text" type to ISO-8859-1 (RFC 2616
                 # default) — so decode_unicode below would build a latin-1 decoder and
@@ -804,10 +943,15 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
                         delta = ch.get("delta") or {}
                         if delta.get("content"):
                             content_parts.append(delta["content"])
+                            llm_inflight.add_progress(_cid, chars=len(delta["content"]), events=1)
                         if delta.get("reasoning_content"):
                             reasoning_parts.append(delta["reasoning_content"])
+                            llm_inflight.add_progress(_cid, chars=len(delta["reasoning_content"]), events=1)
                         if ch.get("finish_reason"):
                             finish = ch["finish_reason"]
+                    if llm_inflight.is_cancelled(_cid):
+                        raise RuntimeError(_CANCEL_MSG)
+            llm_inflight.set_cancel(_cid, None)
             content = "".join(content_parts)
             reasoning_content = "".join(reasoning_parts)
             # Reconstruct the non-streamed response shape so downstream (usage
@@ -864,6 +1008,11 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             return meta
 
     except Exception as e:
+        # A user-cancelled stream can surface as the transport's own teardown
+        # exception (resp.close() makes iter_lines raise mid-read) — name the
+        # real cause instead of a ChunkedEncodingError nobody asked for.
+        if llm_inflight.is_cancelled(current_llm_call_id.get("")):
+            e = RuntimeError(_CANCEL_MSG)
         err_msg = f"ERROR: LLM call failed ({provider} via {auth_method}): {str(e)}"
         # Preserve the provider's HTTP error body (quota / rate-limit reasons
         # etc. were previously discarded — only str(e) survived). Full body goes

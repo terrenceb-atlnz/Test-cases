@@ -7,6 +7,7 @@ import { goToPanel } from './nav.js';
 import { recordLLMDebug } from './llm-debug.js';
 import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
 import { onCaseLoaded, registerReloader } from './locks.js';
+import { llmButtonStart, isCancelMessage, newCallId, cancelLlmCall } from './llm-progress.js';
 import { rememberCase } from './session-restore.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
@@ -34,18 +35,27 @@ const PT_API = '/api/pytest-create';
 //   busyLabel — label shown in the button while in flight (default 'Working…')
 // The busy guard also stops a second click from stacking a duplicate LLM call.
 async function ptApi(path, opts = {}, statusEl = null) {
-  const { btn = null, busyLabel, ...fetchOpts } = opts;
-  if (btn && !setButtonBusy(btn, true, { label: busyLabel || 'Working…' })) return null;
+  const { btn = null, busyLabel, llm = false, ...fetchOpts } = opts;
+  // llm:true = this call really sends tokens — the button becomes a live Stop
+  // button with elapsed / typical / streamed progress (llm-progress.js).
+  let llmCtl = null;
+  if (btn && llm) {
+    llmCtl = llmButtonStart(btn, busyLabel || 'Working…');
+    if (!llmCtl) return null;                       // same double-click guard
+  } else if (btn && !setButtonBusy(btn, true, { label: busyLabel || 'Working…' })) return null;
   if (statusEl) statusEl.textContent = 'Working…';
   let ok = false;
   try {
-    const r = await fetch(PT_API + path, Object.assign({
-      headers: { 'Content-Type': 'application/json' },
-    }, fetchOpts));
+    const r = await fetch(PT_API + path, Object.assign({}, fetchOpts, {
+      headers: Object.assign({ 'Content-Type': 'application/json' },
+                             llmCtl ? llmCtl.headers : {}, fetchOpts.headers || {}),
+    }));
     const d = await r.json().catch(() => ({}));
     if (!r.ok) {
       const msg = d.detail || `HTTP ${r.status}`;
-      if (statusEl) statusEl.textContent = '⚠ ' + msg;
+      // The user's own Stop is not a failure — say what happened, calmly.
+      const shown = isCancelMessage(msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + msg;
+      if (statusEl) statusEl.textContent = shown;
       else alert('PyTest Creator: ' + msg);
       return null;
     }
@@ -57,7 +67,8 @@ async function ptApi(path, opts = {}, statusEl = null) {
     else alert('PyTest Creator: ' + e);
     return null;
   } finally {
-    if (btn) { setButtonBusy(btn, false); flashButtonDone(btn, ok); }
+    if (llmCtl) { llmCtl.end(); flashButtonDone(btn, ok); }
+    else if (btn) { setButtonBusy(btn, false); flashButtonDone(btn, ok); }
   }
 }
 
@@ -304,7 +315,7 @@ async function ptExtractSequence() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-seq-extract-btn');
   const d = await ptApi(`/extract_sequence/${S.ptCase.key}`,
-    { method: 'POST', btn, busyLabel: 'Extracting…' }, ptStatusEl('pt-seq-status'));
+    { method: 'POST', btn, busyLabel: 'Extracting…', llm: true }, ptStatusEl('pt-seq-status'));
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
@@ -368,11 +379,30 @@ function _ptSeedFromSession() {
   _ptStepCands = {};
   _ptRecCache = {};
   _ptSeq().forEach(s => { _ptStepCands[s.n] = []; });
+  // Chosen-record snapshots first (save_matches `records`, 2026-08-26): they keep
+  // keyword-search picks rendering with real db/cov/why after a reload instead of
+  // degrading to 'other'/'?'. Cache-only — they don't create candidate rows.
+  Object.values(st3.records || {}).forEach(r => _ptCacheRecs([r]));
   (st3.matches || []).forEach(m => {
     _ptCacheRecs([m]);
     (m.covers_steps || []).forEach(n => {
       if (!_ptStepCands[n]) _ptStepCands[n] = [];
       if (!_ptStepCands[n].some(x => x.id === m.id)) _ptStepCands[n].push(m);
+    });
+  });
+  // Persisted per-step suggestions (step3.step_matches, 2026-08-26) — these are
+  // what make suggest results survive a reload / a closed browser. Seeded LAST
+  // and REPLACING on id-collision: a step-scoped verdict outranks the whole-case
+  // one for that step, in both the candidate pool and the record cache.
+  const sm = st3.step_matches || {};
+  Object.keys(sm).forEach(nk => {
+    const n = Number(nk);
+    (sm[nk] || []).forEach(m => {
+      if (!m || !m.id) return;
+      _ptCacheRecs([m]);
+      const pool = _ptStepCands[n] = _ptStepCands[n] || [];
+      const i = pool.findIndex(x => x.id === m.id);
+      if (i >= 0) pool[i] = { ...pool[i], ...m }; else pool.push(m);
     });
   });
   _ptStepChosen = {};
@@ -455,8 +485,13 @@ function ptRenderSteps() {
   const covered = seq.filter(s => (_ptStepChosen[s.n] || []).length).length;
   const gaps = seq.length - covered;
 
-  // Nav / coverage bar: overall tally + Prev/Next + clickable per-step pills.
+  // Nav / coverage bar: suggest-all + overall tally + Prev/Next + per-step pills.
   if (sumEl) {
+    const sa = _ptSuggestAll;
+    const saLabel = sa
+      ? (sa.stopReq ? 'Stopping after this step…'
+                    : `Suggesting step ${Math.min(sa.done + 1, sa.total)}/${sa.total}… (click to stop)`)
+      : 'Suggest all steps (LLM)';
     const pills = seq.map((s, i) => {
       const ok = (_ptStepChosen[s.n] || []).length > 0;
       const cur = i === _ptCurStep ? ' pt-pill-current' : '';
@@ -465,6 +500,7 @@ function ptRenderSteps() {
         + `${ok ? '✓' : '✗'} ${s.n}</button>`;
     }).join('');
     sumEl.innerHTML = `<div class="pt-stepnav">
+      <button class="btn btn-primary btn-compact" data-action="ptSuggestAllSteps" id="pt-suggest-all-btn"${sa && sa.stopReq ? ' disabled' : ''}>${saLabel}</button>
       <span class="badge ${gaps ? 'badge-low' : 'badge-success'}">${covered}/${seq.length} sequence steps covered${gaps ? ` — ${gaps} gap${gaps > 1 ? 's' : ''}` : ' ✓'}</span>
       <div class="pt-stepnav-btns">
         <button class="btn btn-compact" data-action="ptPrevStep" ${_ptCurStep === 0 ? 'disabled' : ''}>‹ Prev</button>
@@ -540,6 +576,59 @@ function ptClearChosen(stepN) {
   ptRenderSteps();
 }
 
+// Suggest for EVERY sequence step, one step at a time (2026-08-26, Terrence).
+// Deliberately sequential — one LLM call per step in sequence order, the same
+// call the per-step button makes — NOT the retired whole-case single prompt.
+// Results populate each step's candidate pool as they arrive (the backend
+// persists them per step, so a mid-run reload keeps every completed step) and
+// stay on the page when the run finishes. Clicking again while running stops
+// after the in-flight step completes.
+let _ptSuggestAll = null;   // { stopReq, done, total, added, failures[] } while running
+
+async function ptSuggestAllSteps() {
+  if (!ptRequireCase()) return;
+  if (_ptSuggestAll) {
+    _ptSuggestAll.stopReq = true;
+    cancelLlmCall(_ptSuggestAll.callId);   // true cancel of the in-flight step too
+    ptRenderSteps();
+    return;
+  }
+  const seq = _ptSeq();
+  if (!seq.length) { alert('No sequence — confirm step 2 first.'); return; }
+  _ptSuggestAll = { stopReq: false, done: 0, total: seq.length, added: 0, failures: [] };
+  ptRenderSteps();
+  const st = ptStatusEl('pt-search-status');
+  for (const s of seq) {
+    if (_ptSuggestAll.stopReq) break;
+    const n = s.n;
+    if (st) st.textContent = `Suggesting for sequence step ${n} (${_ptSuggestAll.done + 1}/${_ptSuggestAll.total})…`;
+    _ptSuggestAll.callId = newCallId();
+    const d = await ptApi(`/suggest_scripts_step/${S.ptCase.key}/${n}`, {
+      method: 'POST',
+      body: JSON.stringify({ user_inputs: '' }),
+      headers: { 'X-CK-LLM-Call': _ptSuggestAll.callId },
+    }, st);
+    recordLLMDebug(document.getElementById('pt-suggest-all-btn'));
+    if (d) {
+      _ptAddCands(n, d.matches || []);
+      _ptSuggestAll.added += (d.matches || []).length;
+    } else if (!_ptSuggestAll.stopReq) {
+      // null with stopReq set is the user's own cancel, not a failure
+      _ptSuggestAll.failures.push(n);
+    }
+    _ptSuggestAll.done += 1;
+    ptRenderSteps();
+  }
+  const run = _ptSuggestAll;
+  _ptSuggestAll = null;
+  ptRenderSteps();
+  if (st) {
+    const failed = run.failures.length ? ` — FAILED on step(s) ${run.failures.join(', ')}` : '';
+    st.textContent = (run.stopReq && run.done < run.total ? `⏹ Stopped after ${run.done}/${run.total} steps` : `Suggested all ${run.total} steps`)
+      + ` — ${run.added} match(es) added${failed}. Results are saved with the case.`;
+  }
+}
+
 // Per-step LLM suggest — links every result to this step.
 async function ptSuggestStep(stepN) {
   if (!ptRequireCase()) return;
@@ -548,7 +637,7 @@ async function ptSuggestStep(stepN) {
   const d = await ptApi(`/suggest_scripts_step/${S.ptCase.key}/${stepN}`, {
     method: 'POST',
     body: JSON.stringify({ user_inputs: '' }),
-    btn, busyLabel: 'Suggesting…',
+    btn, busyLabel: 'Suggesting…', llm: true,
   }, st);
   recordLLMDebug(btn);
   if (!d) return;
@@ -578,9 +667,13 @@ async function ptSaveMatches() {
   const sel = {};
   Object.keys(_ptStepChosen).forEach(n => { if ((_ptStepChosen[n] || []).length) sel[n] = _ptStepChosen[n].slice(); });
   const total = new Set(Object.values(sel).flat()).size;
+  // Send the cached record per chosen id so the server can persist db/cov/why —
+  // keyword-search picks have no other persisted source (see save_matches).
+  const records = {};
+  Object.values(sel).flat().forEach(id => { if (_ptRecCache[id]) records[id] = _ptRecCache[id]; });
   const d = await ptApi(`/save_matches/${S.ptCase.key}`, {
     method: 'POST',
-    body: JSON.stringify({ selections: sel }),
+    body: JSON.stringify({ selections: sel, records }),
   }, ptStatusEl('pt-search-status'));
   if (d) { await ptRefreshSession(); ptStatusEl('pt-search-status').textContent = `Saved — ${total} unique script(s) across ${Object.keys(sel).length} step(s).`; }
 }
@@ -808,7 +901,7 @@ async function ptGatherFragments() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-frag-btn');
   const d = await ptApi(`/gather_fragments/${S.ptCase.key}`,
-    { method: 'POST', btn, busyLabel: 'Gathering…' }, ptStatusEl('pt-frag-status'));
+    { method: 'POST', btn, busyLabel: 'Gathering…', llm: true }, ptStatusEl('pt-frag-status'));
   recordLLMDebug(btn);
   if (!d) return;
   await ptRefreshSession();
@@ -884,7 +977,7 @@ async function ptGenerateScript() {
       group: document.getElementById('pt-gen-group').value.trim(),
       name: document.getElementById('pt-gen-name').value.trim(),
     }),
-    btn, busyLabel: 'Generating…',
+    btn, busyLabel: 'Generating…', llm: true,
   }, ptStatusEl('pt-gen-status'));
   recordLLMDebug(btn);
   if (!d) return;
@@ -1115,7 +1208,7 @@ async function ptFixScript() {
   if (!ptRequireCase()) return;
   const btn = document.getElementById('pt-fix-btn');
   const d = await ptApi(`/fix_script/${S.ptCase.key}`,
-    { method: 'POST', btn, busyLabel: 'Fixing…' }, ptStatusEl('pt-validate-status'));
+    { method: 'POST', btn, busyLabel: 'Fixing…', llm: true }, ptStatusEl('pt-validate-status'));
   // Awaited (unlike the other handlers): this handler navigates to panel-pt-gen
   // below, and the record must be filed under THIS panel before currentPanel changes.
   await recordLLMDebug(btn);
@@ -1206,7 +1299,7 @@ async function ptCheckProfileNamed(name) {
 registerActions({
   ptLoadCase, ptRefreshCases, ptExtractSequence,
   ptAddSeqRow, ptRemoveSeqRow, ptSaveSequence,
-  ptConfirm, ptSuggestStep, ptSearchStep,
+  ptConfirm, ptSuggestStep, ptSuggestAllSteps, ptSearchStep,
   ptChooseMatches, ptClearChosen,
   ptGoStep, ptPrevStep, ptNextStep,
   ptSaveMatches,

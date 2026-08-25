@@ -4,7 +4,8 @@ import { S } from './state.js';
 import { getActiveCaseKey } from './cases.js';
 import { ckBrokerLoop, probeLocalAgent } from './agent.js';
 import { fmtTokens } from './llm-debug.js';
-import { setButtonBusy, flashButtonDone } from './dom-helpers.js';
+import { llmButtonStart } from './llm-progress.js';
+import { flashButtonDone } from './dom-helpers.js';
 
 async function setLLMConfig() {
   // Case is optional: without one the config is saved as the workspace default
@@ -383,11 +384,12 @@ export async function checkLlmHealth() {
   // firing a real synthesize. Provider-agnostic; the ping is recorded in debug-log.
   const btn = document.getElementById('llmHealthBtn');
   const out = document.getElementById('llmHealthState');
-  if (!setButtonBusy(btn, true, { label: 'Pinging…' })) return;   // guard double-click
+  const llmCtl = llmButtonStart(btn, 'Pinging…');   // live progress + click-to-stop
+  if (!llmCtl) return;                               // guard double-click
   if (out) { out.textContent = '⏳ pinging…'; out.style.color = ''; }
   let ok = false;
   try {
-    const res = await fetch('/api/wizard/llm_health', { method: 'POST' });
+    const res = await fetch('/api/wizard/llm_health', { method: 'POST', headers: llmCtl.headers });
     const d = await res.json();
     ok = !!d.ok;
     if (out) {
@@ -406,7 +408,7 @@ export async function checkLlmHealth() {
   } catch (e) {
     if (out) { out.textContent = `✗ request failed — ${e.message || e}`; out.style.color = 'var(--status-low, #ef4444)'; }
   } finally {
-    setButtonBusy(btn, false);
+    llmCtl.end();
     flashButtonDone(btn, ok);
   }
 }

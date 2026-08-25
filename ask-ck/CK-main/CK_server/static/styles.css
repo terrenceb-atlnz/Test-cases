@@ -712,6 +712,26 @@ body {
 .btn.is-busy {
   filter: brightness(0.94);
 }
+/* A busy LLM button stays ENABLED so clicking it means STOP (llm-progress.js):
+   the pointer cursor is the affordance, the title says what a click does, and
+   the 2px bottom bar fills as elapsed approaches the typical duration for this
+   action (--ck-pct set by the 1s ticker). */
+.btn.is-busy.ck-stoppable {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.btn.is-busy.ck-stoppable::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: var(--ck-pct, 0%);
+  background: currentColor;
+  opacity: 0.6;
+  transition: width 0.9s linear;
+}
 
 /* Success / failure flash after completion (auto-cleared after ~1.2s). */
 .btn.is-done {

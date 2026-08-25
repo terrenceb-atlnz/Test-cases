@@ -10,6 +10,7 @@ import json
 from fastapi import APIRouter, Request
 
 import llm_debug
+import llm_inflight
 
 router = APIRouter(tags=["llm-debug"])
 
@@ -36,6 +37,36 @@ async def recent(request: Request, limit: int = 20):
     """
     session_id = request.headers.get("X-CK-Session", "")
     return {"records": [_truncated(r) for r in llm_debug.recent(session_id, limit=limit)]}
+
+
+@router.get("/inflight/{call_id}")
+async def inflight(request: Request, call_id: str):
+    """Live snapshot of one in-flight LLM call (2026-08-26): elapsed, streamed
+    chars/events, cancelled flag — plus `typical_ms`, the median duration of this
+    session's recent successful calls to the SAME template, which is what the
+    busy button's progress bar fills against. {found: false} once the call ends
+    (the button's final state comes from the response itself, not from here).
+    """
+    snap = llm_inflight.snapshot(call_id)
+    if snap is None:
+        return {"found": False}
+    session_id = request.headers.get("X-CK-Session", "")
+    durs = sorted(r["duration_ms"] for r in llm_debug.recent(session_id, limit=50)
+                  if r.get("template") == snap["template"] and not r.get("error")
+                  and r.get("duration_ms"))
+    snap["typical_ms"] = durs[len(durs) // 2] if durs else None
+    snap["found"] = True
+    return snap
+
+
+@router.post("/cancel/{call_id}")
+async def cancel(call_id: str):
+    """True server-side cancel of an in-flight LLM call: kills the CLI process
+    group / closes the vLLM stream / wakes an abandoned agent job. The endpoint
+    that made the call then errors with "cancelled by user", so nothing persists.
+    Cancelling an id that already finished returns {cancelled: false} — harmless.
+    """
+    return {"cancelled": llm_inflight.cancel(call_id)}
 
 
 @router.get("/log")

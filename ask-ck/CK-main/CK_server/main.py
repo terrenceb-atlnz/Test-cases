@@ -146,12 +146,15 @@ async def _bind_session_id(request: Request, call_next):
     token = _llm.current_session_id.set(request.headers.get("X-CK-Session", ""))
     panel_token = _llm.current_panel_id.set(request.headers.get("X-CK-Panel", ""))
     path_token = _llm.current_request_path.set(request.url.path)
+    # X-CK-LLM-Call: per-call id for live progress + true cancel (llm_inflight).
+    call_token = _llm.current_llm_call_id.set(request.headers.get("X-CK-LLM-Call", ""))
     try:
         response = await call_next(request)
     finally:
         _llm.current_session_id.reset(token)
         _llm.current_panel_id.reset(panel_token)
         _llm.current_request_path.reset(path_token)
+        _llm.current_llm_call_id.reset(call_token)
     # Force revalidation of ES modules. The entry main.js is cache-busted with
     # ?v=N, but its imports (llm.js, nav.js, …) are bare specifiers with no
     # query, so a stale cached child module can shadow a freshly-shipped one

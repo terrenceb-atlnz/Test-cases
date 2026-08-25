@@ -2,6 +2,7 @@
 import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from './dom-helpers.js';
+import { llmButtonStart, isCancelMessage } from './llm-progress.js';
 import { renderChosenTable, renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
 import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
@@ -593,13 +594,14 @@ async function confirmStep(step) {
 async function synthesizeObjectives() {
   if (!S.currentSession) return alert('Load a case and confirm steps 2–4 first.');
   const btn = document.getElementById('obj-synth-btn');
-  if (!setButtonBusy(btn, true, { label: 'Synthesizing…' })) return;   // guard double-click
+  const llmCtl = llmButtonStart(btn, 'Synthesizing…');   // live progress + click-to-stop
+  if (!llmCtl) return;                                   // guard double-click
   showStatus('objective-status', 'busy', 'Synthesizing objectives (LLM)… this can take a while on the Thinking model.');
   let ok = false;
   try {
     const res = await fetch('/api/wizard/synthesize_objectives', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...llmCtl.headers },
       body: JSON.stringify({ session: S.currentSession, use_llm: true }),
     });
     if (!res.ok) {
@@ -614,9 +616,10 @@ async function synthesizeObjectives() {
     goToStep(4);
     ok = true;
   } catch (e) {
-    showStatus('objective-status', 'error', 'Objective synthesis failed: ' + e);
+    if (isCancelMessage(e)) showStatus('objective-status', 'warning', 'Stopped — nothing was kept.');
+    else showStatus('objective-status', 'error', 'Objective synthesis failed: ' + e);
   } finally {
-    setButtonBusy(btn, false);
+    llmCtl.end();
     flashButtonDone(btn, ok);
     recordLLMDebug(btn);
   }
@@ -630,13 +633,14 @@ async function synthesizeSteps() {
     return;
   }
   const btn = document.getElementById('steps-synth-btn');
-  if (!setButtonBusy(btn, true, { label: 'Synthesizing…' })) return;   // guard double-click
+  const llmCtl = llmButtonStart(btn, 'Synthesizing…');   // live progress + click-to-stop
+  if (!llmCtl) return;                                   // guard double-click
   showStatus('steps-status', 'busy', 'Synthesizing test steps (LLM)… this can take a while on the Thinking model.');
   let ok = false;
   try {
     const res = await fetch('/api/wizard/synthesize_steps', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...llmCtl.headers },
       body: JSON.stringify({ session: S.currentSession, use_llm: true }),
     });
     if (!res.ok) {
@@ -659,9 +663,10 @@ async function synthesizeSteps() {
     goToStep(5);
     ok = true;
   } catch (e) {
-    showStatus('steps-status', 'error', 'Test step synthesis failed: ' + e);
+    if (isCancelMessage(e)) showStatus('steps-status', 'warning', 'Stopped — nothing was kept.');
+    else showStatus('steps-status', 'error', 'Test step synthesis failed: ' + e);
   } finally {
-    setButtonBusy(btn, false);
+    llmCtl.end();
     flashButtonDone(btn, ok);
     recordLLMDebug(btn);
   }

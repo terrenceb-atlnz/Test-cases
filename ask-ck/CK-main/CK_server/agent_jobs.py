@@ -40,15 +40,24 @@ class AgentJobRegistry:
         self._last_gc = time.time()
 
     # --- producer side (LLM caller thread) ---------------------------------
-    def submit(self, session_id: str, prompt: str, model: str, timeout: int) -> dict:
+    def submit(self, session_id: str, prompt: str, model: str, timeout: int,
+               on_start=None) -> dict:
         """Enqueue a job and BLOCK until the browser posts its result or timeout.
 
         Returns {content, error}. On timeout returns an error dict (never raises).
+        `on_start(job)` (optional, 2026-08-26) is called once the job is queued —
+        the LLM layer uses it to attach a cancel handle that stamps a cancelled
+        result and sets the job's Event, waking this wait early.
         """
         job = _Job(session_id, prompt, model)
         with self._lock:
             self._queues.setdefault(session_id, deque()).append(job)
             self._inflight[job.id] = job
+        if on_start is not None:
+            try:
+                on_start(job)
+            except Exception:
+                pass  # a broken cancel hook must not break the call itself
         got = job.event.wait(timeout=timeout)
         with self._lock:
             self._inflight.pop(job.id, None)

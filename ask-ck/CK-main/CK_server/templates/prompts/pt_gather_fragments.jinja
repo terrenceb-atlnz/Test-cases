@@ -8,8 +8,16 @@ cover a required test-step sequence. You reference fragments by symbol — you n
 {% endfor %}
 
 ## Available source symbols (from the selected scripts; class and function names with descriptions)
+Each script carries its step-3 review verdicts: which sequence step(s) the reviewer chose it
+for, the coverage judged there (full/partial), and why. Use them — they say what each script
+was selected to contribute.
 {% for sc in scripts %}
 ### {{ sc.id }}
+{% if sc.review %}
+{% for r in sc.review %}
+chosen for sequence step {{ r.step }}{% if r.coverage %} — {{ r.coverage }} coverage{% endif %}{% if r.why %} — {{ r.why }}{% endif %}
+{% endfor %}
+{% endif %}
 {% for sym in sc.symbols %}
 - {{ sym.kind }} {{ sym.name }}: {{ sym.desc }}
 {% endfor %}
@@ -29,6 +37,9 @@ Cover every step you can with at least one chosen fragment. A step with no reusa
 at all is a genuine gap — omit it (do not invent symbols).
 
 ## Rules (strict for repeatable output)
+- Start each step at the scripts whose review verdicts name that step — the "chosen for
+  sequence step N — why" lines are the reviewer's own routing. Look wider only when those
+  scripts genuinely lack a usable symbol for the step.
 - Every "symbol" must be an EXACT name from the lists above; "source_id" its script id.
   The server extracts real code by line range — invented names are dropped.
 - A fragment may serve several steps: list them all in its "maps_to".

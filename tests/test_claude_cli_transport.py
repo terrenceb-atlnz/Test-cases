@@ -23,7 +23,10 @@ transport alone ran unsteered. That interacted badly with defect 3 below.
 needs the fence to find the code at all. Two authorities in one request, contradicting each
 other, on every backend.
 
-Everything here is offline: `subprocess.run` is monkeypatched, so no CLI, no tokens.
+Everything here is offline: the CLI boundary (`llm._run_cli`, the Popen-based runner
+that replaced `subprocess.run` on 2026-08-26 for live progress + true cancel) is
+monkeypatched, so no CLI, no tokens. The fake still receives exactly what would reach
+the real CLI — argv, stdin text, timeout — so every pin below keeps its meaning.
 """
 import ast
 import inspect
@@ -66,13 +69,13 @@ def captured(monkeypatch):
     """Capture the argv/stdin the CLI would receive; return a canned completion."""
     seen = {}
 
-    def fake_run(cmd, input=None, capture_output=None, text=None, timeout=None, **kw):
+    def fake_run(cmd, input_text=None, timeout=None, **kw):
         seen["cmd"] = list(cmd)
-        seen["stdin"] = input
+        seen["stdin"] = input_text
         seen["timeout"] = timeout
         return _FakeProc(seen.get("reply", [_assistant("```python\nx = 1\n```"), _result()]))
 
-    monkeypatch.setattr(llm.subprocess, "run", fake_run)
+    monkeypatch.setattr(llm, "_run_cli", fake_run)
     monkeypatch.setattr(llm.shutil, "which", lambda _n: "/usr/bin/claude")
     return seen
 

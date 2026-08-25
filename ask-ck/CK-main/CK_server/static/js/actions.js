@@ -28,6 +28,21 @@ document.addEventListener('keydown', (e) => {
 //   data-args='["panel-main", 1]'   — optional JSON array of arguments
 // Works for static markup and for rows injected via innerHTML at runtime.
 document.addEventListener('click', (e) => {
+  // A busy LLM button is re-enabled so it can be clicked to STOP (llm-progress.js).
+  // Checked BEFORE data-action resolution, so the click can never re-fire the
+  // action that is already in flight.
+  const stopEl = e.target.closest('[data-ck-cancel]');
+  if (stopEl) {
+    e.preventDefault();
+    if (stopEl.dataset.ckStopping !== '1') {
+      stopEl.dataset.ckStopping = '1';
+      const lbl = stopEl.querySelector('.ck-busy-label');
+      if (lbl) lbl.textContent = 'Stopping…';
+      fetch('/api/llm/cancel/' + encodeURIComponent(stopEl.dataset.ckCancel), { method: 'POST' })
+        .catch(() => {});
+    }
+    return;
+  }
   const el = e.target.closest('[data-action]');
   if (!el) return;
   const fn = registry.get(el.dataset.action);
