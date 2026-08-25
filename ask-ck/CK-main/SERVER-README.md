@@ -404,6 +404,23 @@ large artefacts, which exposed four things about the transport (all fixed 2026-0
 
 Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge (`N in / M out (total)`) next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. Grok CLI / agent bridge). Credentials are whitelisted out of records. **The debug-log is development scaffolding**; the durable/portable equivalent is the Provenance block below.
 
+**Live progress + true Stop (2026-08-26).** Every LLM button in the app is a live one while
+busy: `⟳ Generating… 37s / ~45s · 12.3k streamed` with a 2px fill bar. The browser stamps
+each call with an `X-CK-LLM-Call` id (middleware → ContextVar → `llm_inflight.py`, an
+in-memory single-process registry — same authority caveat as `locks.py`); the button polls
+`GET /api/llm/inflight/{id}` for elapsed / streamed chars / `typical_ms` (median of this
+session's recent successful calls to the same template — that is what the bar fills
+against). Streamed counts are real server-side observation: vLLM SSE chunks, and the
+claude/grok CLI's stream-json lines — the CLI always streamed; `subprocess.run` was
+buffering it. **Clicking the busy button is a TRUE cancel** (`POST /api/llm/cancel/{id}`):
+the CLI process group is killed (SIGTERM, SIGKILL after 5s), the vLLM stream is closed
+mid-generation, an agent job is woken abandoned. The endpoint then errors with
+"cancelled by user", so nothing persists, and the UI reports "⏹ stopped — nothing was
+kept" rather than a failure. A UI-only abort (server finishes and spends anyway) was
+explicitly rejected. Transport note: the CLI paths run via `llm._run_cli`
+(Popen + pump threads), which preserves `subprocess.run` semantics exactly — the
+transport-contract tests pin the boundary and pass unchanged; dry-runs never register.
+
 ### LLM Provenance (portable prompts) + dry-run preview
 
 Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
@@ -625,6 +642,23 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    manual digging; Choose moves a candidate down into the step's Chosen table. Selections
    are stored **per step** (`{stepN: [ids]}`) and flattened downstream. `view` shows real
    source. Confirm. *(The former standalone whole-sequence LLM field was removed.)*
+   **Suggest all steps (2026-08-26):** a button in the coverage bar runs the per-step
+   suggest for EVERY sequence step, sequentially in order — one LLM call per step, not the
+   retired whole-case mega-prompt. Clicking it again stops after the in-flight step
+   (a true cancel — see LLM observability below). **Everything the page shows persists**
+   (same date): per-step suggestions land in `step3.step_matches[step]` (merged by id,
+   newest verdict wins) and chosen rows carry whitelisted record snapshots
+   (`step3.records`, sent by Save Selections) — so a hard reload or a fresh browser
+   restores candidates AND chosen rows with their coverage/why intact. Previously only
+   the whole-case suggest persisted, and once its button left the UI nothing did: a
+   reload lost all candidates and degraded chosen rows to `other`/`?`. Suggestion
+   fetches deliberately do NOT unconfirm step 3 or invalidate fragments — candidates
+   are not selections. A per-step LLM failure is now a loud **502**, not a silent
+   `matches: []`. **The coverage/why verdicts feed Fragments** — each script in the
+   gather prompt carries "chosen for sequence step N — <coverage> — <why>" lines
+   (per-step verdicts outrank whole-case ones), so fragment choice is no longer blind
+   to why the scripts were selected; fragment `why` was already flowing into Generate
+   as "Reviewer note".
 4. **Fragments** — per-step, no cap: LLM proposes symbols per step and the server
    resolves them to real code by indexed line ranges (invented symbols are dropped;
    `maps_to` numbers that aren't real sequence steps are dropped too — 2026-07-23). Each

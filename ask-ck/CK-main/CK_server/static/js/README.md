@@ -29,6 +29,7 @@ graph evaluates.
 | `pytest.js` | PyTest Creator (7 visible steps; internal session keys still `step2`–`step8` — see `_step_label` / PLAN-pytest-creator.md 2026-07-23 flow revision) |
 | `session-restore.js` | Refresh-safe UI state (sessionStorage, per tab): remembers active panel + each tool's loaded case so F5 doesn't dump the user at panel-main; `main.js` captures the snapshot BEFORE the boot default panel overwrites it |
 | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
+| `llm-progress.js` | Live LLM-button state: elapsed / ~typical / streamed counters polled from `/api/llm/inflight/{id}`, the 2px fill bar, and click-to-STOP (true server-side cancel via `/api/llm/cancel/{id}` — routed in actions.js before data-action so a busy button can't re-fire itself) |
 | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
 | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
 | `theme.js` | Light/dark toggle (side-effect) |

@@ -3458,3 +3458,64 @@ js README gained session-restore and lost a stale "8-step" claim; cache-busters 
 TESTBOX-ACCESS.md in full first). IE520 standing priority after the trio. Open by choice:
 plan §5 (Apply trap + no auth), `.REVIEW.py` ratify-or-revert, requirements upper bounds,
 the suggest_scripts pause question (asked 08-17b, still unanswered).
+
+## Session Close / Handoff (2026-08-26b) — durable step-3 results with flowing context, and a Stop that actually stops
+
+**Same day, second close. Two explicit asks from Terrence, both shipped, both verified live
+without spending a token.** He confirmed the persistence fix in the browser first ("results
+and context information appear to be properly retained now").
+
+**(1) "Re-add a button that performs LLM suggestions for each step… one step at a time… on
+the same line as, and to the left of, the coverage pill. Results must persist between reloads
+and even after a session is closed. Cov and Why must be used by Fragments or Generate — and
+if they aren't, fix that immediately."** All four parts landed. The root causes were explicit
+in the code: `suggest_scripts_step`'s docstring said "Not persisted", `save_matches` stored
+bare ids, and `gather_fragments` sent scripts as bare symbol lists — the whole step-3 review
+context (coverage/why) went nowhere. Now: `step3.step_matches` (per-step, merge-by-id,
+newest-verdict-wins) + `step3.records` (whitelisted snapshots for chosen ids, which is what
+un-degraded keyword picks from `other`/`?` after reload) + per-script "chosen for sequence
+step N — coverage — why" lines in the fragments prompt (per-step verdicts outrank whole-case;
+a routing rule tells the LLM to start each step at the scripts whose verdicts name it).
+Generate already consumed fragment `why` ("Reviewer note"), so the chain closed with the one
+missing link. Verified: cold-browser candidate restore (injected row came back with cov/why),
+hard-reload chosen-row fidelity, 67 review lines in a dry-run gather prompt (zero tokens).
+Suggest-all runs sequentially, persists per step (a mid-run reload keeps finished steps), and
+its Stop cancels the in-flight call too. **Deliberate semantics:** suggestion fetches don't
+unconfirm step 3 / don't invalidate fragments; per-step LLM errors are now 502s, not silent
+empties. **Still pending, HIS sequencing:** after his first satisfied real run, remove the
+per-step Suggest button (UI only).
+
+**(2) "Wire click-to-stop to all LLM buttons, an animation, and a progress bar (X/10-like)."**
+The spinner already existed (setButtonBusy — all buttons had it); what shipped is the rest:
+`X-CK-LLM-Call` id per call → `llm_inflight.py` registry → busy buttons re-enable as Stop
+buttons (actions.js routes their click to POST /api/llm/cancel/{id} BEFORE data-action, so a
+busy button cannot re-fire itself) showing `elapsed / ~typical · streamed` + a 2px fill bar.
+Typical = median of recent successful same-template calls from the llm-debug ring; streamed =
+real server-side observation (vLLM SSE chunks; CLI stream-json lines — the CLI always
+streamed, subprocess.run's buffering hid it). **Stop depth was a decision put to Terrence:
+TRUE server-side cancel chosen over UI-only abort** (which would let the server finish, spend,
+and persist behind the user's back). Cancel kills the CLI process group (SIGTERM→SIGKILL 5s),
+closes the vLLM stream, wakes an agent job abandoned; nothing persists; the UI says
+"⏹ stopped — nothing was kept". The hardened claude_code transport moved to `llm._run_cli`
+(Popen + stdin/stdout/stderr pump threads) with subprocess.run semantics preserved exactly —
+all 25 transport-contract pins pass unchanged (fixture repointed at the new CLI boundary,
+same seen-argv/stdin/timeout assertions). Three structural guards tripped mid-build and were
+each satisfied at the source, not silenced: the SSE utf-8 pin (my comment contained the
+literal it scans for — reworded), the thread-context guard (three pipe pumps marked
+context-free with reasons), the truncation-signal fake (repointed). Live proof with a fake
+`claude` on the scratch PATH: "Extracting… 5s / ~8s · 356 streamed", bar 62%, Stop → shim PID
+dead server-side, completed run rendered real sequence rows.
+
+**Harness debugging worth remembering (cost ~40 min):** the scratch DB went "database disk
+image is malformed" because scratch.db had been deleted WITHOUT its -wal/-shm — the orphaned
+WAL replayed into the next pristine copy. The corruption presented as phantom case-locks
+(load failed AFTER lock-acquire), which sent me chasing the known browser.close()-skips-
+sendBeacon lock artifact instead. Both facts now live in [[ckdb-wal-and-test-isolation]].
+
+**Gate:** 1071 passed / 1 skipped (+5 persistence, +6 cancel/progress), 92 Vitest, guards OK,
+ck.db untouched by tests. Live server healthy on the permanent DB throughout; no shim
+anywhere near its PATH (verified before close).
+
+**Pick up:** suggest-all's first real run is Terrence's (server seat); then remove the
+per-step Suggest button. The pilot trio (T33234/T33235, `clear_session` first) and IE520
+remain exactly as the morning handoff left them.

@@ -2,6 +2,14 @@
 
 > ## Session handoff (read first)
 >
+> **Extended 2026-08-26:** the observability layer gained a LIVE half — an in-flight
+> registry (`llm_inflight.py`, keyed by the browser's `X-CK-LLM-Call` header) serving
+> `GET /api/llm/inflight/{id}` (elapsed / streamed chars / `typical_ms` = median of recent
+> successful same-template calls from this plan's ring buffer) and
+> `POST /api/llm/cancel/{id}`, a TRUE server-side cancel (CLI process group killed, vLLM
+> stream closed, agent job abandoned). Every LLM button shows live progress and stops on
+> click. See SERVER-README "Live progress + true Stop" and CHANGELOG 2026-08-26b.
+>
 > **Status (2026-07-20): EXECUTED + committed** (Step 0 + Commit 1 + Commit 2 shipped in `66fb289`; the DB migration was then built on top). A 5-dimension adversarial review ran; its verify agents were killed by a session limit, so findings were adjudicated against live code by hand. **6 real fixes applied post-review:** (1) `secrets.local.json` written 0600 not 0644; (3/6) `recordLLMDebug` wired into `ptGatherFragments` (`pt-frag-btn`) and `exportBundle` (footer-only — export runs coverage-gaps LLM) — **12 LLM handlers wired total, not 10**; (4) `local_llm` added to `restoreLLMUI` sessionActive allow-list; (5) footer store keyed by `rec.panel` (server X-CK-Panel attribution) not `S.currentPanel` at resolve time; (7) key-state note restored on load, not only after Apply. Rejected: the "credential shadows case-key `key`" finding (speculative; no live URL-from-credential path).
 >
 > **Follow-on work (2026-07-20 later session — committed in `47833de`):** this observability layer immediately paid off — it caught the PyTest/wizard LLM-config bug (see `ask-ck/pytest-create/PLAN-pytest-creator.md` + memory `pytest-creator-llm-config-bug`). Three features grew out of it, documented in SERVER-README (earlier "UNCOMMITTED" note was superseded — all three shipped in `47833de` "Ask CK: Local LLM post-review fixes + cold-load status + admin panel + fast restart"):

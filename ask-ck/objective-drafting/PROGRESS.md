@@ -4,6 +4,55 @@
 
 **Last Updated**: 2026-08-26 (by Claude)
 
+## Latest session (2026-08-26b) — step-3 results made durable + context-bearing; live progress and a TRUE Stop on every LLM button
+
+**Code + tests; no test-case content; the pilot trio did NOT advance.** Terrence confirmed the
+morning's persistence work live ("results and context information appear to be properly
+retained now"). Two explicit asks shipped and verified — full why-record in CHANGELOG
+2026-08-26b; the deep reference is SERVER-README (step 3 block + "Live progress + true Stop").
+
+**(A) Script Search durability + the suggest-all button.** Per-step suggestions now persist in
+`step3.step_matches` (merge by id, newest verdict wins), chosen rows keep whitelisted record
+snapshots (`step3.records`) so keyword picks stop degrading to `other`/`?` on reload, and the
+new "Suggest all steps (LLM)" button in the coverage bar runs the per-step suggest for every
+step SEQUENTIALLY (one call per step — never the retired whole-case prompt), persisting as it
+goes. The step-3 coverage/why verdicts now reach the Fragments prompt per script; fragment
+`why` already reached Generate, so the review context flows end to end. Per-step LLM failures
+are now loud 502s (were silent `matches: []`). Suggest does NOT unconfirm/invalidate —
+candidates aren't selections. **Terrence's stated next step once he's seen suggest-all work on
+a real case: REMOVE the per-step "Suggest for sequence step N" button** (it would return
+nothing new), keeping only keyword search per step. Not done yet — his sequencing.
+
+**(B) Live progress + true Stop, all LLM buttons** (PT ×5 + suggest-all, Generator ×2,
+DB-search ×3, vLLM health): busy label `37s / ~45s · 12.3k streamed` + fill bar
+(typical = median of recent same-template successes), click-to-stop = REAL server-side cancel
+(CLI process group killed / vLLM stream closed / agent job abandoned; nothing persists; UI
+says "⏹ stopped — nothing was kept"). UI-only abort rejected explicitly — it would let the
+server finish and spend. Transport: `subprocess.run` → `llm._run_cli` (Popen + pumps),
+semantics preserved, all 25 transport-contract pins green unchanged. Verified live with a fake
+`claude` on the scratch server's PATH — zero seat spend; the kill was proven by the shim PID
+dying server-side.
+
+**Gate at close: 1071 passed / 1 skipped, 92 Vitest (8 files), both guards OK, ck.db untouched
+by tests** (baseline 1060 + 5 persistence + 6 cancel/progress tests).
+
+**State the next session must know / pick up here:**
+- **Suggest-all awaits its first REAL run** (Terrence's, on his case — N sequential Opus calls
+  on the server seat, ~15k tok/call). After he's satisfied: remove the per-step Suggest button
+  (UI only; the endpoint stays — suggest-all calls it).
+- **The typical-duration "~Ns" self-populates** — first successful real run of each action
+  seeds its median; until then buttons show elapsed + streamed only. That is by design.
+- **The pilot trio is STILL unchanged**: T33234 + T33235 need PyTest Creator generation
+  (`clear_session` each first), then hardware Run (Part 3b, TESTBOX-ACCESS.md in full).
+  IE520 remains the standing priority after the trio.
+- Harness facts (also in CHANGELOG): scratch `scratch.db` must never be deleted without its
+  `-wal`/`-shm` (orphaned WAL → "malformed" → masquerades as lock trouble); Playwright's
+  `browser.close()` skips the sendBeacon lock release, so consecutive runs need a scratch
+  restart or distinct cases.
+- Open by choice (unchanged): plan §5 of PLAN-llm-mode-selection (Apply trap + no auth),
+  `.REVIEW.py` ratify-or-revert, requirements upper bounds, the suggest_scripts pause
+  question from 08-17b.
+
 ## Latest session (2026-08-26) — Playwright found the PyTest Creator's lies, everything found was fixed, Option A shipped, and the app went LAN-hosted
 
 **Code, docs, host config — no test-case content; the pilot trio did NOT advance.** Four

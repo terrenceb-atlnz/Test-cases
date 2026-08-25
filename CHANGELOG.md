@@ -12,6 +12,59 @@ current working thread see
 
 ---
 
+## 2026-08-26b — Step-3 results became durable and context-bearing; every LLM button gained live progress and a true Stop
+
+Second session of the day, both features Terrence's explicit asks, both verified live in a
+real browser against the scratch server — the LLM half against a fake `claude` CLI on PATH,
+so not one token was spent proving it.
+
+**Script Search: suggestions persist, chosen rows keep their verdicts, and the verdicts now
+reach downstream.** Per-step LLM suggestions lived only in browser JS — the endpoint's own
+docstring said "Not persisted to step3.matches". Tolerable while the whole-case suggest (which
+does persist) owned the flow; once its button left the UI, nothing persisted: a hard reload
+lost every candidate and degraded chosen rows to `other` / `?` / empty why (keyword-search
+picks had no persisted record anywhere). Now: suggestions merge into
+`step3.step_matches[step]` (by id, newest verdict wins — a re-suggest refreshes without
+dropping what the page showed), Save Selections ships whitelisted record snapshots
+(`step3.records`), and the seed path restores both on any load, in any browser. Fetching
+suggestions deliberately does NOT unconfirm step 3 or invalidate fragments — candidates are
+not selections; save_matches keeps its invalidation. A new **"Suggest all steps (LLM)"**
+button in the coverage bar (left of the tally) runs the per-step suggest for every sequence
+step **sequentially** — the same call the per-step button makes, never the retired whole-case
+mega-prompt — populating and persisting as each step completes; a mid-run reload keeps every
+finished step. And the **coverage/why verdicts now feed the Fragments prompt** ("chosen for
+sequence step N — partial — <why>" per script, per-step verdicts outranking whole-case ones,
+with a routing rule to start each step at the scripts whose verdicts name it) — previously
+scripts arrived as bare symbol lists and the entire review context went nowhere. Fragment
+`why` already flowed into Generate as "Reviewer note", so the chain is closed end to end.
+Also: a per-step LLM failure is now a loud 502 instead of a silent `matches: []` — the same
+error-is-not-empty shape gather_fragments already had, and a precondition for Stop reading as
+"stopped" rather than "0 matches".
+
+**Every LLM button: live progress + click-to-STOP, and the stop is real.** Chosen over a
+UI-only abort explicitly: aborting the fetch client-side lets the server finish, spend the
+tokens, and persist a result behind the user's back. Instead: the browser stamps each call
+(`X-CK-LLM-Call` → middleware ContextVar → `llm_inflight.py`, in-memory, single-process like
+locks.py); the busy button re-enables as a Stop button (`actions.js` routes its click to
+`POST /api/llm/cancel/{id}` BEFORE data-action resolution, so it can never re-fire itself)
+and shows `37s / ~45s · 12.3k streamed` with a 2px fill bar — `~45s` is the median of recent
+successful same-template calls (llm-debug history), the streamed count is real server-side
+observation. Cancel kills the CLI process group / closes the vLLM stream / wakes an agent
+job abandoned; the endpoint errors "cancelled by user"; the UI says "⏹ stopped — nothing was
+kept". The hardened claude_code transport moved from `subprocess.run` to `_run_cli`
+(Popen + pump threads) — semantics preserved exactly (same timeout-kill, same >64 KiB stdin
+safety, same CompletedProcess shape); all 25 transport-contract pins pass unchanged, and
+three structural guards that tripped during the build (SSE utf-8 pin, thread-context guard,
+truncation-signal fake) were each fixed at the source. Verified live: "Extracting… 5s / ~8s
+· 356 streamed", bar at 62%, Stop click → shim CLI process dead server-side, run 1's
+completed sequence rendered as real rows. Tests: +5 persistence, +6 cancel/progress → 1071.
+
+Harness lessons recorded for future sessions: never delete a scratch `scratch.db` without its
+`-wal`/`-shm` (an orphaned WAL replays into the next copy → "database disk image is
+malformed", which then masquerades as lock trouble); and every Playwright run holds its
+case's lock after `browser.close()` (pagehide/sendBeacon skipped), so consecutive runs must
+restart the scratch server or use distinct cases.
+
 ## 2026-08-26 — PyTest Creator UI conformance, refresh-safe UI state, the `claude_code` radio (a deliberate reversal), and LAN hosting
 
 A Playwright exploratory sweep of the PyTest Creator pages (explicitly requested — the
