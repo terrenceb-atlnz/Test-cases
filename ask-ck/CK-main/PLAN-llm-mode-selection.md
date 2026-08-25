@@ -1,8 +1,14 @@
 # PLAN — Honest LLM mode selection in the Configure panel
 
-**Status:** NOT STARTED — **awaiting a decision from Terrence.** Written 2026-08-20 after the
-active LLM mode was silently reverted to a non-working backend **three times in one session**
-on a LAN-exposed server. Nothing in this document has been implemented.
+**Status: OPTION A IMPLEMENTED 2026-08-26.** Terrence chose **Option A** — `claude_code` is now
+a first-class radio, *"Claude Code CLI (this server)"*. The diagnosis in §§1–3 was re-verified
+against a live browser before any edit and reproduced **exactly**: server `auth_method` =
+`claude_code`, radio checked = `claude_agent`, the "Check my local agent" button and the agent
+instructions both visible, `/api/agent/next?wait=25` in flight, and the status line the only
+element telling the truth. See §4 for what shipped and §5 for what was deliberately left.
+
+Written 2026-08-20 after the active LLM mode was silently reverted to a non-working backend
+**three times in one session** on a LAN-exposed server.
 
 **Related design docs — read before changing anything here:**
 [`PLAN-per-user-agent.md`](PLAN-per-user-agent.md) (why `claude_agent` exists and why
@@ -128,7 +134,38 @@ Verified working each time (`llm_health` → `ok: true`, ~3.6 s, real Opus compl
 `cost_usd` ≈ 0.064). It held **~18 minutes** on the last attempt before being overwritten. It
 reverted three times on 2026-08-20.
 
-## 4. The decision to make
+## 4. The decision to make — **DECIDED: Option A (2026-08-26)**
+
+> **Outcome.** Terrence chose **Option A**. Every row of its table below shipped, plus three
+> items the table did not anticipate:
+>
+> - **3b needed no separate change.** `ckBrokerLoop()` is started off the same `method` value
+>   the remap corrupted, so deleting the remap stopped the loop by construction. Measured
+>   after the change: **0** requests to `/api/agent/next` on a `claude_code` workspace, where
+>   before there was a 25-second long-poll per tab, forever.
+> - **The model row's *restore* was gated on `claude_agent` too**, not just its visibility.
+>   Showing the row under `claude_code` therefore exposed a second disagreement: the row read
+>   **Sonnet** (the markup default) while the stored model was **opus**. That is the same
+>   class of lie this plan exists to remove, so `restoreLLMConfigUI` now covers both Claude
+>   modes. Verified: server `opus` → row `opus`.
+> - **The panel's `section-description` was rewritten.** It asserted that the Claude option
+>   "runs against **your own** Claude seat via the local agent — seats are never shared",
+>   which stops being true the moment a second Claude mode exists. It now states plainly
+>   which of the two spends whose seat.
+>
+> The reversal is recorded where §4 required it — the `claude_code` entry in `models.py` and
+> the `auth_method` list in `routers/wizard/config.py` — and both records say *why*: hiding
+> the mode never prevented the server-seat spend, it only stopped the UI from reporting the
+> active mode honestly.
+>
+> **Half of §3c remains, and the distinction matters.** Option A closes the trap this plan was
+> written about: Apply can no longer write a *broken* value, because the radio it reads is no
+> longer a lie — that is the sense in which §4 below says both options "close the Apply trap".
+> What is untouched is the structural half: `save_global_llm(cfg)` at `config.py:212` is still
+> called unconditionally, so a **case-scoped** `POST /api/wizard/set_llm_config/{key}` still
+> rewrites the **global** workspace default for every seat, with no authentication in front of
+> it. A wrong value can no longer originate in the UI; any seat can still change the mode for
+> everybody. Out of the chosen scope — see §5, still open.
 
 The two options differ in whether they **reverse a signed-off design decision**. Both close the
 Apply trap and both fix 3b. This is a judgement call about seat spending, not a technical
@@ -186,6 +223,22 @@ Leaves the false radio and the Apply trap exactly as they are.
   `ask-ck/CK-main/run.sh` where the loopback default is set.
 
 ## 6. Testing note — read before implementing
+
+> **Corrected 2026-08-26 — this is host-specific, not repo-wide.** The claim below reads as a
+> property of the repo; it is a property of *the host it was written on*. On Terrence's
+> workstation the gate runs clean and always has: **1060 passed / 1 skipped, 92 Vitest across
+> 8 files, both guards OK, `ck.db` signature unchanged**, in about 27 seconds — measured at
+> session open, before and after the Option A change. So "revive the gate first" was **not**
+> the prerequisite it appears to be, and a future session should not spend time on it before
+> checking `./tool/run_tests.sh` where it actually sits. The observation is still true of a
+> checkout whose `.venv` lacks `requirements-dev.txt` and which has no `node_modules/` — which
+> is worth knowing, because it means **two checkouts of this repo are in use and they are not
+> equivalently provisioned.** (A related divergence was found the same day: the LAN server's
+> `_workspace_llm` reverts are not present in this checkout's `ck.db`, whose row still reads
+> 2026-08-05 — and `_write_session` always stamps `updated_at`.)
+>
+> `bun` is also absent here; `node_modules/rolldown` was used for the equivalent
+> whole-module-graph build check.
 
 **The gate cannot run on this host.** `pytest` is absent from `.venv`, `npm` is off PATH and
 `node_modules/` does not exist, so `./tool/run_tests.sh` exits 2 after the two guards.

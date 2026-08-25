@@ -3392,3 +3392,69 @@ went unanswered** and remain open: commit timing for the doc fix, and whether to
 pausing at `suggest_scripts` for the include-which-matches call. **New standing priority from
 Terrence: IE520 testing once the trio is settled** — six related memories exist, all unstamped,
 and `TESTBOX-ACCESS.md` must be read in full first.
+
+## Session Close / Handoff (2026-08-26) — the sweep that was asked for, the fixes it earned, Option A, and the box became the server
+
+**Four explicit asks, in order; every one delivered and verified live.** No test-case content;
+the pilot trio did not advance. Gate identical at open and close: 1060/1 pytest, 92 Vitest,
+guards OK, ck.db untouched by tests.
+
+**(1) "Perform a playwright run of the PyTest Creator pages — i found ui issues but i want to
+see if you can find them."** Terrence explicitly exempted the `user-prefers-manual-ui-testing`
+memory for this session ("this is one of the times that is exempted"). Seven exploratory
+sweeps against the scratch server (never the real one) found six confirmed defect groups —
+step-numbering leaks (4), Confirm-label inconsistency, copy pointing at the empty Complete
+bucket, refresh discarding all UI state, the claude_code/claude_agent radio lie live on this
+checkout with its dead broker loop, and a keyboard-only user unable to reach any tool. Two
+early "findings" were withdrawn after checking the code: a stale case lock (Playwright's
+`browser.close()` skips `pagehide`, so `sendBeacon` release never fires — test artifact) and a
+missing status line (bad selector in my own sweep). Method note that saves future sessions
+time: `waitUntil: 'networkidle'` NEVER settles on this app (agent long-poll / version poll) —
+wait on `'load'` + a selector instead; and in-memory locks from an abruptly-killed browser
+session clear on server restart, or expire after LOCK_IDLE_TTL (15 min).
+
+**(2) "Fix everything", with three decisions taken via explicit options:** Option A for the
+LLM mode (claude_code gets its own radio — reverses the signed-off UI exclusion, recorded in
+models.py + config.py per the plan's own requirement), sessionStorage scope for the refresh
+restore (per-tab, deliberately NOT localStorage — a reopened stale tab must not re-acquire a
+case lock), app-wide reach (Generator included). New module `static/js/session-restore.js`;
+numbering/labels conform to the 2026-07-23 seven-step flow revision with internal `stepN`
+keys untouched; accordion headers keyboard-reachable; Run/Validate name their case; Run
+gates on a testbox selection. Three defects in my own fixes were caught by browser
+verification, not by the gate: the boot `goToPanel('panel-main')` overwrote the restore
+snapshot before it was read; the claude model-row restore was gated on claude_agent alone
+(showed Sonnet against stored opus); a `ck status` escaping bug. All three fixed same-day.
+
+**(3) "We need to live-host this on 10.33.22.17."** Bind 0.0.0.0 (documented opt-in, no code
+change), systemd user unit + linger for boot/logout survival, open on the lab LAN — all three
+chosen by Terrence from explicit options, with the exposure stated plainly first (no auth +
+no firewall + on-disk JIRA key + testbox SSH creds + any seat can select this box's Claude
+seat since Option A). Verified from the LAN address itself: /health ok, permanent DB true,
+index 200, loopback intact.
+
+**(4) "Consolidate setup.sh / run.sh / systemctl into one front door."** `~/.local/bin/ck`
+(local disk BECAUSE the repo is on NFS — the wrapper must work exactly when the share is
+down): on/off/restart/reload/status/logs/setup/health. fstab automount added for the share
+(nofail,x-systemd.automount,_netdev; backup /etc/fstab.bak-2026-08-26; sudo confirmed
+passwordless first; approved by Terrence via question). Unit hardened to Restart=always
+specifically because run.sh --stop's pkill delivers a CLEAN SIGTERM that on-failure would
+treat as deliberate — tested: pkill → NRestarts=1, healthy in 20 s; `ck off` (explicit stop)
+stays off. The admin panel's Restart button needed NO change: it touches a watched .py and
+--reload cycles the app in-process, MainPID never exits (verified: 2578632 → 2578632).
+setup.sh and run.sh themselves untouched — ck fronts them, so Jacob's checkout and the
+scratch-server tooling see no difference. Not literally reboot-tested; every link verified
+individually. 10.33.22.17 is a DHCP lease — a reservation would pin it.
+
+**Also this session:** pulled Jacob's `62afa8a` (PLAN-llm-mode-selection.md, fast-forward,
+no overlap); annotated that plan's §6 "the gate cannot run on this host" as HOST-SPECIFIC
+(green here in ~27 s — two checkouts exist and are not equivalently provisioned, and the
+08-20 LAN reverts are absent from this ck.db: worth asking Jacob whether the other checkout
+is retired now that 10.33.22.17 hosts); banner on PLAN-per-user-agent.md (UI half superseded,
+mechanism stands); reconstructed CHANGELOG entry for the five undocumented 08-20 commits;
+js README gained session-restore and lost a stale "8-step" claim; cache-busters bumped.
+
+**Pick up:** unchanged from 08-17b and re-verified — T33234 + T33235 through PyTest Creator
+(Opus/claude_code, `clear_session` each first), then confirm/save + hardware Run (Part 3b,
+TESTBOX-ACCESS.md in full first). IE520 standing priority after the trio. Open by choice:
+plan §5 (Apply trap + no auth), `.REVIEW.py` ratify-or-revert, requirements upper bounds,
+the suggest_scripts pause question (asked 08-17b, still unanswered).

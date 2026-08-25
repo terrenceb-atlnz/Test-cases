@@ -12,6 +12,116 @@ current working thread see
 
 ---
 
+## 2026-08-26 — PyTest Creator UI conformance, refresh-safe UI state, the `claude_code` radio (a deliberate reversal), and LAN hosting
+
+A Playwright exploratory sweep of the PyTest Creator pages (explicitly requested — the
+`user-prefers-manual-ui-testing` memory was exempted for this session by Terrence) found six
+confirmed defect groups; everything below was then fixed, and every fix was **re-verified in a
+real browser against the scratch server**, not just by tests. Gate before and after:
+1060 passed / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` untouched by tests.
+
+- **The visible step numbering was fixed to match the design.** The 2026-07-23 flow revision in
+  `PLAN-pytest-creator.md` is explicit: the visible flow is **7 steps**, internal `stepN`
+  session keys are **unchanged** — only labels shifted. Four places in the UI had drifted back
+  to internal numbering: the Validate panel's confirm button said "Step 8" inside a panel whose
+  every other label says 7; the post-LLM-fix status pointed at "6. Generate" (6 is Run — an
+  instruction naming a panel that doesn't exist); and two prose strings said "step 8" for
+  Final Validation. Labels changed, `data-args='[N]'` internal values deliberately untouched.
+  Three different Confirm-button conventions in one flow ("Confirm Step 2" / bare "Confirm" /
+  "Confirm Step 8 (close out)") were unified to "Confirm Step N".
+- **The no-selection copy pointed at the wrong dropdown.** Both the page subtitle and the
+  load alert said "select a **completed** case" — but Complete is the *output* bucket
+  (measured live: 52 Open/Partial, 0 Complete). Both now point at Open/Partial.
+- **"step" was overloaded in the carousels.** Script Search showed "Confirm Step 3"
+  (pipeline) beside "9/11 steps covered" and "Suggest for step 1" (extracted sequence) in one
+  view. All 13 sequence-step labels now say "Sequence step N"; pipeline labels keep the bare
+  form the sidebar uses.
+- **Run and Validate now name the case they act on** — previously the panel that executes on
+  hardware and the one that closes a case out were the only two with no case identity at all.
+  Run also names the script it will execute (built from `step6.naming`, the same way
+  `ptUpdateGenPath` does). **"Run on Testbox" is now disabled until a testbox is picked**
+  ("Select a testbox first" tooltip) instead of being an enabled primary button whose click
+  died in an alert; the gating explicitly yields to `locks.js` when the lock layer disabled
+  the button. The two case dropdowns render at one width (empty bucket used to collapse to
+  min-width beside a full one at max). The `.setup`-path input no longer clips its placeholder.
+- **Keyboard users can now reach the tools at all.** `actions.js` has activated
+  `div[role="button"]` on Enter/Space since the module split ("so sidebar navigation is usable
+  without a mouse") — but every accordion section starts collapsed and the section headers
+  were bare `<div>`s: unfocusable, so the support was unreachable. Headers now carry
+  `role="button"`, `tabindex="0"`, live `aria-expanded`, and bodies `aria-labelledby`.
+- **New `static/js/session-restore.js`: a refresh no longer loses the user's place** —
+  app-wide (Generator selection included), not just PyTest Creator. F5 used to return to
+  `panel-main` with the sidebar re-collapsed and dropdowns cleared while the server-side
+  session was still loaded and nothing said so; this collided directly with the 2026-08-20
+  stale-tab guard, whose only remedy is "reload". **sessionStorage, not localStorage, on
+  purpose**: state must survive a refresh and nothing more — a tab reopened days later must
+  not auto-load a case and silently re-acquire its per-case lock against a colleague. PyTest
+  Creator's selected-vs-loaded distinction is preserved (only a case that was actually loaded
+  is re-loaded, re-acquiring the lock exactly as the user's own click did). The restore waits
+  on the case lists (`waitForOptions`) instead of the old fixed 200 ms guess, which raced
+  `initCases()` on a cold load; the old first-open-case default is kept as the no-snapshot
+  fallback. One bug found by verification, worth remembering: **the boot default
+  `goToPanel('panel-main')` records itself, so it overwrote the snapshot before an async
+  restore could read it** — the restore then faithfully returned to panel-main every time.
+  `main.js` now captures `BOOT_SNAPSHOT` before applying the boot default.
+- **`claude_code` got its own radio — "Claude Code CLI (this server)" — reversing the
+  signed-off UI exclusion, deliberately** (Terrence chose Option A of
+  `PLAN-llm-mode-selection.md`; reversal recorded in `models.py` and
+  `routers/wizard/config.py` as that plan required). The remap at `llm.js`
+  `restoreLLMConfigUI` (`claude_code → claude_agent`) is deleted. Why: hiding the mode never
+  prevented the server-seat spend — it only made the radio lie. The plan's diagnosis was
+  reproduced exactly on this checkout before the change: server on `claude_code`, radio
+  checked `claude_agent`, "Check my local agent" offered and unable to work, and every tab
+  long-polling `/api/agent/next` for jobs that can never be queued (deleting the remap fixed
+  that broker loop for free — measured 0 polls after). Showing the model row under
+  `claude_code` exposed a second, subtler lie: the Haiku/Sonnet/Opus **restore** was also
+  gated on `claude_agent` alone, so the row showed the markup default (Sonnet) against a
+  stored `opus`. Both Claude modes now share the row, its restore, the live toggle, and a
+  mode-aware seat note; a server-seat instructions panel states plainly whose seat pays. The
+  Configure page's description no longer claims Claude always runs on the user's own machine.
+  **Deliberately NOT closed: the §3c Apply trap** — `save_global_llm` is still unconditional,
+  so any seat's case-scoped Apply still rewrites the global default (it just can't write a
+  *broken* value from the UI any more). Still open in that plan's §5, with the server's total
+  lack of auth.
+- **The app is now LAN-hosted**: `http://10.33.22.17:8000/` via the systemd user unit
+  `ask-ck.service` + fstab automount + the `ck` control command. Host-local by nature (none
+  of it is in this repo) — the full record is in SERVER-README "Hosted deployment", including
+  why `Restart=always` and why `run.sh --stop` must not be used against it.
+- Cache-busters bumped (`main.js?v=28`, `styles.css?v=27`). Verification tooling note: `bun`
+  is absent on this host; the whole-module-graph build check used the repo's own
+  `node_modules/rolldown`.
+
+## 2026-08-20 — Multi-seat UX hardening (reconstructed 2026-08-26 from commit messages)
+
+Five commits landed on 2026-08-20 (four by Jacob McClure, one by Terrence) with no CHANGELOG
+entry; this entry reconstructs them **from their own commit messages** during the 08-26 wrap so
+the dated history has no hole. The day's theme: the first real multi-seat use over the LAN.
+
+- `4a769a8` **Grok removed from the Configure page, backend kept.** UI-only by choice —
+  `grok_cli` stays in `SUPPORTED_AUTH_METHODS` ("a governance control rather than a
+  convenience list"); retiring a backend is a bigger decision than hiding a button. The
+  `auth_method` default and config-restore fallback were both `grok_cli` and would have
+  dangled; both now fall back to `local_llm`.
+- `076e3ba` **LLM suggestions land in candidates, not straight in the chosen list.** All three
+  suggest-with-LLM paths auto-promoted every returned id via `precheckIds`; the picks were
+  accepted before anyone looked at them. They now merge into the candidates table and the
+  analyst ticks + chooses. The `precheckIds` mechanism itself was kept (test-covered, general).
+- `b544f5e` **The agent broker loop stops when `claude_agent` mode ends.** `ckBrokerLoop()`
+  was `while (true)`; after switching the workspace away, three remote seats kept long-polling
+  for jobs that can never be queued — and the failure path made a stopped server *increase*
+  traffic (2 s retry vs 25 s long-poll). `ckAgentModeActive()` existed for exactly this check
+  and was never called; now consulted each iteration. (On 2026-08-26 the check became fully
+  effective: the `claude_code→claude_agent` radio remap that defeated it was deleted.)
+- `dd77ac1` **Open tabs are warned when the frontend they run is superseded.** Static assets
+  serve straight off disk, so an edit is live with no restart and an open tab keeps running
+  old modules with nothing to tell it — three seats sat on superseded code for a whole
+  session. `GET /api/version` hashes mtime+size over the static tree ON DISK (deliberately not
+  the git SHA and not a startup constant — neither moves in the cases that actually strand a
+  tab); `version.js` polls it and raises a reload prompt, never auto-reloading (unsaved wizard
+  work + live case locks make that a bad trade).
+- `89722fe` (Terrence) memory + `TESTBOX-ACCESS.md` updates, a `run.sh` note removed, and a
+  new `ck.db` — the tb470/IE520 stack findings recorded in `tb470-topology-and-setup`.
+
 ## 2026-08-17 — The README stopped being a status document
 
 Its *Current Status* table had become a changelog held inside table cells — the PyTest Creator

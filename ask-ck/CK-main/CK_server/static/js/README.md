@@ -26,7 +26,8 @@ graph evaluates.
 | `agent.js` | Local ck-agent bridge (broker long-poll, CLI status probes) |
 | `cases.js` | Case-select plumbing shared by Generator + PyTest Creator |
 | `nav.js` | Sidebar accordion + panel/step navigation |
-| `pytest.js` | PyTest Creator (the full 8-step flow) |
+| `pytest.js` | PyTest Creator (7 visible steps; internal session keys still `step2`–`step8` — see `_step_label` / PLAN-pytest-creator.md 2026-07-23 flow revision) |
+| `session-restore.js` | Refresh-safe UI state (sessionStorage, per tab): remembers active panel + each tool's loaded case so F5 doesn't dump the user at panel-main; `main.js` captures the snapshot BEFORE the boot default panel overwrites it |
 | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
 | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
 | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |

@@ -2,6 +2,24 @@
 
 **Status:** IMPLEMENTED + end-to-end verified. 2026-07-14.
 
+> **PARTLY SUPERSEDED 2026-08-26 — the UI half only; the mechanism below is untouched.**
+> This plan removed server-local `claude_code` from the Configure UI and mapped a stored
+> `claude_code` onto the `claude_agent` radio on restore (see the Frontend bullet below, and
+> §"kept but relabelled"). That remap has been **deleted** and `claude_code` now has its own
+> radio, *"Claude Code CLI (this server)"* — see
+> [`PLAN-llm-mode-selection.md`](PLAN-llm-mode-selection.md) (Option A, decided by Terrence).
+>
+> Why: hiding the mode never stopped a server on `claude_code` from spending the server's
+> seat; it only stopped the UI from saying so. The remap made the radio report
+> `claude_agent` while the server ran `claude_code`, which also kept `ckBrokerLoop()` running
+> in a mode that can never be handed a job — every tab long-polling `/api/agent/next` forever.
+>
+> **Everything else here still holds and is still the right design**: the agent, the job
+> registry's per-session partitioning, the `127.0.0.1`-only bind, and `claude_agent` as the
+> mode that keeps each user on their own seat. The reversal is about which modes the UI
+> *offers*, not about how any of them work. Body text below is left as written — it is an
+> accurate record of 2026-07-14.
+
 ## Implementation summary (all phases done)
 - **Agent** (`ask-ck/agent/ck_agent.py`, stdlib): `/health` + `/run`, binds 127.0.0.1:8765, CORS to server origin, no token. + `run-agent.sh`, `README.md`.
 - **Server**: `agent_jobs.py` (per-session job registry, blocking submit + timeout); `routers/agent_bridge.py` (`/api/agent/next` long-poll, `/result`, `/status`); `llm.py` gained `claude_agent` branch (`_call_claude_agent`), a `session_id` param, and a `current_session_id` ContextVar; `main.py` middleware binds the `X-CK-Session` header to that ContextVar + mounts the bridge router. Blocking LLM calls in `wizard.py`/`pytest_create.py` are now `await run_in_threadpool(...)` so the agent long-poll stays serviceable (no event-loop deadlock).

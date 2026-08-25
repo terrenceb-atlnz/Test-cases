@@ -211,6 +211,27 @@ HOST=0.0.0.0 ./run.sh
 > model. `HOST=0.0.0.0` still works but is now an explicit choice — and is not by
 > itself a safe configuration. Browse via `localhost`, not the bind address.
 
+> **Hosted deployment (2026-08-26): the server of record now runs LAN-exposed on
+> Terrence's workstation, `http://10.33.22.17:8000/`,** as the systemd **user** unit
+> `ask-ck.service` (`~/.config/systemd/user/`, `HOST=0.0.0.0`, `Restart=always`,
+> linger enabled, so it starts at boot and survives logout). The unit runs `run.sh`
+> itself — with a non-TTY stdin `run.sh` exec's uvicorn in the foreground, so all
+> venv/PYTHONPATH/offline-model logic stays in one place. The one front door is the
+> **`ck` command** (`~/.local/bin/ck`, local disk on purpose — the repo's NFS share
+> may be the very thing that is missing): `ck on|off|restart|reload|status|logs|setup|health`.
+> Three host-local artifacts, deliberately **not** in this repo: the unit, the `ck`
+> script, and an `/etc/fstab` automount for the NFS share
+> (`nofail,x-systemd.automount,_netdev`; backup at `/etc/fstab.bak-2026-08-26`) so
+> boot → mount-on-first-access → server up with nobody logged in.
+> **Manage it with `ck` / `systemctl --user`, never `run.sh --stop`** — that pkills
+> uvicorn behind systemd's back (the unit self-heals via `Restart=always`, which is
+> precisely why it is `always`: the pkill's clean SIGTERM would end an `on-failure`
+> unit permanently). The admin panel's Restart button is service-safe by design: it
+> touches a watched `.py` and `--reload` cycles the app **in-process**, so the
+> service MainPID never exits (verified 2026-08-26). Caveats: 10.33.22.17 is a DHCP
+> lease, and the exposure below is accepted and real — no auth, no firewall on this
+> host, and any LAN seat can switch the workspace onto this box's Claude seat.
+
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
 > server against the existing `ask-ck/var/ck.db` in seconds. `setup.sh` is for
 > first-time environment setup — venv/deps + `git lfs pull` to materialize the

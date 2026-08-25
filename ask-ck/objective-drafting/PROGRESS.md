@@ -2,7 +2,95 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-17 (by Claude)
+**Last Updated**: 2026-08-26 (by Claude)
+
+## Latest session (2026-08-26) — Playwright found the PyTest Creator's lies, everything found was fixed, Option A shipped, and the app went LAN-hosted
+
+**Code, docs, host config — no test-case content; the pilot trio did NOT advance.** Four
+tasks in sequence: a requested Playwright sweep of the PyTest Creator pages ("i found ui
+issues but i want to see if you can find them" — the manual-testing memory explicitly
+exempted), "fix everything" plus Jacob's LLM-mode plan, LAN hosting on 10.33.22.17, and a
+one-front-door consolidation (`ck`). Gate green at open, after every task, and at close:
+**1060 passed / 1 skipped, 92 Vitest (8 files), both guards OK, `ck.db` untouched by tests.**
+
+**(A) What the sweep found (all reproduced live against the scratch server, port 8123).**
+Six confirmed groups: (1) four leaks of the internal step numbering into the visible 7-step
+flow — worst was the post-fix status "Review in 6. Generate" naming a panel that doesn't
+exist; (2) three Confirm-button conventions in one flow; (3) both no-selection messages
+pointing at the Complete dropdown, which is the *output* bucket (measured 52 open / 0
+complete); (4) F5 discarding all UI state while the server session stayed loaded — in direct
+collision with dd77ac1's stale-tab dialog whose only remedy is "reload"; (5) the workspace on
+`claude_code` while the radio claimed `claude_agent`, the dead "Check my local agent" button
+offered, and the broker loop long-polling for jobs that can never come (= Jacob's
+PLAN-llm-mode-selection §3a/§3b reproduced on THIS checkout — also why Playwright's
+`networkidle` never settles on this app); (6) keyboard users unable to reach any tool: the
+Enter/Space support in actions.js was real but the accordion headers were unfocusable bare
+divs. Lower-severity: Run/Validate named no case, "Run on Testbox" was an enabled dead
+click, "step" meant two different things in one view, mismatched dropdown widths.
+**Withdrawn as test artifacts, not defects:** a "stale lock" (locks.js releases via
+sendBeacon on pagehide, which Playwright's abrupt browser.close() skips — the in-memory
+registry also empties on server restart), and a "missing status line" (my selector, not the UI).
+
+**(B) Everything above was fixed** — see CHANGELOG 2026-08-26 for the full why-record. The
+shape that matters for the next reader: labels conform to the 2026-07-23 flow revision
+(internal `stepN` keys untouched); `session-restore.js` is new and app-wide (sessionStorage
+*deliberately* — localStorage would let a stale reopened tab re-acquire a case lock against a
+colleague); the accordion is keyboard-reachable (role/tabindex/aria-expanded); Run/Validate
+name their case, Run gates on a testbox and names the script it will run. Three bugs were
+found in MY OWN fixes by verifying in the browser rather than trusting the diff: the boot
+default overwrote the restore snapshot before it was read (BOOT_SNAPSHOT now captured first);
+the claude-model row restored only under `claude_agent` so it showed Sonnet against a stored
+opus; a `ck status` f-string escape. Verify-what-you-ship caught all three.
+
+**(C) Option A shipped — a deliberate reversal, recorded.** Terrence chose Option A of
+[PLAN-llm-mode-selection.md](../CK-main/PLAN-llm-mode-selection.md): `claude_code` is a
+first-class radio ("Claude Code CLI (this server)"), the remap deleted, both Claude modes
+share the model row, a server-seat panel says plainly whose seat pays. The reversal is
+recorded in `models.py` and `config.py` (the plan's own requirement), the plan's status
+header + §4 record the outcome, §6's "the gate cannot run on this host" is annotated as
+host-specific (it runs green here in ~27 s — **two checkouts of this repo are in use and are
+not equivalently provisioned**), and PLAN-per-user-agent.md carries a partly-superseded
+banner (UI half only; the agent mechanism stands). **NOT closed, still open in that plan's
+§5: the §3c Apply trap** — `save_global_llm` is unconditional, so any seat's case-scoped
+Apply still rewrites the global workspace default; it just can't write a broken value from
+the UI any more. The server still has no auth of any kind.
+
+**(D) Hosting + the `ck` front door (host-local, none of it in the repo).** The server of
+record is `http://10.33.22.17:8000/` — systemd user unit `ask-ck.service` (HOST=0.0.0.0,
+`Restart=always`, linger), fstab automount for the NFS share (`nofail`, backup at
+`/etc/fstab.bak-2026-08-26`), and `~/.local/bin/ck`
+(`on|off|restart|reload|status|logs|setup|health`). Tested live: soft reload leaves MainPID
+untouched (the admin panel's Restart button is therefore service-safe by construction);
+`run.sh --stop`'s pkill self-heals via Restart=always (NRestarts=1, which is WHY it is
+`always` — the pkill's clean SIGTERM would end an on-failure unit permanently); `ck off`
+stays off; the gate runs green WHILE the LAN server serves. Full record: SERVER-README
+"Hosted deployment". Not reboot-tested end-to-end; each link verified individually.
+Caveats: 10.33.22.17 is a DHCP lease; the LAN exposure (Zephyr push spends the on-disk
+JIRA key, testbox SSH, this box's Claude seat selectable by any seat) was accepted
+explicitly by Terrence, three options considered.
+
+**(E) Doc reconciliation this wrap.** The five undocumented 2026-08-20 commits got a
+reconstructed CHANGELOG entry (marked as such, built from their own commit messages);
+`static/js/README.md` gained the session-restore row and lost a stale "8-step flow" claim;
+cache-busters bumped (main.js v28, styles.css v27).
+
+**State the next session must know / pick up here:**
+- **The pilot trio is STILL the active test-case thread and STILL unchanged** — T33234 +
+  T33235 need PyTest Creator generation (Opus/`claude_code`), **each needs `clear_session`
+  first** (their `pt-` rows still carry 2026-07-29 pre-cleanup content, re-verified in ck.db
+  2026-08-26 morning); then confirm/save and the deferred hardware Run (Part 3b — read
+  TESTBOX-ACCESS.md in full first). The suggest_scripts pause question from 08-17b was never
+  answered and is still open.
+- **IE520 testing** remains Terrence's standing priority once the trio settles.
+- **The server is LIVE on the LAN** — real traffic SHOULD dirty ck.db now; only tests must
+  not. Manage the server with `ck` / `systemctl --user`, never `run.sh --stop`.
+- **The two-checkouts divergence is unresolved**: the 08-20 LAN session ran a checkout whose
+  gate can't run and whose `_workspace_llm` writes are not in this ck.db. If that other
+  checkout still serves anywhere, invariant #1 (single source of truth) is at risk —
+  worth asking Jacob where 10.33.25.50/10.33.12.10 were pointed and whether it's retired now
+  that 10.33.22.17 hosts.
+- Open by choice: `.REVIEW.py` tracked-by-accident (ratify or revert), unpinned
+  requirements (upper bounds / lockfile), plan §5 (Apply-trap blast radius, no auth).
 
 ## Latest session (2026-08-17b) — a short orientation session: one forward-looking doc claim had gone false, and the unpinned-dependency observation got a sharper edge
 
