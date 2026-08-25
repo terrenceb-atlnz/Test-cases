@@ -9,6 +9,17 @@ metadata:
   verified: 2026-08-26
 ---
 
+**Scratch-harness gotchas (learned the hard way 2026-08-26, ~40 min lost):**
+1. **Never delete `/tmp/ck-scratch-db/scratch.db` without its `-wal`/`-shm` siblings** —
+   an orphaned WAL replays into the NEXT pristine copy and yields "database disk image is
+   malformed". It presents as PHANTOM CASE-LOCK trouble (the lock acquires, then the
+   persist fails), which sends you chasing gotcha #2 instead. `rm -rf /tmp/ck-scratch-db`
+   whole, with the scratch server stopped.
+2. **Every Playwright run holds its loaded case's lock after `browser.close()`** — abrupt
+   close skips `pagehide`, so the `sendBeacon` release never fires. Consecutive runs then
+   hit the predecessor's 15-min lock (locks are in-memory: a scratch-server restart clears
+   them). Use distinct cases per run, or restart between runs.
+
 `ask-ck/var/ck.db` is **WAL-mode**. A committed write lands in `ask-ck/var/ck.db-wal` and
 can leave the main file's bytes AND mtime untouched for a long time. So:
 

@@ -3,7 +3,17 @@ name: claude-code-cli-transport-contract
 description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + system passthrough + a thinking cap; the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
 metadata:
   type: project
+  verified: 2026-08-26
 ---
+
+**Transport runner changed 2026-08-26 (contract unchanged, re-verified same day):** the CLI
+paths now run via **`llm._run_cli`** (Popen + stdin/stdout/stderr pump threads), not
+`subprocess.run` — for live stream-json progress (llm_inflight) and a TRUE kill on user
+cancel (process group, SIGTERM→SIGKILL). Semantics preserved exactly: same timeout-kill,
+same >64 KiB stdin safety, same CompletedProcess shape. **Tests that fake the CLI must
+monkeypatch `llm._run_cli` (kwargs `input_text`, `timeout`), not `llm.subprocess.run`** —
+all 25 transport-contract pins passed unchanged after the fixture repoint. Everything below
+still binds: it is about what reaches the CLI and how its reply parses, not how it is spawned.
 
 `claude -p` is the Claude **Code** CLI — an agent, not a completion endpoint. Four things must
 be true or it silently corrupts output (all found + fixed 2026-07-30, `llm.py`):

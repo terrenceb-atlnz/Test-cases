@@ -6,6 +6,7 @@ metadata:
   type: reference
   originSessionId: 6c4c3b5d-20a2-4e93-8a92-519e908e14e6
   modified: 2026-07-20T23:27:06.128Z
+  verified: 2026-08-26
 ---
 
 **The org vLLM models (`vllm-fast` AND `vllm-thinking`, at `http://vllm.ai.atlnz.lc/v1`, OpenAI-compatible, `auth_method=local_llm`) are reasoning models.** They spend completion tokens on hidden chain-of-thought returned in `message.reasoning_content` BEFORE emitting the real answer in `message.content`. This is the single biggest gotcha when working with Ask-CK's LLM path and caused three separate bugs (fixed 2026-07-21, commits `e6c0d64` + `1ccf1a7`, all in `CK_server/llm.py`):
@@ -19,3 +20,5 @@ metadata:
 **Why:** these facts aren't obvious from a glance at the code or the vLLM docs, and the tiny health-ping prompt masks all of them (it always fit under the cap and returns fast), so a headless vLLM run looked fine while every real templated call failed. A future session touching the LLM path or debugging "the vLLM returns nothing" / "the vLLM call times out" needs this.
 
 **How to apply:** when adding LLM calls, go through `run_prompt` (gets the system steer + guards for free). When debugging empty vLLM output, check `finish_reason` and `reasoning_content` in the debug-log (`GET /api/llm/recent`) before assuming the backend is down. Related: [[pytest-creator-llm-config-bug]] (wrong-backend bug), [[db-only-single-source]].
+
+**2026-08-26 (claims above re-verified in llm.py the same day):** the SSE loop now also counts per-chunk progress into `llm_inflight` and carries a true cancel handle (`resp.close` tears the stream down mid-generation; the cancelled check names the user, not a ChunkedEncodingError). The inter-chunk read-timeout semantics are unchanged.
