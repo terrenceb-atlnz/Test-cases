@@ -37,9 +37,11 @@ dying server-side.
 by tests** (baseline 1060 + 5 persistence + 6 cancel/progress tests).
 
 **State the next session must know / pick up here:**
-- **Suggest-all awaits its first REAL run** (Terrence's, on his case — N sequential Opus calls
-  on the server seat, ~15k tok/call). After he's satisfied: remove the per-step Suggest button
-  (UI only; the endpoint stays — suggest-all calls it).
+- **Suggest-all CONFIRMED on a real case (Terrence, 2026-08-26 afternoon): "suggest-all works,
+  info stays retained."** The button-removal follow-up is now **deferred by his choice** ("we
+  can remove the button later") — when it happens it is UI-only; the endpoint stays
+  (suggest-all calls it). His real run also seeded the typical-duration medians, so the ~Ns
+  estimate and fill bar are live for those actions from now on.
 - **The typical-duration "~Ns" self-populates** — first successful real run of each action
   seeds its median; until then buttons show elapsed + streamed only. That is by design.
 - **The pilot trio is STILL unchanged**: T33234 + T33235 need PyTest Creator generation
