@@ -42,3 +42,38 @@ Same instinct as [[checks-must-not-match-their-own-advice]] and the divergence-v
 - Top-level Boot Menu `0` is **RESTART**, not "back" — see [[ie520-bootloader-console-driving]].
 
 Related: [[bootloader-media-parse-bug]], [[orient-ie520 skill in testbox_home/.claude/skills]].
+
+## 2026-08-26 — the same mistake, one layer down: I INVENTED a CLI command
+
+Chasing a core file after the 38378 cycle-293 master wedge, I wanted member 1's own
+`debug:` filesystem. I typed **`remote-command 1 dir debug:`** at the stack master. No such
+command exists — the device answered `% Invalid input detected at '^' marker.` Terrence:
+
+> *"Review the CLI commands that we have in the ck database, thats definitely not one of
+> them that i know"*
+
+He was right, and the reference had the answer the whole time. One query settled it:
+
+```bash
+sqlite3 ck.db "SELECT DISTINCT command, syntax FROM cli_commands WHERE command LIKE 'remote%';"
+```
+
+- **`remote-command`** — does not exist anywhere in ck.db. I made it up from plausibility.
+- **`remote-login <stack-ID>`** — real (page name `remotelogin`), Privileged Exec, `exit`
+  returns to the master. That was the command I actually needed.
+
+**How to apply:** before sending any command to hardware that you have not just read in
+ck.db, the framework source, or a prior run log, **grep ck.db for it**. `cli_commands` is
+keyed on `command` with a `syntax` array and a `notes` JSON blob (Mode / Usage notes /
+Example). Checking costs one query; guessing costs a hardware round trip and puts an
+unknown string on a console that may be mid-test.
+
+Two follow-on facts learned the same way (both from the device, after checking):
+- `remote-login` lands in **user exec** (`awplus-1>`) — `dir` needs `enable` first.
+- A backup member cannot copy to a remote filesystem: *"% Copying to/from remote file
+  systems is only supported from the stack master"*. Two-step it — `copy debug:/x flash:/x`
+  on the member, then `copy awplus-1/flash:/x tftp://...` from the master.
+
+Same lesson as the section above, and as [[generator-cli-hallucination]] /
+[[cli-fabrication-originates-step2]]: **fabricated CLI is not a generator-only failure
+mode — I do it too, and at a live console it is more expensive.**
