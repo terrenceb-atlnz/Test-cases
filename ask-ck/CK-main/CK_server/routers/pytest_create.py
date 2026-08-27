@@ -2571,6 +2571,25 @@ async def confirm_step(key: str, step: int, body: dict = Body(default={})):
     # those are never legitimately empty-but-complete.
     if required_field in ("matches", "fragments"):
         ran = bool(content.get("provenance")) or content.get(required_field) is not None
+        # Step 3 alone needs more than those two fields. It moved to a PER-SEQUENCE-STEP
+        # picker on 2026-08-26 and BOTH of them stopped being written for new sessions:
+        # `matches` comes only from the whole-case POST /suggest_scripts, which left the UI
+        # at the same time (see _persist_step_matches), and step 3 has never written
+        # `provenance` at all -- only steps 2, 5, 6 and 8 do. So a case driven through the
+        # current UI could NOT be confirmed however complete it was (observed: 32/32 steps
+        # covered, 34 scripts chosen, still 409), and step 4 was unreachable behind it,
+        # since gather_fragments calls _require_confirmed(sess, "step3", ...).
+        #
+        # The per-step flow's evidence that the step actually RAN is either of:
+        #   step_matches -- written per sequence step by _persist_step_matches, and written
+        #                   even when that step matched nothing, so it preserves the
+        #                   "empty list is a legitimate answer" property this check exists
+        #                   for; and
+        #   selections   -- scripts chosen by keyword search, which is reachable without
+        #                   ever invoking Suggest.
+        # Pre-2026-08-26 sessions still pass on `matches` exactly as before.
+        if not ran and required_field == "matches":
+            ran = bool(content.get("step_matches")) or bool(content.get("selections"))
         if not ran:
             raise HTTPException(409, f"Nothing to confirm yet for '{_step_label(step)}' "
                                      f"(missing {required_field}).")
