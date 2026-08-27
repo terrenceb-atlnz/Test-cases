@@ -3068,9 +3068,14 @@ async def gather_fragments(key: str, request: Request):
             symbols.append({"kind": "function", "name": h["name"], "desc": h.get("doc", "")})
         scripts_ctx.append({"id": sid, "symbols": symbols, "review": _review_for(sid)})
 
+    # 600s, matching generate_script and fix_script. This prompt carries the whole
+    # sequence PLUS every chosen script's symbols and review notes — the largest context
+    # in the pipeline — and had half their budget. On claude_agent (the one transport
+    # that gets the raw value rather than _cli_timeout's 1800s floor) that was a hard
+    # 300s ceiling, hit on 2026-08-27 for AWPTCM-T44191.
     meta = await run_in_threadpool(run_prompt, "pt_gather_fragments.jinja", {
         "case_key": key, "sequence": sequence, "scripts": scripts_ctx,
-    }, llm_config=_llm_cfg(sess), timeout=300, dry_run=dry_run)
+    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run)
     if dry_run:
         return _provenance_preview(meta)
     if meta.get("error"):

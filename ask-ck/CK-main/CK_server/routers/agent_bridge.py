@@ -48,8 +48,13 @@ async def next_job(session: str = "", wait: float = 25.0,
     while True:
         job = registry.next_job(session)
         if job:
-            job_id, prompt, model = job
-            return {"job": {"job_id": job_id, "prompt": prompt, "model": model}}
+            job_id, prompt, model, job_timeout = job
+            # `timeout` is the budget THIS server is waiting on. The browser passes it
+            # straight to its ck-agent so both ends stop at the same moment; before this
+            # it hard-coded 600s of its own and could outlive the server's patience,
+            # finishing work whose job had already been discarded.
+            return {"job": {"job_id": job_id, "prompt": prompt, "model": model,
+                            "timeout": job_timeout}}
         if asyncio.get_event_loop().time() >= deadline:
             return {"job": None}
         await asyncio.sleep(0.4)

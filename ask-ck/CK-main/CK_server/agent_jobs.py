@@ -16,13 +16,20 @@ from typing import Dict, Optional, Deque, Tuple
 
 
 class _Job:
-    __slots__ = ("id", "session_id", "prompt", "model", "event", "result", "created")
+    __slots__ = ("id", "session_id", "prompt", "model", "timeout", "event", "result",
+                 "created")
 
-    def __init__(self, session_id: str, prompt: str, model: str):
+    def __init__(self, session_id: str, prompt: str, model: str, timeout: int = 0):
         self.id = uuid.uuid4().hex
         self.session_id = session_id      # owning browser session — enforced on deliver
         self.prompt = prompt
         self.model = model
+        # The server's own wait, carried so the browser can give its ck-agent the SAME
+        # budget. It used to be dropped here and the browser hard-coded 600s, so the two
+        # ends disagreed: a gather_fragments call asked for 300s, the server gave up at
+        # 300s, and the user's machine kept working for up to 600s on a result that was
+        # discarded on arrival (observed 2026-08-27, AWPTCM-T44191, 300000ms, no usage).
+        self.timeout = timeout
         self.event = threading.Event()
         self.result: Optional[dict] = None
         self.created = time.time()
@@ -49,7 +56,7 @@ class AgentJobRegistry:
         the LLM layer uses it to attach a cancel handle that stamps a cancelled
         result and sets the job's Event, waking this wait early.
         """
-        job = _Job(session_id, prompt, model)
+        job = _Job(session_id, prompt, model, timeout)
         with self._lock:
             self._queues.setdefault(session_id, deque()).append(job)
             self._inflight[job.id] = job
@@ -75,8 +82,11 @@ class AgentJobRegistry:
         return job.result or {"content": "ERROR: empty agent result", "error": True}
 
     # --- consumer side (browser via /api/agent) ----------------------------
-    def next_job(self, session_id: str) -> Optional[Tuple[str, str, str]]:
-        """Claim the next queued job for a session. Returns (job_id, prompt, model) or None."""
+    def next_job(self, session_id: str) -> Optional[Tuple[str, str, str, int]]:
+        """Claim the next queued job. Returns (job_id, prompt, model, timeout) or None.
+
+        `timeout` is the server's own remaining patience, so the browser can bound its
+        local agent by the same number instead of a hard-coded one of its own."""
         with self._lock:
             self._session_seen[session_id] = time.time()
             q = self._queues.get(session_id)
@@ -92,7 +102,7 @@ class AgentJobRegistry:
         self._maybe_gc()
         if job is None:
             return None
-        return job.id, job.prompt, job.model
+        return job.id, job.prompt, job.model, job.timeout
 
     def _maybe_gc(self) -> None:
         """Run gc() at most once per half-idle-window."""

@@ -55,7 +55,13 @@ export async function ckBrokerLoop() {
         const ares = await fetch(CK_AGENT_URL + '/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: job.prompt, model: job.model, timeout: 600 }),
+          // Bound the local run by the SAME budget the server is waiting on. This used
+          // to be a hard-coded 600 while the server waited on whatever the caller asked
+          // for — gather_fragments asks 300, so the server gave up at 300s and this
+          // machine kept working for another 300 on a result that was then discarded.
+          // The fallback covers a server older than job.timeout (2026-08-27).
+          body: JSON.stringify({ prompt: job.prompt, model: job.model,
+                                 timeout: job.timeout || 600 }),
         });
         const ajson = await ares.json();
         content = ajson.content || '';
