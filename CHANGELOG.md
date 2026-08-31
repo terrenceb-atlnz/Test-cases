@@ -10,6 +10,47 @@ For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for
 current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
+## 2026-09-01 — The Testboxes panel stopped guessing: `user` is required, and a setup is a named list with no "default"
+
+Terrence: *"This page is not entirely intuitive… make sure it's only asking for fields that are
+absolutely required."* The form was ten unlabelled placeholder boxes in three rows, so nothing
+distinguished a required field from a defaulted one, or said what a value was for. It now has
+real labels, per-field hints, a five-step instructions panel, and everything with a working
+server-side default folded into a collapsed **Advanced** block.
+
+**`user` is now required and has no default.** It defaulted to `st-art`, which is wrong on at
+least one live bench — `st-art@tb470` answers `Permission denied (publickey,password)` while
+`terrenceb@tb470` authenticates (TESTBOX-ACCESS §3a). A wrong-by-default username fails at the
+SSH layer, so it presents as a network or testbox fault rather than a profile mistake, and it
+cost a diagnosis session once already. `PROFILE_DEFAULTS["user"]` is `None` and `user` joined
+`PROFILE_REQUIRED`, so the failure can no longer be reached by omission. The frontend's silent
+`|| 'st-art'` fallback is gone with it. `tb_number` stays required at Terrence's call, but its
+hint now says plainly that it is a label and nothing in the run path reads it.
+
+**`.setup` files became a named map owned by whoever adds them, and are optional.** The form
+used to write every setup under the literal key `default`. That silently *renamed* whatever was
+already stored — the live tb470 profile keys its setup `tb470` — and on a LAN-shared server it
+meant the last person to save named everyone else's setup. Terrence: *"there should NOT be a
+default setting at all. This will be used by multiple people to run their own setups."* The
+panel now has a repeatable name+path editor; the backend already stored `setups` as
+`{name: path}` and the Run dropdown already rendered every entry, so only the form was
+collapsing it. Names round-trip verbatim, half-filled and duplicate rows are refused instead of
+silently dropped, and a testbox with **no** setups saves fine — the Run panel's existing
+free-text path box covers "run mine". Requiring at least one would have made the creator's file
+everyone's de-facto default under another name.
+
+Fixed on the way through: `normalize_profile` rebuilds from defaults, so saving with the old
+blank `.setup` field **wiped** a stored `setups` map entirely — the profile still looked fine
+and then 400'd at Run.
+
+**Tests:** `tests/test_pt_testbox_profile_fields.py` (10, incl. drift guards that the form's
+asterisks, the JS validation list and `PROFILE_REQUIRED` are one set),
+`js-tests/pt-testbox-setups.spec.js` (13, source-level per the house pattern) and
+`js-tests/pt-testbox-setups-roundtrip.spec.js` (10, behavioural in jsdom — the "your name is
+never rewritten" promise driven through real DOM). Every fix mutation-checked. Verified end to
+end by driving the real UI against the scratch server: the on-disk diff was exactly one added
+line, with the original `tb470` key byte-identical.
+
 ## 2026-08-31 — The step-3 confirm gate, the naming that would not stick, and provenance that previewed the wrong call
 
 Terrence drove a real case (`AWPTCM-T33351`, 802.1X single-host) through the per-step flow

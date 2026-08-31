@@ -18,6 +18,43 @@ matches reality — see [[part3-grading-session]].
 clean — 8 sections, outlets typed `int`). Backups in the same dir: `.bak-2026-07-30` (the
 2026-07-29 3-device version), `.bak-2026-07-29` (the 681 B example-derived placeholder).
 
+## CABLING MEASURED 2026-09-01 — the `[portlink]` debt above is PAID, and the declared line is WRONG
+
+Measured non-destructively with the **MAC address table + ARP** (no ports shut, no LLDP, no
+cable touched), driving consoles through the framework's own driver. This answers the
+"**Owed: the real port numbers at each end**" item further down, which had stood since
+2026-07-30:
+
+| Link | Evidence (mutual, both ends) |
+|---|---|
+| `stk_a port1.0.1` ↔ `swi_c port1.0.4` | stack sees router MAC `0000.cd40.0394` on `port1.0.1`; router sees stack VMAC `0000.cd37.0d6f` on `port1.0.4` |
+| `tb eth3` ↔ `swi_c port1.0.1` | router ARP holds `10.38.215.65 / 00f0.4d00.7718` on `port1.0.1` = tb470's own `eth3` |
+| `swi_d sa1` ↔ ? | x230 sees all three foreign MACs on the **aggregate** `sa1`; an aggregation hides its member port — unresolved |
+
+**⚠️ The file's only `[portlink]` line is STALE**: `swi_b-swi_d = port1.0.1-port1.0.1`, but the
+x230's `port1.0.1` is `notconnect` (only `port1.0.2` and `sa1` are up) and nothing on the stack
+points at the x230.
+
+**Why MAC-table and not ping or link-state:** tb470 carries **four SFP LOOPBACK plugs**
+(`port2.0.6/2.0.8/2.0.14/2.0.16`) which all report `connected`. Link-state discovery invents
+four peers from them, and a ping out a loopback returns to the sender — "proving" a path that is
+the device talking to itself. A loopback port never shows a foreign MAC, so the MAC table is
+immune. Equally, `notconnect` is **not** proof of no cable (STP-block, wrong VLAN, admin-down,
+dead SFP all look the same).
+
+**VLANs differ per device — do not assume a common one.** IE520 stack + AR4050S are VLAN 1;
+the x230 is **VLAN 100** (`vlan100 10.38.215.2/27`). The AR4050S is `vlan1 10.38.215.70/27`
+(DHCP). The stack had **no IP at all**; `10.38.215.71/27` was added to its `vlan1` on
+2026-09-01 in **running-config only** — a reload reverts it.
+
+**Both stack members run DIFFERENT bootloaders** — member 1 (`264A23066`) on `9.1.0`, member 2
+(`264A23052`) on `pauld`. Confirms [[ie520-two-bootloaders]] on this bench and means the stack
+is not homogeneous at boot. Console↔member as at 2026-09-01: `/dev/u4` = member 2 = Active
+Master (priority 1), `/dev/u5` = member 1 = Backup.
+
+Driving these consoles: see `TESTBOX-ACCESS.md` §2a and [[testbox-console-access]] — use the
+framework's driver, and `console.mode('#')` before any `cmd()`.
+
 ## CURRENT STATE (2026-08-18) — read this first; everything below is HISTORY
 
 **⚠️ THE TWO IE520s ARE A STACK, and the chassis-id is now `3439` (0xd6f), NOT `3039`.**

@@ -4,6 +4,7 @@ description: "TWO IE520 bootloaders exist and behave differently at every gate â
 metadata:
   node_type: memory
   type: project
+  verified: 2026-09-01
 ---
 
 As of **2026-08-12** there are two IE520 bootloaders in the lab, and the 5700 suite behaves

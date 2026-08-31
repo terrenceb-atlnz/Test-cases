@@ -842,9 +842,25 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    and re-run — the fix path also re-stamps provenance with the corrected sequence remap.
    On all-PASS, Confirm step 7; promotion into `testsuites_art/` stays manual.
 
-**Testboxes** (sidebar) — stored connection profiles (`tb_number` + IP minimum) kept
-in the gitignored `secrets.testboxes.json` (0600). Passwords are write-only; the API
-returns `has_password` only. Passwordless sudo on the box is required (probed by check).
+**Testboxes** (sidebar) — stored connection profiles kept in the gitignored
+`secrets.testboxes.json` (0600). Passwords are write-only; the API returns `has_password`
+only. Passwordless sudo on the box is required (probed by check).
+
+*Required* is `name`, `tb_number`, `host` and **`user`** (`PROFILE_REQUIRED` in `pt_exec.py`).
+`user` deliberately has **no default**: it used to default to `st-art`, which is wrong on at
+least one live bench, and because a bad username fails at the SSH layer it presents as a
+network or testbox fault rather than a profile mistake (2026-09-01; TESTBOX-ACCESS §3a).
+Everything else — port, auth method, key path, password, framework path, remote workdir —
+has a working server default and lives under **Advanced** in the panel; a field left blank
+is omitted from the request rather than sent, so a profile never freezes today's default.
+
+`setups` is a **named map**, `{name: remote_path}`, with as many entries as you like and
+**no "default" key**: the panel writes the name its author typed and reproduces it verbatim
+on edit. Before 2026-09-01 the form wrote every setup under the literal key `default`, which
+silently renamed whatever was stored — on a LAN-shared server that let the last person to
+save name everyone else's setup. Setups are **optional**: the Run panel lists every entry and
+also takes a free-text remote path, so requiring one would only make the profile creator's
+file everyone's de-facto default under another name.
 
 **Building the script index** — ⚠ **Historical / provenance only.** The script index,
 literal source code, code chunks, and framework surface now live in **`ask-ck/var/ck.db`**

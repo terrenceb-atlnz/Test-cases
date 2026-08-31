@@ -4,6 +4,7 @@ description: "How to reach a lab device console from a testbox (ssh tbNNN, the u
 metadata: 
   node_type: memory
   type: reference
+  verified: 2026-09-01
   originSessionId: abd89457-f2c0-4012-98a9-43e0e61a4c45
   modified: 2026-07-28T02:34:08.905Z
 ---
@@ -27,3 +28,15 @@ processes, no `/var/lock/LCK..*`) so you don't displace someone.
 Generated ART scripts do **not** need any of this — the framework handles `--More--` itself
 (`ATDrivers/AWPConsoleCore.py`) and `ATLibrary/ATTools.py` sends `terminal length 0`. The
 pyserial route is only for driving a console by hand.
+
+**Do NOT write another console driver (2026-09-01).** `/home/st-art/framework/ATDrivers/AWPConsoleCore.py`
++ `ATSwitch.py` (on the TESTBOX, read-only; not in this repo) already handle login, `enable`, the `--More--` pager and prompt matching, and
+`Setup.LoadSetup` binds devices from the `.setup` — so a probe sees the bench exactly as a
+generated test does. Four traps, all measured on tb470 and written up in `TESTBOX-ACCESS.md`
+§2a: `init_swi()`/`init_stk()` do **not** establish the session (call `dev.console.mode('#')`
+first, or every command is typed into a `login:` prompt and returns `Login incorrect`, which
+looks exactly like a dead device); credentials come from the framework, not the `.setup`
+(`manager` + `['friend','P@ssw0rd','awplus']`); `powerOn` defaults **True** and switches the
+PDU outlet on, so pass `powerOn=False` for anything read-only; and `Stack.members` is a
+`set`, so "any member" is nondeterministic. Working example: `ask-ck/test-composer/bench_probe.py`.
+

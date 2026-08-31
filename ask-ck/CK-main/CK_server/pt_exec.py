@@ -30,10 +30,17 @@ from timeutil import utc_now
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 SECRETS_TESTBOXES = _REPO_ROOT / "secrets.testboxes.json"
 
-PROFILE_REQUIRED = ("tb_number", "host")
+# `user` is REQUIRED and deliberately has NO default. It used to default to
+# "st-art", which is wrong on at least one live bench: `st-art@tb470` answers
+# `Permission denied (publickey,password)` while `terrenceb@tb470` authenticates
+# (TESTBOX-ACCESS.md 3a). A wrong-by-default username fails at the SSH layer, so
+# it presents as a network or testbox fault rather than as a profile mistake --
+# it cost a diagnosis session once already. Forcing the operator to state it
+# makes the failure impossible to reach by omission.
+PROFILE_REQUIRED = ("tb_number", "host", "user")
 PROFILE_DEFAULTS = {
     "port": 22,
-    "user": "st-art",
+    "user": None,              # no default -- see PROFILE_REQUIRED above
     "auth": "key",             # "key" | "password"
     "key_path": "~/.ssh/id_rsa",
     "password": None,

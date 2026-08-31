@@ -720,30 +720,94 @@
     <!-- PyTest Creator: Testboxes (profiles) -->
     <div id="panel-pt-testbox" class="card tool-panel hidden">
       <div class="section">
-        <div class="section-heading">PyTest Creator — Testboxes</div>
-        <div class="section-description">Stored testbox connections (kept in the gitignored secrets.testboxes.json; passwords are write-only). These populate the Run panel's dropdown.</div>
+        <div class="section-heading">PyTest Creator &mdash; Testboxes</div>
+        <div class="section-description">Stored SSH connections to lab testboxes. These populate the Run panel's dropdown. Kept in the gitignored <code>secrets.testboxes.json</code>; passwords are write-only and are never returned by the API.</div>
+
+        <div class="tb-instructions">
+          <div class="tb-instructions-title">Adding a testbox</div>
+          <ol>
+            <li><b>Name</b> it whatever you want to see in the Run dropdown &mdash; <code>tb470</code> is fine.</li>
+            <li><b>Host</b> is the hostname or IP. Lab short names resolve, so <code>tb470</code> works as-is.</li>
+            <li><b>User</b> must be a real login on that box. <b>There is no default</b>, deliberately: <code>st-art</code> is not valid on every bench (tb470 authenticates as <code>terrenceb</code>), and a wrong guess here surfaces as <i>Permission denied</i>, which reads like a network or hardware fault.</li>
+            <li><b>Setups</b> are optional and belong to whoever adds them. Give yours a name you will recognise and the path <i>on the testbox</i> to your topology file &mdash; the Run panel lists every one, and never picks for you. Existing names are never rewritten by a save.</li>
+            <li><b>Save</b>, then press <b>check</b> on the row. It probes SSH, the framework directory and passwordless <code>sudo</code> &mdash; <b>all three must pass</b> before a run can execute.</li>
+          </ol>
+          <div class="tb-note">Everything else has a working default and lives under <b>Advanced</b>. Key authentication uses the <i>server process's</i> SSH agent, not your shell's &mdash; so if <code>check</code> fails at SSH with a key you know is good, the server was started without <code>SSH_AUTH_SOCK</code> pointing at the keyring agent.</div>
+        </div>
+
         <div id="pt-tb-list" class="mb-2"></div>
+
         <div class="section-heading mt-2" style="font-size:12px">Add / edit testbox</div>
-        <div class="compact-flex mb-1">
-          <input id="pt-tb-name" class="form-input form-input-small" placeholder="Name (e.g. lab-box-3)">
-          <input id="pt-tb-number" class="form-input form-input-small" placeholder="tb number (e.g. tb105)">
-          <input id="pt-tb-host" class="form-input form-input-small" placeholder="IP address">
-          <input id="pt-tb-user" class="form-input form-input-small" placeholder="user (st-art)">
+        <div class="tb-grid">
+          <div class="tb-field">
+            <label class="tb-label" for="pt-tb-name">Name<span class="tb-req">*</span></label>
+            <input id="pt-tb-name" class="form-input" placeholder="tb470">
+            <div class="tb-hint">Shown in the Run dropdown. Saving an existing name edits it.</div>
+          </div>
+          <div class="tb-field">
+            <label class="tb-label" for="pt-tb-number">tb number<span class="tb-req">*</span></label>
+            <input id="pt-tb-number" class="form-input" placeholder="470">
+            <div class="tb-hint">Label only &mdash; nothing in the run path reads it.</div>
+          </div>
+          <div class="tb-field">
+            <label class="tb-label" for="pt-tb-host">Host or IP<span class="tb-req">*</span></label>
+            <input id="pt-tb-host" class="form-input" placeholder="tb470">
+            <div class="tb-hint">Lab short names resolve; an IP works too.</div>
+          </div>
+          <div class="tb-field">
+            <label class="tb-label" for="pt-tb-user">SSH user<span class="tb-req">*</span></label>
+            <input id="pt-tb-user" class="form-input" placeholder="terrenceb">
+            <div class="tb-hint">No default. <code>st-art</code> fails on some benches.</div>
+          </div>
         </div>
-        <div class="compact-flex mb-1">
-          <select id="pt-tb-auth" class="form-select" style="width:auto">
-            <option value="key">SSH key</option><option value="password">Password</option>
-          </select>
-          <input id="pt-tb-keypath" class="form-input form-input-small" placeholder="~/.ssh/id_rsa">
-          <input id="pt-tb-password" type="password" class="form-input form-input-small" placeholder="password (write-only)">
+
+        <div class="tb-setups">
+          <div class="tb-setups-head">
+            <span class="tb-label" style="margin:0">Setups on this testbox</span>
+            <span class="tb-optional">optional &mdash; any number</span>
+          </div>
+          <p class="tb-advanced-note">Each person adds their own, named however they like. The Run panel lists every one and picks none for you; a run can also override with a path typed into the Run panel. Names you save here are never rewritten.</p>
+          <div id="pt-tb-setups"></div>
+          <button data-action="ptAddSetupRow" class="btn btn-compact">+ Add setup</button>
         </div>
-        <div class="compact-flex mb-1">
-          <input id="pt-tb-framework" class="form-input" style="width:220px" placeholder="/home/st-art/framework">
-          <input id="pt-tb-workdir" class="form-input" style="width:220px" placeholder="/home/st-art/pytest-create">
-          <input id="pt-tb-setup" class="form-input" style="width:220px" placeholder="default .setup remote path">
-        </div>
+
+        <details class="tb-advanced">
+          <summary>Advanced &mdash; SSH auth and remote paths</summary>
+          <p class="tb-advanced-note">Every field below already has a working default. Leave them blank unless this bench differs.</p>
+          <div class="tb-grid">
+            <div class="tb-field">
+              <label class="tb-label" for="pt-tb-auth">Authentication</label>
+              <select id="pt-tb-auth" class="form-select">
+                <option value="key">SSH key (default)</option><option value="password">Password</option>
+              </select>
+              <div class="tb-hint">Key auth uses the server's SSH agent first.</div>
+            </div>
+            <div class="tb-field">
+              <label class="tb-label" for="pt-tb-keypath">Private key path</label>
+              <input id="pt-tb-keypath" class="form-input" placeholder="~/.ssh/id_rsa">
+              <div class="tb-hint">Fallback when the agent has no usable key.</div>
+            </div>
+            <div class="tb-field">
+              <label class="tb-label" for="pt-tb-password">Password</label>
+              <input id="pt-tb-password" type="password" class="form-input" placeholder="only for password auth">
+              <div class="tb-hint">Write-only. Blank on edit keeps the stored one.</div>
+            </div>
+            <div class="tb-field">
+              <label class="tb-label" for="pt-tb-framework">Framework path</label>
+              <input id="pt-tb-framework" class="form-input" placeholder="/home/st-art/framework">
+              <div class="tb-hint">Read-only on the testbox; <code>check</code> verifies it exists.</div>
+            </div>
+            <div class="tb-field">
+              <label class="tb-label" for="pt-tb-workdir">Remote workdir</label>
+              <input id="pt-tb-workdir" class="form-input" placeholder="/home/st-art/pytest-create">
+              <div class="tb-hint">Where each run's files are copied.</div>
+            </div>
+          </div>
+        </details>
+
         <div class="compact-flex mb-2">
           <button data-action="ptSaveProfile" class="btn btn-primary btn-compact">Save Testbox</button>
+          <button data-action="ptResetProfileForm" class="btn btn-compact">Clear form</button>
           <span id="pt-tb-status" class="justification-note"></span>
         </div>
       </div>

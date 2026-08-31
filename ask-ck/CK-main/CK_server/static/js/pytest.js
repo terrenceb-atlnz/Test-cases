@@ -1289,14 +1289,21 @@ async function ptFixScript() {
 export async function renderPtTestboxPanel() {
   await ptLoadProfiles();
   const el = document.getElementById('pt-tb-list');
+  // The editor starts empty rather than unrendered, so its "none stored" line is
+  // visible before anyone clicks edit.
+  if (document.getElementById('pt-tb-setups') && !document.querySelector('#pt-tb-setups .tb-setup-row')) {
+    ptRenderSetupRows([]);
+  }
   const names = Object.keys(ptProfiles);
   if (!names.length) { el.innerHTML = '<em class="review-empty">No testboxes stored yet — add one below.</em>'; return; }
-  let html = '<table class="table"><thead><tr><th>Name</th><th>tb</th><th>IP</th><th>User</th><th>Auth</th><th style="width:150px"></th></tr></thead><tbody>';
+  let html = '<table class="table"><thead><tr><th>Name</th><th>tb</th><th>IP</th><th>User</th><th>Auth</th><th>Setups</th><th style="width:150px"></th></tr></thead><tbody>';
   names.forEach(n => {
     const p = ptProfiles[n];
+    const setupNames = Object.keys(p.setups || {});
     html += `<tr><td><b>${escapeHtml(n)}</b></td><td>${escapeHtml(p.tb_number || '')}</td>
       <td class="cell-id">${escapeHtml(p.host || '')}</td><td>${escapeHtml(p.user || '')}</td>
       <td>${escapeHtml(p.auth || '')}${p.has_password ? ' (pw set)' : ''}</td>
+      <td>${setupNames.length ? escapeHtml(setupNames.join(', ')) : '<span class="status-muted">—</span>'}</td>
       <td>
         <button class="btn btn-compact" data-action="ptEditProfile" data-args="${dataArgs(n)}">edit</button>
         <button class="btn btn-compact" data-action="ptCheckProfileNamed" data-args="${dataArgs(n)}">check</button>
@@ -1318,30 +1325,147 @@ function ptEditProfile(name) {
   document.getElementById('pt-tb-password').value = '';
   document.getElementById('pt-tb-framework').value = p.framework_path || '';
   document.getElementById('pt-tb-workdir').value = p.remote_workdir || '';
-  const setups = p.setups || {};
-  document.getElementById('pt-tb-setup').value = setups.default || Object.values(setups)[0] || '';
+  // Key names are the owner's and are reproduced verbatim, so a save round-trips
+  // them unchanged instead of collapsing everything to one invented name.
+  ptRenderSetupRows(Object.entries(p.setups || {}).map(([name, path]) => ({ name, path })));
+  // An earlier failed save may have left fields marked; editing a row is a fresh start.
+  document.querySelectorAll('#panel-pt-testbox .tb-invalid')
+    .forEach(el => el.classList.remove('tb-invalid'));
+  ptStatusEl('pt-tb-status').textContent = `Editing "${name}" — Save updates it.`;
+}
+
+// The four fields a testbox profile genuinely needs. `user` is here rather than
+// defaulted because the server's old `st-art` fallback is wrong on some benches
+// (tb470 authenticates as `terrenceb`) and produced a "Permission denied" that
+// reads like a lab fault. Everything else has a working server default.
+//
+// `.setup` files are deliberately NOT here. A testbox profile is shared by
+// everyone on this server, and each person runs their own topology, so requiring
+// one at create time would just make the creator's file everyone's de-facto
+// default under another name. They are a named, optional list instead.
+const PT_TB_REQUIRED = [
+  ['pt-tb-name', 'Name'],
+  ['pt-tb-number', 'tb number'],
+  ['pt-tb-host', 'Host or IP'],
+  ['pt-tb-user', 'SSH user'],
+];
+
+// --- setups: a NAMED map, never a "default" ----------------------------------
+// `setups` is {name: remote_path} and the Run panel renders every entry. The name
+// is the owner's to choose and is preserved verbatim across an edit -- an earlier
+// version of this form wrote every setup under the literal key "default", which
+// silently renamed whatever was already stored and, on a shared server, meant the
+// last person to save named everyone else's setup.
+
+export function ptReadSetupRows() {
+  return Array.from(document.querySelectorAll('#pt-tb-setups .tb-setup-row')).map(row => ({
+    name: row.querySelector('.tb-setup-name').value.trim(),
+    path: row.querySelector('.tb-setup-path').value.trim(),
+  }));
+}
+
+export function ptRenderSetupRows(rows) {
+  const host = document.getElementById('pt-tb-setups');
+  if (!rows.length) {
+    host.innerHTML = '<div class="tb-setups-empty">None stored. Runs will need a path typed into the Run panel.</div>';
+    return;
+  }
+  host.innerHTML = rows.map((r, i) => `
+    <div class="tb-setup-row">
+      <input class="form-input tb-setup-name" placeholder="name (e.g. terrenceb-ie520)" value="${escapeHtml(r.name)}">
+      <input class="form-input tb-setup-path" placeholder="/home/st-art/st-art/configs/tb470.setup" value="${escapeHtml(r.path)}">
+      <button class="btn btn-compact" data-action="ptRemoveSetupRow" data-args="[${i}]" title="Remove this setup">&#10005;</button>
+    </div>`).join('');
+}
+
+function ptAddSetupRow() {
+  // Read first: re-rendering must not discard what is already typed.
+  ptRenderSetupRows(ptReadSetupRows().concat([{ name: '', path: '' }]));
+  const rows = document.querySelectorAll('#pt-tb-setups .tb-setup-name');
+  if (rows.length) rows[rows.length - 1].focus();
+}
+
+function ptRemoveSetupRow(i) {
+  const rows = ptReadSetupRows();
+  rows.splice(i, 1);
+  ptRenderSetupRows(rows);
+}
+
+function ptResetProfileForm() {
+  ['pt-tb-name', 'pt-tb-number', 'pt-tb-host', 'pt-tb-user',
+   'pt-tb-keypath', 'pt-tb-password', 'pt-tb-framework', 'pt-tb-workdir']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.value = ''; el.classList.remove('tb-invalid'); }
+    });
+  const auth = document.getElementById('pt-tb-auth');
+  if (auth) auth.value = 'key';
+  ptRenderSetupRows([]);
+  ptStatusEl('pt-tb-status').textContent = '';
 }
 
 async function ptSaveProfile() {
-  const name = document.getElementById('pt-tb-name').value.trim();
+  // Validate here so a missing field reads as a named field rather than as the
+  // server's generic 400, and so the offending input is visibly marked.
+  const missing = [];
+  PT_TB_REQUIRED.forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    const ok = !!(el && el.value.trim());
+    if (el) el.classList.toggle('tb-invalid', !ok);
+    if (!ok) missing.push(label);
+  });
+  if (missing.length) {
+    ptStatusEl('pt-tb-status').textContent = `Required: ${missing.join(', ')}.`;
+    const first = document.getElementById(
+      PT_TB_REQUIRED.find(([, l]) => l === missing[0])[0]);
+    if (first) first.focus();
+    return;
+  }
+
+  // A half-filled setup row is a mistake, not an empty one: silently dropping a
+  // named row with no path would lose the entry without saying so.
+  const rows = ptReadSetupRows();
+  const setups = {};
+  for (const r of rows) {
+    if (!r.name && !r.path) continue;              // an untouched blank row
+    if (!r.name || !r.path) {
+      ptStatusEl('pt-tb-status').textContent =
+        `Setup "${r.name || r.path}" needs both a name and a path.`;
+      return;
+    }
+    if (Object.prototype.hasOwnProperty.call(setups, r.name)) {
+      ptStatusEl('pt-tb-status').textContent = `Duplicate setup name "${r.name}".`;
+      return;
+    }
+    setups[r.name] = r.path;
+  }
+
   const body = {
-    name,
+    name: document.getElementById('pt-tb-name').value.trim(),
     tb_number: document.getElementById('pt-tb-number').value.trim(),
     host: document.getElementById('pt-tb-host').value.trim(),
-    user: document.getElementById('pt-tb-user').value.trim() || 'st-art',
+    user: document.getElementById('pt-tb-user').value.trim(),
     auth: document.getElementById('pt-tb-auth').value,
-    key_path: document.getElementById('pt-tb-keypath').value.trim() || '~/.ssh/id_rsa',
-    framework_path: document.getElementById('pt-tb-framework').value.trim() || '/home/st-art/framework',
-    remote_workdir: document.getElementById('pt-tb-workdir').value.trim() || '/home/st-art/pytest-create',
+    setups,
   };
+  // Advanced fields: send only what was typed, so a blank box keeps the
+  // server-side default instead of pinning today's default into the profile.
+  const opt = {
+    key_path: 'pt-tb-keypath',
+    framework_path: 'pt-tb-framework',
+    remote_workdir: 'pt-tb-workdir',
+  };
+  Object.entries(opt).forEach(([field, id]) => {
+    const v = document.getElementById(id).value.trim();
+    if (v) body[field] = v;
+  });
   const pw = document.getElementById('pt-tb-password').value;
   if (pw) body.password = pw;
-  const setupPath = document.getElementById('pt-tb-setup').value.trim();
-  if (setupPath) body.setups = { default: setupPath };
+
   const d = await ptApi('/profiles', { method: 'POST', body: JSON.stringify(body) }, ptStatusEl('pt-tb-status'));
   if (d) {
     document.getElementById('pt-tb-password').value = '';
-    ptStatusEl('pt-tb-status').textContent = `Saved "${d.saved}".`;
+    ptStatusEl('pt-tb-status').textContent = `Saved "${d.saved}" — press check on its row to verify SSH, framework and sudo.`;
     renderPtTestboxPanel();
   }
 }
@@ -1372,6 +1496,7 @@ registerActions({
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
   ptLintScript, ptFixScript, ptSaveScript,
   ptViewSource, ptRun, ptValidate,
-  ptEditProfile, ptSaveProfile, ptCheckProfile,
+  ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,
+  ptAddSetupRow, ptRemoveSetupRow,
   ptCheckProfileNamed, ptDeleteProfile,
 });

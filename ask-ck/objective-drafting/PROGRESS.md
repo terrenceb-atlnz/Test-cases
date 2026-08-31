@@ -81,6 +81,67 @@ version-controlled). The parts that matter to anyone running scripts against tb4
 - **`show reboot history` now spans two timebases** on the IE520 stack — entries after
   2026-09-01 10:32 are NZST, older ones UTC (+12). The existing evidence corpus is all UTC.
 
+## Latest session (2026-09-01) — the Testboxes panel made honest, and the bench learned to describe itself
+
+**Code + tests + docs + a hardware probe; no test-case content. The pilot trio did NOT
+advance.** Ran alongside a second session working the same tree (its commits: `eb1f66d`,
+`ae6b9c1`) — see the note at the end about one shared file.
+
+**(A) Testboxes panel facelift, and only-required fields.** Full why-record in CHANGELOG
+2026-09-01. `user` is now required with **no default** (the old `st-art` default is wrong on
+tb470 and fails at the SSH layer, so it reads as a lab fault); `.setup` files became a named,
+optional, multi-entry map with **no "default" key** — the form used to write every setup as
+`default`, silently renaming whatever its owner had chosen, which on a shared server let the
+last saver name everyone's setup. Fixed on the way: a blank `.setup` field used to **wipe** the
+stored map. 33 new tests across 3 files, all mutation-checked; verified by driving the real UI,
+on-disk diff exactly one added line.
+
+**(B) A VS Code question answered from source, not guesswork.** The Agents window's Claude row
+said "No models are available for this agent". The Claude harness is built into VS Code core
+(`vs/platform/agentHost/`), not an extension — `chat.agentHost.claudeAgent.enabled`, moved out
+of the Copilot namespace. It was empty because `chat.agentHost.allowSignedOutWhenUsable`
+defaults false, so GitHub sign-in is required before native Anthropic credentials are used.
+Set it in the user's VS Code settings (outside this repo).
+
+**(C) `ask-ck/test-composer/bench_probe.py` — a bench probe that works.** Reads a testbox's
+real state through the **framework's own** console driver (`LoadSetup` + `init_swi`/`init_stk`
++ `AWPConsoleCore`), not a new one. Terrence: *"we definitely already have several console
+drivers."* Three bugs found by running it rather than reasoning: the parsed setup is keyed
+`switches`/`stacks` (not the INI names), `Stack` has no `cmd()` (drive a member), and
+**`init_*` does not establish the session — `console.mode('#')` must come first**, or every
+command is typed into a `login:` prompt and comes back `Login incorrect`, looking like a dead
+device. All four traps are now in TESTBOX-ACCESS §2a.
+
+**(D) Cabling discovered without touching a cable.** MAC address table + ARP, which is immune
+to the two traps that break link-state and ping methods: a **loopback plug reports
+`connected`** (tb470 has four) and a ping out one returns to the sender; and `notconnect` is
+not proof of no cable. Discovered `stk_a port1.0.1 ↔ swi_c port1.0.4` and `tb eth3 ↔ swi_c
+port1.0.1` — and proved the declared `[portlink] swi_b-swi_d = port1.0.1-port1.0.1` **stale**
+(the x230's port1.0.1 is notconnect). Also recorded: `addressing` on any testbox gives the tb
+end of a link directly, and an aggregation hides its far end.
+
+**Gate at close: 1121 passed / 1 skipped, 128 Vitest (11 files), both guards OK, ck.db
+untouched by tests.**
+
+**State the next session must know / pick up here:**
+- **`PLAN-pytest-creator.md` §8 (server-side setup templates) is DESIGN ONLY, agreed with
+  Terrence, not built.** Storage = shared committed `ask-ck/pytest-create/setups/` + personal
+  `ask-ck/var/setups/` (already gitignored); templates never a generation input; the per-run
+  file is uploaded, the shared bench file is never overwritten. Two scenarios agreed: the
+  interim **authors** a `.setup` from observed bench state, the long-term treats the template
+  as gospel and **reports discrepancies** (Test Composer). Same sweep, opposite direction.
+- **Still open on that design:** whether the authoring script fills `[misc]` claims (tb470's
+  `ck_profile` is currently **empty**, so profile matching has no input today); stack handling
+  in the authored file; whether the active probe needs consent/restore. `[portlink]`
+  portability is a Scenario One question only and does not block the interim.
+- **Bench left as:** `stk_a vlan1 = 10.38.215.71/27` in **running-config only** (a reload
+  reverts it), `/dev/u4` logged in, PDU untouched.
+- **The pilot trio is STILL unchanged** (T33234 + T33235 need generation, then hardware Run);
+  T33351 is at step 5 confirmed / step 6 not run. IE520 remains the standing priority.
+- **One shared file was left uncommitted on purpose:** `PLAN-pytest-creator.md` holds this
+  session's §8 *and* the parallel session's §9 + its `2026-09-01b` log entry. Committing it
+  would have taken their in-flight work.
+
 ## Latest session (2026-08-31) — the PyTest Creator's step-3 gate opened, and its provenance stopped lying
 
 **Code + tests + docs; no test-case content.** Terrence drove a real case end to end and hit

@@ -191,6 +191,79 @@ output (`current duplex full, current speed 1000, current polarity mdix`).
 
 ---
 
+## 2a. Reading a bench's real state — use the FRAMEWORK's driver, not a new one ✅
+
+Verified on tb470, 2026-09-01, building `ask-ck/test-composer/bench_probe.py`.
+
+**Do not write another pyserial console driver.** `framework/ATDrivers/AWPConsoleCore.py` and
+`ATSwitch.py` already handle login, `enable`, the `--More--` pager and prompt matching, and
+`Setup.LoadSetup` binds devices straight from the `.setup`. Using them means the probe sees the
+bench exactly as a generated test will. The shape that works:
+
+```python
+from framework.Setup import LoadSetup          # PYTHONPATH=/home/st-art, framework symlinked
+setup = LoadSetup('/home/st-art/st-art/configs/tb470.setup')
+stk   = setup.init_stk('stk_a', powerOn=False)  # a stack binds as ONE device
+swi   = setup.init_swi('swi_c', powerOn=False)
+```
+
+Four traps, each of which cost a run here:
+
+1. **`init_swi()` / `init_stk()` do NOT establish the console session.** They construct the
+   `Switch` and resolve its credentials, but the login happens later in the TestSet lifecycle.
+   Call `.cmd()` on a console that has timed out to `login:` and every command is typed **as a
+   login attempt** — the reply is `Login incorrect` and it reads exactly like a dead device.
+   **Call `dev.console.mode('#')` first**; then `.cmd()` works.
+2. **Credentials are the framework's, not the `.setup`'s.** `tb470.setup` declares
+   `username: None, password: None` for every switch, and that is fine:
+   `ATSwitch.__resolve_username_and_password()` defaults the user to `manager` and tries the
+   password list `['friend', 'P@ssw0rd', 'awplus']`. Do not add credentials to a `.setup` to
+   "fix" a login failure — see trap 1 for the real cause.
+3. **`powerOn` defaults to `True`, and it switches the PDU outlet on** (`power_group.on()` in
+   `Setup.init_swi`). On a shared bench pass `powerOn=False` for anything read-only.
+4. **`Stack.members` is a `set`** — unordered. "Drive any member" is nondeterministic and can
+   pick a member sitting at a login prompt. On a formed VCStack every member's console serves
+   the stack-wide CLI, so any *responsive* one is correct; prefer the master deliberately.
+
+Also: `LoadSetup` writes `setup.log` into its cwd, so run it from a writable directory — and
+if an earlier run was `sudo`, the file is root-owned and the next non-sudo run dies with
+`PermissionError: './setup.log'`. The parsed structure is keyed `switches` / `stacks` /
+`misc` / `tb` — **not** the raw INI section names.
+
+### Discovering what is actually cabled, without touching a cable ✅
+
+`show interface status` is the single highest-value command: port, link state, VLAN, duplex,
+speed **and media type** in one table, with stackports marked. But link state alone does not
+give you cabling, and two traps make the naive reading wrong:
+
+- **A loopback plug reports `connected`.** tb470 carries four (`port2.0.6/8/14/16`, type
+  `SFP LOOPBACK`). Anything that treats "connected" as "cabled to a peer" invents four links,
+  and a ping out a loopback returns to the sender — "proving" a path that is the device
+  talking to itself.
+- **`notconnect` is not proof of no cable** — STP-blocked, wrong VLAN, admin-down and a dead
+  SFP all look identical to unplugged.
+
+**The MAC address table settles it, and is immune to both.** Give each end an address, generate
+a little traffic, then read `show arp` + `show mac address-table` on both: a foreign MAC appears
+only on the port that actually carries it, and a loopback port never shows one. Measured on
+tb470, 2026-09-01:
+
+| Discovered | Evidence |
+|---|---|
+| `stk_a port1.0.1` ↔ `swi_c port1.0.4` | stack sees the router's `0000.cd40.0394` on `port1.0.1`; router sees the stack VMAC `0000.cd37.0d6f` on `port1.0.4` |
+| `tb eth3` ↔ `swi_c port1.0.1` | router ARP holds `10.38.215.65 / 00f0.4d00.7718` on `port1.0.1`, which is tb470's own `eth3` |
+
+That run also proved the declared `[portlink] swi_b-swi_d = port1.0.1-port1.0.1` **stale** — the
+x230's `port1.0.1` is `notconnect`; only `port1.0.2` and the aggregate `sa1` are up.
+
+- **`addressing`** (`/usr/local/bin/addressing`, on every testbox) prints each interface's MAC,
+  network, address and pool range — so the testbox end of a `tb-` link needs no ARP at all.
+- **A link aggregation hides its far end**: every MAC shows against the aggregate (`sa1`), not
+  a member port. Expand it with `show static-channel-group` before trusting a mapping.
+- **A console held by another operator** (`/var/lock/LCK..*`, `pgrep minicom`) must be reported
+  as *unknown*, never as *absent* — tb470's `/dev/u0` was locked for part of this session and
+  the x230 was simply unmapped until it was freed.
+
 ## 3. Run an ATTestSet framework test script on a testbox 🔧
 
 This is the mechanism `pt_exec.py` (`_connect` / `RunManager._run`) uses for a PyTest

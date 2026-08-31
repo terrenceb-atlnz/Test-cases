@@ -3594,3 +3594,73 @@ matching tests confirmed failing — no test here pins nothing.
 left: the per-step Suggest button removal (Terrence's sequencing, UI-only), and the whole-case
 `suggest_scripts` endpoint, now unreferenced by the frontend but still valid headless — not
 deleted on my own judgement.
+
+## Session Close / Handoff (2026-09-01) — the panel that asked for the wrong things, and a bench that can now describe itself
+
+**Ran concurrently with a second session in the same tree** (its commits: `eb1f66d`, `ae6b9c1`).
+That matters at the end of this entry.
+
+**The Testboxes panel was rebuilt around what a run actually needs.** Ten unlabelled placeholder
+boxes became labelled fields with hints, a five-step instructions panel, and a collapsed
+**Advanced** block for everything that has a working server default. Two contract changes came
+out of it, both Terrence's calls. `user` is required with **no default**: the old `st-art` fell
+over on tb470 (`Permission denied (publickey,password)` where `terrenceb` authenticates), and
+because it fails at the SSH layer it presents as a lab fault rather than a profile mistake — it
+had already cost a diagnosis session. And `.setup` files became a **named, optional, multi-entry
+map with no "default"**: the form used to write every setup under the literal key `default`,
+silently renaming whatever its owner had chosen, which on a LAN-shared server meant the last
+person to save named everyone else's setup. Terrence: *"there should NOT be a default setting at
+all. This will be used by multiple people to run their own setups."* The backend already stored
+a map and the Run dropdown already rendered every entry — only the form was collapsing it.
+
+**A latent data-loss bug fell out.** `normalize_profile` rebuilds from defaults, so saving with
+the old blank `.setup` field wiped a stored `setups` map entirely; the profile looked fine and
+then 400'd at Run. Requiring a setup would have hidden it; making the field a real list fixed it.
+
+**33 new tests, all mutation-checked**, across a Python contract file and two Vitest specs — one
+source-level (house pattern for `pytest.js`), one **behavioural** in jsdom driving
+render→read→compare, because source shape cannot prove a name actually round-trips. Verified
+against the live UI on the scratch server: the on-disk diff was exactly one added line, with the
+original `tb470` key byte-identical.
+
+**Then the bench work.** `ask-ck/test-composer/bench_probe.py` reads a testbox's real state
+through the **framework's own** driver — `LoadSetup` + `init_swi`/`init_stk` + `AWPConsoleCore`
+— after Terrence pointed out *"we definitely already have several console drivers"*, which was
+right and also means the probe sees the bench exactly as a generated test does. Running it found
+three defects reasoning had not: the parsed setup is keyed `switches`/`stacks` rather than the
+INI section names; `Stack` exposes no `cmd()` so a member must be driven; and — the expensive
+one — **`init_*` resolves credentials but does not establish the session**, so `.cmd()` against a
+timed-out console types every command into the `login:` prompt and returns `Login incorrect`,
+which is indistinguishable from a dead device. `dev.console.mode('#')` first. All four traps,
+plus `powerOn=True` switching the PDU outlet on, are now TESTBOX-ACCESS §2a.
+
+**Cabling was discovered without touching a cable.** MAC address table + ARP, which is immune to
+the two traps that break the obvious methods: a **loopback plug reports `connected`** (tb470 has
+four, and a ping out one returns to the sender, "proving" a path that is the device talking to
+itself), and `notconnect` is never proof of no cable. Result: `stk_a port1.0.1 ↔ swi_c
+port1.0.4` and `tb eth3 ↔ swi_c port1.0.1`, both mutually corroborated — and the declared
+`[portlink] swi_b-swi_d = port1.0.1-port1.0.1` shown **stale**, since the x230's `port1.0.1` is
+`notconnect`. Two of my own claims were wrong and are corrected in the docs: the `.setup` does
+**not** need credentials (the framework defaults to `manager` + `['friend','P@ssw0rd','awplus']`),
+and the testbox end of a link needs no ARP (`addressing` prints it).
+
+**Also answered, from VS Code's own source:** the Agents window's empty Claude row is
+`chat.agentHost.allowSignedOutWhenUsable` defaulting false, not a missing extension — the Claude
+harness is built into core at `vs/platform/agentHost/`. Setting applied to the user's VS Code
+config, outside this repo.
+
+**Gate:** 1121 passed / 1 skipped, 128 Vitest across 11 files, both guards OK, `ck.db` untouched
+by tests.
+
+**Pick up:** `PLAN-pytest-creator.md` §8 is an agreed **design, not built** — server-side setup
+templates, two scenarios (interim *authors* a `.setup` from observed state; long-term treats the
+template as gospel and *reports* discrepancies — same sweep, opposite direction). Open on it:
+whether the authoring script fills `[misc]` claims (tb470's `ck_profile` is currently empty, so
+matching has no input), stack handling in the authored file, and consent/restore for the active
+probe. `[portlink]` portability is Scenario One only and blocks nothing.
+
+**Left deliberately undone:** `PLAN-pytest-creator.md` is **uncommitted**. It holds this
+session's §8 *and* the parallel session's §9 and `2026-09-01b` log entry; committing the path
+would have captured their in-flight work. Whoever wraps second should commit it. Bench state:
+`stk_a vlan1 = 10.38.215.71/27` in running-config only (a reload reverts it), `/dev/u4` logged
+in, PDU untouched.
