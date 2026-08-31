@@ -93,6 +93,10 @@ COURIERS = {
 # is a place the checker has been told to stop thinking, so each needs to earn it.
 ALLOW = {
     # --- the read-only framework tree + testbox filesystems (never in this repo) ---
+    # --- lab-home tooling under testbox_home, outside this repo (verified 2026-09-01) ---
+    "i2c_stress.py": "~/i2c-stress/ in the lab home (testbox_home), not in repo",
+    "i2c_stress_fw.py": "~/i2c-stress/ in the lab home (testbox_home), not in repo",
+    "test_38378.py": "campaign run directory under testbox_home, not in repo",
     "ATSwitch.py": "framework tree (/home/st-art/framework), read-only, not in repo",
     "Setup.py": "framework tree, read-only, not in repo",
     "DeviceSkrips/framework/Setup.py": "framework tree, read-only, not in repo",

@@ -1,9 +1,9 @@
 ---
 name: grep-shim-honors-gitignore
-description: "`grep` in this shell is a function wrapping ugrep --ignore-files, so it silently skips .gitignored paths (.venv, node_modules, ask-ck/var/) — zero hits reads as real absence; use `command grep` to bypass"
+description: "TWO ways a search here returns a false zero: the `grep` shim honors .gitignore (use `command grep`), AND a full-tree recursive grep over the testbox_home NFS mount can be reaped as exit 0 / no matches before it finishes — both read as real absence"
 metadata:
   type: project
-  verified: 2026-08-31
+  verified: 2026-09-01
 ---
 
 `grep` in the Claude Code shell is **not** `/usr/bin/grep`. It is a shell **function** that
@@ -35,3 +35,31 @@ This is the same shape as [[silent-degradation-audit-2026-07-30]] — a polite z
 for a real answer — and the reason [[mutate-before-you-claim]] exists: a search that cannot
 fail loudly has to be proven against a known-present string before its absence means anything.
 Related: [[checks-must-not-match-their-own-advice]].
+
+---
+
+## Second failure mode: a truncated search reported as exit 0 (added 2026-09-01)
+
+`command grep` bypasses the shim — it is genuinely **GNU grep 3.7** — but that is not enough.
+A **recursive search of the whole `testbox_home` tree over the NFS mount takes minutes**, and
+when it is backgrounded on the harness timeout it can come back **`exit 0` with no matches and
+nothing on stderr**. Again indistinguishable from real absence.
+
+Measured 2026-09-01, hunting the serial of a swapped IE520:
+
+```
+command grep -ral '264A23061' . "old test runs"   ->  0 hits    (WRONG - reaped early, exit 0)
+command grep -ral '264A23061' .                   ->  5 files   (same command, run to completion)
+command grep -ac  '264A23061' u4-console.log      ->  1         (direct hit, contradicts the 0)
+```
+
+There is **no ignore file at the lab-home root** — this is purely the search not finishing. It
+also hid two files a scoped search never reached
+(`claude/IE520-testing/automated-bootloader/run-20260810/swi_a_200[12].log`), which carried
+material evidence.
+
+**How to apply:** never state an absence from a full-tree recursive grep of `testbox_home`.
+**Scope the search** to a directory, or bound it with `--include=`, and prefer several narrow
+greps to one wide one. If a wide search reports zero, prove the command against a
+known-present string before believing it. Same tell as above: a direct per-file hit that
+contradicts a recursive zero means the recursive one is lying.

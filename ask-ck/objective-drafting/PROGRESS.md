@@ -2,7 +2,84 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-31 (by Claude)
+**Last Updated**: 2026-09-01 (by Claude)
+
+## Latest session (2026-09-01) — IE520 bench work; the tree's UNCOMMITTED work surveyed, not authored here
+
+**Read this first if you are picking up the uncommitted tree.** This was a *hardware* session
+against the tb470 IE520 stack. The only repo files it changed are two memory files
+(`grep-shim-honors-gitignore.md` + its `MEMORY.md` pointer). **Everything else uncommitted
+belongs to the concurrent stream.** It is surveyed below so the next session does not have to
+re-derive it, and it is deliberately **not committed** — staging another stream's in-flight work
+is exactly what this repo's "stage explicit paths" rule exists to prevent.
+
+**Gate: ALL GREEN, verified 2026-09-01 against the full uncommitted tree** — backend
+`1121 passed, 1 skipped`; frontend `11 files / 128 tests`; `ck.db` content signature unchanged.
+So the in-flight work is safe to pick up, and any red you see next session is new.
+
+### The uncommitted work, by theme
+
+1. **Testbox profile field contract** — `pt_exec.py` (`PROFILE_REQUIRED = ("tb_number","host","user")`)
+   + `tests/test_pt_testbox_profile_fields.py` (new). `user` is now **required with no default**.
+   It used to default to `st-art`, which is wrong on tb470 — `st-art@tb470` gives
+   `Permission denied (publickey,password)` while `terrenceb@tb470` authenticates
+   (`TESTBOX-ACCESS.md` §3a). The pin asserts the *absence* of the default as well as the
+   requirement, because the failure used to be reachable by omission and presented as a network
+   fault rather than a profile mistake.
+
+2. **`setups` is a NAMED MAP, never a "default"** — `static/js/pytest.js`, `index.html`,
+   `styles.css`, plus two new specs in `js-tests/`. The Testboxes form wrote every setup under
+   the literal key `default`, silently renaming whatever key its owner chose (live tb470 keys its
+   setup `tb470`); on the LAN-shared server the last person to save renamed everyone else's.
+   `ptReadSetupRows` / `ptRenderSetupRows` are newly **exported** specifically so the round-trip
+   is testable through real DOM. The two specs are deliberately different in kind — one reads the
+   source to prove shape, one drives the DOM to prove a stored name survives a cycle.
+
+3. **PEP8 findings on generated code** — `routers/pytest_create.py`, new `_pep8_findings(code)`.
+
+4. **LLM CLI timeout floor** — `llm.py` `_cli_timeout(timeout)` + `tests/test_llm_call_timeouts.py`.
+   A non-streaming CLI call has no stream to keep the socket honest, so the caller's timeout is
+   floored rather than trusted.
+
+5. **`ask-ck/test-composer/bench_probe.py`** (new, untracked) — reads a testbox's real state
+   through the **framework's own** console driver (`LoadSetup.init_swi()` → `ATSwitch.Switch`)
+   rather than a hand-rolled pyserial loop, so what it reports is what a generated script will
+   meet. Read-only except `--assign-ip`.
+
+6. **`PLAN-pytest-creator.md` §8 — server-side setup templates: DESIGN, NOT BUILT.** Three
+   decisions settled: templates live in **both** a committed `ask-ck/pytest-create/setups/` and a
+   personal `ask-ck/var/setups/` (already gitignored); every template must declare its `[misc]`
+   topology-profile claims so `pt_profiles`/`pt_preflight` can answer offline; design before code.
+   Transport needs no change — `RunManager._run` already SFTPs arbitrary `{filename: code}` into
+   the guarded workdir. **Run-time only: nothing in steps 2-5 may read a template**, because a
+   test silently weakened to fit the hardware in front of it still goes green. Four open questions
+   in §8.8.
+
+### ⚠ Cross-stream overlap to resolve before either side builds
+
+`bench_probe.py --assign-ip` exists because "a bench may legitimately have none (tb470's IE520
+stack has `vlan1 unassigned`)". **That same gap was being closed by hand on the bench the same
+day** — see the hardware notes below. Two mechanisms are converging on one problem; agree which
+owns it before the tool and the bench disagree about who assigns addresses.
+
+### Hardware findings from this session that bear on the repo
+
+Full detail in `~/old test runs/IE520/stack-tests/` (outside this repo — `testbox_home` is not
+version-controlled). The parts that matter to anyone running scripts against tb470:
+
+- **A long-lived console session gets logged out.** The stack runs `default.cfg` since the
+  2026-08-26 unit swap, so `line con 0 / exec-timeout 0 0` is gone and the AW+ default applies.
+  A read-only witness logger that never sends a byte is the perfect victim; when it is timed out
+  the console emits garbled interleaved text and goes silent, which reads **exactly** like a
+  device wedge. It produced a false "wedge reproduced" today that the device disproved (uptime
+  continuous, no `BootROM`, no reboot-history entry). **Confirm a wedge against uptime/reboot
+  history, never against console silence alone.**
+- **Clocks are now correct and disciplined**: tb470 chrony is stratum 2; the AR4050S
+  (`10.38.215.70`) now syncs from tb470 `10.38.215.65` and is written to config; the IE520 stack
+  is `NZST`/`NZDT` in startup-config but its *time* is still hand-set and is lost on a power
+  cycle. `10.38.215.66/27` is reserved for the stack (dhcpd keeps `.66/.67` clear).
+- **`show reboot history` now spans two timebases** on the IE520 stack — entries after
+  2026-09-01 10:32 are NZST, older ones UTC (+12). The existing evidence corpus is all UTC.
 
 ## Latest session (2026-08-31) — the PyTest Creator's step-3 gate opened, and its provenance stopped lying
 

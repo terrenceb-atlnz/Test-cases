@@ -4,6 +4,7 @@ description: tb470 real bench topology + the corrected tb470.setup; **2026-08-18
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-01
   originSessionId: 2a141e3e-5a6e-4153-b006-2e724f5ec026
   modified: 2026-08-18T08:30:00.000Z
 ---
@@ -369,3 +370,76 @@ well-formedness plus an `int()` on each `[power]` outlet, mirroring `Setup.py`.
 settled by one grep of `Setup.py`; pinging the PDU and curling its web UI added nothing.
 Probe hardware only when the fact genuinely changes file content and cannot be derived —
 e.g. which unit holds stack member ID 1.
+
+
+---
+
+## Verified on the bench 2026-09-01 — read this before trusting anything above
+
+Everything in this section was read off the hardware today. Where it contradicts the older text,
+**this section wins.**
+
+**Membership: the 2026-08-26 unit swap was REVERTED.** The handover in
+`~/old test runs/IE520/stack-tests/failover-300/SESSION-HANDOVER.md` records 264A23066 being
+pulled and replaced with **264A23061**. That is no longer the bench. Live today:
+
+| | ID 1 | ID 2 |
+|---|---|---|
+| S/N | **264A23066** | 264A23052 |
+| MAC | `84e3.2787.0740` | `84e3.2787.09c0` |
+| Console | `/dev/u5` (banner `awplus`) | `/dev/u4` (banner `awplus-2`) |
+| Bootloader | `9.1.0` | `pauld` dev build |
+
+264A23061 appears nowhere in the 2026-08-31 logs. No record of when or why it went back was
+found. **So the console↔S/N mapping matches the pre-swap record again — but re-verify anyway.**
+
+**Priority is inverted and will flip mastership on any reboot.** ID 2 is priority **1**, ID 1 is
+**128**; lowest wins and there is no pre-emption, so ID 1 is master only until something reloads.
+Anything assuming "master = ID 1" is wrong after one reboot. (Confirmed: a reboot at 10:32
+handed mastership to ID 2.)
+
+**Both 27/28 pairs are STACKPORTS again and the resiliency link is `Not configured`.** The
+vlan4093 resiliency link described above is gone. The 17688 resiliency defect is therefore not
+currently set up on this bench — it is history, not live state.
+
+**Both units reboot on their own, roughly 1-2.5 times per day, while completely idle.** Measured
+over 2026-08-21..24, a window with **zero** files modified across every campaign directory:
+ID 1 = 10 events (~2.5/day), ID 2 = 6 (~1.5/day). This is the single biggest confound on this
+bench: a 17.8 h test run produced ONE "failure" against an idle expectation of ~1.9. **Do not
+attribute a reboot to your test without an idle control.** By contrast the AR4050S on the same
+bench and PDU has been up 20+ days.
+
+**A wedge must be confirmed against uptime / `show reboot history`, never console silence.**
+The stack runs `default.cfg` since the swap, so `line con 0 / exec-timeout 0 0` is gone and the
+AW+ default logout applies. A read-only console logger that never sends a byte gets timed out;
+the console then emits garbled interleaved characters and goes silent — indistinguishable from a
+device lockup. This produced a false "wedge reproduced" on 2026-09-01 which the device disproved
+(uptime continuous, no `BootROM`, no reboot-history entry).
+
+**The mv64xxx I2C bus-lock defect is FIXED.** `show tech-support` x6 on 2026-09-01 was 6/6 clean
+— no `I2C bus locked`, no wedge, no reset — well past the iteration and time window where every
+historical lock occurred (always iteration <=2, at +55..+71 s). Root cause was the single module
+AT-SPTXc `A10217F213300006`, removed 2026-08-20. It is also **not** connected to the stackport
+"wedge": no lock signature appears in any 38378 log, and that module was gone five days before
+that run.
+
+**Addressing and clocks (new).**
+
+- tb470 = `10.38.215.65` (eth3), chrony **stratum 2**, `allow 10.0.0.0/8` — it will serve NTP here.
+- AR4050S `4050-5g` = `10.38.215.70/27` on vlan1, now NTP-synced from tb470 and written to config.
+- dhcpd pool on this /27 is `.68-.94`; **`.66/.67` are deliberately kept clear for statics**, so
+  `10.38.215.66/27` is the right address for the IE520 stack. The stack currently has **no IP**.
+- The IE520 stack has `clock timezone NZST` + `clock summer-time NZDT` in **startup-config**, but
+  its absolute time is hand-set: a warm reboot preserves it, a power cycle does not, and there is
+  no NTP until it gets an address.
+- Consequence: `show reboot history` on the stack now spans **two timebases** — entries after
+  2026-09-01 10:32 are NZST, everything older is UTC (+12). The whole existing evidence corpus is
+  UTC.
+
+**Cabling as measured today.** `port1.0.1` (member 1) is cabled to the **x230**, not the 4050 —
+the 4050's own MAC `0000.cd40.0394` and tb470's `00f0.4d00.7718` are both learnt on `port1.0.1`.
+`port2.0.1` shows link but has learnt no MACs. `port2.0.9` is unplugged. **The L2 loop is real
+and was live this morning**: `0000.cd40.0394` was thrash-limiting between `port1.0.1` and
+`port2.0.9` — two unaggregated paths to the 4050 — until the direct leg was unplugged at 09:09:26.
+Cost measured at ~30% of a `show tech-support` collection time. **Two links to one device on this
+bench must be a single LACP aggregation, or they loop.**
