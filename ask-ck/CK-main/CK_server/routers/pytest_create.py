@@ -1777,6 +1777,90 @@ def _split_lint_errors(errors: List[str]) -> Tuple[List[str], List[str]]:
     return blocking, policy
 
 
+# --- PEP 8 style (2026-09-01) -------------------------------------------------
+#
+# Until now NOTHING in this pipeline checked style. `_lint_generated` ran py_compile
+# (syntax) plus a long list of house-rule and contract assertions, all of which are about
+# whether the script WORKS. A generated artefact is read by a human before it is promoted
+# into `testsuites_art/`, so how it reads is part of the deliverable -- and the model has
+# no incentive to keep lines short unless something says so.
+#
+# pycodestyle, not a hand-rolled subset. It IS the reference implementation of PEP 8, it is
+# pure Python with zero dependencies, and it runs entirely offline -- the alternative was
+# re-deriving a dozen rules here and getting the edge cases wrong while calling the result
+# "PEP 8".
+#
+# 120, not pycodestyle's default 79. Measured over the 7 scripts in `generated/` (3,121
+# lines): 732 lines exceed 79 and 171 exceed 120. At 79 the check emits ~120 findings on a
+# single healthy script, which is a warning list nobody reads; at 120 the same script emits
+# 21, and every one is a genuinely unreadable line -- the corpus tops out at 799 characters.
+# The lower bound on usefulness here is "would a reviewer agree", and 79 fails it for code
+# whose natural unit is a CLI string.
+_PEP8_MAX_LINE = 120
+
+# How many individual findings to name per code before collapsing to a count. A pathological
+# generation can produce 200 E501s; listing them all buries the E741/W293 findings that are
+# quick real fixes.
+_PEP8_SAMPLE_PER_CODE = 4
+
+
+def _pep8_findings(code: str) -> Tuple[List[str], Optional[str]]:
+    """PEP 8 findings for `code`, as (warning strings, unavailable_reason).
+
+    Returns `unavailable_reason` set and an EMPTY finding list when pycodestyle is not
+    installed. The caller surfaces that as its own warning rather than silently reporting
+    a clean style pass -- unknown is not the same as clean (the Phase 7.7 lesson from the
+    coverage check, which used to be able to die and still lint green).
+
+    Deliberately NOT an error, blocking or policy. A long line does not stop a script
+    binding devices or reaching a verdict, and `blocking_errors` is reserved for "provably
+    cannot work". Style that blocked Save would make the reviewer's only escape a recorded
+    policy override, for whitespace.
+    """
+    try:
+        import pycodestyle                       # runtime dep; see requirements.txt
+    except Exception as e:                       # pragma: no cover - depends on the venv
+        return [], f"{type(e).__name__}: {e}"
+
+    collected: List[Tuple[int, str, str]] = []
+
+    class _Collect(pycodestyle.BaseReport):
+        """Collect findings instead of printing them. pycodestyle's default report writes
+        to stdout, which on this server means the journal, not the reviewer's screen."""
+        def error(self, line_number, offset, text, check):
+            rv = super().error(line_number, offset, text, check)
+            if rv:                               # None when the code is in the ignore list
+                collected.append((line_number, rv, text[5:].strip()))
+            return rv
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False,
+                                     encoding="utf-8") as f:
+        f.write(code)
+        tmp = f.name
+    try:
+        style = pycodestyle.StyleGuide(max_line_length=_PEP8_MAX_LINE, reporter=_Collect,
+                                       quiet=True)
+        style.check_files([tmp])
+    except Exception as e:                       # a checker crash must not kill the lint
+        return [], f"pycodestyle failed to run ({type(e).__name__}: {e})"
+    finally:
+        os.unlink(tmp)
+
+    by_code: Dict[str, List[Tuple[int, str]]] = {}
+    for lineno, ccode, text in collected:
+        by_code.setdefault(ccode, []).append((lineno, text))
+
+    out: List[str] = []
+    for ccode in sorted(by_code):
+        hits = sorted(by_code[ccode])
+        shown = ", ".join(f"line {ln}" for ln, _ in hits[:_PEP8_SAMPLE_PER_CODE])
+        more = f" (+{len(hits) - _PEP8_SAMPLE_PER_CODE} more)" \
+            if len(hits) > _PEP8_SAMPLE_PER_CODE else ""
+        out.append(f"pep8 {ccode}: {hits[0][1]} — {len(hits)} occurrence"
+                   f"{'s' if len(hits) != 1 else ''} at {shown}{more}")
+    return out, None
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -2346,8 +2430,24 @@ def _lint_generated(sess: PtSession) -> dict:
                       f"— the script has NOT been checked for completeness")
         result_coverage = None
 
+    # 5. PEP 8. Last, because it is the only check that is about how the script READS
+    # rather than whether it works, and its findings should sit below the ones that matter.
+    _pep8, _pep8_unavailable = _pep8_findings(code)
+    if _pep8_unavailable:
+        warnings.append(
+            f"style NOT checked — pycodestyle unavailable ({_pep8_unavailable}). "
+            f"Install it (`pip install -r ask-ck/CK-main/requirements.txt`) or treat this "
+            f"script's style as unreviewed; a clean warning list below does not mean the "
+            f"style is clean.")
+    warnings.extend(_pep8)
+
     blocking, policy = _split_lint_errors(errors)
     result = {"ok": not errors, "errors": errors, "warnings": warnings,
+              # Style findings are also surfaced on their own key so the UI (and any
+              # future auto-fix pass) can address them without string-matching the
+              # general warning list.
+              "pep8": _pep8, "pep8_unavailable": _pep8_unavailable,
+              "pep8_max_line": _PEP8_MAX_LINE,
               # PHASE 7.7/7.8 — two kinds of error, two different authorities.
               # `blocking` means the artefact provably cannot work (it will not compile, or
               # it dies with AttributeError on the testbox, or it is short). No override.

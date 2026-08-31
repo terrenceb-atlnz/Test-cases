@@ -169,19 +169,89 @@ def test_the_health_ping_stays_under_the_guard():
             f"reporting. Keep the ping under the guard, or give it an explicit opt-out.")
 
 
-@pytest.mark.parametrize("auth_method,floored", [
-    ("claude_code", True),
-    ("grok_cli", True),
-    # claude_agent deliberately keeps the caller's number: the same timeout bounds the
-    # agent-bridge long-poll a user's browser is holding open.
-    ("claude_agent", False),
-])
-def test_the_floor_is_wired_into_the_right_dispatch_arms(auth_method, floored):
+@pytest.mark.parametrize("auth_method", ["claude_code", "grok_cli"])
+def test_the_floor_is_wired_into_the_right_dispatch_arms(auth_method):
     """Structural: a floor helper nobody calls is decorative. Checks the dispatch line for
-    each headless arm rather than trusting the helper's existence."""
+    each server-side headless arm rather than trusting the helper's existence."""
     src = _LLM.read_text(encoding="utf-8")
     arm = src[src.index(f'auth_method == "{auth_method}"'):]
     arm = arm[:arm.index("\n    if ") if "\n    if " in arm else min(len(arm), 400)]
-    assert ("_cli_timeout(timeout)" in arm) is floored, (
-        f"the {auth_method} dispatch {'should' if floored else 'should NOT'} pass its "
-        f"timeout through _cli_timeout(); arm reads:\n{arm[:300]}")
+    assert "_cli_timeout(timeout)" in arm, (
+        f"the {auth_method} dispatch should pass its timeout through _cli_timeout(); "
+        f"arm reads:\n{arm[:300]}")
+
+
+def test_claude_agent_is_floored_too():
+    """`claude_agent` is a headless CLI that happens to run on the USER's machine.
+
+    THE DEFECT THIS PINS (found 2026-09-01)
+    ---------------------------------------
+    This arm was deliberately exempted on 2026-08-03, and the reason recorded then was
+    that the job timeout "bounds the agent-bridge long-poll a user's browser is holding
+    open". It does not, and cannot: the long-poll's budget is `next_job`'s own `wait`
+    parameter -- 25s from `agent.js`, hard-capped at 55s in `agent_bridge.next_job` -- and
+    the job timeout is never consulted for it. `test_the_long_poll_is_not_bounded_by_the_
+    job_timeout` below pins that, so this exemption cannot be reinstated on the same
+    reasoning.
+
+    What the exemption cost: `claude_agent` became the ONLY transport where a caller's
+    number was a whole-response wall clock. `claude_code`/`grok_cli` are floored inside
+    `_call_*_headless`; `local_llm` streams, so its number bounds the inter-chunk gap. So
+    the same 600s meant "30 minutes" on one transport, "no total limit" on another, and a
+    hard kill on the third -- and the third is the workspace default. `gather_fragments`
+    died at a hard 300s on 2026-08-27 (AWPTCM-T44191), which was patched by raising THAT
+    call site to 600 rather than fixing the arm; `generate_script` -- measured at 297s and
+    390s on real cases in the debug log, and 326-778s on multi-message replies -- then hit
+    the same wall at 600s on a larger case.
+    """
+    src = _LLM.read_text(encoding="utf-8")
+    body = src[src.index("def _call_claude_agent("):]
+    body = body[:body.index("\ndef ")]
+    assert "_cli_timeout(timeout)" in body, (
+        "the claude_agent path must floor its budget like every other headless CLI arm; "
+        "without it a long generate is killed at the caller's raw number.")
+    # It must be floored BEFORE submit, because submit's argument is also what is handed
+    # to the browser (see the sharing test below). Flooring after would give the server
+    # 1800s of patience while the user's agent still stopped at 600.
+    assert body.index("_cli_timeout(timeout)") < body.index("registry.submit("), (
+        "floor the timeout BEFORE registry.submit() -- submit's value is the one shared "
+        "with the browser, so flooring after it desynchronises the two ends.")
+
+
+def test_the_long_poll_is_not_bounded_by_the_job_timeout():
+    """The claim that retired the claude_agent exemption, pinned as a fact.
+
+    A future reader looking at a 1800s job budget could reasonably fear it holds a
+    browser's long-poll open for half an hour. It does not: `next_job` bounds itself by
+    its own `wait` argument and caps it, and the job's timeout is only ever forwarded in
+    the response body. If that ever stops being true, the exemption argument becomes valid
+    again and this test is what says so.
+    """
+    bridge = (_SERVER / "routers" / "agent_bridge.py").read_text(encoding="utf-8")
+    body = bridge[bridge.index("async def next_job("):]
+    body = body[:body.index("\n@router.")]
+    assert "min(wait," in body, (
+        "next_job no longer caps its own wait; the long-poll's bound may now come from "
+        "somewhere else -- re-check whether the job timeout reaches it.")
+    deadline = body[body.index("deadline ="):body.index("\n", body.index("deadline ="))]
+    assert "job_timeout" not in deadline and "timeout" not in deadline.replace("wait", ""), (
+        f"the long-poll deadline now references a timeout: {deadline!r}")
+
+
+def test_server_and_browser_stop_on_the_same_number():
+    """The floored budget must reach the user's local agent, not just the server.
+
+    Three processes wait on this one number -- the server's `job.event.wait`, the
+    browser's fetch to its ck-agent, and that agent's `subprocess.run`. If they disagree,
+    the impatient end discards work the patient end is still doing; that is exactly the
+    2026-08-27 defect (3224629), where the browser hard-coded 600s while the server waited
+    on whatever the caller asked for. Flooring inside `_call_claude_agent` keeps all three
+    on one value, but only while the bridge keeps forwarding it.
+    """
+    bridge = (_SERVER / "routers" / "agent_bridge.py").read_text(encoding="utf-8")
+    assert '"timeout": job_timeout' in bridge, (
+        "the bridge no longer forwards the job's timeout to the browser; the local agent "
+        "would fall back to its own default and the two ends could diverge again.")
+    agent_js = (_SERVER / "static" / "js" / "agent.js").read_text(encoding="utf-8")
+    assert "job.timeout" in agent_js, (
+        "agent.js no longer passes the server's budget to the local ck-agent.")

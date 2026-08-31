@@ -47,6 +47,17 @@ paramiko>=3.4
 # which is why this was invisible for so long.
 fissix>=24.4.24
 
+# --- PEP 8 style checking of GENERATED scripts (PyTest Creator "5. Generate" -> Lint) ---
+# A RUNTIME dependency, not a dev one: the server itself lints the scripts it generates
+# (routers/pytest_create._pep8_findings), so this must be present wherever the server runs,
+# not merely wherever the tests run. Pure Python, zero dependencies, works offline.
+#
+# It degrades rather than crashing -- a missing pycodestyle makes the lint emit
+# "style NOT checked" instead of silently reporting a clean style pass. That distinction is
+# the point: the same shape (a check that could die and still lint green) is exactly what
+# Phase 7.7 had to fix in the coverage check.
+pycodestyle>=2.11
+
 # --- Semantic / hybrid search (Stage D; the server degrades to keyword without them) ---
 # ALL THREE BELOW ARE REQUIRED for semantic/hybrid search and the offline embedding
 # model. They are easy to miss when building a venv by hand: the server still BOOTS

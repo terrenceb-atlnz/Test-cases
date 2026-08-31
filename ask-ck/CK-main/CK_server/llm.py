@@ -335,7 +335,13 @@ def _is_long_call(timeout: int) -> bool:
 
 
 def _cli_timeout(timeout: int) -> int:
-    """Whole-response floor for the non-streaming headless CLI backends.
+    """Whole-response floor for EVERY non-streaming headless CLI backend.
+
+    Applies wherever that CLI runs -- on this server (`claude_code`, `grok_cli`) or on
+    the user's own machine behind the browser bridge (`claude_agent`). What earns the
+    floor is the transport's shape, not its location: one shot at the whole response,
+    no stream to keep the budget honest. `claude_agent` was left out for months and was
+    the only path where a caller's number was a real wall clock -- see _call_claude_agent.
 
     Short calls stay short (see _is_long_call). Mirrors the local_llm guard.
     """
@@ -588,6 +594,27 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
                           "error": True, "cancelled": True}
             job.event.set()
         llm_inflight.set_cancel(_cid, _cancel)
+    # The whole-response floor, which this path never had (2026-09-01).
+    #
+    # `claude_agent` is a headless `claude` CLI exactly like `claude_code` -- it just runs
+    # on the user's machine instead of this one. It gets ONE shot at the whole response and
+    # there is no stream to keep the socket honest, so the caller's `timeout` is a wall
+    # clock here. Every other transport was already protected: `claude_code`/`grok_cli` are
+    # floored by `_cli_timeout` inside `_call_*_headless`, and `local_llm` streams, so its
+    # number bounds the gap between chunks rather than the total. This path alone took the
+    # caller's raw value, which is why `gather_fragments` died at a hard 300s on 2026-08-27
+    # (AWPTCM-T44191) and why `generate_script` -- measured at 297-778s on real cases and
+    # rising with the fragment count, not the step count -- dies at 600s on a large one.
+    #
+    # Flooring HERE rather than at each call site is deliberate: the same argument
+    # `_CLI_WHOLE_RESPONSE_FLOOR` already makes -- fix the backend that mis-reads the
+    # number, do not re-tune five callers for one transport.
+    #
+    # The floored value is what `submit` waits on AND what is handed to the browser, which
+    # passes it to the local ck-agent as its `subprocess.run` budget (agent.js -> ck_agent.py).
+    # Server and agent must stay on ONE number or the loser's work is discarded -- that
+    # sharing is the 2026-08-27 fix (3224629) and flooring before `submit` preserves it.
+    timeout = _cli_timeout(timeout)
     result = registry.submit(session_id, prompt, model, timeout,
                              on_start=_on_start if _cid else None)
     llm_inflight.set_cancel(_cid, None)
