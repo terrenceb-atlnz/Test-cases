@@ -6,15 +6,15 @@ metadata:
   type: project
   originSessionId: 3813cc75-639d-4e62-abb8-fd384442d015
   modified: 2026-07-28T02:34:43.796Z
-  verified: 2026-08-26
+  verified: 2026-08-31
 ---
 
 The **PyTest Creator** (a tool inside the Ask CK FastAPI workbench at
-`copilot/Test-cases/ask-ck/CK-main/CK_server/`) turns refined AWPTCM cases into runnable
+`ask-ck/CK-main/CK_server/`) turns refined AWPTCM cases into runnable
 Allied Telesis `framework` (ATTestSet/ATTestCase) scripts, then runs them on real hardware
 over SSH and iterates via an LLM fix loop.
 
-The living plan/progress tracker is `copilot/Test-cases/ask-ck/pytest-create/PLAN-pytest-creator.md`
+The living plan/progress tracker is `ask-ck/pytest-create/PLAN-pytest-creator.md`
 — **update it as milestones land** (user explicitly wants progress tracked there). Testing
 status lives in the companion `PLAN-pytest-testing.md`.
 
@@ -62,3 +62,18 @@ Facts confirmed 2026-08-06 (driving the API end-to-end for the pilot trio):
   Do not re-propose removing them without new evidence. Whether the framework harness reads
   desc/method at runtime for `TEST_CASE_*` log headers is unverifiable offline (framework tree not
   mounted here) — a hardware run settles it.
+
+
+**2026-08-31 — paths above made repo-relative.** They read `copilot/Test-cases/…`; that
+checkout name no longer exists (the repo is under `claude/Test-cases` now), and
+`tool/check_memory_refs.py` does NOT flag it — the prefix makes the citation look like a file
+on another machine, which the checker deliberately skips. Repo-relative paths cannot rot that
+way. Four other memories still carry `copilot/` citations, left alone because this session did
+not use them: `bootloader-media-parse-bug`, `db-only-single-source`,
+`run-attribution-5700-campaign`, and `grep-shim-honors-gitignore` (whose occurrences are
+example DATA inside a recorded measurement — rewriting them would falsify it).
+
+**Per-step flow gates closed 2026-08-31** — see [[llm-provenance-portability]] and
+[[old-sessions-are-not-coverage]]. Step 3 is confirmable from the per-step picker
+(`step_matches` / `selections`), records its own provenance, and step 6 has
+`POST /save_naming/{key}` so naming persists before a first successful generate.

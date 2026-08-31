@@ -14,6 +14,7 @@ inter-switch links and went to 2/3, which both fixtures below now pin.
 
 Pure unit tests — no DB, no network, no hardware, no LLM.
 """
+import re
 import sys
 import textwrap
 from pathlib import Path
@@ -364,7 +365,40 @@ def test_clean_script_on_a_matching_bench_is_runnable():
 # ------------------------------------------------------------------------ the real thing
 
 
-REAL_SCRIPTS = sorted((REPO / "ask-ck" / "pytest-create" / "generated").rglob("*.py"))
+# A generated TEST SCRIPT, as opposed to the `library` companion the generator writes
+# beside it. Both land in generated/<Group>/, so an unfiltered rglob swept the library in
+# too — and a library module legitimately binds no devices, which broke both tests below
+# the first time a generation actually emitted one (2026-08-31, AWPTCM-T33351:
+# 'library_802_1x_single_host.py: no devices detected', and the same file counted as
+# trivially "runnable" because a script with no demands has nothing to fail).
+#
+# The discriminator is the skeleton's own shape, not the filename: every generated test
+# script subclasses ATTestSet/ATTestCase, and a library never does. The library's name
+# comes from the MODEL (_persist_generated_files validates it for safety, not for a
+# prefix), so matching on 'library_' would be guessing at something nothing guarantees.
+# This rule also keeps the hand-made .REVIEW.py in scope, which a sidecar-meta rule
+# would silently drop.
+_TESTSET_RX = re.compile(r"^class\s+\w+\s*\(\s*(?:ATTestSet|ATTestCase)\b", re.M)
+
+
+def _is_test_script(path: Path) -> bool:
+    return bool(_TESTSET_RX.search(path.read_text(encoding="utf-8", errors="replace")))
+
+
+# generated/.meta/<Group>/<Name>/history/iter-N/ keeps a snapshot of every superseded
+# iteration. Those are history, not the current script: asserting over them means a draft
+# that was regenerated BECAUSE it was wrong reddens the gate forever, and _verdicts (keyed
+# on p.name) silently collapses a snapshot and its live file into one entry. Latent since
+# the first multi-iteration case; it only bites once a case is generated more than once.
+_GENERATED = sorted(p for p in (REPO / "ask-ck" / "pytest-create" / "generated").rglob("*.py")
+                    if ".meta" not in p.parts)
+REAL_SCRIPTS = [p for p in _GENERATED if _is_test_script(p)]
+# A filter that quietly matched nothing would turn every assertion below into a vacuous
+# pass — exactly the failure mode test_every_generated_script_parses_and_is_checkable
+# exists to prevent one layer down.
+assert not _GENERATED or REAL_SCRIPTS, (
+    "generated/ holds .py files but none subclass ATTestSet/ATTestCase — has the skeleton "
+    f"changed shape? saw: {[p.name for p in _GENERATED]}")
 
 
 @pytest.mark.skipif(not REAL_SCRIPTS, reason="no generated scripts in the tree")

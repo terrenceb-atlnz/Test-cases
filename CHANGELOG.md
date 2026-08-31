@@ -10,6 +10,93 @@ For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for
 current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
+## 2026-08-31 — The step-3 confirm gate, the naming that would not stick, and provenance that previewed the wrong call
+
+Terrence drove a real case (`AWPTCM-T33351`, 802.1X single-host) through the per-step flow
+and hit three separate defects in sequence. All are fixed, each mutation-checked. The session
+also **pulled two commits from the other stream that had never been gated** — their author's
+host had neither pytest nor node, and said so — `23178e0` and `3224629`.
+
+**Step 3 could not be confirmed, so step 4 was unreachable.** `confirm_step` accepted step 3
+only on `step3.provenance` or `step3.matches`. After the 2026-08-26 move to a per-sequence-step
+picker neither is written: step 3 has never written `provenance` (only steps 2, 5, 6 and 8 do),
+and `matches` came solely from the whole-case `POST /suggest_scripts`, which left the UI on
+2026-08-20. A step 3 reported with every sequence step covered and scripts chosen was rejected
+regardless, and `gather_fragments`' `_require_confirmed` held step 4 shut behind it. Every
+`pt-` session already in `ck.db` predated the change and still carried `matches`, which is why
+the suite stayed green and the bug reached a user. `confirm_step` now also accepts the per-step
+flow's own evidence that the step ran — `step_matches` (written even when a step matched
+nothing, preserving "an empty list is a legitimate answer") or `selections` (keyword picks made
+without invoking Suggest). Scoped to `matches`; step 5 writes real provenance, so `fragments`
+keeps its original predicate. The fix arrived from origin with no test — the gate count was
+unchanged — so it has one now.
+
+**The LLM Provenance panel previewed a call the page was not making.** `provenance.js`
+documents the contract in its own header: `bodyFn` "returns the request body (minus dry_run) at
+click time so it always reflects current naming/inputs" — that is precisely what makes the
+preview 1-for-1 with a real send. Every PyTest Creator panel passed a hard-coded `() => ({})`,
+so Refresh posted an empty body and each endpoint fell back to its server-side defaults. Two
+consequences, both visible. On **Generate**, the fallback group for this case was
+`Authentication & Security`, which `_validate_naming` rejects — so Refresh answered
+400 "Invalid group name" for a group the reviewer had already edited away, before rendering a
+single line of prompt, while the Generate button (which does post its inputs) worked fine. On
+**Script Search**, the mount still pointed at the retired whole-case `/suggest_scripts` — its
+last reference anywhere in the frontend — so Refresh rendered the retired mega-prompt and
+presented it as "what would be sent". `mountPtProvenance` now takes a `bodyFn` and accepts a
+function endpoint; Generate passes its live naming, Script Search resolves
+`/suggest_scripts_step/{key}/{n}` at click time so the preview follows the step pager.
+
+**Step 3 recorded nothing about what it sent.** It was the one LLM step storing no provenance,
+while its panel seeded from `step3.provenance` — a key only the retired whole-case suggest ever
+wrote. For any session driven through the current picker that panel was permanently blank, with
+no way to see what a suggest had sent after the fact. `suggest_scripts_step` now stores
+`{llm, prompt, response, step_n}`. **One slot rather than one per sequence step** is
+deliberate: the session payload is a row in the permanent `ck.db`, and a 32-step case would
+otherwise carry 32 full prompts; `step_n` says which step it belongs to, and any other step's
+prompt is a dry-run Refresh away at zero token cost. A dry run records nothing.
+
+**Nothing would persist the step-6 naming until a generation had already succeeded.**
+`step6.naming` had exactly two writers: the success tail of `generate_script`, and
+`save_script`, which opens with `409 "Generate a script first."`. So before a first successful
+generation there was no endpoint that would store the Group and script-name fields at all —
+what the reviewer typed lived purely in the DOM, and `renderPtGenPanel`'s
+`naming.group || group_display` re-seed silently replaced an edit with the default the moment
+the panel was navigated away from and back. A generation that FAILED discarded it too, since
+the write sat on the success path. New **`POST /api/pytest-create/save_naming/{key}`** persists
+the two fields alone with no file required, autosaved on blur; it refuses once a script exists,
+because renaming then has to move the file on disk and re-lint it — `save_script`'s job, and
+half-doing it would strand the old file under the old name. `generate_script` additionally
+persists the naming *before* the LLM call, skipped on `dry_run` so a preview stays a pure
+no-write — that guard matters, because the write sits upstream of the dry-run return and would
+otherwise have made merely LOOKING at a prompt write to the permanent `ck.db`.
+
+**And the trap underneath all of it: the API handed the UI a default its own validator
+refuses.** `_group_display` is both the value `load_case` returns to seed the Group field and
+`generate_script`'s server-side default when the body carries no group, but it stripped only
+the trailing `(42)` count — leaving any character outside `_GROUP_RX` in place. Enumerated
+across `ck.db`: 5 distinct groups, of which exactly one produces an invalid default, and it is
+the group of **42** cases. It now sanitises, collapsing each run of disallowed characters with
+the spaces hugging it into a single `_` (`Authentication & Security` → `Authentication_Security`,
+which is what the reviewer had typed by hand). A group that already validates is returned
+byte-for-byte unchanged, so `Management`, `Port` and the `generated/` directories named after
+them are untouched — only a name that could never have worked is rewritten.
+
+**Gate discipline note — a test that asserts over real output must know what that output is.**
+The first generation to emit a `library_*.py` companion turned the gate red, and the script was
+fine: `tests/test_pt_preflight.py` globbed every `*.py` under `generated/` and assumed each was
+a runnable test script, so a helper module that legitimately binds no devices read as "no
+devices detected" — and, counted as having no demands, as trivially *runnable*. The same glob
+was also sweeping `.meta/**/history/iter-N/`, the snapshots of superseded iterations, which
+would have reddened the gate permanently the next time a case was generated twice. It now
+excludes `.meta/` and selects on the skeleton's own shape — `class X(ATTestSet | ATTestCase)` —
+rather than on the filename, because the library's name comes from the MODEL
+(`_persist_generated_files` validates it for safety, not for a prefix). That rule also keeps the
+hand-made `.REVIEW.py` in scope, which a sidecar-meta rule would silently have dropped, and an
+assertion fails loudly if the filter ever matches nothing.
+
+Gate: 1100 passed / 1 skipped (from 1071), 105 Vitest across 9 files (from 92), both invariant
+guards OK, `ck.db` untouched by tests.
+
 ---
 
 ## 2026-08-26b — Step-3 results became durable and context-bearing; every LLM button gained live progress and a true Stop

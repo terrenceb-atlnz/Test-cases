@@ -30,6 +30,22 @@
 > 2–3 pending) with `TEMPLATE-SPEC.md` + `LOGGING-CONTRACT.md`; this tracker's Step-6 body below
 > describes the original free-compose approach (historical).
 
+> **Per-step flow completed its own gates (2026-08-31)**: the 2026-08-26 move to a
+> per-sequence-step Script Search left three server-side assumptions behind, each found by
+> driving a real case (`AWPTCM-T33351`) rather than by the suite. `confirm_step` still
+> demanded `step3.provenance` or `step3.matches` — neither of which the per-step picker
+> writes — so step 3 could not be confirmed and step 4 was unreachable; step 3 stored no
+> provenance at all, so its panel was permanently blank; and its provenance mount was still
+> the last frontend reference to the retired whole-case `/suggest_scripts`. All three closed.
+> `confirm_step` now also accepts `step_matches` or `selections`; `suggest_scripts_step`
+> records `{llm, prompt, response, step_n}` (one slot — the payload is a permanent `ck.db`
+> row); the panel targets `/suggest_scripts_step/{key}/{n}`, resolved at click time.
+> Step 6 gained `POST /save_naming/{key}` so the Group / script-name fields persist before a
+> first successful generation, and `_group_display` now sanitises to `_GROUP_RX` — it had been
+> handing the UI a default the server's own validator rejected. **Every session in `ck.db`
+> predating 2026-08-26 still carries `matches`, which is why the suite stayed green through
+> all of it**: a corpus of old sessions is not coverage of a new flow.
+
 > **Flow revision (2026-07-23)**: the visible flow is now **7 steps, not 8** — the former
 > **Step 4 (Fit Decision) was removed** (the fixed skeleton makes reuse/extend/new moot). Internal
 > `stepN` session keys are UNCHANGED (fragments still `step5`, generate `step6`, etc.); only the

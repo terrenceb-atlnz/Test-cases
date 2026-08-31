@@ -3519,3 +3519,78 @@ anywhere near its PATH (verified before close).
 **Pick up:** suggest-all's first real run is Terrence's (server seat); then remove the
 per-step Suggest button. The pilot trio (T33234/T33235, `clear_session` first) and IE520
 remain exactly as the morning handoff left them.
+
+## Session Close / Handoff (2026-08-31) — three walls in one case, and a test that punished the user for real output
+
+**Terrence drove `AWPTCM-T33351` (802.1X single-host, `Authentication & Security`) and hit a
+different defect at each of three consecutive steps.** All fixed, all mutation-checked. The
+case is now generated, lint-clean and saved — the first taken end to end through the per-step
+flow, and the first generation to emit a `library_*.py` companion.
+
+**Started 2 commits behind `origin/main`, and neither had been gated.** Both were the other
+stream's (Jacob McClure, 2026-08-27) and their messages state plainly that pytest and vitest
+could not run on that host. Pulled and gated here. `23178e0` — step 3 unconfirmable — WAS
+Terrence's blocker; `3224629` raised `gather_fragments` from 300s to 600s and made the server
+and the browser agent share one timeout. The reflex worth keeping: **a commit that says it
+could not run the suite is a commit to re-gate, not to trust.**
+
+**(1) "Confirm Step 3" → "Nothing to confirm yet (missing matches)".** `confirm_step` wanted
+`step3.provenance` or `step3.matches`; the per-step picker writes neither — step 3 has never
+written `provenance`, and `matches` came only from the whole-case suggest that left the UI on
+2026-08-20. Step 4 sat unreachable behind `_require_confirmed`. Every `pt-` session already in
+`ck.db` predates the change and still carries `matches`, which is exactly why the suite stayed
+green and the bug reached a user. Fix pulled; the regression pin it shipped without is now in
+`tests/test_pt_step3_confirm_gate.py` (6 shapes, including "never ran still 409s" and "step 5
+does not gain the hatch").
+
+**(2) "Refresh (no send)" → 400 "Invalid group name", for a group he had already edited.**
+Three defects compounding, which is why it read as incoherent: the provenance `bodyFn` was a
+hard-coded `() => ({})` at every PyTest panel (so the typed fields were never sent, against
+`provenance.js`'s own documented contract); nothing persisted `step6.naming` before a
+*successful* generate, so the field re-seeded from the default on every re-render and a failed
+generation threw it away; and `_group_display` handed the UI a default its own validator
+rejects — `Authentication & Security`. Any one of the three fixed alone would have hidden the
+other two. All three fixed: `bodyFn` plumbed through, new `POST /save_naming/{key}` + blur
+autosave, naming persisted before the LLM call (skipped on `dry_run`, or looking at a prompt
+would write to the permanent `ck.db`), and `_group_display` sanitising only names that could
+never have validated. **Scope check before fixing: 5 distinct groups in `ck.db`, exactly one
+invalid — and it is the group of 42 cases.**
+
+**(3) The Script Search provenance panel was reporting on a retired code path.** Its mount was
+the last frontend reference to the whole-case `/suggest_scripts`, so Refresh rendered a
+mega-prompt this flow never sends. And step 3 stored no provenance at all — the only LLM step
+that didn't — so the panel was permanently blank for any per-step session. Repointed to
+`/suggest_scripts_step/{key}/{n}`, resolved at click time so it follows the step pager; and
+`suggest_scripts_step` now records `{llm, prompt, response, step_n}`. **One slot, not one per
+step:** the payload is a permanent `ck.db` row and a 32-step case would carry 32 prompts.
+Verified live on T33351 with zero tokens — step 1 renders 16,145 chars, step 10 renders 18,302,
+and the session was not written.
+
+**The gate went red from Terrence's own output, and the test was wrong, not the script.**
+`tests/test_pt_preflight.py` globbed every `*.py` under `generated/`, so the `library_*.py`
+companion — a helper module that legitimately binds no devices — failed "no devices detected",
+and, having no demands, also counted as trivially *runnable*. The same glob was sweeping
+`.meta/**/history/iter-N/` snapshots, which would have reddened the gate permanently the next
+time a case was generated twice. Now excludes `.meta/` and selects on `class X(ATTestSet |
+ATTestCase)` — the skeleton's shape, not the filename, because the library's name comes from
+the MODEL. Keeps `.REVIEW.py` in scope, which a sidecar-meta rule would have dropped, and
+asserts loudly if the filter ever matches nothing.
+
+**Harness fact that cost a live blip and is now recorded:** `ask-ck.service` runs uvicorn
+`--reload` against this working tree, so **any save to a `.py` under `ask-ck/CK-main/` is a
+live change to the LAN server within a second.** A mutation check left the shared server 15 s
+without a fix (10:44:48 → 10:45:03, measured in the journal). Repo-root `tests/` is outside the
+watch and is safe to edit. Never edit while a user's LLM call is in flight — the reload kills
+it; the rest of this session's `.py` work was held until T33351's generate landed. In
+[[askck-lan-hosting]], re-stamped `verified: 2026-08-31`.
+
+**Gate:** 1100 passed / 1 skipped (from 1071), 105 Vitest across 9 files (from 92), both guards
+OK, `ck.db` untouched by tests. 4 new test files, 538 lines. Every fix reverted once and the
+matching tests confirmed failing — no test here pins nothing.
+
+**Pick up:** T33351 is confirmed through step 5 with step 6 not yet run — hardware Run
+(Part 3b, `TESTBOX-ACCESS.md` in full) is the next move on it. The pilot trio (T33234/T33235,
+`clear_session` first) and IE520 are exactly where the 08-26b handoff left them. Deliberately
+left: the per-step Suggest button removal (Terrence's sequencing, UI-only), and the whole-case
+`suggest_scripts` endpoint, now unreferenced by the frontend but still valid headless — not
+deleted on my own judgement.

@@ -426,6 +426,7 @@ transport-contract tests pin the boundary and pass unchanged; dry-runs never reg
 Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
 
 - **Refresh** re-invokes the panel's own endpoint with `dry_run: true`. The backend renders the prompt through the *real* context path and returns it **without sending** to the LLM — no tokens, not recorded to the debug-log. Because it reuses the real call path with one flag flipped, the previewed/copied prompt is **1-for-1** (byte-identical) with what a real send transmits — verified in-repo.
+- **The preview uses the panel's LIVE inputs, and targets the endpoint the panel actually drives (2026-08-31).** `registerProvenance` takes a `bodyFn` evaluated at click time — that is what makes the preview 1-for-1 with a real send — but every PyTest Creator panel passed a hard-coded empty body, so Refresh rendered against the endpoint's server-side *defaults* rather than what the page showed. On **Generate** that surfaced as a 400: the default group for a case in `Authentication & Security` failed `_validate_naming`, so Refresh answered "Invalid group name" for a group the reviewer had already edited away, while the Generate button (which does post its inputs) worked. On **Script Search** the mount still pointed at the retired whole-case `/suggest_scripts` — its last reference anywhere in the frontend — so Refresh rendered a mega-prompt this flow never sends. Both fixed: Generate passes its live naming, Script Search resolves `/suggest_scripts_step/{key}/{n}` at click time so the preview follows the step pager.
 - Mechanism: `dry_run` flag on `llm._call_llm_with_meta` (short-circuits before the send) + `run_prompt`; every Generator function (`synthesize_objectives/steps`, `suggest_relevant_*`, `analyze_atp_coverage`) and every PyTest endpoint accepts it and returns `{provenance: {prompt, provider, model, auth_method}}`. `SynthesisRequest` gained a `dry_run` field. The normal (non-dry) PyTest paths now also store the sent `prompt` + `response` in their step provenance.
 
 ## Accessing the Tool
@@ -659,6 +660,23 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    (per-step verdicts outrank whole-case ones), so fragment choice is no longer blind
    to why the scripts were selected; fragment `why` was already flowing into Generate
    as "Reviewer note".
+   **Confirmable through the flow that drives it (2026-08-31).** `confirm_step` required
+   `step3.provenance` or `step3.matches`, and after the per-step move neither is written:
+   step 3 has never written `provenance` (only steps 2, 5, 6 and 8 do) and `matches` came
+   only from the whole-case suggest that left the UI on 2026-08-20. A visibly complete step
+   3 was therefore rejected however finished it was, and step 4 was unreachable behind
+   `_require_confirmed`. It now also accepts the per-step flow's own evidence that the step
+   ran — `step_matches` (written even when a step matched nothing, so an empty list stays a
+   legitimate answer) or `selections` (keyword picks made without ever invoking Suggest).
+   Scoped to `matches`: step 5 writes real provenance, so `fragments` keeps the original
+   predicate. Pre-2026-08-26 sessions still pass on `matches` unchanged.
+   **Step 3 records what it sent (2026-08-31).** It was the one LLM step storing no
+   provenance at all, so its panel — which seeds from `step3.provenance` — was permanently
+   blank for any session driven through the per-step picker. `suggest_scripts_step` now
+   writes `{llm, prompt, response, step_n}`. **One slot, not one per sequence step:** the
+   session payload is a row in the permanent `ck.db` and a 32-step case would otherwise
+   carry 32 full prompts; `step_n` records which step it belongs to, and any other step's
+   prompt is a Refresh away at zero cost. A dry run records nothing.
 4. **Fragments** — per-step, no cap: LLM proposes symbols per step and the server
    resolves them to real code by indexed line ranges (invented symbols are dropped;
    `maps_to` numbers that aren't real sequence steps are dropped too — 2026-07-23). Each
@@ -694,6 +712,26 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    `stepN` keys are unchanged, step5=fragments etc.; only the visible sidebar numbers shifted.)*
 5. **Generate** — the LLM **fills a standardized skeleton** rendered from the reviewed
    sequence (`templates/pt_script_template.py.jinja`), not a free-form compose
+   **Naming survives the page and the call (2026-08-31).** `step6.naming` had exactly two
+   writers — the SUCCESS tail of `generate_script`, and `save_script`, which 409s until a
+   generated file exists. So before a first successful generation nothing would store the
+   Group / script-name fields at all: an edit lived only in the DOM, and
+   `renderPtGenPanel`'s `naming.group || group_display` re-seed silently restored the
+   default whenever the panel was navigated away from and back. Two changes: a new
+   **`POST /api/pytest-create/save_naming/{key}`** persists the two fields alone with no
+   file required (autosaved on blur; it refuses once a script exists, because the rename
+   then has to move the file on disk and re-lint it — `save_script`'s job, and half-doing
+   it would strand the old file), and `generate_script` now persists the naming **before**
+   the LLM call so a timeout or a failed reassembly no longer discards it. The pre-persist
+   is skipped on `dry_run`, so Refresh stays a pure preview.
+   **`_group_display` sanitises to the charset the validator accepts (2026-08-31).** It is
+   both the value the browser seeds the Group field with and `generate_script`'s own default
+   when the body carries no group — and it previously stripped only the `(42)` count, so a
+   group whose label contains a character outside `_GROUP_RX` produced a default the
+   server's own validator then rejected with 400. `Authentication & Security (42)` →
+   `Authentication_Security`; that was the default for all 42 cases in the group, not one.
+   A group that already validates is returned byte-for-byte unchanged, so existing
+   `generated/` directories are untouched.
    (2026-07-21). Fixed frame: header, `TestSet(ATTestSet.TestSet)` with **data-driven
    `init`** (switches/stacks/portlink detected from the sequence + fragments),
    `configure()`/`tear_down()` (suite setup/cleanup — **no** pass/fail), one
@@ -709,7 +747,18 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    itself still reads **no** bench file — it targets the contract, because a bench-reading
    generator would silently weaken a test to fit the hardware present. Spec:
    `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`; checker `tool/pt_profiles.py`; script-level
-   check `tool/pt_preflight.py`.
+   check `tool/pt_preflight.py`. **`tests/test_pt_preflight.py` asserts over the real
+   `generated/` tree, so what counts as a generated TEST SCRIPT matters (2026-08-31):** it
+   globbed every `*.py` under `generated/`, which swept in both the `library` companion the
+   generator writes beside a script (a helper module binds no devices, so it read as "no
+   devices detected") and the `.meta/**/history/iter-N/` snapshots of superseded iterations
+   (a draft regenerated *because* it was wrong would redden the gate forever). It now
+   excludes `.meta/` and selects on the skeleton's own shape — a `class X(ATTestSet |
+   ATTestCase)` — rather than on the filename, because the library's name comes from the
+   MODEL (`_persist_generated_files` validates it for safety, not for a prefix). That rule
+   also keeps the hand-made `.REVIEW.py` in scope, which a sidecar-meta rule would drop. An
+   assertion fails loudly if the filter ever matches nothing, since a silently empty set
+   would turn every assertion in the file into a vacuous pass.
    **Minimality:** the bound device set is now a *consequence* of the topology — one link ⇒
    exactly one partner, and the partner **is** that link's far end, so there is no second
    `init_swi()` to over-declare with. Names inferred from the selected fragments' vocabulary

@@ -717,8 +717,33 @@ def _parsed_field(parsed: Any, key: str, default=""):
 
 
 def _group_display(group_dir: str) -> str:
-    """'Port (7)' -> 'Port' (refined-cases group dirs carry candidate counts)."""
-    return re.sub(r"\s*\(\d+\)\s*$", "", group_dir).strip() or group_dir
+    """'Port (7)' -> 'Port' (refined-cases group dirs carry candidate counts), sanitised
+    to the charset `_validate_naming` will actually accept.
+
+    This is BOTH the value the browser seeds the step-6 Group field with (load_case's
+    `group_display`) and generate_script's server-side default when the body carries no
+    group. Stripping only the count left the rest of the label verbatim, so a group whose
+    name contains a character outside _GROUP_RX produced a default that the server's own
+    validator then rejected with 400 "Invalid group name" — the API handing the UI a value
+    it refuses to take back. Observed 2026-08-31 on AWPTCM-T33351, group
+    'Authentication & Security (42)': the '&' is not in _GROUP_RX, so every dry-run
+    provenance render 400'd before a single line of prompt was built, and the field reset
+    to the invalid default on every re-render. It is the group of 42 cases, not one.
+
+    A group that ALREADY validates is returned byte-for-byte unchanged, so existing groups
+    (Management, Port) and the generated/ directories named after them are untouched — only
+    a name that could not have worked at all is rewritten. Each run of disallowed characters
+    collapses WITH the spaces hugging it into a single '_', which is what a human doing this
+    by hand produced: 'Authentication & Security' -> 'Authentication_Security'.
+    """
+    g = re.sub(r"\s*\(\d+\)\s*$", "", group_dir).strip() or group_dir
+    if _GROUP_RX.match(g):
+        return g
+    g = re.sub(r" *[^A-Za-z0-9 _()\-]+ *", "_", g)
+    g = re.sub(r"_{2,}", "_", g).strip(" _")[:60]
+    # Only reachable if the label held nothing usable at all (e.g. '***'); a valid
+    # placeholder beats re-emitting the value we just proved the validator rejects.
+    return g or "Ungrouped"
 
 
 def _propose_name(title: str) -> str:
@@ -2932,6 +2957,23 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
     # Force covers_steps to this step — every result is linked to it by construction.
     matches = [{**mech_by_id.get(m["id"], {"id": m["id"]}), **m, "covers_steps": [step_n]}
                for m in llm_matches]
+    # Record what was actually sent. step3 was the ONE LLM step storing no provenance:
+    # steps 2, 5 and 6 all write {llm, prompt, response}, and the step-3 panel seeded from
+    # `step3.provenance` — a key only the retired whole-case suggest ever wrote. So for any
+    # session driven through the per-step picker the panel was permanently blank, and there
+    # was no way to see what a suggest had sent after the fact (2026-08-31).
+    #
+    # ONE slot, not one per sequence step: this payload is a row in the permanent ck.db,
+    # and a 32-step case would otherwise carry 32 prompts. `step_n` records which step this
+    # was; any OTHER step's prompt is a Refresh away and costs nothing to render.
+    # Set before _persist_step_matches, which spreads the current step3 and persists.
+    if candidates:
+        sess.step3 = {**(sess.step3 or {}),
+                      "provenance": {"llm": {k: meta.get(k) for k in
+                                             ("provider", "model", "auth_method")},
+                                     "prompt": meta.get("prompt", ""),
+                                     "response": meta.get("content", "")[:20000],
+                                     "step_n": step_n}}
     _persist_step_matches(sess, step_n, matches)
     return {"matches": matches, "mechanical_considered": len(mech), "step_n": step_n}
 
@@ -3307,6 +3349,21 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     group, name = _validate_naming(group, name)
     file_name = f"{name}.py"
 
+    # Persist the naming BEFORE the LLM call, not only on the success path below.
+    # step6.naming had exactly two writers -- the successful tail of this function and
+    # save_script (which 409s until a file exists) -- so a generation that timed out or
+    # failed reassembly threw the reviewer's typed Group/name away with it, and the field
+    # re-seeded from the default on the next render. The naming is the reviewer's input,
+    # not an output of the call; it should survive the call failing. Written directly so a
+    # later `sess.step6 = {...}` in this function still replaces the whole dict cleanly.
+    # ...but never from a dry run: Refresh (no send) is a pure preview and must not write
+    # to the session just because someone looked at the prompt.
+    _pre = dict(sess.step6 or {})
+    if not dry_run and (_pre.get("naming") or {}) != {"group": group, "name": name}:
+        _pre["naming"] = {"group": group, "name": name}
+        sess.step6 = _pre
+        _pt_persist(sess)
+
     fragments = _selected_fragments(sess)   # only the reviewer-selected subset
     extra_mods = []
     extra_import_lines: List[str] = []
@@ -3487,6 +3544,36 @@ async def save_script(key: str, body: dict = Body(...)):
     written = _persist_generated_files(sess)
     _pt_persist(sess)
     return {"written": written, "lint": lint, "naming": step6["naming"]}
+
+
+@router.post("/save_naming/{key}")
+async def save_naming(key: str, body: dict = Body(...)):
+    """Persist step-6 Group/script-name on their own, with no generated file required.
+
+    save_script -- the only other naming writer reachable from the UI -- opens with
+    `if not step6.files.test: 409 "Generate a script first."`, and generate_script writes
+    naming only once the model has answered. So until a generation SUCCEEDED there was no
+    endpoint at all that would store these two fields: what the reviewer typed lived purely
+    in the DOM, and renderPtGenPanel re-seeded from `naming.group || group_display` on
+    every re-render, silently replacing an edited value with the default the moment the
+    panel was navigated away from and back. Reported 2026-08-31 on AWPTCM-T33351.
+
+    Naming-only by design. Once a script exists the rename has to move the file on disk and
+    invalidate the confirmation with it, which is save_script's whole job -- so this refuses
+    that case rather than half-doing it and leaving a stale file behind under the old name.
+    """
+    sess = _pt_get(key)
+    step6 = dict(sess.step6 or {})
+    if (step6.get("files") or {}).get("test"):
+        raise HTTPException(409, "A script already exists for this case — use Save to "
+                                 "generated/, which also moves the file and re-lints it.")
+    naming = step6.get("naming") or {}
+    group, name = _validate_naming(body.get("group", naming.get("group", "")),
+                                   body.get("name", naming.get("name", "")))
+    step6["naming"] = {"group": group, "name": name}
+    sess.step6 = step6
+    _pt_persist(sess)
+    return {"naming": step6["naming"]}
 
 
 @router.post("/lint_script/{key}")

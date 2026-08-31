@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T01:30:11.264Z
-  verified: 2026-08-26
+  verified: 2026-08-31
 ---
 
 **2026-08-26: the frontend now CONFORMS.** A Playwright sweep found four places where internal

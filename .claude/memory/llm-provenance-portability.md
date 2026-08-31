@@ -4,6 +4,7 @@ description: Provenance is a permanent portability feature (paste prompt into co
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-08-31
   originSessionId: 1f9e36f4-a5b5-4411-a4d1-2f252538a06b
   modified: 2026-07-19T22:18:29.360Z
 ---
@@ -21,3 +22,29 @@ metadata:
 Only objectives/steps/gaps had full prompt+response provenance before this. See [[user-prefers-manual-ui-testing]].
 
 **IMPLEMENTED 2026-07-20 (uncommitted).** Terrence's final design (better than snapshot-storing): a **`dry_run` flag** — the Refresh button re-invokes the SAME endpoint with `dry_run:true`, which renders the prompt via the real context path and returns it WITHOUT sending (no tokens, not recorded to debug-log). 1-for-1 is guaranteed by construction (same code path, flag flipped) — **verified byte-identical** (dry_run prompt == direct render) and **verified no-send** (HTTP test: debug-log line count unchanged). Wiring: `dry_run` param on `_call_llm_with_meta` (llm.py, short-circuits before send) + `run_prompt` + 7 Generator fns (suggest_* return `{dry_run,prompt}` dict when flagged) + `SynthesisRequest.dry_run` field; all 6 PyTest endpoints (`_dry_run(request)`/body + `_provenance_preview`) + wizard suggest/synthesize endpoints (`_preview_from`). Frontend: shared `static/js/provenance.js` (registerProvenance/renderProvenanceBlock/seedProvenanceFromStep + provRefresh/provCopyPrompt/provCopyResponse actions), CSS in styles.css, mounted into all 9 panels (objectives/steps in generator.js; 3 suggest in db-search.js; 6 PyTest in pytest.js via mountPtProvenance). main.js imports provenance.js; cache-bust v=5→v=6. The normal (non-dry) PyTest paths now also store `prompt`+`response` in step provenance (previously provider/model only).
+
+
+**CORRECTION 2026-08-31 — the 1-for-1 guarantee is narrower than this memory claimed, and one
+half of the last paragraph was simply untrue.**
+
+"1-for-1 is guaranteed by construction (same code path, flag flipped)" holds only for the
+*endpoint*. It says nothing about the **inputs the browser hands it**, and that is where it
+broke: `mountPtProvenance` passed a hard-coded empty body for every PyTest Creator panel, so
+Refresh rendered against each endpoint's server-side DEFAULTS while the page showed something
+else. Same code path, same flag — different inputs, different prompt. On the Generate panel it
+surfaced as a 400 for a group the reviewer had already edited away; on Script Search the mount
+still named the retired whole-case `/suggest_scripts`, so Refresh previewed a prompt that flow
+never sends. **The real guarantee is: same endpoint + same body ⇒ same prompt.** `bodyFn` exists
+to supply that body at click time — `provenance.js` says so in its header — and a panel that
+ignores it silently voids the oracle.
+
+"The normal (non-dry) PyTest paths now also store `prompt`+`response` in step provenance" was
+never true of **step 3**. `suggest_scripts` (whole-case) stored it; the per-step
+`suggest_scripts_step` that replaced it in the UI on 2026-08-20 stored none, so the panel — which
+seeds from `step3.provenance` — was permanently blank for every session driven through the
+current flow. Fixed 2026-08-31: it now stores `{llm, prompt, response, step_n}`, ONE slot rather
+than one per sequence step, because the session payload is a row in the permanent `ck.db`.
+
+**How to apply:** when checking that a preview matches a real send, compare the BODY the panel
+posts, not just the endpoint and the flag. See [[pytest-creator-askck]] and
+[[old-sessions-are-not-coverage]].

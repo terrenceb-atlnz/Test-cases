@@ -16,10 +16,24 @@ registerReloader('pt', ptLoadCase);
 // Mount the shared LLM Provenance block into a per-panel container, wired to the
 // panel's endpoint (dry_run for Refresh). `stepProv` seeds the last real call's
 // prompt/response from the session when present.
-function mountPtProvenance(mountId, panelId, endpoint, stepProv) {
+// `bodyFn` (optional) supplies the panel's LIVE inputs for the dry-run, exactly as
+// provenance.js documents: "returns the request body (minus dry_run) at click time so it
+// always reflects current naming/inputs". Every panel here used to pass nothing, so the
+// hard-coded `() => ({})` sent an EMPTY body and the endpoint fell back to its server-side
+// defaults -- Refresh rendered a prompt for state the reviewer could see was not what the
+// page showed. On the Generate panel that was worse than misleading: the fallback group for
+// AWPTCM-T33351 was 'Authentication & Security', which _validate_naming rejects, so Refresh
+// 400'd with "Invalid group name" naming a group the reviewer had already edited away
+// (2026-08-31). A real Generate never hit it -- ptGenerateScript posts the inputs.
+function mountPtProvenance(mountId, panelId, endpoint, stepProv, bodyFn) {
   const mount = document.getElementById(mountId);
   if (!mount || !S.ptCase) return;
-  registerProvenance(panelId, () => endpoint.replace('{key}', encodeURIComponent(S.ptCase.key)), () => ({}));
+  // `endpoint` may be a function when the target depends on live state — step 3's
+  // suggest is per SEQUENCE STEP, so the URL is only knowable at click time.
+  const endpointFn = typeof endpoint === 'function'
+    ? endpoint
+    : () => endpoint.replace('{key}', encodeURIComponent(S.ptCase.key));
+  registerProvenance(panelId, endpointFn, bodyFn || (() => ({})));
   if (stepProv) seedProvenanceFromStep(panelId, stepProv);
   mount.innerHTML = renderProvenanceBlock(panelId);
 }
@@ -419,6 +433,14 @@ function _ptSeedFromSession() {
   }
 }
 
+// The per-step suggest URL for the step currently on screen — same call ptSuggestStep
+// makes, so the previewed prompt is 1-for-1 with a real send (provenance.js's contract).
+function ptStepSuggestEndpoint() {
+  const seq = _ptSeq();
+  const n = (seq[_ptCurStep] || seq[0] || {}).n || 1;
+  return `${PT_API}/suggest_scripts_step/${encodeURIComponent(S.ptCase.key)}/${n}`;
+}
+
 export function renderPtSearchPanel() {
   const el = document.getElementById('pt-steps-list');
   if (!ptSession) { if (el) el.innerHTML = '<em class="review-empty">Load a case first.</em>'; return; }
@@ -427,7 +449,13 @@ export function renderPtSearchPanel() {
   _ptCurStep = 0;                    // entering the panel starts at the first step
   ptRenderSteps();
   _ptBindStepSearch();
-  mountPtProvenance('pt-match-prov', 'panel-pt-search', '/api/pytest-create/suggest_scripts/{key}', st3.provenance);
+  // Points at the endpoint the panel ACTUALLY drives. It was wired to the whole-case
+  // /suggest_scripts, which left the UI on 2026-08-20 when the per-step picker replaced
+  // it (this was its last reference in the frontend) — so Refresh rendered the retired
+  // mega-prompt: a prompt this flow never sends, presented as "what would be sent".
+  // Resolved at click time, so it follows whichever step the pager is on.
+  mountPtProvenance('pt-match-prov', 'panel-pt-search', ptStepSuggestEndpoint,
+                    st3.provenance, () => ({ user_inputs: '' }));
   updatePtBadges();
 }
 
@@ -932,6 +960,37 @@ function ptUpdateGenPath() {
   document.getElementById('pt-gen-path').textContent = `→ generated/${g}/${n}.py`;
 }
 
+// The step-6 naming as the page currently shows it — one reader for the dry-run body,
+// the autosave and (by shape) what ptGenerateScript posts.
+function ptGenNaming() {
+  return {
+    group: (document.getElementById('pt-gen-group').value || '').trim(),
+    name: (document.getElementById('pt-gen-name').value || '').trim(),
+  };
+}
+
+// Best-effort persistence of the naming fields alone. Silent by design: this fires on
+// blur, so a 409 (a script already exists — Save to generated/ owns the rename then) or a
+// 400 (half-typed name) must not throw a dialog at someone who is simply tabbing between
+// fields. The Generate and Save buttons still surface those errors properly.
+async function ptSaveGenNaming() {
+  if (!S.ptCase || !ptSession) return;
+  const { group, name } = ptGenNaming();
+  if (!group || !name) return;
+  const cur = (ptSession.step6 || {}).naming || {};
+  if (cur.group === group && cur.name === name) return;
+  try {
+    const res = await fetch(`${PT_API}/save_naming/${encodeURIComponent(S.ptCase.key)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group, name }),
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+    ptSession.step6 = { ...(ptSession.step6 || {}), naming: d.naming };
+  } catch (e) { /* offline / navigating away — the field is still on screen */ }
+}
+
 export function renderPtGenPanel() {
   if (!ptSession) { ptStatusEl('pt-gen-status').textContent = 'Load a case first.'; return; }
   const s6 = ptSession.step6 || {};
@@ -942,6 +1001,11 @@ export function renderPtGenPanel() {
   nameEl.value = naming.name || '';
   groupEl.oninput = ptUpdateGenPath;
   nameEl.oninput = ptUpdateGenPath;
+  // Autosave on blur. Until a generation SUCCEEDS the server has no other writer for these
+  // two fields (save_script 409s without a file), so an edit lived only in the DOM and the
+  // re-seed above quietly restored the default when the panel was left and re-entered.
+  groupEl.onblur = ptSaveGenNaming;
+  nameEl.onblur = ptSaveGenNaming;
   ptUpdateGenPath();
   const files = s6.files || {};
   document.getElementById('pt-gen-code').value = (files.test || {}).code || '';
@@ -955,7 +1019,8 @@ export function renderPtGenPanel() {
   if (s6.iterations) ptStatusEl('pt-gen-status').textContent = `Iteration ${s6.iterations}.`;
   // Generate + Fix both write step6; the provenance block covers generate_script.
   // Fix reuses the same block via its own endpoint on Refresh from the Gen panel.
-  mountPtProvenance('pt-gen-prov', 'panel-pt-gen', '/api/pytest-create/generate_script/{key}', s6.provenance);
+  mountPtProvenance('pt-gen-prov', 'panel-pt-gen', '/api/pytest-create/generate_script/{key}',
+                    s6.provenance, ptGenNaming);
   updatePtBadges();
 }
 

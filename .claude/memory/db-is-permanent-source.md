@@ -2,6 +2,7 @@
 name: db-is-permanent-source
 description: "ck.db is the PERMANENT single source of truth, built ONCE — commit it via LFS, delete couriers, no rebuild"
 metadata: 
+  verified: 2026-08-31
   node_type: memory
   type: project
   originSessionId: af1ba771-27d5-4322-ab94-c73bbe631619

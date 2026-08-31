@@ -2,6 +2,7 @@
 name: checks-must-not-match-their-own-advice
 description: "Any check that greps prose will fire on its own guidance text — happened 4x in one session; match structure, not strings"
 metadata: 
+  verified: 2026-08-31
   node_type: memory
   type: feedback
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41

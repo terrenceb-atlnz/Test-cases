@@ -3,7 +3,7 @@ name: askck-lan-hosting
 description: "Ask CK is LAN-hosted at http://10.33.22.17:8000/ as systemd user unit ask-ck.service; the front door is the local `ck` command — NONE of it is in the repo, so this memory is the record"
 metadata:
   type: project
-  verified: 2026-08-26
+  verified: 2026-08-31
 ---
 
 **Since 2026-08-26 the Ask CK server of record runs LAN-exposed on Terrence's workstation
@@ -30,6 +30,19 @@ leave the LAN server dead. Tested 2026-08-26: pkill → NRestarts=1, healthy in 
 Restart=). **How to apply:** manage the hosted server ONLY with `ck` or `systemctl --user`;
 never `run.sh --stop`. The admin panel's Restart button is safe (in-process `--reload` cycle,
 MainPID never exits — verified).
+
+**The working tree IS production.** `ask-ck.service` runs uvicorn with `--reload` against
+`/media/terrenceb/mnt/testbox_home/claude/Test-cases`, so ANY save to a watched `.py` in this
+repo hot-reloads the LAN server within about a second — no restart, no warning, every seat on
+10.33.22.0/24 affected. Measured 2026-08-31: a mutation check that stripped a fix from
+`routers/pytest_create.py` reloaded live (08:44:48) and the restore reloaded it back
+(08:45:03), leaving the shared server 15 s without the fix. **How to apply:** do
+counterfactual/mutation edits on a COPY or under `git stash` only if you accept a live blip;
+otherwise verify against `tool/run_scratch_server.sh` (its own port + throwaway DB), and after
+ANY in-tree edit check `journalctl --user -u ask-ck.service | grep StatReload` to confirm the
+newest worker started AFTER your final file state. `git status --porcelain` on the edited file
+is the authoritative check that the tree — and therefore the live app — is back where you meant
+it. Related: [[ask-ck-admin-restart]], [[ckdb-wal-and-test-isolation]].
 
 Known caveats, all accepted explicitly by Terrence on 2026-08-26:
 - **No auth, no firewall** (ufw inactive, INPUT policy ACCEPT): the whole 10.33.22.0/24 can

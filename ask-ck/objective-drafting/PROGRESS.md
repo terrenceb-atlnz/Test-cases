@@ -2,7 +2,67 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-08-26 (by Claude)
+**Last Updated**: 2026-08-31 (by Claude)
+
+## Latest session (2026-08-31) — the PyTest Creator's step-3 gate opened, and its provenance stopped lying
+
+**Code + tests + docs; no test-case content.** Terrence drove a real case end to end and hit
+three walls in a row; each one was a different defect and all are fixed. The pilot trio did
+NOT advance, but a NEW case did: **`pt-AWPTCM-T33351`** (802.1X single-host,
+`Authentication & Security`) is now generated, linted clean and saved to
+`generated/Authentication_Security/802_1x-single-host.py` — the first case taken through the
+per-step flow end to end, and the first generation to emit a `library_*.py` companion.
+
+**Started 2 commits BEHIND `origin/main`.** Both were the other stream's (Jacob McClure,
+2026-08-27) and both were authored on a host with neither pytest nor node — the messages say
+so. Pulled and gated here: `23178e0` (step 3 unconfirmable) and `3224629` (fragments 300s →
+600s, one shared timeout across server and agent). Terrence's blocker was exactly `23178e0`.
+
+**(A) Step 3 was unconfirmable, so step 4 was unreachable.** `confirm_step` accepted step 3
+only on `provenance` or `matches`; the per-step picker writes neither. Fix pulled, then given
+the regression pin it shipped without (it had none — the gate count was unchanged).
+
+**(B) Provenance was previewing the wrong thing, twice.** `registerProvenance`'s `bodyFn`
+contract — "always reflects current naming/inputs" — was defeated by a hard-coded empty body
+at every PyTest panel, so Refresh rendered against server defaults. On Generate that meant a
+400 naming a group the reviewer had already edited away; on Script Search the mount still
+pointed at the whole-case `/suggest_scripts`, its last reference in the frontend, so Refresh
+rendered a prompt the flow never sends. Both repointed. Step 3 also stored no provenance at
+all — the one LLM step that didn't — so its panel was permanently blank; it now records
+`{llm, prompt, response, step_n}`, one slot (the payload is a permanent ck.db row).
+
+**(C) The naming fields had no writer before a successful generate.** `step6.naming` was
+written only by the success tail of `generate_script` and by `save_script` (which 409s
+without a file), so an edit lived in the DOM and the re-seed restored the default on the next
+render — and a FAILED generation discarded it. New `POST /save_naming/{key}` + blur autosave;
+`generate_script` persists before the LLM call, skipped on `dry_run`. Root trap fixed too:
+`_group_display` handed the UI a default its own validator rejects — `Authentication &
+Security` — blocking all **42** cases in that group, not one.
+
+**Gate at close: 1100 passed / 1 skipped, 105 Vitest (9 files), both guards OK, ck.db
+untouched by tests** (baseline 1071 + 29). Every fix mutation-checked — each reverted, the
+matching tests confirmed failing.
+
+**State the next session must know / pick up here:**
+- **The gate went red mid-session from Terrence's own output, and it was a TEST defect, not
+  his script.** `tests/test_pt_preflight.py` globbed every `*.py` under `generated/`: it swept
+  in the `library_*.py` companion (a helper binds no devices) and `.meta/**/history/iter-N/`
+  snapshots. Now filters on `class X(ATTestSet|ATTestCase)` — the skeleton's shape, not the
+  filename, because the library's name comes from the MODEL. **Any future test asserting over
+  `generated/` must make the same distinction.**
+- **The working tree IS production.** `ask-ck.service` runs `--reload` against this checkout,
+  so any save to a `.py` under `ask-ck/CK-main/` hot-reloads the LAN server within a second —
+  measured: a mutation check left the shared server 15 s without a fix. Repo-root `tests/` is
+  outside the watch. Recorded in [[askck-lan-hosting]]; **do not edit while a user's LLM call
+  is in flight** — a reload kills it.
+- **T33351 is at step 5 confirmed / step 6 not run.** Its `step6.provenance` holds the real
+  85,004-char prompt and 35,257-char response. Run (Part 3b) is the next move on it.
+- **The pilot trio is STILL unchanged**: T33234 + T33235 need PyTest Creator generation
+  (`clear_session` each first), then hardware Run. IE520 remains the standing priority.
+- Open by choice (unchanged): removing the per-step "Suggest for sequence step N" button
+  (Terrence's sequencing; UI-only, endpoint stays), the now-frontend-unreferenced whole-case
+  `suggest_scripts` endpoint (still valid headless — deliberately not deleted), plan §5 of
+  PLAN-llm-mode-selection, `.REVIEW.py` ratify-or-revert, requirements upper bounds.
 
 ## Latest session (2026-08-26b) — step-3 results made durable + context-bearing; live progress and a TRUE Stop on every LLM button
 

@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: b69a0140-ff36-4d22-bc3a-819e30838064
   modified: 2026-07-20T01:01:57.863Z
-  verified: 2026-08-26
+  verified: 2026-08-31
 ---
 
 **SUPERSEDED FOR THE HOSTED SERVER (2026-08-26): manage it with `ck`, never `run.sh --stop`.**

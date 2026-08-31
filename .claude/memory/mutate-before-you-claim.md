@@ -2,6 +2,7 @@
 name: mutate-before-you-claim
 description: "Run mutation checks BEFORE writing up a diagnosis — twice in one session a mutation disproved a \"bug fix\" claim I had already written"
 metadata: 
+  verified: 2026-08-31
   node_type: memory
   type: feedback
   originSessionId: 5eff94ba-b305-4e2c-8e60-efda5ba8e420

@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 5eff94ba-b305-4e2c-8e60-efda5ba8e420
   modified: 2026-07-28T04:16:43.800Z
-  verified: 2026-08-26
+  verified: 2026-08-31
 ---
 
 **Scratch-harness gotchas (learned the hard way 2026-08-26, ~40 min lost):**
