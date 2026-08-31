@@ -1,0 +1,81 @@
+{
+  "case_key": "AWPTCM-T33351",
+  "group": "Authentication_Security",
+  "name": "802_1x-single-host",
+  "saved_at": "2026-08-30T22:06:59.405243+00:00",
+  "iterations": 1,
+  "fragments": [
+    {
+      "source_id": "art/1348_security/test-1348.1001.py",
+      "symbol": "TestCase_10",
+      "maps_to": [
+        1
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.1001.py",
+      "symbol": "TestCase_11",
+      "maps_to": [
+        1,
+        2,
+        8,
+        9
+      ]
+    },
+    {
+      "source_id": "art/1341_limits/test-1341.6001.py",
+      "symbol": "TestCase_5090",
+      "maps_to": [
+        1,
+        6,
+        8
+      ]
+    },
+    {
+      "source_id": "art/1367_security_failover/library_1367.py",
+      "symbol": "checkAuthenticateClient",
+      "maps_to": [
+        2,
+        6,
+        7
+      ]
+    },
+    {
+      "source_id": "legacy/tools/auth_simulator/dot1x_simulator.py",
+      "symbol": "main",
+      "maps_to": [
+        3,
+        4,
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "source_id": "art/1367_security_failover/test-1367.1001.py",
+      "symbol": "TestCase_11",
+      "maps_to": [
+        4
+      ]
+    },
+    {
+      "source_id": "legacy/8003_x8100/test-9999.007.py",
+      "symbol": "TestCase_2",
+      "maps_to": [
+        5
+      ]
+    },
+    {
+      "source_id": "art/1348_security/test-1348.3001.py",
+      "symbol": "TestCase_9",
+      "maps_to": [
+        10
+      ]
+    }
+  ],
+  "llm": {
+    "provider": "claude",
+    "model": "opus",
+    "auth_method": "claude_code"
+  }
+}
