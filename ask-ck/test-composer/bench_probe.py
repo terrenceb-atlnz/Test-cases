@@ -56,6 +56,12 @@ def console_of(dev):
     raise RuntimeError(f"no console on {dev!r}")
 
 
+# The terminal summary shows only these. The rest are still CAPTURED -- main() says so
+# explicitly rather than letting a partial answer look like a complete one, which is the
+# failure shape recorded in [[silent-degradation-audit-2026-07-30]].
+SUMMARY = ("show system", "show ip interface brief", "show interface status")
+
+
 def probe(dev, name):
     """Run the read-only sequence against one bound device.
 
@@ -139,8 +145,16 @@ def main(argv=None):
 
     for name, out in capture.items():
         print(f"\n{'=' * 70}\n== {name}\n{'=' * 70}")
-        for c in ("show system", "show ip interface brief", "show interface status"):
+        for c in SUMMARY:
             print(f"\n--- {c} ---\n{out.get(c, '')}")
+        # Derived from what was actually captured, so it cannot drift out of step with
+        # COMMANDS the way a hardcoded count would.
+        rest = [c for c in out if c not in SUMMARY]
+        if rest:
+            where = (f"saved to {args.json}" if args.json
+                     else "DISCARDED -- pass --json FILE to keep them")
+            print(f"\n--- {len(rest)} more command(s) captured, not shown above: "
+                  f"{', '.join(rest)}\n    ({where})")
     return 0
 
 
