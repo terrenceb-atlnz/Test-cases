@@ -2,7 +2,97 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-01 (by Claude)
+**Last Updated**: 2026-09-02 (by Claude)
+
+## Latest session (2026-09-01b) — tb470's bench state got a single source of truth, and the tree stopped contradicting itself
+
+**Bench/infrastructure work; no test-case content, no server code.** Ran alongside the same
+parallel session (its files: `agent_jobs.py`, `agent_bridge.py`, `ck_agent.py`, `agent.js`,
+`PLAN-pytest-creator.md`, plus two untracked tests) — none of that is touched here.
+
+**(A) `bench-state.md` is now the source of truth for tb470, and `tb470.setup` is generated
+from it.** Lives at `~/claude/IE520-testing/bench-setup/` — the NFS lab home, **outside this
+repo**. Every fenced ```setup block in the document is concatenated in order to form
+`/home/st-art/st-art/configs/tb470.setup`; `bench_setup.py` renders, checks for drift, and
+writes in place with readback verification. The mechanism was proved before it wrote anything:
+the document was seeded by splitting the live file programmatically, so the first render hashed
+byte-identical to what was already on the box.
+
+Why it exists: the `.setup` was accumulating `.bak-*` files beside itself in a shared
+`configs/` directory with nothing recording which was current (four of them by 2026-09-01).
+History now lives in `bench-setup/backups/`, and the live file carries a
+`!! GENERATED FILE -- DO NOT HAND-EDIT` banner. `apply` refuses if the box has drifted from
+`tb470.setup.current`, so someone else's hand-edit is caught rather than silently discarded.
+
+**Versioning rule (Terrence's, and it is the point):** `bench-state.md` **always** names the
+current truth and is never renamed, so every pointer to it stays correct forever. The
+*superseded* version is what gets dated, into `backups/<UTC stamp>.bench-state.md`, paired
+under the same stamp with the `.setup` it produced. A prose-only edit still dates the record
+even though it does not move the render — otherwise history keeps the reflection and loses
+the source.
+
+**(B) A full sweep of `testbox_home` for competing bench-state claims.** 81,847 files,
+enumerated then grepped as explicit lists (a single recursive grep over this NFS mount has
+returned a false negative before). Eight conflicts found and closed:
+
+- `secrets.testboxes.json` had a setup profile pointing at a `.bak` deleted that morning —
+  live in the Run step's dropdown (`pytest_create.py` resolves the chosen setup through that
+  map). Repointed at the archived copy in `backups/`, which tb470 reads over NFS; verified
+  from the box. **This file is gitignored, so the fix is not in this commit.**
+- `tests/test_pt_preflight.py`'s `TB470_LIVE` was a stale bench copy *inside the gate*, named
+  "LIVE", docstring "Pins the live tb470 outcome". Renamed `TB470_2026_07_30` and annotated:
+  it is frozen on purpose, because changing it to match the bench would destroy the 0/3 → 2/3
+  contrast the two tests exist to pin. Add a new fixture instead.
+- `SETUP-FILE-REFERENCE.md` still said `configs/tb470.setup` "does not exist yet and is the
+  standing blocker on Part 3b" — it has existed since 2026-07-27 and Part 3b unblocked
+  2026-07-29.
+- `orient-ie520/SKILL.md` gave chassis-id `3039`; it is `3439`. Also scoped the 27/28 cabling
+  hazard correctly (two *standalone* units sharing a chassis-id, not a formed stack) and added
+  a reconcile-against-the-record step — hardware still wins, but a disagreement now means the
+  record is stale and should be fixed rather than worked around.
+- `TOPOLOGY-PROFILES.md` + `pt_profiles.py` claimed tb470 implements `base`+`fibre`+`tblink`;
+  `ck_profile` is deliberately empty. Banded/date-qualified.
+- `part3-grading-session.md` described the 681 B example-derived placeholder (x930/x530 on
+  /dev/u0-u2) as the bench. Banded.
+- Four `tb470-u*.setup` files from the 5700 campaign band as superseded (see C).
+- `PART2A-WALKTHROUGH.md`'s open-prerequisites list resolved.
+
+Left alone deliberately: the `judging/*.json` files still say the setup does not exist, but
+those are frozen LLM judge outputs and editing them would falsify the evaluation record.
+`PLAN-pytest-testing.md` keeps its stale lines because line 111 already declares them stale.
+
+**(C) The sweep paid for itself — an inference became corroborated.** `bench-state.md` had
+`swi_b port1.0.1 <-> swi_c port1.0.4` marked INFERRED, because LACP names the partner *system*,
+never the partner *port*, and proving it directly means shutting a LAG member. The 5700
+campaign's own setup files (2026-08-11, both IE520s then standalone and both numbering from
+`port1.0.x`) independently record `swi_a port1.0.1 -> 4050 port1.0.3` and `swi_b port1.0.1 ->
+4050 port1.0.4` *"Verified 2026-08-11"*. `swi_a` has since become member 2, so its `port1.0.1`
+is today's `port2.0.1` — an exact match, from a different campaign, with nothing shut. Two
+independent records agreeing is still not a direct measurement, and the file says so.
+
+**(D) Everything internal now points at the record.** `TESTBOX-ACCESS.md` leads with
+`bench-state.md` rather than the `.setup`; `pt_preflight.py`, `genpop.agent.md`, `RESUME.md`
+and `preflight-topology-check.md` dropped the `scp tb470:...` step in favour of
+`bench-setup/tb470.setup.current`, an always-current local copy — no SSH, and no risk of
+reading the box mid-apply.
+
+**(E) `tb470-topology-and-setup.md` gutted from 469 lines to 95.** It had become the fourth
+copy of the host-networking facts and was actively wrong (still calling the `[portlink]` stale,
+`swi_d sa1` unresolved, the stack IP running-config-only `.71`). It now points at the record
+and keeps only what the record deliberately does not carry: the open resiliency-link defect,
+stack-state churn, the phantom-port trap, the factory-default password dialog, and never invent
+a `[portlink]`.
+
+**Pending / owed:**
+- **`bench-state.md` is not under version control** — the lab home is not a git repo. Its
+  `backups/` give it history but no diffs, no blame, no push. Worth a decision.
+- `after-action-38378.md` still needs its correction: the i2c hypothesis is **disproved** (6/6
+  clean `show tech-support`; the causal module was removed 5 days before), and the campaign
+  reframes — both units reboot spontaneously ~1.5–2.5/day while idle, so the "trigger" may not
+  exist. 2,774 hammer iterations produced zero real wedges.
+- The gate is red on `tests/test_agent_job_pickup.py`, the parallel session's **untracked** test
+  against their uncommitted `agent_jobs.py`. Excluding it: 1128 passed, 1 skipped — the same
+  counts as before their edits landed.
 
 ## Latest session (2026-09-01) — the Testboxes panel made honest, and the bench learned to describe itself
 

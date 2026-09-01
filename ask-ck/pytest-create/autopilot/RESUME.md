@@ -58,7 +58,7 @@ pgrep -af 'claude -p'
 | PyTest Creator | `--phase pytest` | `ask-ck/pytest-create/generated/<Group>/<name>.py` |
 | Mechanical judge | `tool/pt_grade.py --out <dir>` | `<dir>/<KEY>/mechanical.json` |
 | LLM judge | `tool/pt_judge.py --judges opus,vllm-fast --out <dir>` | `<dir>/<KEY>/criterion4.json` |
-| Preflight | `tool/pt_preflight.py --setup <copy of tb470.setup>` | stdout verdicts |
+| Preflight | `tool/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current` | stdout verdicts |
 | Run | see below | `ask-ck/pytest-create/generated/.meta/<Group>/<name>/runs/<RUN_ID>/` |
 
 ## The tb470 run phase — the one thing that needs an environment change

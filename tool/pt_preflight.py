@@ -34,8 +34,10 @@ Usage:
   python3 tool/pt_preflight.py --setup tb470.setup --script ask-ck/pytest-create/generated/Port/x.py
   python3 tool/pt_preflight.py --setup tb470.setup --json
 
-The bench file lives on the testbox, outside this repo. Copy it down first, e.g.
-  scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/
+The bench file lives outside this repo. For tb470 use the always-current local copy on
+the NFS lab home -- no scp, and no risk of reading the box mid-apply:
+  ~/claude/IE520-testing/bench-setup/tb470.setup.current
+It is generated from bench-state.md, which is the source of truth for that bench.
 
 Exit status: 0 = every script is runnable on that bench, 1 = at least one is not,
 2 = bad invocation (unreadable setup/script, no scripts found).
@@ -50,6 +52,11 @@ import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
+
+# tb470's .setup is GENERATED from bench-state.md; this local copy on the NFS lab
+# home is always current, so there is no need to scp it off the box (and no risk of
+# catching the box mid-apply).
+LOCAL_TB470_SETUP = "~/claude/IE520-testing/bench-setup/tb470.setup.current"
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "pytest-create" / "generated"
@@ -554,7 +561,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     setup_path = Path(args.setup)
     if not setup_path.is_file():
         print(f"error: no such .setup file: {setup_path}", file=sys.stderr)
-        print("hint: scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/", file=sys.stderr)
+        print("hint: for tb470 use %s" % LOCAL_TB470_SETUP, file=sys.stderr)
         return 2
 
     if args.profile:

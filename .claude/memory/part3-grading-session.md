@@ -6,6 +6,7 @@ metadata:
   type: project
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-29T03:41:00.073Z
+  verified: 2026-09-02
 ---
 
 Part 3 of `ask-ck/pytest-create/PLAN-pytest-testing.md` (grading generated scripts on the
@@ -25,6 +26,11 @@ Part 3 of `ask-ck/pytest-create/PLAN-pytest-testing.md` (grading generated scrip
 
 **Why:** the plan's own text is stale on two points and the judge choice diverges from a
 settled decision — both must land in the doc or the next session re-derives them wrong.
+
+> ⚠️ **STALE BENCH DESCRIPTION BELOW (2026-07-29).** The 681 B file described here was the
+> reference doc's worked example (x930/x530 on /dev/u0-u2), not the real rig; it was rewritten
+> the next day and many times since. **Never take bench state from this memory** — read
+> `~/claude/IE520-testing/bench-setup/bench-state.md`. Kept for the Part 3b history only.
 
 **PART 3b UNBLOCKED 2026-07-29.** `configs/tb470.setup` now EXISTS on tb470 (681 B, created
 2026-07-27) — declares a real data-plane topology: swi_a=x930 (also stk_a), swi_c=AR4050S,

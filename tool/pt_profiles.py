@@ -24,7 +24,7 @@ which is the outcome we want. Nothing downgrades the test to fit the bench.
 WHY PROFILES AND NOT ONE MONOLITH. "One canonical topology" accretes without bound —
 copper partner, fibre partner, 10G, PoE, hub, traffic generator, heat chamber — until no
 real bench satisfies it. Profiles are claimable in pieces, so conformance is honest and
-partial: tb470 implements `base`+`fibre`+`tblink` and says plainly that it does not
+partial: as at 2026-07-30 tb470 implemented `base`+`fibre`+`tblink` and said plainly it did not
 implement `stack`.
 
 ROLES NAME LINKS, NOT JUST DEVICES. A role is a (device, link, media) triple, because the

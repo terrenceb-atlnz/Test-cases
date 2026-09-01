@@ -10,6 +10,40 @@ For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for
 current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
+## 2026-09-02 — tb470's `.setup` became a generated artifact, and the tree stopped holding rival copies of the bench
+
+**What changed.** `/home/st-art/st-art/configs/tb470.setup` is no longer authored. It is
+generated from `~/claude/IE520-testing/bench-setup/bench-state.md` (NFS lab home, outside this
+repo) by `bench_setup.py apply`. Anything in this repo that told a reader to open the `.setup`
+to learn what is cabled now points at that record instead, and the `scp tb470:...` step in
+`pt_preflight.py`, `genpop.agent.md`, `RESUME.md` and `preflight-topology-check.md` is replaced
+by the always-current local copy `bench-setup/tb470.setup.current`.
+
+**Why.** Bench facts were being recorded in whatever document happened to be open, and there
+was no way to tell which copy was current. The measurable damage: a `[portlink]` line that
+outlived its cable; `.bak-*` files accumulating beside the live file in a *shared* `configs/`
+directory with nothing marking which was current; `SETUP-FILE-REFERENCE.md` still calling the
+file non-existent five weeks after it existed; and a stale bench copy named `TB470_LIVE` living
+inside the test gate. A generated artifact cannot drift from its source — `bench_setup.py
+check` proves it — which is the property none of those copies had.
+
+**The distinction that matters, and that I initially got wrong:** a *derived* file is not a
+second source of truth. What made the old arrangement bad was independently maintained copies
+with nothing to invalidate them. Duplication between a record and something generated from it
+is not the same defect, and should not be "fixed" by deleting the record.
+
+**Versioning rule.** `bench-state.md` always names the current truth and is never renamed, so
+every pointer to it stays valid. The *superseded* version is dated into `backups/`, paired
+under one UTC stamp with the `.setup` it produced. This also holds for edits that change only
+the prose and not the rendered file — otherwise history keeps the reflection and loses the
+source.
+
+**One behaviour change in this repo's code:** `tests/test_pt_preflight.py`'s `TB470_LIVE`
+fixture is renamed `TB470_2026_07_30`. It was named "live" and its docstring said it pinned the
+live bench; it is a frozen 2026-07-30 snapshot, and it must stay frozen because the two tests
+that use it exist to pin a 0/3 → 2/3 contrast that only holds for that day's cabling. A
+current-bench case needs a new fixture, not an edit to this one.
+
 ## 2026-09-01 — The Testboxes panel stopped guessing: `user` is required, and a setup is a named list with no "default"
 
 Terrence: *"This page is not entirely intuitive… make sure it's only asking for fields that are

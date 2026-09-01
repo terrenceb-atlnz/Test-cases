@@ -37,7 +37,7 @@ check = pt_preflight.check
 # portlink (testbox -> DUT). This is NOT tb470 — it kept that shape only until the
 # 2026-07-30 de-stacking. It is retained deliberately, because the tool must still handle
 # stack semantics (member expansion, the stackport-is-not-a-data-path note) on any bench
-# that has a stack. For the live tb470 shape see TB470_LIVE below.
+# that has a stack. For a real (but FROZEN) tb470 shape see TB470_2026_07_30 below.
 BENCH_STACKED = """
 [power]
 pwr_c = (pdu, 10.36.150.14, 8)
@@ -66,7 +66,17 @@ tb-swi_a = eth3-port1.0.23
 # (`stack 2 renumber 1` on u5 + stackport/virtual-mac cleared, both rebooted). No [stack]
 # any more: swi_a and swi_b are two independent standalone switches joined by two verified
 # data links — copper port1.0.1 and fiber port1.0.7, both negotiated 1000/full.
-TB470_LIVE = """
+# tb470 as it stood on 2026-07-30 afternoon -- de-stacked IE520 pair, copper + fibre links
+# between them, no PDU entry for either IE520. FROZEN ON PURPOSE: this is the input that
+# makes the two tests below meaningful, not a description of the bench.
+#
+# !! THIS IS NOT THE CURRENT BENCH and must not be read as it. The two IE520s have been ONE
+#    STACK since 2026-08-18, both are on the PDU, the swi_a<->swi_b links are gone, and
+#    swi_a<->swi_c IS now cabled (as an LACP LAG). Current state:
+#    ~/claude/IE520-testing/bench-setup/bench-state.md
+#    Changing this fixture to match the bench would destroy the 0/3 -> 2/3 contrast it exists
+#    to pin. Add a NEW fixture instead if a current-bench case is ever wanted.
+TB470_2026_07_30 = """
 [power]
 pwr_c = (pdu, 10.36.150.14, 8)
 pwr_d = (pdu, 10.36.150.14, 6)
@@ -423,13 +433,14 @@ def _verdicts(bench_text: str) -> dict:
 
 @pytest.mark.skipif(not REAL_SCRIPTS, reason="no generated scripts in the tree")
 def test_real_scripts_on_the_live_bench():
-    """Pins the live tb470 outcome as at 2026-07-30 afternoon: declaring the two verified
-    swi_a<->swi_b data links took this bench from 0/3 to 2/3.
+    """Pins the tb470 outcome as at 2026-07-30 afternoon: declaring the two verified
+    swi_a<->swi_b data links took that bench from 0/3 to 2/3.
 
-    `3_Port_Fixed_port_test.py` remains un-runnable for a DIFFERENT and still-open reason —
-    it also wants swi_a<->swi_c (the AR4050S), which has no data cabling. If that gets
-    cabled and declared, this test should start failing: update TB470_LIVE."""
-    v = _verdicts(TB470_LIVE)
+    `3_Port_Fixed_port_test.py` is un-runnable against this fixture because it also wants
+    swi_a<->swi_c (the AR4050S), which had no data cabling that day. That has SINCE been
+    cabled, as an LACP LAG — so this no longer describes the live bench, and deliberately
+    does not try to. The fixture is frozen; see the note above it."""
+    v = _verdicts(TB470_2026_07_30)
     assert v.get("Port_Auto_MDI_MDI_test.py") is True, v
     assert v.get("Port_Auto_Negotiation_test.py") is True, v
     assert v.get("3_Port_Fixed_port_test.py") is False, v

@@ -170,7 +170,13 @@ ck_cap_swi_b   = polarity                   ; VERIFIED on the device — never f
 Start narrow. A profile that nothing implements is worse than no profile, because it makes
 conformance reports noisy without making any test runnable.
 
-## tb470 as at 2026-07-30
+## tb470 as at 2026-07-30 — SUPERSEDED, kept as a worked example of the report format
+
+> ⚠️ **This is not the current bench.** It described a de-stacked IE520 pair with copper and
+> fibre links between them. The two IE520s have been ONE STACK since 2026-08-18, those links
+> no longer exist, and `ck_profile` is now deliberately **empty** — the bench implements no
+> generation profile at all. For current state read `~/claude/IE520-testing/bench-setup/bench-state.md`.
+> The block below is retained only to show what a conformance report looks like.
 
 ```
 tb470.setup claims: base, fibre, tblink

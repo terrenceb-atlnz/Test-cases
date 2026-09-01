@@ -11,6 +11,32 @@ this machine (verified 2026-07-28) plus the mechanism the PyTest Creator uses
 
 ---
 
+> ## ⛔ This document is NOT the source of truth for bench connection information
+>
+> **For tb470 the source of truth is `~/claude/IE520-testing/bench-setup/bench-state.md`.**
+> What is cabled to what, which console fronts which device, stack membership and bench
+> addresses are recorded there, along with the evidence for each and an explicit note of what
+> is inferred rather than measured. That file always carries the current state under that
+> name; superseded versions are dated into its `backups/`.
+>
+> `/home/st-art/st-art/configs/tb470.setup` is **generated** from it (`bench_setup.py apply`)
+> and reflects the same state — `SETUP-FILE-REFERENCE.md` explains the format. **Do not
+> hand-edit it on the box**; the next apply discards the edit. And never write a `.bak`
+> beside it: history belongs in `bench-setup/backups/`.
+>
+> To read the bench without SSH, `bench-setup/tb470.setup.current` is an always-current local
+> copy on the NFS lab home — no need to `scp` it down.
+>
+> This document covers **how to reach and drive a bench, and the traps in doing so** — the
+> methods, not the wiring. Any bench fact recorded here would be a second copy with no
+> invalidation, and the two would silently diverge; that has already happened once with a
+> `[portlink]` line that outlived its cable.
+>
+> **Read the `.setup` for what is connected. Read this for how to talk to it — and verify the
+> `.setup` against the hardware before trusting it, because it is declarative, not measured.**
+
+---
+
 ## TL;DR — reconnect to tb105 now
 
 ```bash
@@ -245,21 +271,24 @@ give you cabling, and two traps make the naive reading wrong:
 
 **The MAC address table settles it, and is immune to both.** Give each end an address, generate
 a little traffic, then read `show arp` + `show mac address-table` on both: a foreign MAC appears
-only on the port that actually carries it, and a loopback port never shows one. Measured on
-tb470, 2026-09-01:
+only on the port that actually carries it, and a loopback port never shows one.
 
-| Discovered | Evidence |
-|---|---|
-| `stk_a port1.0.1` ↔ `swi_c port1.0.4` | stack sees the router's `0000.cd40.0394` on `port1.0.1`; router sees the stack VMAC `0000.cd37.0d6f` on `port1.0.4` |
-| `tb eth3` ↔ `swi_c port1.0.1` | router ARP holds `10.38.215.65 / 00f0.4d00.7718` on `port1.0.1`, which is tb470's own `eth3` |
+**What that method discovered on tb470 is recorded in `bench-state.md`, not here** — see its
+§8 and the `[portlink]` header comments it emits. Record a newly-measured link *there* and run
+`bench_setup.py apply`; note the evidence that pins it (which MAC appeared on which port), so
+the next reader can tell a measured link from an assumed one.
 
-That run also proved the declared `[portlink] swi_b-swi_d = port1.0.1-port1.0.1` **stale** — the
-x230's `port1.0.1` is `notconnect`; only `port1.0.2` and the aggregate `sa1` are up.
+**A `.setup` portlink can outlive its cable.** One there was still declaring a link whose far end
+had moved. That is the reason this document no longer keeps its own copy: two records of the same
+wiring drift apart silently, and the stale one is indistinguishable from the true one. Re-measure
+before you rely on a portlink.
 
 - **`addressing`** (`/usr/local/bin/addressing`, on every testbox) prints each interface's MAC,
   network, address and pool range — so the testbox end of a `tb-` link needs no ARP at all.
-- **A link aggregation hides its far end**: every MAC shows against the aggregate (`sa1`), not
-  a member port. Expand it with `show static-channel-group` before trusting a mapping.
+- **A link aggregation hides its far end**: every MAC shows against the aggregate, not a member
+  port. Expand it (`show static-channel-group`, or `show etherchannel detail` for LACP) before
+  trusting a mapping. LACP is the cheaper probe — its **partner system ID is the far end's base
+  MAC**, so it names the neighbour on every member link without shutting a single port.
 - **A console held by another operator** (`/var/lock/LCK..*`, `pgrep minicom`) must be reported
   as *unknown*, never as *absent* — tb470's `/dev/u0` was locked for part of this session and
   the x230 was simply unmapped until it was freed.

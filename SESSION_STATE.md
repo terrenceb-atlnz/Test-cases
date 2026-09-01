@@ -3664,3 +3664,44 @@ session's §8 *and* the parallel session's §9 and `2026-09-01b` log entry; comm
 would have captured their in-flight work. Whoever wraps second should commit it. Bench state:
 `stk_a vlan1 = 10.38.215.71/27` in running-config only (a reload reverts it), `/dev/u4` logged
 in, PDU untouched.
+
+---
+
+## Session Close / Handoff (2026-09-01b → 2026-09-02) — tb470 bench state centralised
+
+**Superseding the previous entry's bench line:** it recorded `stk_a vlan1 = 10.38.215.71/27`
+in running-config only. That is no longer true — the stack now holds **`10.38.215.66/27`
+static** on vlan1, with `ntp server 10.38.215.65` giving it stratum 3, and the clocks on both
+members are correct NZT (`clock timezone NZST +12`, `summer-time recurring`). Current bench
+state is not recorded here at all any more; see below.
+
+**The tb470 bench now has one source of truth:
+`~/claude/IE520-testing/bench-setup/bench-state.md`** (NFS lab home, **outside this repo**).
+`/home/st-art/st-art/configs/tb470.setup` is generated from it by `bench_setup.py apply`, which
+snapshots into `bench-setup/backups/`, writes in place and verifies by readback. Do not
+hand-edit the `.setup` on the box and do not write `.bak` files beside it. `bench-state.md`
+always keeps that name; superseded versions are dated into `backups/`.
+
+**Topology as applied** (evidence and the measured/inferred split are in the record, not here):
+`tb eth3 → swi_c port1.0.1`; `stk_a po1` (`swi_b port1.0.1` + `swi_a port2.0.1`) ↔ `swi_c po2`
+(`port1.0.3` + `port1.0.4`) as LACP; `swi_d port1.0.2 ↔ swi_c port1.0.2`. The AR4050S runs
+`lacp global-passive-mode enable`, so `po2` formed by itself and is **not** in its
+running-config — and two unaggregated links to it will loop, which is what cost ~30% of a
+`show tech-support` collection on 2026-09-01.
+
+**In this commit:** the sweep that removed eight competing bench-state claims across the tree,
+and the repointing of every internal reference at the record. Full account in `PROGRESS.md`
+(2026-09-01b) and `CHANGELOG.md` (2026-09-02).
+
+**Left deliberately undone:**
+- `secrets.testboxes.json`'s repointed profile is real but **gitignored**, so it is not here.
+- `PLAN-pytest-creator.md`, `agent_jobs.py`, `agent_bridge.py`, `ck_agent.py`, `agent.js`,
+  `ask-ck/var/ck.db` and two untracked tests are the **parallel session's** in-flight work and
+  were not staged. One of those untracked tests
+  (`tests/test_agent_job_pickup.py::test_a_claimed_job_is_not_judged_on_session_silence`) is
+  currently failing against their uncommitted code; the suite is 1128 passed / 1 skipped
+  without it.
+- `after-action-38378.md` still needs the i2c-negative and background-reset correction.
+- **`bench-state.md` is not version controlled.** The lab home is not a git repo. Needs a
+  decision.
+

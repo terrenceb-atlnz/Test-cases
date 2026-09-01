@@ -154,5 +154,8 @@ management, boot_from_flash
   the framework verbatim. Parsing it would let the lint check a generated script against the
   real topology (e.g. "this configures a port `[configured_stackport]` declares a stack link").
 - **`configs/<hostname>.setup`** is the default location the suite runners resolve via
-  `Setup.get_default_setup_file()`. `configs/tb470.setup` does not exist yet and is the
-  standing blocker on `PLAN-pytest-testing.md` Part 3b.
+  `Setup.get_default_setup_file()`. `configs/tb470.setup` **exists** (it did from 2026-07-27,
+  and Part 3b was unblocked on 2026-07-29 — an earlier version of this line said otherwise and
+  was stale). For tb470 it is **generated** from
+  `~/claude/IE520-testing/bench-setup/bench-state.md`, which is the source of truth for that
+  bench; read that for state, and this document for the format.

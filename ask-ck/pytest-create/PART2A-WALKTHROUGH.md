@@ -130,6 +130,12 @@ a pipeline restructure.
   `failed()` verdict strings. Should be scrubbed or the prompt reworded.
 
 ## Prerequisites still open for Part 3b
+
+> ✅ **RESOLVED since this was written (2026-07-21).** Both of the first two were closed within
+> days: `configs/tb470.setup` exists (from 2026-07-27) and a tb470 profile is configured. The
+> list below is the state on the day of this walkthrough, kept as part of its record. For the
+> bench's current state read `~/claude/IE520-testing/bench-setup/bench-state.md`.
+
 - `configs/tb470.setup` (topology; device on u5) — does not exist.
 - A PyTest Creator **profile** pointing at tb470 (host, sudo, setup map) — none
   configured (`/profiles` returns `{}`).

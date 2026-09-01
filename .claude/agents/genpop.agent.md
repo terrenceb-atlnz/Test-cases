@@ -105,8 +105,7 @@ needs 2 **and** 5, execution needs 6.
 **Before spending any hardware time**, run the offline check:
 
 ```bash
-scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/
-python3 tool/pt_preflight.py --setup /tmp/tb470.setup --script <generated>.py
+python3 tool/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current --script <generated>.py
 ```
 
 This exists because `Setup.init_portlink()` returns **`(None, None)` silently** when the bench

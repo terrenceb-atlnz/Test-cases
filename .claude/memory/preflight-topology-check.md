@@ -6,6 +6,7 @@ metadata:
   type: project
   originSessionId: 55f64c5f-6b57-4d85-9f09-b5090301f55a
   modified: 2026-07-30T00:09:29.447Z
+  verified: 2026-09-02
 ---
 
 `tool/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —
@@ -24,8 +25,10 @@ cable serves one `init_portlink` call), **either orientation** matches, empty `t
 match any interface, a **stack** stands in for any member. Two problem classes: `LINK` and
 `POWER` (power-cycling a device with no `[powerlink]`).
 
-Usage: `scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/` then
-`python3 tool/pt_preflight.py --setup /tmp/tb470.setup`. Exit 0/1/2.
+Usage: `python3 tool/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current`. Exit 0/1/2.
+No scp — that copy on the NFS lab home is always current, because tb470's `.setup` is
+GENERATED from `~/claude/IE520-testing/bench-setup/bench-state.md`, the source of truth
+for that bench.
 `--profile <name>|all` switches to bench-conformance mode — see
 [[topology-profiles-contract]].
 
