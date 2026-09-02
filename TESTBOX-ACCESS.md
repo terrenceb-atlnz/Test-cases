@@ -489,7 +489,7 @@ observation had another cause — **re-verify before relying on either statement
 `no stackport` still needs `write` + reboot to take effect, and `switchport resiliencylink`
 is rejected on a port while it is still a stackport (`% The command is not available for this
 interface`), so repurposing 27/28 is necessarily a two-pass operation.
-Evidence: `~/old test runs/IE520/stack-tests/after-action-17688.md`.
+Evidence: `~/old test runs/IE520/stack-tests/resiliency-link/after-action-17688.md`.
 
 **Still true: `stack virtual-chassis-id` has no `no` form at all** — `no stack ?` offers only
 `<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`.

@@ -47,7 +47,7 @@ Consequence: pulling the stacking cables yields **TWO ACTIVE MASTERS sharing one
 IP**, not a Disabled-Master; the neighbour switch then sees the same bridge ID on two ports and
 blackholes one. **Blocks TEST 17688 steps 3-7.** Software `IE520-tb470.rel`,
 `tomahawk_ie520-continuous`. Full evidence + verdict table:
-`~/old test runs/IE520/stack-tests/after-action-17688.md`.
+`~/old test runs/IE520/stack-tests/resiliency-link/after-action-17688.md`.
 
 ## Traps that have each cost bench time
 
