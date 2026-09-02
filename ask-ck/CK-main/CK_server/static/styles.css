@@ -710,6 +710,15 @@ body {
   background: var(--bg-secondary, transparent);
   border-bottom: 1px solid var(--border-default);
 }
+/* The refused reply. Bordered in the error colour so a reviewer paging through units can
+   tell at a glance that this frame holds a REJECTED block, not a usable one. */
+.pt-unit-frame-raw {
+  border-color: var(--color-danger, #c0392b);
+}
+.pt-unit-frame-raw .pt-unit-frame-label {
+  color: var(--color-danger, #c0392b);
+  border-bottom-color: var(--color-danger, #c0392b);
+}
 /* Same specificity note as the prompt below — .session-pre is declared later. */
 pre.pt-unit-out {
   margin: 0;

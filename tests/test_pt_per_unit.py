@@ -428,7 +428,9 @@ def test_server_side_concurrency_is_capped():
 def test_the_status_poll_does_not_ship_the_code_back_every_time():
     """30 units of ~2.5KB on a 2s poll is 150KB/minute of unchanged bytes. The UI fetches
     a unit's code when its page is opened."""
-    status = _slice('@router.get("/units_status/', '@router.post("/generate_step/')
+    # End at unit_code, NOT generate_step: /unit_code now sits between them and DOES
+    # return code, so the wider slice would swallow it and pass for the wrong reason.
+    status = _slice('@router.get("/units_status/', '@router.get("/unit_code/')
     assert '"chars"' in status
     # It READS the code to measure it; the property is that it never RETURNS it, so look
     # for the output-dict key rather than any mention of the word.
@@ -438,7 +440,9 @@ def test_the_status_poll_does_not_ship_the_code_back_every_time():
 def test_the_status_poll_reports_running_units_that_have_no_chunk_yet():
     # A dispatched unit has nothing in step6.chunks until it lands; without this the pill
     # would drop back to red the moment it was dispatched.
-    status = _slice('@router.get("/units_status/', '@router.post("/generate_step/')
+    # End at unit_code, NOT generate_step: /unit_code now sits between them and DOES
+    # return code, so the wider slice would swallow it and pass for the wrong reason.
+    status = _slice('@router.get("/units_status/', '@router.get("/unit_code/')
     assert "setdefault" in status and '"running"' in status
 
 
@@ -555,3 +559,43 @@ def test_the_shared_rules_carry_no_positional_pointer_to_the_cli_reference():
     rules = (_SERVER / "templates" / "prompts" / "pt_fill_rules.jinja").read_text(encoding="utf-8")
     for bad in ("CLI REFERENCE above", "injected above", "reference above"):
         assert bad not in rules, f"positional pointer {bad!r} is back in the shared rules"
+
+
+# --- a landed unit must be READABLE, and a refused one must be KEPT ------------------
+# All three defects below are the same one: the client's unit state was only correct at
+# page load and at run end. Found on the first real 30-unit fan-out, 2026-09-02.
+
+UNIT_CODE = _slice('@router.get("/unit_code/', '@router.post("/generate_step/')
+
+
+def test_a_single_units_code_can_be_fetched_without_re_rendering_everything():
+    """`units_status` ships no code by design, and the only thing that pulled code was a
+    full `step_prompts` re-render that ran when the WHOLE fan-out finished. So a unit that
+    landed early showed a placeholder for the rest of the run."""
+    assert '"code"' in UNIT_CODE and '"at"' in UNIT_CODE
+    assert "step6" in UNIT_CODE and "chunks" in UNIT_CODE
+    assert '"status": "pending"' in UNIT_CODE   # never run is pending, not an error
+
+
+def test_the_status_docstring_no_longer_promises_a_fetch_that_does_not_exist():
+    """units_status has always said "The UI fetches a unit's code when the reviewer opens
+    its page". That was never implemented. Either the endpoint exists or the claim goes."""
+    assert "reviewer opens" in _SRC, "the claim was removed rather than made true"
+    assert '@router.get("/unit_code/{key}/{unit_id}")' in _SRC
+
+
+def test_a_refused_reply_is_kept_so_the_reviewer_can_read_it():
+    """A red pill carrying only an error string cannot be acted on — the setup unit failed
+    the shape check and the block that failed had been thrown away."""
+    assert '"raw"' in CALL, "the failure path does not persist the reply"
+    assert "_PT_RAW_KEEP_CHARS" in CALL, "an unbounded reply would be written to the session"
+    fails = re.findall(r"_fail\(([^\n]*)\)", CALL)
+    assert len(fails) >= 3
+    assert all("," in f for f in fails), f"a _fail call keeps no reply: {fails}"
+
+
+def test_a_successful_unit_clears_any_raw_left_by_an_earlier_refusal():
+    """Otherwise re-running a failed unit leaves the rejected block on screen beside the
+    code that replaced it."""
+    ok_store = CALL[CALL.index('"status": "ok"'):]
+    assert '"raw": ""' in ok_store[:400]
