@@ -4218,21 +4218,26 @@ def _unit_shape_ok(code: str, unit: dict) -> Tuple[bool, str]:
     the button they pressed, not thirty units later when the file will not compile and
     nobody knows which call caused it.
 
-    A TestCase block is dedented to column 0 before parsing; the setup unit is a pair of
-    METHODS, so it is parsed inside a synthetic class to keep it valid Python.
+    A TestCase block is dedented to column 0 and parsed here. The setup unit is a pair of
+    bare METHODS, which can only be parsed by wrapping them in a synthetic class — and that
+    wrapper's line numbers are unmappable to anything the reviewer sees ("line 38" of code
+    nobody wrote). So the setup unit is NOT parsed on arrival: its only arrival check is the
+    mappable, structural one — did both configure() and tear_down() come back (by regex).
+    Its syntax and indentation are judged at the Summary step, where `_lint_generated`
+    py_compiles the full assembled script and reports real line numbers.
     """
     import ast as ast_mod
     if unit["kind"] == "setup":
-        wrapped = "class _P:\n" + ("\n".join("    " + ln for ln in code.split("\n")))
-        try:
-            tree = ast_mod.parse(wrapped)
-        except SyntaxError as e:
-            return False, f"the returned setup block is not valid Python ({e.msg} line {e.lineno})"
-        names = {b.name for b in tree.body[0].body
-                 if isinstance(b, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef))}
-        missing = {"configure", "tear_down"} - names
+        # Syntax/indentation is validated at the Summary step (assemble_script ->
+        # _lint_generated py_compiles the whole assembled script, real line numbers). Parsing
+        # the pair here needed a synthetic `class _P:` wrapper whose line numbers the reviewer
+        # cannot map to anything on screen, so the arrival check keeps only the mappable,
+        # structural question: did BOTH methods come back? Read by regex so a merely-
+        # misindented reply still reaches Summary instead of being refused against line 38.
+        missing = [m for m in ("configure", "tear_down")
+                   if not re.search(rf"(?m)^[ \t]*(?:async[ \t]+)?def[ \t]+{m}[ \t]*\(", code)]
         if missing:
-            return False, ("the reply is missing " + ", ".join(sorted(missing))
+            return False, ("the reply is missing " + ", ".join(missing)
                            + " — configure() and tear_down() are one unit and must both come back")
         return True, ""
     try:

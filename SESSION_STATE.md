@@ -3754,3 +3754,48 @@ transform actually transformed before reporting what it measured.**
   the whole-script render was diffed line by line. It is no longer a pure-extraction pin; the
   reason is in that test's module docstring.
 - The five commits ahead of `origin/main` at close are the **bench stream's**, not this one's.
+
+
+## Session Close / Handoff (2026-09-03) — a corrupt ck.db WAL, recovered without a checkpoint; and a false setup indent flag moved to Summary
+
+**Stream:** PyTest Creator. Started with `/orient`, whose gate aborted at `ckdb_signature.py`
+with `database disk image is malformed`.
+
+**Shipped:**
+1. **Corrupt-WAL recovery for `ck.db`.** The base was intact all along (integrity `ok` read
+   alone, git byte-identical to the committed LFS blob, 51 sessions); the corruption lived
+   only in the uncommitted `ck.db-wal`. A live systemd server (`ask-ck.service`,
+   `Restart=always`) held the DB open, which kept it from checkpointing for 19 h. New
+   fail-closed `tool/db_wal_recover.sh` + runbook `tool/DB-WAL-RECOVERY.md`: back up, stop with
+   a transient `KillSignal=SIGKILL` drop-in (no checkpoint) that also marks the unit inactive
+   (no respawn), discard the WAL, verify `ok`, restart. Rehearsed on a throwaway systemd unit
+   against a copy of the real corrupt WAL first. Post-recovery: server active,
+   `is_permanent_db: true`, base unchanged, integrity `ok`, gate green.
+2. **The setup unit's arrival check stops raising a false indent error.** `_unit_shape_ok`
+   parsed the returned method pair in a synthetic `class _P:` wrapper and reported
+   `IndentationError … line 38` — a line nobody wrote. It now keeps only the mappable
+   structural check (both methods present, by regex); syntax/indent is judged at the Summary
+   step's `py_compile` where it already was. New test; PLAN §9.7 corrected.
+
+**Gate at close:** 1234 backend passed / 1 skipped, 240 frontend across 18 files, both guards
+OK, `ck.db` untouched.
+
+**Findings worth carrying forward:**
+- **A corrupt WAL fails to checkpoint**, so the base survives even a graceful stop. My first
+  "a graceful stop corrupts the base" claim was a measurement error (base+WAL read as
+  base-only) — the same "verify the transform actually transformed" trap the 2026-09-02
+  handoff flags. Corrected by a controlled scratch test before the real run.
+- **Never run a bare `sqlite3` on a corrupt-WAL DB that will be the last connection to close**
+  — it checkpoints on close and folds the corruption into the base. It destroyed a throwaway
+  *copy* exactly that way. Probe on copies only.
+
+**Left deliberately undone / not mine:**
+- The **fan-out end-to-end run** and its two deferred prompt decisions (`device_note`, rule
+  4b's `cli_reference`) are still open — unchanged from 2026-09-02; Terrence fires it.
+- **Tier A + Tier B import cleanup** — still not written.
+- The screenshot that started thread (2) was from **another tester's parallel DB**; we never
+  had its run data — the fix was diagnosed from the screenshot + code alone.
+- **`.claude/memory/ie520-silent-reboot-watch-2026-09-02.md`** and its `MEMORY.md` pointer are
+  the **bench stream's**, left uncommitted for its own wrap; this session did not stage them.
+- A **444 MB backup** at `ask-ck/var/wal-recover-backup-20260903-105553/` (gitignored) can be
+  deleted once the recovery is trusted.

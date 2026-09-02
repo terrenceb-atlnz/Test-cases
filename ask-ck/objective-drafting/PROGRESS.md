@@ -2,7 +2,45 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-02 (by Claude)
+**Last Updated**: 2026-09-03 (by Claude)
+
+## Latest session (2026-09-03) — a corrupt ck.db WAL recovered without a checkpoint, and the setup unit's false indent flag moved to the Summary step
+
+Two unrelated threads, both on the PyTest Creator side of the tree. The IE520/tb470 bench
+stream's `.claude/memory/ie520-*` is untouched and left uncommitted for its own wrap.
+
+**(A) `ask-ck/var/ck.db`'s WAL was corrupt; the base was always intact.** Orientation's gate
+aborted at `ckdb_signature.py` with `database disk image is malformed`. `PRAGMA
+integrity_check` on the base **alone** (WAL excluded) was `ok` and read all 51 sessions — the
+corruption was entirely in the uncommitted `ck.db-wal` overlay, and `git` saw the base
+byte-identical to the committed LFS blob. A **live systemd-managed server** (`ask-ck.service`,
+`Restart=always`) held it open, which is what kept it from being checkpointed for 19 h.
+
+Recovered with a new **fail-closed** tool, [`tool/db_wal_recover.sh`](../../tool/db_wal_recover.sh)
++ runbook [`tool/DB-WAL-RECOVERY.md`](../../tool/DB-WAL-RECOVERY.md): back up base+wal+shm, stop
+the unit with a transient `KillSignal=SIGKILL` drop-in (so no checkpoint) that also marks it
+inactive (so `Restart=always` can't respawn onto the corrupt WAL), discard the WAL, verify
+`integrity_check == ok`, restart. **Rehearsed end-to-end on a throwaway systemd unit** against
+a copy of the real corrupt WAL before touching the real one. After: server active,
+`is_permanent_db: true`, base unchanged (git clean), integrity `ok`, gate green.
+
+Two facts worth not re-deriving: **a corrupt WAL fails to checkpoint** — SQLite's
+checkpoint-on-close cannot apply it, so the base survives even a graceful stop (my first "a
+graceful stop corrupts the base" claim was a measurement error — base+WAL read as base-only).
+And **never run a bare `sqlite3` on a corrupt-WAL DB that will be the last connection to
+close**: it checkpoints on close and folds the corruption in — it destroyed a throwaway *copy*
+exactly that way. Both are in the runbook; the tool probes only on copies for this reason.
+
+**(B) The setup unit's arrival check raised a false indent error against a line nobody wrote.**
+`_unit_shape_ok` validated the returned `configure()`/`tear_down()` pair by wrapping it in a
+synthetic `class _P:` (+4 spaces per line) and `ast.parse`-ing it, so a bad reply surfaced as
+`IndentationError … line 38` — a line in the wrapper the reviewer can't map to anything on
+screen. Syntax/indentation is **already** judged at the Summary step (`assemble_script` →
+`_lint_generated` `py_compile` on the full assembled script, real line numbers). So the arrival
+parse was a redundant early gate with a worse diagnostic. Now the setup arrival check keeps
+only the mappable structural question — did **both** methods come back (by regex) — and defers
+syntax to Summary. TestCase units are unchanged. Terrence: *"its a false error and doesnt
+belong at that step."* PLAN-pytest-creator §9.7 wording corrected to match.
 
 ## Latest session (2026-09-02) — the whole-script generate became 30 per-unit calls, and the prompt was reordered so caching can see it
 

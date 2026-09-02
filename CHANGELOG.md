@@ -11,6 +11,28 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-03 — Corrupt-WAL recovery for ck.db, and the setup unit stops raising a false indent error
+
+**New tool + runbook to recover `ck.db` from a corrupt WAL without corrupting the base.**
+`tool/db_wal_recover.sh` (+ `tool/DB-WAL-RECOVERY.md`). The permanent DB's base file can be
+intact while its uncommitted `ck.db-wal` overlay is malformed — `PRAGMA integrity_check` reads
+the two together, so check the base alone by copying only the main file. *Why the tool is
+careful:* the server is a systemd unit with `Restart=always`, so the stop must be SIGKILL (a
+clean close checkpoints — though a *corrupt* WAL fails to checkpoint, so this is conservative,
+measured 2026-09-03) **and** mark the unit inactive (or it respawns onto the corrupt WAL). It
+is fail-closed: refuses unless the base alone is `ok`, backs up first, restores and leaves the
+server stopped if verification fails. Rehearsed on a throwaway systemd unit before real use.
+**Never run a bare `sqlite3` on a corrupt-WAL DB as the last connection — it checkpoints on
+close and folds the corruption into the base.**
+
+**The setup unit no longer fails on arrival with an unmappable indent error.**
+`_unit_shape_ok` used to parse the returned `configure()`/`tear_down()` pair inside a synthetic
+`class _P:` wrapper, so a bad reply reported `IndentationError … line 38` against a line nobody
+wrote. Syntax/indentation is already validated at the Summary step (`assemble_script` →
+`_lint_generated` `py_compile`, real line numbers), so the setup arrival check now keeps only
+the mappable structural question — did both methods come back (by regex) — and defers syntax to
+Summary. *Why:* a false error in the wrong step. TestCase units are unchanged; PLAN §9.7 updated.
+
 ## 2026-09-02 — Per-unit script generation, a batch dispatch that survives the browser, and a cache-aware prompt order
 
 **Step 6 generates one LLM call per test case instead of one per script.** The frame is

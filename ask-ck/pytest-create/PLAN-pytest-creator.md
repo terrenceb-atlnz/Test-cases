@@ -828,9 +828,14 @@ So the revised sequence:
    - `POST /generate_step/{key}/{unit_id}` sends the reviewer's prompt **verbatim** via new
      `llm.run_prompt_text()` — same `_call_llm_with_meta` choke point, so timing, usage and
      debug-logging are unchanged; it bypasses Jinja, not the instrumentation.
-   - Replies are shape-checked **on arrival**: parses, exactly one class, the right class
-     name, has `main()`; the setup unit must return both methods. Every refusal records
-     before raising.
+   - Replies are shape-checked **on arrival**: a TestCase unit parses, has exactly one
+     class, the right class name, and a `main()`. The setup unit is checked only
+     **structurally** — did both `configure()` and `tear_down()` come back (by regex) —
+     because parsing a bare method pair needed a synthetic `class _P:` wrapper whose line
+     numbers are unmappable to anything the reviewer sees ("line 38" of code nobody wrote).
+     Its syntax/indentation is judged at the assemble step's `py_compile`, which reports real
+     line numbers (2026-09-03; earlier this parsed on arrival and flagged a false indent).
+     Every refusal records before raising.
    - `POST /assemble_script/{key}` splices locally, re-stamps provenance, `manifest_check`s
      and lints. **No LLM.** Splicing is back-to-front so a longer unit cannot shift the line
      ranges of units not yet spliced; round-trip against the real 781-line T44297 frame is

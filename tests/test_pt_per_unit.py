@@ -267,6 +267,19 @@ def test_the_setup_unit_must_return_both_methods():
     assert not ok and "tear_down" in why
 
 
+def test_a_misindented_setup_with_both_methods_is_NOT_refused_on_arrival():
+    """Indentation/syntax for the setup unit is judged at the Summary step (py_compile on
+    the assembled script, real line numbers) — not on arrival. The old arrival check parsed
+    a synthetic `class _P:` wrapper and refused against a line number nobody wrote ("line
+    38"); now it only asks the mappable question — did both methods come back — so a merely
+    misindented reply reaches Summary, where the error is legible, instead of being refused
+    here. Both methods present but with inconsistent body indentation (would fail a parse):"""
+    setup = _units()[0]
+    bad = "def configure(self):\n        x = 1\n      y = 2\ndef tear_down(self):\n    pass\n"
+    ok, why = pc._unit_shape_ok(bad, setup)
+    assert ok, why
+
+
 # --- prompt scoping ---------------------------------------------------------------
 
 def test_the_per_unit_prompt_shares_ONE_copy_of_the_fill_rules():
