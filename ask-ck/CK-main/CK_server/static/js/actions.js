@@ -23,6 +23,38 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Press feedback on EVERY button, wherever its handler lives.
+//
+// Registered in the CAPTURE phase and deliberately independent of data-action, so
+// it also fires for legacy inline-onclick buttons, for the pill buttons, and for
+// any handler that calls stopPropagation() — "every button" has to mean every
+// button, or the one you happen to click is the one that feels dead.
+//
+// The pulse exists because :active alone is not feedback: a fast click may hold
+// :active for a single frame, an Enter/Space activation never sets it at all, and
+// a handler that blocks the main thread swallows what little there was. See
+// .ck-pressed in styles.css. The class is cleared on a TIMER rather than on
+// animationend, because prefers-reduced-motion sets `animation: none` and then
+// animationend never fires — which would leave the pressed style stuck on.
+const CK_PRESS_MS = 220;   // > the 180ms animation, so it never clips the tail
+
+document.addEventListener('click', (e) => {
+  const t = e.target instanceof Element ? e.target.closest('button, .btn') : null;
+  if (!t || t.disabled) return;
+  t.classList.remove('ck-pressed');
+  void t.offsetWidth;                 // reflow, so a re-click restarts the animation
+  t.classList.add('ck-pressed');
+  // Generation token: a rapid re-click restarts the pulse, and the FIRST click's
+  // timer must not then cut the second one short mid-animation.
+  const gen = String(Number(t.dataset.ckPress || 0) + 1);
+  t.dataset.ckPress = gen;
+  window.setTimeout(() => {
+    if (t.dataset.ckPress !== gen) return;   // a later press owns the pulse now
+    t.classList.remove('ck-pressed');
+    delete t.dataset.ckPress;
+  }, CK_PRESS_MS);
+}, true);
+
 // Delegated click dispatcher. Elements declare their handler declaratively:
 //   data-action="fnName"            — registered handler to call
 //   data-args='["panel-main", 1]'   — optional JSON array of arguments

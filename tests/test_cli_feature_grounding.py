@@ -41,6 +41,7 @@ import sqlite3
 import pathlib
 
 import pytest
+from _prose import expand_includes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tool"))
@@ -205,7 +206,7 @@ def test_prompts_require_asserting_on_the_feature():
     told to assert on the feature rather than on link survival."""
     tpl = REPO / "ask-ck" / "CK-main" / "CK_server" / "templates" / "prompts"
     extract = (tpl / "pt_extract_sequence.jinja").read_text()
-    generate = (tpl / "pt_generate_script.jinja").read_text()
+    generate = expand_includes(tpl / "pt_generate_script.jinja")
     for name, src in (("extract", extract), ("generate", generate)):
         assert "show ecofriendly" in src, f"{name} prompt lost the worked example"
         low = src.lower()
@@ -267,7 +268,7 @@ def test_skeleton_and_prompt_do_not_teach_hardcoded_ports():
     hardcode came from, so the guidance itself has to be right."""
     tpl = REPO / "ask-ck" / "CK-main" / "CK_server" / "templates"
     skeleton = (tpl / "pt_script_template.py.jinja").read_text()
-    generate = (tpl / "prompts" / "pt_generate_script.jinja").read_text()
+    generate = expand_includes(tpl / "prompts" / "pt_generate_script.jinja")
     assert "'portX.Y.Z'" not in skeleton, "skeleton still seeds a literal port name"
     assert "port = dut.portA" in skeleton, "skeleton should bind from the topology"
     assert "port = 'port1.0.1'" not in generate, "prompt still instructs a literal"
@@ -364,8 +365,7 @@ def test_prompt_forbids_multi_column_positional_assertions():
     The instruction said "assert Configured" while the EXAMPLE tested both columns; the
     model followed the example. Guarding the example, not just the prose.
     """
-    generate = (REPO / "ask-ck" / "CK-main" / "CK_server" / "templates" / "prompts"
-                / "pt_generate_script.jinja").read_text()
+    generate = expand_includes(REPO / "ask-ck" / "CK-main" / "CK_server" / "templates" / "prompts" / "pt_generate_script.jinja")
     assert "split()[-2] == 'off'" in generate, "example must assert ONE column"
     assert "[-2:] == ['off', 'off']" not in generate, (
         "the prompt still demonstrates a two-column positional assertion")

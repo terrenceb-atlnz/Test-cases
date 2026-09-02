@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/styles.css?v=28">
+<link rel="stylesheet" href="/static/styles.css?v=32">
 </head>
 <body>
 <div class="layout">
@@ -611,7 +611,7 @@
         <span id="pt-search-status" class="justification-note"></span>
 
         <div class="compact-flex mt-2">
-          <button data-action="ptSaveMatches" class="btn btn-compact">Save Selections</button>
+          <button data-action="ptSaveMatches" class="btn btn-compact" id="pt-save-matches-btn">Save Selections</button>
           <button data-action="ptConfirm" data-args='[3]' class="btn btn-compact">Confirm Step 3</button>
         </div>
         <div id="pt-match-prov" class="mt-2"></div>
@@ -641,8 +641,12 @@
         </details>
 
         <div class="compact-flex mt-2">
-          <button data-action="ptSaveFragments" class="btn btn-compact">Save Selections</button>
+          <button data-action="ptSaveFragments" class="btn btn-compact" id="pt-save-frag-btn">Save Selections</button>
           <button data-action="ptConfirm" data-args='[5]' class="btn btn-compact">Confirm Step 4</button>
+          <!-- Saves report HERE, not in #pt-frag-status: that span sits beside Gather at the
+               top of the panel, which on a 31-step case is a full screen-height above this
+               button. A confirmation the reviewer has to scroll to find is not one. -->
+          <span id="pt-frag-save-status" class="justification-note"></span>
         </div>
         <div id="pt-frag-prov" class="mt-2"></div>
       </div>
@@ -652,7 +656,22 @@
     <div id="panel-pt-gen" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading step-heading-row">PyTest Creator — 5. Generate <span id="pt-badge-6" class="badge hidden">Confirmed</span></div>
-        <div class="section-description">Generate the composite framework script (reused fragments + LLM for the gaps). Adjust the output naming, review/edit the code, lint, save, then confirm.</div>
+        <div class="section-description">Generated <b>one unit at a time</b> — a unit is a single <code>TestCase</code> class, or the <code>TestSet</code> setup pair. The frame (imports, <code>TestSet</code>, the <code>ts.add_testCase()</code> runner) is rendered here, not by an LLM, so it cannot vary between units. Page through the units: each shows the prompt that will be sent (editable — the button sends what you see) and the code that came back. <b>Summary</b> assembles them locally, lints, and runs the holistic review.</div>
+
+        <!-- Per-unit generation (PLAN §9.5). Pills: red = not generated, yellow = in
+             flight, green = returned. The top button fires every unit's prompt at once;
+             real concurrency comes from the broker's worker count (localStorage
+             ckBrokerWorkers, default 4) — see agent.js. -->
+        <div class="compact-flex mb-2">
+          <button data-action="ptGenerateAllUnits" class="btn btn-primary btn-compact" id="pt-units-all-btn">Generate all units (LLM)</button>
+          <button data-action="ptLoadUnits" class="btn btn-compact" id="pt-units-reload-btn">↻ Re-render prompts</button>
+          <span id="pt-units-status" class="justification-note"></span>
+        </div>
+        <div id="pt-unit-pills" class="pt-pill-row mb-2"></div>
+        <div id="pt-unit-errors" class="mb-2"></div>
+        <div id="pt-unit-page" class="mb-2"></div>
+
+        <div id="pt-summary-page" class="hidden">
         <div class="compact-flex mb-2">
           <label class="justification-note">Group:</label>
           <input id="pt-gen-group" class="form-input form-input-small" placeholder="Port">
@@ -661,19 +680,33 @@
           <span id="pt-gen-path" class="justification-note"></span>
         </div>
         <div class="compact-flex mb-2">
-          <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM)</button>
+          <!-- LOCAL assembly, not an LLM call: splice the rendered frame with the units,
+               re-stamp provenance, manifest-check, lint + PEP 8, then the holistic review. -->
+          <button data-action="ptAssembleScript" class="btn btn-primary btn-compact" id="pt-assemble-btn">Assemble + check</button>
           <button data-action="ptLintScript" class="btn btn-compact">Lint</button>
+          <!-- Pass C (PLAN §9.6): reports FINDINGS, never a rewrite. The findings feed the
+               Fix loop on step 7, which is where a change becomes a recorded action. -->
+          <button data-action="ptReviewScript" class="btn btn-compact" id="pt-review-btn">Review (LLM)</button>
           <button data-action="ptSaveScript" class="btn btn-compact">Save to generated/</button>
           <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm Step 5</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
+        <div id="pt-review-result" class="mb-2"></div>
         <textarea id="pt-gen-code" class="form-input editor-textarea" style="height:420px" spellcheck="false" placeholder="Generated script appears here…"></textarea>
         <div id="pt-gen-lib-wrap" class="hidden">
           <div class="justification-note mt-2">Companion library: <span id="pt-gen-lib-name"></span></div>
           <textarea id="pt-gen-lib-code" class="form-input editor-textarea" style="height:180px" spellcheck="false"></textarea>
         </div>
         <div id="pt-gen-prov"></div>
+        <details class="mt-2">
+          <summary class="justification-note">Legacy: generate the whole script in one LLM call</summary>
+          <div class="compact-flex mt-1">
+            <button data-action="ptGenerateScript" class="btn btn-compact" id="pt-gen-btn">Generate Script (LLM, single call)</button>
+            <span class="justification-note">The pre-2026-09-02 path. Kept while per-unit generation is unproven on hardware; it writes the same step6.files.</span>
+          </div>
+        </details>
+        </div>
       </div>
     </div>
 
@@ -824,6 +857,6 @@
   </main>
 </div>
 
-<script type="module" src="/static/js/main.js?v=30"></script>
+<script type="module" src="/static/js/main.js?v=37"></script>
 </body>
 </html>

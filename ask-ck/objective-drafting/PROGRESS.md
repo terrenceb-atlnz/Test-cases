@@ -4,6 +4,86 @@
 
 **Last Updated**: 2026-09-02 (by Claude)
 
+## Latest session (2026-09-02) — the whole-script generate became 30 per-unit calls, and the prompt was reordered so caching can see it
+
+**PyTest Creator step 6 (Generate).** Ran alongside the IE520/tb470 bench stream, which owns
+`.claude/memory/ie520-*`; none of that is touched here.
+
+**(A) Generation is now per unit, dispatched as one batch.** `_skeleton_units()` splits the
+rendered frame by AST into one unit per `TestCase_<n>` plus the `configure()`/`tear_down()`
+pair as a single `setup` unit; `_assemble_units()` splices replies back by a back-to-front
+slice so the round trip is byte-exact against the real 781-line T44297 frame. The UI is the
+Script-Search pill row: red → amber (sent) → green (returned), a Summary pill, a per-unit page
+with the returned code on top and the **editable** outgoing prompt below, and a failure raises
+an error box naming the step rather than retrying. Assembly runs **no LLM** — splice, re-stamp,
+lint.
+
+**Why it was worth doing:** one whole-script call for AWPTCM-T44297 measured **672.9 s,
+104,962 in / 58,715 out, $1.5846**. Duration is bought with OUTPUT tokens — a fit over n=69
+`claude_agent` calls gives `duration ≈ 8.4 s + 11.31 s per 1k output tokens` — and **39 % of
+that output was the model retyping a frame we render deterministically**.
+
+**(B) The fan-out deadlocked, and the cause was the browser, not the server.** The first
+implementation fired one blocking request per unit and awaited each. HTTP/1.1 allows **6
+connections per origin**, so 30 requests starved the agent broker's own `/api/agent/next`
+poll — the page could not collect the work it had just queued. Observed live: `pending: 5`,
+`session_active: false`, zero `claude` children. It was rolling starvation rather than a hard
+deadlock: six units burned the full 1800 s budget and failed "did not respond in time", and the
+connections they freed let tc8/tc9 through normally. Fixed with `POST /generate_units/{key}`
+(one request, `asyncio.create_task` + `Semaphore(8)`) plus `GET /units_status/{key}` polling,
+and the browser broker became **4 workers** instead of 1.
+
+**(C) The per-unit prompt was reordered for prefix caching, and the shared rules reworded to
+allow it.** Caching can only reuse a literal shared **prefix**. Every invariant block
+(intro, Case, framework surface, devices, the 14,794-char fill rules) now precedes everything
+that varies. Measured on T44297's 30 real prompts: the shared prefix went **343 chars (0.7 %)
+→ 11,143 (21.7 %)**.
+
+That required touching `pt_fill_rules.jinja`, which is **shared** with the whole-script prompt:
+rules 4b / 4b-ii / 5 said "the REAL CLI REFERENCE **above**", and the two callers put the
+reference on **opposite sides** of the rules, so the word was false for one of them. Three
+lines now read "in this prompt" / "was injected" / "the CLI reference"; meaning unchanged, and
+the rendered whole-script diff was verified to be those three lines and nothing else before
+`tests/data/pt_generate_script_rendered.txt` was regenerated. A guard test fails if any
+positional pointer returns — putting the CLI reference back above the rules halves the prefix
+(11,143 → 5,663, measured).
+
+**(D) Pass C (holistic review) shipped**, per PLAN §9.6: `POST /review_script/{key}` returns
+findings as JSON, persists them under `step6["review"]`, never writes `files`, and never
+invalidates downstream steps. `fix_script` gained `review_findings` as a third fix reason.
+
+**(E) Button feedback.** Every `button`/`.btn` now pulses on press (capture-phase listener in
+`actions.js`), and Save Selections says `✓ Saved` — previously it flashed colour for 1.2 s with
+no glyph, a screen-height away from the button, which read as "nothing happened".
+
+### Numbers worth not re-deriving
+
+| | value |
+|---|---|
+| whole-script call | 672.9 s, 104,962 in / 58,715 out, **$1.5846** |
+| per unit (measured, ×2) | $0.4185 and $0.4827 → ~**$0.45** |
+| 30 units | ~**$13.5**, ~8.5× the single call |
+| duration fit (n=69) | `8.4 s + 11.31 s / 1k output tokens` |
+| 30 unit prompts | 1,543,763 chars; avg 51,458; min 34,602; max 88,383 |
+| where the input goes | fragments 44 %, fill rules 29 %, CLI reference 11 % |
+| shared prefix | 343 → **11,143** of an available 20,336 |
+
+### Pick up here
+
+1. **The fan-out has not been run end to end since the deadlock fix.** That is the next
+   action and it is Terrence's to fire; everything else waits on its numbers.
+2. **Tier A + Tier B import cleanup, deferred by choice.** Tier A = assembly-time fixes
+   (dedupe on module not rendered line, merge same-package members, blank line between groups,
+   wrap the template's long lines — the blank frame already emits 157 lines >120 chars before
+   any LLM call). Tier B = a post-generation AST pass for unused imports. Neither is written.
+   Note `pycodestyle` is structurally blind to unused imports — that is pyflakes F401.
+3. **Two open prompt decisions, deliberately deferred** pending real cost figures, recorded in
+   `tests/test_pt_per_unit.py`'s docstrings with their numbers: `device_note` (rules line 72,
+   built per unit, caps the prefix at 11,143 of 20,336) and rule 4b's `cli_reference` branch
+   (would cap a case at 6,489; does not bite on T44297, where all 30 units have one).
+4. **§9.9 question 5 still open:** whether Pass A's manifest becomes authoritative for
+   objective coverage.
+
 ## Latest session (2026-09-01b) — tb470's bench state got a single source of truth, and the tree stopped contradicting itself
 
 **Bench/infrastructure work; no test-case content, no server code.** Ran alongside the same

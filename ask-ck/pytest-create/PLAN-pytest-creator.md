@@ -115,6 +115,18 @@
 2. First full walkthrough of steps 2–6 with a real LLM on `AWPTCM-T33234` (Port — Auto MDI/MDI-X; the mechanical search already surfaces `legacy/5000_mdi_mdix/*` as top hits).
 3. Add a real testbox in the Testboxes panel, `Check Connection`, and shake out the SSH run path end-to-end.
 4. Consider `.gitignore`/LFS treatment for `ask-ck/pytest-create/data/` (~2.6 MB regenerable index files) — currently untracked.
+5. **Server-side setup templates — designed 2026-09-01, not built. See §8.** Storage decided
+   (shared committed + personal gitignored), `[misc]` profile claims mandatory, run wiring is
+   a one-branch change because `_run` already SFTPs arbitrary files. Four open questions in §8.8.
+6. **Chunked generation + holistic final pass — designed 2026-09-01, not built. See §9.**
+   Terrence's ask after a Generate timeout. **§9.3 is the section to read**: duration is bought
+   with OUTPUT tokens (corr +0.995 over 44 generations, 11.0 s per 1k on claude), so step count
+   — one `TestCase` per verify step — is what drives it, and a 30-step case projects to
+   541-1,316s against a 1800s ceiling two real runs have already reached 77% and 88% of. It is
+   also permanently a 2-4 assistant-message reply (32k output tokens per message), which is an
+   argument for deliberate seams that does not depend on the timeout at all. §9.2 retires the
+   stale "output ceiling" argument (refuted 2026-08-03). §9.8 has the build order: Pass C
+   first, chunking after.
 
 ## Script index status (as of 2026-07-15) — COMPLETE
 
@@ -124,6 +136,52 @@
 - To rebuild later (e.g. after script repos change): `cd tool && ./build_script_index.py --mechanical-only` then `./enrich_script_index.py --limit 2000` (only re-enriches new/changed files, sha1-keyed) then `./build_script_index.py` to merge.
 
 ## Progress Log
+
+- **2026-09-01b** — **Generate's 600s wall closed, and the generated script's STYLE is now
+  checked at all** (`eb1f66d`). Terrence hit a Generate timeout and offered three fixes; two
+  shipped, the third is specified in §9 and deliberately not built.
+  - **The timeout was one transport's wall, not a global one.** `claude_agent` — the
+    workspace default — was the only backend where a caller's `timeout` was a whole-response
+    wall clock: `claude_code`/`grok_cli` are floored to 1800s by `_cli_timeout`, and
+    `local_llm` streams, so its number bounds the inter-chunk gap. The same `timeout=600`
+    therefore meant "30 minutes", "no total limit", and "hard kill", depending on the radio
+    button. `_call_claude_agent` now floors through the same helper, before `registry.submit`
+    (submit's value is what the browser hands its local ck-agent, so flooring after it would
+    desynchronise the two ends — the 2026-08-27 defect, `3224629`). The 2026-08-03 exemption
+    was retired on evidence: its stated reason, that the job timeout bounds the agent-bridge
+    long-poll, is false — `next_job` bounds itself by its own `wait` (25s, capped at 55s) —
+    and that fact is now pinned so the exemption cannot return on the same reasoning.
+  - **Two measurements, and the second corrected the first.** Prompt size does not track step
+    count (T33234 is 20 steps / 72 KB, T33233 is 11 steps / 130 KB; fragments are 38-56% with
+    **zero** byte-duplicate bodies) — but Terrence pushed back that a 10-step case still took
+    minutes, and he was right that this missed the point. **Duration is bought with OUTPUT
+    tokens: corr +0.995 across all 44 recorded generations, against +0.829 for input, and
+    `in=177,126 -> 326s` versus `in=94,342 -> 666s` settles it directly.** The rate is a tight
+    constant — 11.0 s per 1k output tokens on claude, 5.8 on vLLM — and output is one
+    `TestCase` per verify step, so **step count IS the driver**. Corrected in §9.3; the
+    input-cost objection to chunking is withdrawn in §9.4, since input buys money, not
+    seconds.
+  - **PEP 8, which nothing had ever checked.** `_lint_generated` was entirely about whether
+    the artefact WORKS. pycodestyle (reference implementation, pure Python, offline) at 120
+    chars — measured: 732 of the 3,121 lines in `generated/` exceed 79 and 171 exceed 120, so
+    79 would emit ~120 findings on a healthy script and 120 emits 21, all genuinely
+    unreadable. Findings are WARNINGS, never blocking (whitespace must not need a policy
+    override); a missing pycodestyle reports "style NOT checked" rather than an empty list.
+    Declared in `requirements.txt`, not `-dev`: the SERVER lints.
+
+
+- **2026-09-01** — **Server-side setup templates SPECIFIED (§8), not built.** Terrence's ask:
+  keep several templated `.setup` files on the CK server and choose which one loads onto a
+  designated testbox, rather than one file per box edited in place. Found that the plan
+  already specified this half — §2 says the run SFTPs the chosen setup as *"remote path from
+  profile or UI-uploaded content"* — and that `RunManager._run` already SFTPs any
+  `{filename: code}` entry into the guarded workdir, so the transport needs no change. Three
+  decisions taken: storage is BOTH a committed `ask-ck/pytest-create/setups/` and a personal
+  `ask-ck/var/setups/` (already gitignored, no `.gitignore` edit); every template must carry
+  its `[misc]` profile claims so `pt_profiles`/`pt_preflight` can answer "which template fits
+  this case" and "will this script bind" offline; and the design lands in writing before code.
+  Recorded the boundary that matters: this is RUN-time only — generation must still never read
+  a bench file.
 
 - **2026-08-26** — **Step-3 results became durable and context-bearing.** Per-step LLM
   suggestions persist (`step3.step_matches`, merge-by-id/newest-wins) and chosen rows carry
@@ -331,3 +389,542 @@ Run → parse → failures feed `POST /fix_script` (archives prior code to `hist
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/templates/prompts/pt_*.jinja` + `enrich_script_index.jinja` (new)
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/static/index.html` (~1325, ~2627-2700)
 - `copilot/Test-cases/tool/build_script_index.py` (new)
+
+---
+
+## 8. Server-side setup templates — DESIGN, NOT BUILT (specified 2026-09-01)
+
+**Status: design agreed with Terrence 2026-09-01, no code written.** Three decisions were
+taken before drafting and are settled: templates live in **both** a shared committed folder
+and a personal local one; every template **must** declare its topology-profile claims; and
+the design is written down before anything is built.
+
+### 8.1 The problem
+
+Today a run's `.setup` is a **path on the testbox**, chosen from `profile["setups"]`. Three
+consequences:
+
+1. **A bench file is shared mutable state, and it is being mutated.** `tb470` carries
+   `tb470.setup.bak-2026-07-29`, `.bak-2026-07-30` and `.bak-2026-08-31` — three in-place
+   rewrites of one file that 480 other setups sit beside in
+   `/home/st-art/st-art/configs/`. Two people cannot run different topologies against the
+   same bench at the same time, and a rewrite is invisible to anyone who did not make it.
+2. **One file per box cannot express several test topologies.** The realistic automation
+   shape is a handful of *templates* — a stacked pair, an unstacked copper pair, a fibre
+   pair, a tb-linked single — which between them cover the whole suite. That does not fit
+   "the box has a `.setup`".
+3. **It was always meant to work the other way.** §2 of this plan (`Remote execution`)
+   specifies the run as SFTP putting the script, library and chosen `.setup` — *"remote path
+   from profile **or UI-uploaded content**"*. Only the remote-path half was built.
+
+### 8.2 What this is NOT
+
+- **Not overwriting `tb470.setup` on the box.** The chosen template is uploaded into the
+  per-run workdir and `-s` points at it there. Identical effect, no shared-state mutation,
+  concurrent runs with different topologies, and each run records which template it used.
+- **Not a generation input.** `TOPOLOGY-PROFILES.md` is emphatic: generation targets a
+  **profile** and must never read a bench file, because a test silently weakened to fit the
+  hardware in front of it still goes green and the false green is unfalsifiable from
+  outside. This facility is **run-time only**. Nothing in steps 2–5 may read a template.
+- **Not a `ck.db` change.** `ck.db` is the permanent, non-rebuildable source of truth; an
+  in-place schema addition was explicitly rejected once already (`case_locks`, see
+  `auth-and-case-locking-plan`). Templates are files.
+
+### 8.3 Storage — two locations, both plain files
+
+| Origin | Path | Tracked? |
+|---|---|---|
+| **shared** | `ask-ck/pytest-create/setups/<name>.setup` | committed — diffable, reviewable, travels with the tool |
+| **personal** | `ask-ck/var/setups/<name>.setup` | already gitignored by the existing `ask-ck/var/*` rule — **no `.gitignore` change needed** |
+
+- A template is identified by `(origin, name)`, never by name alone, so a personal
+  `ie520-pair` and a shared `ie520-pair` are two distinct entries and neither shadows the
+  other. The picker labels origin; the run record stores both.
+- Names follow the existing profile-name rule (`^[A-Za-z0-9][A-Za-z0-9_\-\. ]{0,40}$`) so a
+  name can never escape its directory. The uploaded filename is `<name>.setup`.
+- **No "default".** Same ruling as the testbox `setups` map (2026-09-01): on a shared server
+  a default lets whoever saved last choose for everyone.
+
+### 8.4 Every template declares its profile claims
+
+A template carries the `[misc]` block `TOPOLOGY-PROFILES.md` §"What a bench writes" defines:
+
+```ini
+[misc]
+ck_profile     = base, fibre        ; comma list
+ck_role_dut    = swi_a
+ck_link_copper = swi_a-swi_b:port1.0.1
+ck_cap_swi_b   = polarity           ; HARDWARE-VERIFIED, never doc-derived
+```
+
+This is what makes a *set* of templates checkable rather than aspirational, and it is where
+the value is:
+
+- `pt_profiles.check_profile(bench, name)` answers **"which of my templates can run this
+  case?"** — and the useful inverse, **"which profiles does nothing I have implement?"**,
+  which is the shopping list for the next bench build.
+- `pt_preflight.parse_script(code)` + `check(script, bench)` answers **"will this generated
+  script actually bind on this template?"** — the guard against `init_portlink` returning
+  `(None, None)` silently and a cabling gap reading as a script defect.
+
+Both are **pure and text-based** (`Bench.from_text`, `parse_script(text)`), so the whole
+match runs server-side against stored template text and the generated code, with **no
+hardware, no network and no LLM**. A template with no `[misc]` claims is still storable and
+runnable, but is listed as *"claims nothing — cannot be matched"* rather than silently
+treated as compatible.
+
+### 8.5 API sketch
+
+All under the existing `/api/pytest-create` prefix. None of these touch `ck.db`.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/setups` | list `{origin, name, claims, problems, updated_at}` for both locations |
+| `GET` | `/setups/{origin}/{name}` | full text, for the editor |
+| `POST` | `/setups/{origin}/{name}` | create/replace; parses before writing and **refuses** a file `Bench.from_text` cannot read |
+| `DELETE` | `/setups/{origin}/{name}` | remove |
+| `POST` | `/setups/{origin}/{name}/match/{case_key}` | profile match + `pt_preflight` against that case's generated script |
+| `POST` | `/setups/{origin}/{name}/verify` | compare the declaration against the **real bench** (see 8.7) |
+
+### 8.6 Run wiring — the smallest part
+
+`RunManager._run` already SFTPs every entry of `files = {filename: code}` into the workdir
+and then runs `cd <workdir> && … -s <setup_remote>`. So:
+
+```python
+files[f"{template_name}.setup"] = <stored template text>
+setup_remote = f"{template_name}.setup"      # bare name, resolved inside the workdir
+```
+
+No change to `_run` at all. The bare filename already satisfies `run/{key}`'s explicit-path
+regex `^[A-Za-z0-9_./\-]+$`, `_assert_write_allowed` already refuses a workdir under the
+read-only framework, and `-s` is already `shlex.quote`d. `run/{key}` gains one branch:
+`body["setup_template"] = {origin, name}` alongside today's `setup` (profile key or remote
+path). **The remote-path route stays** — a bench file that genuinely lives on the box is
+still legitimate.
+
+The run record must store which template ran, and its **text hash**, so a result can be
+traced to the exact topology it was produced on after the template is edited.
+
+### 8.7 Verify against the real bench — the rot guard
+
+A `.setup` is a *declaration about cabling*, and declarations rot: on tb105, 2026-07-29,
+only **3 of 8** declared consoles were correct and one device did not exist
+(`TESTBOX-ACCESS.md` §2). Templates make it cheap to spread one stale topology to four
+boxes instead of one, so `verify` is not optional polish:
+
+- SSH to the designated box and sweep `/dev/u*` for login banners, matching declared
+  `[switch]` consoles against the units actually on them (the banner is the reliable
+  identifier; the prompt is not, since every VCStack member serves the stack-wide CLI).
+- Report per-device agree/disagree. **Never rewrite the template from the bench** — that
+  would be inferring topology from hardware, the mistake `SETUP-FILE-REFERENCE.md` records
+  having been made twice.
+- `ck_cap_*` stays hardware-verified and human-entered: absence from `ck.db`'s CLI reference
+  means UNKNOWN, never unsupported.
+
+### 8.8 Open questions
+
+1. **Editor or upload?** A textarea with parse-on-save is the smaller build and keeps
+   templates reviewable; file upload is friendlier for a 5 KB file someone already has.
+2. **Does a template pin a testbox?** A template naming `/dev/u4` is bench-specific in
+   practice even though nothing declares it. Options: a free `applies_to` hint, a hard
+   binding, or nothing and let `verify` catch it.
+3. **Where does the picker live?** Run panel only (consistent with "no default"), or also a
+   per-case remembered choice on the session.
+4. **Promotion.** Is a personal template ever promoted to shared, and by whom?
+
+### 8.9 Invariants this must not break
+
+- `ck.db` unchanged — templates are files, never rows.
+- `/home/st-art/framework` read-only; the workdir guard already covers the upload target.
+- Generation never reads a bench file (8.2).
+- Tests/smoke must not write the permanent `ck.db` — template work is filesystem-only, so a
+  test needs `tmp_path`, not the scratch server.
+
+---
+
+## 9. Chunked generation + a holistic final pass — **BUILT 2026-09-02**
+
+**Status: BUILT 2026-09-02** — per-unit generation, batch dispatch, no-LLM assembly and
+Pass C all shipped; §9.5's Pass A was deliberately NOT built (the frame is rendered, not
+generated). The paragraph below is the ask as it stood on 2026-09-01 and is kept as the
+record of why this was built; §9.8 carries the sequencing that was actually followed and
+§9.10 what remains unmeasured.
+
+> *Status at the time: Terrence's ask, 2026-09-01. No code written. Read §9.8 before building
+> any of it — the change that shipped the same day may remove most of the motivation, and
+> that is measurable rather than arguable.*
+
+### 9.1 The ask
+
+> *"Split the prompt into a few sections, return each one individually, combine them as a
+> final result, then have a final prompt sent to do a holistic check-over of that completed
+> 'script' to ensure it passes lint and PEP 8 or whatever current python best-practice
+> exists, as well as sanity check each step to ensure they make sense."*
+
+Given alongside two others: review the prompt for bloat, and raise the timeout to 30 minutes.
+Both of those shipped in `eb1f66d`. This one did not, because it is a change to the shape of
+generation rather than to a number, and because the measurements below move its premise.
+
+### 9.2 One stale motivation to retire first
+
+Chunked generation already exists in this repo's history as the recommended fix for a *"hard
+output ceiling of ~15 TestCase classes"* — see `FINDINGS-generation-size-ceiling.md` and
+`PLAN-pytest-testing.md` §"chunked generation removes the ceiling but is real work".
+
+**That premise was refuted on 2026-08-03 and the document carries the refutation in its own
+header.** The measurements were `_parse_generated_blocks`' output, not the model's: the CLI
+splits a long answer across assistant messages that each re-open a ```` ```python ```` fence,
+and the old non-greedy regex stopped at the *continuation's* opening fence. On the five stored
+replies it kept 21 of 40 classes, 16/17, 9/11, 6/6 and 0/6 — and every reply was complete,
+each ending in `ts.run(sys.argv)`. `gen_assembly.recover_script` now reassembles them.
+
+So **chunking would not be lifting a model ceiling; there isn't one.** Anyone who builds this
+citing the ceiling is citing a retracted finding. The live motivations are different and
+narrower, and they are the ones to hold it to:
+
+1. **Wall clock per call.** A 30-minute single call is a 30-minute single point of failure.
+2. **Partial progress.** Today a generation that dies at minute 12 yields nothing.
+3. **Review quality.** A model asked for one 35 KB artefact reasons about each step less than
+   one asked for four steps at a time. This is the least measured and possibly the largest.
+
+### 9.3 What actually costs the wall clock — measured, and NOT what this section first claimed
+
+**Corrected 2026-09-01 after Terrence pushed back.** The first version measured what drives
+PROMPT size and reported that step count does not track it. That is true, and it is beside the
+point: **prompt size is not what the timeout is made of.**
+
+Across all 44 generations in `debug-log/` carrying token accounting:
+
+| | correlation with duration |
+|---|---|
+| **output tokens** | **+0.995** |
+| input tokens | +0.829 (confounded — a big case has more of both) |
+
+The direct disproof of the input story is in the data: `in=177,126 -> 326s` against
+`in=94,342 -> 666s`. Input nearly doubled while duration halved, because output moved the other
+way (34,966 vs 57,188). Wall clock is bought with output tokens and almost nothing else.
+
+**The rate is a tight per-backend constant:**
+
+| backend | s per 1k output tokens | n | range |
+|---|---|---|---|
+| `local_llm` (vLLM) | **5.8** | 34 | 5.7-6.4 |
+| `claude_code` / `claude_agent` | **11.0** | 10 | 9.2-11.7 |
+
+Output is the script, and the script is **one `TestCase` class per non-setup sequence step**.
+So **step count IS the driver of duration** — Terrence's original premise. Measured output per
+verify step on claude: 2,048 (T33233), 3,221-4,274 (T33351), and 5,828-16,825 across repeated
+regenerations of T44297, where the spread is model verbosity on one fixed case rather than
+anything about its size.
+
+**Projection for a 30-step case** (~24-28 verify steps) at 11.0 s/k-token:
+
+| verbosity | 24 verify steps | 28 verify steps |
+|---|---|---|
+| lean (2,048 tok/step) | 49,152 tok, **2 msgs**, 541s | 57,344 tok, 2 msgs, 631s |
+| mid (3,221) | 77,304 tok, **3 msgs**, 850s | 90,188 tok, 3 msgs, 992s |
+| rich (4,274) | 102,576 tok, **4 msgs**, 1,128s | 119,672 tok, 4 msgs, **1,316s** |
+
+Under the new 1800s ceiling — but the rich end is 73% of it, and two real generations already
+on record sit at **77% and 88%** (132,127 tok / 1,395s; 138,619 tok / 1,576s). A 30-step case
+is not comfortably inside the budget; it is inside it by a margin that model verbosity alone
+can eat.
+
+**And every one of those rows is a multi-message reply.** One assistant message carries 32,000
+output tokens and that cap is not raisable; beyond it the CLI continues into further messages
+that `gen_assembly` must stitch. So a 30-step case lives permanently in the 2-4 message regime
+— exactly where `_recovery_failure`, `_resolve_duplicates` and seam-line loss live. **That is a
+second argument for chunking, independent of the timeout: deliberate chunks around a known
+frame are easier to reassemble correctly than accidental ones split mid-token by an output
+cap.**
+
+**Still true from the first version, and still useful — just not a timeout fix.** Prompt
+composition is fragments 38-56%, skeleton 21-29%, static rules 10-17%; there is **zero**
+byte-duplicate fragment content; and T33233 carries nine near-clone `TestCase_N` blocks from
+four sibling scripts. That remains the cheapest available prompt reduction and it is a step 3-4
+selection question. It just buys tokens and money, not seconds.
+
+### 9.4 The cost side — real, but it is money, not time
+
+**Corrected 2026-09-01 alongside §9.3.** The first version argued chunking "makes the prompt
+problem worse in aggregate", because the skeleton, the ~14 KB rules block and the framework
+surface must be re-sent with every chunk. The re-sending is real; the conclusion was wrong,
+because it priced input in seconds.
+
+Input costs almost no wall clock. The largest run on record sent **4,170,363 input tokens** and
+took 1,576s — a duration fully explained by its 138,619 output tokens at the 11.0 s/k rate. So
+paying for the shared context N times costs **tokens and money, not the thing that is timing
+out**.
+
+- **Money.** At K=4, roughly 3 extra copies of ~40 KB of shared context. Against measured
+  per-generation costs of $1.25 (T33351) that is a modest multiple, not an order.
+- **Wall clock.** Total output is roughly conserved — the same script gets written either way —
+  so total time should be roughly flat plus per-call overhead. What changes is that no single
+  call carries all of it, and a failure costs one chunk instead of everything.
+- **Fragments do not multiply at all.** Each declares `maps_to`, so a chunk covering steps 5-8
+  needs only the fragments serving those steps. On T33233 that is the 56% of the prompt, split
+  rather than copied.
+
+The genuine costs of chunking are elsewhere and are not about size: cross-chunk incoherence
+(§9.6), keeping a frame later chunks cannot contradict (§9.5), and chain-level Stop (§9.7).
+
+### 9.5 Where to cut — the manifest is already the seam — **BUILT 2026-09-02, WITHOUT Pass A**
+
+The machinery a chunked generation needs mostly exists, because reassembling a multi-part
+reply is the same problem as assembling deliberate chunks:
+
+- `gen_assembly.split_fenced_parts` / `stitch_parts` / `_resolve_duplicates` — joining parts,
+  including dropping partial lines at seams and refusing two comparable definitions of one
+  name (`_DUPLICATE_OBVIOUS_FACTOR`).
+- `gen_assembly.manifest_check` — reads `ts.add_testCase(...)` from the **AST** and reports
+  registered-but-undefined and defined-without-`main()`. This is *"the one completeness signal
+  in the artefact that does not come from the parser."*
+- `_recovery_failure` — the refusal that keeps an incompletely assembled script from being
+  stamped, linted and persisted.
+
+That suggests the natural shape:
+
+- **Pass A — the frame.** Imports, the `TestSet` class with `init()`, shared helpers
+  (including `_ck_bind_link`), **the full `ts.add_testCase(...)` manifest for every step**, and
+  the `__main__` runner. No `TestCase` bodies. Small, fast, and it fixes device names and
+  helper signatures once so later chunks cannot disagree about them.
+- **Pass B(i) — TestCase bodies, K steps at a time.** Given the frame verbatim, the sequence
+  rows for those steps, only the fragments whose `maps_to` covers them, and only the
+  `cli_reference` entries for their commands. Emits `class TestCase_N` definitions only.
+- **Assembly.** Frame + all B outputs through the existing `stitch_parts` /
+  `_resolve_duplicates` path, then `manifest_check` against Pass A's manifest. **Pass A's
+  manifest becomes a contract written before the bodies exist**, which is strictly stronger
+  than today's check of a manifest the same reply wrote.
+- **Pass C — the holistic review.** See §9.6.
+
+### 9.6 The final pass — two halves, and only one of them needs an LLM — **BUILT 2026-09-02**
+
+Terrence's final pass names two jobs. They are not the same job and should not be one prompt.
+
+**The lint/PEP 8 half is mechanical and now fully exists.** `_lint_generated` runs
+`py_compile`, the structural and contract assertions, the objective-coverage check, and — as
+of `eb1f66d` — **pycodestyle at 120 characters**. Asking a model to *"ensure it passes lint"*
+is asking it to approximate a checker that is already deterministic, offline and free. The
+right wiring is: run the existing lint on the assembled script, and feed **its findings** to
+the model, rather than asking the model to find them.
+
+**The "does each step make sense" half is the real LLM job, and nothing checks it today.**
+Specifically the failures that chunking itself introduces, which no existing check would see:
+
+- a helper used in chunk 3 with a signature chunk 1 did not define;
+- a device or port attribute named differently across a seam;
+- two chunks independently implementing the same setup;
+- a step's verdict that does not correspond to its sequence row's *verify* text — the one
+  failure mode the whole pipeline exists to prevent, and the only one a human currently
+  catches.
+
+**Pass C must return FINDINGS, not a rewritten script.** A rewrite pass re-introduces the
+whole-script output that chunking existed to avoid — the same 35 KB in one message, with the
+same wall clock — and it can silently undo a correct reused fragment, destroying the
+provenance chain PLAN §1.5 exists to keep. Findings route into the existing `fix_script` loop,
+where a change is a recorded, reviewable action.
+
+### 9.7 Invariants and existing contracts this must not break
+
+- **`ck.db` unchanged.** Chunks are fields on the existing session payload, never new tables
+  (the `case_locks` precedent — see `auth-and-case-locking-plan`).
+- **Provenance stays one slot.** Step 3 taught this: N per-step payloads in a permanent
+  `ck.db` row is unbounded growth, so it stores one. A 6-chunk generation must not store six
+  85 KB prompts. Store Pass A's prompt in full plus a per-chunk digest (steps covered,
+  fragment ids, char counts, duration), which is what a reviewer actually needs.
+- **`_recovery_failure` still governs.** An assembly that fails `manifest_check` must be
+  refused — but recorded first, under its own key, so refusing does not destroy the evidence
+  (the 2026-08-04 defect).
+- **Every `TestCase.main()` keeps its leading `# ART/SVT/legacy/AI` provenance tag** (PLAN
+  §1.5), which the lint enforces per class and which a chunk boundary must not drop.
+- **The objective-coverage check runs on the ASSEMBLED script**, not per chunk — it compares
+  `TestCase` count against non-setup sequence steps, and per chunk it would always fail.
+- **Stop must cancel the whole chain.** The live-progress/true-Stop work (2026-08-26b)
+  cancels one in-flight call; a chunk chain needs a chain-level abort, or Stop will look like
+  it worked while the next chunk starts. Nothing may persist from a cancelled chain.
+- **Generation still never reads a bench file** (`TOPOLOGY-PROFILES.md`, and §8.2 here).
+
+### 9.8 Sequencing — revised 2026-09-01 after the duration analysis
+
+The first version of this section said "do not build §9 until the 1800s floor has been tried",
+on the reasoning that a 2.3x headroom increase probably removes the motivation. **§9.3 weakens
+that considerably.** The corrected picture:
+
+1. **1800s probably holds for 30 steps — by a thin margin.** Projected 541-1,316s, against
+   real generations already recorded at 1,395s and 1,576s. The margin is model verbosity wide,
+   and verbosity is the least predictable term (measured 2.7x spread on one fixed case).
+2. **The multi-message argument does not depend on the timeout at all.** A 30-step case is
+   always a 2-4 message reply because of the 32,000-token per-message cap. Chunking replaces
+   accidental seams — chosen by an output cap, landing mid-token — with deliberate ones around
+   a stable frame. `gen_assembly` exists precisely because the accidental seams are hard, and
+   its whole failure surface (`_recovery_failure`, `_resolve_duplicates`, dropped seam lines)
+   shrinks when the seams are chosen.
+3. **The input-cost objection is withdrawn** (§9.4). Chunking costs money, not wall clock.
+
+So the revised sequence:
+
+1. ~~**Re-run the 30-step case on the 1800s ceiling and record output tokens + duration.**~~
+   **DONE 2026-09-01, and the tripwire did NOT trip.** AWPTCM-T44297, 31 sequence steps,
+   34 selected fragments from 16 source scripts, `claude / opus / claude_agent`:
+
+   | | |
+   |---|---|
+   | duration | **672.9s** (37% of the 1800s floor) |
+   | tokens | 104,962 in / **58,715 out** / 163,677 total |
+   | cost | $1.58 |
+   | rate | **11.46 s per 1k output tokens** — against the 11.0 s/1k measured over the earlier n=44 |
+   | artefact | 1,442 lines / 83,453 chars; `parts: 1`, manifest ok, lint ok, 0 blocking errors |
+
+   Three things follow, and the first one weakens the case this section was building:
+
+   - **672.9s is half the 1,300s tripwire**, and inside §9.3's projected 541–1,316s band. On
+     the evidence available today the 1800s floor is *not* a ceiling the corpus is growing
+     into. Chunking's urgency is LOWER than this section assumed when it was written.
+   - **§9.3's cost model is confirmed to within 4%.** Duration is bought with output tokens,
+     at ~11.5 s/1k. Any change that does not reduce OUTPUT does not reduce wall clock.
+   - **39% of the output was the frame retyped.** Line-diffing the artefact against the
+     rendered blank skeleton: 529 of 1,442 lines came back byte-identical to input the server
+     already held (32,582 of 83,454 chars). That is the measured size of the Pass A/B prize —
+     worth roughly 115s here, ~17%. Real, but not the order of magnitude the wall-clock
+     framing implied. Note the measurement: an earlier guess of 68% was wrong, so use the
+     diff, not intuition.
+
+   Recorded because §9.8 step 1 asked for exactly this number and a later reader would
+   otherwise re-decide from a stale premise.
+2. ~~**Build Pass C first (§9.6), independently.**~~ **DONE 2026-09-02.**
+   `POST /api/pytest-create/review_script/{key}` + `templates/prompts/pt_review_script.jinja`
+   + a "Review (LLM)" button on the Generate panel. As specified: it returns findings and
+   never a rewrite (`review_script` cannot assign `step6["files"]`, pinned by test); the
+   existing lint's findings — errors AND warnings, since PEP 8 lives there — are handed IN
+   as "do not re-report" rather than left to be rediscovered; findings persist to
+   `step6.review` through `_pt_persist_fresh`; and `fix_script` now takes them as a THIRD
+   independent reason to fix, so a reviewed script with real findings and a green lint no
+   longer 409s "nothing to fix". A review never calls `_invalidate_from` — it reads the
+   artefact and writes an opinion, so discarding a confirmation for having looked would be
+   wrong. Tests: `tests/test_pt_review_pass.py` (21), `js-tests/pt-review-panel.spec.js` (11).
+   **Not yet exercised against a real model** — the wiring is proved, the finding QUALITY is
+   not, and that needs a run on a script with a known verdict/verify mismatch.
+3. ~~**Then chunking**, with §9.9's open questions answered.~~ **DONE 2026-09-02.**
+
+   **Pass A was not built, and should not be.** §9.5 proposed asking an LLM for the frame —
+   imports, `TestSet` with `init()`, shared helpers, the full `ts.add_testCase(...)` manifest
+   and the runner. `_render_skeleton()` already emits all of it deterministically, so Pass A
+   asked a model to reproduce something exact, and to reproduce it CONSISTENTLY across N
+   calls. Terrence's framing ("recompiled here into the template") removed a call and a
+   failure mode. The manifest is still the contract §9.5 wanted, and more strongly: it is
+   written by the renderer before any unit exists.
+
+   **What shipped:**
+   - `_skeleton_units()` splits the rendered frame into fillable units **by AST** — one per
+     `TestCase_<n>`, plus `configure()`/`tear_down()` as ONE unit (a matched pair; split
+     across two calls the halves disagree about what was configured). On AWPTCM-T44297:
+     31 sequence steps → 1 setup + 29 TestCase units.
+   - Unit ids are `setup` / `tc1`…`tcN`, **not sequence numbers** — `_split_sequence`
+     renumbers, so sequence step 31 is `TestCase_29` and step-keyed chunks would mis-file
+     every unit on any case with a setup step.
+   - `GET /step_prompts/{key}` renders every unit's prompt without sending. Prompts are
+     re-rendered, not stored (§9.7); an EDITED prompt is kept on its chunk.
+   - `POST /generate_step/{key}/{unit_id}` sends the reviewer's prompt **verbatim** via new
+     `llm.run_prompt_text()` — same `_call_llm_with_meta` choke point, so timing, usage and
+     debug-logging are unchanged; it bypasses Jinja, not the instrumentation.
+   - Replies are shape-checked **on arrival**: parses, exactly one class, the right class
+     name, has `main()`; the setup unit must return both methods. Every refusal records
+     before raising.
+   - `POST /assemble_script/{key}` splices locally, re-stamps provenance, `manifest_check`s
+     and lints. **No LLM.** Splicing is back-to-front so a longer unit cannot shift the line
+     ranges of units not yet spliced; round-trip against the real 781-line T44297 frame is
+     byte-identical.
+   - The fill rules were extracted to `pt_fill_rules.jinja`, shared by the whole-script and
+     per-unit prompts. `tests/test_pt_prompt_rules_partial.py` pins the whole-script prompt
+     against a verified PRE-extraction render — the extraction changed nothing.
+   - **The broker is concurrent.** `agent_jobs` and `ck_agent.py` always were; `agent.js` was
+     the single serial component. Now N workers (default 4, `localStorage.ckBrokerWorkers`,
+     clamped 1-16), with liveness as two signals — a recent poll OR a job in flight — because
+     with every worker inside a long job nobody polls.
+   - UI: pills per unit (red / yellow / green) plus a Summary pill that is red until every
+     unit is back and only green once assembled and lint-clean. Each unit page shows the
+     returned code above and the **editable prompt** below; the button sends what is on
+     screen. "Generate all" dispatches every unit at once (`Promise.allSettled`).
+
+   **Open:** none of this has run against a real model. The wiring is proved
+   (`tests/test_pt_per_unit.py` 31, `js-tests/pt-per-unit-ui.spec.js` 20,
+   `tests/test_pt_prompt_rules_partial.py` 5, broker concurrency 8); per-unit output
+   QUALITY, and whether 30 units beat one 673s call in wall clock, are unmeasured.
+
+**What is NOT a reason to build it:** the "hard output ceiling of ~15 TestCase classes"
+(§9.2). That finding is retracted and generations of 40+ classes are on record.
+
+### 9.9 Open questions — ANSWERED 2026-09-02 (Terrence)
+
+1. ~~**Chunk size K**~~ **K = 1: one call per TestCase**, plus one for the setup pair.
+   Neither of the options as posed — the unit that maps onto the template's own slot
+   structure is a class, so splicing is exact and retry granularity is per test case.
+   Measured on T44297: 29 classes, median 42 lines / 2,465 chars, 2.7x spread.
+2. ~~**Retry granularity.**~~ **No automatic retry.** A failed unit's pill stays red, an
+   error naming the unit appears the moment it lands, its prompt stays on screen, and the
+   reviewer re-runs it. Deliberately not a loop: a model failing deterministically on one
+   awkward step would retry forever, and with an 1800s floor per call that is a long time to
+   look hung.
+3. ~~**Mode or the path?**~~ **The path.** Every case goes through the pills; there is no
+   threshold to key on anything measured or projected. The single-call generate survives
+   behind a `<details>` on the Summary page while per-unit generation is unproven on
+   hardware — it writes the same `step6.files`, so it is a fallback, not a second mode.
+4. ~~**Pass C mandatory or a button?**~~ **A button**, and additionally the step the Summary
+   pill's green depends on: units back → yellow, assembled + lint-clean → green. So it is
+   skippable but visibly not done.
+5. **Still open: does the manifest become authoritative for objective-coverage?** Unchanged
+   so far. `manifest_check` (registered vs defined) and the coverage check (TestCase count vs
+   non-setup sequence steps) answer different questions, and folding one into the other loses
+   a signal. Worth revisiting only if they ever disagree in practice.
+
+### 9.10 What is still unmeasured
+
+- **Per-unit output quality.** No unit has been generated by a real model.
+- **Whether 30 units beat one call.** Measured fit over n=69 `claude_agent` calls:
+  `duration ≈ 8.4s + 11.31s per 1k output tokens`. Sequential, 30 units is a REGRESSION
+  (~600-930s vs 672.9s) because total output does not fall and each call adds ~8.4s. The win
+  depends entirely on the concurrent broker, and the honest projection at 4 workers is
+  roughly 8 waves — call it 200-300s — with the per-unit prompts costing more input in total
+  (money, not wall clock, per §9.4).
+- **The cost of pre-rendering every prompt on page load.** 30 prompts, each carrying only its
+  own step's fragments; Terrence's note: "we will see what sort of impact (if any) it has on
+  the ui times."
+- **Whether the reviewer's editable prompt gets used**, which is the feature most likely to
+  change how the whole step feels and the least predictable from here.
+### 9.11 Prompt-prefix caching — MEASURED AND APPLIED 2026-09-02
+
+Splitting one call into 30 re-sends every invariant block 30 times. Across T44297's 30 real
+unit prompts (1,543,763 chars total) the input divides as **fragments 44 %, fill rules 29 %,
+CLI reference 11 %** — so nearly a third of the entire spend is one paragraph, paid for
+thirty times.
+
+Prompt caching can only reuse a literal shared **prefix**, and the first ordering put the
+14,794-char fill rules LAST, leaving a shared prefix of **343 characters — 0.7 %**.
+`pt_generate_step.jinja` is now ordered invariant-first (intro, Case, framework surface,
+devices, fill rules) with everything per-unit below the line. **Measured: 11,143 chars,
+21.7 %.**
+
+Two constraints found while doing it, both worth not rediscovering:
+
+- **`cli_reference` is not invariant**, however much it looks it: `_cli_reference_block(
+  text_rows, frags)` derives it from the unit's own step text and fragments, and T44297's 30
+  blocks all differ. It must stay below the line. Putting it above halves the prefix —
+  11,143 → 5,663, measured, not estimated.
+- **A shared partial cannot contain a position word.** `pt_fill_rules.jinja` is included by
+  both prompts, which place the CLI reference on opposite sides of it; rules 4b / 4b-ii / 5
+  saying "above" was false for the per-unit caller and was the only thing forcing the
+  reference into the prefix. Those three lines are now position-neutral, the whole-script
+  render was diffed line by line before `tests/data/pt_generate_script_rendered.txt` was
+  regenerated, and a guard test fails if a position word returns.
+
+**Still on the table, deferred by Terrence pending real cost figures** — both would extend the
+prefix toward the full 20,336 invariant chars, and both change what a unit is *told*:
+
+- `device_note` (rules line 72) is built from THIS unit's fragments, which caps the prefix at
+  11,143. Making it case-level would tell every unit about devices its own fragments never
+  touch.
+- Rule 4b branches on whether a CLI reference exists, which would cap a case at 6,489. It does
+  not bite on T44297, where all 30 units have one. Resolving it means telling some unit to
+  match a reference that is not in its prompt.
+

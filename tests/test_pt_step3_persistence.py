@@ -59,15 +59,30 @@ def _match(sid, cov="partial", reason="because", extra=None):
 
 
 # --- 1. _persist_step_matches ------------------------------------------------
+#
+# The helper takes the case KEY and merges onto a freshly RELOADED session (2026-09-02).
+# It used to take the caller's session object, which is how a 31-step suggest-all lost 8
+# completed LLM calls to HTTP 409: the snapshot predated a 30-50s model call, and a
+# "Save Selections" click in between made it stale. So these tests stub `_pt_load` to hand
+# back the fake session — the mutations still land on the object they assert against.
+
+
+def _wire(pc, monkeypatch, sess):
+    """Stub the load/persist pair around _persist_step_matches. Returns the persist log."""
+    persisted = []
+    monkeypatch.setattr(pc, "_pt_load", lambda k: sess)
+    monkeypatch.setattr(pc, "pt_sessions", {})
+    monkeypatch.setattr(pc, "_pt_persist", lambda s: persisted.append(s))
+    return persisted
+
 
 def test_step_matches_merge_newest_verdict_wins_and_keeps_the_rest(pc, monkeypatch):
     sess = _sess(pc)
-    persisted = []
-    monkeypatch.setattr(pc, "_pt_persist", lambda s: persisted.append(s))
+    persisted = _wire(pc, monkeypatch, sess)
 
-    pc._persist_step_matches(sess, 1, [_match("a.py", cov="partial", reason="old"),
-                                       _match("b.py")])
-    pc._persist_step_matches(sess, 1, [_match("a.py", cov="full", reason="new verdict")])
+    pc._persist_step_matches(sess.key, 1, [_match("a.py", cov="partial", reason="old"),
+                                           _match("b.py")])
+    pc._persist_step_matches(sess.key, 1, [_match("a.py", cov="full", reason="new verdict")])
 
     got = {m["id"]: m for m in sess.step3["step_matches"]["1"]}
     assert set(got) == {"a.py", "b.py"}, "a re-suggest dropped candidates the page showed"
@@ -80,9 +95,9 @@ def test_step_matches_whitelist_and_no_downstream_invalidation(pc, monkeypatch):
     sess = _sess(pc)
     sess.step3 = {"confirmed": True, "selections": {"1": ["a.py"]}}
     sess.step5 = {"fragments": [{"source_id": "a.py", "symbol": "TestCase_1"}]}
-    monkeypatch.setattr(pc, "_pt_persist", lambda s: None)
+    _wire(pc, monkeypatch, sess)
 
-    pc._persist_step_matches(sess, 2, [_match("c.py")])
+    pc._persist_step_matches(sess.key, 2, [_match("c.py")])
 
     rec = sess.step3["step_matches"]["2"][0]
     assert set(rec) <= set(pc._MATCH_PERSIST_FIELDS), \

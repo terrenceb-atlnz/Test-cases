@@ -1,0 +1,201 @@
+## Rules for filling the slots (violating any makes the output unusable)
+1. **Keep the three logging-contract calls in every `main()`**, filling their content:
+   - `self.log('STEP <n>: ...')` — keep it as the first STATEMENT of `main()` (the step
+     start). Rule 8's provenance comment is the first LINE, directly above it: the two
+     rules do not compete for the same slot, and the server re-stamps that comment
+     authoritatively afterwards, so never drop or move the log call to make room for it.
+   - Replace `output = ''` with the REAL observation the step verifies (device output
+     via `self.testSet.<dev>.cmd(...)`, a measurement, a packet capture, etc.), then
+     keep the `self.log('OBSERVED: ...')` line.
+   - Replace the `if False:` placeholder with the REAL verification condition. EVERY
+     path through `main()` must reach exactly one non-empty `self.passed('<why>')` or
+     `self.failed('<why>')` — so KEEP the `if/else`: one verdict per branch, not one
+     verdict in the whole method. Dropping the `else` means a failing device emits NO
+     marker and the step is scored as a pass. An empty reason emits no marker either.
+1a. **GROUND EVERY VERDICT IN THE OBJECTIVE.** The skeleton's header carries a
+   `# ==== OBJECTIVE — expected results this script must demonstrate ====` block (present
+   whenever the refined case has an objective). Those bullets are the AUTHORITATIVE
+   expected results the whole script exists to prove — the per-step `action`/`verify`
+   text is a means to them, not a replacement. Use the objective to (a) resolve vague step
+   wording — it says what "works" / "as applicable" / "where supported" concretely means
+   for this case — and (b) choose each `passed()`/`failed()` condition so it proves the
+   SLICE of the objective its step covers, not merely that the link survived (see 4c).
+   KEEP the objective header verbatim in the returned script: it is documentation the
+   artifact carries, not a FILL marker, so do not rewrite, summarise, or delete it.
+2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
+   commands only; NEVER put `self.passed()`/`self.failed()` there.
+3. Reach devices from a TestCase via `self.testSet.<name>`{% if bound_devices %} (init binds: {{ bound_devices | join(', ') }}){% endif %}.
+   **`TestSet.init()` IS FIXED FRAME — DO NOT ADD BINDINGS TO IT, and do not call
+   `setup.init_portlink()` or `setup.init_swi()` yourself.** The frame already resolves the
+   topology from the bench's role contract and binds every device and port this script is
+   entitled to, through its own `_ck_bind_link()` helper, which additionally asserts the
+   bound port's MEDIA. Binding a port any other way skips that assertion, and a port that is
+   the wrong media produces a failure that reads as a product defect rather than a cabling
+   error. Use only the names listed above; if you believe you need a device the frame did not
+   bind, the sequence is wrong — say so in a comment rather than binding it.
+3b. **HOUSE IDIOMS — use these, they are what the 830-script corpus does.** The counts are
+   why; do not substitute your own equivalents.
+   - **Enter config mode with `dev.mode(')#')`** (4,812 uses), NOT `dev.cmd('conf t')`
+     (69). `mode()` sets the prompt the console waits for: `')#'` = `(config)#`,
+     `'#'` = privileged exec (4,253), `']#'` = a stack member (382). Getting back to
+     exec is `dev.mode('#')`.
+   - **A port object is NOT a string.** `dev.portA` is a `SwitchPort`; the CLI text is
+     `dev.portA.name` (1,013 uses vs 241 passing the object bare). This matters beyond
+     formatting: comparing a port object to a token from `split()` is ALWAYS False, so
+     `line.split()[:1] == [dev.portA]` silently matches nothing. Always compare against
+     `.name`.
+     `SwitchPort`'s real API is small — `name`, `ifName`, `is_up()`, `up()`,
+     `get_mac_addr()`, `set_mac_addr()`, `get_ipv4_addr()`. It has NO `.down()` and NO
+     `.speed`: those belong to `ATTestBox.Eth` (the testbox interface, e.g. `tb.ethA`).
+     Assigning `dev.portA.speed = 1000` does not even raise — it creates a dead Python
+     attribute and the device is never configured. Change port speed over the CLI.
+   - The canonical interface-config block (shape taken from the corpus; bind `port` from
+     the topology, never a literal):
+     ```python
+     dev = self.testSet.{{ bound_devices[0] if bound_devices else 'dut' }}
+     port = dev.portA                      # a SwitchPort the fixed init() frame bound
+     dev.mode(')#')
+     dev.cmd('interface {}'.format(port.name))
+     dev.cmd('<the interface-level command>')
+     dev.mode('#')                         # back to exec before any `show`
+     output = dev.cmd('show ...')
+     ```
+     Return to exec mode when you are done configuring: leaving the console in
+     `(config-if)#` makes the NEXT TestCase's commands run in the wrong mode.
+   - `cmd()` accepts `log=False` (real kwarg: `cmd(command, timeOut, maxWait, interval,
+     log, debug, retry)`) — use it for noisy polling only.
+3c. **The script runs on the TESTBOX's `python3`, not this server's.** tb470 is on
+   **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
+   though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,
+   `cgi`, `pipes`, `crypt`, `asyncore`/`asynchat`/`smtpd`. The lint rejects these.
+{%- if device_note %}
+   DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
+   its device references (e.g. `self.dut` / `self.remote`) to the names init() binds above
+   so the code resolves — a name init() didn't bind is an AttributeError at runtime.
+{%- endif %}
+4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
+   parsing; don't discard them and write from scratch.
+{%- if py2_flagged %}
+   PYTHON 3 REQUIRED: one or more reused fragments (marked `⚠ PYTHON 2`) use Python 2
+   idioms this project no longer runs. When you adapt them, TRANSLATE to Python 3 —
+   `print x` → `print(x)`, `except X, e:` → `except X as e:`, `.iteritems()` → `.items()`,
+   `.has_key(k)` → `k in`, `xrange` → `range`, `basestring` → `str`. The final script
+   MUST be valid Python 3; keep the fragment's logic, modernize its syntax.
+{%- endif %}
+{%- if cli_reference %}
+4b. **NEVER invent CLI output.** Match assertions to the REAL CLI REFERENCE in this prompt,
+   character for character. Machine-style tokens (`speed=1000`, `duplex=full`,
+   `state=up`) DO NOT EXIST and make the test fail on working hardware. AW+ port names
+   have the form `portX.Y.Z`, never `1/0/1`. If the reference does not show the output you
+   need, assert on a substring you can see in it — do not guess a format.
+   **`show interface` prints TWO lines per attribute, and they mean different things:**
+   ```
+   current duplex full, current speed 1000, current polarity mdix
+   configured duplex auto, configured speed auto, configured polarity auto
+   ```
+   `configured …` is what you SET; `current …` is what the port NEGOTIATED. To verify a
+   command took effect, assert on `configured …`. Asserting `current speed 1000` after
+   `speed 1000` is a FALSE RED whenever the link is down or still negotiating — `current`
+   legitimately differs from `configured`, and on a down port there is no current speed at
+   all. Assert `current …` only when the step is about the negotiated/operational result.
+   **`show interface status` prints aligned COLUMNS** (`a-full`, `a-1000`, and a state).
+   Take the state token FROM THE REFERENCE for the command you are running: the harvested
+   output shows `connected` and `disabled`, and other platforms/states use other spellings.
+   Rather than guess a down-state token, prefer asserting the ABSENCE of the up state
+   (`'connected' not in row`) — that is correct whatever the down spelling turns out to be.
+{%- endif %}
+4b-ii. **These hold whether or not a CLI reference was injected.** Never emit
+   machine-style output tokens (`speed=1000`, `state=up`); AW+ port names are `portX.Y.Z`,
+   never `1/0/1`; and if you cannot see the exact output format, assert on the plainest
+   substring you are sure of rather than guessing a layout.
+   **A port name is CLI TEXT, never a Python identifier.** It may appear only inside a
+   string (`dut.cmd('interface {}'.format(port))`); writing it as an attribute —
+   `self.dut.port1.0.1` — is a SyntaxError.
+   **NEVER HARDCODE A PORT NAME.** Take it from the attribute the fixed `TestSet.init()`
+   frame already bound for you (`port = dut.portA` — see rule 3; the frame resolves it from
+   the bench role contract and asserts its media, so never call `init_portlink()`
+   yourself), the way the corpus does
+   (10,578 bound-attribute uses vs 350 literals, and most of those are
+   deliberately-invalid inputs to negative tests). In `portA.B.C`: **A is the STACK MEMBER**
+   (1 on a standalone, 1-8 across a stack), **B is the BAY** (0 = base board, 1+ = a
+   populated expansion slot), C the port within that bay. So a literal `'port1.0.1'` is
+   wrong on chassis platforms (x8100, x908gen2, x908gen3) and on an x950 whose card slot is
+   populated — those use `port1.1.x` — AND on every stack member but the first, which use
+   `port2.0.x` … `port8.0.x`. It is a runtime property of the hardware, not something you
+   can infer from the case text.
+4c. **ASSERT ON THE FEATURE UNDER TEST, not merely that the link survived.** If the step
+   enables/disables a feature, the `passed()`/`failed()` condition must read that
+   feature's own reported state. Checking only `Link is UP` after disabling a feature
+   passes whenever the disable SILENTLY FAILS — a false green, and the single most common
+   defect found in review. Use the feature's own show command from the CLI reference
+   (EcoMode/LPI/EEE → `show ecofriendly`, whose per-port `Configured`/`Status` columns
+   prove it). `Configured` = the config you applied, `Status` = what the port is doing
+   now: after the `no` form, `Configured` must read `off` — asserting the feature is
+   still `Configured` after disabling contradicts the step. `Status` may lag
+   `Configured` (peer hasn't negotiated), so use `Configured` for "did the command take"
+   and `Status` only for operational state. Link stability may be an EXTRA assertion, never the
+   only one. Enter interface config mode before applying an interface-level command —
+   a global-mode `ecofriendly lpi` configures nothing.
+4d. **PARSE THE ROW FOR YOUR PORT — a bare substring test is a false green.** Per-port
+   tables (`show ecofriendly`, `show interface status`) print one row per port, so
+   `if 'off' in output:` is True whenever ANY port reads `off` — including when the
+   command under test did nothing. Select the line for the port first, then test that
+   line's field:
+   ```python
+   name = port.name                          # STRING — a SwitchPort never equals a token
+   row = next((l for l in output.splitlines() if l.split()[:1] == [name]), None)
+   if row is None:
+       self.failed('port {} missing from show ecofriendly output'.format(name))
+   elif row.split()[-2] == 'off':            # Configured column ONLY
+       self.passed('{} ecofriendly Configured is off'.format(name))
+   else:
+       self.failed('{} ecofriendly Configured is {}, expected off'.format(
+           name, row.split()[-2]))
+   ```
+   Three things that example is doing deliberately:
+   (a) it compares against `port.name`, a STRING — `[port]` with a SwitchPort object never
+       matches any token, so `row` is always None and the step is a false RED every run;
+   (b) EVERY branch ends in a non-empty `passed()`/`failed()`. Omitting the final `else`
+       means the "command silently failed" case writes NO marker at all — which is the
+       exact false green rule 4c exists to prevent;
+   (c) the reasons quote the OBSERVED value, so a failure log says what was wrong.
+   Never write `self.passed(...)` literally: `...` is Python's Ellipsis, so the script
+   lints clean, runs clean, and logs `PASS: Ellipsis` as its evidence.
+   **Assert ONE named column, never a tuple of adjacent columns.** `show ecofriendly` rows
+   are `<port> [<name>] <Configured> <Status>`, so `Configured` is `split()[-2]` and
+   `Status` is `split()[-1]`. Testing BOTH positionally (`split()[-2:] == ['off','off']`)
+   is wrong and fails on real hardware: `Status` legitimately reads `-` on a port with no
+   peer (`port1.0.7  off  -`) and lags `Configured` while negotiating
+   (`port1.0.5  lpi  off`). Both are normal states, so a two-column check is a false RED
+   after a command that actually worked. Pick the column the step is about and test that
+   one.
+   Index from the END, not a fixed column: `show ecofriendly`'s optional `Name` column
+   shifts the middle fields (`port1.0.1 Port 1 lpi lpi` splits to 5 tokens,
+   `port1.0.2 lpi lpi` to 3), but `Configured`/`Status` are always the last two.
+   Match the port name EXACTLY — **never `startswith`**. `line.startswith(port)` also
+   matches `port1.0.10` when `port` is `port1.0.1`, silently reading the wrong row. Compare
+   the FIRST TOKEN. This holds in every code shape, not just the `next()` form above — if
+   you write a loop, it is still the first token:
+   ```python
+   for line in output.splitlines():
+       if line.split()[:1] == [port.name]:   # NOT line.startswith(port.name)
+           ...
+           break
+   ```
+   Same rule for any `show` whose output covers more than the port under test.
+5. Keep `testCaseRef = '{{ case_key }}'` on every TestCase; keep the `__main__` block
+   adding every TestCase in order then `ts.run(sys.argv)`.
+6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment
+   line once you have filled its slot.** These lines are scaffolding instructions to
+   you, NOT part of the script — writing the real code next to them is not enough, the
+   comment itself must be gone. The final script must contain ZERO `>>>` markers.
+7. No placeholder/pseudo code, no TODOs, no `output = ''` or `if False:` placeholders
+   left in the final output. No external pip deps beyond what the fragments/exemplar
+   already use.
+8. **Provenance: as the FIRST line inside every `main()` you fill**, add a single
+   comment stating where that block's logic came from — copy the exact tag shown
+   above the fragment you adapted (`Provenance tag for this fragment: ...`) if you
+   reused one, or `# AI {{ model_name }} {{ gen_date }}` if you wrote the logic
+   yourself with no matching fragment. This is a best-effort signal only — the
+   server re-stamps every block's tag authoritatively from the real fragment
+   mapping afterward, so get it close but don't agonize over exactness.

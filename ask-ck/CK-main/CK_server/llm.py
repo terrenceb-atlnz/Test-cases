@@ -1886,6 +1886,39 @@ def run_prompt(template_name: str, context: Dict[str, Any], llm_config: Optional
     return meta
 
 
+def run_prompt_text(prompt: str, llm_config: Optional[Dict] = None,
+                    timeout: int = 180, dry_run: bool = False,
+                    system: Optional[str] = None, max_tokens: Optional[int] = None,
+                    template: str = "(verbatim)") -> Dict[str, Any]:
+    """Send an ALREADY-RENDERED prompt, bypassing the template step.
+
+    Same runtime resolution, same `_call_llm_with_meta` choke point, so the call is
+    resolved, timed, token-counted and debug-logged exactly like a templated one — this is
+    not a side door around the instrumentation, only around Jinja.
+
+    Why it exists (2026-09-02): per-unit generation shows the reviewer the prompt for each
+    unit in an EDITABLE frame, and the button sends what is on screen. Re-rendering from a
+    template at dispatch would silently discard their edit, which defeats the point of
+    showing it. `template` is recorded in the debug log as the provenance of a prompt that
+    did not come from a template file.
+    """
+    rt = _resolve_llm_runtime(llm_config)
+    return _call_llm_with_meta(
+        prompt,
+        provider=rt["provider"],
+        api_key=rt["credential"],
+        base_url=rt["base_url"],
+        model=rt["model"],
+        auth_method=rt["auth_method"],
+        timeout=timeout,
+        session_id=rt["session_id"],
+        template=template,
+        dry_run=dry_run,
+        system=_JSON_SYSTEM_PROMPT if system is None else system,
+        max_tokens=max_tokens,
+    )
+
+
 def _health_ping(llm_config: Optional[Dict] = None) -> Dict[str, Any]:
     """Minimal completion to confirm the configured LLM is reachable and answering.
 

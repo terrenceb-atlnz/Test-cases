@@ -3705,3 +3705,52 @@ and the repointing of every internal reference at the record. Full account in `P
 - **`bench-state.md` is not version controlled.** The lab home is not a git repo. Needs a
   decision.
 
+
+## Session Close / Handoff (2026-09-02) — per-unit generation, the browser connection ceiling, and a cache-aware prompt
+
+**Stream:** PyTest Creator step 6. The IE520/tb470 bench stream ran in parallel and owns
+`.claude/memory/ie520-*`; none of it is staged here. Note the 2026-09-01b handoff above called
+*this* work "the parallel session's in-flight work" — that work is what this entry closes.
+
+**Shipped:** per-unit (chunked) generation end to end — AST unit split, byte-exact splice,
+pill UI with an editable per-unit prompt, batch dispatch, no-LLM assembly; Pass C holistic
+review; the fill-rules extraction into one shared partial; broker concurrency; universal
+button press feedback. Gate at close: **1229 backend passed / 1 skipped, 236 frontend across
+18 files, both guards OK, `ck.db` untouched.**
+
+**The two findings worth carrying forward:**
+
+1. **The browser's 6-connections-per-origin limit is a real constraint on this architecture.**
+   Fanning out N blocking requests from the page starves the agent broker's own poll, so the
+   page cannot collect the work it queued. Any future fan-out must be *one* request plus
+   polling. The failure did not look like a limit — it looked like six LLM timeouts followed
+   by two successes, because freed connections let later units through.
+
+2. **A shared prompt partial must not contain a position word.** `pt_fill_rules.jinja` is
+   included by both the whole-script and per-unit prompts, which place the CLI reference on
+   opposite sides of it. "the REAL CLI REFERENCE above" was therefore false for one caller,
+   and it was the only thing forcing a varying block into the cacheable prefix. Cost of
+   leaving it: half the shared prefix (11,143 → 5,663 chars, measured).
+
+**A correction made in-session, recorded because it changed a decision:** a simulation
+comparing two prompt orderings used a regex that silently did not match, so it compared the
+unmodified prompts against themselves and reported the orderings as equivalent. Terrence chose
+on that number. The real measurement showed one ordering cost half the prefix. **Verify that a
+transform actually transformed before reporting what it measured.**
+
+**Left deliberately undone:**
+- **The fan-out has not been run end to end since the deadlock fix.** Terrence fires it; every
+  remaining decision waits on its numbers.
+- **Tier A + Tier B import cleanup** — assembly-time import fixes and a post-generation AST
+  pass for unused imports. Deferred by Terrence in favour of prompt work; nothing written.
+  `pycodestyle` cannot see unused imports (that is pyflakes F401), so the current lint will
+  never report them.
+- **Two prompt decisions deferred pending cost figures**, both recorded with their numbers in
+  `tests/test_pt_per_unit.py`: `device_note` (per-unit, caps the prefix at 11,143 of 20,336)
+  and rule 4b's `cli_reference` branch (would cap a case at 6,489).
+- **`ask-ck/var/ck.db` is dirty and was NOT staged** — runtime session writes from real
+  traffic, which is expected and is not part of this change.
+- **`tests/data/pt_generate_script_rendered.txt` was regenerated once, deliberately**, after
+  the whole-script render was diffed line by line. It is no longer a pure-extraction pin; the
+  reason is in that test's module docstring.
+- The five commits ahead of `origin/main` at close are the **bench stream's**, not this one's.

@@ -21,11 +21,22 @@ import re
 
 import pytest
 
-from _prose import code_lines, flat
+from _prose import code_lines, flat, expand_includes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 SERVER = REPO / "ask-ck" / "CK-main" / "CK_server"
-GENERATE = SERVER / "templates" / "prompts" / "pt_generate_script.jinja"
+# The prompt AS SENT is the template with its includes resolved — the fill
+# rules live in pt_fill_rules.jinja since 2026-09-02, shared with the per-unit
+# prompt. Reading the bare file would assert about half the prompt.
+class _Expanded:
+    def __init__(self, path):
+        self.path = path
+    def read_text(self, *a, **k):
+        return expand_includes(self.path)
+    def __truediv__(self, other):
+        return self.path / other
+
+GENERATE = _Expanded(SERVER / "templates" / "prompts" / "pt_generate_script.jinja")
 SKELETON = SERVER / "templates" / "pt_script_template.py.jinja"
 ROUTER = SERVER / "routers" / "pytest_create.py"
 

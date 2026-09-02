@@ -47,9 +47,16 @@ const PT_API = '/api/pytest-create';
 // `opts` may carry two non-fetch fields, stripped before the request:
 //   btn       — the triggering button; gets busy spinner + disable + ✓/✗ flash
 //   busyLabel — label shown in the button while in flight (default 'Working…')
+//   doneLabel — label held on the button during the success flash. Worth setting for
+//               anything FAST: a save that answers in 80ms shows its spinner for one
+//               frame, and a reviewer watching the button reports seeing nothing.
+//   errRef    — {} that receives {msg} on failure INSTEAD of a blocking alert. Per-unit
+//               generation needs this: `alert` freezes the event loop, so during a
+//               concurrent fan-out every other unit's result queues behind the dialog.
 // The busy guard also stops a second click from stacking a duplicate LLM call.
 async function ptApi(path, opts = {}, statusEl = null) {
-  const { btn = null, busyLabel, llm = false, ...fetchOpts } = opts;
+  const { btn = null, busyLabel, doneLabel, llm = false, errRef = null,
+          ...fetchOpts } = opts;
   // llm:true = this call really sends tokens — the button becomes a live Stop
   // button with elapsed / typical / streamed progress (llm-progress.js).
   let llmCtl = null;
@@ -69,7 +76,8 @@ async function ptApi(path, opts = {}, statusEl = null) {
       const msg = d.detail || `HTTP ${r.status}`;
       // The user's own Stop is not a failure — say what happened, calmly.
       const shown = isCancelMessage(msg) ? '⏹ stopped — nothing was kept.' : '⚠ ' + msg;
-      if (statusEl) statusEl.textContent = shown;
+      if (errRef) errRef.msg = msg;
+      else if (statusEl) statusEl.textContent = shown;
       else alert('PyTest Creator: ' + msg);
       return null;
     }
@@ -77,12 +85,14 @@ async function ptApi(path, opts = {}, statusEl = null) {
     ok = true;
     return d;
   } catch (e) {
-    if (statusEl) statusEl.textContent = '⚠ ' + e;
+    if (errRef) errRef.msg = String(e);
+    else if (statusEl) statusEl.textContent = '⚠ ' + e;
     else alert('PyTest Creator: ' + e);
     return null;
   } finally {
-    if (llmCtl) { llmCtl.end(); flashButtonDone(btn, ok); }
-    else if (btn) { setButtonBusy(btn, false); flashButtonDone(btn, ok); }
+    const done = ok && doneLabel ? { label: doneLabel } : undefined;
+    if (llmCtl) { llmCtl.end(); flashButtonDone(btn, ok, done); }
+    else if (btn) { setButtonBusy(btn, false); flashButtonDone(btn, ok, done); }
   }
 }
 
@@ -123,6 +133,15 @@ export async function ptLoadCase() {
   ptSession = d.session;
   ptCaseInfo = { title: d.case_title, group_display: d.group_display,
                  objective: d.objective, steps: d.steps };
+  // Per-unit state belongs to ONE case. Without this, loading a second case leaves the
+  // first case's units in memory — and renderPtGenPanel only re-fetches when the list is
+  // empty, so the pills, the prompts and the returned code would all be the previous
+  // case's while the panel header says this one. Found by the jsdom spec (2026-09-02).
+  _ptStopUnitPoll();
+  _ptUnits = [];
+  _ptUnitIdx = 0;
+  _ptUnitSending = {};
+  _ptUnitFails = [];
   rememberCase('pt', S.ptCase.key, true);   // survives a refresh (session-restore.js)
   updatePtBadges();
   // Per-case lock (PLAN-auth-and-case-locking.md Phase 1): read-only banner + disabled
@@ -699,8 +718,13 @@ async function ptSaveMatches() {
   // keyword-search picks have no other persisted source (see save_matches).
   const records = {};
   Object.values(sel).flat().forEach(id => { if (_ptRecCache[id]) records[id] = _ptRecCache[id]; });
+  // Pass the button: a save is a request like any other, so it gets the same
+  // spinner + ✓/✗ flash every LLM button has. Without it the only sign a save
+  // happened was a line of status text, and a reviewer watching the button they
+  // just pressed saw nothing at all (2026-09-02).
+  const btn = document.getElementById('pt-save-matches-btn');
   const d = await ptApi(`/save_matches/${S.ptCase.key}`, {
-    method: 'POST',
+    method: 'POST', btn, busyLabel: 'Saving…', doneLabel: '✓ Saved',
     body: JSON.stringify({ selections: sel, records }),
   }, ptStatusEl('pt-search-status'));
   if (d) { await ptRefreshSession(); ptStatusEl('pt-search-status').textContent = `Saved — ${total} unique script(s) across ${Object.keys(sel).length} step(s).`; }
@@ -781,6 +805,46 @@ function _fragsForStep(n) {
   return _ptFragPool.filter(f => (f.maps_to || []).map(Number).includes(n));
 }
 
+// EVERY fragment key SHOWN under a step: the accounting's chosen entries plus their
+// redundant nests, and any maps_to fragment the accounting did not place.
+//
+// THE DEFECT THIS FIXES (2026-09-02, AWPTCM-T44297)
+// ------------------------------------------------
+// The step body renders from `_ptFragAcct` (per-step accounting) but the coverage pill and
+// the "no fragment selected" note read `_fragsForStep` (maps_to). Two sources of truth for
+// one question, so they can disagree — and did: after the sequence was re-extracted from 13
+// steps to 31, the fragment pool kept `maps_to` on the OLD numbering, so step 14 displayed
+// three ticked fragment cards while its header said "no fragment selected" and its pill
+// showed ✗. The backend merge is fixed too, but the UI must not be able to contradict what
+// it is displaying even when the data is imperfect.
+//
+// Redundant keys count: a redundant fragment is unticked by DEFAULT, but the reviewer can
+// tick it to override, and a ticked fragment serving this step does cover it.
+function _fragKeysForStep(n) {
+  const keys = new Set();
+  (_ptFragAcct[String(n)] || []).forEach(en => {
+    if (en.chosen) keys.add(_keyOf(en.chosen));
+    (en.redundant || []).forEach(r => { if (r.key) keys.add(_keyOf(r.key)); });
+  });
+  _fragsForStep(n).forEach(f => keys.add(_fragKey(f)));
+  return keys;
+}
+
+// Selected fragment keys shown under a step — what "covered" actually means here.
+function _selectedKeysForStep(n) {
+  return Array.from(_fragKeysForStep(n)).filter(k => _ptFragSel.has(k));
+}
+
+// How many ticked CARDS the panel paints, which is not how many fragments are
+// selected. A fragment serving 26 sequence steps is ONE entry in the pool and 26
+// cards on screen, so scrolling the panel and counting ticks gives a number four
+// or five times the count Generate receives — on AWPTCM-T44297, 157 against 34.
+// Both are honest; a save that reports only one of them invites the reader to
+// check it against the other and conclude the tool is lying (2026-09-02).
+function _selectedCardCount() {
+  return _ptSeq().reduce((n, s) => n + _selectedKeysForStep(s.n).length, 0);
+}
+
 // Render one fragment card: green-outlined if chosen, faint-red if a redundant nest.
 // The checkbox directly toggles selection (ptFragToggle). `redundantWhy` is set for
 // nested redundant fragments (their reason they duplicate the chosen one).
@@ -822,8 +886,9 @@ function ptRenderFragSteps() {
   if (_ptFragStep < 0) _ptFragStep = 0;
   if (_ptFragStep > seq.length - 1) _ptFragStep = seq.length - 1;
 
-  // A step is "covered" if at least one SELECTED fragment maps to it.
-  const stepHasSel = (n) => _fragsForStep(n).some(f => _ptFragSel.has(_fragKey(f)));
+  // A step is "covered" if at least one SELECTED fragment is SHOWN under it — the same
+  // set the body renders, so the pill can never contradict the cards (see _fragKeysForStep).
+  const stepHasSel = (n) => _selectedKeysForStep(n).length > 0;
   const covered = seq.filter(s => stepHasSel(s.n)).length;
   const gaps = seq.length - covered;
   if (sumEl) {
@@ -845,7 +910,7 @@ function ptRenderFragSteps() {
 
   const s = seq[_ptFragStep];
   const n = s.n;
-  const selCount = _fragsForStep(n).filter(f => _ptFragSel.has(_fragKey(f))).length;
+  const selCount = _selectedKeysForStep(n).length;
   const ok = selCount > 0;
 
   // Accounting entries for this step: each chosen fragment + its redundant nest.
@@ -946,10 +1011,340 @@ async function ptSaveFragments() {
   if (!ptRequireCase()) return;
   const keep = _ptFragPool.filter(f => _ptFragSel.has(_fragKey(f)))
     .map(f => ({ source_id: f.source_id, symbol: f.symbol }));
+  // btn + a status span BESIDE the button, not #pt-frag-status up beside Gather:
+  // on a 31-step case that one is a screen-height away, so the save read as a no-op.
+  const btn = document.getElementById('pt-save-frag-btn');
+  const st = ptStatusEl('pt-frag-save-status');
   const d = await ptApi(`/save_fragments/${S.ptCase.key}`, {
-    method: 'POST', body: JSON.stringify({ keep }),
-  }, ptStatusEl('pt-frag-status'));
-  if (d) { await ptRefreshSession(); ptStatusEl('pt-frag-status').textContent = `Saved — ${keep.length} fragment(s) selected for generation.`; }
+    method: 'POST', btn, busyLabel: 'Saving…', doneLabel: '✓ Saved',
+    body: JSON.stringify({ keep }),
+  }, st);
+  if (!d) return;
+  await ptRefreshSession();
+  if (!st) return;
+  const cards = _selectedCardCount();
+  // The card count is only worth saying when it differs — on a case where every
+  // fragment serves one step the two numbers are equal and the parenthetical is noise.
+  st.textContent = cards > keep.length
+    ? `Saved — ${keep.length} unique fragment(s) `
+      + `(${cards} ticked card(s) across ${_ptSeq().length} step(s)) selected for generation.`
+    : `Saved — ${keep.length} fragment(s) selected for generation.`;
+}
+
+// --- Step 6 (shown as "5. Generate"): PER-UNIT generation ---------------------
+//
+// PLAN-pytest-creator.md §9.5. One LLM call per unit — a single TestCase class, or the
+// TestSet configure()/tear_down() pair — spliced into a frame the SERVER renders. The
+// frame is not a model's work, so it cannot drift between units.
+//
+// Pills mirror Script Search's page-within-a-page: red = not generated, yellow = in
+// flight, green = returned, plus a final Summary pill that is red until every unit is
+// green. Each unit page shows what came back on top and the prompt that will be sent
+// below, editable — the per-unit button sends what is on screen, verbatim.
+let _ptUnits = [];          // [{id, kind, label, prompt, code, status, ...}] from /step_prompts
+let _ptUnitIdx = 0;         // viewer position; _PT_SUMMARY selects the Summary page
+let _ptUnitSending = {};    // id -> true while a call is in flight (the yellow state)
+let _ptUnitFails = [];      // [{id, label, why, at}] surfaced as they land
+const _PT_SUMMARY = -1;
+
+// Prompts live in JS, not in 30 textareas. Only one unit page is in the DOM at a time,
+// but "fire them all" has to send every unit's CURRENT text — including edits made on a
+// page since navigated away from. So an edit writes back into _ptUnits immediately.
+function _ptUnitById(id) { return _ptUnits.find(u => u.id === id) || null; }
+
+function _ptUnitState(u) {
+  if (_ptUnitSending[u.id]) return 'run';
+  // STATUS, not "do we happen to have the code cached". The status poll deliberately does
+  // not ship code back (30 units x ~2.5KB every 2s is 150KB/minute of unchanged bytes), so
+  // a unit that lands while others are still running has status 'ok' and no local code. It
+  // was requiring both, which left every early finisher red until the whole run ended.
+  if (u.status === 'ok') return 'ok';
+  return 'gap';                            // pending OR error — both are "not generated"
+}
+
+function ptRenderUnitPills() {
+  const el = document.getElementById('pt-unit-pills');
+  if (!el) return;
+  if (!_ptUnits.length) { el.innerHTML = ''; return; }
+  const cls = { ok: 'pt-pill-ok', run: 'pt-pill-run', gap: 'pt-pill-gap' };
+  const pills = _ptUnits.map((u, i) => {
+    const st = _ptUnitState(u);
+    const glyph = st === 'ok' ? '✓' : (st === 'run' ? '…' : '✗');
+    const cur = (i === _ptUnitIdx) ? ' pt-pill-current' : '';
+    const label = u.kind === 'setup' ? 'setup' : String(u.tc_n);
+    const why = u.status === 'error' && u.error ? ` — FAILED: ${u.error}` : '';
+    return `<button class="pt-pill ${cls[st]}${cur}" data-action="ptGoUnit" data-args='[${i}]' `
+      + `title="${escapeHtml(u.label)}${escapeHtml(why)}">${glyph} ${escapeHtml(label)}</button>`;
+  }).join('');
+  // Summary is red until every unit is green, then YELLOW — not green. Green is earned by
+  // assembling and passing the checks, not by the units merely existing.
+  const done = _ptUnits.every(u => _ptUnitState(u) === 'ok');
+  const assembled = !!((ptSession && (ptSession.step6 || {}).assembled_at));
+  const lintOk = !!(((ptSession || {}).step6 || {}).lint || {}).ok;
+  const sumCls = (done && assembled && lintOk) ? 'pt-pill-ok' : (done ? 'pt-pill-run' : 'pt-pill-gap');
+  const sumGlyph = (done && assembled && lintOk) ? '✓' : (done ? '…' : '✗');
+  const sumCur = (_ptUnitIdx === _PT_SUMMARY) ? ' pt-pill-current' : '';
+  el.innerHTML = pills
+    + `<button class="pt-pill ${sumCls}${sumCur}" data-action="ptGoSummary" `
+    + `title="Assemble the units into the frame, lint, review">${sumGlyph} Summary</button>`;
+  const st = document.getElementById('pt-units-status');
+  if (st && !st.dataset.busy) {
+    const n = _ptUnits.filter(u => _ptUnitState(u) === 'ok').length;
+    st.textContent = `${n}/${_ptUnits.length} unit(s) generated.`;
+  }
+}
+
+// Failures surface as a NON-BLOCKING panel, not window.alert(). A blocking alert freezes
+// the JS event loop, so during a concurrent fan-out every other unit's result would queue
+// behind the dialog — and 29 sequential alerts cannot be dismissed faster than they
+// arrive. This appears the instant a failure lands (the ask) and names the unit, with a
+// re-run on the row.
+function ptRenderUnitErrors() {
+  const el = document.getElementById('pt-unit-errors');
+  if (!el) return;
+  if (!_ptUnitFails.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="pt-unit-errbox"><b>✗ ' + _ptUnitFails.length
+    + ' unit(s) failed</b> <button class="btn btn-compact-small" data-action="ptClearUnitErrors">dismiss</button>'
+    + _ptUnitFails.map(f => `<div class="pt-unit-errrow">
+        <b>${escapeHtml(f.label)}</b> — ${escapeHtml(f.why)}
+        <button class="btn btn-compact-small" data-action="ptGenerateUnit" data-args='["${escapeHtml(f.id)}"]'>re-run</button>
+      </div>`).join('') + '</div>';
+}
+
+function ptClearUnitErrors() { _ptUnitFails = []; ptRenderUnitErrors(); }
+
+function ptRenderUnitPage() {
+  const el = document.getElementById('pt-unit-page');
+  const sum = document.getElementById('pt-summary-page');
+  if (!el || !sum) return;
+  if (_ptUnitIdx === _PT_SUMMARY) {
+    el.innerHTML = '';
+    sum.classList.remove('hidden');
+    return;
+  }
+  sum.classList.add('hidden');
+  const u = _ptUnits[_ptUnitIdx];
+  if (!u) { el.innerHTML = '<em class="review-empty">No units — confirm step 4 first.</em>'; return; }
+  const st = _ptUnitState(u);
+  const head = u.kind === 'setup'
+    ? '<b>TestSet.configure() / tear_down()</b> <span class="justification-note">the suite setup pair — config only, no pass/fail</span>'
+    : `<b>${escapeHtml(u.label)}</b> <span class="justification-note">implements sequence step ${escapeHtml(String(u.source_n))}</span>`;
+  const contract = u.kind === 'setup' ? '' : `
+    <div class="justification-note mt-1"><b>action:</b> ${escapeHtml(u.action || '')}</div>
+    <div class="justification-note"><b>verify:</b> ${escapeHtml(u.verify || '')}</div>`;
+  el.innerHTML = `
+    <div class="compact-flex">
+      <button class="btn btn-compact" data-action="ptUnitPrev" ${_ptUnitIdx === 0 ? 'disabled' : ''}>‹ Prev</button>
+      <span class="justification-note">unit ${_ptUnitIdx + 1} / ${_ptUnits.length}</span>
+      <button class="btn btn-compact" data-action="ptUnitNext" ${_ptUnitIdx >= _ptUnits.length - 1 ? 'disabled' : ''}>Next ›</button>
+    </div>
+    <div class="mt-2">${head}${contract}</div>
+    <div class="compact-flex mt-2">
+      <button class="btn btn-primary btn-compact" data-action="ptGenerateUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-btn">Generate ${escapeHtml(u.kind === 'setup' ? 'setup' : u.label)} (LLM)</button>
+      <span class="justification-note" id="pt-unit-status">${
+        st === 'ok' ? '✓ returned ' + escapeHtml(u.at || '')
+        : (u.status === 'error' ? '✗ ' + escapeHtml(u.error || 'failed')
+        : (st === 'run' ? 'in flight…' : 'not generated yet'))}</span>
+      ${u.edited ? '<span class="badge">prompt edited</span>' : ''}
+    </div>
+
+    <div class="pt-unit-frame mt-2">
+      <div class="pt-unit-frame-label">Returned code — what the LLM sent back for this unit</div>
+      <pre id="pt-unit-out" class="session-pre pt-unit-out">${
+        u.code ? escapeHtml(u.code)
+        : (u.status === 'ok'
+           ? '(returned — the code loads when the run finishes)'
+           : '(nothing yet — press Generate)')}</pre>
+    </div>
+
+    <div class="pt-unit-frame mt-2">
+      <div class="pt-unit-frame-label">Prompt being sent — editable; the button above sends exactly this</div>
+      <textarea id="pt-unit-prompt" class="form-input editor-textarea pt-unit-prompt" spellcheck="false">${escapeHtml(u.prompt || '')}</textarea>
+      <div class="justification-note">${(u.prompt || '').length} chars. Edits are kept for this session and persist with the case once the unit is generated.</div>
+    </div>`;
+  const ta = document.getElementById('pt-unit-prompt');
+  if (ta) ta.addEventListener('input', () => {
+    // Write back immediately: only one page is in the DOM, and "fire them all" must send
+    // the edit you made on a page you have since navigated away from.
+    const cur = _ptUnits[_ptUnitIdx];
+    if (cur) { cur.prompt = ta.value; cur._dirty = true; }
+  });
+}
+
+function ptRenderUnits() { ptRenderUnitPills(); ptRenderUnitErrors(); ptRenderUnitPage(); }
+
+function ptGoUnit(i) { _ptUnitIdx = i; ptRenderUnits(); }
+function ptGoSummary() { _ptUnitIdx = _PT_SUMMARY; ptRenderUnits(); renderPtGenPanel(); }
+function ptUnitPrev() { if (_ptUnitIdx > 0) { _ptUnitIdx -= 1; ptRenderUnits(); } }
+function ptUnitNext() { if (_ptUnitIdx < _ptUnits.length - 1) { _ptUnitIdx += 1; ptRenderUnits(); } }
+
+async function ptLoadUnits() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-units-reload-btn');
+  const d = await ptApi(`/step_prompts/${S.ptCase.key}`, { btn, busyLabel: 'Rendering…' },
+                        ptStatusEl('pt-units-status'));
+  if (!d) return;
+  // Preserve any UNSENT edit across a re-render: the server re-renders from the template,
+  // and silently replacing text the reviewer typed would be the same defect as
+  // re-rendering at dispatch.
+  const edits = {};
+  _ptUnits.forEach(u => { if (u._dirty) edits[u.id] = u.prompt; });
+  _ptUnits = (d.units || []).map(u => ({ ...u, prompt: edits[u.id] || u.prompt,
+                                         _dirty: !!edits[u.id] }));
+  if (_ptUnitIdx >= _ptUnits.length) _ptUnitIdx = 0;
+  ptRenderUnits();
+}
+
+// ONE request dispatches, ONE request polls. Never a connection per unit.
+//
+// THE DEADLOCK THIS REPLACES (2026-09-02, found on the live server)
+// -----------------------------------------------------------------
+// This used to POST /generate_step per unit and await each. Every such request holds its
+// connection for the whole LLM call — it blocks server-side in registry.submit until the
+// browser posts a result. A browser allows SIX connections per origin. So 30 requests
+// fired, 6 took every connection and blocked, and the broker's own /api/agent/next
+// long-poll could not get one. Nothing was claimed, nothing returned, no connection was
+// freed. Live evidence: pending:5 (only ~6 of 30 requests reached the server at all),
+// session_active:false, zero claude processes, zero LLM records. Raising ckBrokerWorkers
+// made it worse — each worker holds a long-poll on the same origin.
+//
+// The jsdom spec could not have caught it: a stubbed fetch has no connection limit. It
+// proved this code dispatches concurrently, not that the transport could carry it.
+const _PT_UNIT_POLL_MS = 2000;
+let _ptUnitPoll = null;
+
+function _ptStopUnitPoll() {
+  if (_ptUnitPoll) { clearInterval(_ptUnitPoll); _ptUnitPoll = null; }
+}
+
+// Merge a status snapshot onto the local units. Code is fetched per page, not per poll:
+// 30 units of ~2.5KB every 2s is 150KB/minute of unchanged bytes.
+function _ptApplyUnitStatus(map, running) {
+  let settledSomething = false;
+  const runSet = new Set(running || []);
+  _ptUnits.forEach(u => {
+    const st = map[u.id];
+    const wasSending = !!_ptUnitSending[u.id];
+    if (runSet.has(u.id)) { _ptUnitSending[u.id] = true; return; }
+    if (wasSending) { delete _ptUnitSending[u.id]; settledSomething = true; }
+    if (!st) return;
+    if (st.status === 'ok') {
+      if (u.status !== 'ok') { u.status = 'ok'; u.error = ''; u.at = st.at || u.at; }
+    } else if (st.status === 'error') {
+      if (u.status !== 'error' || u.error !== st.error) {
+        u.status = 'error';
+        u.error = st.error || 'failed';
+        // Surfaced the moment we learn of it, which is the ask — but in a panel, because
+        // window.alert would freeze the event loop mid-fan-out.
+        if (!_ptUnitFails.some(f => f.id === u.id)) {
+          _ptUnitFails.push({ id: u.id, label: u.label, why: u.error,
+                              at: new Date().toISOString() });
+        }
+      }
+    }
+  });
+  return settledSomething;
+}
+
+async function _ptPollUnitsOnce() {
+  let d = null;
+  try {
+    const r = await fetch(`${PT_API}/units_status/${encodeURIComponent(S.ptCase.key)}`);
+    if (!r.ok) return false;
+    d = await r.json();
+  } catch (_) { return false; }          // a dropped poll is not a failure of the work
+  _ptApplyUnitStatus(d.units || {}, d.running || []);
+  ptRenderUnits();
+  const stillRunning = (d.running || []).length > 0;
+  if (!stillRunning) {
+    _ptStopUnitPoll();
+    // Pull the code for whatever landed, once, now that nothing is in flight.
+    await ptLoadUnits();
+    const st = ptStatusEl('pt-units-status');
+    if (st) {
+      delete st.dataset.busy;
+      const ok = _ptUnits.filter(u => _ptUnitState(u) === 'ok').length;
+      st.textContent = `${ok}/${_ptUnits.length} unit(s) generated`
+        + (_ptUnitFails.length ? ` — ${_ptUnitFails.length} failed; re-run them individually.` : '.');
+    }
+  }
+  return stillRunning;
+}
+
+function _ptStartUnitPoll() {
+  _ptStopUnitPoll();
+  _ptUnitPoll = setInterval(_ptPollUnitsOnce, _PT_UNIT_POLL_MS);
+}
+
+// Dispatch a subset (or all) and start polling. `ids` empty = every unit.
+async function _ptDispatchUnits(ids) {
+  const wanted = (ids && ids.length ? ids : _ptUnits.map(u => u.id));
+  const payload = wanted.map(id => {
+    const u = _ptUnitById(id);
+    return { id, prompt: (u && u.prompt) || '' };
+  });
+  wanted.forEach(id => { _ptUnitSending[id] = true; });
+  _ptUnitFails = _ptUnitFails.filter(f => !wanted.includes(f.id));
+  ptRenderUnits();
+  const errRef = {};
+  const d = await ptApi(`/generate_units/${S.ptCase.key}`, {
+    method: 'POST', body: JSON.stringify({ units: payload }), errRef,
+  }, null);
+  if (!d) {
+    wanted.forEach(id => { delete _ptUnitSending[id]; });
+    _ptUnitFails.push({ id: wanted[0] || '?', label: 'dispatch',
+                        why: errRef.msg || 'could not dispatch', at: new Date().toISOString() });
+    ptRenderUnits();
+    return null;
+  }
+  // Anything the server refused to (re)dispatch is not in flight.
+  const live = new Set([...(d.dispatched || []), ...(d.already_running || [])]);
+  wanted.forEach(id => { if (!live.has(id)) delete _ptUnitSending[id]; });
+  ptRenderUnits();
+  _ptStartUnitPoll();
+  return d;
+}
+
+async function ptGenerateUnit(unitId) {
+  if (!ptRequireCase()) return;
+  if (!_ptUnitById(unitId)) return;
+  if (_ptUnitSending[unitId]) return;                 // already in flight
+  return await _ptDispatchUnits([unitId]);
+}
+
+async function ptGenerateAllUnits() {
+  if (!ptRequireCase()) return;
+  if (!_ptUnits.length) await ptLoadUnits();
+  const btn = document.getElementById('pt-units-all-btn');
+  const st = ptStatusEl('pt-units-status');
+  if (st) { st.dataset.busy = '1'; st.textContent = `Dispatching ${_ptUnits.length} unit(s)…`; }
+  // The button's job ends when dispatch returns; the pills carry progress from there.
+  setButtonBusy(btn, true, { label: 'Dispatching…' });
+  const d = await _ptDispatchUnits(null);
+  setButtonBusy(btn, false);
+  flashButtonDone(btn, !!d, d ? { label: `✓ ${(d.dispatched || []).length} sent` } : undefined);
+  if (st && d) {
+    st.textContent = `${(d.dispatched || []).length} unit(s) dispatched — `
+      + `up to ${d.max_concurrent} at once server-side, and however many the broker's `
+      + `workers can run. Pills update as they land.`;
+  }
+}
+
+async function ptAssembleScript() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-assemble-btn');
+  // LOCAL: splice + re-stamp + manifest + lint. No LLM, so no llm:true and no Stop.
+  const d = await ptApi(`/assemble_script/${S.ptCase.key}`, {
+    method: 'POST', btn, busyLabel: 'Assembling…',
+    body: JSON.stringify(ptGenNaming()),
+  }, ptStatusEl('pt-gen-status'));
+  if (!d) return;
+  await ptRefreshSession();
+  renderPtGenPanel();
+  ptRenderUnits();
+  ptStatusEl('pt-gen-status').textContent =
+    `Assembled ${d.units} unit(s) — manifest ${d.manifest && d.manifest.ok ? 'ok' : 'FAILED'}, `
+    + `lint ${d.lint && d.lint.ok ? 'ok' : 'FAILED'}. Run Review for the holistic pass.`;
 }
 
 // --- Step 6: Generate ---------------------------------------------------------
@@ -993,6 +1388,9 @@ async function ptSaveGenNaming() {
 
 export function renderPtGenPanel() {
   if (!ptSession) { ptStatusEl('pt-gen-status').textContent = 'Load a case first.'; return; }
+  // Seed the unit prompts on first entry. Not awaited: the rest of the panel renders
+  // immediately and the pills fill in when the render returns.
+  if (!_ptUnits.length) { ptLoadUnits(); } else { ptRenderUnits(); }
   const s6 = ptSession.step6 || {};
   const naming = s6.naming || {};
   const groupEl = document.getElementById('pt-gen-group');
@@ -1016,6 +1414,9 @@ export function renderPtGenPanel() {
     document.getElementById('pt-gen-lib-code').value = lib.code || '';
   }
   ptRenderLint(s6.lint);
+  // Re-seed the review from the session, or a reload silently discards findings the
+  // reviewer paid an LLM call for — and an empty panel reads as "no findings".
+  ptRenderReview(s6.review);
   if (s6.iterations) ptStatusEl('pt-gen-status').textContent = `Iteration ${s6.iterations}.`;
   // Generate + Fix both write step6; the provenance block covers generate_script.
   // Fix reuses the same block via its own endpoint on Refresh from the Gen panel.
@@ -1031,6 +1432,58 @@ function ptRenderLint(lint) {
   const warn = (lint.warnings || []).map(w => `<div>△ ${escapeHtml(w)}</div>`).join('');
   el.innerHTML = `<span class="badge ${lint.ok ? 'badge-success' : ''}">${lint.ok ? 'lint OK' : 'lint failed'}</span>`
     + `<div class="justification-note">${err}${warn}</div>`;
+}
+
+// Pass C — the holistic review (PLAN-pytest-creator.md §9.6).
+//
+// Renders FINDINGS. There is deliberately no "apply" button here: §9.6 settles that a
+// review must not rewrite the script, because a rewrite re-emits the whole file (the same
+// wall clock chunking exists to avoid) and can silently undo a correct reused fragment,
+// breaking the provenance chain. A finding becomes a change through the step-7 Fix loop,
+// where it is recorded and reviewable.
+const _PT_SEV = { high: '✗', medium: '△', low: '·' };
+
+function ptRenderReview(review) {
+  const el = document.getElementById('pt-review-result');
+  if (!el) return;
+  if (!review || !review.at) { el.innerHTML = ''; return; }
+  const findings = review.findings || [];
+  if (!findings.length) {
+    // "No findings" is a real result, not an empty state — say so, or a reviewer cannot
+    // tell a clean review from a review that never ran.
+    el.innerHTML = '<span class="badge badge-success">review: no findings</span>'
+      + `<div class="justification-note">Reviewed ${escapeHtml(review.at)} — nothing found beyond the static checks.</div>`;
+    return;
+  }
+  const counts = ['high', 'medium', 'low']
+    .map(sv => ({ sv, n: findings.filter(f => f.severity === sv).length }))
+    .filter(c => c.n).map(c => `${c.n} ${c.sv}`).join(' · ');
+  el.innerHTML = `<span class="badge">review: ${findings.length} finding(s)</span> `
+    + `<span class="justification-note">${escapeHtml(counts)} — fix these on step 7 (Validate → Fix).</span>`
+    + '<div class="mt-1">' + findings.map(f => `
+      <div class="pt-review-finding pt-review-${escapeHtml(f.severity)}">
+        <div><b>${_PT_SEV[f.severity] || '·'} ${escapeHtml(f.where || '(script)')}</b>`
+        + (f.step ? ` <span class="justification-note">step ${escapeHtml(f.step)}</span>` : '')
+        + ` <span class="justification-note">${escapeHtml(f.kind)}</span></div>
+        <div>${escapeHtml(f.what)}</div>`
+        + (f.evidence ? `<pre class="session-pre pt-review-ev">${escapeHtml(f.evidence)}</pre>` : '')
+        + (f.suggestion ? `<div class="justification-note">suggested: ${escapeHtml(f.suggestion)}</div>` : '')
+        + '</div>').join('') + '</div>';
+}
+
+async function ptReviewScript() {
+  if (!ptRequireCase()) return;
+  // Push edits first, exactly as Lint does — reviewing the session copy while the textarea
+  // holds something else reports findings against a script the reviewer cannot see.
+  await ptPushCodeEdits(false);
+  const btn = document.getElementById('pt-review-btn');
+  const d = await ptApi(`/review_script/${S.ptCase.key}`, {
+    method: 'POST', btn, busyLabel: 'Reviewing…', llm: true,
+  }, ptStatusEl('pt-gen-status'));
+  recordLLMDebug(btn);
+  if (!d) return;
+  await ptRefreshSession();
+  ptRenderReview(d);
 }
 
 async function ptGenerateScript() {
@@ -1494,7 +1947,9 @@ registerActions({
   ptSaveMatches,
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
-  ptLintScript, ptFixScript, ptSaveScript,
+  ptLintScript, ptReviewScript, ptFixScript, ptSaveScript,
+  ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript,
+  ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,
   ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,
   ptAddSetupRow, ptRemoveSetupRow,

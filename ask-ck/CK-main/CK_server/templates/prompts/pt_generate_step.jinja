@@ -1,0 +1,116 @@
+{#-
+  PyTest Creator — PER-UNIT generation (PLAN-pytest-creator.md §9.5, built 2026-09-02).
+
+  One call fills ONE unit of the script: a single `TestCase_<n>` class, or the TestSet's
+  configure()/tear_down() pair. The frame is NOT written by a model — `_render_skeleton()`
+  renders it deterministically and the server splices these replies into it, so the frame
+  cannot vary between units and no call re-emits it.
+
+  The fill rules are the SAME rules the whole-script prompt uses, included from
+  pt_fill_rules.jinja so the two can never drift. A test pins that the whole-script prompt
+  renders byte-identically to before the extraction.
+
+  ORDER IS LOAD-BEARING — DO NOT REARRANGE WITHOUT RE-MEASURING (reordered 2026-09-02).
+  Prompt caching can only reuse a literal shared PREFIX, so everything that is identical
+  across every unit of a case is hoisted ABOVE the first byte that varies:
+
+      INVARIANT (the cacheable prefix)   intro, Case, framework surface, devices, fill rules
+      VARIES PER UNIT (below the line)   the unit, its blank block, its fragments, its CLI
+                                         reference, output format
+
+  `cli_reference` looks invariant and is NOT: `_cli_reference_block(text_rows, frags)`
+  derives it from this unit's own step text and fragments, and the 30 blocks of T44297 all
+  differ. It therefore stays BELOW the line. That is only possible because the shared
+  pt_fill_rules.jinja no longer says "the REAL CLI REFERENCE above" — rules 4b, 4b-ii and 5
+  were reworded position-neutrally on 2026-09-02 precisely so the reference could move.
+  DO NOT reintroduce a positional word there: it is included by BOTH this template and
+  pt_generate_script.jinja, which place the reference on opposite sides of the rules.
+  Measured cost of getting this wrong: putting the CLI reference above the rules halves the
+  shared prefix, 11,143 -> 5,663 chars.
+
+  Before the reorder the fill rules sat LAST and the 30 unit prompts of a case shared a
+  343-character prefix — 0.7%. tests/test_pt_per_unit.py pins the ordering; run it after
+  any edit here.
+-#}
+You are filling ONE unit of a standardized Allied Telesis `framework` test script
+(ATTestSet/ATTestCase). The rest of the script already exists and is NOT your concern — do
+not write imports, the `TestSet` class, other test cases, or the `__main__` runner.
+
+## Case
+Key: {{ case_key }} | Title: {{ case_title }}
+
+## Framework surface (relevant modules; call these — do not invent APIs)
+{% for mod, api in framework_surface.items() %}
+- {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{% endfor %}
+
+{% if devices %}
+## Device handles `init()` has already bound (use these names; do not rebind)
+{% for d in devices %}
+- `self.testSet.{{ d }}`
+{%- endfor %}
+{% endif %}
+{#- The shared rules are written for the whole script. Scope them, rather than restating
+    them here in a second copy that would drift. -#}
+The rules below are the project's rules for filling slots anywhere in this script. They
+apply to the unit you are given further down. Ignore any part that refers to classes or
+files outside it — you are returning one block, not a script.
+
+{% include 'pt_fill_rules.jinja' %}
+
+{#- ==== EVERYTHING BELOW THIS LINE VARIES PER UNIT — see the header note ==== -#}
+{% if mode == 'setup' %}
+## Your unit: the suite setup
+Fill `TestSet.configure()` and `TestSet.tear_down()` — the one-time suite setup and its
+cleanup. These are CONFIG ONLY: no `passed()`, no `failed()`, no verification. They exist so
+every test case below starts from a known device state.
+
+The sequence steps classified as setup:
+{% for s in setup_steps %}
+- **Step {{ s.n }}** — {{ s.action }}
+{%- endfor %}
+{% else %}
+## Your unit: TestCase_{{ tc_n }}
+This class implements **sequence step {{ source_n }}**.
+
+- **action**: {{ step.action }}
+- **verify**: {{ step.verify }}
+
+The `verify` text is the contract. Your pass/fail determination must correspond to it — not
+to something narrower, broader, or adjacent. This is the single most important property of
+the unit you are writing.
+{% endif %}
+
+## The exact block to return, with its slots filled
+Return this block with every `# >>> FILL ... <<<` slot completed and every marker comment
+removed. Keep the class name, the `testCaseDesc` / `testCaseRef` / `testCaseMethod`
+attributes and the method signatures EXACTLY as given — they are the fixed frame and the
+server will reject a reply that renames or drops them.
+
+```python
+{{ blank_block }}
+```
+
+{% if fragments %}
+## Reviewer-approved reusable code for THIS unit (real source — adapt it into the slots)
+{% for f in fragments %}
+### From {{ f.source_id }} — {{ f.symbol }}{% if f.py2_flagged %} ⚠ PYTHON 2{% endif %}
+Provenance tag for this fragment: `{{ f.tag }}`
+Reviewer note: {{ f.why }}
+```python
+{{ f.code }}
+```
+{% endfor %}
+{% else %}
+## Reusable code
+None of the reviewer's selected fragments map to this step. Write it from the framework
+surface above and the CLI reference below, in the same idiom as the rest of the suite.
+{% endif %}
+{% if cli_reference %}
+## {{ cli_reference }}
+{% endif %}
+
+## Output format
+Return ONE fenced python block containing ONLY the block shown above with its slots filled.
+No other prose, no other blocks, no imports, no `__main__`. Preserve the original
+indentation exactly — the server splices your reply into the surrounding file verbatim.

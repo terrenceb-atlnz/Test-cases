@@ -60,6 +60,19 @@ async def next_job(session: str = "", wait: float = 25.0,
         await asyncio.sleep(0.4)
 
 
+@router.get("/job_wanted/{job_id}")
+async def job_wanted(job_id: str):
+    """Does a caller still want this job's result?
+
+    Polled by the browser WHILE it runs a job, so a cancelled or timed-out job can be
+    abandoned immediately instead of blocking the broker loop for the rest of its budget
+    (see AgentJobRegistry.is_wanted). Deliberately unauthenticated and session-free like
+    the rest of this bridge, and it leaks nothing: a boolean about an opaque job id the
+    caller must already possess.
+    """
+    return {"wanted": registry.is_wanted(job_id)}
+
+
 @router.post("/result")
 async def deliver_result(body: dict = Body(...), x_ck_session: str = Header(default="")):
     """Browser posts a completion (or error) back for a claimed job.

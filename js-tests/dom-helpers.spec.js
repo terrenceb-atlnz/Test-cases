@@ -104,6 +104,63 @@ describe('flashButtonDone', () => {
   it('is a safe no-op on a null button', () => {
     expect(() => flashButtonDone(null, true)).not.toThrow();
   });
+
+  // opts.label (2026-09-02): colour alone is weak feedback for a request that
+  // answers in under a tenth of a second — the flash is over before the eye gets
+  // back to the button, and the save reads as a no-op.
+  it('holds a label for the flash and then restores the original', () => {
+    vi.useFakeTimers();
+    const b = makeButton('Save Selections');
+    flashButtonDone(b, true, { label: '✓ Saved' });
+    expect(b.textContent).toBe('✓ Saved');
+    expect(b.classList.contains('is-done')).toBe(true);
+    vi.advanceTimersByTime(1600);
+    expect(b.textContent).toBe('Save Selections');
+    expect(b.classList.contains('is-done')).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('holds a labelled flash longer than a colour-only one', () => {
+    vi.useFakeTimers();
+    const b = makeButton('Go');
+    flashButtonDone(b, true, { label: 'Saved' });
+    vi.advanceTimersByTime(1200);            // the colour-only duration
+    expect(b.classList.contains('is-done')).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('escapes a label instead of injecting it', () => {
+    const b = makeButton('Go');
+    flashButtonDone(b, true, { label: '<img src=x onerror=1>' });
+    expect(b.querySelector('img')).toBeNull();
+    expect(b.textContent).toContain('<img');
+  });
+
+  it('lets a later flash own the button instead of being cut short', () => {
+    // The first flash's timer must not put a stale label back over the second's.
+    vi.useFakeTimers();
+    const b = makeButton('Go');
+    flashButtonDone(b, true, { label: 'First' });
+    vi.advanceTimersByTime(1000);
+    flashButtonDone(b, true, { label: 'Second' });
+    vi.advanceTimersByTime(700);             // past flash #1's deadline
+    expect(b.textContent).toBe('Second');
+    expect(b.classList.contains('is-done')).toBe(true);
+    vi.advanceTimersByTime(1000);            // past flash #2's
+    expect(b.textContent).toBe('Go');
+    expect(b.classList.contains('is-done')).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('still clears a colour-only flash at 1.2s', () => {
+    vi.useFakeTimers();
+    const b = makeButton('Go');
+    flashButtonDone(b, true);
+    vi.advanceTimersByTime(1200);
+    expect(b.classList.contains('is-done')).toBe(false);
+    expect(b.textContent).toBe('Go');
+    vi.useRealTimers();
+  });
 });
 
 describe('showStatus', () => {

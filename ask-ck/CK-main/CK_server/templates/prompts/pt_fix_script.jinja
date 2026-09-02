@@ -16,6 +16,22 @@ Key: {{ case_key }} | Script: {{ file_name }} | Iteration: {{ iteration }}
 {{ lint_errors }}
 {% endif %}
 
+{% if review_findings %}
+## Review findings (from the holistic review pass — address every one)
+These name defects no checker can see: a verdict that does not correspond to its step's
+`verify` text, a helper signature nothing defines, an inconsistently named device handle.
+Fix the CONDITION, never by weakening or deleting an assertion.
+{% for f in review_findings %}
+- **[{{ f.severity }}] {{ f.where }}{% if f.step %} (step {{ f.step }}){% endif %}** — {{ f.what }}
+{%- if f.evidence %}
+  - at: `{{ f.evidence }}`
+{%- endif %}
+{%- if f.suggestion %}
+  - suggested: {{ f.suggestion }}
+{%- endif %}
+{%- endfor %}
+{% endif %}
+
 ## Execution results (parsed from the framework log)
 {% for c in results %}
 - {{ c.name }}: {{ c.result }}{% if c.fail_msgs %} — failures: {% for m in c.fail_msgs %}{{ m }}; {% endfor %}{% endif %}

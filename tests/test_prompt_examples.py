@@ -27,11 +27,22 @@ import sqlite3
 import pytest
 
 # Shared helpers so a check cannot fire on its own advice text — see tests/_prose.py
-from _prose import code_fences, code_lines, flat
+from _prose import code_fences, code_lines, flat, expand_includes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 TPL = REPO / "ask-ck" / "CK-main" / "CK_server" / "templates"
-GENERATE = TPL / "prompts" / "pt_generate_script.jinja"
+# The prompt AS SENT is the template with its includes resolved — the fill
+# rules live in pt_fill_rules.jinja since 2026-09-02, shared with the per-unit
+# prompt. Reading the bare file would assert about half the prompt.
+class _Expanded:
+    def __init__(self, path):
+        self.path = path
+    def read_text(self, *a, **k):
+        return expand_includes(self.path)
+    def __truediv__(self, other):
+        return self.path / other
+
+GENERATE = _Expanded(TPL / "prompts" / "pt_generate_script.jinja")
 EXTRACT = TPL / "prompts" / "pt_extract_sequence.jinja"
 SKELETON = TPL / "pt_script_template.py.jinja"
 DB = REPO / "ask-ck" / "var" / "ck.db"

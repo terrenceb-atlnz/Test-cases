@@ -572,7 +572,8 @@ body {
   font-family: var(--font-sans);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
+  transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms,
+              transform 80ms ease-out;
   white-space: nowrap;
 }
 
@@ -682,6 +683,139 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* Per-unit generation (PLAN §9.5). The pill row reuses Script Search's classes; this
+   adds the IN-FLIGHT colour, which that panel never needed because its calls were
+   sequential and one at a time. Amber rather than a spinner: 30 pills each animating is
+   noise, and the question a reviewer asks of the row is "which are done", not "which is
+   moving". */
+.pt-pill-row button.pt-pill-run {
+  background: #78350f;
+  border-color: #d97706;
+  color: #fde68a;
+}
+
+.pt-unit-frame {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.pt-unit-frame-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  padding: 5px 8px;
+  background: var(--bg-secondary, transparent);
+  border-bottom: 1px solid var(--border-default);
+}
+/* Same specificity note as the prompt below — .session-pre is declared later. */
+pre.pt-unit-out {
+  margin: 0;
+  max-height: 40vh;
+  min-height: 60px;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  resize: vertical;
+}
+/* The prompt is the thing being READ and edited, and a unit prompt runs to tens of
+   thousands of characters (87,973 on AWPTCM-T44297's setup unit). It gets the screen.
+
+   `textarea.` is load-bearing, not decoration. `.editor-textarea` (height:120px,
+   font-size:11px) is declared LATER in this file at equal specificity, so a bare
+   `.pt-unit-prompt` loses the tie and the box renders 120px tall at 11px — unreadable,
+   which is exactly what shipped on the first attempt. Adding the element selector makes
+   it 0,1,1 and independent of source order. Same trick, same reason, as the pill rules
+   above; see the comment on `.pt-pill-row button.pt-pill`. */
+textarea.pt-unit-prompt {
+  height: 62vh;
+  min-height: 320px;
+  border: 0;
+  border-radius: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  /* Draggable: no single default suits both a 3k setup prompt and an 88k one. */
+  resize: vertical;
+}
+
+/* Failures, non-blocking. `alert` would freeze the event loop and queue every other
+   unit's result behind the dialog — see ptRenderUnitErrors. */
+.pt-unit-errbox {
+  border: 1px solid var(--status-err, #dc2626);
+  border-left-width: 3px;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.pt-unit-errrow {
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+/* Pass C review findings (PLAN-pytest-creator.md §9.6). Severity is carried by a left
+   border rather than a background: these sit directly above the code editor, and a filled
+   block there reads as an error state for the whole panel. */
+.pt-review-finding {
+  border-left: 3px solid var(--border-strong);
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: var(--bg-secondary, transparent);
+  border-radius: 0 4px 4px 0;
+  font-size: 12px;
+}
+.pt-review-high { border-left-color: var(--status-err, #dc2626); }
+.pt-review-medium { border-left-color: #d97706; }
+.pt-review-low { border-left-color: var(--border-strong); }
+.pt-review-ev {
+  margin: 4px 0;
+  max-height: 120px;
+  overflow: auto;
+  font-size: 11px;
+}
+
+/* Click feedback on EVERY button (2026-09-02) — two mechanisms, because one is
+   not enough on its own:
+     - `:active` covers the press while it is being HELD (mouse down, not yet up);
+     - `.ck-pressed` is a fixed ~180ms pulse added by the delegated listener in
+       actions.js, which is what makes a FAST click visible, and is the ONLY
+       feedback for an Enter/Space activation (that never sets :active) or for a
+       handler that blocks the main thread before any status text is written.
+   Real <button>s and .btn anchors only: the sidebar's div[role="button"] nav
+   items are full-width rows, and scaling one reads as a glitch, not a press. */
+button:active:not(:disabled),
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@keyframes ck-press {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+button.ck-pressed,
+.btn.ck-pressed {
+  animation: ck-press 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No scaling for motion-sensitive users — a darken still says "pressed".
+     The class is cleared on a timer, not on animationend, precisely because
+     `animation: none` here means animationend never fires. */
+  button:active:not(:disabled),
+  .btn:active:not(:disabled),
+  button.ck-pressed,
+  .btn.ck-pressed {
+    transform: none;
+    animation: none;
+    filter: brightness(0.88);
+  }
 }
 
 /* Async/LLM button feedback: pressed → spinner-while-busy → ✓/✗ flash.

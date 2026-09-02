@@ -59,6 +59,12 @@ def _wire(pc, monkeypatch, sess, content='{"matches": []}'):
 
     monkeypatch.setattr(pc, "run_prompt", fake_run_prompt)
     monkeypatch.setattr(pc, "_pt_get", lambda k: sess)
+    # `_pt_load` too, since 2026-09-02: the persist path re-reads the session AFTER the
+    # LLM call and applies onto that fresh copy, so a long call can no longer be undone by
+    # a concurrent save (the T44297 409s — see test_pt_fresh_write.py). Returning the same
+    # object keeps these assertions pointed at the session they already inspect.
+    monkeypatch.setattr(pc, "_pt_load", lambda k: sess)
+    monkeypatch.setattr(pc, "pt_sessions", {})
     monkeypatch.setattr(pc, "_pt_persist", lambda s: None)
     monkeypatch.setattr(pc, "_data", lambda r: {"scripts_index_by_id": {}})
     monkeypatch.setattr(pc, "_search_slim",

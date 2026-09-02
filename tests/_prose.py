@@ -113,3 +113,32 @@ def code_fences(src: str, lang: str = "python") -> List[str]:
     example, not the prose, so an example that is wrong IS the bug.
     """
     return re.findall(rf"```{lang}\n(.*?)```", src, re.S)
+
+
+def expand_includes(path, _depth: int = 0) -> str:
+    """A template's source with `{% include 'x' %}` inlined from the same directory.
+
+    WHY THIS EXISTS (2026-09-02)
+    ----------------------------
+    18 tests asserted "the generate prompt conveys rule X" by grepping
+    `pt_generate_script.jinja` as a FILE. When the slot-filling rules were extracted into
+    `pt_fill_rules.jinja` so the whole-script and per-unit prompts could share one copy,
+    all 18 broke — while the RENDERED prompt was byte-identical (proved by
+    tests/test_pt_prompt_rules_partial.py against a pre-extraction snapshot).
+
+    The tests were right about the intent and wrong about the unit: what reaches the model
+    is the template WITH its includes resolved, so that is what an assertion about the
+    prompt should read. Textual rather than a Jinja render, because these tests inspect
+    the template's own source — its `{% if %}` branches, its jinja comments, its fenced
+    examples — none of which survive rendering.
+    """
+    import pathlib
+    p = pathlib.Path(path)
+    src = p.read_text(encoding="utf-8")
+    if _depth > 4:                      # cycles are a bug, not something to recurse into
+        return src
+    def _sub(m):
+        name = m.group(1)
+        target = p.parent / name
+        return expand_includes(target, _depth + 1) if target.exists() else m.group(0)
+    return re.sub(r"\{%-?\s*include\s+['\"]([^'\"]+)['\"]\s*-?%\}", _sub, src)

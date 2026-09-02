@@ -10,6 +10,39 @@ For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for
 current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
+
+## 2026-09-02 — Per-unit script generation, a batch dispatch that survives the browser, and a cache-aware prompt order
+
+**Step 6 generates one LLM call per test case instead of one per script.** The frame is
+rendered deterministically and split by AST into units (`TestCase_<n>`, plus configure/
+tear_down as one `setup` unit); replies are spliced back byte-exactly. Assembly uses no LLM —
+splice, re-stamp, lint. *Why:* the single whole-script call for AWPTCM-T44297 took 672.9 s and
+$1.58, and 39 % of its output was the model retyping a frame we already generate exactly.
+Per-unit costs more in total (~$13.5 for 30) and buys parallelism, restartability of one
+failed step, and an editable per-unit prompt.
+
+**Fan-out is dispatched as ONE request.** *Why:* firing 30 blocking requests hits the
+browser's 6-connections-per-origin limit and starves the agent broker's own poll — the page
+cannot collect work it just queued. `POST /generate_units/{key}` queues them server-side
+(`Semaphore(8)`) and `GET /units_status/{key}` polls; the browser broker runs 4 workers.
+
+**The per-unit prompt is ordered so prompt caching can work, and the shared fill rules were
+reworded to permit it.** Everything invariant precedes everything that varies; the measured
+shared prefix across a case's 30 prompts went from 343 characters (0.7 %) to 11,143 (21.7 %).
+*Why the rules changed:* `pt_fill_rules.jinja` is included by BOTH prompts, which place the
+CLI reference on opposite sides of it, so rules 4b / 4b-ii / 5 saying "above" was false for one
+caller. Three lines are now position-neutral; the whole-script render was diffed line by line
+before the byte-identity snapshot was regenerated, and a guard test fails if a positional word
+returns. **Do not put a position word in a shared prompt partial.**
+
+**Pass C (holistic review) shipped** — `POST /review_script/{key}` returns findings as JSON,
+persists them under `step6["review"]`, writes no files and invalidates no downstream step;
+`fix_script` accepts `review_findings` as a fix reason.
+
+**Every button now shows it was pressed**, and Save Selections confirms with `✓ Saved`. *Why:*
+the save worked and always had — it flashed colour for 1.2 s, with no glyph, a screen-height
+from the button that was clicked, which is indistinguishable from nothing happening.
+
 ## 2026-09-02 — tb470's `.setup` became a generated artifact, and the tree stopped holding rival copies of the bench
 
 **What changed.** `/home/st-art/st-art/configs/tb470.setup` is no longer authored. It is

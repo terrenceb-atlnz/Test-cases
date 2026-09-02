@@ -91,19 +91,46 @@ export function setButtonBusy(btn, on, opts) {
 }
 
 /**
- * Briefly flash a completed async button green (✓) or red (✗) so success/failure
- * is visible on the button itself, not only in a status banner. Non-blocking:
- * the class auto-clears after ~1.2s. Safe to call right after setButtonBusy(off).
+ * Briefly flash a completed async button green or red so success/failure is visible
+ * on the button itself, not only in a status banner. Non-blocking: it auto-clears.
+ * Safe to call right after setButtonBusy(off).
+ *
+ * `opts.label` swaps the button's text for the duration of the flash. Colour alone
+ * is weak feedback for a FAST request — the spinner comes and goes in under a tenth
+ * of a second and the colour can be gone before the eye gets back to the button, so
+ * a reviewer who was watching still reports "nothing happened" (2026-09-02). A word
+ * survives that, and holds a little longer because reading takes longer than seeing.
+ * Note there is no ✓ glyph unless a caller asks for one in its label — this
+ * docstring used to claim otherwise.
  *
  * @param {HTMLElement|null} btn
  * @param {boolean} ok  true → success flash, false → error flash
+ * @param {{label?: string, ms?: number}} [opts]
  */
-export function flashButtonDone(btn, ok) {
+export function flashButtonDone(btn, ok, opts) {
   if (!btn) return;
   const cls = ok ? 'is-done' : 'is-error';
+  const label = (opts && opts.label) || '';
+  const ms = (opts && opts.ms) || (label ? 1600 : 1200);
   btn.classList.remove('is-done', 'is-error');
   // reflow so re-adding the same class restarts the CSS transition
   void btn.offsetWidth;
   btn.classList.add(cls);
-  window.setTimeout(function () { btn.classList.remove(cls); }, 1200);
+  // Generation token: a second flash landing mid-flash must own the restore, or the
+  // first one's timer puts the stale label back and clears the new colour early.
+  const gen = String(Number(btn.dataset.flashGen || 0) + 1);
+  btn.dataset.flashGen = gen;
+  if (label) {
+    if (btn.dataset.flashLabel == null) btn.dataset.flashLabel = btn.innerHTML;
+    btn.innerHTML = escapeHtml(label);
+  }
+  window.setTimeout(function () {
+    if (btn.dataset.flashGen !== gen) return;      // a later flash owns the button now
+    delete btn.dataset.flashGen;
+    btn.classList.remove(cls);
+    if (btn.dataset.flashLabel != null) {
+      btn.innerHTML = btn.dataset.flashLabel;
+      delete btn.dataset.flashLabel;
+    }
+  }, ms);
 }

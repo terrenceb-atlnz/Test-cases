@@ -21,8 +21,10 @@ machine could call it, but it can only ever spend THIS user's own Claude seat.
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("CK_AGENT_PORT", "8765"))
@@ -30,6 +32,38 @@ PORT = int(os.environ.get("CK_AGENT_PORT", "8765"))
 # origin — convenient for local testing; set CK_AGENT_ORIGIN in real use.
 ALLOWED_ORIGIN = os.environ.get("CK_AGENT_ORIGIN", "*")
 DEFAULT_TIMEOUT = int(os.environ.get("CK_AGENT_TIMEOUT", "600"))
+
+# job_id -> Popen, for the running CLI calls this agent owns.
+#
+# WHY THIS EXISTS (2026-09-02, AWPTCM-T44297)
+# ------------------------------------------
+# `run_claude` used `subprocess.run`, which keeps no handle, so a started `claude` could
+# not be stopped. Stopping from the Ask CK UI freed the server and (after the same day's
+# fix) the browser's broker loop -- but this machine kept grinding to produce an answer
+# already discarded, burning the user's OWN Claude seat for up to the whole budget. With
+# budgets floored to 1800s that is a half-hour of paid work for nothing.
+#
+# Killed as a PROCESS GROUP (start_new_session=True below), matching the server's own
+# `llm._run_cli`: `claude` spawns children, and killing only the parent leaves them holding
+# the seat and the pipes.
+_RUNNING = {}
+_RUNNING_LOCK = threading.Lock()
+
+
+def cancel_job(job_id: str) -> bool:
+    """Kill the CLI running `job_id`. True if there was one to kill."""
+    with _RUNNING_LOCK:
+        proc = _RUNNING.get(job_id)
+    if proc is None:
+        return False
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except Exception:
+        try:
+            proc.kill()          # process group gone (already reaped, or no setsid)
+        except Exception:
+            return False
+    return True
 
 
 def _find_claude():
@@ -40,7 +74,8 @@ def _find_claude():
     return guess if os.path.isfile(guess) and os.access(guess, os.X_OK) else None
 
 
-def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEOUT) -> dict:
+def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEOUT,
+               job_id: str = "") -> dict:
     """Run `claude -p --output-format json` on this machine's own login.
 
     Mirrors the server's _call_claude_code_headless parsing exactly so behaviour
@@ -55,11 +90,38 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
     if model and model != "default":
         cmd += ["--model", model]
     try:
-        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout)
+        # Popen, not subprocess.run: a run this agent cannot stop is a run that keeps
+        # spending the user's seat after they pressed Stop (see _RUNNING). start_new_session
+        # puts the CLI in its own process group so cancel_job can take its children too.
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True, start_new_session=True)
+        if job_id:
+            with _RUNNING_LOCK:
+                _RUNNING[job_id] = proc
+        try:
+            out, err = proc.communicate(input=prompt, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            if job_id:
+                cancel_job(job_id)      # takes the whole process group
+            else:
+                proc.kill()
+            proc.communicate()          # reap, so the process does not linger as a zombie
+            return {"content": f"ERROR: claude CLI timed out after {timeout}s", "error": True}
+        finally:
+            if job_id:
+                with _RUNNING_LOCK:
+                    _RUNNING.pop(job_id, None)
         if proc.returncode != 0:
-            detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
+            # A cancel is a negative return code from the signal, not a CLI fault. Say so:
+            # "claude CLI failed: exit code -9" reads as a crash and sends the reader
+            # looking at their Claude install.
+            if proc.returncode < 0:
+                return {"content": ("ERROR: claude CLI was cancelled on this machine "
+                                    f"(signal {-proc.returncode}); nothing was kept."),
+                        "error": True, "cancelled": True}
+            detail = (err or out or "").strip()[:500] or f"exit code {proc.returncode}"
             return {"content": f"ERROR: claude CLI failed: {detail}", "error": True}
-        raw = (proc.stdout or "").strip()
+        raw = (out or "").strip()
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
@@ -83,8 +145,6 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
         if cost is not None:
             result["total_cost_usd"] = cost
         return result
-    except subprocess.TimeoutExpired:
-        return {"content": f"ERROR: claude CLI timed out after {timeout}s", "error": True}
     except Exception as e:  # noqa: BLE001 — surface anything as a clean error to the browser
         return {"content": f"ERROR: {e}", "error": True}
 
@@ -127,7 +187,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, {"error": "not found"})
 
     def do_POST(self):
-        if self.path.split("?")[0] != "/run":
+        route = self.path.split("?")[0]
+        if route not in ("/run", "/cancel"):
             self._send(404, {"error": "not found"})
             return
         try:
@@ -136,12 +197,19 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError):
             self._send(400, {"content": "ERROR: bad JSON body", "error": True})
             return
+        if route == "/cancel":
+            # The browser calls this when the shared server says nobody wants the job any
+            # more. Idempotent and honest: killed=false simply means it had already finished.
+            killed = cancel_job(str(body.get("job_id") or ""))
+            self._send(200, {"ok": True, "killed": killed})
+            return
         prompt = body.get("prompt", "")
         if not prompt:
             self._send(400, {"content": "ERROR: no prompt", "error": True})
             return
         result = run_claude(prompt, body.get("model", "default"),
-                            int(body.get("timeout", DEFAULT_TIMEOUT)))
+                            int(body.get("timeout", DEFAULT_TIMEOUT)),
+                            job_id=str(body.get("job_id") or ""))
         self._send(200, result)
 
     def log_message(self, fmt, *args):  # quieter default logging

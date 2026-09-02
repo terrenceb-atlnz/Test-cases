@@ -17,14 +17,19 @@ from pathlib import Path
 import html as html_mod
 import json
 import os
+import asyncio
 import py_compile
+import random
 import re
 import tempfile
+import threading
+import time
 
 from models import PtSession, safe_session_dict, model_to_dict
 from paths import REFINED_DIR, PT_GENERATED_DIR
 from timeutil import utc_now, as_utc
-from llm import run_prompt, extract_json_block, _CODE_SYSTEM_PROMPT
+from llm import (run_prompt, run_prompt_text, render_prompt,
+                 extract_json_block, _CODE_SYSTEM_PROMPT)
 import db as dbx   # aliased: several functions here have a `db` filter parameter
 import gen_assembly
 import locks
@@ -329,6 +334,104 @@ def _pt_get(key: str) -> PtSession:
     return sess
 
 
+# How many times to re-apply a narrow field update onto a freshly reloaded session.
+# Each attempt is one indexed read plus one write, so a small number is enough: the writes
+# it races are human-paced clicks, not a hot loop.
+_PT_FRESH_WRITE_ATTEMPTS = 3
+
+# Per-unit generation dispatches N units at once and every reply writes the same session
+# row, so a stale write is the NORM there rather than an accident. Contention is bounded by
+# the browser's broker worker count (default 4, max 16), and each attempt re-reads before
+# re-applying, so a budget comfortably above that clears the queue. A discarded chunk here
+# costs a whole LLM call, which is why this is generous where the default is not.
+_PT_CHUNK_WRITE_ATTEMPTS = 24
+
+# Server-side cap on concurrent unit calls, so a 30-unit batch cannot eat the anyio
+# threadpool (40 threads by default; `registry.submit` blocks one for the whole call).
+# The real ceiling on throughput is the browser's broker worker count, which is smaller
+# than this — so this exists to protect the server, not to pace the work.
+_PT_UNIT_DISPATCH_MAX = 8
+
+# Units dispatched and not yet settled, per case key. In memory only: a server restart
+# loses the tracking, and the poll then reports whatever landed in step6.chunks, which is
+# the truth that matters. Guarded because the batch endpoint and the poll race.
+_pt_units_running: Dict[str, set] = {}
+_pt_units_lock = threading.Lock()
+
+
+def _pt_unit_mark(key: str, unit_ids, running: bool) -> None:
+    with _pt_units_lock:
+        cur = _pt_units_running.setdefault(key, set())
+        for uid in unit_ids:
+            cur.add(uid) if running else cur.discard(uid)
+        if not cur:
+            _pt_units_running.pop(key, None)
+
+
+def _pt_units_inflight(key: str) -> set:
+    with _pt_units_lock:
+        return set(_pt_units_running.get(key) or ())
+
+
+def _pt_persist_fresh(key: str, apply_fn, attempts: int = 0) -> PtSession:
+    """Re-load the session, apply `apply_fn(sess)`, and persist. Retries a stale write.
+
+    THE DEFECT THIS FIXES (2026-09-02, AWPTCM-T44297 -- 8 lost LLM calls, ~235k tokens)
+    ------------------------------------------------------------------------------------
+    Every long LLM endpoint here did: load the session, spend 30-600s in the model, then
+    persist THE SNAPSHOT IT LOADED BEFORE THE CALL. `_pt_persist` CASes on `rev`, so any
+    other write inside that window makes the snapshot stale and `locks.next_rev` refuses
+    it -- discarding the entire round trip with an HTTP 409.
+
+    The window is wide enough that ordinary use lands in it. Measured on a 31-step
+    suggest-all: clicking "Save Selections" (the reviewer shortlisting the steps already
+    done -- exactly what the panel is for) bumped the rev every 20-45s, and steps
+    10 and 13-19 each completed their LLM call and were then thrown away. The coverage bar
+    simply stopped advancing, which reads as "the LLM stopped suggesting".
+
+    The fix is to stop writing a stale whole-session snapshot, NOT to weaken the CAS.
+    `apply_fn` touches only the fields its endpoint owns, so a concurrent write to any
+    OTHER field is no longer a conflict -- while a genuine same-field conflict still loses
+    the race and still refuses, which is the protection `next_rev` exists to give.
+
+    `_pt_load`, not `_pt_get`, deliberately: `_pt_get` prefers whichever of memory/DB is
+    newer by `updated_at`, and a FAILED `_pt_persist` has already stamped `updated_at = now`
+    on the in-memory copy before `next_rev` raised. So on a retry `_pt_get` would judge the
+    poisoned cache newer than the DB and hand back the same stale-rev object forever. The
+    authoritative copy for a CAS is the row the CAS compares against.
+
+    A `LockConflictError` is NOT retried: another holder owns the case, and hammering it
+    would neither succeed nor be polite.
+
+    `attempts` overrides the default retry budget. Three is right for the one-call-at-a-time
+    endpoints this was written for, where a conflict means a human clicked Save mid-call.
+    Per-unit generation (2026-09-02) is different in kind: N units are dispatched at once and
+    every reply writes the same session row, so conflicts are the NORM rather than an
+    accident, and a unit whose result is discarded costs a whole LLM call. Contention is
+    bounded by the browser's worker count, so a budget a few times that clears it.
+    """
+    budget = attempts if attempts > 0 else _PT_FRESH_WRITE_ATTEMPTS
+    last: Optional[locks.StaleWriteError] = None
+    for attempt in range(1, budget + 1):
+        sess = _pt_load(key)
+        if sess is None:
+            raise HTTPException(404, "PyTest Creator session not found. Call load_case first.")
+        pt_sessions[key] = sess
+        apply_fn(sess)
+        try:
+            _pt_persist(sess)
+            return sess
+        except locks.StaleWriteError as e:
+            last = e
+            if attempt < budget:
+                # Back off a little, and jitter it. Without the jitter N units that
+                # collided once re-collide in lockstep on every retry.
+                time.sleep(0.05 * attempt + random.random() * 0.05)
+                print(f"[pt] {key}: stale write on attempt {attempt}/{budget}; reloading "
+                      f"and re-applying (a concurrent save landed mid-LLM)")
+    raise last if last else HTTPException(500, "unreachable")
+
+
 def _llm_cfg(sess: PtSession) -> dict:
     # Apply the workspace LLM login at dispatch time if this session has no
     # active config of its own. Without this, an LLM endpoint would fall back to
@@ -490,6 +593,19 @@ def _selected_script_ids(sess: PtSession) -> List[str]:
 def _frag_key(f: dict) -> tuple:
     """Stable identity of a fragment: (source_id, symbol)."""
     return (f.get("source_id"), f.get("symbol"))
+
+
+def _sequence_shape(sequence: list) -> str:
+    """Identity of a sequence for the purpose of "is step-numbered data still valid?".
+
+    Step numbers are the join key for everything downstream -- step3.selections is
+    {stepN: [ids]} and step5 fragments carry `maps_to: [n]` -- so a re-extraction that
+    renumbers the steps silently repoints all of it at different work. Keyed on the STEP
+    TEXT, not just the count: 31 steps whose wording changed is the same hazard as 13
+    becoming 31, and a count alone would miss it.
+    """
+    return "|".join(f"{s.get('n')}:{(s.get('action') or '')[:120]}"
+                    for s in (sequence or []))
 
 
 def _selections_fingerprint(sess: PtSession) -> str:
@@ -2849,14 +2965,44 @@ async def extract_sequence(key: str, request: Request):
     coverage = _coverage_report(sequence, fields["steps"])
     if not coverage["ok"]:
         print(f"[pt] {key} coverage gap — {coverage['warning']}")
-    sess.step2 = {"sequence": sequence, "notes": notes,
-                  "coverage": coverage,
-                  "confirmed": False,
-                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
-                                 "prompt": meta.get("prompt", ""),
-                                 "response": meta.get("content", "")[:20000]}}
-    _invalidate_from(sess, 2)
-    _pt_persist(sess)
+    # Applied to a FRESHLY reloaded session, not the snapshot loaded before a 600s LLM
+    # call — see _pt_persist_fresh. This endpoint owns step2 (and the invalidation it
+    # implies); anything a concurrent click changed elsewhere is preserved.
+    _step2 = {"sequence": sequence, "notes": notes,
+              "coverage": coverage,
+              "confirmed": False,
+              "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                             "prompt": meta.get("prompt", ""),
+                             "response": meta.get("content", "")[:20000]}}
+
+    def _apply(fresh: PtSession) -> None:
+        # DROP STEP-NUMBERED DOWNSTREAM DATA WHEN THE SEQUENCE IS RENUMBERED
+        # (2026-09-02, Terrence's call, after AWPTCM-T44297).
+        #
+        # `_invalidate_from` only un-CONFIRMS later steps; it leaves their payloads intact.
+        # That is right for most edits and wrong for a re-extraction, because step 5's
+        # fragments carry `maps_to: [n]` -- step numbers into the sequence that just
+        # changed. T44297 went from 13 steps to 31 and the pool survived with its old
+        # mapping, so six steps showed fragment cards while reporting no fragment selected,
+        # and the fragments feeding Generate were attributed to steps they never served.
+        #
+        # Only step 5 is cleared, and only when the shape actually changed: a re-extract
+        # that reproduces the same sequence must not throw away a Gather that costs minutes
+        # and real money (measured: 334.8s / $1.13 on this case).
+        #
+        # step3.selections has the same {stepN: ...} exposure and is deliberately NOT
+        # cleared here -- Terrence chose to keep that as a reported risk rather than
+        # destroy a reviewer's script picks automatically. See the 2026-09-02 log entry.
+        prev_shape = _sequence_shape((fresh.step2 or {}).get("sequence") or [])
+        fresh.step2 = _step2
+        _invalidate_from(fresh, 2)
+        if prev_shape and prev_shape != _sequence_shape(sequence):
+            if (fresh.step5 or {}).get("fragments"):
+                print(f"[pt] {key}: sequence renumbered — dropping {len(fresh.step5['fragments'])} "
+                      f"gathered fragment(s) whose maps_to referenced the old step numbers")
+            fresh.step5 = {}
+
+    _pt_persist_fresh(key, _apply)
     return {"sequence": sequence, "notes": notes, "coverage": coverage}
 
 
@@ -2963,8 +3109,16 @@ def _match_slim(m: dict) -> dict:
     return {k: m[k] for k in _MATCH_PERSIST_FIELDS if k in m}
 
 
-def _persist_step_matches(sess: PtSession, step_n: int, matches: List[dict]) -> None:
+def _persist_step_matches(key: str, step_n: int, matches: List[dict],
+                          provenance: Optional[dict] = None) -> None:
     """Merge one step's LLM suggestions into step3.step_matches and persist.
+
+    Takes the case KEY, not a session object, and merges onto a freshly reloaded copy via
+    `_pt_persist_fresh`. It used to take the caller's pre-LLM snapshot, which is how a
+    31-step suggest-all lost 8 completed calls to HTTP 409 on 2026-09-02: the reviewer
+    clicking "Save Selections" between the load and the write made every snapshot stale.
+    The merge must read `step_matches` from the CURRENT row anyway, or a concurrent
+    suggest's candidates would be dropped on the floor.
 
     Why (2026-08-26, Terrence): per-step suggestions used to live only in browser
     JS — a hard reload lost the candidates AND degraded already-chosen rows to
@@ -2978,16 +3132,20 @@ def _persist_step_matches(sess: PtSession, step_n: int, matches: List[dict]) -> 
     candidates are not selections — only save_matches changes what downstream
     consumes, and it keeps its invalidation.
     """
-    step3 = sess.step3 or {}
-    sm = dict(step3.get("step_matches") or {})
-    merged = {m0.get("id"): _match_slim(m0) for m0 in (sm.get(str(step_n)) or [])
-              if isinstance(m0, dict) and m0.get("id")}
-    for m0 in matches or []:
-        if isinstance(m0, dict) and m0.get("id"):
-            merged[m0["id"]] = _match_slim(m0)
-    sm[str(step_n)] = list(merged.values())
-    sess.step3 = {**step3, "step_matches": sm}
-    _pt_persist(sess)
+    def _apply(fresh: PtSession) -> None:
+        step3 = fresh.step3 or {}
+        if provenance is not None:
+            step3 = {**step3, "provenance": provenance}
+        sm = dict(step3.get("step_matches") or {})
+        merged = {m0.get("id"): _match_slim(m0) for m0 in (sm.get(str(step_n)) or [])
+                  if isinstance(m0, dict) and m0.get("id")}
+        for m0 in matches or []:
+            if isinstance(m0, dict) and m0.get("id"):
+                merged[m0["id"]] = _match_slim(m0)
+        sm[str(step_n)] = list(merged.values())
+        fresh.step3 = {**step3, "step_matches": sm}
+
+    _pt_persist_fresh(key, _apply)
 
 
 @router.post("/suggest_scripts_step/{key}/{step_n}")
@@ -3066,15 +3224,17 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
     # ONE slot, not one per sequence step: this payload is a row in the permanent ck.db,
     # and a 32-step case would otherwise carry 32 prompts. `step_n` records which step this
     # was; any OTHER step's prompt is a Refresh away and costs nothing to render.
-    # Set before _persist_step_matches, which spreads the current step3 and persists.
+    # Handed to _persist_step_matches rather than written onto `sess` here: that snapshot
+    # predates a 30-50s LLM call and persisting it is what produced the 409s (see
+    # _pt_persist_fresh). Both fields land in one write on one fresh copy.
+    provenance = None
     if candidates:
-        sess.step3 = {**(sess.step3 or {}),
-                      "provenance": {"llm": {k: meta.get(k) for k in
-                                             ("provider", "model", "auth_method")},
-                                     "prompt": meta.get("prompt", ""),
-                                     "response": meta.get("content", "")[:20000],
-                                     "step_n": step_n}}
-    _persist_step_matches(sess, step_n, matches)
+        provenance = {"llm": {k: meta.get(k) for k in
+                              ("provider", "model", "auth_method")},
+                      "prompt": meta.get("prompt", ""),
+                      "response": meta.get("content", "")[:20000],
+                      "step_n": step_n}
+    _persist_step_matches(key, step_n, matches, provenance=provenance)
     return {"matches": matches, "mechanical_considered": len(mech), "step_n": step_n}
 
 
@@ -3334,39 +3494,87 @@ async def gather_fragments(key: str, request: Request):
     # Merge into any existing pool (a re-Gather adds to what's there without wiping the
     # reviewer's selections). Freshly CHOSEN fragments default to selected; redundant
     # ones are added to the pool but not auto-selected. Previously-made selections win.
-    prev = sess.step5 or {}
-    pool = list(prev.get("fragments") or [])
-    have = {_frag_key(f) for f in pool}
-    selected = list(prev.get("selected") or [])
-    sel_have = {tuple(s) if isinstance(s, (list, tuple)) else (s.get("source_id"), s.get("symbol"))
-                for s in selected}
-    added = 0
-    for f in fragments:
-        k = _frag_key(f)
-        if k not in have:
-            pool.append(f)
-            have.add(k)
-            added += 1
-        # auto-select only fragments the LLM CHOSE (not the redundant alternatives)
-        if k in default_chosen and k not in sel_have:
-            selected.append({"source_id": f["source_id"], "symbol": f["symbol"]})
-            sel_have.add(k)
+    # THE MERGE ITSELF runs on the fresh copy, not just the write (2026-09-02).
+    #
+    # This is why _pt_persist_fresh takes a callback rather than a finished payload: the
+    # step5 pool is merged INTO what is already stored, so reading `prev` from the
+    # snapshot loaded before a 600s LLM call would silently discard any fragment
+    # selection the reviewer made while waiting -- the same class of loss as the 409s,
+    # but silent, which is worse. `_selections_fingerprint` reads step3 and must see the
+    # current selections for the same reason.
+    out: Dict[str, Any] = {}
 
-    # Merge accounting (new steps overwrite; old steps for untouched sequence numbers kept)
-    merged_acct = dict(prev.get("accounting") or {})
-    merged_acct.update(accounting)
+    def _apply(fresh: PtSession) -> None:
+        prev = fresh.step5 or {}
+        pool = list(prev.get("fragments") or [])
+        have = {_frag_key(f) for f in pool}
+        by_key = {_frag_key(pf): pf for pf in pool}
+        selected = list(prev.get("selected") or [])
+        sel_have = {tuple(s) if isinstance(s, (list, tuple))
+                    else (s.get("source_id"), s.get("symbol"))
+                    for s in selected}
+        added = 0
+        for f in fragments:
+            k = _frag_key(f)
+            if k not in have:
+                pool.append(f)
+                by_key[k] = f
+                have.add(k)
+                added += 1
+            else:
+                # A RE-GATHER MUST BE ABLE TO CORRECT A MAPPING (2026-09-02, AWPTCM-T44297).
+                #
+                # This branch used to do nothing: an already-pooled fragment kept whatever
+                # `maps_to` it was first gathered with, and THIS run's freshly-derived
+                # mapping was dropped on the floor. `accounting` was refreshed regardless
+                # (merged_acct.update below), so the two diverged -- and the UI reads the
+                # cards from accounting but the coverage pill from maps_to, so a step could
+                # display three ticked fragments while reporting "no fragment selected".
+                #
+                # Observed after the sequence was re-extracted from 13 steps to 31: the pool
+                # survived with `maps_to` keyed on the OLD numbering, so steps 14-17, 20 and
+                # 27 had accounting entries that no fragment claimed. `_add_fragment` had
+                # computed the right mapping (it merges each step as the loop visits it);
+                # only this merge threw it away.
+                #
+                # REPLACE, not union (Terrence's call). On a renumbered sequence the stored
+                # mapping is WRONG rather than merely incomplete, and a union would preserve
+                # step numbers that no longer mean anything. This run is the only one that
+                # read the current sequence, so its mapping is the authoritative one.
+                #
+                # `why` is replaced for the same reason: it is this run's reviewer-facing
+                # justification for THIS step's text, and a stale one describes the step the
+                # fragment used to serve. The card renders it, so a wrong `why` is visible.
+                stale = by_key[k]
+                stale["maps_to"] = list(f.get("maps_to") or [])
+                if f.get("why"):
+                    stale["why"] = f["why"]
+            # auto-select only fragments the LLM CHOSE (not the redundant alternatives)
+            if k in default_chosen and k not in sel_have:
+                selected.append({"source_id": f["source_id"], "symbol": f["symbol"]})
+                sel_have.add(k)
 
-    sess.step5 = {"fragments": pool, "selected": selected, "dropped": dropped,
-                  "accounting": merged_acct, "confirmed": False,
-                  "selections_fingerprint": _selections_fingerprint(sess),
-                  "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
-                                 "prompt": meta.get("prompt", ""),
-                                 "response": meta.get("content", "")[:20000]}}
-    _invalidate_from(sess, 5)
-    _pt_persist(sess)
-    return {"fragments": pool, "selected": selected, "accounting": merged_acct,
-            "added": added, "dropped": len(dropped),
-            "scripts_considered": len(selections)}
+        # Merge accounting (new steps overwrite; old steps for untouched sequence numbers kept)
+        merged_acct = dict(prev.get("accounting") or {})
+        merged_acct.update(accounting)
+
+        fresh.step5 = {"fragments": pool, "selected": selected, "dropped": dropped,
+                       "accounting": merged_acct, "confirmed": False,
+                       "selections_fingerprint": _selections_fingerprint(fresh),
+                       "provenance": {"llm": {k: meta.get(k) for k in
+                                              ("provider", "model", "auth_method")},
+                                      "prompt": meta.get("prompt", ""),
+                                      "response": meta.get("content", "")[:20000]}}
+        _invalidate_from(fresh, 5)
+        # The response must describe what was actually committed, so it is built here and
+        # rebuilt on a retry rather than captured from a superseded attempt.
+        out.clear()
+        out.update({"fragments": pool, "selected": selected, "accounting": merged_acct,
+                    "added": added, "dropped": len(dropped),
+                    "scripts_considered": len(selections)})
+
+    _pt_persist_fresh(key, _apply)
+    return out
 
 
 @router.post("/save_fragments/{key}")
@@ -3567,9 +3775,19 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     # request into one of 10-26 minutes that the client abandons.
     failure = _recovery_failure(blocks["report"])
     if failure:
-        step6 = dict(sess.step6 or {})
-        attempts = list(step6.get("failed_generations") or [])
-        attempts.append({
+        # On a fresh copy: the whole point of this branch is that the evidence SURVIVES the
+        # refusal, and persisting a snapshot from before a 600s call is exactly how it
+        # would not (a 409 here loses the failed reply as well as the generation).
+        def _apply_failure(fresh: PtSession) -> None:
+            step6 = dict(fresh.step6 or {})
+            attempts = list(step6.get("failed_generations") or [])
+            attempts.append(_attempt)
+            # Keep the last few attempts, newest last; unbounded growth here would be a
+            # second storage problem rather than a forensic record.
+            step6["failed_generations"] = attempts[-3:]
+            fresh.step6 = step6
+
+        _attempt = {
             "at": utc_now().isoformat(),
             "reason": failure,
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
@@ -3577,12 +3795,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
             "response": meta.get("content", ""),
             "recovery": blocks["report"],
             "rejected_code": blocks["test_code"] or "",
-        })
-        # Keep the last few attempts, newest last; unbounded growth here would be a second
-        # storage problem rather than a forensic record.
-        step6["failed_generations"] = attempts[-3:]
-        sess.step6 = step6
-        _pt_persist(sess)
+        }
+        _pt_persist_fresh(key, _apply_failure)
         raise HTTPException(
             502, f"Generation could not be reassembled: {failure} The full reply is saved "
                  f"under step6.failed_generations for inspection; generate again to retry.")
@@ -3591,29 +3805,42 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     stamped_code = _restamp_provenance(blocks["test_code"], fragments,
                                        meta.get("model") or "", sequence)
 
-    prev = sess.step6 or {}
-    sess.step6 = {
-        "naming": {"group": group, "name": name},
-        "files": {"test": {"name": file_name, "code": stamped_code},
-                  "library": blocks["library"]},
-        "iterations": prev.get("iterations", 0) + 1,
-        "confirmed": False,
-        # Phase 7.9 — the reply is stored WHOLE. It used to be cut at 20,000 chars with no
-        # marker, so every stored generation was incomplete and the primary evidence for
-        # transport defects was destroyed by the record meant to capture them; the
-        # multi-part replies that exposed the fence bug are 37k-173k chars. `recovery` is
-        # the assembly audit trail: how many messages the answer spanned, what was dropped
-        # at each seam, and the model's own assembly notes.
-        "provenance": {"llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
-                       "prompt": meta.get("prompt", ""),
-                       "response": meta.get("content", ""),
-                       "recovery": blocks["report"]},
-    }
-    _invalidate_from(sess, 6)
-    lint = _lint_generated(sess)
-    _pt_persist(sess)
-    return {"naming": sess.step6["naming"], "files": sess.step6["files"],
-            "iterations": sess.step6["iterations"], "lint": lint,
+    # `iterations` counts up from what is STORED, so it must read the fresh copy or a
+    # concurrent write would make the generation appear not to have happened.
+    _committed: Dict[str, Any] = {}
+
+    def _apply_success(fresh: PtSession) -> None:
+        prev = fresh.step6 or {}
+        fresh.step6 = {
+            "naming": {"group": group, "name": name},
+            "files": {"test": {"name": file_name, "code": stamped_code},
+                      "library": blocks["library"]},
+            "iterations": prev.get("iterations", 0) + 1,
+            "confirmed": False,
+            # Phase 7.9 — the reply is stored WHOLE. It used to be cut at 20,000 chars with
+            # no marker, so every stored generation was incomplete and the primary evidence
+            # for transport defects was destroyed by the record meant to capture them; the
+            # multi-part replies that exposed the fence bug are 37k-173k chars. `recovery`
+            # is the assembly audit trail: how many messages the answer spanned, what was
+            # dropped at each seam, and the model's own assembly notes.
+            "provenance": {"llm": {k: meta.get(k) for k in
+                                   ("provider", "model", "auth_method")},
+                           "prompt": meta.get("prompt", ""),
+                           "response": meta.get("content", ""),
+                           "recovery": blocks["report"]},
+        }
+        _invalidate_from(fresh, 6)
+        # Lint the copy being committed, so the stored lint always describes the stored
+        # code. Re-runs on a retry, which is correct: the code is the same either way.
+        _committed["lint"] = _lint_generated(fresh)
+        _committed["naming"] = fresh.step6["naming"]
+        _committed["files"] = fresh.step6["files"]
+        _committed["iterations"] = fresh.step6["iterations"]
+
+    _pt_persist_fresh(key, _apply_success)
+    lint = _committed["lint"]
+    return {"naming": _committed["naming"], "files": _committed["files"],
+            "iterations": _committed["iterations"], "lint": lint,
             # Advisory only (Phase 7.4): what was projected, beside what arrived. Shown
             # together so a reviewer can see when a projection was wrong, rather than
             # having a wrong projection silently refuse the case before the call.
@@ -3827,6 +4054,647 @@ async def run_status(key: str, run_id: str, tail: int = 40):
 
 
 # ---------------------------------------------------------------------------
+# Per-unit generation (PLAN-pytest-creator.md §9.5, built 2026-09-02)
+#
+# One LLM call per UNIT of the script — a single TestCase class, or the TestSet's
+# configure()/tear_down() pair — spliced into a frame the server renders itself.
+#
+# The frame is NOT a model's work. §9.5 proposed a "Pass A" that asked an LLM to write
+# imports, TestSet and the runner; `_render_skeleton()` already produces all of that
+# deterministically, so there is nothing for a model to add and a great deal for it to get
+# inconsistently wrong across N calls. Dropping Pass A removes a call AND a failure mode.
+#
+# UNIT IDS are stable strings ("setup", "tc1" … "tcN"), not sequence step numbers, because
+# `_split_sequence` RENUMBERS: setup-kind steps become TestSet.configure() and the rest are
+# renumbered contiguously, so sequence step 31 can be TestCase_29. Keying chunks on the
+# sequence number would mis-file every unit on any case with a setup step.
+# ---------------------------------------------------------------------------
+
+def _skeleton_units(skeleton: str) -> List[dict]:
+    """Split a rendered skeleton into the fillable units, by AST.
+
+    Returns [{id, kind, tc_n, label, block, lines:[start,end]}] in file order, where
+    `block` is the exact source text the model is asked to return filled. Read off the
+    AST rather than by regex so a `class TestCase_12` mentioned inside a docstring or a
+    log string can never be mistaken for a unit boundary.
+    """
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(skeleton)
+    except SyntaxError:
+        return []
+    lines = skeleton.split("\n")
+
+    def _text(node) -> str:
+        return "\n".join(lines[node.lineno - 1:node.end_lineno])
+
+    units: List[dict] = []
+    for node in tree.body:
+        if not isinstance(node, ast_mod.ClassDef):
+            continue
+        m = re.fullmatch(r"TestCase_(\d+)", node.name)
+        if m:
+            units.append({"id": f"tc{m.group(1)}", "kind": "testcase",
+                          "tc_n": int(m.group(1)), "label": node.name,
+                          "block": _text(node),
+                          "lines": [node.lineno, node.end_lineno]})
+            continue
+        if node.name == "TestSet":
+            # configure() and tear_down() are ONE unit: they are a matched pair (what
+            # configure sets up, tear_down reverts) and splitting them across two calls
+            # would let the halves disagree about what was configured.
+            meths = [b for b in node.body
+                     if isinstance(b, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef))
+                     and b.name in ("configure", "tear_down")]
+            if meths:
+                lo = min(b.lineno for b in meths)
+                hi = max(b.end_lineno for b in meths)
+                units.insert(0, {"id": "setup", "kind": "setup", "tc_n": None,
+                                 "label": "TestSet.configure / tear_down",
+                                 "block": "\n".join(lines[lo - 1:hi]),
+                                 "lines": [lo, hi]})
+    units.sort(key=lambda u: u["lines"][0])
+    return units
+
+
+def _unit_source_step(unit: dict, tc_steps: List[dict]) -> Optional[dict]:
+    """The sequence row a TestCase unit implements (post-renumbering)."""
+    if unit["kind"] != "testcase":
+        return None
+    i = (unit.get("tc_n") or 0) - 1
+    return tc_steps[i] if 0 <= i < len(tc_steps) else None
+
+
+def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
+    """Everything both the per-unit prompts and the assembly need, derived once.
+
+    Deliberately mirrors generate_script's own derivation (same fragments, same import
+    lines, same skeleton call) so a per-unit run and a whole-script run start from a
+    byte-identical frame. If these two ever diverge, the units stop fitting the file.
+    """
+    fragments = _selected_fragments(sess)
+    extra_mods: List[str] = []
+    extra_import_lines: List[str] = []
+    for f in fragments:
+        rec = (data.get("scripts_index_by_id") or {}).get(f["source_id"]) or {}
+        for m in rec.get("imports", []):
+            if m.startswith(("framework.", "ATPyLib.")):
+                extra_mods.append(m.replace("framework.", "").replace("ATPyLib.", ""))
+            if m.startswith("framework.") and m not in ("framework.ATTestSet", "framework.ATTestCase"):
+                line = "from {} import {}".format(*m.rsplit(".", 1)) if "." in m else "import " + m
+                if line not in extra_import_lines:
+                    extra_import_lines.append(line)
+    sequence = (sess.step2 or {}).get("sequence") or []
+    skeleton = _render_skeleton(key, _case_title(data, key), sequence,
+                                extra_import_lines, fragments,
+                                _case_payload_fields(sess)["objective"])
+    setup_steps, tc_steps = _split_sequence(sequence)
+    bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
+    return {
+        "fragments": fragments, "extra_mods": extra_mods, "sequence": sequence,
+        "skeleton": skeleton, "setup_steps": setup_steps, "tc_steps": tc_steps,
+        "units": _skeleton_units(skeleton),
+        "devices": _skeleton_bound_devices(skeleton, bound_devs[0] if bound_devs else ""),
+    }
+
+
+def _fragments_for_unit(unit: dict, ctx: dict) -> List[dict]:
+    """Only the fragments whose maps_to covers this unit's ORIGINAL sequence step.
+
+    This is the whole input saving: the whole-script prompt carried 106KB of fragment code
+    because it carried every fragment for every step. A unit needs its own.
+    """
+    if unit["kind"] == "setup":
+        want = {str(s.get("n")) for s in ctx["setup_steps"]}
+    else:
+        src = _unit_source_step(unit, ctx["tc_steps"])
+        want = {str(src.get("zephyr_step_idx", src.get("n")))} if src else set()
+        # tc_steps carry the RENUMBERED n; maps_to is keyed on the original sequence
+        # numbering, so match on whichever the row still carries.
+        if src:
+            want |= {str(src.get("n"))}
+    out = []
+    for f in ctx["fragments"]:
+        maps = {str(x) for x in (f.get("maps_to") or [])}
+        if maps & want:
+            out.append({**f, "tag": _fragment_tag(f.get("source_id", ""), f.get("loc"),
+                                                  f.get("py2_translated", False))})
+    return out
+
+
+def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict) -> str:
+    """The prompt for one unit, rendered but NOT sent."""
+    frags = _fragments_for_unit(unit, ctx)
+    src = _unit_source_step(unit, ctx["tc_steps"])
+    text_rows = ctx["setup_steps"] if unit["kind"] == "setup" else ([src] if src else [])
+    return render_prompt("pt_generate_step.jinja", {
+        "case_key": key,
+        "case_title": _case_title(data, key),
+        "mode": unit["kind"],
+        "tc_n": unit.get("tc_n"),
+        "source_n": (src or {}).get("n"),
+        "step": src or {},
+        "setup_steps": ctx["setup_steps"],
+        "blank_block": unit["block"],
+        "fragments": frags,
+        "devices": ctx["devices"],
+        "framework_surface": _framework_surface_slice(data, ctx["extra_mods"]),
+        "cli_reference": _cli_reference_block(text_rows, frags),
+        "device_note": _fragment_device_note(frags, ctx["devices"]),
+        "py2_flagged": any(f.get("py2_flagged") for f in frags),
+        "model_name": (_llm_cfg(sess).get("model") or "unknown"),
+        "gen_date": utc_now().strftime("%Y-%m-%d"),
+    })
+
+
+def _unit_shape_ok(code: str, unit: dict) -> Tuple[bool, str]:
+    """Is this reply the unit we asked for, and does it parse?
+
+    Checked on ARRIVAL rather than at assembly, for the same reason `_recovery_failure`
+    exists: a unit that is wrong is worth refusing while the reviewer is still looking at
+    the button they pressed, not thirty units later when the file will not compile and
+    nobody knows which call caused it.
+
+    A TestCase block is dedented to column 0 before parsing; the setup unit is a pair of
+    METHODS, so it is parsed inside a synthetic class to keep it valid Python.
+    """
+    import ast as ast_mod
+    if unit["kind"] == "setup":
+        wrapped = "class _P:\n" + ("\n".join("    " + ln for ln in code.split("\n")))
+        try:
+            tree = ast_mod.parse(wrapped)
+        except SyntaxError as e:
+            return False, f"the returned setup block is not valid Python ({e.msg} line {e.lineno})"
+        names = {b.name for b in tree.body[0].body
+                 if isinstance(b, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef))}
+        missing = {"configure", "tear_down"} - names
+        if missing:
+            return False, ("the reply is missing " + ", ".join(sorted(missing))
+                           + " — configure() and tear_down() are one unit and must both come back")
+        return True, ""
+    try:
+        tree = ast_mod.parse(code)
+    except SyntaxError as e:
+        return False, f"the returned block is not valid Python ({e.msg} line {e.lineno})"
+    classes = [n for n in tree.body if isinstance(n, ast_mod.ClassDef)]
+    if len(classes) != 1:
+        return False, (f"expected exactly one class, got {len(classes)} — a unit reply must "
+                       f"contain only its own class")
+    if classes[0].name != unit["label"]:
+        return False, (f"the reply defines {classes[0].name}, not {unit['label']} — the class "
+                       f"name is part of the fixed frame and the runner registers it by name")
+    methods = {b.name for b in classes[0].body
+               if isinstance(b, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef))}
+    if "main" not in methods:
+        return False, f"{unit['label']} came back without a main() — nothing would run"
+    return True, ""
+
+
+def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
+    """Splice the generated units into the rendered frame. Returns (code, missing_ids).
+
+    Line-based and back-to-front, so replacing one unit cannot shift the line numbers of
+    the units not yet replaced. The frame is the server's own render, so this is a pure
+    local operation — no model, no reassembly heuristics, no seams to detect. That is the
+    whole reason the units are worth generating separately.
+    """
+    lines = ctx["skeleton"].split("\n")
+    missing: List[str] = []
+    for u in sorted(ctx["units"], key=lambda x: x["lines"][0], reverse=True):
+        ch = chunks.get(u["id"]) or {}
+        code = (ch.get("code") or "").strip("\n") if ch.get("status") == "ok" else ""
+        if not code:
+            missing.append(u["id"])
+            continue
+        lo, hi = u["lines"]
+        lines[lo - 1:hi] = code.split("\n")
+    return "\n".join(lines), list(reversed(missing))
+
+
+@router.post("/assemble_script/{key}")
+async def assemble_script(key: str, request: Request, body: dict = Body(default={})):
+    """Build the script LOCALLY from the frame + the generated units, then lint it.
+
+    No LLM. §9.5's assembly step, minus the reassembly guesswork: the frame is ours and the
+    units were shape-checked on arrival, so splicing is deterministic. `manifest_check` still
+    runs, and it is now strictly stronger than in the whole-script path — the runner's
+    `ts.add_testCase(...)` list was written by `_render_skeleton` BEFORE any unit existed, so
+    it is a contract the units are measured against rather than a list the same reply wrote.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    chunks = step6.get("chunks") or {}
+    ctx = _pt_generation_context(key, data, sess)
+    if not ctx["units"]:
+        raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
+
+    code, missing = _assemble_units(ctx, chunks)
+    if missing:
+        raise HTTPException(409, "Not every unit has been generated yet. Missing: "
+                                 + ", ".join(missing))
+
+    naming = step6.get("naming") or {}
+    group = (body.get("group") or naming.get("group") or "").strip()
+    name = (body.get("name") or naming.get("name") or "").strip()
+    _validate_naming(group, name)
+    file_name = f"{name}.py"
+
+    stamped = _restamp_provenance(code, ctx["fragments"],
+                                  (_llm_cfg(sess).get("model") or ""), ctx["sequence"])
+    report = gen_assembly.manifest_check(stamped)
+
+    def _apply(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        step6_f["naming"] = {"group": group, "name": name}
+        step6_f["files"] = {"test": {"name": file_name, "code": stamped}}
+        step6_f["assembled_at"] = utc_now().isoformat()
+        step6_f["assembly"] = {"units": len(ctx["units"]), "manifest": report,
+                               "source": "per-unit"}
+        # A fresh assembly supersedes any earlier review: the findings were about a
+        # different artefact, and leaving them on screen would attribute them to this one.
+        step6_f.pop("review", None)
+        step6_f["iterations"] = int(step6_f.get("iterations") or 0) + 1
+        fresh.step6 = step6_f
+
+    sess = _pt_persist_fresh(key, _apply)
+    lint = _lint_generated(sess)
+
+    def _apply_lint(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        step6_f["lint"] = lint
+        fresh.step6 = step6_f
+
+    _pt_persist_fresh(key, _apply_lint)
+    return {"files": {"test": {"name": file_name, "code": stamped}},
+            "lint": lint, "manifest": report, "units": len(ctx["units"])}
+
+
+@router.get("/step_prompts/{key}")
+async def step_prompts(key: str, request: Request):
+    """Every unit, with its prompt rendered — the page-load payload for the chunk UI.
+
+    Prompts are RENDERED, not stored. §9.7 forbids storing N full prompts on the session
+    ("a 6-chunk generation must not store six 85KB prompts"), and re-rendering is cheap
+    and always current. The one exception is a prompt the reviewer has EDITED, which is
+    theirs and is kept on the chunk — see generate_step.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    _require_confirmed(sess, "step5", "Per-step generation")
+    ctx = _pt_generation_context(key, data, sess)
+    chunks = (sess.step6 or {}).get("chunks") or {}
+    out = []
+    for u in ctx["units"]:
+        ch = chunks.get(u["id"]) or {}
+        rendered = _render_unit_prompt(key, data, sess, ctx, u)
+        src = _unit_source_step(u, ctx["tc_steps"])
+        out.append({
+            "id": u["id"], "kind": u["kind"], "tc_n": u.get("tc_n"), "label": u["label"],
+            "source_n": (src or {}).get("n"),
+            "action": (src or {}).get("action", ""),
+            "verify": (src or {}).get("verify", ""),
+            "blank_block": u["block"],
+            # The reviewer's edit wins over the freshly rendered one; `edited` tells the UI
+            # which it is looking at so it can say so.
+            "prompt": ch.get("prompt") or rendered,
+            "edited": bool(ch.get("prompt")),
+            "code": ch.get("code") or "",
+            "status": ch.get("status") or "pending",
+            "error": ch.get("error") or "",
+            "at": ch.get("at") or "",
+        })
+    return {"units": out, "skeleton_chars": len(ctx["skeleton"])}
+
+
+def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
+                         unit: dict, llm_cfg: dict) -> dict:
+    """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
+
+    Extracted so both the single-unit endpoint and the batch dispatch share exactly one
+    implementation of "call, shape-check, record" — a second copy would drift, and the
+    shape check is the thing standing between a wrong reply and a file that will not
+    compile.
+    """
+    meta = run_prompt_text(prompt, llm_config=llm_cfg, timeout=600,
+                           system=_CODE_SYSTEM_PROMPT, max_tokens=16000)
+
+    def _store(record: dict) -> None:
+        def _apply(fresh: PtSession) -> None:
+            step6_f = dict(fresh.step6 or {})
+            chunks = dict(step6_f.get("chunks") or {})
+            prev = dict(chunks.get(unit_id) or {})
+            prev.update(record)
+            chunks[unit_id] = prev
+            step6_f["chunks"] = chunks
+            fresh.step6 = step6_f
+        _pt_persist_fresh(key, _apply, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+
+    def _fail(reason: str) -> dict:
+        _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
+                **({"prompt": prompt} if edited else {})})
+        return {"unit": unit_id, "status": "error", "error": reason}
+
+    if meta.get("error"):
+        return _fail(meta.get("content", "LLM error"))
+    blocks = _parse_generated_blocks(meta.get("content", ""))
+    code = (blocks.get("test_code") or "").strip()
+    if not code:
+        return _fail("the reply contained no fenced python block")
+    ok, why = _unit_shape_ok(code, unit)
+    if not ok:
+        return _fail(why)
+    _store({"status": "ok", "code": code, "error": "", "at": utc_now().isoformat(),
+            "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+            "usage": meta.get("usage"),
+            **({"prompt": prompt} if edited else {})})
+    return {"unit": unit_id, "status": "ok", "code": code, "edited": edited,
+            "usage": meta.get("usage")}
+
+
+@router.post("/generate_units/{key}")
+async def generate_units(key: str, request: Request, body: dict = Body(default={})):
+    """Dispatch N units in ONE request and return IMMEDIATELY. Poll /units_status.
+
+    THE DEFECT THIS FIXES (2026-09-02, AWPTCM-T44297 — a total self-deadlock)
+    ------------------------------------------------------------------------
+    The first per-unit UI fired one `/generate_step` request per unit and awaited each.
+    Every one of those holds its connection for the whole LLM call, because the request
+    blocks in `registry.submit` until the browser posts a result. A browser allows SIX
+    connections per origin.
+
+    So 30 requests fired, 6 took every connection and blocked, and the broker's own
+    `/api/agent/next` long-poll could no longer get a connection. Nothing was ever
+    claimed, so nothing ever returned, so no connection was ever freed. Measured on the
+    live server: `pending: 5` (only ~6 of 30 requests had reached the server at all),
+    `session_active: false`, zero `claude` child processes, zero LLM records. Raising
+    `ckBrokerWorkers` made it WORSE — each worker holds a long-poll on the same origin.
+
+    No test could have caught it. jsdom's stubbed fetch has no connection limit, so the
+    fan-out spec passes either way; it proved the code DISPATCHES concurrently, not that
+    the transport can carry it.
+
+    The fix is to stop holding connections. One POST enqueues everything and returns; one
+    GET reports progress. Two connections instead of thirty, and real concurrency becomes
+    whatever the broker's worker count is.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    ctx = _pt_generation_context(key, data, sess)
+    wanted = body.get("units")
+    by_id = {u["id"]: u for u in ctx["units"]}
+    if isinstance(wanted, list) and wanted:
+        items = [(w.get("id"), (w.get("prompt") or "")) for w in wanted if w.get("id") in by_id]
+    else:
+        items = [(u["id"], "") for u in ctx["units"]]
+    if not items:
+        raise HTTPException(400, "No known units to generate.")
+
+    llm_cfg = _llm_cfg(sess)
+    already = _pt_units_inflight(key)
+    dispatch = [(uid, pr) for uid, pr in items if uid not in already]
+    if not dispatch:
+        return {"dispatched": [], "already_running": sorted(already)}
+
+    prepared = []
+    for uid, supplied in dispatch:
+        unit = by_id[uid]
+        rendered = _render_unit_prompt(key, data, sess, ctx, unit)
+        prompt = supplied.strip() or rendered
+        prepared.append((uid, unit, prompt, bool(supplied.strip())
+                         and supplied.strip() != rendered.strip()))
+
+    _pt_unit_mark(key, [u for u, _, _, _ in prepared], True)
+    sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
+
+    async def _one(uid: str, unit: dict, prompt: str, edited: bool):
+        try:
+            async with sem:
+                await run_in_threadpool(_unit_call_and_store, key, uid, prompt,
+                                        edited, unit, llm_cfg)
+        except Exception as e:
+            # A task that dies silently leaves a pill yellow forever. Record the reason on
+            # the chunk so the row can say what happened and offer a re-run.
+            print(f"[pt] {key}/{uid}: unit dispatch failed: {e}")
+            try:
+                def _apply_crash(fresh: PtSession) -> None:
+                    step6_f = dict(fresh.step6 or {})
+                    chunks = dict(step6_f.get("chunks") or {})
+                    prev = dict(chunks.get(uid) or {})
+                    prev.update({"status": "error", "error": f"dispatch failed: {e}",
+                                 "at": utc_now().isoformat()})
+                    chunks[uid] = prev
+                    step6_f["chunks"] = chunks
+                    fresh.step6 = step6_f
+                _pt_persist_fresh(key, _apply_crash, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+            except Exception as e2:
+                print(f"[pt] {key}/{uid}: could not even record the failure: {e2}")
+        finally:
+            # Cleared here and not in the worker, so the poll can distinguish "running"
+            # from "finished" for the whole lifetime of the task, including a crash.
+            _pt_unit_mark(key, [uid], False)
+
+    for uid, unit, prompt, edited in prepared:
+        asyncio.create_task(_one(uid, unit, prompt, edited))
+    return {"dispatched": [u for u, _, _, _ in prepared],
+            "already_running": sorted(already),
+            "max_concurrent": _PT_UNIT_DISPATCH_MAX}
+
+
+@router.get("/units_status/{key}")
+async def units_status(key: str):
+    """Per-unit status for the pill row. Cheap enough to poll every couple of seconds.
+
+    Deliberately does NOT return each unit's code: 30 units of ~2.5KB on a 2s poll is
+    150KB/minute of the same bytes. The UI fetches a unit's code when the reviewer opens
+    its page. `changed_at` is the session's own updated_at so a caller can skip a no-op.
+    """
+    sess = _pt_load(key)
+    if sess is None:
+        raise HTTPException(404, "PyTest Creator session not found.")
+    chunks = (sess.step6 or {}).get("chunks") or {}
+    running = _pt_units_inflight(key)
+    out = {}
+    for uid, ch in chunks.items():
+        out[uid] = {"status": ch.get("status") or "pending", "error": ch.get("error") or "",
+                    "at": ch.get("at") or "", "chars": len(ch.get("code") or "")}
+    for uid in running:
+        out.setdefault(uid, {"status": "pending", "error": "", "at": "", "chars": 0})
+        out[uid]["running"] = True
+    return {"units": out, "running": sorted(running),
+            "changed_at": getattr(sess, "updated_at", None)}
+
+
+@router.post("/generate_step/{key}/{unit_id}")
+async def generate_step(key: str, unit_id: str, request: Request, body: dict = Body(default={})):
+    """Generate ONE unit, blocking until it returns. Kept for a single re-run and for
+    dry-run provenance; the UI fans out through /generate_units instead, because one
+    blocking request per unit exhausts the browser's six connections per origin and
+    deadlocks the broker (see generate_units).
+
+    The prompt is taken from the request VERBATIM when supplied. That is the point of the
+    editable frame: the button sends what is on screen, so what the reviewer reads is what
+    the model receives.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    dry_run = await _dry_run(request)
+    ctx = _pt_generation_context(key, data, sess)
+    unit = next((u for u in ctx["units"] if u["id"] == unit_id), None)
+    if unit is None:
+        raise HTTPException(404, f"No such unit '{unit_id}' in this case's skeleton.")
+
+    rendered = _render_unit_prompt(key, data, sess, ctx, unit)
+    supplied = (body.get("prompt") or "").strip()
+    prompt = supplied or rendered
+    edited = bool(supplied) and supplied != rendered.strip()
+    if dry_run:
+        return {"prompt": prompt, "unit": unit_id, "edited": edited}
+
+    _pt_unit_mark(key, [unit_id], True)
+    try:
+        out = await run_in_threadpool(_unit_call_and_store, key, unit_id, prompt,
+                                     edited, unit, _llm_cfg(sess))
+    finally:
+        _pt_unit_mark(key, [unit_id], False)
+    if out.get("status") != "ok":
+        raise HTTPException(502, f"Unit {unit_id}: {out.get('error', 'failed')}")
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Pass C — the holistic review (PLAN-pytest-creator.md §9.6)
+# ---------------------------------------------------------------------------
+
+def _review_lint_findings(sess: PtSession) -> List[str]:
+    """The static checks ALREADY performed, as flat lines for the review prompt.
+
+    §9.6: "Asking a model to *ensure it passes lint* is asking it to approximate a checker
+    that is already deterministic, offline and free. The right wiring is: run the existing
+    lint on the assembled script, and feed ITS findings to the model." So these go in as
+    context to be excluded from the review, not as a job to redo — the prompt says
+    "do not re-report". Includes warnings (PEP 8 lives there) because a model that cannot
+    see them will helpfully rediscover 137 long lines and spend its output saying so.
+    """
+    lint = (sess.step6 or {}).get("lint") or {}
+    out: List[str] = []
+    for e in lint.get("errors") or []:
+        out.append(f"ERROR: {e}")
+    for w in lint.get("warnings") or []:
+        out.append(f"warning: {w}")
+    return out
+
+
+_REVIEW_KINDS = ("verdict_mismatch", "helper_signature", "naming_inconsistency",
+                 "duplicate_setup", "weak_observation", "other")
+_REVIEW_SEVERITIES = ("high", "medium", "low")
+_REVIEW_ORDER = {s: i for i, s in enumerate(_REVIEW_SEVERITIES)}
+
+
+def _normalize_findings(raw: Any, sequence: List[dict]) -> List[dict]:
+    """Coerce the model's findings to the stored schema, dropping what cannot be used.
+
+    A finding with no `what` says nothing a reviewer can act on, so it is dropped rather
+    than stored as an empty row. Unknown `kind`/`severity` values are folded to 'other'
+    and 'medium' rather than rejected — a useful finding under an unexpected label is
+    still useful, and rejecting the whole reply over a vocabulary miss is the failure mode
+    `extract_json_block` guarding already taught us to avoid.
+    """
+    valid_steps = {str(s.get("n")) for s in (sequence or [])}
+    out: List[dict] = []
+    for f in (raw if isinstance(raw, list) else []):
+        if not isinstance(f, dict):
+            continue
+        what = str(f.get("what") or "").strip()
+        if not what:
+            continue
+        kind = str(f.get("kind") or "").strip()
+        sev = str(f.get("severity") or "").strip().lower()
+        step = f.get("step")
+        step_n = str(step) if step is not None and str(step) in valid_steps else None
+        out.append({
+            "severity": sev if sev in _REVIEW_SEVERITIES else "medium",
+            "kind": kind if kind in _REVIEW_KINDS else "other",
+            "where": str(f.get("where") or "").strip(),
+            "step": step_n,
+            "what": what,
+            "evidence": str(f.get("evidence") or "").strip(),
+            "suggestion": str(f.get("suggestion") or "").strip(),
+        })
+    out.sort(key=lambda f: _REVIEW_ORDER.get(f["severity"], 1))
+    return out
+
+
+@router.post("/review_script/{key}")
+async def review_script(key: str, request: Request):
+    """Pass C: review the ASSEMBLED script and return FINDINGS — never a rewrite.
+
+    §9.6 is explicit that this must not return a revised script: a rewrite pass
+    re-introduces the whole-script output chunking exists to avoid (the same ~35KB in one
+    message, the same wall clock), and it can silently undo a correct reused fragment,
+    destroying the provenance chain PLAN §1.5 keeps. Findings route into the existing
+    `fix_script` loop instead, where a change is a recorded, reviewable action.
+
+    This does NOT invalidate anything downstream. A review reads the script and writes an
+    opinion about it; the artefact is untouched, so `_invalidate_from` would only throw
+    away a confirmation on the basis of having looked.
+    """
+    _data(request)
+    sess = _pt_get(key)
+    dry_run = await _dry_run(request)
+    step6 = sess.step6 or {}
+    if not (step6.get("files") or {}).get("test"):
+        raise HTTPException(409, "No script to review. Run generate_script first.")
+
+    sequence = (sess.step2 or {}).get("sequence") or []
+    meta = await run_in_threadpool(run_prompt, "pt_review_script.jinja", {
+        "case_key": key,
+        "file_name": step6["files"]["test"]["name"],
+        "code": step6["files"]["test"]["code"],
+        "sequence": sequence,
+        "lint_findings": _review_lint_findings(sess),
+    }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
+       # Findings, not a script: the reply is a small JSON object, so the default
+       # completion cap is ample and the default JSON system steer is the right one.
+       max_tokens=16000)
+    if dry_run:
+        return _provenance_preview(meta)
+    if meta.get("error"):
+        raise HTTPException(502, meta.get("content", "LLM error"))
+
+    parsed = extract_json_block(meta.get("content", ""))
+    # AN UNREADABLE ANSWER IS NOT A CLEAN SCRIPT — the same trap gather_fragments fell into
+    # (see its comment). "No findings" is a legitimate and expected result here, so a reply
+    # that fails to parse must NOT reach the same stored shape as a clean review.
+    if parsed is None:
+        raise HTTPException(502, "Could not parse the review reply as JSON (an unreadable "
+                                 "answer is not 'no findings'). Raw response is in provenance.")
+
+    findings = _normalize_findings(
+        parsed.get("findings") if isinstance(parsed, dict) else parsed, sequence)
+    review = {
+        "at": utc_now().isoformat(),
+        "findings": findings,
+        "reviewed_lint": _review_lint_findings(sess),
+        "provenance": {
+            "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+            "prompt": meta.get("prompt", ""),
+            "response": meta.get("content", ""),
+        },
+    }
+
+    def _apply(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        step6_f["review"] = review
+        fresh.step6 = step6_f
+
+    _pt_persist_fresh(key, _apply)
+    return {"findings": findings, "at": review["at"],
+            "counts": {s: sum(1 for f in findings if f["severity"] == s)
+                       for s in _REVIEW_SEVERITIES}}
+
+
+# ---------------------------------------------------------------------------
 # Fix loop + Step 8 validation
 # ---------------------------------------------------------------------------
 
@@ -3844,8 +4712,14 @@ async def fix_script(key: str, request: Request):
     parsed = (last or {}).get("parsed") or {}
     lint = step6.get("lint") or {}
     lint_errors = "\n".join(lint.get("errors", []))
-    if not parsed.get("cases") and not lint_errors:
-        raise HTTPException(409, "Nothing to fix: no failed run results or lint errors.")
+    # Pass C findings are a third, independent reason to fix (§9.6): they name defects
+    # NEITHER the linter nor a run can see — a verdict that does not match its step's
+    # `verify` text passes lint and passes on the bench, wrongly. Before this, a reviewed
+    # script with real findings and a green lint 409'd with "nothing to fix".
+    review_findings = ((step6.get("review") or {}).get("findings")) or []
+    if not parsed.get("cases") and not lint_errors and not review_findings:
+        raise HTTPException(409, "Nothing to fix: no failed run results, lint errors or "
+                                 "review findings.")
 
     excerpts = []
     if last and last.get("log_file") and Path(last["log_file"]).exists():
@@ -3859,6 +4733,7 @@ async def fix_script(key: str, request: Request):
         "iteration": step6.get("iterations", 1),
         "code": step6["files"]["test"]["code"],
         "lint_errors": lint_errors,
+        "review_findings": review_findings,
         "results": parsed.get("cases", []),
         "log_excerpts": excerpts,
     }, llm_config=_llm_cfg(sess), timeout=600, dry_run=dry_run,
@@ -3876,17 +4751,23 @@ async def fix_script(key: str, request: Request):
     fix_failure = _recovery_failure(blocks["report"])
     if fix_failure:
         # Same rule as generate: record the evidence, keep the working script, then refuse.
-        step6_f = dict(sess.step6 or {})
-        attempts_f = list(step6_f.get("failed_generations") or [])
-        attempts_f.append({
+        # On a fresh copy, so a concurrent save cannot turn the record of a failure into a
+        # second failure (see _pt_persist_fresh).
+        _attempt_f = {
             "at": utc_now().isoformat(), "phase": "fix", "reason": fix_failure,
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "prompt": meta.get("prompt", ""), "response": meta.get("content", ""),
             "recovery": blocks["report"], "rejected_code": blocks["test_code"] or "",
-        })
-        step6_f["failed_generations"] = attempts_f[-3:]
-        sess.step6 = step6_f
-        _pt_persist(sess)
+        }
+
+        def _apply_fix_failure(fresh: PtSession) -> None:
+            step6_f = dict(fresh.step6 or {})
+            attempts_f = list(step6_f.get("failed_generations") or [])
+            attempts_f.append(_attempt_f)
+            step6_f["failed_generations"] = attempts_f[-3:]
+            fresh.step6 = step6_f
+
+        _pt_persist_fresh(key, _apply_fix_failure)
         raise HTTPException(
             502, f"LLM fix could not be reassembled: {fix_failure} The full reply is saved "
                  f"under step6.failed_generations; the existing script is unchanged.")
@@ -3905,17 +4786,31 @@ async def fix_script(key: str, request: Request):
     (hist_dir / step6["files"]["test"]["name"]).write_text(
         step6["files"]["test"]["code"], encoding="utf-8")
 
-    step6["files"]["test"]["code"] = stamped_code
-    if blocks["library"]:
-        step6["files"]["library"] = blocks["library"]
-    step6["iterations"] = iteration + 1
-    step6["confirmed"] = False
-    sess.step6 = step6
-    _invalidate_from(sess, 6)  # revised code must be re-reviewed and re-run
-    new_lint = _lint_generated(sess)
-    _pt_persist(sess)
-    return {"files": step6["files"], "iterations": step6["iterations"],
-            "lint": new_lint, "previous_archived": str(hist_dir)}
+    # The replacement is applied to the CURRENT stored step6, not the pre-LLM snapshot:
+    # `save_script` lets a reviewer hand-edit the code while a fix runs, and writing the
+    # snapshot back would silently revert that edit as well as risking a 409.
+    _fixed: Dict[str, Any] = {}
+
+    def _apply_fix(fresh: PtSession) -> None:
+        step6_n = dict(fresh.step6 or {})
+        files_n = dict(step6_n.get("files") or {})
+        test_n = dict((files_n.get("test") or {}))
+        test_n["code"] = stamped_code
+        files_n["test"] = test_n
+        if blocks["library"]:
+            files_n["library"] = blocks["library"]
+        step6_n["files"] = files_n
+        step6_n["iterations"] = iteration + 1
+        step6_n["confirmed"] = False
+        fresh.step6 = step6_n
+        _invalidate_from(fresh, 6)  # revised code must be re-reviewed and re-run
+        _fixed["lint"] = _lint_generated(fresh)
+        _fixed["files"] = fresh.step6["files"]
+        _fixed["iterations"] = fresh.step6["iterations"]
+
+    _pt_persist_fresh(key, _apply_fix)
+    return {"files": _fixed["files"], "iterations": _fixed["iterations"],
+            "lint": _fixed["lint"], "previous_archived": str(hist_dir)}
 
 
 @router.post("/validate/{key}")

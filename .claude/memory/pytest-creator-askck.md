@@ -6,7 +6,7 @@ metadata:
   type: project
   originSessionId: 3813cc75-639d-4e62-abb8-fd384442d015
   modified: 2026-07-28T02:34:43.796Z
-  verified: 2026-08-31
+  verified: 2026-09-02
 ---
 
 The **PyTest Creator** (a tool inside the Ask CK FastAPI workbench at
@@ -77,3 +77,22 @@ example DATA inside a recorded measurement — rewriting them would falsify it).
 [[old-sessions-are-not-coverage]]. Step 3 is confirmable from the per-step picker
 (`step_matches` / `selections`), records its own provenance, and step 6 has
 `POST /save_naming/{key}` so naming persists before a first successful generate.
+
+
+**2026-09-02 — step 6 no longer makes ONE call.** Generation is per unit: `_skeleton_units()`
+splits the rendered frame by AST into one unit per `TestCase_<n>` plus configure/tear_down as a
+single `setup` unit, each gets its own LLM call, and `_assemble_units()` splices the replies
+back byte-exactly. **Assembly runs no LLM** — splice, re-stamp, lint. `generate_script` still
+exists; the per-unit path is `POST generate_units/{key}` (batch) or `generate_step/{key}` (one),
+then `assemble_script/{key}`. Unit ids are `setup` / `tc1`…`tcN` and are **not** sequence step
+numbers — `_split_sequence` renumbers, so sequence step 31 can be `TestCase_29`.
+
+Why, with the numbers: the single whole-script call for T44297 was 672.9 s / 104,962 in /
+58,715 out / **$1.5846**, and 39 % of its output was the model retyping a frame we render
+deterministically. Per unit measures ~$0.45, so 30 units is ~$13.5 — it buys parallelism,
+per-step retry and an editable prompt, NOT money. Do not fan it out from the browser as N
+requests: [[browser-fanout-connection-ceiling]].
+
+**Pass C** (`POST review_script/{key}`) is a holistic review returning findings as JSON; it
+persists to `step6["review"]`, writes no files, invalidates no downstream step, and
+`fix_script` accepts `review_findings` as a fix reason.
