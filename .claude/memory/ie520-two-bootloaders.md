@@ -21,6 +21,14 @@ show system   ->   Bootloader version :
 
 **`pauld` is NOT a released fix.** Treat `9.1.0` as the shipped behaviour until told otherwise.
 
+> **TOLD OTHERWISE, Terrence 2026-09-02:** *"paulD is the same 9.1.0 bootloader with some
+> different options toggled. It'll be sync'd at the next numbered bootloader release."* So a
+> **mixed bench is expected and is not a fault** — tb470 currently runs `9.1.0` on member 1
+> (S/N 264A23066) and `pauld` on member 2 (S/N 264A23052), measured 2026-09-02. The
+> behavioural differences below are **still real and still divergent**, so keep naming which
+> unit a bootloader result came from; what changes is that the split itself needs no fixing
+> and will close at the next numbered release.
+
 ## What changed on the pauld build (tested live, tb470 u4)
 
 **FIXED — the raw-U-Boot leak (root cause A0).** All 11 leaked strings measure 0:
