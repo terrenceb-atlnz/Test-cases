@@ -37,6 +37,24 @@ this machine (verified 2026-07-28) plus the mechanism the PyTest Creator uses
 
 ---
 
+> ### Where the neighbouring facts live — do NOT copy any of them back here
+>
+> This file was 665 lines on 2026-09-02 and only its first two sections were about *access*.
+> Two whole sections have moved out, and the facts duplicated with the orient skill have been
+> deleted here rather than kept in both places. **One fact, one home; everywhere else links.**
+>
+> | Looking for | Read |
+> |---|---|
+> | what is cabled to what, PDU outlets, bench addressing, loopback plugs | `~/claude/IE520-testing/bench-setup/bench-state.md` |
+> | IE520 platform limits, framework traps, which console driver to use, bench hygiene | `.claude/skills/orient-ie520/SKILL.md` |
+> | tb470 host DHCP / routing / `tcpdump` / no-NAT | `TB470-HOST-NETWORKING.md` |
+> | de-stacking, split-stack diagnosis and recovery | orient §6 |
+>
+> **This file owns:** SSH auth from this host, which console is which unit, and how to launch a
+> run (framework or legacy). Nothing else. If you are about to add a bench fact or a product
+> fact here, it belongs in one of the files above.
+
+
 ## TL;DR — reconnect to tb105 now
 
 ```bash
@@ -217,81 +235,22 @@ output (`current duplex full, current speed 1000, current polarity mdix`).
 
 ---
 
-## 2a. Reading a bench's real state — use the FRAMEWORK's driver, not a new one ✅
 
-Verified on tb470, 2026-09-01, building `ask-ck/test-composer/bench_probe.py`.
+## 2a. Reading a bench's real state — MOVED
 
-**Do not write another pyserial console driver.** `framework/ATDrivers/AWPConsoleCore.py` and
-`ATSwitch.py` already handle login, `enable`, the `--More--` pager and prompt matching, and
-`Setup.LoadSetup` binds devices straight from the `.setup`. Using them means the probe sees the
-bench exactly as a generated test will. The shape that works:
+Driver guidance now lives in **orient §3**, which owns it: which of the two console drivers to
+use, the six binding traps (`console.mode('#')` first, framework credentials not the `.setup`'s,
+`powerOn=False`, `Stack.members` is an unordered set, baud from `[baudrates]`, `setup.log`
+ownership), and the measured `terminal monitor` boundary between them.
 
-```python
-from framework.Setup import LoadSetup          # PYTHONPATH=/home/st-art, framework symlinked
-setup = LoadSetup('/home/st-art/st-art/configs/tb470.setup')
-stk   = setup.init_stk('stk_a', powerOn=False)  # a stack binds as ONE device
-swi   = setup.init_swi('swi_c', powerOn=False)
-```
+Canonical read-only probe: `ask-ck/test-composer/bench_probe.py`. Cabling-discovery *method*
+(LACP partner system-ID, MAC table from both ends, and why link state alone proves nothing) and
+its results are recorded in `bench-state.md` §8 alongside the evidence for each line.
 
-Four traps, each of which cost a run here:
-
-1. **`init_swi()` / `init_stk()` do NOT establish the console session.** They construct the
-   `Switch` and resolve its credentials, but the login happens later in the TestSet lifecycle.
-   Call `.cmd()` on a console that has timed out to `login:` and every command is typed **as a
-   login attempt** — the reply is `Login incorrect` and it reads exactly like a dead device.
-   **Call `dev.console.mode('#')` first**; then `.cmd()` works.
-2. **Credentials are the framework's, not the `.setup`'s.** `tb470.setup` declares
-   `username: None, password: None` for every switch, and that is fine:
-   `ATSwitch.__resolve_username_and_password()` defaults the user to `manager` and tries the
-   password list `['friend', 'P@ssw0rd', 'awplus']`. Do not add credentials to a `.setup` to
-   "fix" a login failure — see trap 1 for the real cause.
-3. **`powerOn` defaults to `True`, and it switches the PDU outlet on** (`power_group.on()` in
-   `Setup.init_swi`). On a shared bench pass `powerOn=False` for anything read-only.
-4. **`Stack.members` is a `set`** — unordered. "Drive any member" is nondeterministic and can
-   pick a member sitting at a login prompt. On a formed VCStack every member's console serves
-   the stack-wide CLI, so any *responsive* one is correct; prefer the master deliberately.
-
-Also: `LoadSetup` writes `setup.log` into its cwd, so run it from a writable directory — and
-if an earlier run was `sudo`, the file is root-owned and the next non-sudo run dies with
-`PermissionError: './setup.log'`. The parsed structure is keyed `switches` / `stacks` /
-`misc` / `tb` — **not** the raw INI section names.
-
-### Discovering what is actually cabled, without touching a cable ✅
-
-`show interface status` is the single highest-value command: port, link state, VLAN, duplex,
-speed **and media type** in one table, with stackports marked. But link state alone does not
-give you cabling, and two traps make the naive reading wrong:
-
-- **A loopback plug reports `connected`.** tb470 carries four (`port2.0.6/8/14/16`, type
-  `SFP LOOPBACK`). Anything that treats "connected" as "cabled to a peer" invents four links,
-  and a ping out a loopback returns to the sender — "proving" a path that is the device
-  talking to itself.
-- **`notconnect` is not proof of no cable** — STP-blocked, wrong VLAN, admin-down and a dead
-  SFP all look identical to unplugged.
-
-**The MAC address table settles it, and is immune to both.** Give each end an address, generate
-a little traffic, then read `show arp` + `show mac address-table` on both: a foreign MAC appears
-only on the port that actually carries it, and a loopback port never shows one.
-
-**What that method discovered on tb470 is recorded in `bench-state.md`, not here** — see its
-§8 and the `[portlink]` header comments it emits. Record a newly-measured link *there* and run
-`bench_setup.py apply`; note the evidence that pins it (which MAC appeared on which port), so
-the next reader can tell a measured link from an assumed one.
-
-**A `.setup` portlink can outlive its cable.** One there was still declaring a link whose far end
-had moved. That is the reason this document no longer keeps its own copy: two records of the same
-wiring drift apart silently, and the stale one is indistinguishable from the true one. Re-measure
-before you rely on a portlink.
-
-- **`addressing`** (`/usr/local/bin/addressing`, on every testbox) prints each interface's MAC,
-  network, address and pool range — so the testbox end of a `tb-` link needs no ARP at all.
-- **A link aggregation hides its far end**: every MAC shows against the aggregate, not a member
-  port. Expand it (`show static-channel-group`, or `show etherchannel detail` for LACP) before
-  trusting a mapping. LACP is the cheaper probe — its **partner system ID is the far end's base
-  MAC**, so it names the neighbour on every member link without shutting a single port.
-- **A console held by another operator** (`/var/lock/LCK..*`, `pgrep minicom`) must be reported
-  as *unknown*, never as *absent* — tb470's `/dev/u0` was locked for part of this session and
-  the x230 was simply unmapped until it was freed.
+The one thing worth repeating here, because it is an *access* fact: **a console held by another
+operator** (`/var/lock/LCK..*`, `pgrep minicom`, `fuser -v /dev/uN`) must be reported as
+*unknown*, never as *absent* — tb470's `/dev/u0` was locked once and the x230 read as unmapped
+until it was freed.
 
 ## 3. Run an ATTestSet framework test script on a testbox 🔧
 
@@ -445,199 +404,16 @@ SSH_AUTH_SOCK=$sock ssh tb105 '
   line carrying it and kills your own session (exit 255). Use `pgrep -f "[s]cript"` to test, and
   kill by the PID you captured.
 
-## 4a. Lessons from de-stacking two IE520s on tb470 (2026-07-30) ✅
 
-Five things that cost real time and are not obvious from any doc.
+## 4a / 4b. MOVED
 
-**A console held by minicom is off-limits — check before you drive it.** Both tb470 consoles
-were held by the operator's own `minicom` sessions. Two processes on one serial port interleave
-in *both* directions: your reads swallow bytes theirs is waiting on, and your writes land in
-their session. Check `ls /var/lock/LCK..*`, `pgrep -a minicom`, and `ps -o user,tty -p <pid>`
-before opening anything; the lock file contains the holder PID.
-
-**The console may be the ONLY CLI path.** The IE520s answer on 80/443 but have **no SSH and no
-telnet**, and enabling `ssh server` would itself need CLI access. Don't plan around the
-management network without probing it first.
-
-**A "bugged out" stack is usually a split one, and the giveaway is `err-disabled`.** Both units
-were provisioned into the same virtual chassis with their stackports uncabled, so each saw the
-other as merely `Provisioned`. One ran as a standalone Active Master; the other became a
-**`Disabled Master`** in "failover mode" with **all 26 front-panel ports `err-disabled`** —
-which is why newly-cabled links stayed down. No interface config on the healthy unit could have
-fixed a dead far end. Read `show stack detail` on *both* units before touching anything.
-
-**Never use `no stack <id> enable` to unpick this.** Per the CLI reference it "will act as a
-stand-alone master and **disable all of its ports**… can then only be accessed via its console
-port" — i.e. it *creates* the state you are trying to escape. What worked: `no stackport` on
-both 27/28 ranges, `no stack virtual-mac`, **`stack 2 renumber 1`** on the demoted unit
-(`show stack` then shows a `Pending ID`), `write`, reboot. Afterwards both read
-`Operational Status: Standalone unit` with their own MAC as the stack MAC.
-
-**⚠️ CORRECTED 2026-08-18 — `no stackport` DOES stick on 27/28.** This paragraph previously
-said that on the IE520 `port1.0.27/1.0.28` are dedicated stackports where `no stackport` "is
-accepted and saved, but the flag returns after reboot on the real member's ports". **That did
-not reproduce.** Measured on a healthy two-member stack running `IE520-tb470.rel`
-(`tomahawk_ie520-continuous`, built 2026-08-10): `no stackport` on `port1.0.27` **and**
-`port2.0.28` — both *real* members' ports, not phantom ones — survived a full stack reboot
-cleanly. Afterwards `show running-config interface port1.0.27` read `switchport /
-switchport mode access`, `show interface status` listed both in **vlan 1 rather than
-`stackport`**, and the stack ran normally on the single remaining pair
-(`Stack port1.0.28 status  Learnt neighbor 2, connected port2.0.27`,
-`Operational Status: Normal operation`). Both were then successfully repurposed as a
-**resiliency link**. Either the behaviour changed in this software, or the 2026-07-30
-observation had another cause — **re-verify before relying on either statement.** Note
-`no stackport` still needs `write` + reboot to take effect, and `switchport resiliencylink`
-is rejected on a port while it is still a stackport (`% The command is not available for this
-interface`), so repurposing 27/28 is necessarily a two-pass operation.
-Evidence: `~/old test runs/IE520/stack-tests/resiliency-link/after-action-17688.md`.
-
-**Still true: `stack virtual-chassis-id` has no `no` form at all** — `no stack ?` offers only
-`<1-8>`, `all`, `disabled-master-monitoring`, `management`, `resiliencylink`, `virtual-mac`.
-(Not retested 2026-08-18; carried forward from 2026-07-30.)
-
-**The live hazard stands, but scope it correctly.** It applies to **two _standalone_ units that
-both claim stack ID 1 while sharing one chassis-id**: **do not cable 27/28 between them** or they
-land straight back in duplicate-master/err-disabled. It does **not** mean 27/28 can never carry
-anything else — on a *properly formed* stack one 27/28 pair was repurposed as a resiliency link
-with the stack running on the other pair, with no ill effect.
-
-### The CLI is media-blind — do not trust it to reject a nonsensical setting ✅
-
-On a **1000BASE-SX fibre** port, `speed ?` still offers `10 … 400000` and `duplex ?` still
-offers `half`, identically to a copper port. `polarity {auto|mdi|mdix}` is likewise offered on
-fibre, where MDI/MDI-X has no meaning (the docs say it applies to "a copper-based switch port").
-Nothing errors. So a speed matrix pointed at fibre records *"DUT failed to set speed 100"* — a
-false failure blamed on the product — and a polarity step is a silent no-op.
-
-Media is only knowable from the **pluggable**, via the `Type` column of
-`show interface <port> status` (`1000BASE-T`, `10GBASE-TM`, `1000BASE-SX`, or `not present` for
-an empty cage — note that value has a space in it). It cannot be inferred from a port name: on
-tb470 `port1.0.1` is a 1000BASE-T on one unit and a 10GBASE-TM on the other. `tool/pt_media.py`
-classifies it; `ask-ck/pytest-create/TOPOLOGY-PROFILES.md` explains why it must be asserted at
-run time rather than declared in a file.
-
-Also worth knowing: mismatched copper modules still link. An AT-SPTXc (1000BASE-T) against an
-AT-SP10TM (10GBASE-TM) negotiated 1000/full without complaint.
-
-### Absence from ck.db's CLI reference means UNKNOWN, not unsupported ✅
-
-`polarity` is documented for 29 products **not including `ie520`** — and both tb470 IE520s
-support it (confirmed with `polarity ?` in interface config). `ie560` is the only IE5xx in the
-harvest at all. Treat a missing product as uncovered by the docs and verify on the device;
-`stackport` behaved the same way.
-
-## 4b. tb470 host networking — DHCP, routing, and packet capture (2026-08-04) ✅
-
-Came out of repairing `isc-dhcp-server` on tb470 and then tracing why a switch could not reach
-the IDevID provisioning proxy. All of it is host-side; none of it touches the framework.
-
-### 🔑 Only `10.38.215.0/24` has an upstream return path, and tb470 has NO NAT
-
-This is the big one. `nft list ruleset` is **0 bytes** and **`iptables` is not installed**, so
-`ip_forward=1` forwards lab traffic with its source address **intact** and relies entirely on
-the org network knowing how to route the reply back. It knows `10.38.215.0/24`. It knows
-nothing else you invent. Proof, run from tb470 itself:
-
-```bash
-dig +time=4 +tries=1 -b 10.38.215.1  @1.1.1.1 pool.ntp.org   # NOERROR, 4 answers, ~150 ms
-dig +time=4 +tries=1 -b 10.37.101.1  @1.1.1.1 pool.ntp.org   # timed out
-dig +time=4 +tries=1 -b 10.36.201.215 @1.1.1.1 pool.ntp.org  # NOERROR (mgmt address)
-```
-
-**⇒ Never move a lab segment off `10.38.215.0/24` without adding NAT first.** Renumbering eth3
-to `10.37.101.1/27` cost every client on it all off-segment reachability, and it presents as
-"DNS doesn't work" / "the service is unreachable", not as a routing error. `dig -b <addr>` is
-the cheapest way to separate *destination unreachable* from *source unroutable* — the same
-query differs only by source address.
-
-`named` needs no attention across a renumber: it has no explicit `listen-on`, binds all
-interfaces and re-binds within ~60 s by itself. It is **not** a usable resolver, though —
-`named.conf.options` holds only `directory`, no zones and no forwarders, and it times out on
-every address it listens on.
-
-### A failing `isc-dhcp-server` hides its reason from unprivileged `journalctl`
-
-The unit is an **LSB init wrapper** (`/etc/init.d/isc-dhcp-server`, systemd-sysv-generated), so
-it only reports `Starting ISC DHCPv4 server: dhcpdcheck syslog for diagnostics. ... failed!`.
-The real reason is logged by `dhcpd` itself at a privileged level:
-
-```bash
-sudo journalctl -u isc-dhcp-server --no-pager -n 40    # sudo is NOT optional here
-```
-
-**`dhcpd -t` is not a startup check.** It validates *syntax* and will pass happily on a config
-that cannot start. A `subnet` declaration matching no interface address is perfectly valid and
-yields `No subnet declaration for <iface> (<ip>)` → `Not configured to listen on any
-interfaces!` → exit 1. To prove which interfaces a *running* dhcpd actually bound, don't trust
-`ss -lunp` (it shows one `0.0.0.0:67`); read the per-interface raw sockets:
-
-```bash
-sudo ss -0 -p | grep dhcpd      # one p_raw line per interface, e.g. *:eth1  *:eth3
-cat /proc/net/packet            # cross-check Iface column against /sys/class/net/<if>/ifindex
-```
-
-### A client holding a lease from a subnet you stopped serving gets WEDGED, not NAK'd
-
-dhcpd logs `unknown lease <ip>` and **sends nothing back** — `authoritative;` only makes it NAK
-for subnets it knows about, and the stale address is in none of them. The client re-REQUESTs its
-dead address for minutes (unicast, then broadcast REBINDING) and only recovers when the lease
-fully expires. Bounce the client instead of waiting: on AW+, `no ip address dhcp` then
-`ip address dhcp` on the relevant vlan.
-
-### Two pre-existing traps in tb470's `dhcpd.conf`
-
-- **The eth1 pool `10.38.215.2–10` overlaps the switches' static management addresses** (the
-  x230's `vlan100` is statically `.2`). dhcpd's ping-check catches it — `ICMP Echo reply while
-  lease 10.38.215.2 valid` → `Abandoning IP address 10.38.215.2: pinged before offer` — but
-  ping-check only sees a host that answers *at that instant*, so a rebooting device can still be
-  handed an address already in static use. A plausible contributor to the mgmt-IP drift in §4a.
-- **`option domain-name "example.org";`** is still the Debian sample default and is handed to
-  every client, which then appends it to lookups (`…weconnecttheweb.co.nz.example.org`). A
-  wasted round trip per resolution, and it breaks short-name lookups.
-
-### Packet capture on a testbox
-
-`tcpdump` 4.99.5 and `tshark` are both installed and sudo is passwordless. Detach the capture so
-the SSH call returns immediately, and bound it with `timeout` so a forgotten capture can't fill
-the disk:
-
-```bash
-CAP=/tmp/eth3-cap-$(date +%Y%m%d-%H%M%S).pcap
-sudo sh -c "nohup timeout 300 tcpdump -i eth3 -nn -s0 -U -w $CAP >/tmp/cap.log 2>&1 &"
-# -U flushes per packet, so the file is readable WHILE the capture runs
-```
-
-Write a real pcap rather than parsing text, so one firing of a hard-to-repeat event can be
-re-analysed from several angles. Reading it back:
-
-```bash
-sudo tcpdump -nn -r "$CAP" | grep -vE 'LLDP|ARP'
-sudo tshark -r "$CAP" -Y dns -T fields -e frame.time -e ip.dst -e dns.qry.name \
-     -e dns.flags.response -e dns.a
-sudo tshark -r "$CAP" -Y tls -T fields -e tcp.srcport -e tls.record.content_type \
-     -e tls.handshake.type -e tls.alert_message.desc
-```
-
-**Read the error text as a layer indicator.** `Operation timeout` meant nothing came back — the
-capture held DNS queries with zero responses and **not one TCP packet**. After the fix the same
-command failed with `device is disabled`, which is a *substantive answer* and therefore proof the
-whole path works: you can only be told you are disabled by a server you reached, TLS-handshook
-with, and submitted to. A changed error is progress; check the layer before re-debugging the
-network.
-
-Two capture-reading notes: identify the far-end device from **LLDP** in the capture
-(`-Y lldp -e lldp.port.id`) rather than guessing from the MAC — a switch's L3 interface MAC need
-not match the base MAC in §2. And under **TLS 1.3 the server certificate is encrypted**, so an
-absent cert subject is expected, not a failure; look for `tls.alert_message` instead, and treat
-`content_type 22,20` in one record as normal middlebox-compat mode.
-
-### IDevID installs need working time first
-
-An AW+ device installing an IDevID resolves and syncs NTP **before** it contacts the proxy,
-because certificate validity windows need a real clock. It walks `pool.ntp.org` →
-`time.google.com` → `time.nist.gov`, then looks up
-`proxy.idevid-test.weconnecttheweb.co.nz`. A DNS or egress fault therefore surfaces as an NTP
-storm first and a proxy timeout second — fix reachability, not the IDevID config.
+- **§4a, de-stacking and split-stack lessons** → **orient §6**, which now carries the split
+  signature (`Disabled Master`, `Operating in failover mode`, each unit seeing the other as
+  `Provisioned`, 26 ports `err-disable`), both causes and their opposite fixes, the recovery
+  sequence, the ⛔ on `no stack <id> enable`, and the fact that a rejoin does not re-elect.
+  Product facts from it (media-blind CLI, "absence from the docs means UNKNOWN") are in
+  orient §2.
+- **§4b, tb470 host networking** → **`TB470-HOST-NETWORKING.md`**. It was never about access.
 
 ## 5. Quick reference
 
@@ -652,14 +428,10 @@ storm first and a proxy timeout second — fix reachability, not the IDevID conf
 | Is a console free? | `ls /var/lock/LCK..*` · `pgrep -a minicom` · `fuser -v /dev/ttyUSBnn` |
 | Is this testbox TBv4? | `ls /etc/network/interfaces` (exists ⇒ TBv4 ⇒ `Switch()` needs `/dev/uN`, not an int) |
 | Run a legacy corpus script | extract from `ck.db` → staging copy + `.orig` → patch the copy → `python3` + `PYTHONPATH=/home/st-art` (§4) |
-| Is a console held by an operator? | `ls /var/lock/LCK..*` (file holds the PID) · `pgrep -a minicom` · `ps -o user,tty -p <pid>` — never share a serial port (§4a) |
-| Diagnose a "bugged" stack | `show stack detail` on **every** unit; `Disabled Master` + `err-disabled` ports = split stack, not a config fault (§4a) |
-| Un-stack a unit | `no stackport` on 27/28, `no stack virtual-mac`, `stack <id> renumber 1`, `write`, reboot. **Never `no stack <id> enable`** — it disables all ports (§4a) |
-| What media is in a port? | `show interface <port> status` → `Type` column. Not inferable from the port name; the CLI accepts speed/duplex/polarity on fibre regardless (§4a) |
-| Why did `isc-dhcp-server` fail? | `sudo journalctl -u isc-dhcp-server` — **sudo required**; `dhcpd -t` only checks syntax (§4b) |
-| Which interfaces did dhcpd bind? | `sudo ss -0 -p \| grep dhcpd` — one `p_raw` per interface; `ss -lunp` shows only `0.0.0.0:67` (§4b) |
-| Is a lab address routable off-segment? | `dig +time=4 -b <src-addr> @1.1.1.1 pool.ntp.org` — only `10.38.215.0/24` returns; tb470 has **no NAT** (§4b) |
-| Packet-capture a bench event | `sudo sh -c "nohup timeout 300 tcpdump -i <if> -nn -s0 -U -w /tmp/x.pcap &"` then `tshark -r` (§4b) |
-| Client stuck on an old DHCP address | dhcpd logs `unknown lease` and sends **nothing**; bounce it: `no ip address dhcp` / `ip address dhcp` (§4b) |
 | Check a script is still alive | `pgrep -f "[s]cript_name"` — bracket avoids self-match; never `pkill -f` over SSH |
 | Read a framework log | `tr -d '\000' < x.log \| grep -a …` (CR line endings + embedded NULs) |
+
+| Diagnose or recover a split stack | orient §6 |
+| IE520 platform limit / framework trap / which driver | orient §2, §3, §4 |
+| tb470 DHCP, routing, no-NAT, packet capture | `TB470-HOST-NETWORKING.md` |
+| What is cabled to what, PDU outlets, loopback plugs | `bench-state.md` (source of truth) |
