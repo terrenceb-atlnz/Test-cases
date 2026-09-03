@@ -39,6 +39,8 @@ Re-lint. Re-run Review after a fix to see what remains.
 **Step-5 UI pass.** Buttons are blue iff they call the LLM (Assemble de-blued, Review blued); the
 numbered happy-path (1 Assemble → 2 Review → 3 Save → 4 Confirm) is split from the recovery
 utilities (Re-lint, Fix); and the Summary instructions are a scannable list instead of a paragraph.
+The lint panel now **collapses pep8 style warnings** behind a one-line count — they are
+non-blocking and are never handed to Fix, so only actionable (blocking) errors show by default.
 
 
 ## 2026-09-03 — Corrupt-WAL recovery for ck.db, and the setup unit stops raising a false indent error

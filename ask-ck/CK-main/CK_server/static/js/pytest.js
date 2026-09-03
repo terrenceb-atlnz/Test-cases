@@ -1476,10 +1476,21 @@ export function renderPtGenPanel() {
 function ptRenderLint(lint) {
   const el = document.getElementById('pt-lint-result');
   if (!lint) { el.innerHTML = ''; return; }
-  const err = (lint.errors || []).map(e => `<div>✗ ${escapeHtml(e)}</div>`).join('');
-  const warn = (lint.warnings || []).map(w => `<div>△ ${escapeHtml(w)}</div>`).join('');
+  const errs = lint.errors || [];
+  const warns = lint.warnings || [];
+  const err = errs.map(e => `<div>✗ ${escapeHtml(e)}</div>`).join('');
+  // Style warnings (pycodestyle/pep8) are non-blocking AND are never handed to Fix (its
+  // prompt gets only blocking errors + review findings), so they cannot be cleared from the
+  // panel and only add noise. Collapse them behind a one-line count — visible errors stay
+  // up top, the warnings are one click away rather than a wall of △ lines (2026-09-04).
+  const n = warns.length;
+  const warnBlock = n
+    ? `<details class="mt-1"><summary class="justification-note">△ ${n} style warning${n === 1 ? '' : 's'} (pep8, non-blocking — not fixed by Fix)</summary>`
+      + `<div class="justification-note">${warns.map(w => `<div>△ ${escapeHtml(w)}</div>`).join('')}</div></details>`
+    : '';
   el.innerHTML = `<span class="badge ${lint.ok ? 'badge-success' : ''}">${lint.ok ? 'lint OK' : 'lint failed'}</span>`
-    + `<div class="justification-note">${err}${warn}</div>`;
+    + (err ? `<div class="justification-note">${err}</div>` : '')
+    + warnBlock;
 }
 
 // Pass C — the holistic review (PLAN-pytest-creator.md §9.6).
