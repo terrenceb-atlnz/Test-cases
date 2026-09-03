@@ -30,7 +30,11 @@ target indent read off the frame. Reproduced and verified on AWPTCM-T44297.
 A blocking lint error bars Confirm with no override, and Fix was reachable only *after* Confirm —
 so an unparseable script deadlocked. `ptFixFromSummary` calls the same `fix_script` (lint errors
 + review findings → whole-script rewrite), reachable before Confirm. *Note:* it rewrites the
-whole file, so re-Assembling afterwards re-splices the units and discards it.
+whole file, so re-Assembling afterwards re-splices the units and discards it. A fix now also
+**clears the stale review and persists the freshly-computed lint** (mirroring `assemble_script`):
+the old findings described the pre-fix code, and the recomputed lint was previously returned to
+the caller but never written back — so the panel kept showing pre-fix results until a manual
+Re-lint. Re-run Review after a fix to see what remains.
 
 **Step-5 UI pass.** Buttons are blue iff they call the LLM (Assemble de-blued, Review blued); the
 numbered happy-path (1 Assemble → 2 Review → 3 Save → 4 Confirm) is split from the recovery

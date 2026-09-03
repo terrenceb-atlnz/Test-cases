@@ -4904,9 +4904,21 @@ async def fix_script(key: str, request: Request):
         step6_n["files"] = files_n
         step6_n["iterations"] = iteration + 1
         step6_n["confirmed"] = False
+        # A fix produces a NEW artefact, so its predecessor's review no longer describes what
+        # is on screen — mirror assemble_script and drop it, or the pre-fix findings read as
+        # if they were about the rewritten script (2026-09-04). The reviewer re-runs Review to
+        # see what remains.
+        step6_n.pop("review", None)
         fresh.step6 = step6_n
         _invalidate_from(fresh, 6)  # revised code must be re-reviewed and re-run
-        _fixed["lint"] = _lint_generated(fresh)
+        # PERSIST the fresh lint. It was previously computed and returned to the caller but
+        # never written back to the session, so the panel kept rendering the PRE-fix lint
+        # until a manual Re-lint. Store it here so the assembled-script status is current.
+        lint_now = _lint_generated(fresh)
+        step6_l = dict(fresh.step6)
+        step6_l["lint"] = lint_now
+        fresh.step6 = step6_l
+        _fixed["lint"] = lint_now
         _fixed["files"] = fresh.step6["files"]
         _fixed["iterations"] = fresh.step6["iterations"]
 

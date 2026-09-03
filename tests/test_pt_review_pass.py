@@ -151,6 +151,18 @@ def test_the_fix_prompt_renders_the_findings():
     assert "f.what" in tpl and "f.suggestion" in tpl
 
 
+def test_a_fix_clears_the_stale_review_and_persists_the_fresh_lint():
+    """A fix produces a NEW artefact, so the predecessor's review no longer describes it —
+    dropped the way assemble_script drops it — and the lint recomputed on the rewritten code
+    must be WRITTEN BACK to the session, not only returned, or the panel keeps rendering the
+    pre-fix lint until a manual Re-lint (2026-09-04)."""
+    i = _CODE.index("async def fix_script")
+    j = _CODE.index("async def validate", i)
+    body = _CODE[i:j]
+    assert 'pop("review", None)' in body, "a fix must drop the pre-fix review"
+    assert '["lint"] = lint_now' in body, "the fresh lint must be persisted to the session, not just returned"
+
+
 # --- the three load-bearing design properties -------------------------------------
 
 def test_the_review_never_writes_the_script():

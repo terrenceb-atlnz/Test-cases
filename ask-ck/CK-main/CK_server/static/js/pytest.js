@@ -1536,8 +1536,9 @@ async function ptFixFromSummary() {
   await ptRefreshSession();
   renderPtGenPanel();
   ptStatusEl('pt-gen-status').textContent =
-    `Revised whole script (iteration ${d.iterations}); previous archived. This REPLACES the `
-    + `assembled file — re-Assemble would re-splice the units and discard it. Re-lint / Review, then Save & Confirm.`;
+    `Revised whole script (iteration ${d.iterations}); previous archived. Lint is refreshed and `
+    + `the old review was cleared (it described the pre-fix code) — re-run Review to see what remains. `
+    + `Don't re-Assemble (it re-splices the units and discards this). Then Save & Confirm.`;
 }
 
 async function ptReviewScript() {
