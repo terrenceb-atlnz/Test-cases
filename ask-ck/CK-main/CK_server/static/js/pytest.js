@@ -1507,7 +1507,7 @@ function ptRenderReview(review) {
     .map(sv => ({ sv, n: findings.filter(f => f.severity === sv).length }))
     .filter(c => c.n).map(c => `${c.n} ${c.sv}`).join(' · ');
   el.innerHTML = `<span class="badge">review: ${findings.length} finding(s)</span> `
-    + `<span class="justification-note">${escapeHtml(counts)} — fix these on step 7 (Validate → Fix).</span>`
+    + `<span class="justification-note">${escapeHtml(counts)} — feed to the Fix button (here, or on step 7 Validate).</span>`
     + '<div class="mt-1">' + findings.map(f => `
       <div class="pt-review-finding pt-review-${escapeHtml(f.severity)}">
         <div><b>${_PT_SEV[f.severity] || '·'} ${escapeHtml(f.where || '(script)')}</b>`
@@ -1517,6 +1517,27 @@ function ptRenderReview(review) {
         + (f.evidence ? `<pre class="session-pre pt-review-ev">${escapeHtml(f.evidence)}</pre>` : '')
         + (f.suggestion ? `<div class="justification-note">suggested: ${escapeHtml(f.suggestion)}</div>` : '')
         + '</div>').join('') + '</div>';
+}
+
+// Fix from the SUMMARY step (2026-09-04, "Both"). Same fix_script endpoint as the step-7
+// button, but reachable here so a BLOCKING error — which bars Confirm and therefore hides
+// the step-7 Fix button behind an unreachable gate — can still be repaired. fix_script
+// reads its reasons off the session (lint errors + review findings + any failed run), so
+// no body is needed. It rewrites the WHOLE file: a following Assemble re-splices the units
+// and would discard it, so the status says so and we stay on this panel.
+async function ptFixFromSummary() {
+  if (!ptRequireCase()) return;
+  await ptPushCodeEdits(false);           // fix the script the reviewer can see, not a stale copy
+  const btn = document.getElementById('pt-fix-summary-btn');
+  const d = await ptApi(`/fix_script/${S.ptCase.key}`,
+    { method: 'POST', btn, busyLabel: 'Fixing…', llm: true }, ptStatusEl('pt-gen-status'));
+  await recordLLMDebug(btn);
+  if (!d) return;
+  await ptRefreshSession();
+  renderPtGenPanel();
+  ptStatusEl('pt-gen-status').textContent =
+    `Revised whole script (iteration ${d.iterations}); previous archived. This REPLACES the `
+    + `assembled file — re-Assemble would re-splice the units and discard it. Re-lint / Review, then Save & Confirm.`;
 }
 
 async function ptReviewScript() {
@@ -1995,7 +2016,7 @@ registerActions({
   ptSaveMatches,
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
-  ptLintScript, ptReviewScript, ptFixScript, ptSaveScript,
+  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,

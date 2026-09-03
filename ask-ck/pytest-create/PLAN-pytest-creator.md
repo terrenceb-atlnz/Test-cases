@@ -671,6 +671,16 @@ The genuine costs of chunking are elsewhere and are not about size: cross-chunk 
 
 ### 9.5 Where to cut — the manifest is already the seam — **BUILT 2026-09-02, WITHOUT Pass A**
 
+> **2026-09-04 — setup-unit re-indent at assembly, and a reachable Fix.** The `setup` unit is
+> the only unit that is a class-body fragment (a `TestSet` method pair at indent 4), not a
+> top-level class, so the model consistently flush-lefts a `def` and the byte-exact splice made
+> an `IndentationError` that failed lint + `manifest_check`. `_assemble_units` now re-indents the
+> setup pair to the frame slot (`_reindent_setup_pair`/`_setup_slot_indents`: def→4, body→8
+> independently, idempotent); TestCase units are still verbatim. Separately, the **Fix** loop
+> (§9.6) is now reachable from the Summary/Generate step (`ptFixFromSummary`), not only step 7 —
+> a blocking lint error bars Confirm with no override, so an unparseable script was otherwise
+> deadlocked. See `CHANGELOG.md` 2026-09-04 and memory `setup-unit-reindent-at-assembly`.
+
 The machinery a chunked generation needs mostly exists, because reassembling a multi-part
 reply is the same problem as assembling deliberate chunks:
 

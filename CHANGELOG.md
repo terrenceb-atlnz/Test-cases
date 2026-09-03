@@ -11,6 +11,32 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-04 — Setup unit re-indented at assembly; a reachable Fix and a clearer step-5 UI
+
+**The `setup` unit no longer produces an IndentationError at assembly.** Per-unit generation
+hands the model the `configure()`/`tear_down()` pair as an indented **class-body fragment** —
+the only unit that isn't a top-level construct — and the model reliably flush-lefts one `def`
+while keeping the other at method level, so the byte-exact splice landed `unindent does not
+match any outer indentation level` in the assembled script, failing both lint and manifest.
+`_assemble_units` now normalises the setup pair to the frame slot's indents (`_reindent_setup_pair`:
+`def`→4 and body→8 set **independently**, so a flush-left def with a correct body isn't
+over-indented; nesting preserved; idempotent). TestCase units are still spliced verbatim.
+*Why at assembly and not the arrival check:* the 2026-09-03 change deliberately removed the setup
+unit's arrival indent parse (its synthetic-wrapper line numbers were unmappable), deferring
+syntax to the Summary lint — so assembly is where the deterministic fix belongs, using the
+target indent read off the frame. Reproduced and verified on AWPTCM-T44297.
+
+**A `Fix with LLM` button now lives on the Summary/Generate step (step 5), not only on step 7.**
+A blocking lint error bars Confirm with no override, and Fix was reachable only *after* Confirm —
+so an unparseable script deadlocked. `ptFixFromSummary` calls the same `fix_script` (lint errors
++ review findings → whole-script rewrite), reachable before Confirm. *Note:* it rewrites the
+whole file, so re-Assembling afterwards re-splices the units and discards it.
+
+**Step-5 UI pass.** Buttons are blue iff they call the LLM (Assemble de-blued, Review blued); the
+numbered happy-path (1 Assemble → 2 Review → 3 Save → 4 Confirm) is split from the recovery
+utilities (Re-lint, Fix); and the Summary instructions are a scannable list instead of a paragraph.
+
+
 ## 2026-09-03 — Corrupt-WAL recovery for ck.db, and the setup unit stops raising a false indent error
 
 **New tool + runbook to recover `ck.db` from a corrupt WAL without corrupting the base.**

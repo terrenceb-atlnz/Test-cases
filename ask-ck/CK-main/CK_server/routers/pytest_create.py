@@ -4258,6 +4258,60 @@ def _unit_shape_ok(code: str, unit: dict) -> Tuple[bool, str]:
     return True, ""
 
 
+_SETUP_DEF_RE = re.compile(r"[ \t]*(?:async[ \t]+)?def[ \t]+(?:configure|tear_down)\b")
+
+
+def _setup_slot_indents(block: str) -> Tuple[int, int]:
+    """(def_indent, body_indent) the frame reserves for the setup pair — read off the
+    frame's own block (a `def` at method level, its first body line one step deeper).
+    Defaults to the 4/8 the skeleton uses if the block can't be read."""
+    lines = (block or "").split("\n")
+    for idx, ln in enumerate(lines):
+        if _SETUP_DEF_RE.match(ln):
+            d = len(ln) - len(ln.lstrip())
+            for nxt in lines[idx + 1:]:
+                if nxt.strip():
+                    return d, len(nxt) - len(nxt.lstrip())
+            return d, d + 4
+    return 4, 8
+
+
+def _reindent_setup_pair(code: str, def_indent: int, body_indent: int) -> str:
+    """Re-indent a returned configure()/tear_down() pair so each method's `def` sits at
+    `def_indent` and its body base at `body_indent`, preserving the body's internal nesting.
+
+    WHY ONLY THE SETUP UNIT. It is the one unit that is NOT a top-level construct: it is
+    two methods living inside `class TestSet` at indent 4, handed to the model as an
+    indented FRAGMENT. Models routinely flush-left a `def` while its body keeps the indent
+    it would have at method level (or shift the whole method), so the two methods disagree
+    — and the byte-exact splice below rides that straight into the file as
+    `IndentationError: unindent does not match any outer indentation level`
+    (AWPTCM-T44297, 2026-09-04). TestCase units never hit this: they are whole column-0
+    classes the model reproduces cleanly.
+
+    Deterministic because both targets are known from the frame's own slot. Each method's
+    `def` is set to `def_indent` and its body re-based to `body_indent` INDEPENDENTLY — so a
+    def flush-left with a correct body (the observed failure) is fixed without over-indenting
+    that body — while each body line keeps its offset relative to the body base, so nested
+    blocks survive. Idempotent: a reply already at the slot indents is returned unchanged.
+    Falls back to the raw reply (for the Summary lint to judge) if no method def is found."""
+    lines = code.split("\n")
+    def_idxs = [i for i, ln in enumerate(lines) if _SETUP_DEF_RE.match(ln)]
+    if not def_idxs:
+        return code
+    out = list(lines)
+    bounds = def_idxs + [len(lines)]
+    for s, start in enumerate(def_idxs):
+        out[start] = " " * def_indent + lines[start].lstrip()
+        body = lines[start + 1:bounds[s + 1]]
+        base = min((len(l) - len(l.lstrip()) for l in body if l.strip()), default=0)
+        for j, l in enumerate(body):
+            out[start + 1 + j] = ("" if not l.strip()
+                                  else " " * (body_indent + (len(l) - len(l.lstrip())) - base)
+                                  + l.lstrip())
+    return "\n".join(out)
+
+
 def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
     """Splice the generated units into the rendered frame. Returns (code, missing_ids).
 
@@ -4265,6 +4319,11 @@ def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
     the units not yet replaced. The frame is the server's own render, so this is a pure
     local operation — no model, no reassembly heuristics, no seams to detect. That is the
     whole reason the units are worth generating separately.
+
+    The ONE deterministic normalisation is the setup pair's leading indentation
+    (`_reindent_setup_pair`): the only unit that is a class-body fragment rather than a
+    top-level construct, so the only one a model can hand back with its two `def` lines at
+    disagreeing columns. Everything else is spliced byte-for-byte.
     """
     lines = ctx["skeleton"].split("\n")
     missing: List[str] = []
@@ -4274,6 +4333,9 @@ def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
         if not code:
             missing.append(u["id"])
             continue
+        if u.get("kind") == "setup":
+            d_ind, b_ind = _setup_slot_indents(u.get("block") or "")
+            code = _reindent_setup_pair(code, d_ind, b_ind)
         lo, hi = u["lines"]
         lines[lo - 1:hi] = code.split("\n")
     return "\n".join(lines), list(reversed(missing))

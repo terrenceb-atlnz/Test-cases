@@ -164,6 +164,69 @@ def test_splicing_each_unit_back_reproduces_the_frame_exactly():
     assert out == FRAME, "a unit that does not splice back cleanly does not fit the file"
 
 
+def test_setup_pair_reindented_when_model_flush_lefts_a_method():
+    """AWPTCM-T44297 (2026-09-04): the model returned `def configure` at column 0 while
+    `def tear_down` kept column 4, so the byte-exact splice produced an IndentationError
+    that failed both lint and manifest. _assemble_units re-indents the setup pair to the
+    frame's slot; the result must parse and both defs land at the frame indent (4)."""
+    us = _units()
+    ctx = {"skeleton": FRAME, "units": us}
+    chunks = {u["id"]: {"status": "ok", "code": u["block"]} for u in us}
+    # configure flush-left (col 0), tear_down at method level (col 4) — the real failure.
+    chunks["setup"] = {"status": "ok", "code":
+                       "def configure(self):\n"
+                       "        self.dut.cmd('lldp run')\n"
+                       "\n"
+                       "    def tear_down(self):\n"
+                       "        self.dut.cmd('no lldp run')"}
+    out, missing = pc._assemble_units(ctx, chunks)
+    assert missing == []
+    import ast
+    tree = ast.parse(out)                       # would raise IndentationError before the fix
+    ts = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "TestSet")
+    meths = {b.name: b for b in ts.body
+             if isinstance(b, ast.FunctionDef) and b.name in ("configure", "tear_down")}
+    assert {n: m.col_offset for n, m in meths.items()} == {"configure": 4, "tear_down": 4}
+    # PROPER, not just parseable: the flush-left def had a correct body (col 8), so the fix
+    # must land the def at 4 WITHOUT over-indenting that body — body stays at 8, not 12.
+    assert meths["configure"].body[0].col_offset == 8
+
+
+def test_setup_reindent_rebases_a_wholly_flush_left_method():
+    """The other shape: the model flush-lefts the WHOLE method (def col 0, body col 4).
+    def→4 and body→8, preserving nesting, so it still parses and reads cleanly."""
+    us = _units()
+    ctx = {"skeleton": FRAME, "units": us}
+    chunks = {u["id"]: {"status": "ok", "code": u["block"]} for u in us}
+    chunks["setup"] = {"status": "ok", "code":
+                       "def configure(self):\n"
+                       "    if True:\n"
+                       "        self.dut.cmd('lldp run')\n"
+                       "\n"
+                       "    def tear_down(self):\n"
+                       "        pass"}
+    out, missing = pc._assemble_units(ctx, chunks)
+    assert missing == []
+    import ast
+    ts = next(n for n in ast.parse(out).body
+              if isinstance(n, ast.ClassDef) and n.name == "TestSet")
+    cfg = next(b for b in ts.body if getattr(b, "name", None) == "configure")
+    assert cfg.col_offset == 4
+    assert cfg.body[0].col_offset == 8            # the `if` re-based to 8
+    assert cfg.body[0].body[0].col_offset == 12   # its nested stmt kept its relative depth
+
+
+def test_setup_reindent_is_idempotent_on_a_correct_reply():
+    """A correctly-indented setup reply must splice back byte-for-byte, exactly as before —
+    the normalisation is a no-op when the defs are already at the slot indent."""
+    us = _units()
+    ctx = {"skeleton": FRAME, "units": us}
+    chunks = {u["id"]: {"status": "ok", "code": u["block"]} for u in us}
+    out, missing = pc._assemble_units(ctx, chunks)
+    assert missing == []
+    assert out == FRAME
+
+
 def test_replacing_units_of_different_length_does_not_shift_the_others():
     """Back-to-front is why this works. Front-to-back, replacing a 20-line unit with a
     60-line one moves every later unit's recorded line range and the next splice lands in

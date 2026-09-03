@@ -3799,3 +3799,45 @@ OK, `ck.db` untouched.
   the **bench stream's**, left uncommitted for its own wrap; this session did not stage them.
 - A **444 MB backup** at `ask-ck/var/wal-recover-backup-20260903-105553/` (gitignored) can be
   deleted once the recovery is trusted.
+
+## Session Close / Handoff (2026-09-04) — setup-unit re-indent, a reachable Fix, step-5 UI
+
+Stress-tested per-unit generate on **AWPTCM-T44297**; full detail in
+`ask-ck/objective-drafting/PROGRESS.md` (top) and `CHANGELOG.md` (2026-09-04). Summary:
+
+- **Generator defect fixed.** The `setup` unit (the only non-top-level unit — a `TestSet`
+  method pair) consistently comes back with `def configure` flush-left, so the byte-exact
+  splice made an `IndentationError` that failed lint + manifest. `_assemble_units` now
+  re-indents it to the frame slot (`_reindent_setup_pair`/`_setup_slot_indents`, def→4/body→8
+  independently, idempotent); TestCase units untouched. +3 tests. Memory:
+  `setup-unit-reindent-at-assembly`.
+- **Deadlock fixed.** A blocking lint error bars Confirm (no override) and Fix was step-7-only,
+  so an unparseable script was stuck. Added **Fix with LLM** to the Summary step
+  (`ptFixFromSummary` → same `fix_script`). Plus a step-5 UI pass (LLM-only buttons blue,
+  numbered happy-path split from Re-lint/Fix utilities, scannable instructions).
+- **Fix-scope check:** the new whole-script Fix rewrote 9/38 classes on T44297 — all 6
+  finding-cases + TC23/TC24 (comment-only, on the `.portB` lines a cross-unit finding named);
+  29 byte-identical. Held here (n=1); a per-unit fix path would make it airtight.
+
+**Gate at close:** 1236 passed / 1 skipped; the one red is the known `test_db_isolation` race
+under the live server (passes standalone, 27/27) — same flake seen at orient.
+
+**Committed:** the code/UI/test fix (`pytest_create.py`, `static/index.html`,
+`static/js/pytest.js`, `tests/test_pt_per_unit.py`) + these docs.
+
+**Left uncommitted, deliberately:**
+- `ask-ck/var/ck.db` — mixed live traffic (mine + possibly the bench stream's); not part of a
+  code-fix commit.
+- The regenerated T44297 artifact (`generated/Management/261_…` + `.meta`) — the user's
+  in-progress output, still being iterated (Fix/Review). Parses; left for the user to commit
+  when T44297 is finalised.
+- The new memory `setup-unit-reindent-at-assembly.md` + its `MEMORY.md` pointer — both written
+  to the working tree but NOT committed, because `MEMORY.md` already carries the bench stream's
+  uncommitted pointer edits and cannot be partial-staged. `/orient` reads the working tree, so
+  the memory is discoverable now; commit it with the memory-index untangling (bench wrap).
+- The bench stream's `ask-ck/test-composer/dos_campaign.py` and `ie520-*` memories — its own to
+  wrap.
+
+**Open, unchanged:** the fan-out E2E + its two deferred prompt decisions; the IE520 weekend
+reboot re-run (3 harness defects first); Tier A/B import cleanup. A **per-unit fix path** is the
+next quality step for Fix-scope if drift ever bites.

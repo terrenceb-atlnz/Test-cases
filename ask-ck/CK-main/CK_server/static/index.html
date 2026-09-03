@@ -672,6 +672,22 @@
         <div id="pt-unit-page" class="mb-2"></div>
 
         <div id="pt-summary-page" class="hidden">
+        <div class="section-description mb-2">
+          <b>Summary</b> — assemble the generated units into one script and check it.
+          <span class="justification-note">Blue buttons call the LLM; the rest run locally.</span>
+          <ol class="mt-1 mb-1" style="margin-left:1.1em; padding-left:0">
+            <li><b>Assemble + lint</b> — splice the units into the frame, re-stamp provenance, manifest-check + <code>py_compile</code>/PEP-8. Clear a red lint before moving on.</li>
+            <li><b>Review (LLM)</b> — read the assembled script for logic defects the linter can't see (a verdict not matching its step, cross-unit inconsistencies). Findings only — no rewrite.</li>
+            <li><b>Save to generated/</b> — write the file to disk.</li>
+            <li><b>Confirm step 5</b> — needs a clean lint (syntax errors can't be overridden); unlocks step 7 (Validate).</li>
+          </ol>
+          <div class="justification-note">
+            <b>If something's wrong &nbsp;·&nbsp;</b>
+            <b>Re-lint</b> re-checks the current script after a hand-edit (no re-assemble).
+            <b>Fix with LLM</b> feeds the lint errors + review findings into a whole-script rewrite — for a blocking error that blocks Confirm; to repair one bad unit, regenerate it from its page above.
+            A Fix rewrites the whole file, so <b>don't re-Assemble after it</b> (that re-splices the units and discards the fix) — Re-lint / Review, then Save &amp; Confirm.
+          </div>
+        </div>
         <div class="compact-flex mb-2">
           <label class="justification-note">Group:</label>
           <input id="pt-gen-group" class="form-input form-input-small" placeholder="Port">
@@ -679,16 +695,20 @@
           <input id="pt-gen-name" class="form-input form-input-small" placeholder="MDIX_test">
           <span id="pt-gen-path" class="justification-note"></span>
         </div>
+        <!-- The happy-path flow, numbered 1-4 and contiguous so the sequence reads cleanly.
+             LOCAL steps are grey; the one LLM step (Review) is blue. -->
+        <div class="compact-flex mb-1">
+          <button data-action="ptAssembleScript" class="btn btn-compact" id="pt-assemble-btn">1 · Assemble + lint</button>
+          <button data-action="ptReviewScript" class="btn btn-primary btn-compact" id="pt-review-btn">2 · Review (LLM)</button>
+          <button data-action="ptSaveScript" class="btn btn-compact">3 · Save to generated/</button>
+          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">4 · Confirm step 5</button>
+        </div>
+        <!-- Recovery utilities, kept OUT of the numbered flow so they don't break the sequence.
+             Re-lint is local; Fix is a blue LLM whole-script rewrite (the deadlock escape). -->
         <div class="compact-flex mb-2">
-          <!-- LOCAL assembly, not an LLM call: splice the rendered frame with the units,
-               re-stamp provenance, manifest-check, lint + PEP 8, then the holistic review. -->
-          <button data-action="ptAssembleScript" class="btn btn-primary btn-compact" id="pt-assemble-btn">Assemble + check</button>
-          <button data-action="ptLintScript" class="btn btn-compact">Lint</button>
-          <!-- Pass C (PLAN §9.6): reports FINDINGS, never a rewrite. The findings feed the
-               Fix loop on step 7, which is where a change becomes a recorded action. -->
-          <button data-action="ptReviewScript" class="btn btn-compact" id="pt-review-btn">Review (LLM)</button>
-          <button data-action="ptSaveScript" class="btn btn-compact">Save to generated/</button>
-          <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">Confirm Step 5</button>
+          <span class="justification-note">If something's wrong:</span>
+          <button data-action="ptLintScript" class="btn btn-compact">Re-lint</button>
+          <button data-action="ptFixFromSummary" class="btn btn-primary btn-compact" id="pt-fix-summary-btn">⤺ Fix with LLM</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
@@ -702,7 +722,7 @@
         <details class="mt-2">
           <summary class="justification-note">Legacy: generate the whole script in one LLM call</summary>
           <div class="compact-flex mt-1">
-            <button data-action="ptGenerateScript" class="btn btn-compact" id="pt-gen-btn">Generate Script (LLM, single call)</button>
+            <button data-action="ptGenerateScript" class="btn btn-primary btn-compact" id="pt-gen-btn">Generate Script (LLM, single call)</button>
             <span class="justification-note">The pre-2026-09-02 path. Kept while per-unit generation is unproven on hardware; it writes the same step6.files.</span>
           </div>
         </details>

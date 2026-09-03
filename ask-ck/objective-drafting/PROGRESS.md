@@ -2,7 +2,51 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-03 (by Claude)
+**Last Updated**: 2026-09-04 (by Claude)
+
+## Latest session (2026-09-04) — the setup unit's flush-left `def` fixed at assembly, a reachable Fix, and a clearer step-5 UI
+
+Stress-tested the per-unit generate on **AWPTCM-T44297** and found a **consistent, reproducible**
+generator defect plus a workflow deadlock; both fixed.
+
+**(A) The `setup` unit came back with `def configure` flush-left (col 0) while `def tear_down`
+sat at col 4 — every generation.** The byte-exact splice then produced `IndentationError:
+unindent does not match any outer indentation level` (line 176), failing BOTH the Summary lint
+and `manifest_check` (0/0, because the file won't parse). Root cause: the setup unit is the ONE
+unit that is a **class-body fragment** (two `TestSet` methods at indent 4), not a top-level
+construct; models reproduce top-level indentation cleanly but mangle an indented fragment's
+leading whitespace, and nothing normalised it (arrival check is regex-only since 2026-09-03;
+`_assemble_units` splices byte-for-byte by design). **Fix:** `_assemble_units` now re-indents the
+setup pair to the frame slot via `_reindent_setup_pair` / `_setup_slot_indents` — `def`→4 and
+body→8 set **independently** (a flush-left def with a correct body isn't over-indented), nesting
+preserved, idempotent; TestCase units untouched. +3 tests. Verified end-to-end: a fresh
+regenerate flush-lefted `configure` again, Assemble returned `lint.ok: true` / `manifest.ok:
+true`. Memory: [[setup-unit-reindent-at-assembly]].
+
+**(B) A confirm-gate deadlock.** A blocking lint error bars Confirm with **no override**, and the
+Fix button lived only on step 7 (Validate) — reachable only AFTER confirm. So an unparseable
+script couldn't be confirmed and couldn't reach Fix. Added a **Fix with LLM** button to the
+Summary/Generate step (`ptFixFromSummary` → the same `fix_script`, lint errors + review findings
+→ whole-script rewrite). Plus a step-5 **UI pass**: buttons blue iff they call the LLM
+(Assemble de-blued, Review blued); numbered happy-path (1 Assemble → 2 Review → 3 Save → 4
+Confirm) split from recovery utilities (Re-lint, Fix); wall-of-text instructions rewritten as a
+scannable list.
+
+**Fix-scope sanity check** (the new whole-script button, on T44297): rewrote 9/38 classes — all
+6 finding-cases + TC23/TC24 (**comment-only**, on the exact `.portB` lines the TC13 topology
+finding named as sharing the defect); 29 classes byte-identical, imports/`__main__` unchanged. The
+"keep passing cases untouched" rule held here (n=1). A **per-unit fix path** (regenerate only the
+finding's units, splice the rest byte-exact) remains the airtight version if drift ever bites.
+
+**Gate:** backend + frontend green — 1236 passed / 1 skipped; the lone red is the known
+`test_db_isolation` race under the live server (passes standalone, 27/27).
+
+**Left uncommitted, deliberately:** `ck.db` (mixed live traffic); the regenerated T44297 artifact
+(`generated/Management/261_Management_LLDP_LLDP_test.py` + `.meta` — the user's in-progress
+output, still being iterated via Fix/Review); and the new memory + its `MEMORY.md` pointer
+(MEMORY.md is entangled with the bench stream's uncommitted pointer edits, so both are written to
+the working tree but not committed — the next session's `/orient` reads them there). The bench
+stream's `dos_campaign.py` and `ie520-*` memories remain its own to wrap.
 
 ## Latest session (2026-09-03) — a corrupt ck.db WAL recovered without a checkpoint, and the setup unit's false indent flag moved to the Summary step
 
