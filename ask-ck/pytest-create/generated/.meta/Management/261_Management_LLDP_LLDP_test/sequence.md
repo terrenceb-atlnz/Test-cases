@@ -1,64 +1,78 @@
 # Sequence — AWPTCM-T44297
 
-1. Cable the DUT's test port to the partner switch's partner port, bring both ports up, and start a live LLDPDU capture on the link (tcpdump on a mirror/tap of the partner port, or 'show lldp neighbors detail' plus a decode of captured frames). Configure a management IP address on the DUT via its documented management-address configuration.
-   verify: Both ports link up; the capture pipeline receives LLDP EtherType (88cc) frames from the DUT; the configured management address is present in the DUT's own management display.
-2. Enable LLDP globally on the DUT ('lldp run') and enable LLDP on the partner switch so it records received neighbour information.
-   verify: DUT reports LLDP running and the test port as an active LLDP tx port in 'show lldp'; the partner switch lists the DUT as a neighbour in its 'show lldp neighbors'.
-3. On the test port, select each optional TLV in turn — port description, system name, system description, system capabilities, management address — one at a time ('lldp tlv-select <tlv>').
-   verify: After each selection, the DUT's per-port LLDP operational/config display shows that TLV as selected (transmit-enabled) on the test port; each of the five is accepted individually.
-4. With all five optional TLVs selected on the test port, clear each one individually in turn ('no lldp tlv-select <tlv>'), leaving the other selections in place each time.
-   verify: After each clear, the DUT's per-port display shows only the just-cleared TLV changed to unselected while the remaining selected TLVs stay selected — clearing one does not disturb the others.
-5. Select the complete set of optional TLVs on the test port, then capture several transmitted LLDPDUs on the link.
-   verify: Every captured LLDPDU contains all five selected optional TLVs in addition to the mandatory chassis ID, port ID and TTL TLVs (and the end-of-LLDPDU marker).
-6. With all optional TLVs selected and confirmed on the wire, clear all optional TLVs on the test port while LLDP remains enabled, then capture subsequent LLDPDUs.
-   verify: Captured LLDPDUs carry only chassis ID, port ID and TTL TLVs followed by the end-of-LLDPDU marker; no optional TLV (port description, system name, system description, system capabilities, management address) appears on the wire.
-7. Re-select all optional TLVs on the test port and capture several LLDPDUs, decoding each single-instance TLV type.
-   verify: No single LLDPDU contains more than one port description, system name, system description or system capabilities TLV — each single-instance TLV appears at most once per LLDPDU.
-8. Ensure management address transmission is selected on the test port and capture several LLDPDUs.
-   verify: Every captured LLDPDU contains at least one management address TLV.
-9. Associate multiple management addresses with the test port (configure more than one management/interface address the port advertises), then capture LLDPDUs.
-   verify: A single captured LLDPDU is permitted to, and does, carry more than one management address TLV — one per associated address.
-10. Decode the management address TLV from a captured LLDPDU and compare it against the management address configured on the DUT (as shown by the device's own management/LLDP local-info display).
-   verify: The address carried in the management address TLV matches the management address the DUT reports as locally configured.
-11. Change the configured management address on the DUT, then capture subsequent LLDPDUs.
-   verify: LLDPDUs transmitted after the change carry the new management address in the management address TLV; the old address no longer appears.
-12. With the full optional TLV set selected, decode the content of each transmitted TLV (system name, system description, port description, system capabilities, management address) and compare each against the corresponding value the DUT reports through its own management interfaces ('show lldp local-info' and the related show commands).
-   verify: Each transmitted TLV's content equals the locally configured or locally derived value the DUT reports for it — no mismatch between wire content and the device's own reported values.
-13. For each TLV in turn, set a known transmit-enable selection through the CLI on the test port, then read the per-port TLV transmit-enable state the DUT holds in its LLDP MIB / local-info display.
-   verify: The transmit-enable state held per port and per TLV agrees with the state selected through the command interface, checked TLV by TLV; no TLV shows a MIB state disagreeing with its configured selection.
-14. Select a different set of optional TLVs on a second port while the test port keeps its own selection, and capture LLDPDUs from the test port.
-   verify: The set of TLVs transmitted on the test port is unchanged by the selection applied to the second port — per-port independence holds.
-15. Leave one port with no optional TLVs selected while other ports transmit their selected optional TLVs, and capture LLDPDUs from the no-selection port.
-   verify: The no-selection port continues to transmit only the mandatory TLVs (chassis ID, port ID, TTL) with no optional TLV, while the other ports' LLDPDUs carry their selected optional TLVs.
-16. Set a port to transmit-only (disable LLDP receive, keep transmit) on that port, select optional TLVs on it, and capture its LLDPDUs.
-   verify: The optional TLV selection takes effect on the transmit-only port with the same transmitted TLV set as on a transmit-and-receive port — receive capability is not a precondition for TLV transmission.
-17. On the test port, select an LLDP-MED TLV set separately from the basic optional TLV set (select a MED TLV without changing the basic selection, and change a basic selection without changing the MED selection).
-   verify: The per-port display shows the MED TLV set and the basic optional TLV set are independently selectable — selecting one leaves the other's state unchanged.
-18. With MED TLVs selected, capture LLDPDUs from the test port and decode the organisationally specific TLVs.
-   verify: The selected MED TLVs appear in transmitted LLDPDUs as the standards-defined organisationally specific (MED OUI) TLVs.
-19. Configure a MED capability and a MED network-policy on the test port, then decode the MED capability and network policy TLVs from captured LLDPDUs.
-   verify: The MED capability and network policy TLVs conform to the defined TLV format and carry values consistent with the DUT's MED configuration as the device reports it.
-20. With LLDP running and a partial TLV set already transmitting, select one additional TLV on the test port without restarting LLDP or bouncing the port, then capture subsequent LLDPDUs.
-   verify: The newly selected TLV appears in LLDPDUs transmitted after the change, the already-selected TLVs continue to appear uninterrupted, and no LLDP/port restart was needed.
-21. With LLDP running and several TLVs transmitting, clear one selected TLV on the test port without restarting LLDP or the port, then capture subsequent LLDPDUs.
-   verify: The cleared TLV is absent from LLDPDUs transmitted after the change while the remaining selected TLVs continue to be transmitted without interruption.
-22. Note the current TLV selection on the test port, then attempt to select an unsupported TLV keyword (a real keyword the parser does not accept in this context).
-   verify: The CLI rejects the attempt with a diagnostic message and does not apply any selection.
-23. Attempt to select a misspelled TLV keyword on the test port.
-   verify: The CLI rejects the attempt with a diagnostic message and does not apply any selection.
-24. Attempt to select an out-of-range TLV keyword/parameter on the test port.
-   verify: The CLI rejects the attempt with a diagnostic message and does not apply any selection.
-25. After each of the three rejected keyword attempts above, read the per-port TLV selection state from the DUT's display.
-   verify: The previously configured TLV selection on the test port is identical to what it was before each rejected attempt — no rejected keyword altered the stored selection.
-26. Disable LLDP on a port ('no lldp run' globally or disable transmit on the port), apply several TLV selection commands on it, read the running configuration, then enable LLDP and capture LLDPDUs.
-   verify: The TLV selection commands are accepted and retained in the running configuration while LLDP is disabled; once LLDP is enabled, the retained selections become effective and appear on the wire.
-27. On the test port, re-issue a TLV selection command for a TLV that is already selected, and issue a clear command for a TLV that is already deselected.
-   verify: Both commands are accepted without error and the resulting per-port TLV selection state is unchanged from before the commands.
-28. Read the DUT's operational LLDP display commands (per-port LLDP local-info / interface configuration) for the test port with a known mix of selected and unselected TLVs.
-   verify: The operational display reports the TLV selection state per port, distinguishing selected TLVs from unselected ones, matching the mix that was configured.
-29. Confirm the TLV selection state appears in the DUT's displayed running configuration ('show running-config lldp'), save the configuration, reload the device over the CLI, and after it comes back read the configuration and capture LLDPDUs.
-   verify: The TLV selections are present in the displayed running config, and after save+reload the same selections are restored and effective (config shows them and they appear on the wire again).
-30. With a known set of optional TLVs selected on the test port and the rest unselected, read the partner switch's received LLDP neighbour information for the DUT ('show lldp neighbors detail').
-   verify: The partner reports exactly the set of optional TLVs selected on the test port and reports no information for the TLVs that were not selected.
-31. Record the DUT's LLDP frame and per-TLV statistics counters, then perform a series of valid TLV selection and clear changes on the test port, and re-read the counters.
-   verify: Frame and TLV counters remain consistent across the selection changes, with no increment of error, malformed-frame or discarded-TLV counters attributable to a valid TLV selection.
+1. Enable LLDP globally on the device under test (`lldp run` at global config) and on the test port set it to transmit and receive (`lldp transmit`, `lldp receive`). Bring up the physical link from the test port to the partner switch, configure the partner port to receive LLDP so it records neighbour information, and start a packet capture (tcpdump/Scapy) on the link so transmitted LLDPDUs can be decoded.
+   verify: `show lldp` reports LLDP running; `show lldp interface <port>` for the test port shows it enabled for transmit and receive; `show interface <port> status` reads connected; the capture is running and at least one LLDPDU from the test port is decodable.
+2. On the test port select only the port-description optional TLV (`lldp tlv-select port-description`).
+   verify: `show lldp interface <port>` lists port-description as an enabled/selected TLV, and a captured LLDPDU from the test port decodes a Port Description TLV.
+3. On the test port additionally select the system-name optional TLV (`lldp tlv-select system-name`).
+   verify: `show lldp interface <port>` shows system-name selected, and a captured LLDPDU decodes a System Name TLV.
+4. On the test port additionally select the system-description optional TLV (`lldp tlv-select system-description`).
+   verify: `show lldp interface <port>` shows system-description selected, and a captured LLDPDU decodes a System Description TLV.
+5. On the test port additionally select the system-capabilities optional TLV (`lldp tlv-select system-capabilities`).
+   verify: `show lldp interface <port>` shows system-capabilities selected, and a captured LLDPDU decodes a System Capabilities TLV.
+6. On the test port additionally select the management-address optional TLV (`lldp tlv-select management-address`).
+   verify: `show lldp interface <port>` shows management-address selected, and a captured LLDPDU decodes a Management Address TLV.
+7. With the complete optional TLV set now selected on the test port, capture several consecutive LLDPDUs from the test port.
+   verify: Every captured LLDPDU carries the mandatory Chassis ID, Port ID and Time To Live TLVs plus all five selected optional TLVs (port description, system name, system description, system capabilities, management address) and ends with the End Of LLDPDU marker.
+8. With all optional TLVs selected, capture LLDPDUs and inspect the TLV list for the single-instance optional TLVs.
+   verify: No captured LLDPDU contains more than one Port Description, System Name, System Description or System Capabilities TLV — each single-instance optional TLV appears at most once per LLDPDU.
+9. With management-address transmission selected, capture a series of LLDPDUs from the test port.
+   verify: Every captured LLDPDU carries at least one Management Address TLV.
+10. Read the management address currently configured on the device via its own management interfaces (e.g. `show lldp local-info interface <port>`), then decode the Management Address TLV in a captured LLDPDU.
+   verify: The address carried in the Management Address TLV matches the management address the device reports as locally configured.
+11. Associate a second management address with the port (configure an additional management address using the device's documented management-address command), then capture LLDPDUs from the test port.
+   verify: A single captured LLDPDU carries multiple Management Address TLVs, one per configured management address.
+12. Change the configured management address on the device to a different valid address, wait for the next transmit interval, and capture subsequent LLDPDUs.
+   verify: LLDPDUs transmitted after the change carry the new management address in the Management Address TLV; the previous address is no longer present.
+13. For each currently selected optional TLV, read its locally configured or locally derived value from the device's management interfaces (`show lldp local-info interface <port>`, `show system`, `show run` as applicable) and decode the same TLV from a captured LLDPDU.
+   verify: The content of each transmitted TLV (port description, system name, system description, system capabilities, management address) equals the corresponding value the device reports for itself.
+14. Read the per-port TLV transmit-enable state held in the LLDP MIB / operational database for the test port (`show lldp interface <port>`) and compare it TLV by TLV against the selections made through the CLI; repeat the comparison for another port with a known distinct selection.
+   verify: For every port and every TLV, the transmit-enable state reported by the LLDP management information agrees with the state configured through the command interface.
+15. Run the operational display command for LLDP TLV selection on the test port (`show lldp interface <port>`).
+   verify: The display reports the per-port TLV selection state, distinguishing which optional TLVs are selected from those that are unselected, and matches the current configuration.
+16. Clear only the port-description TLV on the test port (`no lldp tlv-select port-description`), leaving the other optional TLVs selected, and capture LLDPDUs.
+   verify: `show lldp interface <port>` shows port-description no longer selected while the other optional TLVs remain selected; captured LLDPDUs no longer carry a Port Description TLV but still carry the remaining selected TLVs.
+17. Clear only the system-name TLV on the test port (`no lldp tlv-select system-name`), leaving the remaining optional TLVs selected, and capture LLDPDUs.
+   verify: `show lldp interface <port>` shows system-name no longer selected; captured LLDPDUs no longer carry a System Name TLV but still carry the remaining selected TLVs.
+18. Clear only the system-description TLV on the test port (`no lldp tlv-select system-description`), leaving the remaining optional TLVs selected, and capture LLDPDUs.
+   verify: `show lldp interface <port>` shows system-description no longer selected; captured LLDPDUs no longer carry a System Description TLV but still carry the remaining selected TLVs.
+19. Clear only the system-capabilities TLV on the test port (`no lldp tlv-select system-capabilities`), leaving the remaining optional TLVs selected, and capture LLDPDUs.
+   verify: `show lldp interface <port>` shows system-capabilities no longer selected; captured LLDPDUs no longer carry a System Capabilities TLV but still carry the remaining selected TLVs.
+20. Clear only the management-address TLV on the test port (`no lldp tlv-select management-address`), leaving any remaining optional TLVs selected, and capture LLDPDUs.
+   verify: `show lldp interface <port>` shows management-address no longer selected; captured LLDPDUs no longer carry a Management Address TLV but still carry any remaining selected TLVs.
+21. With LLDP still enabled, clear all remaining optional TLVs on the test port so none are selected, then capture several LLDPDUs.
+   verify: Each captured LLDPDU carries only the Chassis ID, Port ID and Time To Live TLVs followed immediately by the End Of LLDPDU marker; no optional TLV appears on the wire.
+22. With LLDP running and only mandatory TLVs on the wire, select one additional optional TLV (e.g. `lldp tlv-select system-name`) without restarting LLDP or bouncing the port, and capture the next LLDPDUs.
+   verify: The newly selected TLV appears in subsequent LLDPDUs without any LLDP or port restart, and transmission of the already-present mandatory TLVs is uninterrupted.
+23. With LLDP running and several optional TLVs selected, clear one of them (`no lldp tlv-select <tlv>`) without restarting LLDP or the port, and capture the next LLDPDUs.
+   verify: The cleared TLV is absent from subsequent LLDPDUs while the remaining selected TLVs continue to be transmitted, with no LLDP or port restart.
+24. Select a distinct set of optional TLVs on a second transmitting port (different from the test port's set), and capture LLDPDUs from the first test port.
+   verify: The TLVs transmitted on the first test port are unchanged by the configuration applied to the second port; `show lldp interface` for the first port shows its selection unaltered.
+25. Leave one port with no optional TLVs selected while other ports transmit their selected optional TLVs, and capture LLDPDUs from each.
+   verify: The port with no optional TLVs selected transmits only the mandatory TLVs and end marker, while the other ports simultaneously transmit their selected optional TLVs — per-port independence holds.
+26. Set a spare port to transmit-only (`lldp transmit`, `no lldp receive`), select an optional TLV set on it, cable it to a partner that captures its LLDPDUs, and capture from that port.
+   verify: The transmit-only port's LLDPDUs carry exactly the selected optional TLVs, matching the result obtained on a transmit-and-receive port — receive capability is not a precondition for TLV transmission.
+27. On the test port select an LLDP-MED TLV (e.g. `lldp med-tlv-select capabilities`) independently of the basic optional TLV set, then toggle a basic optional TLV.
+   verify: `show lldp interface <port>` shows MED TLV selection independent of the basic optional TLV selection — changing one does not alter the other; the MED TLV set is separately selectable.
+28. With the MED capabilities and network-policy MED TLVs selected on the test port, capture LLDPDUs and decode their organisationally specific TLVs.
+   verify: The selected MED TLVs appear in transmitted LLDPDUs as the standards-defined TIA/LLDP-MED organisationally specific TLVs (correct OUI and subtype).
+29. Read the device's MED configuration (MED capabilities and any configured network policy), then decode the MED Capability and Network Policy TLVs from a captured LLDPDU.
+   verify: The MED Capability and Network Policy TLVs conform to the defined TLV format and carry values consistent with the device's MED configuration.
+30. Note the current TLV selection on the test port, then attempt to select an unsupported but real-format TLV keyword the platform does not support (a valid LLDP TLV name outside the device's supported set).
+   verify: The CLI rejects the command with a diagnostic/error message and does not apply any change.
+31. Attempt to select a misspelled TLV keyword (e.g. `lldp tlv-select port-descrip`).
+   verify: The CLI rejects the command with a diagnostic/error message (unrecognised keyword) and applies no change.
+32. Attempt to select a TLV using an out-of-range value where the command takes a numeric/index argument (a value outside the documented range).
+   verify: The CLI rejects the command with a diagnostic/error message and applies no change.
+33. After each of the three rejected keyword attempts, re-read the port's TLV selection.
+   verify: `show lldp interface <port>` shows the previously configured TLV selection unchanged after every rejected attempt.
+34. Disable LLDP on a spare port (`no lldp transmit`/`no lldp receive` or port-level disable), apply a set of TLV selections while it is disabled, confirm they are accepted and stored, then enable LLDP transmission on that port and capture LLDPDUs.
+   verify: The TLV-select commands are accepted while LLDP is disabled and shown in `show lldp interface <port>` / running config; once LLDP is enabled the retained selections take effect and the corresponding TLVs appear in captured LLDPDUs.
+35. On a port with a known TLV selected, re-issue the same `lldp tlv-select <tlv>` command; on a TLV already deselected, re-issue the `no lldp tlv-select <tlv>` command.
+   verify: Both commands are accepted without error and the resulting per-port TLV selection state (via `show lldp interface <port>`) is unchanged from before.
+36. With a known TLV set selected on the test port, have the partner switch capture and decode the LLDPDUs and read its neighbour table (`show lldp neighbors detail` on the partner).
+   verify: The neighbour reports exactly the set of optional TLVs selected on the transmitting port and reports no information for the TLVs that were not selected.
+37. Record the LLDP frame and TLV counters before and after performing a sequence of valid TLV selection/deselection changes (`show lldp statistics` / `show lldp interface <port>` counters).
+   verify: Transmitted/received frame and TLV counters remain consistent with the traffic, and no error, malformed-frame or discarded-TLV counter increments as a result of any valid TLV selection change.
+38. Confirm the current TLV selections appear in `show running-config` (LLDP section), save with `copy running-config startup-config`, reload the device, and after it comes back capture LLDPDUs and re-read the LLDP config.
+   verify: The running configuration shows the TLV selection state before save; after restart the same selections are restored in `show running-config`/`show lldp interface <port>` and are in effect on the wire (captured LLDPDUs carry the same optional TLVs).

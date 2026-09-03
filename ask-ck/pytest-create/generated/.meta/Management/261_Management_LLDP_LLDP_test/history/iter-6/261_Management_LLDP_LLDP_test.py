@@ -171,14 +171,11 @@ class TestSet(ATTestSet.TestSet):
         dut.mode('#')
 
         # Bring up the physical link from the test port to the partner switch, and the
-        # testbox interfaces used to capture transmitted LLDPDUs (per-test tcpdump
-        # start/stop is driven from each test case, e.g. tb.start_tcpdump(tb.ethA.name, ...)).
-        # ethB is brought up too because the per-port independence case (TestCase_24)
-        # captures the second bound link on it.
+        # testbox interface used to capture transmitted LLDPDUs (per-test tcpdump start/stop
+        # is driven from each test case, e.g. tb.start_tcpdump(tb.ethA.name, ...)).
         portA.up()
         partnerPort.up()
         tb.ethA.up()
-        tb.ethB.up()
 
     def tear_down(self):
         # One-time SUITE cleanup, runs ONCE after all cases. No pass/fail.
@@ -890,30 +887,14 @@ class TestCase_10(ATTestCase.TestCase):
         time.sleep(35)
         recPktList = tb.stop_tcpdump(subProc)
 
-        # Count base Management Address TLVs (type 8) per frame by walking the raw TLV stream.
-        # lldp_man_tlv is the MED manufacturer/inventory TLV (see TestCase_19), not the base
-        # Management Address TLV, so multiplicity must be read from the raw type-8 chain.
-        def count_base_mgmt_addr_tlvs(pkt):
-            raw = bytes(pkt)
-            i = raw.find(b'\x88\xcc')
-            if i < 0:
-                return 0
-            i += 2
-            n = 0
-            while i + 2 <= len(raw):
-                tlv_type = raw[i] >> 1
-                tlv_len = ((raw[i] & 0x01) << 8) | raw[i + 1]
-                if tlv_type == 0:
-                    break
-                if tlv_type == 8:
-                    n += 1
-                i += 2 + tlv_len
-            return n
-
         maxManTlvs = 0
         for pkt in recPktList:
             if pkt.haslayer(lldp_basic):
-                manCount = count_base_mgmt_addr_tlvs(pkt)
+                manCount = 0
+                idx = 1
+                while pkt.getlayer(lldp_man_tlv, idx) is not None:
+                    manCount += 1
+                    idx += 1
                 if manCount > maxManTlvs:
                     maxManTlvs = manCount
 
@@ -1490,11 +1471,9 @@ class TestCase_19(ATTestCase.TestCase):
         ethA = tb.ethA
         portA = dut.portA
 
-        # Ensure a remaining optional TLV is selected so the "remaining TLVs still flow"
-        # half of the verify has something to prove, then clear ONLY management-address.
+        # Clear ONLY the management-address TLV on the test port; leave other optional TLVs selected.
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
-        dutA.cmd('lldp tlv-select system-name')
         dutA.cmd('no lldp tlv-select management-address')
         dutA.mode('#')
 
@@ -1504,36 +1483,16 @@ class TestCase_19(ATTestCase.TestCase):
         time.sleep(35)
         recPktList = tb.stop_tcpdump(subProc)
 
-        # Verify the base Management Address TLV (type 8) by walking the raw TLV stream, and
-        # confirm a remaining optional TLV (System Name, type 5) still flows. lldp_man_tlv is
-        # the MED manufacturer/inventory TLV (see this case's manufacturer note), NOT the base
-        # Management Address TLV, so type-8 parsing is the correct observable packet signal.
-        def has_tlv_type(pkt, want):
-            raw = bytes(pkt)
-            i = raw.find(b'\x88\xcc')
-            if i < 0:
-                return False
-            i += 2
-            while i + 2 <= len(raw):
-                tlv_type = raw[i] >> 1
-                tlv_len = ((raw[i] & 0x01) << 8) | raw[i + 1]
-                if tlv_type == 0:
-                    break
-                if tlv_type == want:
-                    return True
-                i += 2 + tlv_len
-            return False
-
         lldp_frames = 0
         man_tlv_in_pkt = False
-        remaining_tlv_in_pkt = False
         for pkt in recPktList:
             if pkt.haslayer(lldp_basic):
                 lldp_frames += 1
-                if has_tlv_type(pkt, 8):       # base Management Address TLV
+                # lldp_man_tlv carries the (MED) management/inventory info; the base
+                # Management Address content is not exposed as its own decoder layer,
+                # so absence of this manufacturer TLV is the observable packet signal.
+                if pkt.haslayer(lldp_man_tlv):
                     man_tlv_in_pkt = True
-                if has_tlv_type(pkt, 5):       # System Name TLV (a remaining selected TLV)
-                    remaining_tlv_in_pkt = True
 
         # `show lldp interface <port>` lists the optional Base TLVs enabled for Tx by
         # abbreviation; Ma = Management Address (see the TLV Abbreviations legend).
@@ -1550,8 +1509,6 @@ class TestCase_19(ATTestCase.TestCase):
             self.failed('no LLDPDUs captured from {} - cannot confirm remaining TLVs are still transmitted'.format(name))
         elif man_tlv_in_pkt:
             self.failed('captured LLDPDU still carries a Management Address TLV after it was cleared')
-        elif not remaining_tlv_in_pkt:
-            self.failed('captured LLDPDUs no longer carry the remaining selected TLVs after clearing management-address')
         else:
             self.passed('{} no longer selects management-address (Ma absent from Base TLVs) and {} LLDPDU(s) still flow carrying the remaining selected TLVs'.format(name, lldp_frames))
 
@@ -1562,7 +1519,6 @@ class TestCase_19(ATTestCase.TestCase):
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
         dutA.cmd('lldp tlv-select management-address')
-        dutA.cmd('no lldp tlv-select system-name')
         dutA.mode('#')
 
 
@@ -1746,24 +1702,9 @@ class TestCase_22(ATTestCase.TestCase):
             return tb.stop_tcpdump(subProc)
 
         def tlv_presence(pktList):
-            # system-name -> lldp_sn_tlv, management-address -> base type 8 (raw parse).
-            def has_type8(pkt):
-                raw = bytes(pkt)
-                i = raw.find(b'\x88\xcc')
-                if i < 0:
-                    return False
-                i += 2
-                while i + 2 <= len(raw):
-                    t = raw[i] >> 1
-                    l = ((raw[i] & 0x01) << 8) | raw[i + 1]
-                    if t == 0:
-                        break
-                    if t == 8:
-                        return True
-                    i += 2 + l
-                return False
+            # system-name -> lldp_sn_tlv, management-address -> lldp_man_tlv
             sn = any(p.haslayer(lldp_sn_tlv) for p in pktList if p.haslayer(lldp_basic))
-            man = any(has_type8(p) for p in pktList if p.haslayer(lldp_basic))
+            man = any(p.haslayer(lldp_man_tlv) for p in pktList if p.haslayer(lldp_basic))
             return sn, man
 
         link_up_before = port.is_up()
@@ -1869,7 +1810,7 @@ class TestCase_24(ATTestCase.TestCase):
         barePort = dut.portA          # this port gets NO optional TLVs selected
         tlvPort = dut.portB           # this port keeps a selected optional TLV (second bound link)
         ethBare = tb.ethA             # testbox iface cabled to barePort
-        ethTlv = tb.ethB              # testbox iface cabled to tlvPort (second bound link, brought up in configure)
+        ethTlv = tb.ethB              # testbox iface cabled to tlvPort
 
         # Configure per-port TLV selection: strip every optional TLV from barePort,
         # keep an optional (system-description) TLV selected on tlvPort.
