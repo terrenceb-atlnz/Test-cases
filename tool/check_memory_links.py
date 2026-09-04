@@ -71,6 +71,7 @@ class Finding:
     detail: str
     fixable: bool = False
     fatal: bool = False
+    expected: bool = False   # one of the launch dirs a session is meant to start from
 
 
 @dataclass
@@ -87,6 +88,18 @@ class Report:
 
 
 def _inspect_entry(slug: str, entry: Path, mem_dir: Path, expected: bool) -> Finding:
+    f = _inspect_entry_inner(slug, entry, mem_dir, expected)
+    f.expected = expected
+    if f.kind == "EMPTY_DIR" and not expected:
+        # A probe or a one-off `claude -p` from some temp directory leaves a slug with an
+        # empty memory dir behind. Nothing ever launches there on purpose, so the fix is to
+        # remove the empty directory, not to link a throwaway slug into the repo store.
+        f.detail = ("REAL empty directory on a slug no session is meant to start from — "
+                    "--fix removes it (nothing is linked)")
+    return f
+
+
+def _inspect_entry_inner(slug: str, entry: Path, mem_dir: Path, expected: bool) -> Finding:
     mem_dir = mem_dir.resolve()
     if entry.is_symlink():
         target = os.readlink(entry)
@@ -158,6 +171,9 @@ def fix(projects: Path, mem_dir: Path, rep: Report) -> List[str]:
             if any(entry.iterdir()):        # re-check: never rmdir content
                 continue
             entry.rmdir()
+            if not f.expected:              # junk slug: removed, not linked
+                done.append(f"{f.slug}: EMPTY_DIR removed (slug is not a launch directory)")
+                continue
         elif f.kind == "MISSING":
             entry.parent.mkdir(parents=True, exist_ok=True)
         entry.symlink_to(mem_dir.resolve())

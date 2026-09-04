@@ -1,8 +1,13 @@
 # HANDOFF — Generate-phase token efficiency & rework investigation
 
-**Created:** 2026-09-04 (by Claude, model Fable 5.1) · **Status:** OPEN — data gathered, no
-changes made. This is a briefing so the next session starts from measured numbers, not a
-re-derivation.
+**Created:** 2026-09-04 (by Claude, model Fable 5.1) · **Status:** INVESTIGATED AND PARTLY
+ACTED ON, same day, second session — see **§9** for what was measured, what shipped
+(transport fix + `device_note` move, both approved by Terrence), the whole-script vs per-unit
+judgement and the smaller-model comparison. The full write-up for review is
+[`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md) at the
+repo root. §§1, 3–5, 7–8 below are the morning's analysis and still read correctly; **§2 and
+§6 were rewritten** in the afternoon because step one turned out to be aimed at the wrong
+backend.
 
 **Why this exists:** Terrence stress-tested the PyTest Creator's **per-unit** generate on
 `AWPTCM-T44297` (261 Management_LLDP, ~38 units). It works, but the run cost ~$44 on the
@@ -41,41 +46,49 @@ send, far more than what comes back.
 The log spans several runs of the same case (a regenerate happened during the setup-unit-indent
 fix). Per full 38-unit pass ≈ **$14–15** and ≈ **1.3–1.5M input tokens**.
 
-## 2. The caching picture — CORRECTED (my first read was wrong)
+## 2. The caching picture — REWRITTEN 2026-09-04 (afternoon), the vLLM question was moot
 
-`pt_generate_step.jinja` was **already reordered on 2026-09-02** to hoist everything invariant
-across a case's units into one literal shared **prefix** (intro, Case, framework surface,
-devices, fill rules), with per-unit content (the unit, its blank block, fragments, CLI
-reference, output format) below the line. The template header documents the measurement and
-`tests/test_pt_per_unit.py` pins the ordering. **This optimization is done and working — do not
-"discover" it again.**
+**No call in this run went to the org vLLM.** All 257 debug-log records are `provider: claude,
+model: opus`, through two transports: the server-side `claude -p` CLI (`claude_code`, 76 unit
+calls) and the browser-brokered agent on the user's machine (`claude_agent`, 30 unit calls).
+So "does vLLM's APC discount the prefix" had no bearing on this bill. The right question is what
+**Claude Code's CLI** does with the prefix, and the CLI's own transcripts under
+`~/.claude/projects/` answer it — they carry the raw `usage` blocks (`cache_creation_input_tokens`,
+`cache_read_input_tokens`) that `llm_debug.normalize_usage` folds into a single `input_tokens`.
 
-Measured shared prefix across a real full run (extractor in §7):
+**Measured: the shared prefix was never read from cache. Not once, on either transport.** Every
+per-unit call wrote 14k–27k tokens to the **1-hour** cache tier and read back a constant ~2.5k
+(the fixed head of Claude Code's own system prompt) or 0 — independent of call order, even with
+38 calls inside five minutes. The 2026-09-02 template reorder was therefore inert. Cause: the
+CLI's harness system prompt sits between that head and our prompt and contains per-invocation
+content, so the prefix breaks before our text begins. Probe (same 39.7k-char unit prompt, two
+identical calls per configuration, from the server's cwd):
 
-| run | units | shared prefix | avg prompt | prefix share |
-|---|---:|---:|---:|---:|
-| full run A | 30 | 11,143 chars | 51,459 chars | 22% |
-| full run B/C | 38 | 10,934 chars | 40,422 chars | 27% |
+| configuration | context/call | 2nd-call cache read | cost 1st → 2nd |
+|---|---:|---:|---|
+| production flags as they were | 32,378 | 0 | $0.37 → $0.37 |
+| + `--exclude-dynamic-system-prompt-sections` | 32,269 | 1,059 | $0.34 → $0.34 |
+| + `--system-prompt <one line>` | 29,676 | **29,674 (all)** | $0.42 → $0.14 |
+| + neutral cwd + `--no-session-persistence` | **16,525** | **16,523 (all)** | $0.27 → $0.11 |
+| `--bare` | fails — needs `ANTHROPIC_API_KEY`, never OAuth | | |
 
-(An early 8-unit exploratory run shows only 343 chars — disregard it; it is not a clean case
-pass. My pre-compaction "shared prefix is 1%" note came from mis-sampling that run. It is wrong.)
+**The harness was more than half of every call.** A trivial prompt measured 16,104 tokens from
+the repo cwd against 2,602 from a bare directory: the CLI folds every CLAUDE.md above its cwd
+**and the project memory index** into every call (~13.5k tokens), and `--system-prompt` does
+not remove those — only a cwd outside the tree does. The memory-index half only began on
+2026-09-04 at 12:19 when the memory symlinks were repaired, which made every server call ~10.5k
+tokens dearer than the day before (21,865 → 32,378 for the same prompt).
 
-**So the true state:** ~11K chars (~2,700 tokens) — about a quarter of each prompt — is a
-cacheable prefix; the other ~73% is genuinely per-unit and re-sent every call.
+**The other cap on the prefix was inside our own template.** Across the 38 real prompts the
+shared prefix ended at byte 10,934 — inside the fill rules — because the per-unit
+`DEVICE NAME RECONCILIATION` note (6 variants) was interpolated at rules line 72, stranding
+8,400 bytes of byte-identical rules after it. The deferred `device_note` decision, priced.
 
-**The open question that actually matters (my original supposition, restated correctly):**
-*does the org vLLM discount that prefix, or do we pay full freight for it 38 times?* vLLM's
-Automatic Prefix Caching (APC) reuses the prefill **compute** for a shared prefix — it cuts
-**latency**, but whether it reduces the **billed input tokens** depends entirely on how this
-deployment meters. The debug log stores the response as text, so `cache_read`/`cache_write`
-token fields are **not recoverable from it.** This is the single highest-value unknown and
-step one of any real work here:
-
-- **Check the vLLM launch flags** for `--enable-prefix-caching` (APC).
-- **Capture the raw usage object** from one live per-unit call (a dry-run won't do — needs the
-  transport response) and look for cache token fields / a cached-tokens count.
-- If billing is flat per-token regardless of cache hits, then **caching buys latency, not
-  dollars**, and every token-cost lever below is really about *sending less*, not *caching more*.
+**Both are fixed (Terrence approved, same day):** the CLI now runs from `llm._cli_neutral_cwd()`
+with `--system-prompt` replacing the harness prompt and `--no-session-persistence`, on both
+transports (the agent additionally gained `--tools ""` and `stream-json`, and the steer now
+rides with the job); the device note renders below the rules in both templates. Simulated on
+the 38 real prompts the shared prefix is 19,447 chars (48%, was 27%). Details: §9.
 
 ## 3. Per-unit vs whole-script — the core trade (Q3 & Q4)
 
@@ -166,16 +179,34 @@ reuse, naming) and cost. That would make the real answer a **hybrid**, not a win
 - **Audit the step-match bucket separately.** $17 / 114 calls is the quiet second-biggest cost
   and nobody has looked at it. It may re-send a large corpus context per step.
 
-## 6. Recommended order of work (when Terrence green-lights)
+## 6. Recommended order of work — REWRITTEN 2026-09-04 (afternoon)
 
-1. **Settle APC billing (§2).** Everything else changes meaning based on the answer. Cheap.
-2. **Matrix-judge whole-script vs per-unit on `AWPTCM-T44297`** (`pt_matrix_judge.py`). Turns
-   Q3/Q4 from opinion into evidence.
-3. **Classify this run's 7 Review findings** (deterministic vs semantic) → answers Q6, sizes the
-   "shift-left" prize.
-4. **Measure fragment-text repeat across the 38 prompts** → sizes the dedupe prize (Q1).
-5. Only then propose concrete changes (hybrid threshold / fragment block / scoped Fix / two-tier
-   Review), each as its own discussion with Terrence.
+Steps 1–4 of the morning's list are **done** (§9 and the report). What remains, in the order I
+would take it, each as its own discussion with Terrence:
+
+1. **Run one real 38-unit pass on T44297 with the shipped transport fix** and read the debug
+   log's per-call `input_tokens` and the CLI transcripts' cache fields. The probe numbers are
+   two-call measurements; a real fan-out (8 concurrent workers) is where the first wave misses
+   the cache. Expected per-call input: ~12k written + ~8k read, against 32k written before.
+2. **Deterministic integration lint at Assemble** (Q5/Q6): (a) attribute names read off a
+   bound handle that `init()` never binds (`dut.portB`, `tb.ethB`, `dut.portA` when the DUT
+   is `dutA`); (b) `start_tcpdump`/`stop_tcpdump` call shape against the framework surface;
+   (c) a capture stopped with no wait. Three of seven Review findings in this run were these.
+3. **A "self-contained unit" rule in `pt_generate_step.jinja`**: every unit establishes its
+   own precondition instead of relying on the previous unit's state, because every unit's
+   `tear_down` undoes it. Two of seven findings (and the whole-script generation's biggest
+   structural advantage) are this.
+4. **Prime the fan-out**: dispatch one unit, then the other 37 once it is streaming, so the
+   first wave of eight does not all miss the cache.
+5. **Fragment appendix** (Q1): 27% of all prompt text is fragment re-sends; one 6.2k fragment
+   goes to 32 of 38 units. Cacheable if hoisted above the line, but every unit then reads all
+   38 fragments — needs a quality check, not a guess. Middle path: hoist only fragments used
+   by more than half the units.
+6. **Sonnet 5 for unit fills** — the comparison in the report says it is close on the units
+   sampled at ~45% of the cost, with one fatal idiom error in the setup unit; Haiku 4.5 is
+   not viable. Terrence's call; a 38-unit pass on Sonnet judged in-context is the next step if
+   he wants it.
+7. **Per-unit-scoped Fix** and **two-tier Review** — output-side levers, unchanged from §5.
 
 ## 7. How to reproduce every number here
 
@@ -202,3 +233,33 @@ never interchangeably.
   investigation so far.
 - Relevant memories: `pytest-creator-askck` (per-unit design + the whole-script baseline
   numbers), `setup-unit-reindent-at-assembly`.
+
+## 9. What happened on 2026-09-04 (afternoon session) — measured, shipped, judged
+
+Full write-up: [`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md)
+(repo root). Headlines:
+
+- **No vLLM in this run**; all Opus 4.8 via the CLI. §2 above was rewritten accordingly.
+- **The cache never hit** because the CLI's harness prompt (per-invocation content) sat in front
+  of ours; and the harness itself — core prompt + both CLAUDE.md files + the memory index — was
+  16k of every 32k-token unit call. Probe: `--system-prompt` + a neutral cwd +
+  `--no-session-persistence` → 16.5k tokens/call, full cache read on the second call,
+  $0.37 → $0.11.
+- **Shipped (Terrence approved):** that transport change on both transports (agent also gains
+  `--tools ""`, `stream-json`, and the steer rides with the job); the `DEVICE NAME
+  RECONCILIATION` note moved below the fill rules in both templates (shared prefix 27% → 48%
+  on the 38 real prompts). Gate 1263 passed / 1 skipped; snapshot regenerated after a reviewed
+  diff.
+- **Judged in-context (per Terrence: the session model is the judge):** whole-script is the
+  more coherent *script* (self-contained cases, known planted values, no handle errors) but
+  observes the wire only through the neighbour display and has several false-green checks;
+  per-unit produces markedly stronger *units* (real captures, TLV walks, OUI checks) with three
+  systematic integration defects — handle confusion in ~30/38 units, cross-unit state
+  dependence in ~6, idiom divergence in ~7 — all preventable by a deterministic lint plus a
+  self-contained-unit rule. So: not back to single-prompt; per-unit + shift-left.
+- **Smaller models, 5 units + 4 step-matches each:** Sonnet 5 ≈ Opus on 4/5 units at 59% of
+  the cost, with one runtime-fatal `self.testSet` misuse in the setup unit; Haiku 4.5 not viable
+  (API inventions / wrong TLV classes on every unit). Step match: Sonnet returns Opus's
+  shortlist at ~45% of the cost and a third of the latency; Haiku is slower and no cheaper.
+- **Not done:** a real 38-unit pass on the new transport (step 1 of §6), the lint, the
+  self-contained rule, the fragment appendix, any model switch. All are Terrence's decisions.

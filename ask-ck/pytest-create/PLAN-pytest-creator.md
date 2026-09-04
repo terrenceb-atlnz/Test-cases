@@ -909,6 +909,18 @@ So the revised sequence:
   change how the whole step feels and the least predictable from here.
 ### 9.11 Prompt-prefix caching — MEASURED AND APPLIED 2026-09-02
 
+> **2026-09-04 addendum — none of this cached until the transport was fixed.** The CLI's own
+> harness system prompt sat in front of this prompt and varied per invocation, so the shared
+> prefix measured below was never read from cache on any call (verified from the CLI
+> transcripts' `cache_read_input_tokens`: 0 or a constant ~2.5k head). `llm.py` now passes
+> `--system-prompt` (replacing the harness prompt), starts the CLI in a neutral cwd (the repo
+> cwd was injecting both CLAUDE.md files and the memory index, ~13.5k tokens/call) and
+> `--no-session-persistence`. Separately, the `device_note` deferred in §9.9 was moved out of
+> the shared rules to below the line: it ended the prefix at byte 10,934, and the shared
+> prefix on the 38 real prompts is now 19,447 chars (48%). Full measurement:
+> `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` (repo root). The 21.7 % / 11,143-char figures below
+> are the 2026-09-02 state and are left as written.
+
 Splitting one call into 30 re-sends every invariant block 30 times. Across T44297's 30 real
 unit prompts (1,543,763 chars total) the input divides as **fragments 44 %, fill rules 29 %,
 CLI reference 11 %** — so nearly a third of the entire spend is one paragraph, paid for

@@ -114,6 +114,25 @@ def test_other_slugs_are_scanned_for_dead_links_and_stranded_dirs(world):
     assert (projects / "-old-copilot-slug" / "memory").resolve() == mem.resolve()
 
 
+def test_an_empty_dir_on_a_junk_slug_is_removed_not_linked(world):
+    """A probe run from a temp directory (2026-09-04) left a slug with an empty memory dir.
+    Nothing launches there on purpose, so linking it into the repo store would be wrong;
+    the fix is to remove it. An empty dir on an EXPECTED slug is still replaced by a link."""
+    repo, mem, projects = world
+    good = cml.slug_for(repo)
+    (projects / good).mkdir()
+    (projects / good / "memory").symlink_to(mem)
+    junk = projects / "-tmp-some-probe-scratchpad"
+    (junk / "memory").mkdir(parents=True)
+    (junk / "s.jsonl").write_text("{}")
+    rep = cml.scan(projects, mem, [repo])
+    f = next(x for x in rep.findings if x.slug == junk.name)
+    assert f.kind == "EMPTY_DIR" and f.fatal and f.fixable and not f.expected
+    cml.fix(projects, mem, rep)
+    assert not (junk / "memory").exists() and not (junk / "memory").is_symlink()
+    assert kinds(cml.scan(projects, mem, [repo]))[junk.name] == "UNLINKED"   # now just a warning
+
+
 def test_link_into_a_foreign_store_with_content_is_not_auto_repointed(world):
     repo, mem, projects = world
     slug = cml.slug_for(repo)

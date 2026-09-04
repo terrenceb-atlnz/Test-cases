@@ -1,10 +1,31 @@
 ---
 name: claude-code-cli-transport-contract
-description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + system passthrough + a thinking cap; the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
+description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + --system-prompt (REPLACE, not append — 2026-09-04) + a neutral cwd + --no-session-persistence + a thinking cap; the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
 metadata:
   type: project
-  verified: 2026-08-26
+  verified: 2026-09-04
 ---
+
+**Contract extended 2026-09-04 (measured, shipped, mirrored in `ask-ck/agent/ck_agent.py`):**
+`claude -p` is a HARNESS. Left to its defaults it prepends its own ~2.6k-token system prompt
+plus every CLAUDE.md above its cwd and the project memory index (~13.5k tokens from this repo),
+writes all of it to the 1-hour cache tier on every call, and — because that harness prompt
+carries per-invocation content — **no call ever reads the previous call's cache**. The
+2026-09-02 template prefix reorder was inert until this was fixed. Three flags/settings, all
+now unconditional in `_call_claude_code_headless` and pinned in `tests/test_claude_cli_transport.py`
++ `tests/test_ck_agent_transport.py`:
+
+- **`--system-prompt <steer>`** REPLACES the harness prompt (the bullet below saying
+  `--append-system-prompt` is the 2026-07-30 state and is superseded). With `--tools ""` there is
+  nothing for the harness context to drive. Same prompt twice: appended $0.37 → $0.37, cache read
+  0; replaced $0.42 → $0.14, all 29,674 tokens read.
+- **cwd = `llm._cli_neutral_cwd()`** (system temp dir): nothing to auto-discover. Trivial prompt
+  from the repo cwd 16,104 tokens, from a bare dir 2,602.
+- **`--no-session-persistence`**: a completion is not a session (66 transcripts/day otherwise).
+- **`--bare`** is NOT an option on a seat: it reads only `ANTHROPIC_API_KEY`, never OAuth.
+- `--exclude-dynamic-system-prompt-sections` did NOT restore caching on its own (1,059 read).
+
+Full numbers: `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` (repo root).
 
 **Transport runner changed 2026-08-26 (contract unchanged, re-verified same day):** the CLI
 paths now run via **`llm._run_cli`** (Popen + stdin/stdout/stderr pump threads), not
@@ -24,7 +45,8 @@ be true or it silently corrupts output (all found + fixed 2026-07-30, `llm.py`):
 - **`--output-format stream-json` + concatenate every `assistant` text block.** The `json`
   format's `result` field holds **only the final assistant message**, so a long answer loses
   its HEAD and you get a mid-class tail that lints as `IndentationError`.
-- **Pass the caller's `system`** via `--append-system-prompt` (it used to be dropped entirely).
+- **Pass the caller's `system`** — as `--append-system-prompt` from 2026-07-30 (it used to be
+  dropped entirely); **as `--system-prompt` since 2026-09-04**, see the top of this memory.
   Note `_JSON_SYSTEM_PROMPT` forbids markdown fences, which is wrong for the two
   script-emitting templates — they need `_CODE_SYSTEM_PROMPT`.
 - **`--max-thinking-tokens`, but only on long calls.** Passing it at all TURNS THINKING ON:

@@ -11,6 +11,37 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-04 (afternoon) — The CLI transport stops paying for Claude Code's harness; the device note leaves the shared rules; memory links are checked
+
+**Every `claude -p` call now replaces the CLI's harness prompt, starts in a neutral directory
+and keeps no session** (`llm._call_claude_code_headless`, mirrored in `ask-ck/agent/ck_agent.py`).
+*Why:* `claude -p` is a harness. Measured on the day's per-unit generate, it wrapped our ~16k-token
+unit prompt in ~2.6k of its own system prompt plus ~13.5k of auto-discovered CLAUDE.md and memory
+index, wrote all ~32k to the 1-hour cache tier on every call, and read back none — the harness
+prompt carries per-invocation content, so no call's prefix ever matched the previous call's. The
+2026-09-02 prompt-prefix reorder was therefore inert. Probe, same prompt twice: production
+$0.37 → $0.37; with `--system-prompt` + neutral cwd + `--no-session-persistence`, 16.5k tokens and
+$0.27 → $0.11. `--append-system-prompt` (the 2026-07-30 choice, "the harness prompt carries context
+the CLI needs") is reversed: with `--tools ""` nothing needs that context. The agent path also
+gains `--tools ""` and `stream-json` (it had neither — one unit call went agentic for 20 turns and
+528k tokens) and the server's steer now rides with each job (`agent_jobs` → `agent_bridge` →
+`agent.js` → `/run` `system`). `--bare` was measured and is unusable on a seat (API key only).
+
+**`DEVICE NAME RECONCILIATION` moved out of `pt_fill_rules.jinja`** to beside the per-unit content
+(`pt_generate_step.jinja`) and after the rules (`pt_generate_script.jinja`). *Why:* it is built from
+each unit's fragments (6 variants across 38 units) and, interpolated inside the otherwise
+invariant rules, ended the cacheable shared prefix at byte 10,934 with 8,400 identical bytes
+stranded after it — the `device_note` decision deferred on 2026-09-02, now priced and decided.
+Shared prefix on the 38 real prompts: 27% → 48%. The whole-script render snapshot was
+regenerated after a line-by-line diff showed exactly the moved paragraph.
+
+**`tool/check_memory_links.py`, run by `/orient` and `/wrap`.** *Why:* the memory symlinks under
+`~/.claude/projects/` were absolute paths into the old `copilot/` tree and died when it moved;
+the harness silently made an empty directory for the new slug, and every session from
+2026-08-17 to 2026-09-04 ran with no auto-loaded memories while `ls .claude/memory` looked fine.
+(Committed earlier in the day by the other stream, `ff83a6a`; recorded here because it is a gate
+on session hygiene.)
+
 ## 2026-09-04 — Setup unit re-indented at assembly; a reachable Fix and a clearer step-5 UI
 
 **The `setup` unit no longer produces an IndentationError at assembly.** Per-unit generation

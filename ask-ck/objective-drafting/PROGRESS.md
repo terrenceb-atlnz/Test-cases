@@ -2,7 +2,54 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-04 (by Claude)
+**Last Updated**: 2026-09-04, afternoon (by Claude)
+
+## Latest session (2026-09-04, afternoon) — memories had not loaded for three weeks; the CLI transport was the token sink; per-unit vs whole-script judged
+
+Three threads. Full detail for the second and third is in
+[TOKEN-EFFICIENCY-REPORT-2026-09-04.md](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md) (repo root,
+written for Terrence's review) and §9 of
+[HANDOFF-generate-token-efficiency.md](../pytest-create/HANDOFF-generate-token-efficiency.md).
+
+**(A) Memories were not auto-loading, and had not been since ~2026-08-17.** The tree moved from
+`copilot/` to `claude/`; the two `~/.claude/projects/*/memory` symlinks were absolute paths into
+`copilot/` and died, and the harness created an **empty real directory** for the new slug. Every
+session under the `claude/Test-cases` slug and every bench-stream session from `testbox_home`
+ran with zero auto-loaded memories; `/orient` §4 only ever checked the repo side. Fixed the
+links (three slugs) and added `tool/check_memory_links.py` (+9 tests), now run by `/orient` §4
+and `/wrap` §5/§5b; CLAUDE.md records it. Committed by the bench stream in `ff83a6a`.
+
+**(B) Token efficiency — measured, and two changes shipped (Terrence approved).** The debug log
+showed **no vLLM at all**: every call was Opus 4.8 through `claude -p`. The CLI's own
+transcripts showed the prompt cache **never hit** on either transport (the harness prompt in
+front of ours varies per invocation), and the harness itself — core prompt + both CLAUDE.md
+files + the memory index — was ~16k of every ~32k-token unit call. My own memory-link fix at
+12:19 had turned the memory index *on* for the server (+10.5k tokens/call). Probe: `--system-prompt`
++ neutral cwd + `--no-session-persistence` → 16.5k tokens/call, full cache read on the second
+call, $0.37 → $0.11. **Shipped:** that transport change in `llm.py` and mirrored in
+`ck_agent.py` (which also gains `--tools ""`, `stream-json`, and the steer riding with the job
+through `agent_jobs`/`agent_bridge`/`agent.js`); and the deferred `device_note` decision — the
+note moved below the fill rules in both templates (shared prefix 27% → 48% on the 38 real
+prompts; snapshot regenerated after a reviewed diff). Tests reversed/added accordingly. Gate
+**1263 passed / 1 skipped**, frontend 240. Not yet done: a real 38-unit pass on the new
+transport to confirm the projection (~$12.3 → ~$3.2 input per pass).
+
+**(C) Judged in-context (Terrence: "you are the most competent model we have"; memory
+[[terrence-prefers-session-model-as-judge]]).** Whole-script vs per-unit on T44297: whole-script
+is the more coherent *script* (self-contained cases, planted known values, no handle errors) but
+never captures a packet and has several false-green checks; per-unit produces markedly stronger
+*units* but three systematic integration defects (handle confusion ~30/38, cross-unit state
+dependence ~6, idiom divergence ~7) — all preventable by a deterministic Assemble lint plus a
+self-contained-unit rule. Recommendation: not back to single-prompt; per-unit + shift-left.
+Smaller models (5 units + 4 step-matches each): **Sonnet 5 ≈ Opus on 4/5 units at 59% cost**
+(one runtime-fatal `self.testSet` misuse in the setup unit); **Haiku 4.5 not viable**. Step
+match: Sonnet returns Opus's shortlist at ~45% cost, a third of the latency.
+
+**Open, for Terrence (report §6):** real pass on the new transport; Assemble integration lint;
+self-contained-unit prompt rule; prime the fan-out; fragment appendix; Sonnet 5 switch; per-unit
+Fix / two-tier Review. **Also open, unchanged:** Tier A/B import cleanup; IE520 weekend re-run
+(bench stream). The "fan-out E2E not run" item from earlier handoffs is **closed** — the 09-04
+morning session ran it, twice.
 
 ## Latest session (2026-09-04) — the setup unit's flush-left `def` fixed at assembly, a reachable Fix, and a clearer step-5 UI
 

@@ -2,6 +2,17 @@
 
 **Status:** IMPLEMENTED + end-to-end verified. 2026-07-14.
 
+> **2026-09-04 — the agent's CLI invocation now mirrors the server's.** `ck_agent.run_claude`
+> runs `claude -p --output-format stream-json --verbose --tools "" --no-session-persistence
+> --system-prompt <steer>` from a neutral cwd, concatenating every assistant text block; the
+> steer rides with each job (`agent_jobs._Job.system` → `/api/agent/next` `job.system` →
+> `agent.js` → `/run` `system`). The body below still says `--output-format json` and
+> `{prompt, model, timeout}` — that is the 2026-07-14 record. Why it changed: measured on
+> 2026-09-02/04, the agent path ran with tools (one unit call went agentic for 20 turns and
+> 528k input tokens), under the CLI's harness prompt (no prompt-cache hit was possible),
+> unsteered, and in `json` format (drops the head of a multi-message answer). See
+> `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §3b.
+
 > **PARTLY SUPERSEDED 2026-08-26 — the UI half only; the mechanism below is untouched.**
 > This plan removed server-local `claude_code` from the Configure UI and mapped a stored
 > `claude_code` onto the `claude_agent` radio on restore (see the Frontend bullet below, and

@@ -3841,3 +3841,32 @@ under the live server (passes standalone, 27/27) — same flake seen at orient.
 **Open, unchanged:** the fan-out E2E + its two deferred prompt decisions; the IE520 weekend
 reboot re-run (3 harness defects first); Tier A/B import cleanup. A **per-unit fix path** is the
 next quality step for Fix-scope if drift ever bites.
+
+## Session Close / Handoff (2026-09-04, afternoon) — memory links, CLI transport, per-unit vs whole-script judged
+
+Detail in `ask-ck/objective-drafting/PROGRESS.md` (top), `CHANGELOG.md` (2026-09-04 afternoon)
+and the review document `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` at the repo root. Summary:
+
+- **Memories had not auto-loaded since ~2026-08-17** (dead absolute symlinks after the
+  `copilot/` → `claude/` move; the harness made an empty dir for the new slug). Fixed;
+  `tool/check_memory_links.py` added to `/orient` §4 and `/wrap` §5.
+- **The vLLM question in the morning handoff was moot** — all calls were Opus via the CLI.
+  The CLI harness (system prompt + CLAUDE.md + memory index) was ~half of every call and
+  defeated caching entirely. **Shipped:** `--system-prompt` (replace), neutral cwd,
+  `--no-session-persistence` on both transports; agent gains `--tools ""`/`stream-json` and the
+  steer via the job. **Shipped:** `device_note` moved below the fill rules (prefix 27% → 48%).
+- **Judged in-context, per Terrence's instruction (memory
+  `terrence-prefers-session-model-as-judge`):** per-unit + shift-left beats a return to
+  single-prompt; Sonnet 5 viable for units/step-match at ~55% cost, Haiku 4.5 not.
+- Probe spend ≈ $5.40. Gate at close: 1263 passed / 1 skipped, frontend 240/18 files.
+
+**Committed:** the transport + template change with tests and docs, the report, the handoff
+rewrite (§2, §6, new §9), this trio of logs, the new memory and two re-verified memories.
+
+**Left undone, deliberately (Terrence's decisions, report §6):** a real 38-unit pass on the
+new transport; the Assemble integration lint; the self-contained-unit prompt rule; priming the
+fan-out; the fragment appendix; any model switch; per-unit Fix / two-tier Review.
+
+**Superseded:** every earlier "fan-out E2E not yet run" note — the 09-04 morning session ran it
+twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
+`--append-system-prompt` — it is now `--system-prompt`.
