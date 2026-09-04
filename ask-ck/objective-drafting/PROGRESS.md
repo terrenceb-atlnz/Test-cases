@@ -48,6 +48,13 @@ output, still being iterated via Fix/Review); and the new memory + its `MEMORY.m
 the working tree but not committed — the next session's `/orient` reads them there). The bench
 stream's `dos_campaign.py` and `ie520-*` memories remain its own to wrap.
 
+**Next-session pickup — token-efficiency investigation (OPEN, Terrence-requested):** the per-unit
+generate cost ~$44 on the T44297 stress-test. A full briefing with measured numbers, Terrence's
+six questions, my read on each, and the recommended order of work is in
+[HANDOFF-generate-token-efficiency.md](../pytest-create/HANDOFF-generate-token-efficiency.md).
+Start there. Nothing is implemented — it is analysis for discussion, and step one (settle whether
+the org vLLM discounts the ~27% shared prefix, or we pay it 38×) gates everything else.
+
 ## Latest session (2026-09-03) — a corrupt ck.db WAL recovered without a checkpoint, and the setup unit's false indent flag moved to the Summary step
 
 Two unrelated threads, both on the PyTest Creator side of the tree. The IE520/tb470 bench

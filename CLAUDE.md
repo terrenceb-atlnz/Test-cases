@@ -94,7 +94,13 @@ and each was invisible to the other. Consequences:
 - Memory edits show up in `git status`; `/wrap` commits them. That is intended.
 - **Never put a credential in a memory** — this directory is pushed. `secrets.md` (gitignored)
   is where lab/API credentials belong.
-- If `~/.claude` is ever wiped, re-create the two symlinks rather than re-writing memories.
+- The links are **absolute paths**, so they die when the tree moves — and the harness then
+  silently creates an empty directory in their place. That happened with the `copilot/` →
+  `claude/` move: every session from 2026-08-17 to 2026-09-04 ran with **no** auto-loaded
+  memories. `tool/check_memory_links.py` detects it (any slug, any state); `--fix` re-points
+  links and never deletes content. `/orient` and `/wrap` both run it. If `~/.claude` is ever
+  wiped, or `MEMORY.md` is absent from a session's starting context, run it — don't re-write
+  memories.
 
 Any memory name written down in a document is a **hint, not a guarantee** — verify before acting
 on one, and before reporting it missing.

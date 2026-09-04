@@ -87,16 +87,32 @@ waste. Instead treat these as standing rules for later in the session:
 ## 4. Memory — read the index, never a written-down list
 
 ```bash
-ls .claude/memory/*.md      # the directory IS the list
+./tool/check_memory_links.py    # FIRST: is the HARNESS actually loading .claude/memory/?
+ls .claude/memory/*.md          # the directory IS the list
 ```
 
 Memories live **in the repo** at `.claude/memory/` as of 2026-07-30;
 `~/.claude/projects/*/memory` are symlinks to it. Before that there were **two** stores keyed on
 the session's launch directory — 38 memories under the `…-copilot-Test-cases` slug and 4 hardware
 ones under `…-testbox-home` — and each was invisible to sessions started in the other directory.
-That, not stale names, is what produced most "I can't find that memory" reports. If `ls` above
-shows nothing, the symlinks are gone, not the memories: re-point
-`~/.claude/projects/<slug>/memory` at `<repo>/.claude/memory`.
+That, not stale names, is what produced most "I can't find that memory" reports.
+
+**`ls` proves the memories exist. It does not prove this session loaded them.** The harness
+reads `~/.claude/projects/<slug>/memory/`, where the slug is the launch directory with every
+non-alphanumeric character turned into `-`, and if nothing is there it silently creates an
+**empty real directory**. That is exactly what happened when the tree moved from `copilot/` to
+`claude/`: the absolute symlinks died, the new slug got an empty directory, and every session
+from 2026-08-17 to 2026-09-04 ran with **zero** auto-loaded memories — unnoticed, because this
+step only ever checked the repo side, and reading `MEMORY.md` by hand hid the symptom.
+`check_memory_links.py` checks the harness side, for every slug. If it fails:
+
+- `./tool/check_memory_links.py --fix` re-points dead or wrong links and replaces an *empty*
+  directory with a link. It never deletes content.
+- A directory that **has files in it** is reported as STRANDED and left alone — those are
+  memories a session wrote that never reached the repo. Merge them into `.claude/memory/` by
+  hand, then run `--fix`.
+- Independent cross-check: if `MEMORY.md` did **not** appear in your context at session start,
+  memories did not load, whatever any tool says. Say so in the briefing.
 
 Read `MEMORY.md` (the index) and then the individual files whose one-line hooks look relevant
 to today's work. **Any memory name hardcoded in any document — including this one — is a hint,

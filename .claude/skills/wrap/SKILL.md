@@ -79,8 +79,16 @@ deleting. Any doc describing a retired pipeline or deleted file must carry a
 ## 5. Memory — reconcile only durable facts
 
 ```bash
-ls .claude/memory/*.md      # the directory IS the list (in-repo since 2026-07-30; see /orient §4)
+./tool/check_memory_links.py    # BEFORE writing any memory — see /orient §4 for what it catches
+ls .claude/memory/*.md          # the directory IS the list (in-repo since 2026-07-30)
 ```
+
+A memory written through the harness lands wherever `~/.claude/projects/<slug>/memory` points.
+If that is not a link into this repo, the memory is stranded: uncommitted, and invisible to the
+next session. So if the check fails, run `--fix` **first**, and look in the slug's directory for
+anything written this session that must be moved into `.claude/memory/` by hand (the tool names
+such files as STRANDED and refuses to delete them). From 2026-08-17 to 2026-09-04 every session
+ran with no auto-loaded memories and nobody noticed; this step is what would have caught it.
 
 Update a memory file if this session changed a standing decision, finished pending work, or
 established a new constraint. Keep `MEMORY.md` to one pointer line per memory — never put
@@ -128,10 +136,13 @@ stamped one is the same defect this whole step exists to prevent.
 
 ```bash
 ./tool/check_memory_refs.py        # add -v to see what it skipped, and why
+./tool/check_memory_links.py       # again, after any memory write: the links must still be links
 ```
 
-It reports memory citations naming a repo path that no longer exists, plus any `file.py:123`
-line citations (those rot silently even while the file exists — prefer the symbol name).
+The first reports memory citations naming a repo path that no longer exists, plus any
+`file.py:123` line citations (those rot silently even while the file exists — prefer the symbol
+name). The second must print OK before you commit — a memory that landed outside the repo is
+not in the commit.
 
 **It is advisory and deliberately NOT in the gate.** A first pass over 64 memories gave 130 raw
 hits of which one was real: memories legitimately name files on other machines, files deleted
