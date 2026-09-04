@@ -348,8 +348,24 @@ large artefacts, which exposed four things about the transport (all fixed 2026-0
 - **`--output-format stream-json`, and every `assistant` text block is concatenated.** The
   `json` format's `result` field carries only the FINAL assistant message, so a long answer
   loses its *head* and what arrives is a mid-class tail that lints as an `IndentationError`.
-- **The caller's `system` message is passed** (`--append-system-prompt`); it used to be dropped
-  entirely on this path, so the CLI transport alone ran unsteered.
+- **The caller's `system` message REPLACES the CLI's harness prompt** (`--system-prompt`; a
+  one-line neutral steer when the caller has none). It used to be dropped entirely, then
+  appended (`--append-system-prompt`) on the theory that the harness prompt carried context
+  the CLI needed. Measured 2026-09-04: with `--tools ""` there is nothing for that context to
+  drive, and the harness prompt carries per-invocation content, so every call was a prompt-cache
+  **miss** — the same 39.7k-char unit prompt sent twice cost $0.37 both times; replaced, the
+  second call read all 29,674 tokens from cache and cost $0.14.
+- **The CLI starts in a neutral directory, not the repo.** `claude -p` folds every CLAUDE.md
+  above its cwd *and the project's memory index* into every call: from this repo that was
+  16,104 tokens for a trivial prompt against 2,602 from a bare directory — ~13.5k tokens of
+  project files per call, at the 1-hour cache-write premium, 38 times per per-unit generate.
+  `llm._cli_neutral_cwd()` (under the system temp dir) has nothing to discover.
+- **`--no-session-persistence`.** A completion is not a session; without it each unit of a
+  fan-out left a transcript in `~/.claude/projects` (66 in one day).
+- **The per-user agent (`ask-ck/agent/ck_agent.py`) now mirrors all of the above**, and the
+  server's steer rides with each job (`system`) so the agent can pass it. Before 2026-09-04 the
+  agent path ran with tools, under the harness prompt, unsteered, from the user's shell cwd and
+  in `json` format — one unit call went agentic for 20 turns and 528k input tokens.
 - **Thinking is capped, on long calls only.** Thinking shares the output budget with the answer
   and can consume nearly all of it. But passing `--max-thinking-tokens` at all *enables*
   extended thinking (2,242ms → 16,426ms on a trivial prompt), so applying it unconditionally

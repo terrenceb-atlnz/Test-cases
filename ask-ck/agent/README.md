@@ -48,7 +48,11 @@ ever runs here, on your machine, as you.
 ## Endpoints (for reference)
 
 - `GET /health` → `{ok, claude_cli, claude_path, hint}` — is the agent up and is `claude` installed/logged in.
-- `POST /run` `{prompt, model?, timeout?}` → `{content, error}` — runs `claude -p --output-format json`.
+- `POST /run` `{prompt, model?, timeout?, job_id?, system?}` → `{content, error, usage?, total_cost_usd?}` —
+  runs one `claude -p` completion exactly as the server's own transport does: `--tools ""`,
+  `--system-prompt <system>` (replacing the CLI's harness prompt so a fan-out's shared prefix
+  can hit the prompt cache), `--no-session-persistence`, `stream-json` with every assistant
+  message concatenated, from a neutral cwd with no CLAUDE.md above it (2026-09-04).
 
 ## Security
 

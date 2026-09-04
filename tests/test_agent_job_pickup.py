@@ -233,3 +233,22 @@ def test_cancel_still_wakes_the_wait_during_pickup(registry, fast_pickup):
     res = registry.submit("sess-x", "p", "opus", timeout=30, on_start=canceller)
     assert res.get("cancelled") is True, res
     assert res.get("unclaimed") is not True, "a cancel must not be reported as unclaimed"
+
+
+def test_the_job_carries_the_system_steer_to_the_browser(registry):
+    """2026-09-04: the steer rides with the job so ck_agent can pass it as the CLI's
+    --system-prompt (replacing the harness prompt — see llm._DEFAULT_CLI_SYSTEM_PROMPT).
+    next_job's tuple grew a fifth element; routers/agent_bridge.py unpacks all five."""
+    t = threading.Thread(target=lambda: registry.submit("sess-s", "p", "opus", timeout=5,
+                                                        system="STEER"))
+    t.start()
+    job = None
+    for _ in range(300):
+        job = registry.next_job("sess-s")
+        if job:
+            break
+        time.sleep(0.01)
+    assert job is not None and len(job) == 5 and job[4] == "STEER", job
+    registry.deliver(job[0], "ok", False, session_id="sess-s")
+    t.join(5)
+    assert not t.is_alive()

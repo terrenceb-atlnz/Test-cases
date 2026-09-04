@@ -31,6 +31,16 @@
   Before the reorder the fill rules sat LAST and the 30 unit prompts of a case shared a
   343-character prefix — 0.7%. tests/test_pt_per_unit.py pins the ordering; run it after
   any edit here.
+
+  2026-09-04: the DEVICE NAME RECONCILIATION note moved out of pt_fill_rules.jinja to the
+  "Your unit" section below. It is built from the unit's own fragments (6 variants across
+  T44297's 38 units) and, interpolated inside the rules, it ended the shared prefix at byte
+  10,934 with 8,400 bytes of byte-identical rules stranded after it. Measured shared prefix
+  is now the whole invariant region, ~20,100 of ~40,400 chars (was 10,934 / 27%).
+
+  NONE OF THIS BOUGHT ANYTHING UNTIL THE SAME DAY'S TRANSPORT FIX. The CLI's own harness
+  prompt sat in front of this prompt and varied per invocation, so no call ever read the
+  previous call's cache regardless of what was shared here — see llm._DEFAULT_CLI_SYSTEM_PROMPT.
 -#}
 You are filling ONE unit of a standardized Allied Telesis `framework` test script
 (ATTestSet/ATTestCase). The rest of the script already exists and is NOT your concern — do
@@ -80,6 +90,11 @@ The `verify` text is the contract. Your pass/fail determination must correspond 
 to something narrower, broader, or adjacent. This is the single most important property of
 the unit you are writing.
 {% endif %}
+{%- if device_note %}
+DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
+its device references (e.g. `self.dut` / `self.remote`) to the names init() binds (listed
+under "Device handles") so the code resolves — a name init() didn't bind is an
+AttributeError at runtime.{% endif %}
 
 ## The exact block to return, with its slots filled
 Return this block with every `# >>> FILL ... <<<` slot completed and every marker comment

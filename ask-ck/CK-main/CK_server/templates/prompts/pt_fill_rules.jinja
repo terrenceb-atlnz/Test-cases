@@ -68,11 +68,12 @@
    **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
    though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,
    `cgi`, `pipes`, `crypt`, `asyncore`/`asynchat`/`smtpd`. The lint rejects these.
-{%- if device_note %}
-   DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
-   its device references (e.g. `self.dut` / `self.remote`) to the names init() binds above
-   so the code resolves — a name init() didn't bind is an AttributeError at runtime.
-{%- endif %}
+{#- The DEVICE NAME RECONCILIATION note used to be interpolated HERE (rules line 72). It is
+    built from the unit's own fragments, so it varies per unit — and sitting inside this
+    otherwise-invariant block it ended the cacheable shared prefix at byte 10,934 of a
+    ~40,000-char unit prompt, leaving 8,400 bytes of byte-identical rules after it that no
+    call could ever read from cache (measured on T44297's 38 prompts, 2026-09-04). Both
+    including templates now render it BELOW the rules, next to the per-unit content. #}
 4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
    parsing; don't discard them and write from scratch.
 {%- if py2_flagged %}

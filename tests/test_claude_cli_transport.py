@@ -73,6 +73,7 @@ def captured(monkeypatch):
         seen["cmd"] = list(cmd)
         seen["stdin"] = input_text
         seen["timeout"] = timeout
+        seen["cwd"] = kw.get("cwd")
         return _FakeProc(seen.get("reply", [_assistant("```python\nx = 1\n```"), _result()]))
 
     monkeypatch.setattr(llm, "_run_cli", fake_run)
@@ -101,21 +102,31 @@ def test_tools_are_disabled(captured):
 def test_the_system_message_reaches_the_cli(captured):
     llm._call_claude_code_headless("hi", "claude-opus-5", {}, timeout=60, system="BE TERSE")
     cmd = captured["cmd"]
-    assert _flag_value(cmd, "--append-system-prompt") == "BE TERSE", (
+    assert _flag_value(cmd, "--system-prompt") == "BE TERSE", (
         f"system message did not reach the CLI; cmd was: {cmd}")
 
 
-def test_append_not_replace_system_prompt(captured):
-    """`--system-prompt` would REPLACE the CLI's own harness prompt and strip context it
-    needs to function; `--append-system-prompt` adds to it."""
+def test_replace_not_append_system_prompt(captured):
+    """REVERSED 2026-09-04, on measurement. This test used to pin the opposite: that
+    `--system-prompt` "would strip context the CLI needs to function" and so the steer must
+    be `--append-system-prompt`. With `--tools ""` there is nothing for that context to
+    drive, and the harness prompt it preserved is what made every call a prompt-cache MISS
+    (it carries per-invocation content): same 39.7k-char unit prompt twice, appended →
+    32,378 tokens written both times, cache read 0; replaced → the second call read all
+    29,674 from cache, $0.42 → $0.14. See llm._DEFAULT_CLI_SYSTEM_PROMPT."""
     llm._call_claude_code_headless("hi", "m", {}, timeout=60, system="X")
-    assert "--system-prompt" not in captured["cmd"]
+    assert "--append-system-prompt" not in captured["cmd"], (
+        "appending puts the CLI's harness prompt back in front of every call, and with it "
+        "the cache miss")
+    assert _flag_value(captured["cmd"], "--system-prompt") == "X"
 
 
-def test_no_system_means_no_flag(captured):
-    """An empty steer must not become `--append-system-prompt ''`."""
+def test_no_system_still_replaces_the_harness_prompt(captured):
+    """An empty steer must NOT mean 'no flag' — no flag is the harness prompt, i.e. the
+    expensive default. It means the one-line neutral steer."""
     llm._call_claude_code_headless("hi", "m", {}, timeout=60, system="")
     assert "--append-system-prompt" not in captured["cmd"]
+    assert _flag_value(captured["cmd"], "--system-prompt") == llm._DEFAULT_CLI_SYSTEM_PROMPT
 
 
 def test_the_dispatcher_forwards_the_system_message(captured):
@@ -123,9 +134,65 @@ def test_the_dispatcher_forwards_the_system_message(captured):
     still calls it without one — which is exactly how the message got dropped."""
     llm._call_llm_raw("hi", provider="claude", auth_method="claude_code",
                       model="claude-opus-5", timeout=300, system="STEER-ME")
-    assert _flag_value(captured["cmd"], "--append-system-prompt") == "STEER-ME", (
+    assert _flag_value(captured["cmd"], "--system-prompt") == "STEER-ME", (
         "_call_llm_raw did not forward `system` to the CLI helper — the defect this "
         "pins is the parameter existing but never being passed")
+
+
+def _no_claude_md_above(path):
+    p = Path(path).resolve()
+    return not any((parent / "CLAUDE.md").exists() for parent in [p, *p.parents])
+
+
+def test_the_cli_starts_in_a_neutral_directory(captured):
+    """The directory the CLI starts in decides what it silently prepends to every call.
+    Started from this repo it folded in both CLAUDE.md files AND the 24 KB memory index —
+    measured 2026-09-04 as 16,104 tokens for a trivial prompt against 2,602 from a bare
+    directory, i.e. ~13.5k tokens of project files per call, paid at the cache-write
+    premium, 38 times per per-unit generate. The memory-index half only began on
+    2026-09-04 when the memory symlinks were repaired, so a healthy repo makes this WORSE."""
+    llm._call_claude_code_headless("hi", "m", {}, timeout=60)
+    cwd = captured["cwd"]
+    assert cwd, "no cwd passed: the CLI inherits the server's cwd, inside the repo"
+    assert Path(cwd).is_dir()
+    assert _no_claude_md_above(cwd), f"a CLAUDE.md sits above {cwd}; the CLI will inject it"
+    assert _REPO.resolve() not in Path(cwd).resolve().parents, (
+        f"{cwd} is inside the repo, which carries CLAUDE.md and the memory index")
+
+
+def test_that_neutral_directory_check_can_actually_fail():
+    """The predicate above must be able to say no — the repo itself is the negative."""
+    assert not _no_claude_md_above(_SERVER)
+
+
+def test_a_completion_is_not_a_session(captured):
+    """Without this, every unit of a 38-unit fan-out left a transcript in
+    ~/.claude/projects — 66 in one day, and each one is a session the user then 'has'."""
+    llm._call_claude_code_headless("hi", "m", {}, timeout=60)
+    assert "--no-session-persistence" in captured["cmd"]
+
+
+def test_the_agent_path_carries_the_steer_with_the_job(monkeypatch):
+    """The agent transport dropped `system` entirely (the 2026-07-30 defect, on the other
+    path) and ran under the harness prompt with tools — hence the 528k-token unit call of
+    2026-09-02. The steer must ride with the job so ck_agent can pass it as --system-prompt,
+    and an empty steer must become the default, never nothing."""
+    import agent_jobs
+    seen = {}
+
+    def fake_submit(session_id, prompt, model, timeout, on_start=None, system=""):
+        seen["system"] = system
+        return {"content": "ok", "error": False}
+
+    monkeypatch.setattr(agent_jobs.registry, "submit", fake_submit)
+    llm._call_claude_agent("hi", "m", {}, session_id="sess-x", timeout=60, system="STEER")
+    assert seen["system"] == "STEER"
+    llm._call_claude_agent("hi", "m", {}, session_id="sess-x", timeout=60, system="")
+    assert seen["system"] == llm._DEFAULT_CLI_SYSTEM_PROMPT
+    # and the dispatcher forwards it
+    llm._call_llm_raw("hi", provider="claude", auth_method="claude_agent", model="m",
+                      timeout=60, session_id="sess-x", system="VIA-DISPATCH")
+    assert seen["system"] == "VIA-DISPATCH"
 
 
 def test_the_dispatcher_applies_the_whole_response_floor(captured):

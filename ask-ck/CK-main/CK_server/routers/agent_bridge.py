@@ -48,13 +48,16 @@ async def next_job(session: str = "", wait: float = 25.0,
     while True:
         job = registry.next_job(session)
         if job:
-            job_id, prompt, model, job_timeout = job
+            job_id, prompt, model, job_timeout, system = job
             # `timeout` is the budget THIS server is waiting on. The browser passes it
             # straight to its ck-agent so both ends stop at the same moment; before this
             # it hard-coded 600s of its own and could outlive the server's patience,
             # finishing work whose job had already been discarded.
+            # `system` is the steer the agent passes as the CLI's --system-prompt
+            # (2026-09-04) — see llm._DEFAULT_CLI_SYSTEM_PROMPT for why it must replace
+            # the harness prompt rather than append to it.
             return {"job": {"job_id": job_id, "prompt": prompt, "model": model,
-                            "timeout": job_timeout}}
+                            "timeout": job_timeout, "system": system}}
         if asyncio.get_event_loop().time() >= deadline:
             return {"job": None}
         await asyncio.sleep(0.4)

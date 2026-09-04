@@ -33,8 +33,23 @@ the varying CLI reference above the 14,794-char rules block, and that placement 
 measured shared prefix — 11,143 chars down to 5,663. The diff was verified to be these
 three lines and nothing else before the snapshot was regenerated.
 
+SNAPSHOT UPDATED A SECOND TIME (2026-09-04, Terrence's call, with cost figures)
+--------------------------------------------------------------------------------
+The DEVICE NAME RECONCILIATION note moved OUT of the shared partial (rules line 72) and is
+now rendered by each including template beside its per-unit content — in the whole-script
+prompt, directly after the rules. The note's text is unchanged bar one clause: it said
+"the names init() binds above", which is a position word (the per-unit prompt's device
+list is above, the whole-script prompt has none), so the per-unit copy names the section
+instead and the whole-script copy drops the word. Why: the note is built from the unit's
+own fragments (6 variants across T44297's 38 units) and, interpolated inside the
+otherwise-invariant rules, it ended the cacheable shared prefix at byte 10,934 with 8,400
+bytes of identical rules stranded after it. Simulated on the 38 real prompts, the shared
+prefix goes from 10,934 to ~20,100 chars. The rendered diff was reviewed line by line
+before the snapshot was regenerated: the note's paragraph moved from inside rule 3c to
+after rule 5, nothing else.
+
 Everything below still holds: the rules live in one file, and any FURTHER change to the
-rendered whole-script prompt must be as deliberate as this one was.
+rendered whole-script prompt must be as deliberate as these two were.
 """
 import sys
 from pathlib import Path

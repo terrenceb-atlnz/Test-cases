@@ -47,7 +47,11 @@ Reviewer note: {{ f.why }}
 {% if cli_reference %}
 ## {{ cli_reference }}
 {% endif %}
-{% include 'pt_fill_rules.jinja' %}
+{% include 'pt_fill_rules.jinja' %}{%- if device_note %}
+
+DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
+its device references (e.g. `self.dut` / `self.remote`) to the names init() binds so the
+code resolves — a name init() didn't bind is an AttributeError at runtime.{% endif %}
 
 ## Output format
 Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python

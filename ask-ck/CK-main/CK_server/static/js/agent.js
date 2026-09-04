@@ -187,8 +187,12 @@ async function ckBrokerWorker(myGeneration) {
           // job_id rides along so a cancel can KILL the local process rather than merely
           // stop waiting for it — without it, an abandoned `claude` keeps burning the
           // user's own seat to produce an answer that is already discarded.
+          //
+          // system: the server's steer, which the agent passes as the CLI's
+          // --system-prompt (2026-09-04). Replacing the CLI's harness prompt is what lets
+          // the shared prefix of a fan-out actually hit the prompt cache.
           body: JSON.stringify({ job_id: job.job_id, prompt: job.prompt, model: job.model,
-                                 timeout: job.timeout || 600 }),
+                                 timeout: job.timeout || 600, system: job.system || '' }),
         });
         const ajson = await ares.json();
         content = ajson.content || '';

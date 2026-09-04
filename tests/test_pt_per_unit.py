@@ -576,19 +576,18 @@ def test_two_units_of_one_case_share_a_prefix_reaching_into_the_fill_rules():
     """Render-level proof rather than a source-order proxy.
 
     MEASURED on AWPTCM-T44297, 2026-09-02: 11,143 chars — 21.7% of an average unit prompt,
-    up from 343 (0.7%) before the reorder.
+    up from 343 (0.7%) before the reorder. The prefix stopped there, INSIDE the rules,
+    because `device_note` — built from THIS unit's fragments, 6 variants across 38 units —
+    was interpolated at rules line 72, stranding 8,400 bytes of byte-identical rules after
+    it. That was one of two decisions deferred on 2026-09-02 pending cost figures.
 
-    This fixture holds `device_note` equal between the two units, so it proves the ordering
-    in isolation: the ENTIRE invariant region is shared. Production reaches 11,143 of those
-    20,335 chars rather than all of them, because two values are interpolated INSIDE
-    pt_fill_rules.jinja and genuinely vary:
+    DECIDED 2026-09-04 (Terrence), with the figures: the note now renders BELOW the rules,
+    beside the per-unit content. Simulated on the 38 real T44297 prompts the shared prefix
+    goes from 10,934 to ~20,100 chars (27% → 50%). So this fixture now gives the two units
+    DIFFERENT device notes and still requires the full invariant region to be shared.
 
-      * `device_note`   (rules line 72) — built from THIS unit's fragments. Caps at 11,143.
-      * `cli_reference` (rules line 86) — rule 4b branches on whether one exists, capping a
-        case at 6,489. It does not bite on T44297, where all 30 units have one.
-
-    Both are open decisions deferred by Terrence on 2026-09-02 pending real cost figures,
-    not defects to quietly fix here.
+    The other deferred value, `cli_reference` (rule 4b branches on whether one exists,
+    capping a case at 6,489 when units disagree), is unchanged and did not bite on T44297.
     """
     from llm import render_prompt
 
@@ -597,11 +596,11 @@ def test_two_units_of_one_case_share_a_prefix_reaching_into_the_fill_rules():
         "setup_steps": [{"n": 1, "action": "configure"}],
         "devices": ["dut", "tb"],
         "framework_surface": {"framework.ATLibrary": {"classes": {}, "functions": []}},
-        "device_note": "Reused fragments reference these device names: dut.",
         "py2_flagged": False, "model_name": "m", "gen_date": "2026-09-02",
     }
     a = render_prompt("pt_generate_step.jinja", {
         **base, "mode": "case", "tc_n": 1, "source_n": 1,
+        "device_note": "Reused fragments reference these device names: dut.",
         "step": {"action": "act one", "verify": "ver one"},
         "blank_block": "class TestCase_1:\n    pass\n",
         "fragments": [{"source_id": "a.py", "symbol": "x", "code": "c", "why": "w",
@@ -610,6 +609,7 @@ def test_two_units_of_one_case_share_a_prefix_reaching_into_the_fill_rules():
     })
     b = render_prompt("pt_generate_step.jinja", {
         **base, "mode": "case", "tc_n": 24, "source_n": 26,
+        "device_note": "Reused fragments reference these device names: dutA, remote.",
         "step": {"action": "act two", "verify": "ver two"},
         "blank_block": "class TestCase_24:\n    pass\n",
         "fragments": [],
@@ -621,11 +621,13 @@ def test_two_units_of_one_case_share_a_prefix_reaching_into_the_fill_rules():
         f"shared prefix is {n} chars, short of the fill rules at {rules_start} — a varying "
         "block was hoisted above the line and the reorder is undone")
     assert "{{" not in a and "%}" not in a          # rendered, not a template dump
-    assert "DEVICE NAME RECONCILIATION" in a[:n]    # the rules really are inside the prefix
-    # `device_note` is held equal in this fixture, so here the prefix reaches the FULL
-    # invariant region. Production does not: T44297 measures 11,143 of these 20,335 chars
-    # because that one value is built per unit. See the docstring.
-    assert n >= a.index("## Your unit")
+    # The note is still in the prompt, but BELOW the line — never inside the prefix.
+    assert "DEVICE NAME RECONCILIATION" in a and "DEVICE NAME RECONCILIATION" not in a[:n]
+    assert a.index("DEVICE NAME RECONCILIATION") > a.index("## Your unit")
+    # With differing notes the prefix must still reach the whole invariant region.
+    assert n >= a.index("## Your unit"), (
+        f"shared prefix is {n} chars, short of '## Your unit' at {a.index('## Your unit')} — "
+        "a per-unit value is interpolated inside the invariant region again")
 
 
 def test_the_shared_rules_carry_no_positional_pointer_to_the_cli_reference():

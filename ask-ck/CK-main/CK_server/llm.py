@@ -27,6 +27,7 @@ import json
 import re
 import shutil
 import subprocess
+import tempfile
 import threading
 
 import llm_inflight
@@ -128,8 +129,12 @@ def check_grok_cli() -> Dict[str, Any]:
 _CANCEL_MSG = "cancelled by user (stopped from the UI; no result kept)"
 
 
-def _run_cli(cmd, input_text=None, timeout: int = 180):
+def _run_cli(cmd, input_text=None, timeout: int = 180, cwd: Optional[str] = None):
     """Run a headless LLM CLI with live progress and a true cancel handle.
+
+    `cwd` (2026-09-04): the directory the CLI starts in decides what it silently injects
+    into every call — see `_cli_neutral_cwd`. Callers that want a completion pass that;
+    `None` keeps the server's own cwd for anything else.
 
     Replaces the transports' blocking `subprocess.run` (2026-08-26, Terrence):
     that call exposed nothing until the CLI exited — no way to stop a wrong
@@ -159,7 +164,7 @@ def _run_cli(cmd, input_text=None, timeout: int = 180):
     proc = subprocess.Popen(cmd,
                             stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            text=True, start_new_session=True)
+                            text=True, start_new_session=True, cwd=cwd)
 
     def _kill(sig):
         try:
@@ -323,6 +328,54 @@ _CLI_WHOLE_RESPONSE_FLOOR = 1800
 _CLI_MAX_THINKING_TOKENS = 2048
 
 
+# THE CLI IS A HARNESS, AND THE HARNESS IS MOST OF THE BILL (measured 2026-09-04).
+#
+# `claude -p` wraps every prompt in Claude Code's own context: its "you are an interactive
+# coding agent" system prompt (~2.6k tokens) plus everything it auto-discovers from the
+# directory it is started in — every CLAUDE.md up the tree and the project's memory index.
+# Started from this repo, that is ~13.5k tokens per call that no completion needs, and it
+# is paid at the 1-hour cache-WRITE premium (~2x base input) on every call, because the
+# harness prompt also contains per-invocation content, so no call can ever read the
+# previous call's cache. Probe, same 39.7k-char unit prompt, two identical calls each:
+#
+#   production flags, repo cwd            32,378 tokens/call, cache read 0        $0.37 both
+#   + --exclude-dynamic-system-prompt…    32,269 tokens/call, cache read 1,059    $0.34 both
+#   + --system-prompt <one line>          29,676 tokens/call, 2nd call read ALL   $0.42 → $0.14
+#   + neutral cwd + --no-session-persist  16,525 tokens/call, 2nd call read ALL   $0.27 → $0.11
+#   --bare                                fails: needs ANTHROPIC_API_KEY, never OAuth
+#
+# A per-unit generate re-sends the same shared prefix 38 times, so this is the difference
+# between the 2026-09-02 prompt-prefix reorder doing something and doing nothing.
+# Three consequences, all applied in `_call_claude_code_headless` and mirrored in the
+# per-user agent (ask-ck/agent/ck_agent.py):
+#
+#   * `--system-prompt` REPLACES the harness prompt with the caller's steer (or the one-line
+#     default below). It was `--append-system-prompt` on the theory that the harness prompt
+#     "carries context the CLI needs to function"; with `--tools ""` there is nothing for
+#     that context to drive, and keeping it is what defeated caching.
+#   * the subprocess starts in `_cli_neutral_cwd()` — a directory with no CLAUDE.md in any
+#     ancestor and no project memory, so nothing is auto-injected.
+#   * `--no-session-persistence`: a completion is not a session; without it every unit of a
+#     fan-out left a transcript in ~/.claude/projects (66 in one day).
+_DEFAULT_CLI_SYSTEM_PROMPT = (
+    "You are a precise generator. Follow the user's instructions exactly and return only "
+    "what they ask for."
+)
+
+
+def _cli_neutral_cwd() -> str:
+    """A directory the CLI can start in without auto-discovering anything.
+
+    Under the system temp dir, NOT under the repo or the lab home: both carry a CLAUDE.md
+    that the CLI would fold into every call (and, from the repo, the memory index too —
+    ~13.5k tokens, see above). Created on demand; nothing is ever written into it because
+    the CLI runs with `--tools ""` and `--no-session-persistence`.
+    """
+    path = os.path.join(tempfile.gettempdir(), "askck-cli-cwd")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
 def _is_long_call(timeout: int) -> bool:
     """Does this caller expect a big answer? Keyed on its requested timeout.
 
@@ -460,8 +513,8 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
 
     Auth model: each user hosts this tool locally and has logged the CLI in with
     their own Claude Team seat ('claude' -> /login). The server passes the fully
-    templated prompt on stdin ('claude -p --output-format json') and parses the
-    JSON wrapper. No API key or token is stored server-side; provenance records
+    templated prompt on stdin ('claude -p --output-format stream-json') and parses the
+    event stream. No API key or token is stored server-side; provenance records
     auth_method="claude_code" so exports are honest about the transport.
 
     TWO THINGS THIS MUST DO THAT IT ORIGINALLY DID NOT (both found 2026-07-30):
@@ -478,9 +531,14 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
     `system` — the caller's system message was being DROPPED here entirely. `run_prompt`
     resolves one for every call (a JSON-only steer by default, a code steer for the two
     script-emitting templates) and the HTTP backends send it; this path silently discarded
-    it, so the CLI transport alone ran with no steer at all. Passed as
-    `--append-system-prompt` so it augments the CLI's own harness prompt rather than
-    replacing it, which would strip context the CLI needs to function.
+    it, so the CLI transport alone ran with no steer at all.
+
+    It was then passed as `--append-system-prompt`, on the theory that replacing the CLI's
+    own harness prompt "would strip context the CLI needs to function". Measured on
+    2026-09-04, that theory was wrong and expensive: the harness prompt is what made every
+    call a cache MISS, and the directory the CLI started in added ~13.5k tokens of CLAUDE.md
+    + memory index per call. Now: `--system-prompt` (replace), a neutral cwd, and
+    `--no-session-persistence`. The full measurement is above `_DEFAULT_CLI_SYSTEM_PROMPT`.
     """
     cli = shutil.which("claude")
     if not cli:
@@ -500,11 +558,13 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
     # syntactically plausible Python, so it lints as an IndentationError rather than as a
     # truncation, and nothing points at the transport. `--verbose` is required to use
     # stream-json in print mode.
-    cmd = [cli, "-p", "--output-format", "stream-json", "--verbose", "--tools", ""]
+    cmd = [cli, "-p", "--output-format", "stream-json", "--verbose", "--tools", "",
+           "--no-session-persistence"]
     if model and model != "default":
         cmd += ["--model", model]
-    if system:
-        cmd += ["--append-system-prompt", system]
+    # REPLACE the harness prompt, never append to it — see _DEFAULT_CLI_SYSTEM_PROMPT for
+    # the measurement. Always present: an absent flag means the harness prompt is back.
+    cmd += ["--system-prompt", system or _DEFAULT_CLI_SYSTEM_PROMPT]
     # THE OUTPUT BUDGET IS SHARED BETWEEN THINKING AND THE ANSWER, and these are reasoning
     # models. Uncapped, thinking eats it: a live generate was observed at 31,100 thinking
     # tokens with ZERO answer text emitted yet, against a hard `maxOutputTokens` of 32,000
@@ -530,7 +590,7 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
     try:
         # Prompt via stdin: templated prompts can exceed argv limits. _run_cli is
         # subprocess.run with a kill handle + live stream-json progress (llm_inflight).
-        proc = _run_cli(cmd, input_text=prompt, timeout=timeout)
+        proc = _run_cli(cmd, input_text=prompt, timeout=timeout, cwd=_cli_neutral_cwd())
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
             raise RuntimeError(detail)
@@ -569,13 +629,20 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
         return meta
 
 
-def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id: str, timeout: int) -> Dict[str, Any]:
+def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id: str, timeout: int,
+                       system: str = "") -> Dict[str, Any]:
     """Route a Claude call to the USER's own machine via the browser-brokered agent.
 
     The server does not run `claude`; it enqueues the prompt for `session_id` and
     blocks until that user's browser (which talks to their local ck-agent) posts the
     completion back. This is what makes a shared server use each user's own seat.
     See ask-ck/CK-main/PLAN-per-user-agent.md.
+
+    `system` (2026-09-04) rides with the job so the user's ck-agent can pass it as the
+    CLI's `--system-prompt`, exactly as the server-side transport does. Until then this
+    path dropped the steer entirely — the same defect `_call_claude_code_headless` had
+    fixed on 2026-07-30 — and ran under the CLI's full harness prompt with tools enabled,
+    which is how one unit call went agentic for 20 turns and 528k input tokens (09-02).
     """
     from agent_jobs import registry  # local import avoids a hard dep at module load
     session_id = session_id or current_session_id.get("")
@@ -616,7 +683,8 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     # sharing is the 2026-08-27 fix (3224629) and flooring before `submit` preserves it.
     timeout = _cli_timeout(timeout)
     result = registry.submit(session_id, prompt, model, timeout,
-                             on_start=_on_start if _cid else None)
+                             on_start=_on_start if _cid else None,
+                             system=system or _DEFAULT_CLI_SYSTEM_PROMPT)
     llm_inflight.set_cancel(_cid, None)
     meta.update({"content": result.get("content", ""), "raw_response": result,
                  "error": bool(result.get("error")), "provider": "claude"})
@@ -761,7 +829,8 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         # NOT given the floor below: this timeout also bounds the agent-bridge long-poll a
         # user's browser is holding open, so stretching it to half an hour degrades the one
         # path with a human waiting on the other end.
-        return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout)
+        return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout,
+                                  system=system)
     if provider == "claude" and auth_method == "claude_code":
         # `_is_long_call(timeout)` is the single "this call expects a big answer" signal:
         # it both floors the subprocess budget and caps thinking. Deriving both from one

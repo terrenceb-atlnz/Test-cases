@@ -17,13 +17,18 @@ from typing import Dict, Optional, Deque, Tuple
 
 class _Job:
     __slots__ = ("id", "session_id", "prompt", "model", "timeout", "event", "result",
-                 "created", "claimed_at")
+                 "created", "claimed_at", "system")
 
-    def __init__(self, session_id: str, prompt: str, model: str, timeout: int = 0):
+    def __init__(self, session_id: str, prompt: str, model: str, timeout: int = 0,
+                 system: str = ""):
         self.id = uuid.uuid4().hex
         self.session_id = session_id      # owning browser session — enforced on deliver
         self.prompt = prompt
         self.model = model
+        # The caller's system steer, carried to the user's ck-agent as the CLI's
+        # `--system-prompt` (2026-09-04). Before this the agent path ran every call under
+        # the CLI's own harness prompt, with tools, and unsteered — see llm._call_claude_agent.
+        self.system = system
         # The server's own wait, carried so the browser can give its ck-agent the SAME
         # budget. It used to be dropped here and the browser hard-coded 600s, so the two
         # ends disagreed: a gather_fragments call asked for 300s, the server gave up at
@@ -76,15 +81,16 @@ class AgentJobRegistry:
 
     # --- producer side (LLM caller thread) ---------------------------------
     def submit(self, session_id: str, prompt: str, model: str, timeout: int,
-               on_start=None) -> dict:
+               on_start=None, system: str = "") -> dict:
         """Enqueue a job and BLOCK until the browser posts its result or timeout.
 
         Returns {content, error}. On timeout returns an error dict (never raises).
         `on_start(job)` (optional, 2026-08-26) is called once the job is queued —
         the LLM layer uses it to attach a cancel handle that stamps a cancelled
         result and sets the job's Event, waking this wait early.
+        `system` (2026-09-04) is the steer the agent passes as `--system-prompt`.
         """
-        job = _Job(session_id, prompt, model, timeout)
+        job = _Job(session_id, prompt, model, timeout, system=system)
         with self._lock:
             self._queues.setdefault(session_id, deque()).append(job)
             self._inflight[job.id] = job
@@ -195,8 +201,8 @@ class AgentJobRegistry:
                     pass
 
     # --- consumer side (browser via /api/agent) ----------------------------
-    def next_job(self, session_id: str) -> Optional[Tuple[str, str, str, int]]:
-        """Claim the next queued job. Returns (job_id, prompt, model, timeout) or None.
+    def next_job(self, session_id: str) -> Optional[Tuple[str, str, str, int, str]]:
+        """Claim the next queued job. Returns (job_id, prompt, model, timeout, system) or None.
 
         `timeout` is the server's own remaining patience, so the browser can bound its
         local agent by the same number instead of a hard-coded one of its own."""
@@ -216,7 +222,7 @@ class AgentJobRegistry:
         if job is None:
             return None
         job.claimed_at = time.time()      # submit's phase-1 signal; see _Job.claimed_at
-        return job.id, job.prompt, job.model, job.timeout
+        return job.id, job.prompt, job.model, job.timeout, job.system
 
     def _maybe_gc(self) -> None:
         """Run gc() at most once per half-idle-window."""

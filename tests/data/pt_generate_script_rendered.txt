@@ -108,9 +108,6 @@ show lldp
    **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
    though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,
    `cgi`, `pipes`, `crypt`, `asyncore`/`asynchat`/`smtpd`. The lint rejects these.
-   DEVICE NAME RECONCILIATION: dut is swi_a When you adapt a reused fragment, RENAME
-   its device references (e.g. `self.dut` / `self.remote`) to the names init() binds above
-   so the code resolves — a name init() didn't bind is an AttributeError at runtime.
 4. **Adapt the approved fragments** into the slots — keep their proven CLI commands and
    parsing; don't discard them and write from scratch.
    PYTHON 3 REQUIRED: one or more reused fragments (marked `⚠ PYTHON 2`) use Python 2
@@ -233,6 +230,10 @@ show lldp
    yourself with no matching fragment. This is a best-effort signal only — the
    server re-stamps every block's tag authoritatively from the real fragment
    mapping afterward, so get it close but don't agonize over exactness.
+
+DEVICE NAME RECONCILIATION: dut is swi_a When you adapt a reused fragment, RENAME
+its device references (e.g. `self.dut` / `self.remote`) to the names init() binds so the
+code resolves — a name init() didn't bind is an AttributeError at runtime.
 
 ## Output format
 Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python

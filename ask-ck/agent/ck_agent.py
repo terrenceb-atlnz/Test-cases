@@ -24,10 +24,83 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("CK_AGENT_PORT", "8765"))
+
+# MIRRORS THE SERVER'S TRANSPORT (llm._call_claude_code_headless), measured 2026-09-04.
+#
+# `claude -p` is a harness, not a completion API. Left to itself it wraps every prompt in
+# its own "interactive coding agent" system prompt plus every CLAUDE.md and memory index it
+# finds above the directory it starts in, gives the model tools, and keeps a transcript.
+# On this path that meant ~32k tokens of harness per unit call on top of a ~12k prompt, no
+# prompt-cache hit ever (the harness prompt varies per invocation), and one unit call that
+# went agentic for 20 turns and 528k input tokens trying to read the framework tree.
+# So, exactly as the server does:
+#   --tools ""                 one completion, never an agent session
+#   --system-prompt <steer>    REPLACE the harness prompt; the server sends its steer with
+#                              the job, and this default covers an older server
+#   --no-session-persistence   a completion is not a session
+#   cwd = a neutral directory  nothing to auto-discover (no CLAUDE.md, no memory)
+#   stream-json                the single `result` field drops the head of a long answer
+#                              that spans several assistant messages; concatenate them
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a precise generator. Follow the user's instructions exactly and return only "
+    "what they ask for."
+)
+
+
+def _neutral_cwd() -> str:
+    """A directory the CLI can start in without auto-discovering anything."""
+    path = os.path.join(tempfile.gettempdir(), "askck-cli-cwd")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def _parse_stream(raw: str):
+    """(content, envelope) from `--output-format stream-json`; also accepts one JSON object.
+
+    Every `assistant` text block is concatenated in order — the terminal `result` holds
+    only the LAST message, so on a long answer it starts mid-artefact. Synthesized CLI
+    error messages (a non-`msg_` id) are not model output and are dropped. Fail open: a
+    message with no id is kept, unparseable lines are skipped, and with no assistant text
+    at all the result field, then the raw text, is returned.
+    """
+    texts, envelope = [], {}
+    for line in (raw or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            evt = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(evt, dict):
+            continue
+        kind = evt.get("type")
+        if kind == "assistant":
+            message = evt.get("message") or {}
+            chunks = [b["text"] for b in message.get("content") or []
+                      if isinstance(b, dict) and b.get("type") == "text" and b.get("text")]
+            if not chunks:
+                continue
+            msg_id = str(message.get("id") or "")
+            if msg_id and not msg_id.startswith("msg_"):
+                continue
+            texts.extend(chunks)
+        elif kind == "result":
+            envelope = evt
+        elif kind is None and evt.get("result") is not None:
+            envelope = evt
+    if texts:
+        content = "".join(texts)
+    elif envelope.get("result") is not None:
+        content = envelope["result"]
+    else:
+        content = raw
+    return content, envelope
 # Allowed browser origin (the shared Ask CK server). "*" echoes the caller's
 # origin — convenient for local testing; set CK_AGENT_ORIGIN in real use.
 ALLOWED_ORIGIN = os.environ.get("CK_AGENT_ORIGIN", "*")
@@ -75,18 +148,20 @@ def _find_claude():
 
 
 def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEOUT,
-               job_id: str = "") -> dict:
-    """Run `claude -p --output-format json` on this machine's own login.
+               job_id: str = "", system: str = "") -> dict:
+    """Run one headless `claude -p` completion on this machine's own login.
 
-    Mirrors the server's _call_claude_code_headless parsing exactly so behaviour
-    is identical whether Claude runs here (agent) or server-side (single-user mode).
+    Mirrors the server's _call_claude_code_headless — same flags, same neutral cwd, same
+    stream-json parsing — so behaviour is identical whether Claude runs here (agent) or
+    server-side (single-user mode). See the module note above DEFAULT_SYSTEM_PROMPT.
     """
     cli = _find_claude()
     if not cli:
         return {"content": ("ERROR: Claude Code CLI not found on this machine. Install it and run "
                             "'claude' then /login with your Claude account before using the agent."),
                 "error": True}
-    cmd = [cli, "-p", "--output-format", "json"]
+    cmd = [cli, "-p", "--output-format", "stream-json", "--verbose", "--tools", "",
+           "--no-session-persistence", "--system-prompt", system or DEFAULT_SYSTEM_PROMPT]
     if model and model != "default":
         cmd += ["--model", model]
     try:
@@ -94,7 +169,8 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
         # spending the user's seat after they pressed Stop (see _RUNNING). start_new_session
         # puts the CLI in its own process group so cancel_job can take its children too.
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, text=True, start_new_session=True)
+                                stderr=subprocess.PIPE, text=True, start_new_session=True,
+                                cwd=_neutral_cwd())
         if job_id:
             with _RUNNING_LOCK:
                 _RUNNING[job_id] = proc
@@ -122,23 +198,14 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
             detail = (err or out or "").strip()[:500] or f"exit code {proc.returncode}"
             return {"content": f"ERROR: claude CLI failed: {detail}", "error": True}
         raw = (out or "").strip()
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = None
-        usage = None
-        cost = None
-        if isinstance(data, dict) and data.get("result") is not None:
-            content = data["result"]
-            if data.get("is_error"):
-                return {"content": f"ERROR: {str(content)[:500]}", "error": True}
-            # Forward the CLI envelope's token accounting so the shared server's
-            # debug-log + token badges populate for agent-brokered calls too
-            # (mirrors server-side claude_code, which keeps the same envelope).
-            usage = data.get("usage")
-            cost = data.get("total_cost_usd")
-        else:
-            content = raw
+        content, data = _parse_stream(raw)
+        if data.get("is_error"):
+            return {"content": f"ERROR: {str(data.get('result') or content)[:500]}", "error": True}
+        # Forward the CLI envelope's token accounting so the shared server's
+        # debug-log + token badges populate for agent-brokered calls too
+        # (mirrors server-side claude_code, which keeps the same envelope).
+        usage = data.get("usage")
+        cost = data.get("total_cost_usd")
         result = {"content": content, "error": False}
         if usage is not None:
             result["usage"] = usage
@@ -209,7 +276,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         result = run_claude(prompt, body.get("model", "default"),
                             int(body.get("timeout", DEFAULT_TIMEOUT)),
-                            job_id=str(body.get("job_id") or ""))
+                            job_id=str(body.get("job_id") or ""),
+                            system=str(body.get("system") or ""))
         self._send(200, result)
 
     def log_message(self, fmt, *args):  # quieter default logging
