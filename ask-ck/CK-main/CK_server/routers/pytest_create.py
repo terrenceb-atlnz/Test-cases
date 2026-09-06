@@ -4204,11 +4204,105 @@ def _fragments_for_unit(unit: dict, ctx: dict) -> List[dict]:
     return out
 
 
+# Fragments / CLI-reference entries used by at least this share of a case's units are
+# HOISTED into the shared (system, cached) half of every unit prompt instead of being
+# re-sent inside each unit that uses them (token-efficiency decision 5, 2026-09-07).
+# Measured on T44297: fragments were 27% of all prompt text; one 6,282-char fragment went
+# to 32 of 38 units and the top four (all ≥ 23/38) were 63% of the fragment bytes sent.
+# Hoisted, they are read from cache by every unit after the first instead of written 38
+# times. Below the threshold a fragment stays per-unit — hoisting everything would hand
+# every unit all 38 fragments, which the report flagged as a quality risk.
+_PT_SHARED_MIN_SHARE = 0.5
+
+
+def _split_cli_sections(block: str) -> Tuple[str, List[Tuple[str, str]]]:
+    """(header, [(command, section)]) of a `_cli_reference_block`; sections start at '### '."""
+    if not block:
+        return "", []
+    header: List[str] = []
+    sections: List[List[str]] = []
+    for ln in block.split("\n"):
+        if ln.startswith("### "):
+            sections.append([ln])
+        elif not sections:
+            header.append(ln)
+        else:
+            sections[-1].append(ln)
+    return ("\n".join(header).rstrip(),
+            [(sec[0][4:].strip(), "\n".join(sec).rstrip()) for sec in sections])
+
+
+def _join_cli_sections(header: str, sections: List[Tuple[str, str]]) -> str:
+    return (header + "\n" + "\n".join(t for _, t in sections)) if sections else ""
+
+
+def _shared_plan(ctx: dict) -> dict:
+    """Which fragments and CLI entries are common enough to live in the shared half.
+
+    Computed ONCE per generation context (memoised on `ctx`) because it needs every unit's
+    fragment list and CLI block, and a fan-out renders every unit from one context anyway.
+    A single-unit case shares nothing — there is nobody to share with.
+    """
+    plan = ctx.get("_shared_plan")
+    if plan is not None:
+        return plan
+    units = ctx["units"]
+    per_frags: Dict[str, List[dict]] = {}
+    per_cli: Dict[str, str] = {}
+    for u in units:
+        frags = _fragments_for_unit(u, ctx)
+        src = _unit_source_step(u, ctx["tc_steps"])
+        rows = ctx["setup_steps"] if u["kind"] == "setup" else ([src] if src else [])
+        per_frags[u["id"]] = frags
+        per_cli[u["id"]] = _cli_reference_block(rows, frags)
+    n = len(units)
+
+    def _common(counter: Dict[str, int]) -> List[str]:
+        if n < 2:
+            return []
+        return [k for k, c in counter.items() if c / n >= _PT_SHARED_MIN_SHARE]
+
+    frag_count: Dict[str, int] = {}
+    first_seen: Dict[str, dict] = {}
+    for frags in per_frags.values():
+        for f in frags:
+            frag_count[f["tag"]] = frag_count.get(f["tag"], 0) + 1
+            first_seen.setdefault(f["tag"], f)
+    shared_tags = _common(frag_count)
+
+    cli_count: Dict[str, int] = {}
+    cli_text: Dict[str, str] = {}
+    header = ""
+    for blk in per_cli.values():
+        h, secs = _split_cli_sections(blk)
+        header = header or h
+        for cmd, txt in secs:
+            cli_count[cmd] = cli_count.get(cmd, 0) + 1
+            cli_text.setdefault(cmd, txt)
+    shared_cmds = _common(cli_count)
+    shared_header = header.replace("REAL CLI REFERENCE",
+                                   "REAL CLI REFERENCE shared by most units of this case", 1)
+    plan = {
+        "per_frags": per_frags, "per_cli": per_cli,
+        "shared_tags": set(shared_tags),
+        "shared_fragments": [first_seen[t] for t in shared_tags],
+        "shared_cmds": set(shared_cmds),
+        "shared_cli": _join_cli_sections(shared_header, [(c, cli_text[c]) for c in shared_cmds]),
+    }
+    ctx["_shared_plan"] = plan
+    return plan
+
+
 def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict) -> str:
     """The prompt for one unit, rendered but NOT sent."""
-    frags = _fragments_for_unit(unit, ctx)
+    plan = _shared_plan(ctx)
+    frags = plan["per_frags"][unit["id"]]                 # ALL of this unit's fragments
+    own_frags = [f for f in frags if f["tag"] not in plan["shared_tags"]]
+    shared_here = [f["tag"] for f in frags if f["tag"] in plan["shared_tags"]]
+    cli_header, cli_secs = _split_cli_sections(plan["per_cli"][unit["id"]])
+    own_cli = _join_cli_sections(cli_header,
+                                 [(c, t) for c, t in cli_secs if c not in plan["shared_cmds"]])
     src = _unit_source_step(unit, ctx["tc_steps"])
-    text_rows = ctx["setup_steps"] if unit["kind"] == "setup" else ([src] if src else [])
     return render_prompt("pt_generate_step.jinja", {
         "case_key": key,
         "case_title": _case_title(data, key),
@@ -4218,10 +4312,13 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "step": src or {},
         "setup_steps": ctx["setup_steps"],
         "blank_block": unit["block"],
-        "fragments": frags,
+        "fragments": own_frags,
+        "shared_fragments": plan["shared_fragments"],
+        "shared_tags_for_unit": shared_here,
+        "shared_cli_reference": plan["shared_cli"],
         "devices": ctx["devices"],
         "framework_surface": _framework_surface_slice(data, ctx["extra_mods"]),
-        "cli_reference": _cli_reference_block(text_rows, frags),
+        "cli_reference": own_cli,
         "device_note": _fragment_device_note(frags, ctx["devices"]),
         "py2_flagged": ctx["case_py2_flagged"],
         "rules_cli_reference": ctx["case_cli_reference"],

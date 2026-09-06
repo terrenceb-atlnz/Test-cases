@@ -81,6 +81,28 @@ files outside it — you are returning one block, not a script.
 
 {% with cli_reference = rules_cli_reference %}{% include 'pt_fill_rules.jinja' %}{% endwith %}
 
+## One rule that exists ONLY for units: EVERY UNIT IS SELF-CONTAINED
+Your `TestCase` runs after `TestSet.configure()` and after the previous case's own
+`tear_down()`. Assume NOTHING another `TestCase` configured is still in effect when your
+`main()` starts — only what `configure()` set up. If your step's action presumes a state
+("with all optional TLVs now selected", "with the port already in the VLAN"), ESTABLISH that
+state yourself in `main()` before you verify it, and undo it in your own `tear_down()`. Never
+skip a precondition because an earlier step "already did it": it did, and then it was torn
+down. On a real pass 6 of 38 units failed for exactly this reason and for no product reason.
+{% if shared_fragments %}
+## Reviewer-approved reusable code shared by most units of this case (real source — adapt it into the slots; each unit says below which of these apply to it)
+{% for f in shared_fragments %}
+### From {{ f.source_id }} — {{ f.symbol }}{% if f.py2_flagged %} ⚠ PYTHON 2{% endif %}
+Provenance tag for this fragment: `{{ f.tag }}`
+Reviewer note: {{ f.why }}
+```python
+{{ f.code }}
+```
+{% endfor %}
+{% endif %}
+{% if shared_cli_reference %}
+## {{ shared_cli_reference }}
+{% endif %}
 {{ split_marker }}
 
 {#- ==== EVERYTHING BELOW THIS LINE VARIES PER UNIT — see the header note ==== -#}
@@ -105,6 +127,9 @@ The `verify` text is the contract. Your pass/fail determination must correspond 
 to something narrower, broader, or adjacent. This is the single most important property of
 the unit you are writing.
 {% endif %}
+{%- if shared_tags_for_unit %}
+Shared code ABOVE that the reviewer mapped to THIS unit — adapt it here: {% for t in shared_tags_for_unit %}`{{ t }}`{% if not loop.last %}, {% endif %}{% endfor %}.
+{% endif %}
 {%- if device_note %}
 DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
 its device references (e.g. `self.dut` / `self.remote`) to the names init() binds (listed
@@ -122,7 +147,7 @@ server will reject a reply that renames or drops them.
 ```
 
 {% if fragments %}
-## Reviewer-approved reusable code for THIS unit (real source — adapt it into the slots)
+## Reviewer-approved reusable code for THIS unit only (real source — adapt it into the slots)
 {% for f in fragments %}
 ### From {{ f.source_id }} — {{ f.symbol }}{% if f.py2_flagged %} ⚠ PYTHON 2{% endif %}
 Provenance tag for this fragment: `{{ f.tag }}`
@@ -131,7 +156,7 @@ Reviewer note: {{ f.why }}
 {{ f.code }}
 ```
 {% endfor %}
-{% else %}
+{% elif not shared_tags_for_unit %}
 ## Reusable code
 None of the reviewer's selected fragments map to this step. Write it from the framework
 surface above and the CLI reference below, in the same idiom as the rest of the suite.

@@ -560,7 +560,9 @@ def test_every_invariant_prompt_block_precedes_every_varying_one():
     # wrapped in `{% with cli_reference = rules_cli_reference %}` — a CASE-level flag, so
     # the shared half stays identical across units — and that binding sits (correctly)
     # above the line. The per-unit reference BLOCK is what must stay below it.
-    varying = ["mode ==", "blank_block", "fragments", "## {{ cli_reference }}"]
+    # `{% if fragments %}`, not the bare word: since 2026-09-07 `shared_fragments` (the
+    # hoisted, case-common ones — decision 5) legitimately sit ABOVE the marker.
+    varying = ["mode ==", "blank_block", "{% if fragments %}", "## {{ cli_reference }}"]
     last_invariant = max(_STEP_BODY.index(t) for t in invariant)
     first_varying = min(_STEP_BODY.index(t) for t in varying)
     assert last_invariant < first_varying, (
