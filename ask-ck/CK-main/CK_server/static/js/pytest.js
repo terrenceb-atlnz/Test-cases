@@ -1372,8 +1372,11 @@ async function ptGenerateAllUnits() {
   setButtonBusy(btn, false);
   flashButtonDone(btn, !!d, d ? { label: `✓ ${(d.dispatched || []).length} sent` } : undefined);
   if (st && d) {
-    st.textContent = `${(d.dispatched || []).length} unit(s) dispatched — `
-      + `up to ${d.max_concurrent} at once server-side, and however many the broker's `
+    // Decision 4 (2026-09-07): the first unit runs ALONE so its prompt-cache write is
+    // there for the rest to read; say so, or the pause before the pills move reads as a hang.
+    const primed = d.primed ? `The first unit (${d.primed}) runs alone to warm the prompt cache, ` : '';
+    st.textContent = `${(d.dispatched || []).length} unit(s) dispatched — ${primed}`
+      + `then up to ${d.max_concurrent} at once server-side, and however many the broker's `
       + `workers can run. Pills update as they land.`;
   }
 }

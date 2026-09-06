@@ -4538,6 +4538,28 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
             "usage": meta.get("usage")}
 
 
+async def _dispatch_primed(items: list, run) -> None:
+    """Run the FIRST unit alone to completion, then fan the rest out concurrently.
+
+    Token-efficiency decision 4 (2026-09-07). A prompt-cache entry becomes readable only
+    once the request that wrote it has been processed, so eight units fired in the same
+    instant all WRITE the shared half and none reads it — with decision 8 in place that is
+    the one remaining wave of full-price input per pass (7 × ~7.9k tokens on T44297). One
+    call alone, then everyone else reads what it wrote. The price is one unit's wall clock
+    (40–120 s measured) before the pills start filling; Terrence accepted that "hesitantly,
+    we will see how long that first unit takes" — if it hurts, this is the function to
+    change, not the caller.
+
+    `run` is the per-unit coroutine function (uid, unit, prompt, edited); each item is its
+    argument tuple. Runs as its own task, so the endpoint still returns immediately.
+    """
+    if not items:
+        return
+    await run(*items[0])
+    for it in items[1:]:
+        asyncio.create_task(run(*it))
+
+
 @router.post("/generate_units/{key}")
 async def generate_units(key: str, request: Request, body: dict = Body(default={})):
     """Dispatch N units in ONE request and return IMMEDIATELY. Poll /units_status.
@@ -4620,11 +4642,13 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
             # from "finished" for the whole lifetime of the task, including a crash.
             _pt_unit_mark(key, [uid], False)
 
-    for uid, unit, prompt, edited in prepared:
-        asyncio.create_task(_one(uid, unit, prompt, edited))
+    # Primed fan-out (decision 4): the first unit runs alone so its cache write is there
+    # for the other N-1 to read; they then fan out under the semaphore as before.
+    asyncio.create_task(_dispatch_primed(prepared, _one))
     return {"dispatched": [u for u, _, _, _ in prepared],
             "already_running": sorted(already),
-            "max_concurrent": _PT_UNIT_DISPATCH_MAX}
+            "max_concurrent": _PT_UNIT_DISPATCH_MAX,
+            "primed": prepared[0][0] if len(prepared) > 1 else None}
 
 
 @router.get("/units_status/{key}")
