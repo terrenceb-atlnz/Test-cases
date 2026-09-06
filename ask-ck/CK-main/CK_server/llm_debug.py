@@ -57,9 +57,15 @@ def normalize_usage(auth_method: str, raw_response: Any) -> Optional[Dict[str, A
         # Anthropic / Claude Code CLI shape
         if "input_tokens" in usage or "output_tokens" in usage:
             inp = int(usage.get("input_tokens") or 0)
-            # Cache reads/creation are still input the provider processed.
-            inp += int(usage.get("cache_read_input_tokens") or 0)
-            inp += int(usage.get("cache_creation_input_tokens") or 0)
+            # Cache reads/creation are still input the provider processed, so they stay
+            # folded into input_tokens (every consumer of that number is unchanged) — and
+            # since 2026-09-07 they are ALSO kept apart. Folding alone hid the fact that
+            # the T44297 pass read zero tokens from cache on every call; that had to be
+            # inferred from the price (decision 8). With the split, "did it cache?" is a
+            # field, not a calculation.
+            cache_read = int(usage.get("cache_read_input_tokens") or 0)
+            cache_write = int(usage.get("cache_creation_input_tokens") or 0)
+            inp += cache_read + cache_write
             out = int(usage.get("output_tokens") or 0)
             cost = raw_response.get("total_cost_usd")
             return {
@@ -67,6 +73,8 @@ def normalize_usage(auth_method: str, raw_response: Any) -> Optional[Dict[str, A
                 "output_tokens": out,
                 "total_tokens": inp + out,
                 "cost_usd": float(cost) if cost is not None else None,
+                "cache_read_input_tokens": cache_read,
+                "cache_creation_input_tokens": cache_write,
             }
         # OpenAI-compatible shape
         if "prompt_tokens" in usage or "completion_tokens" in usage:
@@ -90,7 +98,7 @@ _MAX_SESSIONS = 50
 # meta keys copied into a record. Credentials (api_key / token / llm_config)
 # are deliberately NOT listed and must never be added.
 _META_WHITELIST = ("template", "provider", "auth_method", "model", "base_url",
-                   "prompt", "error", "error_detail", "usage")
+                   "prompt", "system", "error", "error_detail", "usage")
 
 
 def session_log_path(session_id: str) -> Path:

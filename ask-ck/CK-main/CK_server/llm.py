@@ -711,7 +711,7 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
     """
     if dry_run:
         return {
-            "content": "", "prompt": prompt, "provider": provider,
+            "content": "", "prompt": prompt, "system": system, "provider": provider,
             "model": model, "auth_method": auth_method, "template": template,
             "usage": None, "error": False, "dry_run": True,
         }
@@ -732,6 +732,10 @@ def _call_llm_with_meta(prompt: str, provider: str = "", api_key: Optional[str] 
         llm_inflight.finish(call_id)
     duration_ms = int((time.monotonic() - start) * 1000)
     meta["template"] = template
+    # The system text is now part of what a call costs (decision 8 moves the shared half of
+    # every unit prompt into it), so it is recorded beside the prompt — a debug-log reader
+    # that sees only the user half would under-count the input by half.
+    meta["system"] = system
     meta["usage"] = llm_debug.normalize_usage(meta.get("auth_method", auth_method),
                                               meta.get("raw_response"))
     llm_debug.record(meta, duration_ms)

@@ -480,6 +480,7 @@ def _provenance_preview(meta: dict) -> dict:
     """Shape a dry_run meta into the standard provenance-preview response."""
     return {"provenance": {
         "prompt": meta.get("prompt", ""),
+        "system": meta.get("system") or "",
         "provider": meta.get("provider"),
         "model": meta.get("model"),
         "auth_method": meta.get("auth_method"),
@@ -4170,6 +4171,12 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
         "skeleton": skeleton, "setup_steps": setup_steps, "tc_steps": tc_steps,
         "units": _skeleton_units(skeleton),
         "devices": _skeleton_bound_devices(skeleton, bound_devs[0] if bound_devs else ""),
+        # CASE-level, not unit-level, on purpose: the fill rules branch on these two flags,
+        # and the rules live in the SHARED half of every unit prompt (decision 8). Derived
+        # per unit they made the shared half differ between units that disagreed — a cache
+        # miss for every such unit — so they are answered once for the whole case here.
+        "case_py2_flagged": any(f.get("py2_flagged") for f in fragments),
+        "case_cli_reference": bool(_cli_reference_block(sequence, fragments)),
     }
 
 
@@ -4216,7 +4223,9 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "framework_surface": _framework_surface_slice(data, ctx["extra_mods"]),
         "cli_reference": _cli_reference_block(text_rows, frags),
         "device_note": _fragment_device_note(frags, ctx["devices"]),
-        "py2_flagged": any(f.get("py2_flagged") for f in frags),
+        "py2_flagged": ctx["case_py2_flagged"],
+        "rules_cli_reference": ctx["case_cli_reference"],
+        "split_marker": _PT_PROMPT_SPLIT,
         "model_name": (_llm_cfg_for(sess, "unit_fill").get("model") or "unknown"),
         "gen_date": utc_now().strftime("%Y-%m-%d"),
     })
@@ -4450,6 +4459,33 @@ async def step_prompts(key: str, request: Request):
     return {"units": out, "skeleton_chars": len(ctx["skeleton"])}
 
 
+# The visible line that separates the two halves of a unit prompt (decision 8, 2026-09-07).
+# Everything ABOVE it is identical for every unit of a case and travels as the SYSTEM prompt;
+# everything below is this unit's own and travels as the user message. Why: the API matches a
+# prompt cache only at content-block boundaries, and the CLI puts one on the system prompt and
+# one on the user message. A shared prefix INSIDE one differing user block is invisible to the
+# cache — measured 2026-09-07: sequential calls with the shared half in the user block read 0
+# tokens; the same half as --system-prompt read 7,879 of 8,059 on the second call, at 1/12 of
+# the price. The reviewer sees and may edit the whole prompt, marker included; an edited
+# prompt that lost the marker is sent whole as the user message (correct, just uncached).
+_PT_PROMPT_SPLIT = "==== SHARED CONTEXT ABOVE THIS LINE · THIS UNIT BELOW IT ===="
+
+
+def _split_unit_prompt(prompt: str) -> Tuple[str, str]:
+    """(shared_half, unit_half). No marker -> ("", prompt): everything goes as the user turn."""
+    lines = (prompt or "").split("\n")
+    for i, line in enumerate(lines):
+        if line.strip() == _PT_PROMPT_SPLIT:
+            return "\n".join(lines[:i]).rstrip(), "\n".join(lines[i + 1:]).lstrip("\n")
+    return "", prompt or ""
+
+
+def _unit_system_prompt(shared_half: str) -> str:
+    """The code steer, then the case's shared context. Byte-identical for every unit of a
+    case — that identity is the whole cache."""
+    return _CODE_SYSTEM_PROMPT + ("\n\n" + shared_half if shared_half else "")
+
+
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                          unit: dict, llm_cfg: dict) -> dict:
     """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
@@ -4459,8 +4495,9 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
     shape check is the thing standing between a wrong reply and a file that will not
     compile.
     """
-    meta = run_prompt_text(prompt, llm_config=llm_cfg, timeout=600,
-                           system=_CODE_SYSTEM_PROMPT, max_tokens=16000)
+    shared_half, unit_half = _split_unit_prompt(prompt)
+    meta = run_prompt_text(unit_half, llm_config=llm_cfg, timeout=600,
+                           system=_unit_system_prompt(shared_half), max_tokens=16000)
 
     def _store(record: dict) -> None:
         def _apply(fresh: PtSession) -> None:

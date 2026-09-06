@@ -41,6 +41,19 @@
   NONE OF THIS BOUGHT ANYTHING UNTIL THE SAME DAY'S TRANSPORT FIX. The CLI's own harness
   prompt sat in front of this prompt and varied per invocation, so no call ever read the
   previous call's cache regardless of what was shared here — see llm._DEFAULT_CLI_SYSTEM_PROMPT.
+
+  2026-09-07 — AND THE SHARED PREFIX STILL DID NOT CACHE. The API matches a cache only at
+  content-block boundaries; a shared prefix inside ONE user block whose tail differs is
+  worthless (measured: 0 tokens read on 38 sequential-and-parallel unit calls; the same half
+  as the system prompt read 7,879 of 8,059). So the template now renders a visible SPLIT
+  MARKER (`split_marker`, = routers.pytest_create._PT_PROMPT_SPLIT) right after the rules.
+  The server sends everything above it as the SYSTEM prompt and everything below as the user
+  message. Two consequences for anyone editing this file:
+    - the two rule flags the shared half branches on are now CASE-level (`py2_flagged`,
+      `rules_cli_reference`), so the half is byte-identical for every unit of a case; the
+      unit's own `cli_reference` block below the line is still per unit;
+    - the marker must stay the LAST line of the invariant region. Anything after it is
+      re-sent, uncached, with every unit.
 -#}
 You are filling ONE unit of a standardized Allied Telesis `framework` test script
 (ATTestSet/ATTestCase). The rest of the script already exists and is NOT your concern — do
@@ -66,7 +79,9 @@ The rules below are the project's rules for filling slots anywhere in this scrip
 apply to the unit you are given further down. Ignore any part that refers to classes or
 files outside it — you are returning one block, not a script.
 
-{% include 'pt_fill_rules.jinja' %}
+{% with cli_reference = rules_cli_reference %}{% include 'pt_fill_rules.jinja' %}{% endwith %}
+
+{{ split_marker }}
 
 {#- ==== EVERYTHING BELOW THIS LINE VARIES PER UNIT — see the header note ==== -#}
 {% if mode == 'setup' %}

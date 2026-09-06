@@ -555,8 +555,12 @@ def test_every_invariant_prompt_block_precedes_every_varying_one():
     rules was measured at half the shared prefix: 11,143 -> 5,663 chars.
     """
     invariant = ["case_key", "framework_surface", "devices",
-                 "{% include 'pt_fill_rules.jinja' %}"]
-    varying = ["mode ==", "blank_block", "fragments", "cli_reference"]
+                 "{% include 'pt_fill_rules.jinja' %}", "{{ split_marker }}"]
+    # `## {{ cli_reference }}`, not the bare name: since 2026-09-07 the rules include is
+    # wrapped in `{% with cli_reference = rules_cli_reference %}` — a CASE-level flag, so
+    # the shared half stays identical across units — and that binding sits (correctly)
+    # above the line. The per-unit reference BLOCK is what must stay below it.
+    varying = ["mode ==", "blank_block", "fragments", "## {{ cli_reference }}"]
     last_invariant = max(_STEP_BODY.index(t) for t in invariant)
     first_varying = min(_STEP_BODY.index(t) for t in varying)
     assert last_invariant < first_varying, (
