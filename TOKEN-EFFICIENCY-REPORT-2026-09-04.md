@@ -284,23 +284,72 @@ it spends 5–11k output tokens getting there.
 
 ## 6. Decisions open for Terrence
 
-1. **Run a real 38-unit pass on the new transport** and read the cache fields from the CLI
-   transcripts (`--no-session-persistence` means they are no longer written — the server's
-   debug log `input_tokens` will show the drop, but the read/write split needs one run with
-   persistence on, or the envelope's `usage` captured). This turns §3d from projection to fact.
+*Updated 2026-09-07 after the first real 38-unit pass on the new transport and a second,
+targeted probe. Status of each item is stated first; the original text follows.*
+
+*Later the same day: Terrence read the decisions, took 6 as per-task routing, ordered
+6, 8, 4, 3, 5, 7, 2 and asked for one combined re-run rather than attribution per change.
+**All seven are BUILT** (one commit each, `CHANGELOG.md` 2026-09-07). The per-item text below
+keeps its OPEN tags as the record of what was decided and why; the re-run itself is next.
+One correction to item 8 as first drafted: step matching does NOT share the fan-out shape —
+each per-step call sends one step plus its own candidates — so the split gives it nothing.*
+
+1. **Run a real 38-unit pass on the new transport.** DONE 2026-09-07 (T44297, 38 units,
+   `claude_code` transport). Median input per unit call 23,278 → 16,396 tokens, median cost
+   $0.369 → $0.304 (about 18%). The read/write split could not be read from the debug log
+   (`normalize_usage` folds the cache fields into `input_tokens`, and `--no-session-persistence`
+   means no transcript) — it was inferred from price: every call's input priced at $10.81/M, the
+   Opus 1-hour cache-WRITE rate, so **zero cache reads across the whole pass**. That inference
+   was then confirmed by the probe under decision 8. Consequence: §3d's "after Layer 0 +
+   device-note move ≈ $3.2" row assumed reads that do not happen; the shipped saving is the
+   ~18% above and the rest is decision 8.
 2. **Deterministic integration lint at Assemble** (bound-handle set, tcpdump call shape,
    capture-with-no-wait). Sized at ~40% of Review findings, and it would have caught Sonnet's
-   setup defect too.
+   setup defect too. OPEN; independent of every other item; costs code, not tokens.
 3. **Self-contained-unit rule** in the per-unit prompt: each unit establishes its own
    precondition. Sized at 2 of 7 findings; also the whole-script generation's main structural
-   edge.
-4. **Prime the fan-out** so the first wave of 8 does not all miss the cache. Small.
+   edge. OPEN; a prompt change, so it wants a quality check on a real pass — pairs naturally
+   with the Sonnet pass in decision 6.
+4. **Prime the fan-out** so the first wave of 8 does not all miss the cache. Small. OPEN, but
+   **worth nothing until decision 8 lands**: today nothing is read at any point in the pass, so
+   priming a cache no call can hit saves zero. With 8 in place it saves the first wave's writes
+   (7 calls × ~7.9k tokens per pass).
 5. **Fragment appendix** in the cacheable prefix: 27% of all prompt text; needs a quality check
    because every unit would then read all 38 fragments. Middle path: hoist only fragments used
-   by >50% of units (one fragment alone is 12.5% of the pass).
+   by >50% of units (one fragment alone is 12.5% of the pass). OPEN; **same dependency on 8** —
+   there is no cacheable prefix to hoist into until the shared half lives in the system prompt.
 6. **Sonnet 5 for unit fills and/or step matching.** Evidence in §5. If wanted, the next step is
-   a full 38-unit pass on Sonnet, judged in-context against the Opus artifact.
-7. **Per-unit-scoped Fix** and **two-tier Review**, from the morning's handoff, unchanged.
+   a full 38-unit pass on Sonnet, judged in-context against the Opus artifact. OPEN.
+7. **Per-unit-scoped Fix** and **two-tier Review**, from the morning's handoff, unchanged. OPEN.
+8. **Move the shared prefix into `--system-prompt`.** Added 2026-09-07; **mechanism CONFIRMED
+   by probe the same day** (4 calls, $0.25, scratchpad `probe2/`). The pass in decision 1 showed
+   the transport fix working and the cache still never read, although two live prompts share
+   their first 19,456 chars (52%, diverging at "Your unit"). The probe took that real shared
+   half (~7.9k tokens — the report's earlier ~5.5k estimate was low) and sent two sequential
+   calls, 5 s apart, in each of two placements:
+
+   | placement | 2nd call wrote | 2nd call read | 2nd call cost |
+   |---|---|---|---|
+   | inside the user block (today's shape) | 8,089 | **0** | $0.081 |
+   | as `--system-prompt` | 180 | **7,879** | $0.0065 |
+
+   Concurrency is therefore NOT the cause — sequential calls with a warm cache still miss when
+   the prefix sits inside the user block. The API matches a cache only at content-block
+   boundaries and client-set breakpoints; the CLI sets those on the system prompt and on the
+   user message; our system prompt is a 30-token steer (below the 1,024-token minimum) and our
+   user message is ONE block whose tail differs per unit, so neither can hit. The Thursday probe
+   passed only because it sent the identical prompt twice. Two side-findings: the residual CLI
+   overhead on this transport is ~180 tokens per call (not the 2,602 measured before the system
+   prompt was replaced), and the cacheable share of a unit call is ~7.9k of ~16.4k tokens.
+   **Fix:** render the shared half (fill rules + case context, everything above "Your unit")
+   into `--system-prompt` and send only the unit-specific half as the user message; the system
+   prompt becomes a constant, cacheable block read by every call after the first in a fan-out.
+   Sized on today's pass: ~$0.075 off a $0.30 unit call, ~$2.8 per 38-unit pass on input, first
+   wave still at write price until decision 4. Touches `pt_generate_step.jinja` (split point),
+   the render call in `routers/pytest_create.py`, and `_call_claude_code_headless` /
+   `ck_agent.py` (system text is already carried end-to-end since 2026-09-04, so the transport
+   needs no new plumbing). Step-match calls have the same shape and would take the same fix.
+   OPEN — the probe is done; the template change is not.
 
 ---
 
