@@ -1993,6 +1993,241 @@ def _pep8_findings(code: str) -> Tuple[List[str], Optional[str]]:
     return out, None
 
 
+# --- bench-integration lint (token-efficiency decision 2, 2026-09-07) ----------------------
+#
+# The three defect classes that made the T44297 per-unit script unrunnable until Review + Fix,
+# each of which is DETERMINISTIC given the assembled script and the framework surface, so it
+# belongs here and not in a $0.30 LLM review (about 40% of what Review found was this):
+#
+#   1. a port attribute init() never assigned — `self.testSet.dut.portA` when init() bound
+#      `dut.portB` only (~30 of 38 units; renders as `interface None` on the bench);
+#   2. a method call the framework class does not define, or a keyword it does not accept —
+#      `start_tcpdump(..., filter=...)` copied from a library fragment's local helper;
+#   3. a capture started and stopped with nothing in between — captures nothing.
+#
+# 1 and 2 are errors (they fail on the bench, deterministically). 3 is a warning: a capture
+# of an already-flowing stream can legitimately be brief, so a human decides.
+
+_PORTLIKE_RX = re.compile(r"^(port|eth)[A-Z]\w*$")
+_CAPTURE_START = {"start_tcpdump", "start_capture", "startCapture"}
+_CAPTURE_STOP = {"stop_tcpdump", "stop_capture", "stopCapture"}
+_WAIT_NAMES = {"sleep", "wait", "waitFor", "wait_for", "poll", "mode", "settle"}
+# init() binder -> the surface class whose methods a handle of that kind may call. A partner
+# bound through _ck_bind_link may be a switch OR the testbox, so it gets the union.
+_BINDER_KINDS = {"init_swi": ("ATDrivers.ATSwitch", "Switch"),
+                 "init_stk": ("ATDrivers.ATSwitch", "Stack"),
+                 "init_tb": ("ATDrivers.ATTestBox", "TestBox")}
+
+
+def _framework_surface_doc() -> dict:
+    try:
+        return dbx.get_json_doc("framework_surface") or {}
+    except Exception:
+        return {}
+
+
+def _surface_methods(surface: dict, module: str, cls: str) -> Dict[str, Optional[list]]:
+    """{method: args or None} for one surface class; None args = signature unknown."""
+    out: Dict[str, Optional[list]] = {}
+    for m in ((surface.get(module) or {}).get("classes") or {}).get(cls, {}).get("methods") or []:
+        if m.get("name"):
+            out[m["name"]] = m.get("args") if isinstance(m.get("args"), list) else None
+    return out
+
+
+def _lint_bench_integration(tree, code: str, surface: dict) -> Tuple[List[str], List[str]]:
+    """The three checks above. Pure: (errors, warnings) from the AST + the surface."""
+    import ast as ast_mod
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    testset = next((n for n in tree.body if isinstance(n, ast_mod.ClassDef)
+                    and any("TestSet" in getattr(b, "attr", getattr(b, "id", "")) for b in n.bases)),
+                   None)
+    if testset is None:
+        return errors, warnings
+    init_fn = next((n for n in testset.body if isinstance(n, ast_mod.FunctionDef)
+                    and n.name == "init"), None)
+
+    # --- what init() binds: handle kinds, and (handle, port-attribute) pairs -----------------
+    local_kind: Dict[str, str] = {}          # local name -> swi|stk|tb|partner
+    self_kind: Dict[str, str] = {}           # self.<attr> -> kind
+    bound_ports: set = set()                 # (handle-as-self-attr, portattr)
+    local_to_self: Dict[str, str] = {}
+
+    def _binder(call) -> Optional[str]:
+        f = call.func
+        name = f.attr if isinstance(f, ast_mod.Attribute) else getattr(f, "id", "")
+        if name in _BINDER_KINDS:
+            return {"init_swi": "swi", "init_stk": "stk", "init_tb": "tb"}[name]
+        return None
+
+    setup_scope = [n for n in testset.body if isinstance(n, ast_mod.FunctionDef)]
+    for fn in setup_scope:
+        for n in ast_mod.walk(fn):
+            if not isinstance(n, ast_mod.Assign):
+                continue
+            val = n.value
+            for t in n.targets:
+                elts = t.elts if isinstance(t, (ast_mod.Tuple, ast_mod.List)) else [t]
+                # X = setup.init_swi(...) ; self.X = setup.init_swi(...)
+                if isinstance(val, ast_mod.Call) and _binder(val) and len(elts) == 1:
+                    k = _binder(val)
+                    if isinstance(t, ast_mod.Name):
+                        local_kind[t.id] = k
+                    elif (isinstance(t, ast_mod.Attribute) and isinstance(t.value, ast_mod.Name)
+                          and t.value.id == "self"):
+                        self_kind[t.attr] = k
+                # (dut.portA, self.far, partner) = self._ck_bind_link(...)
+                if (isinstance(val, ast_mod.Call) and isinstance(val.func, ast_mod.Attribute)
+                        and val.func.attr == "_ck_bind_link" and len(elts) == 3):
+                    if isinstance(elts[2], ast_mod.Name):
+                        local_kind[elts[2].id] = "partner"
+                    elif (isinstance(elts[2], ast_mod.Attribute)
+                          and isinstance(elts[2].value, ast_mod.Name) and elts[2].value.id == "self"):
+                        self_kind[elts[2].attr] = "partner"
+                for el in elts:
+                    # self.X = X  (a local handle published on the TestSet)
+                    if (isinstance(el, ast_mod.Attribute) and isinstance(el.value, ast_mod.Name)
+                            and el.value.id == "self" and isinstance(val, ast_mod.Name)
+                            and len(elts) == 1):
+                        local_to_self[val.id] = el.attr
+                    # <handle>.portX = ... / self.<handle>.portX = ...  (a bound port)
+                    if isinstance(el, ast_mod.Attribute) and _PORTLIKE_RX.match(el.attr):
+                        base = el.value
+                        if isinstance(base, ast_mod.Name):
+                            bound_ports.add((base.id, el.attr))
+                        elif (isinstance(base, ast_mod.Attribute)
+                              and isinstance(base.value, ast_mod.Name) and base.value.id == "self"):
+                            bound_ports.add((base.attr, el.attr))
+    # Resolve locals to their self.* names (the name a TestCase reaches them by).
+    for loc, k in local_kind.items():
+        if loc in local_to_self:
+            self_kind.setdefault(local_to_self[loc], k)
+    bound_self_ports = set()
+    for h, p in bound_ports:
+        bound_self_ports.add((local_to_self.get(h, h), p))
+    if not self_kind:
+        return errors, warnings                    # not our frame; nothing to judge against
+
+    def _handle_of(node) -> Optional[str]:
+        """`self.testSet.<h>` (in a TestCase) or `self.<h>` (in the TestSet) -> h."""
+        if not isinstance(node, ast_mod.Attribute):
+            return None
+        v = node.value
+        if (isinstance(v, ast_mod.Attribute) and v.attr == "testSet"
+                and isinstance(v.value, ast_mod.Name) and v.value.id == "self"):
+            return node.attr
+        if isinstance(v, ast_mod.Name) and v.id == "self" and node.attr in self_kind:
+            return node.attr
+        return None
+
+    # --- 1. port attributes that init() never assigned -----------------------------------
+    # Reported once per (handle, attribute, ENCLOSING CLASS), not once per script: the
+    # per-unit Fix maps a lint line to a unit by class name or line number, so a defect that
+    # ~30 units share must name each of them or only one unit gets fixed.
+    class_ranges = [(c.name, c.lineno, c.end_lineno or c.lineno)
+                    for c in tree.body if isinstance(c, ast_mod.ClassDef)]
+
+    def _class_at(ln: int) -> str:
+        return next((nm for nm, lo, hi in class_ranges if lo <= ln <= hi), "")
+
+    seen_ports = set()
+    for n in ast_mod.walk(tree):
+        if not (isinstance(n, ast_mod.Attribute) and _PORTLIKE_RX.match(n.attr)):
+            continue
+        h = _handle_of(n.value)
+        if h is None or h not in self_kind:
+            continue
+        key = (h, n.attr, _class_at(n.lineno))
+        if (h, n.attr) in bound_self_ports or key in seen_ports:
+            continue
+        # a read inside the TestSet's own binding code is the assignment itself
+        if init_fn and init_fn.lineno <= n.lineno <= (init_fn.end_lineno or n.lineno):
+            continue
+        seen_ports.add(key)
+        have = sorted(p for hh, p in bound_self_ports if hh == h)
+        errors.append(
+            f"{(_class_at(n.lineno) + ' ') if _class_at(n.lineno) else ''}"
+            f"line {n.lineno}: reads `{h}.{n.attr}` but init() binds "
+            f"{('`' + '`, `'.join(f'{h}.{p}' for p in have) + '` only') if have else f'no port on `{h}`'}"
+            f" — on the bench this renders as `interface None`. Use a bound port, or declare "
+            f"the extra link in the frame (TOPOLOGY-PROFILES.md), never in a TestCase")
+
+    # --- 2. call shape against the framework surface ------------------------------------
+    if surface:
+        kind_methods: Dict[str, Dict[str, Optional[list]]] = {}
+        for k, (mod, cls) in (("swi", _BINDER_KINDS["init_swi"]), ("stk", _BINDER_KINDS["init_stk"]),
+                              ("tb", _BINDER_KINDS["init_tb"])):
+            kind_methods[k] = _surface_methods(surface, mod, cls)
+        partner = dict(kind_methods["swi"])
+        partner.update(kind_methods["tb"])
+        kind_methods["partner"] = partner
+        seen_calls = set()
+        for n in ast_mod.walk(tree):
+            if not (isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)):
+                continue
+            h = _handle_of(n.func.value)
+            if h is None or h not in self_kind:
+                continue
+            methods = kind_methods.get(self_kind[h]) or {}
+            if not methods:
+                continue                            # surface has nothing for this kind
+            meth = n.func.attr
+            if meth not in methods:
+                if (h, meth) in seen_calls:
+                    continue
+                seen_calls.add((h, meth))
+                cls = {"swi": "Switch", "stk": "Stack", "tb": "TestBox",
+                       "partner": "Switch/TestBox"}[self_kind[h]]
+                errors.append(
+                    f"line {n.lineno}: calls `{h}.{meth}()` but the framework's {cls} class "
+                    f"defines no `{meth}` — this is a fragment's local helper or an invented "
+                    f"API; it dies with AttributeError on the testbox. Call a method from the "
+                    f"framework surface, or inline the helper's body")
+                continue
+            args = methods[meth]
+            if args is None:
+                continue
+            bad_kw = [kw.arg for kw in n.keywords if kw.arg and kw.arg not in args]
+            if bad_kw and (h, meth, "kw") not in seen_calls:
+                seen_calls.add((h, meth, "kw"))
+                errors.append(
+                    f"line {n.lineno}: `{h}.{meth}(...)` is called with keyword(s) "
+                    f"{', '.join('`' + k + '`' for k in bad_kw)} that the framework signature "
+                    f"`{meth}({', '.join(args)})` does not accept — TypeError on the testbox")
+            npos = sum(1 for a in n.args if not isinstance(a, ast_mod.Starred))
+            if npos > len(args) and (h, meth, "pos") not in seen_calls:
+                seen_calls.add((h, meth, "pos"))
+                warnings.append(
+                    f"line {n.lineno}: `{h}.{meth}(...)` passes {npos} positional argument(s) "
+                    f"but the framework signature `{meth}({', '.join(args)})` names {len(args)}")
+
+    # --- 3. a capture with nothing between start and stop ---------------------------------
+    for fn in [n for n in ast_mod.walk(tree) if isinstance(n, ast_mod.FunctionDef)]:
+        calls = [n for n in ast_mod.walk(fn) if isinstance(n, ast_mod.Call)
+                 and isinstance(n.func, (ast_mod.Attribute, ast_mod.Name))]
+        calls.sort(key=lambda c: c.lineno)
+        names = [(c.func.attr if isinstance(c.func, ast_mod.Attribute) else c.func.id, c.lineno)
+                 for c in calls]
+        for i, (nm, ln) in enumerate(names):
+            if nm not in _CAPTURE_START:
+                continue
+            between = []
+            for nm2, ln2 in names[i + 1:]:
+                if nm2 in _CAPTURE_STOP:
+                    break
+                between.append(nm2)
+            else:
+                continue                            # never stopped in this function
+            if not any(b in _WAIT_NAMES or b.startswith(("wait", "sleep")) for b in between):
+                warnings.append(
+                    f"line {ln}: the capture started here is stopped with no wait, sleep or "
+                    f"wait-for-event between — it captures nothing. Settle first (time.sleep, "
+                    f"or a wait on the event the step is about)")
+    return errors, warnings
+
+
 def _lint_generated(sess: PtSession) -> dict:
     """Offline checks: py_compile + structural AST assertions + framework import check."""
     step6 = sess.step6 or {}
@@ -2324,6 +2559,12 @@ def _lint_generated(sess: PtSession) -> dict:
                 f"testbox. A test binds the DUT plus ONE partner (the far end of its single "
                 f"link); a second partner needs a second link role declared in "
                 f"TOPOLOGY-PROFILES.md, not an extra init_swi()")
+
+        # 2b-0c. Bench-integration checks (decision 2, 2026-09-07): unbound port attribute,
+        # call shape against the framework surface, capture with no wait. See the function.
+        _bi_errors, _bi_warnings = _lint_bench_integration(tree, code, _framework_surface_doc())
+        errors.extend(_bi_errors)
+        warnings.extend(_bi_warnings)
 
         # 2b-ii. The same port attribute bound by two init_portlink() calls. Each call
         # ASSIGNS the attribute, so the second silently discards the first link — the script
