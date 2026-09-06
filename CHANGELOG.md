@@ -11,6 +11,51 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-07 — The shared half of every unit prompt becomes the system prompt; the fan-out is primed; units are self-contained; common fragments are hoisted; Fix is per-unit and Review is gated on lint; bench-integration lint; per-task model routing
+
+**Why one entry for seven changes:** Terrence ordered the token-efficiency report's decisions
+(6, 8, 4, 3, 5, 7, 2) and asked for everything to land before one combined re-run — "I can't
+physically afford to incrementally test every single change, especially when the goal is
+holistically saving tokens." Each is its own commit and test module; this records the reasoning.
+
+**The cache still never hit after the 2026-09-04 transport fix — and why (decision 8).** The
+first real 38-unit pass on the fixed transport cut input 23,278 → 16,396 tokens per unit call but
+priced every input token at the cache-WRITE rate: zero reads, on sequential and parallel calls
+alike, although the prompts shared their first 19,456 chars. The API matches a prompt cache only
+at content-block boundaries and the client's breakpoints; the CLI puts those on the system prompt
+and on the user message, and a shared prefix inside one differing user block can never hit. Probe:
+the same shared half as `--system-prompt` read 7,879 of 8,059 tokens on the second call at one
+twelfth the price. So `pt_generate_step.jinja` now renders a visible split marker after the fill
+rules; `_unit_call_and_store` sends everything above it as the system prompt (behind the code
+steer) and the rest as the user turn. The two flags the rules branch on are CASE-level for this
+template, so the shared half is byte-identical across units (this also closes the two §9.11
+deferrals). The debug log records `system` and keeps the raw cache fields.
+
+**Primed fan-out (4).** A cache entry is readable only after the request that wrote it has been
+processed, so eight units fired at once all write. The first unit now runs alone; the rest fan out
+after it. One unit's wall clock, accepted "hesitantly".
+
+**Self-contained units (3).** 6 of 38 units failed because they relied on state an earlier case
+set up and its `tear_down` undid. The shared half now says so. Per-unit template only.
+
+**Shared appendix (5).** Fragments were 27% of prompt text; the four used by ≥ 23/38 units were
+63% of fragment bytes. Anything used by at least half the units renders once, above the marker.
+
+**Per-unit Fix + two-tier Review (7).** The whole-script Fix changed 9 of 38 classes at 64k
+output tokens and could perturb the other 29. Every finding names a class or a line, so
+`/fix_units` re-generates only those units under the same cached system half and re-assembles
+through the one assembly implementation; unmapped findings stay with the whole-script Fix.
+Review refuses while lint has blocking errors — the deterministic pass goes to green first.
+
+**Bench-integration lint (2).** ~40% of what Review found was deterministic: an unbound port
+attribute (24 classes still read `dut.portA` on the real post-Fix script), a call shape the
+framework class rejects, a capture with no wait. Now in `_lint_generated`, before any LLM.
+
+**Per-task model routing (6).** `unit_model` / `match_model` on the workspace config route unit
+fills and step matching to a cheaper Claude alias (evidence: report §5). Applied at dispatch from
+the workspace row. Also fixed: the model toggle posted a literal `auth_method: 'claude_agent'`,
+which under "Claude Code CLI (this server)" silently moved the workspace to the browser agent.
+
 ## 2026-09-04 (afternoon) — The CLI transport stops paying for Claude Code's harness; the device note leaves the shared rules; memory links are checked
 
 **Every `claude -p` call now replaces the CLI's harness prompt, starts in a neutral directory

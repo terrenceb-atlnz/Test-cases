@@ -3870,3 +3870,26 @@ fan-out; the fragment appendix; any model switch; per-unit Fix / two-tier Review
 **Superseded:** every earlier "fan-out E2E not yet run" note — the 09-04 morning session ran it
 twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 `--append-system-prompt` — it is now `--system-prompt`.
+
+## Session Close / Handoff (2026-09-07) — zero cache reads on the re-run; decisions 2–8 built in one go
+
+- **Re-run of T44297 (Terrence, morning):** input −30%, cost −18%, cache reads **0** on all 38
+  calls — every token at the 1-hour write rate. Probe ($0.25): a shared prefix inside the user
+  block never caches; as `--system-prompt` it reads 7,879 of 8,059 tokens. Block boundaries,
+  not concurrency. Step matching does not share the fan-out shape (report corrected).
+- **Terrence's decisions:** 6 = per-task routing; order 6, 8, 4, 3, 5, 7, 2; one combined
+  re-run rather than attribution per change; priming accepted hesitantly; hard Review gate;
+  he pushes by hand (admins deny push from here).
+- **Built and committed (7 commits on `token-efficiency-2`, ff-merged into main):** routing
+  (`unit_model`/`match_model`, applied from the workspace row; toggle-handler auth bug fixed);
+  shared half as the system prompt (+ `system` + raw cache fields in the debug log); primed
+  fan-out; self-contained-unit rule; shared appendix ≥ 50%; `/fix_units` + Review gated on
+  blocking lint; bench-integration lint (fires on 24 classes of the real post-Fix script).
+  Gate: backend 1336 passed / 2 skipped, frontend 250. Worked in an isolated git worktree so
+  the live LAN server saw only finished commits.
+- **Left undone:** the combined re-run and its in-context judgement (Terrence's); the report's
+  §3d projection table is superseded by §6 decision 1 and was left as written; two test-fixture
+  fragilities noted in PROGRESS.
+- **Superseded:** the 2026-09-04 statement that the prefix reorder would cache once the harness
+  was gone — it needed the block split too.
+

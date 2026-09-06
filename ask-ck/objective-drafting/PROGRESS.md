@@ -2,9 +2,37 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-04, afternoon (by Claude)
+**Last Updated**: 2026-09-07 (by Claude)
 
-## Latest session (2026-09-04, afternoon) — memories had not loaded for three weeks; the CLI transport was the token sink; per-unit vs whole-script judged
+## Latest session (2026-09-07) — the re-run found zero cache reads; seven token-efficiency decisions built for ONE combined re-run
+
+Terrence re-ran the 38-unit T44297 generate on the 2026-09-04 transport. **Input fell 30%
+(23,278 → 16,396 median tokens/call), cost 18% ($0.369 → $0.304), and the cache read nothing** —
+every call at the cache-WRITE rate although the prompts shared 52% of their text. A $0.25 probe
+settled why: the API matches a cache only at content-block boundaries, and a shared prefix inside
+one differing user block never hits; the same half as `--system-prompt` read 7,879 of 8,059
+tokens. That became decision 8 in [TOKEN-EFFICIENCY-REPORT-2026-09-04.md](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md)
+§6, and step matching was found NOT to share the fan-out shape (correction to the report).
+
+**Terrence's instructions:** decision 6 = per-task routing (unit fills on a cheaper alias, Review
+and Fix on the toggle); build 6, 8, 4, 3, 5, 7, 2 in that order; "change everything possible now,
+test it once"; first-unit priming accepted hesitantly; hard Review gate; push is denied by admins
+(he pushes by hand — do not push). **All seven are built**, one commit each on branch
+`token-efficiency-2` in an isolated worktree (the working tree IS the live LAN server, so nothing
+half-finished ever reloaded it), fast-forwarded into `main` at the end with the full gate green
+(backend 1336 passed / 2 skipped, frontend 250). Details: `CHANGELOG.md` 2026-09-07, SERVER-README
+"Per-unit generation — token-efficiency changes (2026-09-07)", PLAN-pytest-creator §9.12, handoff §10.
+
+**Pick up here:** Terrence's combined re-run of T44297 on the new code — with the routing set as he
+wants it — then read the debug log (`system` and the raw cache fields are now recorded: no more
+inferring from price), and judge the artefact in-context against the 2026-09-04 Opus one. Watch
+the first unit's wall clock (decision 4) and whether "Fix units" clears the 24-class `dut.portA`
+lint error the new check raises on the old script. Also noted, not done: `tests/fixtures/
+framework_run_*.log` are gitignored (`*.log`) yet a test calls them "committed fixtures" — a
+fresh clone fails 5 tests; and `test_shared_modules_decoupling` depends on the untracked
+`secrets.local.json` existing.
+
+## Previous session (2026-09-04, afternoon) — memories had not loaded for three weeks; the CLI transport was the token sink; per-unit vs whole-script judged
 
 Three threads. Full detail for the second and third is in
 [TOKEN-EFFICIENCY-REPORT-2026-09-04.md](../../TOKEN-EFFICIENCY-REPORT-2026-09-04.md) (repo root,

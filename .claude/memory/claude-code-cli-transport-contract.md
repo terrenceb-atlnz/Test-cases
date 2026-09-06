@@ -1,10 +1,21 @@
 ---
 name: claude-code-cli-transport-contract
-description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + --system-prompt (REPLACE, not append — 2026-09-04) + a neutral cwd + --no-session-persistence + a thinking cap; the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
+description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + --system-prompt (REPLACE, not append — 2026-09-04) + a neutral cwd + --no-session-persistence + a thinking cap; AND the shared text must be in `system`, not a user-block prefix, or the cache never hits (2026-09-07); the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
 metadata:
   type: project
-  verified: 2026-09-04
+  verified: 2026-09-07
 ---
+
+**Extended again 2026-09-07 — the cache matches only at CONTENT-BLOCK boundaries.** With the
+harness gone, 38 unit prompts sharing their first 19,456 chars still read ZERO tokens from cache
+(sequential and parallel alike — every call at the 1-hour write rate, inferred from price and
+then probed). The CLI's breakpoints sit on the system prompt and on the user message; a shared
+prefix inside one user block whose tail differs can never hit. Probe: shared half in the user
+block → 0 read; the same half as `--system-prompt` → 7,879 of 8,059 read at 1/12 the price. So a
+caller who wants caching must put the shared text in `system` and only the varying part in the
+prompt — `routers.pytest_create._PT_PROMPT_SPLIT` / `_split_unit_prompt` do this for the unit
+prompt; the debug log records `system` and the raw cache fields since the same day. See
+[[prompt-cache-needs-block-boundaries]].
 
 **Contract extended 2026-09-04 (measured, shipped, mirrored in `ask-ck/agent/ck_agent.py`):**
 `claude -p` is a HARNESS. Left to its defaults it prepends its own ~2.6k-token system prompt

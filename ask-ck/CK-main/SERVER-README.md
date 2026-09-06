@@ -322,6 +322,7 @@ Notes:
 - The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
 - Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.
 - **Model selection (2026-07-22d):** the Haiku/Sonnet/Opus radio row sets `llm_config.model`, which flows `job.model` → ck-agent → `claude --model <name>`. It's a live toggle (persists immediately, like the vLLM Fast/Thinking one); a model typed in the free-text field still overrides. Values are CLI aliases (`haiku`/`sonnet`/`opus`).
+- **Per-task model routing (2026-09-07, token-efficiency decision 6):** two selects under the toggle route the fan-out call classes to a cheaper alias — *unit fills* (`unit_model`: per-unit generation and per-unit Fix) and *step matching* (`match_model`); blank = same as the toggle. Review, whole-script Fix and the single-call generate always follow the toggle. Stored on the workspace `_workspace_llm` row and applied at dispatch from it (`llm_config.cfg_for_task`), never from a per-case copy; a toggle POST that omits the fields preserves them. Claude aliases only — this is not a new backend. Evidence: `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §5 (Sonnet 5 matched Opus on 4 of 5 sampled units at ~59% of the cost; same step-match shortlist at under half). The toggle handler also now posts the *checked* auth method — it used to post a literal `claude_agent`, so changing the model under "Claude Code CLI (this server)" silently moved the workspace to the browser agent.
 - **Token usage + cost (2026-07-22d):** the ck-agent lifts `usage` + `total_cost_usd` from the `claude -p --output-format json` envelope and returns them from `/run`; the browser broker forwards them in the `/api/agent/result` POST; `registry.deliver()` stores them on the job result in the exact shape `llm_debug.normalize_usage` expects (usage sub-dict + top-level `total_cost_usd`), so token badges + the debug-log populate for this transport too. **Restart the ck-agent** after upgrading to enable this. When a transport reports nothing, the badge honestly shows "— tok" (never estimated).
 - Usage counts against each user's own Claude seat's limits. Keep the agent running and the tab open while working.
 - Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result` (accepts `usage` + `total_cost_usd`), `GET /api/agent/status?session=…`.
@@ -362,6 +363,17 @@ large artefacts, which exposed four things about the transport (all fixed 2026-0
   `llm._cli_neutral_cwd()` (under the system temp dir) has nothing to discover.
 - **`--no-session-persistence`.** A completion is not a session; without it each unit of a
   fan-out left a transcript in `~/.claude/projects` (66 in one day).
+- **The prompt cache matches only at content-block boundaries (2026-09-07).** With the harness
+  gone the 38 unit prompts of T44297 shared their first 19,456 chars and the cache still read
+  **zero** tokens on every call: the CLI's breakpoints sit on the system prompt and on the user
+  message, and a shared prefix inside ONE user block whose tail differs can never hit. Probe:
+  the shared half in the user block → 0 read on the second call; the same half as
+  `--system-prompt` → 7,879 of 8,059 read at one twelfth of the price. So the per-unit prompt
+  carries a visible split marker (`routers.pytest_create._PT_PROMPT_SPLIT`) and everything above
+  it travels as the system prompt (behind `_CODE_SYSTEM_PROMPT`), everything below as the user
+  turn — see "Per-unit generation — token-efficiency changes" under PyTest Creator. The debug
+  log now records `system` and keeps `cache_read_input_tokens` / `cache_creation_input_tokens`
+  as fields (still folded into `input_tokens` for every existing consumer).
 - **The per-user agent (`ask-ck/agent/ck_agent.py`) now mirrors all of the above**, and the
   server's steer rides with each job (`system`) so the agent can pass it. Before 2026-09-04 the
   agent path ran with tools, under the harness prompt, unsteered, from the user's shell cwd and
@@ -904,6 +916,60 @@ model that synthesised it.
 **Session persistence:** `CK_server/sessions/pt-<KEY>.json` (separate from wizard
 sessions). Confirming step N invalidates all later confirmations. Runs interrupted
 by a server restart are marked `stale` on the next load_case.
+
+### Per-unit generation — token-efficiency changes (2026-09-07)
+
+Seven of the eight decisions in `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6 were built on
+2026-09-07 (Terrence: "change everything possible now, test it once"). All of them live in
+`routers/pytest_create.py`, `templates/prompts/pt_generate_step.jinja` and the new
+`pt_fix_unit.jinja`; each has its own test module (`tests/test_pt_prompt_split.py`,
+`test_pt_fanout_prime.py`, `test_pt_shared_appendix.py`, `test_pt_fix_units.py`,
+`test_pt_lint_integration.py`, `test_llm_task_routing.py`).
+
+- **The unit prompt is two blocks (decision 8).** Everything identical across a case's units —
+  intro, Case, framework surface, device handles, fill rules, the self-contained-unit rule,
+  the shared fragments/CLI entries — renders above a visible split marker and is sent as the
+  **system prompt**; the unit's own half is the user turn. The reviewer still sees and edits
+  one prompt; an edit that drops the marker is sent whole (correct, uncached). The two flags
+  the fill rules branch on (`py2_flagged`, `cli_reference`) are answered once per CASE for
+  this template so the shared half is byte-identical across units. Why: see the transport
+  bullet above — the cache matches only at block boundaries.
+- **Primed fan-out (decision 4).** `generate_units` runs the FIRST unit alone to completion,
+  then fans the rest out under the existing 8-wide semaphore (`_dispatch_primed`). A cache
+  entry is readable only after the request that wrote it has been processed, so eight units
+  fired at once all write and none reads. Costs one unit's wall clock (40–120 s) before the
+  pills move; the status line says so and names the primed unit.
+- **Self-contained units (decision 3).** The shared half tells every unit that nothing another
+  TestCase configured is still in effect when its `main()` starts, so it establishes its own
+  precondition and undoes it in its own `tear_down()`. 6 of 38 T44297 units failed for this
+  reason alone. Per-unit template only — whole-script generation may legitimately chain cases.
+- **Shared appendix (decision 5).** `_shared_plan` (once per generation context) hoists every
+  fragment and CLI-reference command used by at least half the units (`_PT_SHARED_MIN_SHARE`)
+  into the shared half; each unit names by tag which shared items apply to it and carries only
+  its own remainder. On T44297 fragments were 27% of prompt text and the four used by ≥ 23/38
+  units were 63% of fragment bytes. Single-unit cases share nothing.
+- **Per-unit Fix (decision 7).** `POST /fix_units/{key}` sorts every current reason to fix —
+  lint errors, review findings, the last run's failing cases with log excerpts — onto units by
+  class name, line range or sequence step (`_fix_reasons`), re-syncs the chunks from the
+  on-screen script so hand edits survive, re-generates ONLY those units (each prompt = the
+  generation prompt + a `pt_fix_unit.jinja` addendum, so the same cached system half is read),
+  primed and concurrent, then re-assembles through the one assembly implementation
+  (`_assemble_and_store`, extracted from `assemble_script`) and records the outcome in
+  `step6.fix_units`. Findings that name no unit are returned as `unmapped`; the whole-script
+  Fix stays for those. UI: "⤺ Fix units (LLM)" on the Summary and "Fix units (LLM, from
+  failures)" on step 7; the pills carry progress and the Summary refreshes when the last
+  unit lands.
+- **Two-tier Review (decision 7).** `review_script` refuses (409) while lint has BLOCKING
+  errors: the deterministic pass goes to green first. Policy errors (`_POLICY_LINT_MARKERS`)
+  and style warnings do not gate.
+- **Bench-integration lint (decision 2).** `_lint_bench_integration`, inside
+  `_lint_generated`: (1) a port attribute `init()` never assigned (`dut.portA` when it bound
+  `dut.portB` only — reported once per class so the per-unit Fix reaches every affected unit;
+  24 classes on the real, post-Fix T44297 script); (2) a method the framework class does not
+  define, or a keyword its signature rejects, judged against the `framework_surface` document
+  in `ck.db` by handle kind (`init_swi` → Switch, `init_stk` → Stack, `init_tb` → TestBox, a
+  `_ck_bind_link` partner → either); (3) a capture started and stopped with nothing between.
+  1 and 2 are errors, 3 a warning.
 
 ## Migration from Original Single-File Tool
 

@@ -179,7 +179,12 @@ reuse, naming) and cost. That would make the real answer a **hybrid**, not a win
 - **Audit the step-match bucket separately.** $17 / 114 calls is the quiet second-biggest cost
   and nobody has looked at it. It may re-send a large corpus context per step.
 
-## 6. Recommended order of work — REWRITTEN 2026-09-04 (afternoon)
+## 6. Recommended order of work — REWRITTEN 2026-09-04 (afternoon); STATUS 2026-09-07
+
+> **2026-09-07:** items 2–7 below are BUILT (see §10). Item 1 ran that morning and found zero
+> cache reads, which added an eighth decision — the shared half must travel as the system
+> prompt — also built. The list is left as written; §10 carries the outcome.
+
 
 Steps 1–4 of the morning's list are **done** (§9 and the report). What remains, in the order I
 would take it, each as its own discussion with Terrence:
@@ -263,3 +268,24 @@ Full write-up: [`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`](../../TOKEN-EFFICIENCY-
   shortlist at ~45% of the cost and a third of the latency; Haiku is slower and no cheaper.
 - **Not done:** a real 38-unit pass on the new transport (step 1 of §6), the lint, the
   self-contained rule, the fragment appendix, any model switch. All are Terrence's decisions.
+
+## 10. What happened on 2026-09-07 — the pass, the probe, and seven decisions built
+
+- **The 38-unit pass on the new transport (decision 1)**: input 23,278 → 16,396 median tokens
+  per unit call, cost $0.369 → $0.304, and every call at $10.81/M input — the 1-hour cache-WRITE
+  rate. Zero reads, although two live prompts shared their first 19,456 chars (52%).
+- **Probe (4 calls, $0.25):** the real shared half (~7.9k tokens) as user-block prefix → 0 read
+  on a sequential second call; as `--system-prompt` → 7,879 of 8,059 read at $0.0065 vs $0.081.
+  Concurrency was not the cause; block boundaries were. Step matching does NOT have the
+  fan-out shape (each per-step call is one step + its own candidates), so caching gives it
+  nothing — a correction to the report's first draft of decision 8.
+- **Built, in Terrence's order 6, 8, 4, 3, 5, 7, 2** — one commit each on branch
+  `token-efficiency-2`, fast-forwarded into `main`: per-task model routing; shared half as
+  system prompt (+ `system` and raw cache fields in the debug log); primed fan-out;
+  self-contained-unit rule; shared appendix at ≥ 50%; per-unit Fix + hard lint gate on
+  Review; bench-integration lint (unbound port attribute, call shape vs framework surface,
+  capture with no wait — the port check fires on 24 classes of the real post-Fix T44297
+  script). Gate at the end: all green (backend 1336 passed / 2 skipped, frontend 250).
+- **Not done:** the combined re-run itself (Terrence's), and judging its artefact in-context
+  against the 2026-09-04 Opus one. Terrence chose one pass for everything over attribution.
+

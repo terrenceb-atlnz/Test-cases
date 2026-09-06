@@ -955,3 +955,28 @@ prefix toward the full 20,336 invariant chars, and both change what a unit is *t
   not bite on T44297, where all 30 units have one. Resolving it means telling some unit to
   match a reference that is not in its prompt.
 
+### 9.12 Token-efficiency decisions 2–8 — BUILT 2026-09-07
+
+The 2026-09-04 investigation (`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`, repo root) left eight
+decisions. Terrence ordered them 6, 8, 4, 3, 5, 7, 2 and asked for one combined pass to test
+them ("I can't physically afford to incrementally test every single change"). All seven landed
+the same day, each as its own commit with its own test module; the first real 38-unit pass on
+the result is Terrence's re-run and had not happened at the time of writing.
+
+- **Decision 1 was done that morning** (the 38-unit pass on the fixed transport): median input
+  23,278 → 16,396 tokens per unit call, cost $0.369 → $0.304, and **zero cache reads** — every
+  call priced at the cache-WRITE rate. That is what exposed decision 8.
+- **8 — shared half as the SYSTEM prompt.** The API matches a cache only at content-block
+  boundaries; a shared prefix inside one differing user block never hits (probe: 0 read vs
+  7,879 of 8,059 read as `--system-prompt`). `pt_generate_step.jinja` renders a split marker;
+  the server splits there. The §9.11 constraints about `device_note` and rule 4b are resolved
+  by making both flags CASE-level for this template — the shared half must be byte-identical.
+- **4 — primed fan-out**, **3 — self-contained-unit rule**, **5 — shared appendix (≥ 50% of
+  units)**, **7 — per-unit Fix + hard lint gate on Review**, **2 — bench-integration lint**,
+  **6 — per-task model routing** (`unit_model` / `match_model` on the workspace config).
+  Details, rationale and measurements: SERVER-README "Per-unit generation — token-efficiency
+  changes (2026-09-07)" and `CHANGELOG.md` 2026-09-07.
+- §9.6's "Pass C must return FINDINGS, not a rewritten script" still holds; the per-unit Fix
+  consumes those findings and re-generates units, it does not let Review write code.
+- §9.7 unchanged: chunks stay fields on the session payload; `step6.fix_units` is one more.
+
