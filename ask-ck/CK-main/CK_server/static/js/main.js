@@ -113,6 +113,11 @@ document.querySelectorAll('input[name="localLlmMode"]').forEach((radio) => {
 document.querySelectorAll('input[name="claudeMode"]').forEach((radio) => {
   radio.addEventListener('change', applyClaudeMode);
 });
+// Per-task routing selects (unit fills / step matching) persist the same way.
+['claudeUnitModel', 'claudeMatchModel'].forEach((id) => {
+  const sel = document.getElementById(id);
+  if (sel) sel.addEventListener('change', applyClaudeMode);
+});
 // Double-click CK's face → hidden Admin panel (single-click still goes Home,
 // via the logo's data-action="goToPanel"). dblclick fires after the click, so
 // the two don't conflict — you land Home for a beat, then Admin opens.

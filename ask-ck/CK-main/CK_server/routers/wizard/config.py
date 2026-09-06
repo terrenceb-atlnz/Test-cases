@@ -18,7 +18,13 @@ from models import (
 )
 from llm import _health_ping, check_claude_cli, check_grok_cli
 from local_llm_key import get_local_llm_key, set_local_llm_key
-from llm_config import llm_is_active, load_global_llm, save_global_llm
+from llm_config import (
+    TASK_MODEL_FIELDS,
+    llm_is_active,
+    load_global_llm,
+    normalize_task_model,
+    save_global_llm,
+)
 from session_store import (
     clear_persisted,
     load_persisted,
@@ -79,6 +85,8 @@ async def get_llm_config():
         "provider": cfg.provider,
         "auth_method": cfg.auth_method,
         "model": cfg.model,
+        "unit_model": cfg.unit_model,
+        "match_model": cfg.match_model,
         "base_url": cfg.base_url,
         "has_key": llm_is_active(cfg),
     }
@@ -200,6 +208,24 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     # caller sent as api_key / token / base_url is deliberately dropped on the floor.
     cfg = LLMConfig(provider=provider, auth_method=auth_method)
 
+    # Per-task model routing (decision 6, 2026-09-07): `unit_model` / `match_model`. A field
+    # PRESENT in the body is set (blank clears it); a field ABSENT is carried over from the
+    # stored workspace config, so the Haiku/Sonnet/Opus toggle — which posts only `model` —
+    # cannot silently wipe a routing the reviewer chose a moment earlier. Only meaningful
+    # under the Claude CLI methods; stored as None for every other backend.
+    previous = load_global_llm()
+    for field in TASK_MODEL_FIELDS.values():
+        if auth_method not in ("claude_code", "claude_agent"):
+            setattr(cfg, field, None)
+            continue
+        if field in body:
+            try:
+                setattr(cfg, field, normalize_task_model(body.get(field)))
+            except ValueError as e:
+                raise HTTPException(400, f"{field}: {e}")
+        else:
+            setattr(cfg, field, getattr(previous, field, None) if previous else None)
+
     if model:
         cfg.model = model
     else:
@@ -237,6 +263,8 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
                    (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))) or
                    (auth_method == "local_llm" and bool(local_llm_key_set)),
         "model": cfg.model,
+        "unit_model": cfg.unit_model,
+        "match_model": cfg.match_model,
         "base_url": cfg.base_url,
     }
     if cli_status is not None:

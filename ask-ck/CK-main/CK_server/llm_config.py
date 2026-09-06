@@ -89,6 +89,53 @@ def save_global_llm(cfg: LLMConfig) -> None:
         log.warning("failed to save workspace LLM config: %s", e)
 
 
+# --- per-task model routing (token-efficiency decision 6, 2026-09-07) ---------------
+#
+# Measured on AWPTCM-T44297 (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5): Sonnet 5 matched
+# Opus on 4 of 5 sampled unit fills at ~59% of the cost and returned the same step-match
+# shortlist at under half. The reviewer therefore gets to route those two call classes to a
+# cheaper alias while Review and Fix stay on the toggle model. The routing lives on the
+# WORKSPACE config (the same `_workspace_llm` row as the backend choice) and is applied here
+# at dispatch, so a per-case `llm_config` copy — which `apply_workspace_llm` documents as
+# never a legitimate override — cannot carry a stale routing either.
+
+CLAUDE_MODEL_ALIASES = ("haiku", "sonnet", "opus")
+TASK_MODEL_FIELDS = {"unit_fill": "unit_model", "step_match": "match_model"}
+_ROUTED_AUTH_METHODS = ("claude_code", "claude_agent")
+
+
+def normalize_task_model(value: Any) -> Optional[str]:
+    """"" / None / "same" -> None (inherit `model`); a known alias -> itself; else ValueError."""
+    v = (str(value).strip().lower() if value is not None else "")
+    if v in ("", "same", "default"):
+        return None
+    if v not in CLAUDE_MODEL_ALIASES:
+        raise ValueError(f"unknown Claude model alias '{value}'. "
+                         f"Allowed: {', '.join(CLAUDE_MODEL_ALIASES)} or blank (same as model).")
+    return v
+
+
+def cfg_for_task(cfg: dict, task: str, workspace: Optional[LLMConfig] = None) -> dict:
+    """The dispatch config for one call class: `cfg` with `model` swapped for the routed
+    alias when the WORKSPACE says so. Returns a copy; `cfg` is untouched.
+
+    Only under a Claude CLI method — the routing fields are Claude aliases and mean nothing
+    to the vLLM or the Grok CLI. `workspace` is injectable for tests; production reads the
+    stored workspace row so a per-case copy can never drift from it.
+    """
+    out = dict(cfg or {})
+    field = TASK_MODEL_FIELDS.get(task)
+    if not field:
+        raise KeyError(f"unknown routed task '{task}'; known: {sorted(TASK_MODEL_FIELDS)}")
+    if (out.get("auth_method") or "").lower() not in _ROUTED_AUTH_METHODS:
+        return out
+    ws = workspace if workspace is not None else load_global_llm()
+    routed = getattr(ws, field, None) if ws else None
+    if routed and routed in CLAUDE_MODEL_ALIASES:
+        out["model"] = routed
+    return out
+
+
 def apply_workspace_llm(sess: Any) -> bool:
     """Re-sync this session's LLM config to the active workspace default.
 

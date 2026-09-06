@@ -132,6 +132,16 @@ class LLMConfig(BaseModel):
     token: Optional[str] = None
     base_url: Optional[str] = None
     model: Optional[str] = None
+    # PER-TASK MODEL ROUTING (2026-09-07, token-efficiency decision 6). Same backend, a
+    # different Claude model alias for the two fan-out call classes: `unit_model` drives
+    # per-unit generation and per-unit Fix, `match_model` drives per-step script matching.
+    # None/"" means "same as `model`". Honoured only under the two Claude CLI methods and
+    # only for the three aliases the toggle offers (haiku|sonnet|opus) — this is not a new
+    # backend and not a free-form model name, so the governance allowlist above is
+    # unaffected. Read from the WORKSPACE row at dispatch (llm_config.cfg_for_task), never
+    # from a per-case copy, because the workspace default is the single source of truth.
+    unit_model: Optional[str] = None
+    match_model: Optional[str] = None
 
 
 # Secret fields on llm_config that must NEVER be serialized to the browser or to disk.

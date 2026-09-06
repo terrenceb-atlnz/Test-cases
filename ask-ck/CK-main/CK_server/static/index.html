@@ -309,6 +309,29 @@
           </label>
           <span class="justification-note" id="claudeModeNote">Runs as <code>claude --model &lt;name&gt;</code> on your own seat.</span>
         </div>
+        <!-- Per-task routing (2026-09-07): the two fan-out call classes may run on a cheaper
+             alias than the toggle above. Blank = same model. Review and Fix always follow the
+             toggle. Persists immediately, like the toggle. -->
+        <div id="claudeRoutingRow" class="radio-group hidden">
+          <span class="justification-note">Route:</span>
+          <label class="radio-label">unit fills
+            <select id="claudeUnitModel" class="form-input form-input-small" title="Model for per-unit generation and per-unit Fix">
+              <option value="">same</option>
+              <option value="haiku">Haiku</option>
+              <option value="sonnet">Sonnet</option>
+              <option value="opus">Opus</option>
+            </select>
+          </label>
+          <label class="radio-label">step matching
+            <select id="claudeMatchModel" class="form-input form-input-small" title="Model for per-step script matching">
+              <option value="">same</option>
+              <option value="haiku">Haiku</option>
+              <option value="sonnet">Sonnet</option>
+              <option value="opus">Opus</option>
+            </select>
+          </label>
+          <span class="justification-note">Review and Fix stay on the model above.</span>
+        </div>
 
         <div id="claudeCodeInstructions" class="instructions-panel hidden">
           <strong>Claude Code CLI — on this server (one shared seat)</strong><br><br>

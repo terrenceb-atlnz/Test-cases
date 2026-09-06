@@ -147,14 +147,27 @@ export async function applyLocalLlmMode() {
   } catch (_) { /* leave prior state on a transient failure */ }
 }
 
+export function claudeRoutingFromUI() {
+  // The two per-task routing selects (decision 6, 2026-09-07). Blank = same as the toggle.
+  const pick = (id) => { const el = document.getElementById(id); return el ? (el.value || '') : ''; };
+  return { unit_model: pick('claudeUnitModel'), match_model: pick('claudeMatchModel') };
+}
+
 export async function applyClaudeMode() {
-  // Live Haiku/Sonnet/Opus toggle for the local Claude agent: persist the new
-  // model immediately (no Apply click). Only meaningful when claude_agent is the
-  // selected method. Stays quiet — this is an incidental toggle, not a login.
+  // Live Haiku/Sonnet/Opus toggle for BOTH Claude modes, plus the per-task routing
+  // selects: persist immediately (no Apply click). Stays quiet — this is an incidental
+  // toggle, not a login.
+  //
+  // `auth_method` is the CHECKED radio, not a literal. This used to post
+  // `auth_method: 'claude_agent'` unconditionally, so flipping the model while on
+  // "Claude Code CLI (this server)" silently switched the whole workspace to the
+  // browser-brokered agent (found 2026-09-07 while adding the routing selects, which
+  // share this handler and would have tripped it on first use).
   const method = document.querySelector('input[name="llmAuthMethod"]:checked')?.value;
   if (method !== 'claude_agent' && method !== 'claude_code') return;
   const cm = document.querySelector('input[name="claudeMode"]:checked');
   const model = (cm && cm.value) || 'sonnet';
+  const routing = claudeRoutingFromUI();
 
   const key = S.currentKey || getActiveCaseKey();
   const url = key
@@ -164,7 +177,7 @@ export async function applyClaudeMode() {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: 'claude', auth_method: 'claude_agent', model }),
+      body: JSON.stringify({ provider: 'claude', auth_method: method, model, ...routing }),
     });
     const data = await res.json();
     if (data.llm_config) {
@@ -175,6 +188,8 @@ export async function applyClaudeMode() {
           provider: data.llm_config.provider,
           auth_method: data.llm_config.auth_method,
           model: data.llm_config.model || null,
+          unit_model: data.llm_config.unit_model || null,
+          match_model: data.llm_config.match_model || null,
         }));
       } catch (_) {}
       updateLLMStatus(data.llm_config);
@@ -219,11 +234,14 @@ export function updateLLMStatus(config) {
   } else {
     const p = provider === 'claude' ? 'Claude' : provider;
     let m = ' (API key)';
-    if (am === 'claude_agent') {
-      const cm = c.model ? c.model.charAt(0).toUpperCase() + c.model.slice(1) : 'default';
-      m = ` (Claude — my local machine · ${cm})`;
-    }
-    else if (am === 'claude_code') m = ' (Claude Code CLI)';
+    const cap = (x) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : 'default');
+    if (am === 'claude_agent') m = ` (Claude — my local machine · ${cap(c.model)})`;
+    else if (am === 'claude_code') m = ` (Claude Code CLI · ${cap(c.model)})`;
+    // Per-task routing is part of "which model am I spending" — say it in the status line.
+    const routed = [];
+    if (c.unit_model && c.unit_model !== c.model) routed.push(`units ${cap(c.unit_model)}`);
+    if (c.match_model && c.match_model !== c.model) routed.push(`matching ${cap(c.match_model)}`);
+    if (routed.length) m += ` · ${routed.join(', ')}`;
     text = `Using ${p}${m}`;
     ok = true;
   }
@@ -261,6 +279,7 @@ export function updateAuthMethodUI() {
   const agentInstr = document.getElementById('claudeAgentInstructions');
   const localRow = document.getElementById('localLlmRow');
   const claudeRow = document.getElementById('claudeAgentRow');
+  const routingRow = document.getElementById('claudeRoutingRow');
   const codeInstr = document.getElementById('claudeCodeInstructions');
   const modeNote = document.getElementById('claudeModeNote');
 
@@ -270,6 +289,7 @@ export function updateAuthMethodUI() {
   // claude_code even though `claude --model` still applies.
   const isClaude = (method === 'claude_agent' || method === 'claude_code');
   if (claudeRow) claudeRow.classList.toggle('hidden', !isClaude);
+  if (routingRow) routingRow.classList.toggle('hidden', !isClaude);
   if (modeNote) {
     modeNote.innerHTML = method === 'claude_code'
       ? 'Runs as <code>claude --model &lt;name&gt;</code> on <b>this server\'s</b> seat.'
@@ -342,6 +362,11 @@ export function restoreLLMUI() {
         r.checked = (r.value === c.model);
       });
     }
+    // Per-task routing selects follow the stored config; a missing field means "same".
+    [['claudeUnitModel', c.unit_model], ['claudeMatchModel', c.match_model]].forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = (v === 'haiku' || v === 'sonnet' || v === 'opus') ? v : '';
+    });
   }
 
   if (method === 'local_llm') {

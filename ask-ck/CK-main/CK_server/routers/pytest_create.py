@@ -42,7 +42,7 @@ from pt_exec import (
 # reaching into another router's internals, so renaming any one of them silently broke
 # a different tool. They now live in leaf modules that both routers import.
 from case_registry import build_case_groups, is_hidden_case, refined_complete_keys
-from llm_config import apply_workspace_llm
+from llm_config import apply_workspace_llm, cfg_for_task
 
 router = APIRouter(tags=["pytest-creator"])
 
@@ -447,6 +447,18 @@ def _llm_cfg(sess: PtSession) -> dict:
     if apply_workspace_llm(sess):
         _pt_persist(sess)
     return model_to_dict(sess.llm_config)
+
+
+def _llm_cfg_for(sess: PtSession, task: str) -> dict:
+    """`_llm_cfg` with the workspace's per-task model routing applied (decision 6).
+
+    `task` is "unit_fill" (per-unit generation, per-unit Fix) or "step_match" (per-step
+    script matching) — the two fan-out call classes that a cheaper Claude alias was judged
+    good enough for (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5). Review, whole-script Fix
+    and the single-call generate keep `_llm_cfg` and therefore the toggle model. Routing is
+    read from the WORKSPACE row inside cfg_for_task, never from this session's copy.
+    """
+    return cfg_for_task(_llm_cfg(sess), task)
 
 
 async def _dry_run(request: Request) -> bool:
@@ -3072,7 +3084,7 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
         meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
             "case_key": key, "sequence": sequence,
             "user_inputs": user_inputs, "candidates": candidates,
-        }, llm_config=_llm_cfg(sess), timeout=300, dry_run=True)
+        }, llm_config=_llm_cfg_for(sess, "step_match"), timeout=300, dry_run=True)
         return _provenance_preview(meta)
 
     llm_matches = []
@@ -3080,7 +3092,7 @@ async def suggest_scripts(key: str, request: Request, body: dict = Body(default=
         meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
             "case_key": key, "sequence": sequence,
             "user_inputs": user_inputs, "candidates": candidates,
-        }, llm_config=_llm_cfg(sess), timeout=300)
+        }, llm_config=_llm_cfg_for(sess, "step_match"), timeout=300)
         if not meta.get("error"):
             parsed = extract_json_block(meta.get("content", ""))
             valid_ids = {c["id"] for c in candidates}
@@ -3191,7 +3203,7 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
         meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
             "case_key": key, "sequence": one_seq,
             "user_inputs": user_inputs, "candidates": candidates,
-        }, llm_config=_llm_cfg(sess), timeout=300, dry_run=True)
+        }, llm_config=_llm_cfg_for(sess, "step_match"), timeout=300, dry_run=True)
         return _provenance_preview(meta)
 
     llm_matches = []
@@ -3199,7 +3211,7 @@ async def suggest_scripts_step(key: str, step_n: int, request: Request,
         meta = await run_in_threadpool(run_prompt, "pt_match_scripts.jinja", {
             "case_key": key, "sequence": one_seq,
             "user_inputs": user_inputs, "candidates": candidates,
-        }, llm_config=_llm_cfg(sess), timeout=300)
+        }, llm_config=_llm_cfg_for(sess, "step_match"), timeout=300)
         # AN ERROR IS NOT "NO MATCHES" (2026-08-26). This used to swallow LLM
         # failures into a 200 with matches=[], so a backend outage — and now a
         # user's Stop — read as "the LLM found nothing for this step". Same
@@ -4205,7 +4217,7 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "cli_reference": _cli_reference_block(text_rows, frags),
         "device_note": _fragment_device_note(frags, ctx["devices"]),
         "py2_flagged": any(f.get("py2_flagged") for f in frags),
-        "model_name": (_llm_cfg(sess).get("model") or "unknown"),
+        "model_name": (_llm_cfg_for(sess, "unit_fill").get("model") or "unknown"),
         "gen_date": utc_now().strftime("%Y-%m-%d"),
     })
 
@@ -4371,7 +4383,8 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
     file_name = f"{name}.py"
 
     stamped = _restamp_provenance(code, ctx["fragments"],
-                                  (_llm_cfg(sess).get("model") or ""), ctx["sequence"])
+                                  (_llm_cfg_for(sess, "unit_fill").get("model") or ""),
+                                  ctx["sequence"])
     report = gen_assembly.manifest_check(stamped)
 
     def _apply(fresh: PtSession) -> None:
@@ -4526,7 +4539,7 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     if not items:
         raise HTTPException(400, "No known units to generate.")
 
-    llm_cfg = _llm_cfg(sess)
+    llm_cfg = _llm_cfg_for(sess, "unit_fill")
     already = _pt_units_inflight(key)
     dispatch = [(uid, pr) for uid, pr in items if uid not in already]
     if not dispatch:
@@ -4656,7 +4669,7 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
     _pt_unit_mark(key, [unit_id], True)
     try:
         out = await run_in_threadpool(_unit_call_and_store, key, unit_id, prompt,
-                                     edited, unit, _llm_cfg(sess))
+                                     edited, unit, _llm_cfg_for(sess, "unit_fill"))
     finally:
         _pt_unit_mark(key, [unit_id], False)
     if out.get("status") != "ok":
