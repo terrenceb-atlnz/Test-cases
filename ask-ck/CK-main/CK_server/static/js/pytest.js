@@ -1045,6 +1045,7 @@ let _ptUnits = [];          // [{id, kind, label, prompt, code, status, ...}] fr
 let _ptUnitIdx = 0;         // viewer position; _PT_SUMMARY selects the Summary page
 let _ptUnitSending = {};    // id -> true while a call is in flight (the yellow state)
 let _ptUnitFails = [];      // [{id, label, why, at}] surfaced as they land
+let _ptOnUnitsSettled = null; // one-shot callback when the poll sees nothing in flight (Fix units)
 const _PT_SUMMARY = -1;
 
 // Prompts live in JS, not in 30 textareas. Only one unit page is in the DOM at a time,
@@ -1315,6 +1316,13 @@ async function _ptPollUnitsOnce() {
       st.textContent = `${ok}/${_ptUnits.length} unit(s) generated`
         + (_ptUnitFails.length ? ` — ${_ptUnitFails.length} failed; re-run them individually.` : '.');
     }
+    // A Fix-units run re-assembles server-side after its last unit lands; whoever started
+    // it wants the Summary refreshed once that has happened.
+    if (_ptOnUnitsSettled) {
+      const cb = _ptOnUnitsSettled;
+      _ptOnUnitsSettled = null;
+      try { await cb(); } catch (_) { /* the panel re-render is best effort */ }
+    }
   }
   return stillRunning;
 }
@@ -1553,6 +1561,63 @@ async function ptFixFromSummary() {
     `Revised whole script (iteration ${d.iterations}); previous archived. Lint is refreshed and `
     + `the old review was cleared (it described the pre-fix code) — re-run Review to see what remains. `
     + `Don't re-Assemble (it re-splices the units and discards this). Then Save & Confirm.`;
+}
+
+// Per-unit Fix (token-efficiency decision 7, 2026-09-07). Re-generates ONLY the units the
+// current lint errors / review findings / run failures name — each under the same cached
+// shared half its generation used — and re-assembles server-side when the last one lands.
+// Returns immediately like the generate fan-out; the pills carry progress and the
+// one-shot _ptOnUnitsSettled callback refreshes the Summary afterwards. Findings that name
+// no unit are reported, not guessed at: those are the whole-script Fix's job.
+async function _ptFixUnitsCommon(btn, statusEl) {
+  await ptPushCodeEdits(false);           // fix the script the reviewer can see, not a stale copy
+  const d = await ptApi(`/fix_units/${S.ptCase.key}`,
+    { method: 'POST', btn, busyLabel: 'Dispatching…' }, statusEl);
+  if (!d) return null;
+  (d.dispatched || []).forEach(id => { _ptUnitSending[id] = true; });
+  _ptUnitFails = _ptUnitFails.filter(f => !(d.dispatched || []).includes(f.id));
+  ptRenderUnits();
+  const unm = (d.unmapped || []).length;
+  if (statusEl) {
+    statusEl.textContent = `${(d.dispatched || []).length} unit(s) being fixed`
+      + (d.primed ? ` — ${d.primed} first, alone, to warm the prompt cache` : '')
+      + `; the script re-assembles and re-lints when they land.`
+      + (unm ? ` ${unm} finding(s) name no unit — use "Fix whole script" for those.` : '');
+  }
+  _ptOnUnitsSettled = async () => {
+    await ptRefreshSession();
+    renderPtGenPanel();
+    ptRenderUnits();
+    const fu = ((ptSession || {}).step6 || {}).fix_units || {};
+    const el = ptStatusEl('pt-gen-status');
+    if (!el) return;
+    if (fu.error) {
+      el.textContent = `Fix units: the units landed but re-assembly failed — ${fu.error}`;
+    } else if ((fu.failed || []).length) {
+      el.textContent = `Fix units: ${fu.failed.length} unit(s) failed (${fu.failed.join(', ')}); `
+        + `not re-assembled — re-run them individually, then Assemble.`;
+    } else if (fu.assembled) {
+      el.textContent = `Fix units: ${(fu.units || []).length} unit(s) re-generated and re-assembled `
+        + `(iteration ${((ptSession || {}).step6 || {}).iterations || '?'}); lint `
+        + `${fu.lint_ok ? 'ok' : `FAILED (${fu.lint_errors} error(s))`}. `
+        + `The old review was cleared — run Review to see what remains.`
+        + ((fu.unmapped || []).length ? ` ${fu.unmapped.length} finding(s) still need "Fix whole script".` : '');
+    }
+  };
+  _ptStartUnitPoll();
+  return d;
+}
+
+async function ptFixUnits() {
+  if (!ptRequireCase()) return;
+  await _ptFixUnitsCommon(document.getElementById('pt-fix-units-btn'), ptStatusEl('pt-gen-status'));
+}
+
+async function ptFixUnitsFromValidate() {
+  if (!ptRequireCase()) return;
+  const d = await _ptFixUnitsCommon(document.getElementById('pt-fix-units-validate-btn'),
+                                    ptStatusEl('pt-validate-status'));
+  if (d) goToPanel('panel-pt-gen');       // the pills and the Summary live there
 }
 
 async function ptReviewScript() {
@@ -2031,7 +2096,7 @@ registerActions({
   ptSaveMatches,
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
-  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptSaveScript,
+  ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptSaveScript,
   ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,

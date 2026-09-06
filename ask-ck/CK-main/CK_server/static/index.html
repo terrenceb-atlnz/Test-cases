@@ -727,11 +727,17 @@
           <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">4 · Confirm step 5</button>
         </div>
         <!-- Recovery utilities, kept OUT of the numbered flow so they don't break the sequence.
-             Re-lint is local; Fix is a blue LLM whole-script rewrite (the deadlock escape). -->
+             Re-lint is local. "Fix units" (2026-09-07) re-generates ONLY the units the current
+             lint errors / review findings / run failures name, under the cached shared half, and
+             re-assembles; the whole-script rewrite stays for findings that name no unit
+             (the frame, a library file). Review refuses while lint has blocking errors. -->
         <div class="compact-flex mb-2">
           <span class="justification-note">If something's wrong:</span>
           <button data-action="ptLintScript" class="btn btn-compact">Re-lint</button>
-          <button data-action="ptFixFromSummary" class="btn btn-primary btn-compact" id="pt-fix-summary-btn">⤺ Fix with LLM</button>
+          <button data-action="ptFixUnits" class="btn btn-primary btn-compact" id="pt-fix-units-btn"
+                  title="Re-generate only the units the current findings name, then re-assemble">⤺ Fix units (LLM)</button>
+          <button data-action="ptFixFromSummary" class="btn btn-compact" id="pt-fix-summary-btn"
+                  title="Whole-file rewrite — for findings that name no unit">Fix whole script (LLM)</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>
@@ -785,7 +791,9 @@
         <div id="pt-validate-case" class="mt-2 mb-2"></div>
         <div class="compact-flex mb-2">
           <button data-action="ptValidate" class="btn btn-primary btn-compact">Run Final Validation</button>
-          <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix with LLM (from failures)</button>
+          <button data-action="ptFixUnitsFromValidate" class="btn btn-compact" id="pt-fix-units-validate-btn"
+                  title="Re-generate only the failing units, then re-assemble">Fix units (LLM, from failures)</button>
+          <button data-action="ptFixScript" class="btn btn-compact" id="pt-fix-btn">Fix whole script (LLM)</button>
           <button data-action="ptConfirm" data-args='[8]' class="btn btn-compact">Confirm Step 7 (close out)</button>
         </div>
         <div id="pt-validate-status" class="justification-note mb-2"></div>

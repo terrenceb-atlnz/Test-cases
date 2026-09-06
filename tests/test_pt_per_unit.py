@@ -282,7 +282,9 @@ def test_assembly_refuses_an_incomplete_set():
 
 def test_assembly_drops_a_review_of_the_previous_artefact():
     # Findings were about a different script; leaving them attributes them to this one.
-    body = _CODE[_CODE.index("async def assemble_script"):]
+    # The assembly body moved into _assemble_and_store on 2026-09-07 so the per-unit Fix
+    # can re-assemble through the same implementation; the endpoint is now a thin caller.
+    body = _CODE[_CODE.index("def _assemble_and_store"):]
     assert 'pop("review", None)' in body[:3000]
 
 

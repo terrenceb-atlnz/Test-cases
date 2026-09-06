@@ -4459,32 +4459,16 @@ def _assemble_units(ctx: dict, chunks: dict) -> Tuple[str, List[str]]:
     return "\n".join(lines), list(reversed(missing))
 
 
-@router.post("/assemble_script/{key}")
-async def assemble_script(key: str, request: Request, body: dict = Body(default={})):
-    """Build the script LOCALLY from the frame + the generated units, then lint it.
-
-    No LLM. §9.5's assembly step, minus the reassembly guesswork: the frame is ours and the
-    units were shape-checked on arrival, so splicing is deterministic. `manifest_check` still
-    runs, and it is now strictly stronger than in the whole-script path — the runner's
-    `ts.add_testCase(...)` list was written by `_render_skeleton` BEFORE any unit existed, so
-    it is a contract the units are measured against rather than a list the same reply wrote.
-    """
-    data = _data(request)
-    sess = _pt_get(key)
+def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: str) -> dict:
+    """Splice + re-stamp + manifest + persist + lint. The body of assemble_script, extracted
+    (2026-09-07) so the per-unit Fix can re-assemble after its units land without a second
+    copy of the assembly rules. Raises HTTPException(409) when a unit is missing."""
     step6 = sess.step6 or {}
     chunks = step6.get("chunks") or {}
-    ctx = _pt_generation_context(key, data, sess)
-    if not ctx["units"]:
-        raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
-
     code, missing = _assemble_units(ctx, chunks)
     if missing:
         raise HTTPException(409, "Not every unit has been generated yet. Missing: "
                                  + ", ".join(missing))
-
-    naming = step6.get("naming") or {}
-    group = (body.get("group") or naming.get("group") or "").strip()
-    name = (body.get("name") or naming.get("name") or "").strip()
     _validate_naming(group, name)
     file_name = f"{name}.py"
 
@@ -4517,6 +4501,30 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
     _pt_persist_fresh(key, _apply_lint)
     return {"files": {"test": {"name": file_name, "code": stamped}},
             "lint": lint, "manifest": report, "units": len(ctx["units"])}
+
+
+@router.post("/assemble_script/{key}")
+async def assemble_script(key: str, request: Request, body: dict = Body(default={})):
+    """Build the script LOCALLY from the frame + the generated units, then lint it.
+
+    No LLM. §9.5's assembly step, minus the reassembly guesswork: the frame is ours and the
+    units were shape-checked on arrival, so splicing is deterministic. `manifest_check` still
+    runs, and it is now strictly stronger than in the whole-script path — the runner's
+    `ts.add_testCase(...)` list was written by `_render_skeleton` BEFORE any unit existed, so
+    it is a contract the units are measured against rather than a list the same reply wrote.
+    """
+    data = _data(request)
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    chunks = step6.get("chunks") or {}
+    ctx = _pt_generation_context(key, data, sess)
+    if not ctx["units"]:
+        raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
+
+    naming = step6.get("naming") or {}
+    group = (body.get("group") or naming.get("group") or "").strip()
+    name = (body.get("name") or naming.get("name") or "").strip()
+    return _assemble_and_store(key, sess, ctx, group, name)
 
 
 @router.get("/step_prompts/{key}")
@@ -4584,7 +4592,7 @@ def _unit_system_prompt(shared_half: str) -> str:
 
 
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
-                         unit: dict, llm_cfg: dict) -> dict:
+                         unit: dict, llm_cfg: dict, template: str = "(verbatim)") -> dict:
     """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
 
     Extracted so both the single-unit endpoint and the batch dispatch share exactly one
@@ -4594,7 +4602,8 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
     """
     shared_half, unit_half = _split_unit_prompt(prompt)
     meta = run_prompt_text(unit_half, llm_config=llm_cfg, timeout=600,
-                           system=_unit_system_prompt(shared_half), max_tokens=16000)
+                           system=_unit_system_prompt(shared_half), max_tokens=16000,
+                           template=template)
 
     def _store(record: dict) -> None:
         def _apply(fresh: PtSession) -> None:
@@ -4898,6 +4907,288 @@ def _normalize_findings(raw: Any, sequence: List[dict]) -> List[dict]:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Per-unit Fix + two-tier Review (token-efficiency decision 7, 2026-09-07)
+# ---------------------------------------------------------------------------
+#
+# The whole-script Fix (`fix_script`, below) re-emits the entire file: measured on T44297 it
+# changed 9 of 38 classes at 64k output tokens, and it can perturb the 29 it did not need to
+# touch. Every finding we have names a class or a line, so it names a UNIT — and a unit can
+# be re-generated alone, under the same cached system half as its generation, and spliced
+# back by the same assembly. Findings that name nothing (the frame, a library file) stay with
+# the whole-script Fix; the endpoint reports them as `unmapped` rather than guessing.
+#
+# Two-tier Review: the deterministic pass goes to green FIRST. Review refuses (409) while the
+# lint has blocking errors, because asking a model to review a script that does not compile
+# spends its whole budget rediscovering what the checker already said.
+
+_TC_NAME_RX = re.compile(r"\bTestCase_(\d+)\b")
+_LINE_REF_RX = re.compile(r"\bline (\d+)\b|:(\d+):")
+_SETUP_REF_RX = re.compile(r"\bTestSet\b|\bconfigure\(\)|\btear_down\(\)|\bTestSet\.(configure|tear_down)\b")
+
+
+def _unit_id_for_text(text: str, code_units: List[dict]) -> Optional[str]:
+    """Which unit a lint line / run result / review `where` talks about, or None.
+
+    Class name first (`TestCase_14` -> tc14), then the setup pair (a TestSet /
+    configure() / tear_down() mention with no TestCase named), then a line number inside a
+    unit's range in the ASSEMBLED script. `code_units` comes from `_skeleton_units(code)`
+    run on the assembled script — the same parser as the frame, so the ranges are exact.
+    """
+    text = text or ""
+    ids = {u["id"] for u in code_units}
+    m = _TC_NAME_RX.search(text)
+    if m and f"tc{m.group(1)}" in ids:
+        return f"tc{m.group(1)}"
+    if _SETUP_REF_RX.search(text) and "setup" in ids:
+        return "setup"
+    for m in _LINE_REF_RX.finditer(text):
+        ln = int(m.group(1) or m.group(2))
+        for u in code_units:
+            lo, hi = u["lines"]
+            if lo <= ln <= hi:
+                return u["id"]
+    return None
+
+
+def _unit_id_for_finding(f: dict, ctx: dict, code_units: List[dict]) -> Optional[str]:
+    uid = _unit_id_for_text(f"{f.get('where') or ''} {f.get('evidence') or ''}", code_units)
+    if uid:
+        return uid
+    step = f.get("step")
+    if step is None:
+        return None
+    for u in ctx["units"]:
+        src = _unit_source_step(u, ctx["tc_steps"])
+        if src and str(src.get("n")) == str(step):
+            return u["id"]
+    return None
+
+
+def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
+    """Every current reason to fix, sorted onto units: lint errors, review findings and the
+    last run's failing cases (with their log excerpts). `unmapped` holds the ones that name
+    no unit — those are the whole-script Fix's job."""
+    step6 = sess.step6 or {}
+    code_units = _skeleton_units(code)
+    per: Dict[str, dict] = {}
+    unmapped: List[str] = []
+
+    def slot(uid: str) -> dict:
+        return per.setdefault(uid, {"lint": [], "review": [], "run": None, "excerpt": ""})
+
+    for e in (step6.get("lint") or {}).get("errors") or []:
+        uid = _unit_id_for_text(str(e), code_units)
+        if uid:
+            slot(uid)["lint"].append(str(e))
+        else:
+            unmapped.append(f"lint: {e}")
+    for f in ((step6.get("review") or {}).get("findings")) or []:
+        uid = _unit_id_for_finding(f, ctx, code_units)
+        if uid:
+            slot(uid)["review"].append(f)
+        else:
+            unmapped.append(f"review: {f.get('where') or '(script)'} — {f.get('what') or ''}")
+    runs = (sess.step7 or {}).get("runs") or []
+    last = runs[-1] if runs else None
+    parsed = (last or {}).get("parsed") or {}
+    if parsed.get("cases"):
+        excerpts: Dict[str, str] = {}
+        log_file = (last or {}).get("log_file")
+        if log_file and Path(log_file).exists():
+            excerpts = {e["case"]: e["text"] for e in failure_excerpts(
+                Path(log_file).read_text(encoding="utf-8", errors="replace"), parsed)}
+        for c in parsed["cases"]:
+            if c.get("result") in ("PASS", None):
+                continue
+            uid = _unit_id_for_text(c.get("name") or "", code_units)
+            if uid:
+                sl = slot(uid)
+                sl["run"] = c
+                sl["excerpt"] = excerpts.get(c.get("name") or "", "")
+            else:
+                unmapped.append(f"run: {c.get('name')} {c.get('result')}")
+    return {"per_unit": per, "unmapped": unmapped, "code_units": code_units}
+
+
+def _chunks_from_code(code: str, ctx: dict) -> Dict[str, str]:
+    """Each unit's CURRENT text, read off the assembled script by the same parser that cut
+    the frame. The reviewer may have hand-edited the script (save_script) since the units
+    landed; re-assembling from stale chunks would silently revert those edits, so the
+    chunks are re-synced from what is on screen before any unit is re-generated."""
+    lines = code.split("\n")
+    out: Dict[str, str] = {}
+    for u in _skeleton_units(code):
+        lo, hi = u["lines"]
+        out[u["id"]] = "\n".join(lines[lo - 1:hi])
+    return out
+
+
+def _fix_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict,
+                     current_code: str, reasons: dict) -> str:
+    """The generation prompt for this unit — shared half, marker, unit half — followed by the
+    fix addendum. Same shared half => same system prompt => the cache the generation pass
+    wrote is read here too."""
+    gen = _render_unit_prompt(key, data, sess, ctx, unit)
+    shared, unit_half = _split_unit_prompt(gen)
+    fix_half = render_prompt("pt_fix_unit.jinja", {
+        "unit_label": unit["label"], "kind": unit["kind"],
+        "current_code": current_code,
+        "lint_errors": reasons.get("lint") or [],
+        "review_findings": reasons.get("review") or [],
+        "run_result": reasons.get("run"),
+        "log_excerpt": reasons.get("excerpt") or "",
+    })
+    return shared + "\n\n" + _PT_PROMPT_SPLIT + "\n\n" + unit_half + "\n\n" + fix_half
+
+
+async def _run_primed_and_wait(items: list, run) -> None:
+    """`_dispatch_primed`, but WAITS for the fan-out too — the fix chain re-assembles after
+    the last unit lands, so it needs to know when that is."""
+    if not items:
+        return
+    await run(*items[0])
+    if items[1:]:
+        await asyncio.gather(*(run(*it) for it in items[1:]))
+
+
+def _lint_blocks_review(step6: dict) -> Optional[str]:
+    """The two-tier gate: the message refusing Review, or None when lint is clean enough.
+    Blocking errors only — policy errors (`_POLICY_LINT_MARKERS`) are the reviewer's call,
+    and style warnings never gate anything."""
+    blocking, _policy = _split_lint_errors(((step6 or {}).get("lint") or {}).get("errors") or [])
+    if not blocking:
+        return None
+    return (f"Lint has {len(blocking)} blocking error(s). Review runs only on a lint-clean "
+            f"script (two-tier review): run Fix units to clear them, then Review.")
+
+
+@router.post("/fix_units/{key}")
+async def fix_units(key: str, request: Request, body: dict = Body(default={})):
+    """Re-generate ONLY the units the current findings name, then re-assemble. Returns
+    immediately like generate_units; poll /units_status, and read step6.fix_units when the
+    last unit lands for what happened (assembled / lint / failed / unmapped)."""
+    data = _data(request)
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    test = (step6.get("files") or {}).get("test") or {}
+    code = test.get("code") or ""
+    if not code:
+        raise HTTPException(409, "No assembled script to fix.")
+    ctx = _pt_generation_context(key, data, sess)
+    if not ctx["units"]:
+        raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
+    reasons = _fix_reasons(sess, ctx, code)
+    if not reasons["per_unit"] and not reasons["unmapped"]:
+        raise HTTPException(409, "Nothing to fix: no lint errors, review findings or failed "
+                                 "run results.")
+    if not reasons["per_unit"]:
+        raise HTTPException(409, f"None of the {len(reasons['unmapped'])} finding(s) names a "
+                                 f"unit — use the whole-script Fix for these: "
+                                 + "; ".join(reasons["unmapped"][:5]))
+    synced = _chunks_from_code(code, ctx)
+    missing = [u["id"] for u in ctx["units"] if u["id"] not in synced]
+    if missing:
+        raise HTTPException(409, "The assembled script does not contain every unit of the "
+                                 "frame (" + ", ".join(missing) + ") — was it generated "
+                                 "whole-script? Use the whole-script Fix.")
+
+    def _sync(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        chunks = dict(step6_f.get("chunks") or {})
+        for uid, text in synced.items():
+            prev = dict(chunks.get(uid) or {})
+            prev.update({"status": "ok", "code": text, "error": ""})
+            chunks[uid] = prev
+        step6_f["chunks"] = chunks
+        step6_f.pop("fix_units", None)
+        fresh.step6 = step6_f
+    _pt_persist_fresh(key, _sync, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+
+    by_id = {u["id"]: u for u in ctx["units"]}
+    already = _pt_units_inflight(key)
+    targets = [uid for uid in reasons["per_unit"] if uid in by_id and uid not in already]
+    if not targets:
+        return {"dispatched": [], "already_running": sorted(already),
+                "unmapped": reasons["unmapped"]}
+    llm_cfg = _llm_cfg_for(sess, "unit_fill")
+    prepared = [(uid, by_id[uid],
+                 _fix_unit_prompt(key, data, sess, ctx, by_id[uid], synced[uid],
+                                  reasons["per_unit"][uid]), False)
+                for uid in targets]
+    naming = step6.get("naming") or {}
+    group = (naming.get("group") or "").strip()
+    name = (naming.get("name") or "").strip()
+    previous_code = code
+    iteration = int(step6.get("iterations") or 1)
+    file_name = test.get("name") or f"{name}.py"
+
+    _pt_unit_mark(key, targets, True)
+    sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
+
+    async def _one(uid: str, unit: dict, prompt: str, edited: bool):
+        try:
+            async with sem:
+                await run_in_threadpool(_unit_call_and_store, key, uid, prompt, edited,
+                                        unit, llm_cfg, "pt_fix_unit")
+        except Exception as e:
+            print(f"[pt] {key}/{uid}: unit fix failed: {e}")
+            try:
+                def _apply_crash(fresh: PtSession) -> None:
+                    step6_f = dict(fresh.step6 or {})
+                    chunks = dict(step6_f.get("chunks") or {})
+                    prev = dict(chunks.get(uid) or {})
+                    prev.update({"status": "error", "error": f"fix failed: {e}",
+                                 "at": utc_now().isoformat()})
+                    chunks[uid] = prev
+                    step6_f["chunks"] = chunks
+                    fresh.step6 = step6_f
+                _pt_persist_fresh(key, _apply_crash, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+            except Exception as e2:
+                print(f"[pt] {key}/{uid}: could not even record the failure: {e2}")
+        finally:
+            _pt_unit_mark(key, [uid], False)
+
+    async def _chain():
+        await _run_primed_and_wait(prepared, _one)
+        record: Dict[str, Any] = {"at": utc_now().isoformat(), "units": targets,
+                                  "unmapped": reasons["unmapped"], "assembled": False}
+        try:
+            fresh = _pt_load(key)
+            chunks = ((fresh.step6 if fresh else None) or {}).get("chunks") or {}
+            failed = [u for u in targets if (chunks.get(u) or {}).get("status") != "ok"]
+            record["failed"] = failed
+            if fresh is not None and not failed:
+                # Archive what the fix replaces, as the whole-script Fix does.
+                hist_dir = _meta_dir(group or "Ungrouped", name or "unnamed") / "history" / f"iter-{iteration}"
+                hist_dir.mkdir(parents=True, exist_ok=True)
+                (hist_dir / file_name).write_text(previous_code, encoding="utf-8")
+                res = await run_in_threadpool(_assemble_and_store, key, fresh, ctx, group, name)
+                record["assembled"] = True
+                record["lint_ok"] = bool((res.get("lint") or {}).get("ok"))
+                record["lint_errors"] = len((res.get("lint") or {}).get("errors") or [])
+                record["previous_archived"] = str(hist_dir)
+        except Exception as e:
+            record["error"] = str(getattr(e, "detail", e))
+
+        def _apply_record(f2: PtSession) -> None:
+            step6_f = dict(f2.step6 or {})
+            step6_f["fix_units"] = record
+            f2.step6 = step6_f
+        try:
+            _pt_persist_fresh(key, _apply_record, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+        except Exception as e:
+            print(f"[pt] {key}: could not record the fix_units outcome: {e}")
+
+    asyncio.create_task(_chain())
+    return {"dispatched": targets, "already_running": sorted(already),
+            "unmapped": reasons["unmapped"],
+            "primed": targets[0] if len(targets) > 1 else None,
+            "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"]),
+                             "run": bool(r["run"])}
+                       for uid, r in reasons["per_unit"].items()}}
+
+
 @router.post("/review_script/{key}")
 async def review_script(key: str, request: Request):
     """Pass C: review the ASSEMBLED script and return FINDINGS — never a rewrite.
@@ -4918,6 +5209,10 @@ async def review_script(key: str, request: Request):
     step6 = sess.step6 or {}
     if not (step6.get("files") or {}).get("test"):
         raise HTTPException(409, "No script to review. Run generate_script first.")
+    # Two-tier review (2026-09-07): the deterministic pass goes to green first.
+    gate = _lint_blocks_review(step6)
+    if gate:
+        raise HTTPException(409, gate)
 
     sequence = (sess.step2 or {}).get("sequence") or []
     meta = await run_in_threadpool(run_prompt, "pt_review_script.jinja", {

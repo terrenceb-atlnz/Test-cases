@@ -1,0 +1,61 @@
+{#-
+  PyTest Creator — PER-UNIT FIX addendum (token-efficiency decision 7, built 2026-09-07).
+
+  Rendered as the TAIL of a unit's generation prompt: the server sends the case's shared
+  half as the system prompt (identical to generation, so the cache it wrote is read here),
+  then the unit half of the generation prompt, then THIS. So everything the unit was
+  generated from is in front of the model again — fragments, CLI reference, the blank
+  block — plus what is wrong with the current version. The reply is one class block,
+  shape-checked on arrival exactly like a generation, and spliced back by the same assembly.
+-#}
+## FIX PASS for {{ unit_label }}
+The block above has ALREADY been filled once; the current version is below and it is wrong in
+the specific ways listed. Return a corrected version of THIS unit only.
+
+## Current code of this unit
+```python
+{{ current_code }}
+```
+{% if lint_errors %}
+## Static check errors in this unit (fix every one)
+{% for e in lint_errors %}
+- {{ e }}
+{%- endfor %}
+{% endif %}
+{% if review_findings %}
+## Review findings for this unit (address every one — fix the CONDITION, never by weakening or deleting an assertion)
+{% for f in review_findings %}
+- **[{{ f.severity }}] {{ f.where }}** — {{ f.what }}
+{%- if f.evidence %}
+  - at: `{{ f.evidence }}`
+{%- endif %}
+{%- if f.suggestion %}
+  - suggested: {{ f.suggestion }}
+{%- endif %}
+{%- endfor %}
+{% endif %}
+{% if run_result %}
+## Bench result for this unit: {{ run_result.result }}{% if run_result.fail_msgs %} — failures: {% for m in run_result.fail_msgs %}{{ m }}; {% endfor %}{% endif %}
+Diagnose from the log: wrong prompt mode, wrong CLI syntax for this platform, insufficient
+wait/settle time, wrong expected string, topology handle misuse (`self.testSet.<name>`), a
+precondition this unit did not establish for itself.
+{% if log_excerpt %}
+### Log excerpt
+```
+{{ log_excerpt }}
+```
+{% endif %}
+{% endif %}
+
+## Rules for this fix
+- Change only what the findings require; keep every other line of this unit as it is.
+- Never weaken or delete an assertion to make a step pass — fix the condition, the command,
+  the parsing or the timing.
+- Keep the class name, `testCaseDesc` / `testCaseRef` / `testCaseMethod`, the method
+  signatures and the leading provenance tag line in `main()` EXACTLY as they are.
+- Every rule above the split line still applies, including that this unit is SELF-CONTAINED.
+
+## Output format
+Return the CORRECTED {% if kind == 'setup' %}`configure()` / `tear_down()` pair{% else %}`{{ unit_label }}` class{% endif %} as ONE fenced python block and nothing else — no prose,
+no other blocks, no imports. Preserve the current indentation exactly; the server splices
+your reply into the file verbatim.
