@@ -20,6 +20,7 @@ import os
 import asyncio
 import py_compile
 import random
+import functools
 import re
 import tempfile
 import threading
@@ -1501,6 +1502,257 @@ def _detect_link_role(sequence: List[dict], objective: str = "") -> str:
     return "fibre" if _FIBRE_HINT_RX.search(blob) else "copper"
 
 
+# ---- ART shape (2026-09-07): which LINKS the frame binds, the suite LIBRARY, the bound ports ----
+#
+# The corpus's dominant topology is DUT <-> TESTBOX: `(dut.portA, tb.ethA) = setup.init_portlink(
+# dutA, tb, type1='port')` in 111 of 188 ART tests, with captures, scapy sends and pings on
+# `tb.ethA`. A second SWITCH appears only when the test needs a neighbour, and ART names it by
+# role (swiSrc, swiDst, dutZ), never `dut` — `dut` is the DUT's own stack handle. Until this
+# change the frame bound one partner switch and called it `dut`, gave the testbox no bound
+# interface at all, and both Opus and Sonnet wrote `tb.ethA` in every capture unit and
+# `dut.portA` for the DUT port: 59 and 63 unbound-port lint errors on T44297, all frame-caused.
+_TBLINK_RX = re.compile(
+    r"\b(tcpdump|pcap|scapy|sendp|sniff|capture[ds]?|inject(?:ed|s)?|"
+    r"tb\.eth\w*|ethA|testbox|test box|traffic|ping|on the wire|wireshark|"
+    r"frames? (?:transmitted|sent|received)|lldpdu|packets?)\b", re.I)
+_PEER_RX = re.compile(
+    r"\b(partner|neighbou?rs?|peer|link partner|remote (?:switch|end|device)|second switch|"
+    r"other switch|far end|swi_[b-z]|polarity|mdi-?x?|speed|duplex|auto-?neg\w*|"
+    r"negotiat\w*|show lldp neighbo\w*)\b", re.I)
+
+
+def _detect_links(sequence: List[dict], fragments: List[dict], objective: str = "") -> dict:
+    """Which of the frame's two links this case needs: `{"tb": bool, "peer": bool}`.
+
+    Text-driven and deliberately over-inclusive: a link bound but unused costs one
+    `ck_link_*` line in the bench file, while a link needed but unbound costs a bench run
+    that dies on `interface None` (the whole 2026-09-07 finding). A wrong choice can never
+    produce a wrong VERDICT — `_ck_bind_link` refuses to start when the bench lacks the
+    role, and says the bench is the cause.
+
+      tb    the case captures / injects / measures traffic (the ART `tb.ethA` idiom), or
+            has a PHYSICAL step (the testbox observes the event from its own end).
+      peer  the case needs a neighbour switch: a partner to negotiate against, an LLDP
+            neighbour table to read, a remote port to act on.
+    Legacy fallback: a case that reads like it needs *a* port link but names neither side
+    gets the peer link, which is what the frame bound before this function existed.
+    """
+    blob = " ".join([objective or ""] + [
+        (s.get("action", "") or "") + " " + (s.get("verify", "") or "") for s in (sequence or [])])
+    code = " ".join((f.get("code") or "") for f in (fragments or []))
+    has_physical = any(_step_kind(s) == "physical" for s in (sequence or []))
+    tb = bool(_TBLINK_RX.search(blob)) or bool(re.search(r"\btb\.eth|start_tcpdump|sendp\(", code)) \
+        or has_physical
+    peer = bool(_PEER_RX.search(blob)) or bool(re.search(r"\b(lp|peer|remote|swi_[b-z])\.(cmd|mode|port)", code))
+    if not tb and not peer and (_PORTLINK_RX.search(blob + " " + code)):
+        peer = True
+    return {"tb": tb, "peer": peer}
+
+
+def _library_stem(case_key: str) -> str:
+    """`AWPTCM-T44297` -> `library_awptcm_t44297`: ART's `library_<suite>` convention keyed on
+    the case, so the name is stable across script renames and valid as a module name."""
+    return "library_" + re.sub(r"[^a-z0-9]+", "_", (case_key or "case").lower()).strip("_")
+
+
+_LIB_SKIP_IMPORTS = {"sys", "framework.ATTestCase", "framework.ATTestSet"}
+
+
+def _build_library(case_key: str, fragments: List[dict], data: dict,
+                   surface: Optional[dict] = None) -> Optional[dict]:
+    """The suite's own helper module, the way every ART suite ships one (`library_1332.py`
+    holds the packets and the shared checks; 154 of 188 tests import theirs with `*`).
+
+    Contents: every SELECTED fragment that is a stand-alone module-level definition — a
+    function whose first parameter is not `self`, a class, or a constant — copied verbatim
+    under its provenance tag, plus the import lines its source script used. Methods and
+    class-body slices are NOT library material (they need their class) and stay as
+    fragments to adapt.
+
+    Two exclusions found on the real T44297 selection (2026-09-07), both import-time
+    hazards a compile check cannot see:
+      * a fragment that DEFINES a class the framework already provides (the legacy
+        `lldp_class.py` copies of the `framework.ATPackets` layers). Shipping it would
+        shadow the real layer after `from framework.ATPackets import *`, so `haslayer()`
+        compares against a different class object and every decode silently fails. These
+        are recorded as `framework_dupes` — the prompt says "already imported, do not
+        paste" — and dropped from the fragment sections too.
+      * a member whose default argument or module-level value names something the
+        library cannot resolve (`def checkPortCoErrors(csvName = defaultCsvName)`) —
+        evaluated when the module is imported, so the whole suite dies before case 1.
+        Allowed only when the source script star-imports a framework module, which is
+        where such names legitimately come from (`LLDP_PHONE_PKT = Ether() / ...`).
+    Returns None when nothing qualifies and nothing was excluded; a dict with empty
+    `members` (and no `stem`) when only exclusions happened, so the frame emits no import.
+    """
+    import ast as ast_mod
+    import builtins as _bi
+    if surface is None:
+        surface = _framework_surface_doc()
+    fw_classes = {cn for mod in (surface or {}).values() if isinstance(mod, dict)
+                  for cn in (mod.get("classes") or {})}
+    stem = _library_stem(case_key)
+    members: List[dict] = []
+    imports: List[str] = []
+    dupes: List[str] = []
+    dupe_tags: set = set()
+    skipped: List[str] = []
+    for f in fragments or []:
+        code = (f.get("code") or "").strip("\n")
+        if not code:
+            continue
+        try:
+            tree = ast_mod.parse(textwrap_dedent(code))
+        except SyntaxError:
+            continue
+        if not tree.body:
+            continue
+        tag = _fragment_tag(f.get("source_id", ""), f.get("loc"), f.get("py2_translated", False))
+        # Frame classes (a TestSet / TestCase_<n> slice) are never library material and are
+        # not "framework duplicates" either — they merely share the framework's class names.
+        if any(isinstance(n, ast_mod.ClassDef) and any(
+                ("TestCase" in getattr(b, "attr", getattr(b, "id", "")) or
+                 "TestSet" in getattr(b, "attr", getattr(b, "id", ""))) for b in n.bases)
+               for n in tree.body):
+            continue
+        cls_names = [n.name for n in tree.body if isinstance(n, ast_mod.ClassDef)]
+        if any(c in fw_classes for c in cls_names):
+            dupes.extend(c for c in cls_names if c in fw_classes)
+            dupe_tags.add(tag)
+            continue
+        rec = (data.get("scripts_index_by_id") or {}).get(f.get("source_id")) or {}
+        src_imports = [m for m in (rec.get("imports", []) or []) if m not in _LIB_SKIP_IMPORTS
+                       and not m.startswith("library_")]
+        has_star = any(m.startswith("framework.") for m in src_imports)
+        # names evaluated at IMPORT time: defaults and module-level values
+        import_time: List[ast_mod.AST] = []
+        for node in tree.body:
+            if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef)):
+                import_time += list(node.args.defaults) + [d for d in node.args.kw_defaults if d]
+            elif isinstance(node, ast_mod.Assign):
+                import_time.append(node.value)
+        defined = {n.name for n in tree.body if isinstance(n, (ast_mod.FunctionDef, ast_mod.ClassDef))}
+        defined |= {t.id for n in tree.body if isinstance(n, ast_mod.Assign)
+                    for t in n.targets if isinstance(t, ast_mod.Name)}
+        defined |= {m["symbol"] for m in members} | {nm for m in members for nm in m["names"]}
+        defined |= {m.split(".")[0] for m in src_imports}
+        unresolved = sorted({n.id for e in import_time for n in ast_mod.walk(e)
+                             if isinstance(n, ast_mod.Name) and isinstance(n.ctx, ast_mod.Load)
+                             and n.id not in defined and not hasattr(_bi, n.id)})
+        if unresolved:
+            # A name the SOURCE SCRIPT itself defines at module level is a local global the
+            # library does not carry — a star import cannot supply it, whatever else the
+            # source imports (`defaultCsvName` in svt/libSvt/portCoToCsv.py). Anything else
+            # is allowed only when the source star-imports a framework module.
+            src_text = _fragment_source_text(f.get("source_id", ""))
+            local = [nm for nm in unresolved
+                     if re.search(rf"^{re.escape(nm)}\s*=", src_text, re.M)]
+            if local or not has_star:
+                skipped.append(f"{f.get('symbol') or tag}: needs "
+                               f"{', '.join(local or unresolved)} at import time")
+                continue
+        ok = True
+        for node in tree.body:
+            if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef)):
+                first = node.args.args[0].arg if node.args.args else ""
+                if first == "self" or node.name in ("main", "configure", "tear_down", "init"):
+                    ok = False
+            elif isinstance(node, ast_mod.ClassDef):
+                if any(("TestCase" in getattr(b, "attr", getattr(b, "id", "")) or
+                        "TestSet" in getattr(b, "attr", getattr(b, "id", ""))) for b in node.bases):
+                    ok = False
+            elif not isinstance(node, (ast_mod.Assign, ast_mod.Import, ast_mod.ImportFrom)):
+                ok = False
+        if not ok:
+            continue
+        names = [n.name for n in tree.body if isinstance(n, (ast_mod.FunctionDef, ast_mod.ClassDef))]
+        members.append({"tag": tag, "symbol": f.get("symbol") or (names[0] if names else ""),
+                        "names": names, "code": textwrap_dedent(code), "why": f.get("why") or ""})
+        for m in src_imports:
+            line = f"from {m} import *" if m.startswith("framework.") else f"import {m}"
+            if line not in imports:
+                imports.append(line)
+    if not members and not dupes:
+        return None
+    if not members:
+        return {"name": "", "stem": "", "code": "", "members": [], "tags": set(),
+                "framework_dupes": sorted(set(dupes)), "framework_tags": dupe_tags,
+                "skipped": skipped}
+    body = [f'"""{stem} — helpers shared by the {case_key} suite.',
+            "",
+            "Generated by Ask CK PyTest Creator alongside the test script, the way every ART suite",
+            "ships a `library_<suite>.py`. Each member is a reviewer-approved fragment copied from",
+            "the corpus; its provenance tag names the source. Imported by the script with `*`.",
+            '"""']
+    body += sorted(imports) if imports else ["import time"]
+    for m in members:
+        body += ["", "", m["tag"]]
+        if m["why"]:
+            body += ["# " + ln for ln in _wrap_comment(m["why"], 92)]
+        body.append(m["code"])
+    return {"name": stem + ".py", "stem": stem, "code": "\n".join(body).rstrip("\n") + "\n",
+            "members": members, "tags": {m["tag"] for m in members},
+            "framework_dupes": sorted(set(dupes)), "framework_tags": dupe_tags,
+            "skipped": skipped}
+
+
+def _fragment_source_text(source_id: str) -> str:
+    """Whole source of a corpus script, "" when unavailable (a corpus read via db.py)."""
+    try:
+        return dbx.get_script_source(source_id) or ""
+    except Exception:
+        return ""
+
+
+def textwrap_dedent(code: str) -> str:
+    import textwrap
+    return textwrap.dedent(code)
+
+
+def _skeleton_bound_ports(skeleton: str) -> List[dict]:
+    """The LINKS `TestSet.init()` binds, read off the rendered frame's `_ck_bind_link` calls:
+    `[{"role": "tb", "near": "dutA.portA", "far": "tb.ethA"}, {"role": "copper",
+    "near": "dutA.portPeer", "far": "peer.portDut"}]`. The prompt's handle section and rule 3
+    render from this, so the names the model is told are the names the frame really bound."""
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(skeleton)
+    except SyntaxError:
+        return []
+    init_fn = next((n for n in ast_mod.walk(tree)
+                    if isinstance(n, ast_mod.FunctionDef) and n.name == "init"), None)
+    if init_fn is None:
+        return []
+
+    def _dotted(node) -> str:
+        if isinstance(node, ast_mod.Attribute) and isinstance(node.value, ast_mod.Name):
+            return f"{node.value.id}.{node.attr}"
+        return node.id if isinstance(node, ast_mod.Name) else ""
+
+    out: List[dict] = []
+    # `X.portY = <local>` re-homes a tuple element onto its device (peer.portDut = peer_port)
+    rehome: Dict[str, str] = {}
+    for n in ast_mod.walk(init_fn):
+        if (isinstance(n, ast_mod.Assign) and len(n.targets) == 1 and isinstance(n.value, ast_mod.Name)
+                and isinstance(n.targets[0], ast_mod.Attribute)):
+            rehome[n.value.id] = _dotted(n.targets[0])
+    for n in ast_mod.walk(init_fn):
+        if not (isinstance(n, ast_mod.Assign) and isinstance(n.value, ast_mod.Call)
+                and isinstance(n.value.func, ast_mod.Attribute)
+                and n.value.func.attr == "_ck_bind_link"):
+            continue
+        t = n.targets[0]
+        elts = t.elts if isinstance(t, (ast_mod.Tuple, ast_mod.List)) else [t]
+        if len(elts) < 2:
+            continue
+        role = next((a.value for a in n.value.args if isinstance(a, ast_mod.Constant)
+                     and isinstance(a.value, str)), "")
+        near, far = _dotted(elts[0]), _dotted(elts[1])
+        far = rehome.get(far, far)
+        out.append({"role": role, "near": near, "far": far})
+    return out
+
+
 def _media_helper_source() -> str:
     """The `ck_media.py` shipped alongside a generated script into the run workdir.
 
@@ -1580,7 +1832,7 @@ def _objective_comment_lines(objective: str, width: int = 88) -> List[str]:
 
 def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                      extra_imports: List[str], fragments: Optional[List[dict]] = None,
-                     objective: str = "") -> str:
+                     objective: str = "", library: Optional[dict] = None) -> str:
     """Render the standardized ART skeleton (fixed frame + FILL slots) for this case.
     Each TestCase step carries a resolved `kind` (verify/physical/manual) so the template
     renders the right main() pattern (CLI check vs operator-prompt-and-wait vs yesNo).
@@ -1604,6 +1856,8 @@ def _render_skeleton(case_key: str, case_title: str, sequence: List[dict],
                       switches=switches, stacks=stacks, needs_portlink=needs_portlink,
                       setup_keys=_setup_keys_for(switches),
                       link_role=_detect_link_role(sequence, objective),
+                      links=_detect_links(sequence, fragments or [], objective),
+                      lib_stem=(library or {}).get("stem") or "",
                       objective_lines=_objective_comment_lines(objective))
 
 
@@ -1688,12 +1942,35 @@ def _wrap_comment(text: str, width: int) -> List[str]:
 
 
 def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
-    """Bounded framework vocabulary for the generation prompt."""
+    """Bounded framework vocabulary for the generation prompt.
+
+    `ATPackets` is special-cased (2026-09-07): the surface doc records its 28 scapy layers
+    as classes with one `guess_payload_class` method each, which told the model nothing.
+    ART decodes captures with them — `pkt.haslayer(lldp_cap_tlv)`, `pkt[lldp_cap_tlv]
+    .lldp_med_cap` — and both models on T44297 hand-parsed TLV bytes instead. The prompt now
+    lists the layers with the FIELDS the corpus reads off each (mined from `scripts`), which
+    is the only field list that exists.
+    """
     surface = data.get("framework_surface") or {}
     core = ["ATTestSet", "ATTestCase", "Setup", "ATPackets",
             "ATDrivers.ATSwitch", "ATDrivers.ATTestBox", "ATDrivers.ATPower"]
     wanted = list(dict.fromkeys(core + [m.replace("framework.", "") for m in extra_modules]))
-    return {m: surface[m] for m in wanted if m in surface}
+    out = {m: surface[m] for m in wanted if m in surface}
+    ap = out.get("ATPackets")
+    if ap and ap.get("classes"):
+        layers = sorted(ap["classes"])
+        out["ATPackets"] = {"classes": {}, "functions": ap.get("functions") or [],
+                            "layers": _atpackets_layer_fields(tuple(layers))}
+    return out
+
+
+@functools.lru_cache(maxsize=4)
+def _atpackets_layer_fields(layers: tuple) -> Dict[str, List[str]]:
+    """{layer: [fields the corpus reads]} — memoised, the corpus is permanent."""
+    try:
+        return dbx.script_layer_fields(list(layers))
+    except Exception:
+        return {lay: [] for lay in layers}
 
 
 def _cli_reference_for_text(text: str, product: Optional[str] = None,
@@ -1898,6 +2175,7 @@ _POLICY_LINT_MARKERS = (
     "self.passed()/self.failed() (empty reason",   # ...empty verdict reason
     "missing a leading",                       # ...provenance tag
     "calls setup.init_portlink() directly",    # house binding idiom; script still runs
+    "are config only; the verdict belongs in main()",   # a verdict in configure()/tear_down()
 )
 
 
@@ -2302,6 +2580,20 @@ def _lint_generated(sess: PtSession) -> dict:
                     errors.append(f"structure: {c.name} missing {req}")
             main_fn = next((n for n in c.body if isinstance(n, ast_mod.FunctionDef)
                             and n.name == "main"), None)
+            # ART shape (2026-09-07): a TestCase's own configure()/tear_down() are the
+            # precondition / mirror-undo pair — config only. A verdict there is counted by
+            # the framework against the case but sits outside main()'s STEP/OBSERVED
+            # evidence, so the log block no longer says what was checked.
+            for _hook in c.body:
+                if (isinstance(_hook, ast_mod.FunctionDef) and _hook.name in ("configure", "tear_down")):
+                    for _n in ast_mod.walk(_hook):
+                        if (isinstance(_n, ast_mod.Call) and isinstance(_n.func, ast_mod.Attribute)
+                                and _n.func.attr in ("passed", "failed")
+                                and isinstance(_n.func.value, ast_mod.Name) and _n.func.value.id == "self"):
+                            errors.append(f"contract: {c.name}.{_hook.name}() line {_n.lineno} calls "
+                                          f"self.{_n.func.attr}() — configure()/tear_down() are config "
+                                          f"only; the verdict belongs in main()")
+                            break
             inherits_local = any(isinstance(b, ast_mod.Name) and b.id not in ("object",)
                                  and "TestCase" not in b.id for b in c.bases)
             if main_fn is None and not inherits_local:
@@ -2559,7 +2851,7 @@ def _lint_generated(sess: PtSession) -> dict:
                                     and _el.value.id == "self"):
                                 _bound.add(_el.attr)
         _DEV_VERBS = {"cmd", "mode", "reboot", "portReset", "configurePort", "link",
-                      "portA", "portB", "name"}
+                      "portA", "portB", "portPeer", "portDut", "ethA", "name"}
         _unbound_seen = set()
         for _n in ast_mod.walk(tree):
             if not isinstance(_n, ast_mod.Attribute):
@@ -2774,6 +3066,12 @@ def _lint_generated(sess: PtSession) -> dict:
         lib_name = Path(lib["name"]).stem
         if re.search(rf"\bimport\s+{re.escape(lib_name)}\b|\bfrom\s+{re.escape(lib_name)}\b", code) is None:
             warnings.append(f"library file {lib['name']} provided but never imported")
+        # The library ships and is imported at module load, so a syntax error in it kills
+        # the whole suite before the first case runs.
+        try:
+            compile(lib.get("code") or "", lib["name"], "exec")
+        except SyntaxError as e:
+            errors.append(f"syntax: {lib['name']} line {e.lineno}: {e.msg}")
 
     # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
     #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise
@@ -3971,9 +4269,10 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
     sequence = (sess.step2 or {}).get("sequence", [])
     # Topology (switches/stacks/portlinks) is detected from the sequence + fragments
     # inside _render_skeleton, so multi-device cases keep a fixed init() frame.
+    library = _build_library(key, fragments, data)
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
-                                _case_payload_fields(sess)["objective"])
+                                _case_payload_fields(sess)["objective"], library)
 
     # SIZE ADVICE, NOT A SIZE GATE (Phase 7.4). This used to raise 409 for any script whose
     # projected output exceeded "32,000 tokens minus thinking". That premise is refuted: the
@@ -4018,6 +4317,8 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         "fragments": fragments_ctx,
         "device_note": device_note,
         "bound_devices": skeleton_devs or bound_devs,
+        "bound_ports": _skeleton_bound_ports(skeleton),
+        "library": library,
         "py2_flagged": py2_flagged,
         "framework_surface": _framework_surface_slice(data, extra_mods),
         # Real CLI syntax + sample output for the commands this case uses, so the model
@@ -4095,8 +4396,12 @@ async def generate_script(key: str, request: Request, body: dict = Body(default=
         prev = fresh.step6 or {}
         fresh.step6 = {
             "naming": {"group": group, "name": name},
+            # The frame imports the suite library the server built, so it ships with the
+            # script unless the model returned its own (which then wins, as before).
             "files": {"test": {"name": file_name, "code": stamped_code},
-                      "library": blocks["library"]},
+                      "library": blocks["library"] or (
+                          {"name": library["name"], "code": library["code"]}
+                          if (library or {}).get("members") else None)},
             "iterations": prev.get("iterations", 0) + 1,
             "confirmed": False,
             # Phase 7.9 — the reply is stored WHOLE. It used to be cut at 20,000 chars with
@@ -4427,9 +4732,10 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
                 if line not in extra_import_lines:
                     extra_import_lines.append(line)
     sequence = (sess.step2 or {}).get("sequence") or []
+    library = _build_library(key, fragments, data)
     skeleton = _render_skeleton(key, _case_title(data, key), sequence,
                                 extra_import_lines, fragments,
-                                _case_payload_fields(sess)["objective"])
+                                _case_payload_fields(sess)["objective"], library)
     setup_steps, tc_steps = _split_sequence(sequence)
     bound_devs, _stk, _pl = _detect_topology(sequence, fragments)
     return {
@@ -4437,6 +4743,10 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
         "skeleton": skeleton, "setup_steps": setup_steps, "tc_steps": tc_steps,
         "units": _skeleton_units(skeleton),
         "devices": _skeleton_bound_devices(skeleton, bound_devs[0] if bound_devs else ""),
+        # ART shape (2026-09-07): the links the frame bound, and the suite library the
+        # frame imports — both read back off the rendered frame / built once per case.
+        "bound_ports": _skeleton_bound_ports(skeleton),
+        "library": library,
         # CASE-level, not unit-level, on purpose: the fill rules branch on these two flags,
         # and the rules live in the SHARED half of every unit prompt (decision 8). Derived
         # per unit they made the shared half differ between units that disagreed — a cache
@@ -4562,9 +4872,14 @@ def _shared_plan(ctx: dict) -> dict:
 def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict) -> str:
     """The prompt for one unit, rendered but NOT sent."""
     plan = _shared_plan(ctx)
+    lib = ctx.get("library") or {}
+    lib_tags = set(lib.get("tags") or ()) | set(lib.get("framework_tags") or ())
     frags = plan["per_frags"][unit["id"]]                 # ALL of this unit's fragments
-    own_frags = [f for f in frags if f["tag"] not in plan["shared_tags"]]
-    shared_here = [f["tag"] for f in frags if f["tag"] in plan["shared_tags"]]
+    # Fragments that ship in the suite library are CALLED, not pasted: they leave both the
+    # per-unit and the hoisted sections and appear once, under the library header.
+    own_frags = [f for f in frags if f["tag"] not in plan["shared_tags"] and f["tag"] not in lib_tags]
+    shared_here = [f["tag"] for f in frags if f["tag"] in plan["shared_tags"] and f["tag"] not in lib_tags]
+    lib_here = [f["tag"] for f in frags if f["tag"] in lib_tags]
     cli_header, cli_secs = _split_cli_sections(plan["per_cli"][unit["id"]])
     own_cli = _join_cli_sections(cli_header,
                                  [(c, t) for c, t in cli_secs if c not in plan["shared_cmds"]])
@@ -4579,10 +4894,14 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "setup_steps": ctx["setup_steps"],
         "blank_block": unit["block"],
         "fragments": own_frags,
-        "shared_fragments": plan["shared_fragments"],
+        "shared_fragments": [f for f in plan["shared_fragments"] if f["tag"] not in lib_tags],
         "shared_tags_for_unit": shared_here,
         "shared_cli_reference": plan["shared_cli"],
         "devices": ctx["devices"],
+        "bound_devices": ctx["devices"],           # rule 3 of the included fill rules
+        "bound_ports": ctx.get("bound_ports") or [],
+        "library": lib or None,
+        "library_tags_for_unit": lib_here,
         "framework_surface": _framework_surface_slice(data, ctx["extra_mods"]),
         "cli_reference": own_cli,
         "device_note": _fragment_device_note(frags, ctx["devices"]),
@@ -4747,6 +5066,11 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         step6_f = dict(fresh.step6 or {})
         step6_f["naming"] = {"group": group, "name": name}
         step6_f["files"] = {"test": {"name": file_name, "code": stamped}}
+        if (ctx.get("library") or {}).get("members"):
+            # The frame imports `from <stem> import *`, so the module must ship with the
+            # script (persist + run both read files["library"]).
+            step6_f["files"]["library"] = {"name": ctx["library"]["name"],
+                                           "code": ctx["library"]["code"]}
         step6_f["assembled_at"] = utc_now().isoformat()
         step6_f["assembly"] = {"units": len(ctx["units"]), "manifest": report,
                                "source": "per-unit"}
@@ -4765,8 +5089,10 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
         fresh.step6 = step6_f
 
     _pt_persist_fresh(key, _apply_lint)
-    return {"files": {"test": {"name": file_name, "code": stamped}},
-            "lint": lint, "manifest": report, "units": len(ctx["units"])}
+    files_out = {"test": {"name": file_name, "code": stamped}}
+    if (ctx.get("library") or {}).get("members"):
+        files_out["library"] = {"name": ctx["library"]["name"], "code": ctx["library"]["code"]}
+    return {"files": files_out, "lint": lint, "manifest": report, "units": len(ctx["units"])}
 
 
 @router.post("/assemble_script/{key}")

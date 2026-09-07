@@ -478,6 +478,23 @@ def iter_scripts_slim(db_filter: str = ""):
         }
 
 
+def script_layer_fields(layers: List[str], limit: int = 8) -> Dict[str, List[str]]:
+    """{layer: [field, ...]} — the attributes corpus scripts read off each `framework.ATPackets`
+    scapy layer, as `pkt[<layer>].<field>`, most-used first (2026-09-07). The framework surface
+    doc records a layer's METHODS (one `guess_payload_class`), never its fields, so the corpus
+    is the only place the field vocabulary exists. Read-only over `scripts.source_text`."""
+    import re as _re
+    from collections import Counter
+    out: Dict[str, List[str]] = {}
+    for lay in layers:
+        c: Counter = Counter()
+        for r in _rows("SELECT source_text FROM scripts WHERE source_text LIKE ?", (f"%[{lay}].%",)):
+            for m in _re.finditer(r"\[" + _re.escape(lay) + r"\]\.([A-Za-z_]\w*)", r[0] or ""):
+                c[m.group(1)] += 1
+        out[lay] = [f for f, _ in c.most_common(limit)]
+    return out
+
+
 def get_json_doc(name: str):
     r = _one("SELECT payload FROM json_docs WHERE name=?", (name,))
     return _json(r["payload"], None) if r else None

@@ -51,8 +51,12 @@ precondition this unit did not establish for itself.
 - Change only what the findings require; keep every other line of this unit as it is.
 - Never weaken or delete an assertion to make a step pass — fix the condition, the command,
   the parsing or the timing.
-- Keep the class name, `testCaseDesc` / `testCaseRef` / `testCaseMethod`, the method
-  signatures and the leading provenance tag line in `main()` EXACTLY as they are.
+- Keep the class name, `testCaseDesc` / `testCaseRef` / the `testCaseMethod` lines, the
+  three method signatures (`configure` / `main` / `tear_down`), the shortcut lines that open
+  each method and the leading provenance tag line in `main()` EXACTLY as they are.
+- A precondition the bench result says was missing belongs in this unit's `configure()`;
+  its undo belongs in `tear_down()`. Never reach for a handle or port the shortcut lines
+  do not define.
 - Every rule above the split line still applies, including that this unit is SELF-CONTAINED.
 
 ## Output format

@@ -41,8 +41,25 @@ Reviewer note: {{ f.why }}
 
 ## Framework surface (relevant modules; call these — do not invent APIs)
 {% for mod, api in framework_surface.items() %}
-- {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{%- if api.layers %}
+- {{ mod }}: scapy packet LAYERS (decode a capture with `pkt.haslayer(<layer>)` and read `pkt[<layer>].<field>`; build a frame by stacking them with `/`). Fields are the ones the corpus reads: {% for lname, fields in api.layers.items() %}{{ lname }}{% if fields %}({{ fields | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+{%- else %}
+- {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if m.args and cname in ('TestBox', 'Eth', 'SwitchPort', 'TestCase') %}({{ m.args | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{%- endif %}
 {% endfor %}
+{% if library and library.framework_dupes %}
+## Selected fragments that duplicate `framework.ATPackets` — NOT shipped, already imported by the frame
+{{ library.framework_dupes | join(', ') }}: use the framework's layers by name; never paste a class definition (a copy shadows the real one and every decode fails silently).
+{% endif %}
+{% if library and library.members %}
+## Suite library `{{ library.name }}` — the frame imports it (`from {{ library.stem }} import *`); it ships beside the script. CALL these helpers, do not paste them
+{% for m in library.members %}
+### `{{ m.symbol }}` — provenance `{{ m.tag }}`{% if m.why %} — {{ m.why }}{% endif %}
+```python
+{{ m.code }}
+```
+{% endfor %}
+{% endif %}
 
 {% if cli_reference %}
 ## {{ cli_reference }}
@@ -55,5 +72,6 @@ code resolves — a name init() didn't bind is an AttributeError at runtime.{% e
 
 ## Output format
 Return the COMPLETED script (the skeleton with every slot filled) in ONE fenced python
-block. If a companion library file is genuinely needed, return it in a SECOND fenced
-python block preceded by the line `LIBRARY: <filename>`. No other prose.
+block.{% if library and library.members %} The suite library `{{ library.name }}` already exists and ships with the script — do NOT
+return one.{% else %} If a companion library file is genuinely needed, return it in a SECOND fenced
+python block preceded by the line `LIBRARY: <filename>`.{% endif %} No other prose.

@@ -50,6 +50,10 @@ UNKNOWN = "unknown"
 ROLE_REQUIRES = {
     "copper": (TWISTED_PAIR,),
     "fibre": (FIBRE,),
+    # The testbox data link (profile `tblink`, `ck_link_tb = tb-<dut>:<eth>`): a capture /
+    # injection path, not a media-under-test, so ANY fitted media satisfies it. An empty
+    # tuple means "no media requirement" -- distinct from an UNKNOWN role, which is refused.
+    "tb": (),
 }
 
 # `<n>BASE-T`, `-TX`, `-TM`, `-T4` ... = RJ45 twisted pair. Real strings seen on tb470:
@@ -140,6 +144,11 @@ def satisfies(role: str, category: str) -> Tuple[bool, str]:
     if wanted is None:
         return False, (f"unknown media role {role!r}; known roles: "
                        f"{', '.join(sorted(ROLE_REQUIRES))}")
+    if not wanted:
+        if category == ABSENT:
+            return False, (f"BENCH PROBLEM, not a product defect: the port bound for role "
+                           f"{role!r} has no pluggable fitted, so this test cannot run here")
+        return True, f"role {role!r} has no media requirement (port media {category})"
     if category in wanted:
         return True, f"port media {category} satisfies role {role!r}"
     if category == ABSENT:

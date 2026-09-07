@@ -64,14 +64,30 @@ Key: {{ case_key }} | Title: {{ case_title }}
 
 ## Framework surface (relevant modules; call these — do not invent APIs)
 {% for mod, api in framework_surface.items() %}
-- {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{%- if api.layers %}
+- {{ mod }}: scapy packet LAYERS (decode a capture with `pkt.haslayer(<layer>)` and read `pkt[<layer>].<field>`; build a frame by stacking them with `/`). Fields are the ones the corpus reads: {% for lname, fields in api.layers.items() %}{{ lname }}{% if fields %}({{ fields | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+{%- else %}
+- {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if m.args and cname in ('TestBox', 'Eth', 'SwitchPort', 'TestCase') %}({{ m.args | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+{%- endif %}
 {% endfor %}
 
 {% if devices %}
-## Device handles `init()` has already bound (use these names; do not rebind)
+## Handles and ports `init()` has already bound — the ONLY names that exist (do not rebind, do not invent others)
+Devices, reached from a TestCase as `self.testSet.<name>`:
 {% for d in devices %}
-- `self.testSet.{{ d }}`
+- `self.testSet.{{ d }}`{% if loop.first %} — the DUT (a Switch: `.mode()`, `.cmd()`){% elif d == 'tb' %} — the testbox (a TestBox: `.start_tcpdump()`, `.stop_tcpdump()`, `.cmd()` runs a shell command ON THE TESTBOX, never a switch CLI){% elif d == 'peer' %} — the neighbour switch at the far end of the peer link (a Switch, NOT the DUT){% endif %}
 {%- endfor %}
+{% if bound_ports %}
+Links (each `.name` is the CLI text of that port; a port object is never a string):
+{% for l in bound_ports %}
+- `{{ l.near }}` <-> `{{ l.far }}`{% if l.role == 'tb' %} — the testbox data link: capture and inject on `{{ l.far }}` (`{{ l.far }}.name` is the tcpdump/scapy interface); `{{ l.near }}` is the DUT port under test{% else %} — the neighbour link ({{ l.role }}); `{{ l.near }}` is the DUT-side port, `{{ l.far }}` the neighbour's{% endif %}
+{%- endfor %}
+{% endif %}
+Every method in the block you fill OPENS with the frame's shortcut lines (`tb = self.testSet.tb`,
+`{{ devices[0] }} = self.testSet.{{ devices[0] }}`, `ethA = tb.ethA`, `portA = {{ devices[0] }}.portA`, ...) — the ART house style, 158 of 188
+ART tests. KEEP those lines and use those local names below them. Nothing else is bound: a
+`dut.portA`, `tb.ethB`, `self.testSet.swi_b` or `ck_far_port` you did not see above does not
+exist and dies with AttributeError on the bench.
 {% endif %}
 {#- The shared rules are written for the whole script. Scope them, rather than restating
     them here in a second copy that would drift. -#}
@@ -89,6 +105,25 @@ Your `TestCase` runs after `TestSet.configure()` and after the previous case's o
 state yourself in `main()` before you verify it, and undo it in your own `tear_down()`. Never
 skip a precondition because an earlier step "already did it": it did, and then it was torn
 down. On a real pass 6 of 38 units failed for exactly this reason and for no product reason.
+{% if library and library.framework_dupes %}
+## Selected fragments that duplicate `framework.ATPackets` — NOT shipped, already imported by the frame
+{{ library.framework_dupes | join(', ') }}: the frame's `from framework.ATPackets import *` provides the real layers.
+Use them by name (`pkt.haslayer(lldp_cap_tlv)`, `pkt[lldp_cap_tlv].lldp_med_cap`); never paste a class definition — a
+copy shadows the framework's and every decode then fails silently.
+{% endif %}
+{% if library and library.members %}
+## Suite library `{{ library.name }}` — ALREADY imported by the frame (`from {{ library.stem }} import *`): CALL these, never paste them
+The way every ART suite keeps its packets and shared checks in `library_<suite>.py`. These
+reviewer-approved fragments ship in that file beside the script, verbatim, so a unit that
+needs one calls it by name{% if devices %} (pass the handles it asks for, e.g. `check_lldp_lag(self, ethA, tb)`){% endif %}.
+{% for m in library.members %}
+### `{{ m.symbol }}`{% if m.names | length > 1 %} (also defines {{ m.names[1:] | join(', ') }}){% endif %}
+Provenance tag: `{{ m.tag }}`{% if m.why %} — reviewer note: {{ m.why }}{% endif %}
+```python
+{{ m.code }}
+```
+{% endfor %}
+{% endif %}
 {% if shared_fragments %}
 ## Reviewer-approved reusable code shared by most units of this case (real source — adapt it into the slots; each unit says below which of these apply to it)
 {% for f in shared_fragments %}
@@ -130,6 +165,9 @@ the unit you are writing.
 {%- if shared_tags_for_unit %}
 Shared code ABOVE that the reviewer mapped to THIS unit — adapt it here: {% for t in shared_tags_for_unit %}`{{ t }}`{% if not loop.last %}, {% endif %}{% endfor %}.
 {% endif %}
+{%- if library_tags_for_unit %}
+Library helpers the reviewer mapped to THIS unit — call them from `{{ library.name }}`, do not re-implement: {% for t in library_tags_for_unit %}`{{ t }}`{% if not loop.last %}, {% endif %}{% endfor %}.
+{% endif %}
 {%- if device_note %}
 DEVICE NAME RECONCILIATION: {{ device_note }} When you adapt a reused fragment, RENAME
 its device references (e.g. `self.dut` / `self.remote`) to the names init() binds (listed
@@ -138,9 +176,14 @@ AttributeError at runtime.{% endif %}
 
 ## The exact block to return, with its slots filled
 Return this block with every `# >>> FILL ... <<<` slot completed and every marker comment
-removed. Keep the class name, the `testCaseDesc` / `testCaseRef` / `testCaseMethod`
-attributes and the method signatures EXACTLY as given — they are the fixed frame and the
-server will reject a reply that renames or drops them.
+removed. Keep the class name, the `testCaseDesc` / `testCaseRef` / `testCaseMethod` lines
+(the `+=` continuation included), the method signatures and the shortcut lines that open
+each method EXACTLY as given — they are the fixed frame and the server will reject a reply
+that renames or drops them. A TestCase has THREE methods to fill: `configure()` (the
+precondition this step presumes — config only), `main()` (the action, the observation and
+the verdicts) and `tear_down()` (the mirror of configure() and of anything main() changed,
+in `no` form). Leave `pass` in configure()/tear_down() only when there is genuinely nothing
+to set up or undo.
 
 ```python
 {{ blank_block }}
@@ -156,7 +199,7 @@ Reviewer note: {{ f.why }}
 {{ f.code }}
 ```
 {% endfor %}
-{% elif not shared_tags_for_unit %}
+{% elif not shared_tags_for_unit and not library_tags_for_unit %}
 ## Reusable code
 None of the reviewer's selected fragments map to this step. Write it from the framework
 surface above and the CLI reference below, in the same idiom as the rest of the suite.

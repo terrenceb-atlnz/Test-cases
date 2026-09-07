@@ -231,7 +231,10 @@ def test_only_the_dut_and_one_partner_are_bound():
     bench must satisfy for nothing, which is what made that script un-runnable."""
     body = init_body(render3())
     assert body.count("setup.init_swi(") == 1, "only the DUT should be looked up directly"
-    assert "self.dut = dut" in body and "self.dutA = dutA" in body
+    # ART shape (2026-09-07): the neighbour is `peer`, resolved from the far end of the link;
+    # the positional second name (`dutA` here) is no longer bound when a link exists.
+    assert "self.dut = dut" in body and "self.peer = peer" in body
+    assert "self.dutA = dutA" not in body
     assert "self.linkP" not in body
 
 
@@ -245,14 +248,21 @@ def test_the_partner_is_the_far_end_of_the_bound_link():
     """One link => exactly one partner, so the partner needs no separate lookup — which is
     what makes over-binding structurally impossible rather than merely discouraged."""
     body = init_body(render3())
-    assert re.search(r"\(dut\.portA, self\.ck_far_port, dutA\) = self\._ck_bind_link\(", body)
+    # ART shape (2026-09-07): DUT-side `portPeer`, neighbour-side `peer.portDut`, and the
+    # neighbour handle is `peer` — never `dut`, which ART reserves for the DUT's own stack.
+    assert re.search(r"\(dut\.portPeer, peer_port, peer\) = self\._ck_bind_link\(", body)
+    assert "peer.portDut = peer_port" in body
+    assert "ck_far_port" not in body
 
 
 def test_without_a_link_the_partner_is_still_capped_at_one():
     """A console-only partner has no link role to resolve from, so it is bound positionally —
     but the cap still applies."""
-    body = init_body(render3([{"n": 1, "action": "set speed 1000",
-                               "verify": "reports 1000", "kind": "verify"}]))
+    # No link vocabulary at all: "speed" would imply a negotiating partner (a peer LINK), so
+    # the console-only shape needs a step that names neither side of a cable.
+    body = init_body(render3([{"n": 1, "action": "show version",
+                               "verify": "the build string is reported", "kind": "verify"}]))
+    assert "_ck_bind_link(" not in body
     assert body.count("setup.init_swi(") == 2      # DUT + one console-only partner
     assert "self.linkP" not in body
     assert "# NOT BOUND: linkP." in body

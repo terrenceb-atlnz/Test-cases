@@ -270,7 +270,10 @@ def test_skeleton_and_prompt_do_not_teach_hardcoded_ports():
     skeleton = (tpl / "pt_script_template.py.jinja").read_text()
     generate = expand_includes(tpl / "prompts" / "pt_generate_script.jinja")
     assert "'portX.Y.Z'" not in skeleton, "skeleton still seeds a literal port name"
-    assert "port = dut.portA" in skeleton, "skeleton should bind from the topology"
+    # ART shape (2026-09-07): the frame's shortcut block binds `portA = <dut>.portA` from the
+    # topology and the physical step takes `port = {{ phys_port }}` from it — still no literal.
+    assert "portA = {{ dut }}.portA" in skeleton, "skeleton should bind from the topology"
+    assert "port = {{ phys_port }}" in skeleton
     assert "port = 'port1.0.1'" not in generate, "prompt still instructs a literal"
     assert "NEVER HARDCODE A PORT NAME" in generate
     # the chassis rationale must survive, since it is the reason the rule exists

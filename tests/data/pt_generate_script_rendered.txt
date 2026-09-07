@@ -35,6 +35,8 @@ def s():
 
 
 
+
+
 ## CLI reference
 show lldp
 
@@ -48,10 +50,16 @@ show lldp
      via `self.testSet.<dev>.cmd(...)`, a measurement, a packet capture, etc.), then
      keep the `self.log('OBSERVED: ...')` line.
    - Replace the `if False:` placeholder with the REAL verification condition. EVERY
-     path through `main()` must reach exactly one non-empty `self.passed('<why>')` or
-     `self.failed('<why>')` — so KEEP the `if/else`: one verdict per branch, not one
-     verdict in the whole method. Dropping the `else` means a failing device emits NO
-     marker and the step is scored as a pass. An empty reason emits no marker either.
+     path through `main()` must reach at least one non-empty `self.passed('<why>')` or
+     `self.failed('<why>')` — so KEEP the `if/else`: a verdict on each branch, never a
+     branch that falls through silently. Dropping the `else` means a failing device emits
+     NO marker and the step is scored as a pass. An empty reason emits no marker either.
+     CHECKPOINTS ARE THE ART STYLE: a step that proves several things logs a verdict for
+     each — `passed('LLDP frames captured')`, then `passed('Link Aggregation TLV present')`,
+     then the value check — and the framework folds them into the case footer (any
+     `failed()` makes the case FAIL). After a FATAL `failed()` (nothing captured, port
+     missing from the table) `return`, so the later checks do not fail again on nothing.
+     Every checkpoint reason must name what was observed, not restate the step.
 1a. **GROUND EVERY VERDICT IN THE OBJECTIVE.** The skeleton's header carries a
    `# ==== OBJECTIVE — expected results this script must demonstrate ====` block (present
    whenever the refined case has an objective). Those bullets are the AUTHORITATIVE
@@ -62,9 +70,24 @@ show lldp
    SLICE of the objective its step covers, not merely that the link survived (see 4c).
    KEEP the objective header verbatim in the returned script: it is documentation the
    artifact carries, not a FILL marker, so do not rewrite, summarise, or delete it.
-2. **`TestSet.configure()` / `tear_down()` are SETUP, not tests** — fill with config
-   commands only; NEVER put `self.passed()`/`self.failed()` there.
+2. **`configure()` / `tear_down()` are SETUP, not tests — on the TestSet AND on every
+   TestCase** — fill with config commands only; NEVER put `self.passed()`/`self.failed()`
+   there (the lint rejects it). The per-case pair is the ART shape (172 of 188 ART tests):
+   `configure()` establishes the device state this step PRESUMES (the VLAN it expects to
+   exist, the TLV set it expects selected), `main()` acts and verifies, `tear_down()` undoes
+   configure() AND anything main() changed, command for command in `no` form — the way
+   `lldp tlv-select link-aggregation` is mirrored by `no lldp tlv-select link-aggregation`.
+   Reads that need exec mode belong in main(); leave the console in exec mode (`mode('#')`)
+   when a method ends.
 3. Reach devices from a TestCase via `self.testSet.<name>` (init binds: tb, swi_a).
+   Every method in the frame OPENS with the ART shortcut block — `tb = self.testSet.tb`,
+   `<dut> = self.testSet.<dut>`, `ethA = tb.ethA`, `portA = <dut>.portA`, ... — KEEP those
+   lines and use the local names they define; they are the complete list of what exists.
+   `tb` is the TESTBOX (a Linux host: `tb.start_tcpdump(ethA.name, '<file>.pcap', '<bpf>')`,
+   `tb.stop_tcpdump(subProc)`, `sendp(pkt, iface=ethA.name, verbose=0)`, `tb.cmd('<shell>')`)
+   — it has no switch CLI, so never `tb.mode(')#')` or `tb.cmd('show lldp neighbors')`.
+   `peer`, when bound, is the NEIGHBOUR switch: the device whose neighbour table you read
+   or whose port you shut to provoke the DUT — it is never the device under test.
    **`TestSet.init()` IS FIXED FRAME — DO NOT ADD BINDINGS TO IT, and do not call
    `setup.init_portlink()` or `setup.init_swi()` yourself.** The frame already resolves the
    topology from the bench's role contract and binds every device and port this script is
@@ -104,6 +127,22 @@ show lldp
      `(config-if)#` makes the NEXT TestCase's commands run in the wrong mode.
    - `cmd()` accepts `log=False` (real kwarg: `cmd(command, timeOut, maxWait, interval,
      log, debug, retry)`) — use it for noisy polling only.
+3d. **CAPABILITY GATING IS DONE AT RUN TIME, THE ART WAY — never by inventing a platform
+   list.** The script runs unchanged on every platform, and absence of a command from the
+   CLI reference means UNKNOWN, not unsupported. So do NOT add `testCaseExcl` /
+   `testCaseIncl` / `testCase*VersionInclFrom` attributes (those are hardware-verified
+   lists maintained by the suite owners). When a step can only be judged if the device
+   supports the feature, PROBE first and mark the case unsupported when it does not:
+   ```python
+   output = dutA.cmd('show lldp')
+   if 'Invalid input' in output or 'Unrecognized command' in output:
+       self.supported = False
+       self.log('INFO: {} does not support lldp; case not applicable'.format(dutA))
+       return
+   ```
+   `self.supported = False` is the framework's UNSUPPORTED result (68 of 188 ART tests use
+   it): the case is reported as not applicable rather than as a product failure. Use it
+   for genuine capability gaps only, never to dodge a failing check.
 3c. **The script runs on the TESTBOX's `python3`, not this server's.** tb470 is on
    **3.13**, so anything removed from the stdlib in 3.12/3.13 is an ImportError there even
    though it compiles here: no `distutils` (parse y/n yourself), no `imp`, `telnetlib`,
@@ -214,7 +253,9 @@ show lldp
            break
    ```
    Same rule for any `show` whose output covers more than the port under test.
-5. Keep `testCaseRef = 'K'` on every TestCase; keep the `__main__` block
+5. Keep `testCaseRef = 'K'` on every TestCase; keep `testCaseDesc` and the
+   `testCaseMethod  = ...` / `testCaseMethod += ...` lines as given (the ART multi-line
+   method: one procedure line per statement, each ending `\n`); keep the `__main__` block
    adding every TestCase in order then `ts.run(sys.argv)`.
 6. **DELETE every `# >>> FILL ... <<<` (and `>>> replace` / `>>> remove`) comment
    line once you have filled its slot.** These lines are scaffolding instructions to

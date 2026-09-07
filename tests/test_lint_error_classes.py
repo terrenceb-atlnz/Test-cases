@@ -67,6 +67,9 @@ BLOCKING = [
     "imports: framework.ATBar not found in framework_surface",
     "incomplete: 6 TestCase classes for 14 non-setup sequence steps",
     "coverage/completeness check could not run (ValueError: boom)",
+    # ART shape (2026-09-07): the suite library is imported at module load, so a syntax
+    # error in it stops the whole suite before the first case — not a judgement call.
+    "syntax: library_awptcm_t1.py line 3: invalid syntax",
 ]
 
 POLICY = [
@@ -75,6 +78,9 @@ POLICY = [
     "contract: TestCase_1.main() has 2 empty self.passed()/self.failed() (empty reason emits no log marker)",
     "contract: TestCase_1.main() missing a leading # ART/SVT/legacy/AI provenance tag (PLAN §1.5)",
     "line 273: calls setup.init_portlink() directly, which skips the run-time MEDIA assertion",
+    # ART shape (2026-09-07): a verdict inside a TestCase's own configure()/tear_down() runs
+    # and is counted, but sits outside main()'s STEP/OBSERVED evidence — a house rule.
+    "contract: TestCase_1.configure() line 40 calls self.failed() — configure()/tear_down() are config only; the verdict belongs in main()",
 ]
 
 
