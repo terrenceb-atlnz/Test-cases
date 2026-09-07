@@ -46,6 +46,11 @@ censused; eight divergences came out and Terrence asked for all eight closed at 
 - Tests: `tests/test_pt_art_shape.py`; the whole-script prompt snapshot regenerated knowingly.
   Built in a worktree, merged when the gate was green. First model pass on the new shape is
   still to come.
+- **Same afternoon — Generate no longer sends stale prompts.** The unit page sent every
+  unit's prompt back with the request, so a tab loaded before the merge fired a 38-unit pass
+  ($5.79) on the pre-merge frame while the server, seeing text unlike its own render, took it
+  for reviewer edits. `_ptDispatchUnits` now sends a prompt only for units the reviewer
+  edited (`_dirty`); everything else is an id the server renders fresh at dispatch.
 
 ## 2026-09-07 — The shared half of every unit prompt becomes the system prompt; the fan-out is primed; units are self-contained; common fragments are hoisted; Fix is per-unit and Review is gated on lint; bench-integration lint; per-task model routing
 

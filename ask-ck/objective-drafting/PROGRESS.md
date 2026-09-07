@@ -19,6 +19,16 @@ merged. `CHANGELOG.md` 2026-09-07 (ART shape) has the what-and-why; SERVER-READM
 shape" the detail; `tests/test_pt_art_shape.py` (32) pins it; LOGGING-CONTRACT §3 and
 TEMPLATE-SPEC C6 were revised (verdict rule) with dated notes.
 
+**⚠ The 14:21 pass on 2026-09-07 is NOT a pass on the new shape — do not judge it as one.**
+Generate was fired six minutes after the merge from a tab loaded before it. The page sent
+every unit's prompt back with the request, the server took the stale text for reviewer edits
+and used it verbatim, and all 38 units ($5.79) were filled from the pre-merge frame (old
+handle section, no per-case `configure()`, `dut.portA`). My instruction to fire "as is" was
+wrong: the server renders fresh, but only for units the browser sends no prompt for. Fixed
+the same afternoon: `_ptDispatchUnits` now sends a prompt only for units the reviewer edited
+(`_dirty`); the Re-render prompts button also refreshes them. Terrence is out of credits for
+this 5-hour block, so the first real pass on the new shape is in a later block.
+
 **Pick up here.**
 1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →
    Fix units → Review). Expect: `tb.ethA`/`portA` reads now legal; `configure()` per case; the

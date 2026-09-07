@@ -207,12 +207,27 @@ describe('the fan-out holds no connection per unit', () => {
     expect(dispatched.sort()).toEqual(['setup', 'tc1', 'tc2']);
   });
 
-  it('carries every unit\'s prompt in that one request', async () => {
+  it('sends an UNEDITED unit as its id alone, so the server renders it fresh at dispatch', async () => {
+    // 2026-09-07: a tab loaded before a deploy fired 38 units on stale prompts because every
+    // unit's prompt travelled with the request and the server took the stale text for
+    // reviewer edits. Only an edited prompt may override the server's own render.
     click('#pt-units-all-btn');
     await settle();
-    expect(sent.setup.prompt).toBe('P-setup');
-    expect(sent.tc1.prompt).toBe('P-1');
-    expect(sent.tc2.prompt).toBe('P-2');
+    expect(Object.keys(sent).sort()).toEqual(['setup', 'tc1', 'tc2']);
+    expect(sent.setup).toEqual({ id: 'setup' });
+    expect(sent.tc1).toEqual({ id: 'tc1' });
+    expect(sent.tc2).toEqual({ id: 'tc2' });
+  });
+
+  it('carries the prompt ONLY for the unit the reviewer edited', async () => {
+    const ta = document.getElementById('pt-unit-prompt');
+    ta.value = 'MY EDITED PROMPT';
+    ta.dispatchEvent(new window.Event('input', { bubbles: true }));
+    click('#pt-units-all-btn');
+    await settle();
+    expect(sent.setup.prompt).toBe('MY EDITED PROMPT');
+    expect(sent.tc1).toEqual({ id: 'tc1' });
+    expect(sent.tc2).toEqual({ id: 'tc2' });
   });
 
   it('marks every dispatched unit yellow at once', async () => {
@@ -307,7 +322,7 @@ describe('the prompt is what gets sent', () => {
     click('#pt-units-all-btn');
     await settle();
     expect(sent.setup.prompt).toBe('EDITED ON SETUP');
-    expect(sent.tc1.prompt).toBe('P-1');
+    expect(sent.tc1).toEqual({ id: 'tc1' });   // unedited: the server renders it fresh
   });
 
   it('shows the returned code in the top frame and leaves the prompt below', async () => {

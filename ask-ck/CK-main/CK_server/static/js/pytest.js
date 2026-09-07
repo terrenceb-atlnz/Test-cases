@@ -1333,11 +1333,17 @@ function _ptStartUnitPoll() {
 }
 
 // Dispatch a subset (or all) and start polling. `ids` empty = every unit.
+//
+// Only a prompt the reviewer actually EDITED travels with the request; every other unit is
+// sent as an id alone and the server renders it fresh at dispatch. It used to send every
+// unit's prompt, so a tab loaded before a deploy fired the whole fan-out on stale prompts and
+// the server, seeing text that differed from its own render, took them for reviewer edits —
+// a 38-unit pass ($5.79) on the pre-deploy frame, AWPTCM-T44297, 2026-09-07.
 async function _ptDispatchUnits(ids) {
   const wanted = (ids && ids.length ? ids : _ptUnits.map(u => u.id));
   const payload = wanted.map(id => {
     const u = _ptUnitById(id);
-    return { id, prompt: (u && u.prompt) || '' };
+    return (u && u._dirty && u.prompt) ? { id, prompt: u.prompt } : { id };
   });
   wanted.forEach(id => { _ptUnitSending[id] = true; });
   _ptUnitFails = _ptUnitFails.filter(f => !wanted.includes(f.id));
