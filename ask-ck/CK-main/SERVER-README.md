@@ -975,6 +975,58 @@ Seven of the eight decisions in `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6 were
   `_ck_bind_link` partner → either); (3) a capture started and stopped with nothing between.
   1 and 2 are errors, 3 a warning.
 
+### ART suite shape — frame, prompt, verdicts, library (2026-09-07)
+
+Six ART scripts read whole plus a census over all 188 (2,085 TestCase classes) showed eight
+places where the generated frame and prompt diverged from how ART suites are actually written,
+and Terrence asked for all eight closed in one pass. What changed, and why each:
+
+1. **The frame binds the TESTBOX link** `(dutA.portA, tb.ethA)` (profile `tblink`) whenever the
+   case captures, injects or measures traffic (`_detect_links`). 111 of 188 ART tests bind
+   exactly that and both models wrote `tb.ethA` in every capture unit while the frame had
+   bound nothing on the testbox — the 60-error unbound-port flood on T44297 was frame-caused.
+   `_ck_bind_link` takes the testbox end without `init_swi`; media role `tb` has no media
+   requirement (`tool/pt_media.py`).
+2. **The neighbour switch is `peer`, ports `dutA.portPeer` / `peer.portDut`.** ART reserves
+   `dut` for the DUT's own stack handle; a partner called `dut` made every model read
+   `dut.portA` as the DUT port. Any habitual `portB` / `ck_far_port` read is now a lint error
+   instead of a silent wrong port.
+3. **Every TestCase renders `configure()` / `main()` / `tear_down()`** (172 / 148 of 188 ART
+   tests). The precondition a step presumes goes in `configure()`, its mirror in `tear_down()`;
+   a verdict in either is a (policy) lint error. This makes the self-contained-unit rule the
+   natural shape rather than a paragraph of prose.
+4. **Every method opens with the ART shortcut block** (`tb = self.testSet.tb`, `dutA = ...`,
+   `ethA = tb.ethA`, `portA = dutA.portA`, ...), emitted by the frame; the prompt's handle
+   section now lists the bound LINKS (`_skeleton_bound_ports`, read back off the frame) and
+   says the shortcut names are the complete list of what exists. The per-unit prompt also
+   passes `bound_devices` into the included fill rules, which it had not been doing.
+5. **Checkpoint verdicts are allowed.** LOGGING-CONTRACT §3 and TEMPLATE-SPEC C6 said
+   "exactly one determination"; the corpus emits several per `main()` (3,372 passed / 4,947
+   failed over 1,794 mains) and the parser always accepted ≥ 1. Rule 1 now says at least one
+   per path, checkpoints named for what was observed, `return` after a fatal `failed()`.
+6. **Class attributes:** `testCaseMethod` is the ART `=` / `+=` multi-line form; no
+   `testCaseExcl` / `testCaseIncl` are generated (platform lists are hardware-verified, never
+   inferred — rule 3d), and the run-time gate is the ART idiom `self.supported = False`.
+7. **A suite library** `library_<case>.py` (`_build_library`) holds every selected fragment
+   that is a stand-alone function, class or constant, verbatim under its provenance tag, with
+   its source's imports; the frame imports it with `*`; it is stored as `files.library`, so
+   `_persist_generated_files` writes it and the run ships it, and the lint compiles it. Units
+   are told to CALL these, and they leave the per-unit and hoisted fragment sections. Two
+   exclusions, both found on the real T44297 selection: a fragment that DEFINES a class the
+   framework surface already has (the legacy `lldp_class.py` copies of the ATPackets layers)
+   is not shipped — it would shadow the real layer and every `haslayer()` would fail silently
+   — and the prompt names it as "already imported"; a member whose default argument or
+   module-level value names something the library cannot resolve (`csvName = defaultCsvName`)
+   is skipped, because that is evaluated at import and would kill the suite before case 1.
+8. **`framework.ATPackets` is rendered as scapy LAYERS with FIELDS** mined from the corpus
+   (`db.script_layer_fields`: `pkt[lldp_cap_tlv].lldp_med_cap` ...), and the frame imports the
+   module whenever the testbox link is bound. Both models had hand-parsed TLV bytes; ART
+   decodes with `pkt.haslayer(lldp_cap_tlv)`. Method args are shown for TestBox / Eth /
+   SwitchPort / TestCase.
+
+Tests: `tests/test_pt_art_shape.py` (32). The whole-script prompt snapshot was regenerated
+knowingly (design docs read and revised first).
+
 ## Migration from Original Single-File Tool
 
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.

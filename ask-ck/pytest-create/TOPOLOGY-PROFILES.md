@@ -100,6 +100,26 @@ ck_cap_swi_b   = polarity                   ; VERIFIED on the device — never f
 | `tblink` | `ck_link_tb` | A testbox↔DUT data path is independent of switch↔switch cabling: a bench can have partners but no testbox link, or the reverse. |
 | `stack` | `ck_role_dut` naming a `[stack]` of ≥ 2 members | **Not `base` plus a device.** Stacking renames every port (`1.0.x` → `N.0.x`), which leaks into portlinks, fragments and every port literal — so stacked and unstacked benches are different topologies, not sub/supersets. Demonstrated live on 2026-07-30: u5's ports read `2.0.x` while stacked and `1.0.x` after. |
 
+## How the generated frame binds these (2026-09-07, ART shape)
+
+`TestSet.init()` binds through one helper, `_ck_bind_link(setup, dut, misc, '<role>')`,
+which reads `ck_link_<role>`, refuses a `(None, None)` portlink, asserts the media, and
+returns `(near_port, far_port, far_device)`. Two roles are rendered, each only when the
+case's wording needs it (`_detect_links` in `routers/pytest_create.py`):
+
+| Role | Binding in `init()` | Handles the units use |
+|---|---|---|
+| `tb` (profile `tblink`) | `(dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')` — the far end is the testbox itself, so the helper calls `init_portlink(dut, self.tb, type1='port')` and never `init_swi` | `tb`, `ethA`, `portA` — capture / inject on `ethA.name`, the DUT port under test is `portA` |
+| `copper` / `fibre` (profile `base` / `fibre`) | `(dutA.portPeer, peer_port, peer) = self._ck_bind_link(...)`, then `peer.portDut = peer_port`, `self.peer = peer` | `peer`, `portPeer`, `peer.portDut` — the neighbour switch, never the DUT |
+
+This is the corpus's own topology: 111 of 188 ART tests bind `(dut.portA, tb.ethA)` and
+capture on the testbox; a second switch is named by role (`swiSrc`, `dutZ`), never `dut`.
+Before this the frame bound one partner, called it `dut`, and bound nothing on the testbox —
+so every model wrote `tb.ethA` and `dut.portA` anyway (T44297: 59 / 63 unbound-port lint
+errors, all frame-caused). The media role `tb` has **no media requirement** (`pt_media.
+ROLE_REQUIRES["tb"] = ()`): any fitted pluggable passes, an empty cage is still a bench
+problem. `ck_link_tb = tb-swi_a:eth3` is the declaration a bench writes.
+
 ## Limitations — read before trusting a green
 
 1. **Media is NOT machine-verified, and no offline checker can fix that.** The checker

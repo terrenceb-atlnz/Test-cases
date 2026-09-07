@@ -60,10 +60,20 @@ MUST:
    action, so the log is human-readable and each block is self-describing.
 2. **Log the observed result** — `self.log(...)` the actual output/measurement the
    verification is based on (the evidence).
-3. **Assert with a NON-EMPTY reason** — end with exactly one determination:
-   `self.passed('<why it passed>')` or `self.failed('<why it failed>')`. The reason
-   must be non-empty (empty reasons emit no marker → no per-step evidence → fails
-   criterion 6). One case = one step = one pass/fail determination.
+3. **Assert with a NON-EMPTY reason** — every path through `main()` reaches at least one
+   determination: `self.passed('<why it passed>')` or `self.failed('<why it failed>')`.
+   The reason must be non-empty (empty reasons emit no marker → no per-step evidence →
+   fails criterion 6). One case = one step; a step may prove several things.
+
+   > **Revised 2026-09-07 (was "exactly one determination").** The ART corpus emits
+   > CHECKPOINTS: 1,794 `main()` bodies carry 3,372 `passed()` and 4,947 `failed()` calls
+   > — "frames captured", then "TLV present", then the value check — and the framework
+   > folds them into the case footer (one `failed()` makes the case FAIL). The parser
+   > already accepted ≥ 1 marker per case (§4 post-run), so the old "exactly one" was a
+   > house rule tighter than the corpus it claimed to standardise, and it marked correct
+   > ART-style units as defects (T44297 tc12/tc37). Two things still hold: no path may
+   > fall through with NO marker (a silent branch is scored as a pass), and after a
+   > FATAL `failed()` the case `return`s so later checks do not fail again on nothing.
 
 And each `TestCase_<n>` class MUST carry:
 - `testCaseDesc` — one-line description (mirrors the sequence step)
@@ -80,8 +90,10 @@ This is exactly the ~72%-of-corpus pattern (see PLAN-pytest-testing §1.4) made
 
 Given a generated script (offline) and its run log (from tb470):
 - **offline (lint):** every `TestCase_<n>.main()` contains ≥1 `self.log(...)`, and
-  exactly one `self.passed(<non-empty>)` or `self.failed(<non-empty>)`; each class has
-  the four required attributes with `testCaseRef` = the case key.
+  ≥1 `self.passed(<non-empty>)` or `self.failed(<non-empty>)` with no empty-reason
+  call; a TestCase's own `configure()`/`tear_down()` carry NO verdict (config only —
+  2026-09-07); each class has the four required attributes with `testCaseRef` = the
+  case key.
 - **post-run (parser):** `parse_framework_log()` returns exactly one case block per
   sequence step, each with a `PASS`/`FAIL` footer and ≥1 `PASS:`/`!!FAIL:` marker
   line — i.e. `len(cases) == len(sequence)` and no `ERROR`/unclosed blocks.

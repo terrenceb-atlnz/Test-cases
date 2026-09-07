@@ -4,6 +4,55 @@
 
 **Last Updated**: 2026-09-07 (by Claude)
 
+## Latest session (2026-09-07, later) — the combined re-run judged; the frame and prompt now emulate the ART suite shape
+
+**Where it stands.** The Sonnet-routed 38-unit pass on the seven decisions returned 38/38 at
+$6.31 vs the morning's Opus $12.15, with 74% of input read from cache (only the primed unit
+wrote). Judged in-context against the saved Opus units: broadly comparable, different failure
+modes, the self-contained rule visibly applied. The dominant defect was OURS: both scripts read
+`tb.ethA` in every capture unit and `dut.portA` for the DUT port — the ART idiom — while the
+frame bound nothing on the testbox and called the partner `dut` (59 / 63 unbound-port lint
+errors after the alias fix `e4256c4`). Terrence asked for ART tests to be read to see what else
+we were missing; six read whole, all 188 censused; eight divergences listed; he asked for all
+eight closed. **All eight are built** (order 1-2-3-4, 6, 5, 7, 8), in a worktree, gate green,
+merged. `CHANGELOG.md` 2026-09-07 (ART shape) has the what-and-why; SERVER-README "ART suite
+shape" the detail; `tests/test_pt_art_shape.py` (32) pins it; LOGGING-CONTRACT §3 and
+TEMPLATE-SPEC C6 were revised (verdict rule) with dated notes.
+
+**Pick up here.**
+1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →
+   Fix units → Review). Expect: `tb.ethA`/`portA` reads now legal; `configure()` per case; the
+   library file `library_awptcm_t44297.py` appears beside the script if any selected fragment
+   is a stand-alone function (the 1332 LLDP fragments `check_lldp_lag`, `log_packet` qualify).
+2. Judge the result in-context (standing instruction). Things to watch: does the model keep
+   the shortcut lines; does it call library helpers rather than paste; do checkpoints read as
+   evidence; does `_detect_links` pick tb+peer for T44297 (it should: capture + neighbour
+   table wording).
+3. Bench: the frame now needs `ck_link_tb = tb-swi_a:<eth>` in the bench `[misc]` when a case
+   captures. tb470's `[misc]` is currently EMPTY (`ck_profile` deliberately blank since the
+   2026-08-18 re-stack) — a bench-state.md / .setup change is needed before a run, and that
+   is a bench decision, not a generation one.
+
+**Decisions I made that Terrence should know about** (all reversible, all flagged here):
+- The neighbour handle is `peer` (ART names a second switch by role; `dutB` is ART's second
+  STACK MEMBER, so it was not an option). Ports: DUT-side `portPeer`, neighbour-side `portDut`;
+  the testbox link keeps the verbatim ART names `portA` / `ethA`.
+- Link detection is text-driven and over-inclusive on purpose (an unneeded link costs one bench
+  line; a missing one dies on `interface None`). A PHYSICAL step binds the testbox link.
+- The library is per case (`library_<case>.py`), not per group, so scripts cannot overwrite
+  each other's helpers; membership = stand-alone defs/classes/constants only.
+- No `testCaseExcl` is ever generated (hardware-agnostic rule); `self.supported = False` is the
+  run-time gate. `self.supported`'s framework semantics are corpus-grounded (68 of 188 tests,
+  LOGGING-CONTRACT's UNSUPPORTED result), not source-verified — the framework tree is not
+  mounted on this host.
+- The DUT handle name still comes from the fragments' vocabulary (`dutA` for T44297, `dut` in
+  the T33235 fixture). Not changed; noted because ART's `dut` = stack habit interacts with it.
+
+**Also this session:** `e4256c4` bench-integration lint follows local aliases (edited in the
+main tree directly because the worktree was already gone; live server reloaded cleanly). The
+workspace `auth_method` had switched to `claude_agent` for the 13:12 run — I asked whether that
+was deliberate and did not get an answer; it is still set that way.
+
 ## Latest session (2026-09-07) — the re-run found zero cache reads; seven token-efficiency decisions built for ONE combined re-run
 
 Terrence re-ran the 38-unit T44297 generate on the 2026-09-04 transport. **Input fell 30%

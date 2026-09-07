@@ -3893,3 +3893,19 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Superseded:** the 2026-09-04 statement that the prefix reorder would cache once the harness
   was gone — it needed the block split too.
 
+
+## Session Close / Handoff (2026-09-07, later) — ART suite shape
+
+- **Shipped:** the combined 38-unit re-run judged in-context (Sonnet-routed, $6.31 vs $12.15,
+  74% cache reads; quality comparable, self-containment improved; the dominant defect was the
+  frame's missing testbox link + `dut` partner naming). Six ART scripts read whole, 188
+  censused, eight divergences closed in one worktree pass: testbox link `(dutA.portA, tb.ethA)`,
+  neighbour `peer` (`portPeer`/`portDut`), per-case configure/tear_down + shortcut block, prompt
+  lists bound links, verdict rule revised to checkpoints (both design docs), multi-line
+  `testCaseMethod` + `self.supported` gating, `library_<case>.py`, ATPackets layers with
+  corpus-mined fields. `tests/test_pt_art_shape.py`; whole-script prompt snapshot regenerated.
+- **Left undone:** the first model pass on the new shape (Terrence's); tb470 `[misc]` needs
+  `ck_link_tb` before any capture case can run there; the `claude_agent` auth switch question
+  is unanswered.
+- **Superseded:** LOGGING-CONTRACT §3.3 / TEMPLATE-SPEC C6 "exactly one determination" (both
+  carry dated revision notes).

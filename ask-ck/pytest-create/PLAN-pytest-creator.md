@@ -980,3 +980,18 @@ the result is Terrence's re-run and had not happened at the time of writing.
   consumes those findings and re-generates units, it does not let Review write code.
 - §9.7 unchanged: chunks stay fields on the session payload; `step6.fix_units` is one more.
 
+
+### 9.13 ART suite shape — frame, prompt, verdicts, library — BUILT 2026-09-07
+
+After the combined re-run, six ART scripts were read whole and all 188 censused; eight
+divergences between our frame/prompt and the ART house shape were listed and Terrence asked
+for all eight closed in one pass ("it all needs to be done"). Built in order 1-2-3-4, 6, 5,
+7, 8: the frame binds the testbox link `(dutA.portA, tb.ethA)` and names the neighbour
+`peer` (`dutA.portPeer` / `peer.portDut`); every TestCase has `configure()` / `main()` /
+`tear_down()` opening with the ART shortcut block; the prompt lists the bound links; the
+"exactly one verdict" rule became "at least one per path, checkpoints allowed" in both design
+docs; `testCaseMethod` is multi-line and platform gating is `self.supported = False`, never a
+generated `testCaseExcl`; a `library_<case>.py` ships stand-alone fragments; `ATPackets` is
+shown as layers with corpus-mined fields. Details: SERVER-README "ART suite shape";
+`tests/test_pt_art_shape.py`. Not yet run against a model — Terrence's next 38-unit pass is
+the first measurement.

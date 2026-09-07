@@ -11,6 +11,42 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
+
+After the combined token-efficiency re-run, the Sonnet and Opus scripts for T44297 were judged
+in-context and the biggest defect was ours: 59 and 63 unbound-port lint errors, because every
+capture unit read `tb.ethA` and the DUT port as `dut.portA` — which is exactly what 111 of 188
+ART tests do, and what our frame did not provide. Six ART scripts were read whole and all 188
+censused; eight divergences came out and Terrence asked for all eight closed at once.
+
+- **Frame:** binds the testbox link `(dutA.portA, tb.ethA)` when the case captures or injects
+  traffic, and the neighbour link as `(dutA.portPeer, peer.portDut)` with the handle `peer` —
+  never `dut`, which ART reserves for the DUT's own stack. `_ck_bind_link` takes the testbox
+  end without `init_swi`; media role `tb` requires any fitted pluggable. Every TestCase renders
+  `configure()` / `main()` / `tear_down()`, each opening with the ART shortcut block.
+  `testCaseMethod` is the `=` / `+=` multi-line form. `from framework.ATPackets import *` when
+  the testbox link is bound.
+- **Prompt:** the handle section lists the bound links read back off the frame and states that
+  the shortcut names are the only ones that exist; `ATPackets` is rendered as scapy layers
+  with fields mined from the corpus; rule 3d says platform gating is `self.supported = False`
+  at run time, never a generated `testCaseExcl`; the per-unit prompt now passes
+  `bound_devices` into the shared rules (it had not been).
+- **Verdict rule:** "exactly one determination" became "at least one on every path,
+  checkpoints allowed, `return` after a fatal `failed()`" in LOGGING-CONTRACT.md §3,
+  TEMPLATE-SPEC.md C6 and fill rule 1. Why: the corpus emits 3,372 `passed()` / 4,947
+  `failed()` over 1,794 `main()` bodies and the parser always accepted ≥ 1; the old rule
+  flagged correct ART-style units as defects. A verdict in a TestCase's `configure()` /
+  `tear_down()` is a new (policy) lint error.
+- **Library:** `library_<case>.py` holds every selected fragment that is a stand-alone
+  function, class or constant, verbatim under its provenance tag, with its source's imports;
+  the frame imports it with `*`, it persists and ships as `files.library`, and the lint
+  compiles it. Units are told to call these, not paste them. Not shipped: fragments that
+  re-define a framework class (they would shadow the real ATPackets layer) and members whose
+  defaults need a name the library lacks (import-time NameError) — both seen on T44297.
+- Tests: `tests/test_pt_art_shape.py`; the whole-script prompt snapshot regenerated knowingly.
+  Built in a worktree, merged when the gate was green. First model pass on the new shape is
+  still to come.
+
 ## 2026-09-07 — The shared half of every unit prompt becomes the system prompt; the fan-out is primed; units are self-contained; common fragments are hoisted; Fix is per-unit and Review is gated on lint; bench-integration lint; per-task model routing
 
 **Why one entry for seven changes:** Terrence ordered the token-efficiency report's decisions

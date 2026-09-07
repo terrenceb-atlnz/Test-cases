@@ -88,4 +88,13 @@ behaviour — speed/duplex/MDI-X/autoneg, and later PoE + cable diagnostics (TDR
 copper-only. Most cases don't care, so `needs_portlink` rendering no binding for them is fine,
 and self-correcting: a body that reads a port attribute without a binding errors.
 
+**2026-09-07 — the frame now binds TWO roles, ART-shaped.** `tb` (profile `tblink`):
+`(dutA.portA, tb.ethA, _tb) = self._ck_bind_link(setup, dutA, misc, 'tb')` — the helper takes
+the testbox end via `self.tb` and `init_portlink(dut, tb, type1='port')`, media role `tb` has
+NO media requirement (`ROLE_REQUIRES["tb"] = ()`, empty cage still fails). `copper`/`fibre`:
+`(dutA.portPeer, peer_port, peer)` then `peer.portDut = peer_port` — the neighbour is `peer`,
+never `dut` (ART's `dut` = the DUT's stack; a partner called `dut` made every model read
+`dut.portA` as the DUT port, 59/63 unbound-port errors on T44297). `_detect_links` decides
+which links from the case wording, over-inclusive on purpose. See [[art-suite-shape]].
+
 Companion: [[preflight-topology-check]] for the script-level half.
