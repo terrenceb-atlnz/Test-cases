@@ -5131,29 +5131,38 @@ async def step_prompts(key: str, request: Request):
     data = _data(request)
     sess = _pt_get(key)
     _require_confirmed(sess, "step5", "Per-step generation")
-    ctx = _pt_generation_context(key, data, sess)
-    chunks = (sess.step6 or {}).get("chunks") or {}
-    out = []
-    for u in ctx["units"]:
-        ch = chunks.get(u["id"]) or {}
-        rendered = _render_unit_prompt(key, data, sess, ctx, u)
-        src = _unit_source_step(u, ctx["tc_steps"])
-        out.append({
-            "id": u["id"], "kind": u["kind"], "tc_n": u.get("tc_n"), "label": u["label"],
-            "source_n": (src or {}).get("n"),
-            "action": (src or {}).get("action", ""),
-            "verify": (src or {}).get("verify", ""),
-            "blank_block": u["block"],
-            # The reviewer's edit wins over the freshly rendered one; `edited` tells the UI
-            # which it is looking at so it can say so.
-            "prompt": ch.get("prompt") or rendered,
-            "edited": bool(ch.get("prompt")),
-            "code": ch.get("code") or "",
-            "status": ch.get("status") or "pending",
-            "error": ch.get("error") or "",
-            "at": ch.get("at") or "",
-        })
-    return {"units": out, "skeleton_chars": len(ctx["skeleton"])}
+
+    # Rendered in a worker thread, NOT inline (2026-09-08). Building the context and 38
+    # prompts is pure CPU — measured 38 s on T44297 before `cli_lookup._probes` was cached,
+    # a few seconds after — and an `async def` doing that inline stalls the single-worker
+    # server's event loop for the duration: no health, no status polls, no other user.
+    # "The server is oddly unresponsive" was this endpoint.
+    def _render_all() -> dict:
+        ctx = _pt_generation_context(key, data, sess)
+        chunks = (sess.step6 or {}).get("chunks") or {}
+        out = []
+        for u in ctx["units"]:
+            ch = chunks.get(u["id"]) or {}
+            rendered = _render_unit_prompt(key, data, sess, ctx, u)
+            src = _unit_source_step(u, ctx["tc_steps"])
+            out.append({
+                "id": u["id"], "kind": u["kind"], "tc_n": u.get("tc_n"), "label": u["label"],
+                "source_n": (src or {}).get("n"),
+                "action": (src or {}).get("action", ""),
+                "verify": (src or {}).get("verify", ""),
+                "blank_block": u["block"],
+                # The reviewer's edit wins over the freshly rendered one; `edited` tells the
+                # UI which it is looking at so it can say so.
+                "prompt": ch.get("prompt") or rendered,
+                "edited": bool(ch.get("prompt")),
+                "code": ch.get("code") or "",
+                "status": ch.get("status") or "pending",
+                "error": ch.get("error") or "",
+                "at": ch.get("at") or "",
+            })
+        return {"units": out, "skeleton_chars": len(ctx["skeleton"])}
+
+    return await run_in_threadpool(_render_all)
 
 
 # The visible line that separates the two halves of a unit prompt (decision 8, 2026-09-07).
@@ -5286,7 +5295,11 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     """
     data = _data(request)
     sess = _pt_get(key)
-    ctx = _pt_generation_context(key, data, sess)
+    # Off the event loop (2026-09-08): the context alone is seconds of CPU and every
+    # unedited unit is rendered below — inline, that froze the whole server (see
+    # step_prompts). The trade is that this handler now yields mid-flight, which is why
+    # the in-flight mark moves BEFORE the render further down.
+    ctx = await run_in_threadpool(_pt_generation_context, key, data, sess)
     wanted = body.get("units")
     by_id = {u["id"]: u for u in ctx["units"]}
     if isinstance(wanted, list) and wanted:
@@ -5303,20 +5316,35 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     if not dispatch:
         return {"dispatched": [], "already_running": sorted(already)}
 
-    prepared = []
-    for uid, supplied, flagged in dispatch:
-        unit = by_id[uid]
-        # An edit is what the BROWSER says is an edit: `edited: true` on the item. It used
-        # to be inferred here by comparing the supplied text with a fresh render, which is
-        # how a tab loaded before a deploy fed the whole fan-out stale prompts that were
-        # then STORED as reviewer edits and served back by step_prompts — so Re-render could
-        # not clear them and the next pass repeated the first (AWPTCM-T44297, 2026-09-07
-        # and 2026-09-08, 76 units). Unflagged text is ignored and the unit renders fresh.
-        edited = flagged and bool(supplied.strip())
-        prompt = supplied.strip() if edited else _render_unit_prompt(key, data, sess, ctx, unit)
-        prepared.append((uid, unit, prompt, edited))
+    # Marked in flight BEFORE the render, not after: the render below yields the event
+    # loop for seconds, and a second click landing in that window would otherwise pass the
+    # `already` filter and dispatch the same units twice. The mark is undone if the render
+    # itself fails, so a bad context cannot leave pills yellow forever.
+    _pt_unit_mark(key, [uid for uid, _, _ in dispatch], True)
 
-    _pt_unit_mark(key, [u for u, _, _, _ in prepared], True)
+    def _prepare() -> list:
+        prepared = []
+        for uid, supplied, flagged in dispatch:
+            unit = by_id[uid]
+            # An edit is what the BROWSER says is an edit: `edited: true` on the item. It
+            # used to be inferred here by comparing the supplied text with a fresh render,
+            # which is how a tab loaded before a deploy fed the whole fan-out stale prompts
+            # that were then STORED as reviewer edits and served back by step_prompts — so
+            # Re-render could not clear them and the next pass repeated the first
+            # (AWPTCM-T44297, 2026-09-07 and 2026-09-08, 76 units). Unflagged text is
+            # ignored and the unit renders fresh.
+            edited = flagged and bool(supplied.strip())
+            prompt = (supplied.strip() if edited
+                      else _render_unit_prompt(key, data, sess, ctx, unit))
+            prepared.append((uid, unit, prompt, edited))
+        return prepared
+
+    try:
+        prepared = await run_in_threadpool(_prepare)
+    except Exception:
+        _pt_unit_mark(key, [uid for uid, _, _ in dispatch], False)
+        raise
+
     sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
 
     async def _one(uid: str, unit: dict, prompt: str, edited: bool):
@@ -5420,14 +5448,15 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
     data = _data(request)
     sess = _pt_get(key)
     dry_run = await _dry_run(request)
-    ctx = _pt_generation_context(key, data, sess)
+    ctx = await run_in_threadpool(_pt_generation_context, key, data, sess)   # off the loop
     unit = next((u for u in ctx["units"] if u["id"] == unit_id), None)
     if unit is None:
         raise HTTPException(404, f"No such unit '{unit_id}' in this case's skeleton.")
 
     supplied = (body.get("prompt") or "").strip()
     edited = bool(body.get("edited")) and bool(supplied)
-    prompt = supplied if edited else _render_unit_prompt(key, data, sess, ctx, unit)
+    prompt = (supplied if edited
+              else await run_in_threadpool(_render_unit_prompt, key, data, sess, ctx, unit))
     if dry_run:
         return {"prompt": prompt, "unit": unit_id, "edited": edited}
 

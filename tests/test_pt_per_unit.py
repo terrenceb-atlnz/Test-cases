@@ -431,6 +431,36 @@ def test_edited_is_the_browsers_flag_never_inferred_from_the_text():
     assert 'if edited else {}' in CALL
 
 
+# --- rendering never runs on the event loop ----------------------------------------
+
+PROMPTS = _slice("async def step_prompts", "_PT_PROMPT_SPLIT =")
+
+
+def test_the_context_and_the_renders_run_in_a_worker_thread():
+    """2026-09-08, "the server is oddly unresponsive": step_prompts built the context and 38
+    prompts INLINE in an async handler — 38 s of CPU on the single worker's event loop, during
+    which the whole LAN server answered nothing (health, status polls, other users). All
+    three render paths now go through run_in_threadpool."""
+    assert "run_in_threadpool" in PROMPTS
+    assert "run_in_threadpool" in BATCH
+    assert "run_in_threadpool" in STEP
+    # Not a single stray inline call left in any of the three.
+    for region in (PROMPTS, BATCH, STEP):
+        for line in region.splitlines():
+            if "_pt_generation_context(" in line or "_render_unit_prompt(" in line:
+                assert "run_in_threadpool" in line or line.startswith((" " * 8, "\t")), line
+
+
+def test_units_are_marked_in_flight_BEFORE_the_render_yields_the_loop():
+    """Once the render awaits a thread, a second click can land mid-render. It must see the
+    units as already running, or the same units dispatch twice — the mark has to precede the
+    render, and be undone if the render fails."""
+    mark = re.search(r"_pt_unit_mark\(key, \[uid for uid, _, _ in dispatch\], True\)", BATCH)
+    render = re.search(r"await run_in_threadpool\(_prepare\)", BATCH)
+    assert mark and render and mark.start() < render.start()
+    assert re.search(r"except Exception:\s*\n\s*_pt_unit_mark\(key, \[uid for uid, _, _ in dispatch\], False\)\s*\n\s*raise", BATCH)
+
+
 # --- concurrent writes ------------------------------------------------------------
 
 def test_chunk_writes_get_a_retry_budget_above_the_worker_bound():

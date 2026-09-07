@@ -28,6 +28,22 @@ path (code, status and usage on each chunk untouched). Pins:
 `test_edited_is_the_browsers_flag_never_inferred_from_the_text`, vitest "flags the edit
 EXPLICITLY".
 
+**Same day — "the server is oddly unresponsive": a Re-render froze the whole server for
+~40 s.** `step_prompts` rendered 38 unit prompts inline in an `async def`, and each render
+called the CLI grounding, whose `detect_commands` scanned a ~50 KB text once per probe —
+~3,600 probes (3,297 harvested commands, up to two spellings), each with a freshly compiled
+regex. 1.5 s per call regardless of the text; 57 of a Re-render's 61 s (cProfile on a scratch
+copy), all on the single worker's event loop, so health, status polls and every other user
+waited too. Two fixes, both requested: (1) `cli_lookup._probes` builds the probe set once per
+database and `detect_commands` skips every probe whose alphanumeric tokens are not all present
+in the text — a necessary condition the pattern's own boundaries guarantee, so results are
+identical (checked old vs new on real corpus text: 0 mismatches) and a call is ~55 ms; (2)
+`step_prompts`, `generate_units` and `generate_step` build the context and render in
+`run_in_threadpool`, and `generate_units` marks units in flight BEFORE the render so a second
+click landing mid-render cannot dispatch them twice. Live: Re-render 38 s → 3.5 s, health
+30 ms throughout. Note for deploys: `tool/` is not watched by `--reload`, so a change there
+needs a `CK_server` save (or `ck` restart) to reach the live worker.
+
 ## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
 
 After the combined token-efficiency re-run, the Sonnet and Opus scripts for T44297 were judged

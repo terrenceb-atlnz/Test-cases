@@ -93,6 +93,18 @@ _PLACEHOLDER_RX = re.compile(r"[<>{}|\[\]]")
 # Cache: one alias index per database path. Building it scans every row.
 _ALIAS_CACHE: Dict[str, dict] = {}
 
+# `detect_commands` probe set — (search text, stored name, token set, compiled pattern),
+# longest-first, built ONCE per database file. See `_probes` for why.
+_PROBE_CACHE: Dict[str, list] = {}
+
+# Single ordinary English words that happen to BE command names ('state' is an AMF
+# command, 'port' an AWC wireless one) match constantly in prose and inject irrelevant
+# references. `detect_commands` requires a multi-word command, or a single word that is
+# domain-specific enough to mean the command when it appears — verified against the real
+# T33235 sequence, which was pulling in amf_cmd/state and awc_cmd/port.
+_SAFE_SINGLE = {"speed", "duplex", "polarity", "tcpdump", "ping", "traceroute",
+                "shutdown", "mtu", "bandwidth", "flowcontrol", "switchport"}
+
 
 def norm_cmd(s: str) -> str:
     """Hyphen- and space-insensitive normal form of a command name.
@@ -625,51 +637,23 @@ def detect_commands(text: str, limit: int = 12,
     """
     c = conn or _conn()
     low = " " + re.sub(r"\s+", " ", text.lower()) + " "
-    try:
-        names = [r[0] for r in c.execute(
-            "SELECT DISTINCT command FROM cli_commands WHERE command IS NOT NULL")]
-    except sqlite3.OperationalError:
-        return []
-
-    # Single ordinary English words that happen to BE command names ('state' is an AMF
-    # command, 'port' an AWC wireless one) match constantly in prose and inject
-    # irrelevant references. Require a multi-word command, or a single word that is
-    # domain-specific enough to mean the command when it appears — verified against the
-    # real T33235 sequence, which was pulling in amf_cmd/state and awc_cmd/port.
-    SAFE_SINGLE = {"speed", "duplex", "polarity", "tcpdump", "ping", "traceroute",
-                   "shutdown", "mtu", "bandwidth", "flowcontrol", "switchport"}
-
-    # 4.1 — match the CORRECT spelling too. `command` is slug-derived and loses hyphens,
-    # so scanning for stored names alone means a step that writes `lldp tlv-select`
-    # properly matches nothing while the misspelling matches. Each stored name is searched
-    # under every spelling that normalises to it, and the STORED name is what we return so
-    # `lookup()` still resolves; use `display_name()` to render it.
-    idx = _alias_index(c)
-    probes: List[tuple] = []                    # (search_text, stored_name)
-    for name in names:
-        if not name:
-            continue
-        forms = {name}
-        real = (idx.get(norm_cmd(name)) or {}).get("real")
-        if real:
-            forms.add(real)
-        for f in forms:
-            probes.append((f, name))
-
-    # Longest search text first, so `show interface status` still beats `show interface`.
-    probes.sort(key=lambda p: len(p[0]), reverse=True)
-
+    # A probe can only match where EVERY alphanumeric run of its form appears in the text
+    # as a whole token: the form is matched literally, its runs are delimited by non-
+    # alphanumerics inside the form and by the lookbehind/lookahead at its edges. So a
+    # subset test against the text's token set rules out nearly all of the ~3,600 probes
+    # before any regex runs (899 of them start with `show`, so the FIRST token alone was
+    # too weak a filter). This, not the compile cache, is what makes the call cheap on a
+    # 50 KB fragment text: the scans themselves were ~1.5 s per call — 3,600 passes over
+    # the whole text.
+    tokens = set(re.split(r"[^a-z0-9]+", low))
     hits: List[str] = []
     spans: List[tuple] = []
-    for text_form, stored in probes:
-        if len(text_form) < 4:                  # 'do', 'end' etc. are pure noise
-            continue
-        if " " not in text_form and text_form not in SAFE_SINGLE:
-            continue                            # single generic word — too ambiguous
+    for text_form, stored, toks, rx in _probes(c):
+        if not toks <= tokens:
+            continue                            # cannot match — skip the scan
         if stored in hits:
             continue                            # already found under another spelling
-        for m in re.finditer(
-                r"(?<![a-z0-9])" + re.escape(text_form.lower()) + r"(?![a-z0-9])", low):
+        for m in rx.finditer(low):
             if any(s <= m.start() and m.end() <= e for s, e in spans):
                 # 4.2 — THIS WAS `break`, WHICH ABANDONED THE COMMAND ENTIRELY.
                 # A first occurrence sitting inside a longer match made grounding depend on
@@ -683,6 +667,73 @@ def detect_commands(text: str, limit: int = 12,
         if len(hits) >= limit:
             break
     return hits
+
+
+def _db_file(conn: sqlite3.Connection) -> str:
+    """The file behind a connection's `main` schema — the cache key for per-database state,
+    so a test's fixture database never shares a cache with the real one."""
+    try:
+        for _, name, path in conn.execute("PRAGMA database_list"):
+            if name == "main":
+                return path or ":memory:"
+    except sqlite3.Error:
+        pass
+    return str(DB)
+
+
+def _probes(conn: sqlite3.Connection) -> list:
+    """`detect_commands`' probe set: [(search text, stored name, frozenset of the form's
+    alphanumeric tokens, compiled pattern)], filtered, longest-first, compiled ONCE per
+    database file.
+
+    WHY THIS IS CACHED (2026-09-08). It used to be rebuilt inside every `detect_commands`
+    call: ~3,300 command names, up to two spellings each, and a fresh `re.finditer(pattern
+    string)` per probe — 3,600-odd patterns per call against a `re` cache that holds 512, so
+    every one was recompiled every time. Measured 1.5 s per call regardless of the text,
+    and the per-unit prompt render calls this once per unit: a 38-unit Re-render spent 57 of
+    its 61 s here, inline on the server's event loop, so the whole LAN server answered
+    nothing for the duration. The corpus is permanent, so the probe set is too.
+
+    4.1 — match the CORRECT spelling too. `command` is slug-derived and loses hyphens, so
+    scanning for stored names alone means a step that writes `lldp tlv-select` properly
+    matches nothing while the misspelling matches. Each stored name is searched under every
+    spelling that normalises to it, and the STORED name is what `detect_commands` returns so
+    `lookup()` still resolves; use `display_name()` to render it.
+    """
+    key = _db_file(conn)
+    hit = _PROBE_CACHE.get(key)
+    if hit is not None:
+        return hit
+    try:
+        names = [r[0] for r in conn.execute(
+            "SELECT DISTINCT command FROM cli_commands WHERE command IS NOT NULL")]
+    except sqlite3.OperationalError:
+        return []                               # no harvest yet — not cached, may appear
+    idx = _alias_index(conn)
+    probes: List[tuple] = []                    # (search_text, stored_name)
+    for name in names:
+        if not name:
+            continue
+        forms = {name}
+        real = (idx.get(norm_cmd(name)) or {}).get("real")
+        if real:
+            forms.add(real)
+        for f in forms:
+            probes.append((f, name))
+    # Longest search text first, so `show interface status` still beats `show interface`.
+    probes.sort(key=lambda p: len(p[0]), reverse=True)
+    out: list = []
+    for text_form, stored in probes:
+        if len(text_form) < 4:                  # 'do', 'end' etc. are pure noise
+            continue
+        if " " not in text_form and text_form not in _SAFE_SINGLE:
+            continue                            # single generic word — too ambiguous
+        low_form = text_form.lower()
+        toks = frozenset(t for t in re.split(r"[^a-z0-9]+", low_form) if t)
+        out.append((text_form, stored, toks,
+                    re.compile(r"(?<![a-z0-9])" + re.escape(low_form) + r"(?![a-z0-9])")))
+    _PROBE_CACHE[key] = out
+    return out
 
 
 def detect(text: str, limit: int = 12,

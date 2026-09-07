@@ -39,6 +39,13 @@ and the 38 stored prompts were cleared via `_pt_persist_fresh` (rev 328 → 329;
 kept). **Before the next Generate: hard-reload the tab, press Re-render prompts, and confirm
 a unit prompt shows "Handles and ports" and the per-case `configure()` block.**
 
+**09:10 — "the server is oddly unresponsive".** Re-render took 38 s and froze the whole
+server: `step_prompts` rendered inline on the event loop and every unit's CLI grounding cost
+1.5 s in `cli_lookup.detect_commands` (3,600 probes × a full scan of a 50 KB text). Terrence
+asked for both fixes: probe set cached + token-set prefilter (identical results, ~55 ms), and
+all three render paths in `run_in_threadpool`. Live: 38 s → 3.5 s, health 30 ms during it.
+CHANGELOG 2026-09-08 has the detail. Generate's dispatch POST no longer stalls the page either.
+
 **Pick up here.**
 1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →
    Fix units → Review). Expect: `tb.ethA`/`portA` reads now legal; `configure()` per case; the

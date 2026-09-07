@@ -42,6 +42,8 @@ REFUSES rather than guesses, and none of them should be relaxed to raise recall.
 ck.db is read-only here (`mode=ro`), and nothing in this file writes it.
 """
 import json
+import inspect
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -374,3 +376,76 @@ def test_feature_alias_commands_are_real_cli(conn):
     for spec in C.FEATURE_ALIASES.values():
         for cmd in spec["commands"]:
             assert C.lookup(cmd, conn=conn), f"{cmd!r} is not a harvested command"
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-08 — the probe set is compiled once per database, not per call
+# ---------------------------------------------------------------------------
+# `detect_commands` rebuilt ~3,600 probes and compiled a regex for each on EVERY call
+# (the `re` cache holds 512, so none survived). 1.5 s per call regardless of the text; the
+# per-unit prompt render calls it once per unit, so a 38-unit Re-render spent 57 of 61 s
+# here — inline on the event loop, freezing the whole LAN server.
+
+def test_the_probe_set_is_built_once_per_database(conn):
+    C._PROBE_CACHE.clear()
+    a = C.detect_commands("run show interface status once", conn=conn)
+    assert len(C._PROBE_CACHE) == 1
+    probes = next(iter(C._PROBE_CACHE.values()))
+    assert probes and all(hasattr(rx, "finditer") for _, _, _, rx in probes)
+    b = C.detect_commands("run show interface status once", conn=conn)
+    assert a == b == ["show interface status"]
+    assert len(C._PROBE_CACHE) == 1                    # reused, not rebuilt
+
+
+def test_the_cached_probes_keep_the_filters_and_the_order(conn):
+    probes = C._probes(conn)
+    forms = [f for f, _, _, _ in probes]
+    assert forms == sorted(forms, key=len, reverse=True), "longest-first is the tie-break"
+    assert all(len(f) >= 4 for f in forms)
+    singles = {f for f in forms if " " not in f}
+    assert singles <= C._SAFE_SINGLE, "a generic single word slipped past the filter"
+    # The prefilter set is every alphanumeric run of the form — each is guaranteed to appear
+    # as a whole token wherever the form matches (delimited inside the form, and by the
+    # pattern's own boundaries at its edges).
+    assert all(toks == frozenset(t for t in re.split(r"[^a-z0-9]+", f.lower()) if t) and toks
+               for f, _, toks, _ in probes)
+
+
+def test_the_prefilter_never_drops_a_real_match(conn):
+    """The token check is a NECESSARY condition, so filtering on it must change nothing.
+    Compared against the unfiltered scan on real corpus text."""
+    texts = ["run show interface status once",
+             "configure lldp tlv-select port-description then show lldp neighbors detail"]
+    for (src,) in conn.execute("SELECT source_text FROM scripts WHERE source_text LIKE "
+                               "'%show interface%' LIMIT 3"):
+        texts.append(src[:20000])
+    for text in texts:
+        low = " " + re.sub(r"\s+", " ", text.lower()) + " "
+        brute = []
+        for form, stored, _, rx in C._probes(conn):
+            if stored not in brute and rx.search(low):
+                brute.append(stored)
+        # Every command the unfiltered scan can find is one the filtered path can reach.
+        found = C.detect_commands(text, limit=10_000, conn=conn)
+        assert set(found) <= set(brute)
+        assert all(s in found for s in brute if not _covered(s, found, brute))
+
+
+def _covered(stored, found, brute):
+    """A brute hit missing from `found` is legitimate only via the longer-span rule — which the
+    unfiltered scan does not apply. Accept it iff some longer found command contains it."""
+    return any(stored != f and stored in f for f in found)
+
+
+def test_detect_commands_compiles_nothing_per_call():
+    src = inspect.getsource(C.detect_commands)
+    body = src[src.index('"""', src.index('"""') + 3) + 3:]      # after the docstring
+    assert "re.compile" not in body and "re.escape" not in body and "re.finditer" not in body
+    assert "_probes(" in body
+
+
+def test_the_probe_cache_is_keyed_on_the_connections_file(conn, tmp_path):
+    other = sqlite3.connect(str(tmp_path / "empty.db"))
+    assert C.detect_commands("show interface status", conn=other) == []   # no table: []
+    assert C._db_file(other) != C._db_file(conn)
+    assert C.detect_commands("show interface status", conn=conn) == ["show interface status"]

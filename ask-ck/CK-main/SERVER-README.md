@@ -941,6 +941,15 @@ Seven of the eight decisions in `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6 were
   each was stored as a reviewer edit, `step_prompts` returned the stored copies, and the
   Re-render button therefore could not clear them — two 38-unit T44297 passes (2026-09-07,
   2026-09-08) ran on the pre-merge frame. Unflagged text is ignored; the unit renders fresh.
+- **Rendering runs off the event loop (2026-09-08).** `step_prompts`, `generate_units` and
+  `generate_step` build the generation context and render prompts in `run_in_threadpool`.
+  Inline, a 38-unit Re-render held the single worker's loop for ~40 s and the server answered
+  nothing meanwhile. Because the batch handler now yields mid-request, units are marked in
+  flight *before* the render (undone if it fails), so a second click cannot double-dispatch.
+  The render itself is cheap now that `tool/cli_lookup.py` caches its probe set per database
+  and prefilters probes by token set (1.5 s → ~55 ms per `detect_commands` call). `tool/` is
+  not watched by `--reload`: a change there reaches the live worker only on the next
+  `CK_server` save or `ck` restart.
 - **Primed fan-out (decision 4).** `generate_units` runs the FIRST unit alone to completion,
   then fans the rest out under the existing 8-wide semaphore (`_dispatch_primed`). A cache
   entry is readable only after the request that wrote it has been processed, so eight units
