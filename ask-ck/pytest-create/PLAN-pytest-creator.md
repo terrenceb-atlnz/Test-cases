@@ -834,7 +834,10 @@ So the revised sequence:
      renumbers, so sequence step 31 is `TestCase_29` and step-keyed chunks would mis-file
      every unit on any case with a setup step.
    - `GET /step_prompts/{key}` renders every unit's prompt without sending. Prompts are
-     re-rendered, not stored (§9.7); an EDITED prompt is kept on its chunk.
+     re-rendered, not stored (§9.7); an EDITED prompt is kept on its chunk. Since 2026-09-08
+     an edit is the browser's explicit `edited: true` on the item — the server never infers
+     it by comparing text with its own render (that inference stored two passes of stale
+     prompts as edits and served them back, T44297).
    - `POST /generate_step/{key}/{unit_id}` sends the reviewer's prompt **verbatim** via new
      `llm.run_prompt_text()` — same `_call_llm_with_meta` choke point, so timing, usage and
      debug-logging are unchanged; it bypasses Jinja, not the instrumentation.

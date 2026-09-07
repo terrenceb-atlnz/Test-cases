@@ -225,9 +225,23 @@ describe('the fan-out holds no connection per unit', () => {
     ta.dispatchEvent(new window.Event('input', { bubbles: true }));
     click('#pt-units-all-btn');
     await settle();
-    expect(sent.setup.prompt).toBe('MY EDITED PROMPT');
+    expect(sent.setup).toEqual({ id: 'setup', prompt: 'MY EDITED PROMPT', edited: true });
     expect(sent.tc1).toEqual({ id: 'tc1' });
     expect(sent.tc2).toEqual({ id: 'tc2' });
+  });
+
+  it('flags the edit EXPLICITLY — the server no longer infers it from the text', async () => {
+    // 2026-09-08: the server used to mark a unit edited when the supplied text differed
+    // from its own render, then STORED that prompt and served it back from /step_prompts,
+    // so a stale prompt perpetuated itself across Re-render and a second pass. Only
+    // `edited: true` may make the server use — and keep — a prompt.
+    const ta = document.getElementById('pt-unit-prompt');
+    ta.value = 'MY EDITED PROMPT';
+    ta.dispatchEvent(new window.Event('input', { bubbles: true }));
+    click('[data-action="ptGenerateUnit"]');
+    await settle();
+    expect(sent.setup.edited).toBe(true);
+    expect(Object.keys(sent)).toEqual(['setup']);
   });
 
   it('marks every dispatched unit yellow at once', async () => {

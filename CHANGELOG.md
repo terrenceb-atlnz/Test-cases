@@ -11,6 +11,23 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-08 — a per-unit prompt is "edited" only when the browser says so
+
+Two 38-unit passes on AWPTCM-T44297 (2026-09-07 14:21 and 2026-09-08 08:35) ran on the
+pre-ART frame although the new frame was deployed. Cause, in two halves: the page sent every
+unit's prompt with the request (fixed 2026-09-07, `6eb253c`), and the server decided a prompt
+was a reviewer edit by comparing it with its own render — so the stale text was taken as an
+edit, **stored on the chunk**, and then returned by `step_prompts` in preference to a fresh
+render. That made the loop self-perpetuating: the Re-render button showed the stored stale
+prompt, and the next Generate resent it. Fix: `generate_units` and `generate_step` take an
+explicit `edited: true` from the browser (`_ptDispatchUnits` sets it for `_dirty` units only);
+unflagged text is ignored and the unit renders fresh at dispatch. The storage convention is
+unchanged (a prompt on a chunk *is* the reviewer's edit) — only the flag can put one there.
+The 38 stale prompts on the T44297 session were cleared through the router's own persistence
+path (code, status and usage on each chunk untouched). Pins:
+`test_edited_is_the_browsers_flag_never_inferred_from_the_text`, vitest "flags the edit
+EXPLICITLY".
+
 ## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
 
 After the combined token-efficiency re-run, the Sonnet and Opus scripts for T44297 were judged

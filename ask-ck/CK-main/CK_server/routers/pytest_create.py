@@ -5290,25 +5290,31 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     wanted = body.get("units")
     by_id = {u["id"]: u for u in ctx["units"]}
     if isinstance(wanted, list) and wanted:
-        items = [(w.get("id"), (w.get("prompt") or "")) for w in wanted if w.get("id") in by_id]
+        items = [(w.get("id"), (w.get("prompt") or ""), bool(w.get("edited")))
+                 for w in wanted if w.get("id") in by_id]
     else:
-        items = [(u["id"], "") for u in ctx["units"]]
+        items = [(u["id"], "", False) for u in ctx["units"]]
     if not items:
         raise HTTPException(400, "No known units to generate.")
 
     llm_cfg = _llm_cfg_for(sess, "unit_fill")
     already = _pt_units_inflight(key)
-    dispatch = [(uid, pr) for uid, pr in items if uid not in already]
+    dispatch = [(uid, pr, ed) for uid, pr, ed in items if uid not in already]
     if not dispatch:
         return {"dispatched": [], "already_running": sorted(already)}
 
     prepared = []
-    for uid, supplied in dispatch:
+    for uid, supplied, flagged in dispatch:
         unit = by_id[uid]
-        rendered = _render_unit_prompt(key, data, sess, ctx, unit)
-        prompt = supplied.strip() or rendered
-        prepared.append((uid, unit, prompt, bool(supplied.strip())
-                         and supplied.strip() != rendered.strip()))
+        # An edit is what the BROWSER says is an edit: `edited: true` on the item. It used
+        # to be inferred here by comparing the supplied text with a fresh render, which is
+        # how a tab loaded before a deploy fed the whole fan-out stale prompts that were
+        # then STORED as reviewer edits and served back by step_prompts — so Re-render could
+        # not clear them and the next pass repeated the first (AWPTCM-T44297, 2026-09-07
+        # and 2026-09-08, 76 units). Unflagged text is ignored and the unit renders fresh.
+        edited = flagged and bool(supplied.strip())
+        prompt = supplied.strip() if edited else _render_unit_prompt(key, data, sess, ctx, unit)
+        prepared.append((uid, unit, prompt, edited))
 
     _pt_unit_mark(key, [u for u, _, _, _ in prepared], True)
     sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
@@ -5406,9 +5412,10 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
     blocking request per unit exhausts the browser's six connections per origin and
     deadlocks the broker (see generate_units).
 
-    The prompt is taken from the request VERBATIM when supplied. That is the point of the
-    editable frame: the button sends what is on screen, so what the reviewer reads is what
-    the model receives.
+    The prompt is taken from the request VERBATIM when supplied AND flagged `edited`. That
+    is the point of the editable frame: the button sends what is on screen, so what the
+    reviewer reads is what the model receives. The flag is the browser's, never inferred
+    from the text — see generate_units for the two passes that inference cost.
     """
     data = _data(request)
     sess = _pt_get(key)
@@ -5418,10 +5425,9 @@ async def generate_step(key: str, unit_id: str, request: Request, body: dict = B
     if unit is None:
         raise HTTPException(404, f"No such unit '{unit_id}' in this case's skeleton.")
 
-    rendered = _render_unit_prompt(key, data, sess, ctx, unit)
     supplied = (body.get("prompt") or "").strip()
-    prompt = supplied or rendered
-    edited = bool(supplied) and supplied != rendered.strip()
+    edited = bool(body.get("edited")) and bool(supplied)
+    prompt = supplied if edited else _render_unit_prompt(key, data, sess, ctx, unit)
     if dry_run:
         return {"prompt": prompt, "unit": unit_id, "edited": edited}
 

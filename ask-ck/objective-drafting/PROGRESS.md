@@ -29,6 +29,16 @@ the same afternoon: `_ptDispatchUnits` now sends a prompt only for units the rev
 (`_dirty`); the Re-render prompts button also refreshes them. Terrence is out of credits for
 this 5-hour block, so the first real pass on the new shape is in a later block.
 
+**2026-09-08 08:35 — the second pass ALSO ran on the old prompts, and the JS fix alone could
+not have prevented it.** The server had *stored* the 38 stale prompts as reviewer edits (it
+inferred "edited" by text comparison), and `step_prompts` returns a stored prompt over a
+fresh render — so Re-render showed the stale text and Generate resent it. Units landed in
+~1 s with identical usage, i.e. the agent served cached replies for identical prompts. Fixed:
+`edited` is now an explicit flag from the browser at both entry points (CHANGELOG 2026-09-08),
+and the 38 stored prompts were cleared via `_pt_persist_fresh` (rev 328 → 329; code/usage
+kept). **Before the next Generate: hard-reload the tab, press Re-render prompts, and confirm
+a unit prompt shows "Handles and ports" and the per-case `configure()` block.**
+
 **Pick up here.**
 1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →
    Fix units → Review). Expect: `tb.ethA`/`portA` reads now legal; `configure()` per case; the

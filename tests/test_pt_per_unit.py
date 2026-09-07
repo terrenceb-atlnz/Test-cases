@@ -414,6 +414,23 @@ def test_prompts_are_rendered_not_stored_unless_edited():
     assert 'if edited else {}' in CALL, "an unedited prompt must not be persisted"
 
 
+def test_edited_is_the_browsers_flag_never_inferred_from_the_text():
+    """AWPTCM-T44297, 2026-09-07 and 2026-09-08 — two wasted passes, 76 units.
+
+    Both entry points used to decide a prompt was 'edited' by comparing the supplied text
+    with a fresh render. A tab loaded before a deploy therefore fed the whole fan-out stale
+    prompts; the server stored them as reviewer edits; step_prompts served the stored copies
+    back, so the Re-render button could not clear them and the next pass repeated the
+    first. Only an explicit `edited` flag from the browser may make the server use — and
+    keep — a supplied prompt. Unflagged text is ignored and the unit renders fresh."""
+    for region in (BATCH, STEP):
+        assert '.get("edited")' in region
+        assert "!= rendered" not in region, "no inference of 'edited' by text comparison"
+    # The stored-prompt convention is unchanged (prompt on the chunk == the reviewer's edit);
+    # what changed is that only the flag can put one there.
+    assert 'if edited else {}' in CALL
+
+
 # --- concurrent writes ------------------------------------------------------------
 
 def test_chunk_writes_get_a_retry_budget_above_the_worker_bound():

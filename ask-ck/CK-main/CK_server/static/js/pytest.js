@@ -1338,12 +1338,16 @@ function _ptStartUnitPoll() {
 // sent as an id alone and the server renders it fresh at dispatch. It used to send every
 // unit's prompt, so a tab loaded before a deploy fired the whole fan-out on stale prompts and
 // the server, seeing text that differed from its own render, took them for reviewer edits —
-// a 38-unit pass ($5.79) on the pre-deploy frame, AWPTCM-T44297, 2026-09-07.
+// a 38-unit pass ($5.79) on the pre-deploy frame, AWPTCM-T44297, 2026-09-07. And because the
+// server STORED those as edits and served them back from /step_prompts, Re-render could not
+// clear them and a second pass (2026-09-08) went the same way. So the flag is now explicit.
 async function _ptDispatchUnits(ids) {
   const wanted = (ids && ids.length ? ids : _ptUnits.map(u => u.id));
   const payload = wanted.map(id => {
     const u = _ptUnitById(id);
-    return (u && u._dirty && u.prompt) ? { id, prompt: u.prompt } : { id };
+    // `edited: true` is the ONLY thing that makes the server use (and keep) the prompt;
+    // it no longer infers an edit by comparing text to its own render.
+    return (u && u._dirty && u.prompt) ? { id, prompt: u.prompt, edited: true } : { id };
   });
   wanted.forEach(id => { _ptUnitSending[id] = true; });
   _ptUnitFails = _ptUnitFails.filter(f => !wanted.includes(f.id));
