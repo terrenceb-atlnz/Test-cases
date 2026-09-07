@@ -2110,7 +2110,7 @@ def _lint_bench_integration(tree, code: str, surface: dict) -> Tuple[List[str], 
     if not self_kind:
         return errors, warnings                    # not our frame; nothing to judge against
 
-    def _handle_of(node) -> Optional[str]:
+    def _direct_handle(node) -> Optional[str]:
         """`self.testSet.<h>` (in a TestCase) or `self.<h>` (in the TestSet) -> h."""
         if not isinstance(node, ast_mod.Attribute):
             return None
@@ -2120,6 +2120,31 @@ def _lint_bench_integration(tree, code: str, surface: dict) -> Tuple[List[str], 
             return node.attr
         if isinstance(v, ast_mod.Name) and v.id == "self" and node.attr in self_kind:
             return node.attr
+        return None
+
+    # Local ALIASES. Nearly every generated unit starts `dutA = self.testSet.dutA` and then
+    # reads `dutA.portA` / calls `dutA.cmd(...)` through the alias, so a checker that follows
+    # only the full chain sees a fraction of the reads (measured 2026-09-07 on T44297: 12 of
+    # ~26 unbound-port reads, and none of the keyword misuses). Resolve `name = <handle>`
+    # per function; the alias is valid from its assignment to the end of that function.
+    aliases: List[Tuple[int, int, str, str]] = []          # (lo, hi, local, handle)
+    for fn in [n for n in ast_mod.walk(tree) if isinstance(n, ast_mod.FunctionDef)]:
+        hi = fn.end_lineno or fn.lineno
+        for n in ast_mod.walk(fn):
+            if (isinstance(n, ast_mod.Assign) and len(n.targets) == 1
+                    and isinstance(n.targets[0], ast_mod.Name)):
+                h = _direct_handle(n.value)
+                if h:
+                    aliases.append((n.lineno, hi, n.targets[0].id, h))
+
+    def _handle_of(node) -> Optional[str]:
+        h = _direct_handle(node)
+        if h:
+            return h
+        if isinstance(node, ast_mod.Name):
+            for lo, hi, local, handle in aliases:
+                if local == node.id and lo <= node.lineno <= hi:
+                    return handle
         return None
 
     # --- 1. port attributes that init() never assigned -----------------------------------

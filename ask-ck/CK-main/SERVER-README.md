@@ -965,7 +965,11 @@ Seven of the eight decisions in `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6 were
 - **Bench-integration lint (decision 2).** `_lint_bench_integration`, inside
   `_lint_generated`: (1) a port attribute `init()` never assigned (`dut.portA` when it bound
   `dut.portB` only — reported once per class so the per-unit Fix reaches every affected unit;
-  24 classes on the real, post-Fix T44297 script); (2) a method the framework class does not
+  it follows local aliases such as `dutA = self.testSet.dutA`, which is how nearly every unit
+  is written — chain-only it saw 12 of ~26 reads; on the real T44297 scripts it finds the
+  unbound `tb.ethA` read in almost every capture unit, because the frame binds the far port
+  as `self.ck_far_port`, not as `tb.ethA` the way the corpus scripts' `init_portlink` did);
+  (2) a method the framework class does not
   define, or a keyword its signature rejects, judged against the `framework_surface` document
   in `ck.db` by handle kind (`init_swi` → Switch, `init_stk` → Stack, `init_tb` → TestBox, a
   `_ck_bind_link` partner → either); (3) a capture started and stopped with nothing between.

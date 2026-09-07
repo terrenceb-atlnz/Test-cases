@@ -163,3 +163,22 @@ def test_the_checks_run_inside_the_assembled_script_lint():
 def test_a_script_without_our_frame_is_left_alone():
     code = "class TestSet(ATTestSet.TestSet):\n    def init(self, setup):\n        pass\n"
     assert pc._lint_bench_integration(ast.parse(code), code, SURFACE) == ([], [])
+
+
+# --- aliases: the shape almost every generated unit actually has --------------------------
+
+def test_reads_and_calls_through_a_local_alias_are_judged_too():
+    """`dutA = self.testSet.dutA; dutA.portA` is how nearly every unit is written. On the real
+    T44297 script the chain-only checker saw 12 of ~26 unbound-port reads and none of the
+    keyword misuses (2026-09-07)."""
+    errs, _ = _lint("dut = self.testSet.dut\nport = dut.portA\nself.log(port.name)")
+    assert len(errs) == 1 and "reads `dut.portA`" in errs[0]
+    errs, _ = _lint("tb = self.testSet.tb\ntb.start_tcpdump(self.testSet.dutA.portA, filter='x', count=5)")
+    assert len(errs) == 1 and "`filter`" in errs[0] and "`count`" not in errs[0]   # count IS in the fake signature
+    errs, _ = _lint("dutA = self.testSet.dutA\ndutA.frobnicate()")
+    assert len(errs) == 1 and "defines no `frobnicate`" in errs[0]
+
+
+def test_an_alias_to_a_bound_port_or_a_known_method_passes():
+    errs, warns = _lint("dutA = self.testSet.dutA\np = dutA.portA\ndutA.cmd('show lldp', mode='exec')\nself.log(p.name)")
+    assert errs == [] and warns == []
