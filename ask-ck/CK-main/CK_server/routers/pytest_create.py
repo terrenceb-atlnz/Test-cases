@@ -1564,10 +1564,14 @@ def _build_library(case_key: str, fragments: List[dict], data: dict,
     holds the packets and the shared checks; 154 of 188 tests import theirs with `*`).
 
     Contents: every SELECTED fragment that is a stand-alone module-level definition — a
-    function whose first parameter is not `self`, a class, or a constant — copied verbatim
+    function (INCLUDING ART's helpers that take the TestCase as a `self` first parameter,
+    `def analyse_lldp_packets(self, recPktList)`), a class, or a constant — copied verbatim
     under its provenance tag, plus the import lines its source script used. Methods and
     class-body slices are NOT library material (they need their class) and stay as
-    fragments to adapt.
+    fragments to adapt. A `self`-first def is a helper when its SOURCE defines it at column
+    0 and a method otherwise (2026-09-08: the old "first parameter is not `self`" rule left
+    `analyse_lldp_packets` out, so it was offered as a fragment to adapt and the model
+    CALLED it — a NameError in 7 of 37 T44297 units on a lint-clean script).
 
     Two exclusions found on the real T44297 selection (2026-09-07), both import-time
     hazards a compile check cannot see:
@@ -1652,11 +1656,22 @@ def _build_library(case_key: str, fragments: List[dict], data: dict,
                                f"{', '.join(local or unresolved)} at import time")
                 continue
         ok = True
+        src_text_cached: Optional[str] = None
         for node in tree.body:
             if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef)):
-                first = node.args.args[0].arg if node.args.args else ""
-                if first == "self" or node.name in ("main", "configure", "tear_down", "init"):
+                if node.name in ("main", "configure", "tear_down", "init"):
                     ok = False
+                    continue
+                first = node.args.args[0].arg if node.args.args else ""
+                if first == "self":
+                    # Module-level in the SOURCE (column 0) is what separates an ART helper
+                    # from a method extracted out of its class; without the source text the
+                    # conservative reading (a method) stands.
+                    if src_text_cached is None:
+                        src_text_cached = _fragment_source_text(f.get("source_id", ""))
+                    if not re.search(rf"^(?:async\s+)?def\s+{re.escape(node.name)}\s*\(",
+                                     src_text_cached, re.M):
+                        ok = False
             elif isinstance(node, ast_mod.ClassDef):
                 if any(("TestCase" in getattr(b, "attr", getattr(b, "id", "")) or
                         "TestSet" in getattr(b, "attr", getattr(b, "id", ""))) for b in node.bases):
@@ -2176,6 +2191,7 @@ _POLICY_LINT_MARKERS = (
     "missing a leading",                       # ...provenance tag
     "calls setup.init_portlink() directly",    # house binding idiom; script still runs
     "are config only; the verdict belongs in main()",   # a verdict in configure()/tear_down()
+    "'s port, on ",                            # a port selected on the switch it does not belong to
 )
 
 
@@ -2529,6 +2545,212 @@ def _lint_bench_integration(tree, code: str, surface: dict) -> Tuple[List[str], 
                     f"wait-for-event between — it captures nothing. Settle first (time.sleep, "
                     f"or a wait on the event the step is about)")
     return errors, warnings
+
+
+# --- names nothing defines / a port on the wrong switch / echoed verdicts (2026-09-08) --------
+#
+# The first pass on the ART frame (AWPTCM-T44297, 38 units, $6.47) linted CLEAN — 0 errors
+# against 59 and 63 on the old frame — and would still have died on the bench three ways that
+# no check looked for: `analyse_lldp_packets` called in 7 units and defined nowhere, `re` used
+# in 4 units the frame never imported, and `LLDP_PHONE_PKT` lifted from an ART test script
+# that was never offered. All three are the same defect class, a NameError on first use, and
+# py_compile is blind to it. The fourth finding runs but tests the wrong thing: the suite setup
+# configured `portPeer` (the DUT's end of the neighbour link) ON THE NEIGHBOUR. And six
+# verdicts quoted the step's verify text verbatim as their reason, which says what was
+# expected rather than what was observed.
+
+# Names `from framework.ATPackets import *` brings in from scapy (ATPackets star-imports
+# scapy.all). The surface doc records the AT layers, not scapy, so these are listed here.
+_SCAPY_STAR_NAMES = frozenset("""
+    sendp send sniff srp srp1 sr sr1 srloop srploop Ether IP IPv6 TCP UDP ICMP ICMPv6EchoRequest
+    ICMPv6EchoReply ARP Raw Dot1Q Dot1AD Dot3 LLC SNAP STP Padding IGMP BOOTP DHCP DNS
+    wrpcap rdpcap hexdump ls conf RandMAC RandIP RandShort RandString Packet bind_layers
+    get_if_hwaddr get_if_addr get_if_list fuzz mac2str str2mac
+""".split())
+
+
+def _lint_unbound_names(tree, lib: Optional[dict]) -> List[str]:
+    """Every name the script LOADS must be bound by the frame, the suite library, a
+    star-imported framework module (per the surface doc), scapy via ATPackets, or builtins.
+
+    Scoping is deliberately flat — a name bound anywhere in the file counts everywhere — so
+    this under-reports rather than over-reports. It stays silent (returns []) when the script
+    star-imports something it cannot see through: an unknown module could define anything,
+    and a check that guesses would train reviewers to ignore it.
+    """
+    import ast as ast_mod
+    import builtins as _bi
+    defined = set(dir(_bi)) | {"__name__", "__file__", "__doc__", "__class__"}
+
+    def _bind(t) -> List[str]:
+        """Add every name `t` binds; return the modules it star-imports."""
+        stars: List[str] = []
+        for node in ast_mod.walk(t):
+            if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef, ast_mod.ClassDef)):
+                defined.add(node.name)
+            elif isinstance(node, ast_mod.Import):
+                defined.update((a.asname or a.name).split(".")[0] for a in node.names)
+            elif isinstance(node, ast_mod.ImportFrom):
+                if any(a.name == "*" for a in node.names):
+                    stars.append(node.module or "")
+                defined.update(a.asname or a.name for a in node.names if a.name != "*")
+            elif isinstance(node, ast_mod.Name) and isinstance(node.ctx, (ast_mod.Store, ast_mod.Del)):
+                defined.add(node.id)
+            elif isinstance(node, ast_mod.arg):
+                defined.add(node.arg)
+            elif isinstance(node, ast_mod.ExceptHandler) and node.name:
+                defined.add(node.name)
+            elif isinstance(node, (ast_mod.Global, ast_mod.Nonlocal)):
+                defined.update(node.names)
+        return stars
+
+    surface = {k.replace("/", "."): v for k, v in (_framework_surface_doc() or {}).items()}
+    packages = {k.rsplit(".", 1)[0] for k in surface if "." in k}
+
+    def _add_module(rec: dict) -> None:
+        defined.update(rec.get("classes") or {})
+        defined.update(fn.get("name") if isinstance(fn, dict) else str(fn)
+                       for fn in (rec.get("functions") or []))
+        defined.update(rec.get("constants") or [])
+
+    lib_stem = Path(lib["name"]).stem if lib and lib.get("name") else ""
+    pending = _bind(tree)
+    seen: set = set()
+    while pending:
+        mod = pending.pop()
+        if mod in seen:
+            continue
+        seen.add(mod)
+        if lib_stem and mod == lib_stem:
+            try:
+                pending += _bind(ast_mod.parse(lib.get("code") or ""))
+            except SyntaxError:
+                return []                     # reported by the library syntax check
+            continue
+        if mod.startswith("framework."):
+            short = mod[len("framework."):]
+            rec = surface.get(short)
+            if isinstance(rec, dict):
+                _add_module(rec)
+            if short in packages or f"{short}.__init__" in surface:
+                # A star import of a PACKAGE (`from framework.ATLibrary import *`, which the
+                # corpus libraries do) exports whatever its __init__ chose; the surface cannot
+                # say which, so take the union of every submodule's names plus the submodule
+                # names themselves — a superset, so this under-reports rather than guesses.
+                for k, r in surface.items():
+                    if k.startswith(short + ".") and isinstance(r, dict):
+                        _add_module(r)
+                        defined.add(k[len(short) + 1:].split(".")[0])
+            elif not isinstance(rec, dict):
+                return []                     # a framework module the surface has never seen
+            if short == "ATPackets":
+                defined.update(_SCAPY_STAR_NAMES)
+            continue
+        return []                             # scapy.all, os.path, ... — cannot judge
+
+    spans = [(c.name, c.lineno, c.end_lineno or c.lineno)
+             for c in tree.body if isinstance(c, ast_mod.ClassDef)]
+
+    def _where(line: int) -> str:
+        return next((n for n, a, b in spans if a <= line <= b), "module level")
+
+    loads: Dict[str, List[int]] = {}
+    for node in ast_mod.walk(tree):
+        if isinstance(node, ast_mod.Name) and isinstance(node.ctx, ast_mod.Load) \
+                and node.id not in defined:
+            loads.setdefault(node.id, []).append(node.lineno)
+    out: List[str] = []
+    for name, lines in sorted(loads.items(), key=lambda kv: min(kv[1]))[:12]:
+        lines = sorted(set(lines))
+        more = f" (+{len(lines) - 1} more)" if len(lines) > 1 else ""
+        out.append(
+            f"unbound name: `{name}` at line {lines[0]}{more} in {_where(lines[0])} — nothing "
+            f"defines it: not the frame, not {lib['name'] if lib_stem else 'a suite library'}, "
+            f"not any star-imported framework module. NameError the first time it runs")
+    return out
+
+
+def _lint_port_owner(tree, code: str) -> List[str]:
+    """A port selected on a switch that does not own it: `peer.cmd('interface {}'.format(
+    portPeer.name))` — `portPeer` is the DUT's end of the neighbour link (`dutA.portPeer`),
+    the neighbour's own end is `peer.portDut`. Only the DUT/neighbour boundary is judged:
+    a stack handle configuring a member's port (`stk_a` for `dutA.portA`) is legitimate,
+    so mismatches between DUT-side handles are left alone."""
+    import ast as ast_mod
+    owners: Dict[str, str] = {}
+    for m in re.finditer(r"^\s*(\w+)\s*=\s*(\w+)\.(port\w+)\s*$", code, re.M):
+        owners[m.group(1)] = m.group(2)                  # portPeer = dutA.portPeer
+    peer = next((m.group(1) for m in re.finditer(r"^\s*(\w+)\s*=\s*self(?:\.testSet)?\.peer\s*$",
+                                                 code, re.M)), "peer")
+    out: List[str] = []
+    for node in ast_mod.walk(tree):
+        if not (isinstance(node, ast_mod.Call) and isinstance(node.func, ast_mod.Attribute)
+                and node.func.attr == "cmd" and isinstance(node.func.value, ast_mod.Name)
+                and node.args):
+            continue
+        dev = node.func.value.id
+        a0 = node.args[0]
+        text, exprs = None, []
+        if (isinstance(a0, ast_mod.Call) and isinstance(a0.func, ast_mod.Attribute)
+                and a0.func.attr == "format" and isinstance(a0.func.value, ast_mod.Constant)
+                and isinstance(a0.func.value.value, str)):
+            text, exprs = a0.func.value.value, list(a0.args)
+        elif isinstance(a0, ast_mod.JoinedStr):
+            text = "".join(str(v.value) for v in a0.values if isinstance(v, ast_mod.Constant))
+            exprs = [v.value for v in a0.values if isinstance(v, ast_mod.FormattedValue)]
+        elif (isinstance(a0, ast_mod.BinOp) and isinstance(a0.op, ast_mod.Add)
+                and isinstance(a0.left, ast_mod.Constant) and isinstance(a0.left.value, str)):
+            text, exprs = a0.left.value, [a0.right]
+        if not text or not text.lstrip().lower().startswith("interface"):
+            continue
+        for pe in exprs:
+            if isinstance(pe, ast_mod.Attribute) and pe.attr == "name":
+                pe = pe.value
+            owner = label = None
+            if isinstance(pe, ast_mod.Attribute) and isinstance(pe.value, ast_mod.Name) \
+                    and pe.attr.startswith("port"):
+                owner, label = pe.value.id, f"{pe.value.id}.{pe.attr}"
+            elif isinstance(pe, ast_mod.Name) and pe.id in owners:
+                owner, label = owners[pe.id], pe.id
+            if owner and (dev == peer) != (owner == peer):
+                out.append(
+                    f"line {node.lineno}: `{dev}.cmd('interface ...')` selects `{label}`, which "
+                    f"is {owner}'s port, on {dev} — the neighbour's own end of the link is "
+                    f"`{peer}.portDut` and the DUT's end is `portPeer`; a port name only exists "
+                    f"on the switch it belongs to")
+    return out
+
+
+def _lint_verdict_echo(tree, sequence: List[dict]) -> List[str]:
+    """A passed()/failed() reason that IS the step's verify or action text, verbatim. Such a
+    reason restates the expectation; the log then carries no evidence of what happened.
+    A warning: the reviewer decides, and the message names the fix."""
+    import ast as ast_mod
+
+    def _norm(s: str) -> str:
+        return re.sub(r"\s+", " ", (s or "")).strip().rstrip(".").lower()
+
+    texts = {_norm(s.get(k)): k for s in (sequence or []) for k in ("verify", "action")
+             if _norm(s.get(k))}
+    out: List[str] = []
+    for c in tree.body:
+        if not isinstance(c, ast_mod.ClassDef):
+            continue
+        main = next((n for n in c.body if isinstance(n, ast_mod.FunctionDef) and n.name == "main"), None)
+        if main is None:
+            continue
+        for node in ast_mod.walk(main):
+            if (isinstance(node, ast_mod.Call) and isinstance(node.func, ast_mod.Attribute)
+                    and node.func.attr in ("passed", "failed") and node.args
+                    and isinstance(node.args[0], ast_mod.Constant)
+                    and isinstance(node.args[0].value, str)):
+                field = texts.get(_norm(node.args[0].value))
+                if field:
+                    out.append(
+                        f"{c.name}.main() line {node.lineno}: the {node.func.attr}() reason is the "
+                        f"step's {field} text verbatim — a verdict should say what was OBSERVED "
+                        f"(the value, count or line), not restate what was expected")
+    return out
 
 
 def _lint_generated(sess: PtSession) -> dict:
@@ -3072,6 +3294,16 @@ def _lint_generated(sess: PtSession) -> dict:
             compile(lib.get("code") or "", lib["name"], "exec")
         except SyntaxError as e:
             errors.append(f"syntax: {lib['name']} line {e.lineno}: {e.msg}")
+
+    # 3b. Names nothing defines, a port on the wrong switch, echoed verdicts (2026-09-08) —
+    #     see the three helpers above. Separate append sites on purpose: the error-class
+    #     test counts them, and each has its own authority (blocking / policy / warning).
+    if tree is not None:
+        for _e in _lint_unbound_names(tree, lib):
+            errors.append(_e)
+        for _e in _lint_port_owner(tree, code):
+            errors.append(_e)
+        warnings.extend(_lint_verdict_echo(tree, (sess.step2 or {}).get("sequence") or []))
 
     # 4. OBJECTIVE COVERAGE (Terrence's invariant, 2026-07-27): every objective links to
     #    a Zephyr step, and every Zephyr step needs at least one PyTest step — otherwise

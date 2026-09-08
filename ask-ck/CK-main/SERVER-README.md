@@ -1043,6 +1043,16 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
 Tests: `tests/test_pt_art_shape.py` (32). The whole-script prompt snapshot was regenerated
 knowingly (design docs read and revised first).
 
+**First pass judged (2026-09-08).** 38 units, 0 lint errors against 59/63 on the old frame — and
+three NameErrors the lint never looked for, plus one wrong-switch port and six echoed verdicts.
+Fixes, all in `pytest_create.py` unless said: `_build_library` admits a `self`-first def when its
+SOURCE defines it at column 0 (ART helpers take the TestCase as `self`); the frame imports `re`
+and the shortcut block names `portDut = peer.portDut`; three lint checks — `_lint_unbound_names`
+(blocking; silent behind a star import the surface doc cannot see through), `_lint_port_owner`
+(policy; DUT/neighbour boundary only) and `_lint_verdict_echo` (warning); and `tool/cli_lookup.py`
+`prompt_block` renders a long sample as head + omitted-marker + tail so a table's rows and header
+reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
+
 ## Migration from Original Single-File Tool
 
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.

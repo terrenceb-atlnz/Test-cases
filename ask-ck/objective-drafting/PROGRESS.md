@@ -46,6 +46,24 @@ asked for both fixes: probe set cached + token-set prefilter (identical results,
 all three render paths in `run_in_threadpool`. Live: 38 s → 3.5 s, health 30 ms during it.
 CHANGELOG 2026-09-08 has the detail. Generate's dispatch POST no longer stalls the page either.
 
+**11:33 — the first real pass on the ART frame, judged in-context.** 38/38 landed (Sonnet,
+`claude_agent`, $6.47, 76% cache reads, 14 min), 0 lint errors against 59/63 on the old frame,
+every unit in the new shape. It would have died on the bench three ways (`analyse_lldp_packets`
+undefined in 7 units — our library rule; `re` never imported — our frame; `LLDP_PHONE_PKT` — the
+model), configured the DUT's `portPeer` on the neighbour in setup, parsed `show lldp interface`
+for a line the real table lacks (the reference cut the sample before its data rows — ours), and
+echoed six verify texts as verdicts. Terrence: "add everything you have identified" — all built,
+gate green (CHANGELOG 2026-09-08, second and third blocks). **Assembled offline only**: the
+session still holds the raw units; the Summary step (assemble + lint) has not been pressed. Re-linted
+offline with the fixes in place: the library now carries `analyse_lldp_packets` and
+`parse_lldp_neighbours`, the frame imports `re`, so the only unbound name left on this pass is
+`LLDP_PHONE_PKT` (TestCase_28), plus the two wrong-switch port errors in setup and 7 echoed
+verdicts — that is what Summary will show. **Open for Terrence:**
+(1) sequence steps 10/11 presume an LLDP "management-address command" that AW+ does not have
+(the TLV carries the IP interface's address) — the units built on `wireless`/`management address`;
+(2) the docs table shows ports as `1.0.1` without the `port` prefix, so row matches on
+`portA.name` may miss on real output — a bench check, not a tool fix.
+
 **Pick up here.**
 1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →
    Fix units → Review). Expect: `tb.ethA`/`portA` reads now legal; `configure()` per case; the

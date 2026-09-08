@@ -87,7 +87,10 @@ show lldp
    `tb.stop_tcpdump(subProc)`, `sendp(pkt, iface=ethA.name, verbose=0)`, `tb.cmd('<shell>')`)
    — it has no switch CLI, so never `tb.mode(')#')` or `tb.cmd('show lldp neighbors')`.
    `peer`, when bound, is the NEIGHBOUR switch: the device whose neighbour table you read
-   or whose port you shut to provoke the DUT — it is never the device under test.
+   or whose port you shut to provoke the DUT — it is never the device under test. Its own
+   end of the link is `portDut` (`peer.portDut`); `portPeer` is the DUT's end and is
+   configured on the DUT only. `peer.cmd('interface {}'.format(portPeer.name))` addresses
+   a port that switch does not have — on the neighbour it is `portDut.name`.
    **`TestSet.init()` IS FIXED FRAME — DO NOT ADD BINDINGS TO IT, and do not call
    `setup.init_portlink()` or `setup.init_swi()` yourself.** The frame already resolves the
    topology from the bench's role contract and binds every device and port this script is

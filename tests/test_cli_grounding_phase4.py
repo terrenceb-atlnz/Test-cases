@@ -449,3 +449,35 @@ def test_the_probe_cache_is_keyed_on_the_connections_file(conn, tmp_path):
     assert C.detect_commands("show interface status", conn=other) == []   # no table: []
     assert C._db_file(other) != C._db_file(conn)
     assert C.detect_commands("show interface status", conn=conn) == ["show interface status"]
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-08 — a long sample keeps its TAIL, with a table's header
+# ---------------------------------------------------------------------------
+# `show lldp interface` is a 14-line legend followed by the table it explains. With the
+# default budget of 14 the model saw every abbreviation and not one data row, and a dozen
+# T44297 units parsed for a literal "Base TLVs Enabled for Tx:" line the real table lacks.
+
+def test_head_and_tail_keeps_a_tables_rows_with_their_header():
+    sample = ["title", "legend a", "legend b", "legend c", "legend d", "legend e", "",
+              "  Port   Rx/Tx  Base", "------------------", " 1.0.1  Rx Tx  PdSnSdScMa",
+              " 1.0.2  Rx Tx  Pd--SdScMa"]
+    head, omitted, tail = C._head_and_tail(sample, 6)
+    assert head[0] == "title" and len(head) >= 1
+    assert tail[0].lstrip().startswith("Port") and tail[-1].endswith("Pd--SdScMa")
+    assert head + omitted + tail == sample
+    assert C._head_and_tail(sample, 11) == (sample, [], [])
+    assert C._head_and_tail(sample, 20) == (sample, [], [])
+
+
+def test_head_and_tail_without_a_table_keeps_a_short_tail():
+    sample = [f"line {i}" for i in range(30)]
+    head, omitted, tail = C._head_and_tail(sample, 14)
+    assert len(head) == 10 and len(tail) == 4 and head + omitted + tail == sample
+
+
+def test_show_lldp_interface_reference_now_carries_a_data_row(conn):
+    block = C.prompt_block(["show lldp interface"], None, conn=conn)
+    assert "Base:  Pd = Port Description" in block, "the legend head is still there"
+    assert "PdSnSdScMa" in block, "a table row must reach the model"
+    assert "lines omitted" in block

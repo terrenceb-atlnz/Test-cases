@@ -147,7 +147,8 @@ def test_every_method_opens_with_the_shortcut_block():
     sk = render(BOTH_SEQ)
     tree = ast.parse(sk)
     want_case = ["tb = self.testSet.tb", "dutA = self.testSet.dutA", "ethA = tb.ethA",
-                 "portA = dutA.portA", "peer = self.testSet.peer", "portPeer = dutA.portPeer"]
+                 "portA = dutA.portA", "peer = self.testSet.peer", "portPeer = dutA.portPeer",
+                 "portDut = peer.portDut"]
     want_set = [w.replace("self.testSet.", "self.") for w in want_case]
     for c in tree.body:
         if not isinstance(c, ast.ClassDef):
@@ -325,6 +326,42 @@ def test_library_holds_standalone_helpers_and_constants_not_methods():
     assert "def check_lldp_lag(testCase, eth, tb):" in lib["code"]
     compile(lib["code"], lib["name"], "exec")
     assert pc._fragment_tag(HELPER["source_id"], HELPER["loc"]) in lib["tags"]
+
+
+SELF_HELPER = {"source_id": "art/1332_lldp_med/library_1332.py", "symbol": "analyse_lldp_packets",
+               "loc": [44, 81], "why": "decode the capture",
+               "code": "def analyse_lldp_packets(self, recPktList):\n    return len(recPktList)\n"}
+SELF_METHOD = {"source_id": "art/1332_lldp_med/test-1332.1001.py", "symbol": "TestCase_3.check_tlvs",
+               "loc": [200, 230], "why": "",
+               "code": "    def check_tlvs(self, pkts):\n        return pkts\n"}
+_LIB_SRC = ("import sys\nfrom framework.ATPackets import *\n\n"
+            "def analyse_lldp_packets(self, recPktList):\n    return len(recPktList)\n")
+_TEST_SRC = ("class TestCase_3(ATTestCase.TestCase):\n"
+             "    def check_tlvs(self, pkts):\n        return pkts\n")
+
+
+def test_an_art_helper_taking_self_at_module_level_is_a_library_member(monkeypatch):
+    """2026-09-08: `analyse_lldp_packets(self, recPktList)` is a MODULE-LEVEL helper in ART's
+    library_1332.py (the TestCase travels as `self`). The old rule read every `self`-first def
+    as a method, so it was offered as a fragment to adapt, the model CALLED it, and 7 of 37
+    T44297 units died with NameError on a lint-clean script. Column 0 in the SOURCE decides."""
+    monkeypatch.setattr(pc, "_fragment_source_text",
+                        lambda sid: _LIB_SRC if sid.endswith("library_1332.py") else _TEST_SRC)
+    lib = pc._build_library("AWPTCM-T1", [SELF_HELPER, SELF_METHOD, HELPER], DATA)
+    assert [m["symbol"] for m in lib["members"]] == ["analyse_lldp_packets", "check_lldp_lag"]
+    assert "def analyse_lldp_packets(self, recPktList):" in lib["code"]
+    compile(lib["code"], lib["name"], "exec")
+
+
+def test_a_self_first_def_stays_out_when_the_source_shows_it_indented(monkeypatch):
+    monkeypatch.setattr(pc, "_fragment_source_text", lambda sid: _TEST_SRC)
+    assert pc._build_library("AWPTCM-T1", [SELF_METHOD], DATA) is None
+
+
+def test_without_source_text_a_self_first_def_is_still_read_as_a_method(monkeypatch):
+    """The conservative reading when the corpus cannot say — the pre-2026-09-08 rule."""
+    monkeypatch.setattr(pc, "_fragment_source_text", lambda sid: "")
+    assert pc._build_library("AWPTCM-T1", [SELF_HELPER], DATA) is None
 
 
 def test_no_library_when_nothing_qualifies():

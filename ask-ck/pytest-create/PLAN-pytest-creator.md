@@ -986,6 +986,15 @@ the result is Terrence's re-run and had not happened at the time of writing.
 
 ### 9.13 ART suite shape — frame, prompt, verdicts, library — BUILT 2026-09-07
 
+**Status 2026-09-08 — first real pass judged; five follow-ups built the same day.** 38/38 units on
+the new shape, 0 lint errors (was 59/63), but three names nothing defined (`analyse_lldp_packets`,
+`re`, `LLDP_PHONE_PKT`), the DUT's `portPeer` configured on the neighbour, and six echoed verdicts.
+Fixed: library admits ART's `self`-first module-level helpers; frame imports `re` and binds
+`portDut`; lint gains unbound-name (blocking), wrong-switch-port (policy) and echoed-verdict
+(warning) checks; the CLI reference keeps a sample's tail so table rows reach the model. See
+CHANGELOG 2026-09-08. Open for Terrence: the T44297 sequence steps 10/11 presume an LLDP
+"management-address command" AW+ does not have.
+
 After the combined re-run, six ART scripts were read whole and all 188 censused; eight
 divergences between our frame/prompt and the ART house shape were listed and Terrence asked
 for all eight closed in one pass ("it all needs to be done"). Built in order 1-2-3-4, 6, 5,

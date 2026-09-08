@@ -44,6 +44,35 @@ click landing mid-render cannot dispatch them twice. Live: Re-render 38 s → 3.
 30 ms throughout. Note for deploys: `tool/` is not watched by `--reload`, so a change there
 needs a `CK_server` save (or `ck` restart) to reach the live worker.
 
+**Same day — the first pass on the ART frame, judged in-context, and what it taught.** 38 units,
+Sonnet via `claude_agent`, $6.47, 76% cache reads, 14 min; **0 lint errors** against 59 and 63 on
+the old frame; every unit has its configure()/tear_down() pair, the shortcut block, `tb.ethA`,
+`peer`, checkpoint verdicts. And it would have died on the bench three ways the lint never looked
+for, so Terrence asked for everything found to be fixed:
+- **Library rule.** `_build_library` read every `self`-first def as a method. ART helpers take the
+  TestCase as `self` at MODULE level (`analyse_lldp_packets(self, recPktList)`), so the helper was
+  offered as a fragment to adapt and the model CALLED it — NameError in 7 of 37 units. A `self`-first
+  def is now a member when its SOURCE defines it at column 0.
+- **Frame.** `import re` (4 units used it; ART frames import it routinely). The shortcut block now
+  names the neighbour's own port, `portDut = peer.portDut`, and rule 3 says which end is whose.
+- **Lint, three new checks.** *Unbound names* (blocking): every loaded name must be bound by the
+  frame, the suite library, a star-imported framework module per the surface doc, scapy via
+  ATPackets, or builtins — silent behind a star import it cannot see through. *A port on the wrong
+  switch* (policy): `peer.cmd('interface {}'.format(portPeer.name))` selects the DUT's end of the
+  link on the neighbour; only the DUT/neighbour boundary is judged so a stack handle configuring a
+  member's port stays legal. *Echoed verdicts* (warning): a passed()/failed() reason that IS the
+  step's verify text verbatim.
+- **CLI reference keeps the tail.** `prompt_block` kept the first 14 lines of a sample; the
+  `show lldp interface` harvest is a 14-line legend followed by the table, so the model saw every
+  abbreviation and no data row, and a dozen units parsed for a `Base TLVs Enabled for Tx:` line
+  the real table lacks (codes are concatenated in a row, `PdSnSdScMa`). Long samples now render
+  head + `... (N lines omitted) ...` + tail, and a table's header travels with its rows.
+Not fixable in the tool and left for Terrence: TestCase_10/11 configure a second LLDP management
+address through `wireless` / `management address`, because the sequence step presumes a
+"documented management-address command" that AW+ LLDP does not have (the address comes from the
+IP interface); and the harvested table shows ports as `1.0.1`, not `port1.0.1`, so a row match on
+`portA.name` may still miss on real output.
+
 ## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
 
 After the combined token-efficiency re-run, the Sonnet and Opus scripts for T44297 were judged

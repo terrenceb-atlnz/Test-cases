@@ -550,17 +550,18 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
                     fams = ", ".join(other["products"][:6]) or "?"
                     chunk.append(f"    (on {fams}: {'; '.join(other['syntax'][:2])})")
         if v["sample_output"]:
-            all_lines = v["sample_output"].split("\n")
-            lines = all_lines[:max_output_lines]
+            all_lines = v["sample_output"].rstrip("\n").split("\n")
+            head, omitted, tail = _head_and_tail(all_lines, max_output_lines)
+            lines = list(head)
             # Never trim away the field the step is about. `current ecofriendly lpi` sits
             # ~line 10 of that variant, so a tighter budget could drop the exact line
             # relevance-selection just chose — the reference would then look like proof
             # the field does not exist.
             if terms:
-                kept = {id(x) for x in lines}
-                for ln in all_lines[max_output_lines:]:
-                    if any(t in ln.lower() for t in terms) and id(ln) not in kept:
-                        lines.append(ln)
+                lines += [ln for ln in omitted if any(t in ln.lower() for t in terms)]
+            if omitted:
+                lines.append(f"... ({len(omitted)} lines omitted) ...")
+            lines += tail
             chunk.append("  real output:")
             chunk += [f"    {ln}" for ln in lines]
             # If the chosen variant shows the feature but others do NOT, say so. The
@@ -620,6 +621,40 @@ def prompt_block(commands: List[str], product: Optional[str] = None,
         return ""
     return ("REAL CLI REFERENCE (AlliedWare Plus — authoritative; match these formats "
             "exactly, do NOT invent output tokens):\n\n" + "\n\n".join(parts))
+
+
+# Lines of a long sample kept from its END. See _head_and_tail.
+_TAIL_LINES = 4
+
+
+def _head_and_tail(all_lines: List[str], budget: int):
+    """(head, omitted, tail) of a sample that exceeds `budget` lines; (all, [], []) otherwise.
+
+    WHY THE TAIL (2026-09-08). The budget used to keep the first `budget` lines only. The
+    harvested `show lldp interface` sample is a 14-line legend followed by the table the
+    legend explains, so with the default budget of 14 the model saw every abbreviation and
+    NOT ONE data row — and a dozen T44297 units then parsed the output for a literal
+    "Base TLVs Enabled for Tx:" line that the real table does not have (the codes appear
+    concatenated in a row: `PdSnSdScMa`). Tabular `show` output puts its information at the
+    end, so the tail is kept too, and when the sample has a table rule (`-----`) the tail is
+    widened to start at the table's header so the rows arrive with their column names.
+    """
+    n = len(all_lines)
+    if n <= budget:
+        return list(all_lines), [], []
+    tail_n = min(_TAIL_LINES, max(1, budget // 3))
+    rule = [i for i, ln in enumerate(all_lines) if re.match(r"\s*-{5,}\s*$", ln)]
+    if rule and n - rule[-1] <= budget:
+        # The column header is the non-blank line(s) immediately above the rule — at most
+        # two (`show lldp interface` stacks a group title over the column names).
+        hdr, i = 0, rule[-1] - 1
+        while i >= 0 and hdr < 2 and all_lines[i].strip():
+            hdr, i = hdr + 1, i - 1
+        tail_n = max(tail_n, n - rule[-1] + hdr)
+    head_n = max(1, budget - min(tail_n, budget - 1))
+    if head_n + tail_n >= n:
+        return list(all_lines), [], []
+    return all_lines[:head_n], all_lines[head_n:n - tail_n], all_lines[n - tail_n:]
 
 
 def detect_commands(text: str, limit: int = 12,

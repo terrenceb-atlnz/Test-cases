@@ -70,6 +70,9 @@ BLOCKING = [
     # ART shape (2026-09-07): the suite library is imported at module load, so a syntax
     # error in it stops the whole suite before the first case — not a judgement call.
     "syntax: library_awptcm_t1.py line 3: invalid syntax",
+    # 2026-09-08: a name nothing defines is a NameError on first use — the first ART-frame
+    # pass linted clean with three of them (analyse_lldp_packets, re, LLDP_PHONE_PKT).
+    "unbound name: `LLDP_PHONE_PKT` at line 12 in TestCase_28 — nothing defines it: not the frame",
 ]
 
 POLICY = [
@@ -81,6 +84,10 @@ POLICY = [
     # ART shape (2026-09-07): a verdict inside a TestCase's own configure()/tear_down() runs
     # and is counted, but sits outside main()'s STEP/OBSERVED evidence — a house rule.
     "contract: TestCase_1.configure() line 40 calls self.failed() — configure()/tear_down() are config only; the verdict belongs in main()",
+    # 2026-09-08: the script runs, but configures the DUT's end of the neighbour link ON THE
+    # NEIGHBOUR. The inference (DUT/neighbour boundary) is sound but not infallible, so the
+    # reviewer may override with a reason.
+    "line 22: `peer.cmd('interface ...')` selects `portPeer`, which is dutA's port, on peer — the neighbour's own end",
 ]
 
 

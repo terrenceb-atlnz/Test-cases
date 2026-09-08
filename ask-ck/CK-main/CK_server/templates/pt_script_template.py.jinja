@@ -79,6 +79,7 @@
 {%- if links.peer %}
         peer = {{ via }}.peer
         portPeer = {{ dut }}.portPeer
+        portDut = peer.portDut
 {%- endif %}
 {%- for st in (stacks or []) %}
         {{ st }} = {{ via }}.{{ st }}
@@ -98,6 +99,7 @@
 
 import sys
 import time
+import re
 {%- if has_manual %}
 import select
 {%- endif %}

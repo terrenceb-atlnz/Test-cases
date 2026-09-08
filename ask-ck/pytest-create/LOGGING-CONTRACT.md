@@ -101,6 +101,11 @@ Given a generated script (offline) and its run log (from tb470):
 Criterion 6 scoring: **yes** = one parsed block per step, all with markers; **partial**
 = blocks present but some steps missing markers or merged; **no** = no per-step blocks.
 
+- **Echoed verdicts (warning, 2026-09-08).** A `passed()`/`failed()` reason that is the step's
+  verify or action text verbatim says what was expected, not what was observed; the log then
+  carries no evidence. `_lint_verdict_echo` flags it. Six of 292 verdicts on the first ART-frame
+  pass were this shape (`self.failed('Every captured LLDPDU carries ...')`).
+
 ## 5. Gotchas baked into the contract (learned from real source/logs)
 
 - Empty `passed()`/`failed()` is silent — the contract requires a reason.

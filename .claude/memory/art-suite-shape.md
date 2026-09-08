@@ -3,7 +3,7 @@ name: art-suite-shape
 description: "The generated frame and prompt emulate the ART house shape (2026-09-07): DUT<->testbox link on tb.ethA, neighbour named peer, per-case configure/main/tear_down with the shortcut block, checkpoint verdicts, self.supported gating, a suite library, ATPackets layers"
 metadata:
   type: project
-  verified: 2026-09-07
+  verified: 2026-09-08
 ---
 
 Terrence, 2026-09-07: *"they have a definite way they structure ART test cases, and i want to
@@ -55,3 +55,11 @@ and called the partner `dut`: 59 / 63 unbound-port lint errors, all frame-caused
 **Still open:** the DUT handle name comes from the fragments' vocabulary (`dutA` on T44297);
 tb470's `[misc]` has no `ck_link_tb` yet, so a capture case cannot run there until the bench
 declares it (bench decision). First model pass on the new shape not yet run.
+
+**Addendum 2026-09-08 — first real pass, judged.** ART library helpers take the TestCase as a
+`self` FIRST PARAMETER at module level (`def analyse_lldp_packets(self, recPktList)` in
+library_1332.py); "first parameter is `self`" does NOT mean "method" in this corpus — column 0 in
+the source does. The pass linted clean (0 vs 59/63) and would still have hit three NameErrors,
+so **lint-clean is not run-clean**: the unbound-name lint now exists for exactly that gap. Also:
+the harvested `show lldp interface` table shows ports as `1.0.1` (no `port` prefix) and its TLV
+codes concatenated (`PdSnSdScMa`) — parse the ROW, not a `Base TLVs Enabled for Tx:` line.
