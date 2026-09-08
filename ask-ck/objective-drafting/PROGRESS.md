@@ -58,11 +58,17 @@ session still holds the raw units; the Summary step (assemble + lint) has not be
 offline with the fixes in place: the library now carries `analyse_lldp_packets` and
 `parse_lldp_neighbours`, the frame imports `re`, so the only unbound name left on this pass is
 `LLDP_PHONE_PKT` (TestCase_28), plus the two wrong-switch port errors in setup and 7 echoed
-verdicts — that is what Summary will show. **Open for Terrence:**
-(1) sequence steps 10/11 presume an LLDP "management-address command" that AW+ does not have
-(the TLV carries the IP interface's address) — the units built on `wireless`/`management address`;
-(2) the docs table shows ports as `1.0.1` without the `port` prefix, so row matches on
-`portA.name` may miss on real output — a bench check, not a tool fix.
+verdicts — that is what Summary will show. **Open for Terrence** (corrected 2026-09-08 — my first read was wrong, see below):
+(1) steps 10/11 used the WRONG command. The units call `management address` from the `awc_cmd`
+(wireless-controller) group, entered under `wireless`. AW+ *does* have `lldp management-address
+<ipaddr>` (interface config); grounding never injected it because the step names it in prose and
+`lldp tlv-select management-address` won the literal match. Step 10 alone has a real snag: that
+command OVERRIDES the advertised address rather than appending, so "multiple Management Address
+TLVs" may be unreachable; step 11 (change the address) is fine. A grounding fix (feed
+`lldp management-address` when a step says "management address") is a candidate, not built.
+(2) the `show lldp interface` sample is DOC output harvested from docs.atlnz.lc, not a device;
+it shows ports as `1.0.1`, so row matches on `portA.name` (`port1.0.1`) may miss on real
+hardware — a bench check, not a tool fix.
 
 **Pick up here.**
 1. Terrence re-runs Generate on T44297 with the new frame (Fragments → Generate → Assemble →

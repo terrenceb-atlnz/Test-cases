@@ -992,8 +992,9 @@ the new shape, 0 lint errors (was 59/63), but three names nothing defined (`anal
 Fixed: library admits ART's `self`-first module-level helpers; frame imports `re` and binds
 `portDut`; lint gains unbound-name (blocking), wrong-switch-port (policy) and echoed-verdict
 (warning) checks; the CLI reference keeps a sample's tail so table rows reach the model. See
-CHANGELOG 2026-09-08. Open for Terrence: the T44297 sequence steps 10/11 presume an LLDP
-"management-address command" AW+ does not have.
+CHANGELOG 2026-09-08. Open for Terrence: T44297 steps 10/11 used the wireless-controller
+`management address` command; the right one is `lldp management-address <ipaddr>` (grounding did
+not surface it). Step 10's "multiple addresses at once" may be unreachable — the command overrides.
 
 After the combined re-run, six ART scripts were read whole and all 188 censused; eight
 divergences between our frame/prompt and the ART house shape were listed and Terrence asked

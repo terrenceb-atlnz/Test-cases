@@ -67,11 +67,16 @@ for, so Terrence asked for everything found to be fixed:
   abbreviation and no data row, and a dozen units parsed for a `Base TLVs Enabled for Tx:` line
   the real table lacks (codes are concatenated in a row, `PdSnSdScMa`). Long samples now render
   head + `... (N lines omitted) ...` + tail, and a table's header travels with its rows.
-Not fixable in the tool and left for Terrence: TestCase_10/11 configure a second LLDP management
-address through `wireless` / `management address`, because the sequence step presumes a
-"documented management-address command" that AW+ LLDP does not have (the address comes from the
-IP interface); and the harvested table shows ports as `1.0.1`, not `port1.0.1`, so a row match on
-`portA.name` may still miss on real output.
+Left for Terrence (corrected 2026-09-08 after checking the corpus): TestCase_10/11 used the WRONG
+command — `management address` from the `awc_cmd` (wireless-controller) group, entered under
+`wireless`. AW+ *does* have `lldp management-address <ipaddr>` (interface config, sets the address
+advertised in the Management Address TLV), but grounding never surfaced it: the step names the
+command in prose and the TLV keyword `lldp tlv-select management-address` won the literal match.
+A real snag remains in step 10 only — `lldp management-address` OVERRIDES rather than appends, so
+"multiple Management Address TLVs, one per configured address" may be unreachable on AW+; step 11
+(change to a different address) maps cleanly. Separately, the `show lldp interface` sample is
+DOC output (harvested from docs.atlnz.lc, not a device): it shows ports as `1.0.1`, so a row
+match on `portA.name` (`port1.0.1`) may miss on real hardware — a bench check.
 
 ## 2026-09-07 — the generated script now has the ART suite shape (frame, prompt, verdicts, library)
 
