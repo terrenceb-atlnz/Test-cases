@@ -80,14 +80,39 @@ ALL_PRODUCTS = "*"          # "This command is available on all products." — e
 # the longest piece is still the sample. The other whitespace-only candidates were prompt
 # lines the harvest regex misses (a mode name over 31 chars) and wrapped syntax.
 _CELL_BREAK_RX = re.compile(r"^\s*(?:</td>\s*</tr>\s*<tr[^>]*>\s*<td[^>]*>\s*)+$", re.S | re.I)
+# The opening <pre ...> tag, matched AT a position so its class attribute can be read.
+_PRE_OPEN_RX = re.compile(r"<pre([^>]*)>", re.I)
+# Per-product visibility class the doc build stamps on a <pre> (and on some table cells):
+# `ss-on-x930 ss-on-x950 …`. The one non-product token is `ss-on-none` — a syntax form that
+# exists in the schema but ships on no current product; it is dropped, never grounded on.
+_SSON_RX = re.compile(r"ss-on-([a-z0-9]+)")
+# Syntax <pre> blocks carry this class; examples and device output do not. It is what lets the
+# combined build's per-product syntax split (`duplex {auto|full}` on the chassis families vs
+# `duplex {auto|full|half}` on the rest) be recovered as separate variant rows.
+_SYNTAX_CLASS = "zccmdnamesyntax"
 
 
-def _pre_blocks_merged(region: str) -> List[str]:
-    """H.pre_blocks(), but joining a run of <pre> blocks that the build split across table
-    rows back into the single output it was."""
-    out: List[str] = []
+def _pre_blocks_annotated(region: str) -> List[Tuple[str, bool, Optional[frozenset]]]:
+    """Merged <pre> blocks as (text, is_syntax, products).
+
+    `products` is a frozenset of the real product names the block's `ss-on-*` classes name
+    (with `none` removed), or None when the block carries no `ss-on` class at all — i.e. it
+    is shared by every product on the page. A block whose ONLY `ss-on` token was `none`
+    yields an EMPTY frozenset, so the caller can tell "shown to no product" from "shared".
+
+    The join rule is identical to `_pre_blocks_merged` (only non-prompt output merges across a
+    table-cell break); merged pieces union their product sets and OR their syntax flag.
+    """
+    out: List[list] = []            # [text, is_syntax, products]
     prev_end: Optional[int] = None
     for m in H._PRE_RX.finditer(region):
+        openm = _PRE_OPEN_RX.match(region, m.start())
+        attrs = openm.group(1) if openm else ""
+        has_sson = "ss-on-" in attrs
+        names = set(_SSON_RX.findall(attrs))
+        names.discard("none")
+        prods = frozenset(names) if has_sson else None
+        is_syn = _SYNTAX_CLASS in attrs
         text = unescape(H._TAG_RX.sub("", m.group(1))).strip()
         # Only OUTPUT joins output. A block that is (or contains) a command line is an
         # example step, and gluing it to its neighbour makes `classify` read the next
@@ -96,13 +121,31 @@ def _pre_blocks_merged(region: str) -> List[str]:
         joinable = (out and prev_end is not None
                     and _CELL_BREAK_RX.match(region[prev_end:m.start()])
                     and not H._PROMPT_ANY_RX.search(text)
-                    and not H._PROMPT_ANY_RX.search(out[-1]))
+                    and not H._PROMPT_ANY_RX.search(out[-1][0]))
         if joinable:
-            out[-1] = out[-1] + "\n" + text
+            out[-1][0] = out[-1][0] + "\n" + text
+            a = out[-1][2]
+            if a is None and prods is None:
+                merged = None
+            elif a is None:
+                merged = prods
+            elif prods is None:
+                merged = a
+            else:
+                merged = a | prods
+            out[-1][2] = merged
+            out[-1][1] = out[-1][1] or is_syn
         else:
-            out.append(text)
+            out.append([text, is_syn, prods])
         prev_end = m.end()
-    return out
+    return [(t, s, p) for t, s, p in out]
+
+
+def _pre_blocks_merged(region: str) -> List[str]:
+    """H.pre_blocks(), but joining a run of <pre> blocks that the build split across table
+    rows back into the single output it was. The flat text list; `_pre_blocks_annotated`
+    carries the per-block syntax/product metadata the combined-zip split needs."""
+    return [t for t, _, _ in _pre_blocks_annotated(region)]
 
 
 def _available_on(region: str) -> List[str]:
@@ -213,25 +256,18 @@ def extract_notes(region: str) -> Dict[str, str]:
     return notes
 
 
-def parse_page(page: str, html: str) -> Optional[dict]:
-    """Parsed row, or None for a soft-404 / non-command page.
+def _row_from(page: str, blocks: List[str], tables: list, notes: dict,
+              products: List[str]) -> dict:
+    """Assemble one cli_commands row from a set of <pre> blocks + tables + notes.
 
-    A real command page carries at least a <pre> syntax block or a validity table; pure
-    index/intro pages (prose only) are skipped, matching the scrape harvester's behaviour."""
-    if H._SOFT404_RX.search(html[:4000]):
-        return None
-    m = _ARTICLE_RX.search(html)
-    region = m.group(0) if m else html   # /data/ pages are lean; article is the whole content
-    blocks = _pre_blocks_merged(region)
-    tables = extract_tables(region)
-    if not blocks and not tables:
-        return None
-    notes = extract_notes(region)
+    `content_sha` is over [blocks, tables, notes], so two product-groups that differ only in
+    their syntax block get distinct rows (and distinct shas), while identical content across
+    products still dedupes to one row in `store()`."""
     syntax, examples, sample = H.classify(blocks)
     body = json.dumps([blocks, tables, notes], sort_keys=True, ensure_ascii=False)
     return {
         "content_sha": hashlib.sha256(body.encode("utf-8")).hexdigest(),
-        "products": _available_on(region),      # used by --combined-zip; per-device path ignores it
+        "products": products,
         "command": H.command_name(page),
         "page": page,
         "cmd_group": page.split("/")[0],
@@ -242,6 +278,87 @@ def parse_page(page: str, html: str) -> Optional[dict]:
         "tables": tables,
         "notes": notes,
     }
+
+
+def parse_page(page: str, html: str) -> Optional[dict]:
+    """Parsed row, or None for a soft-404 / non-command page.
+
+    A real command page carries at least a <pre> syntax block or a validity table; pure
+    index/intro pages (prose only) are skipped, matching the scrape harvester's behaviour.
+    Per-device path: the whole page is one row; `products` is the page's 'available on'
+    sentence (the per-device caller overrides it with the zip's own device)."""
+    if H._SOFT404_RX.search(html[:4000]):
+        return None
+    m = _ARTICLE_RX.search(html)
+    region = m.group(0) if m else html   # /data/ pages are lean; article is the whole content
+    blocks = _pre_blocks_merged(region)
+    tables = extract_tables(region)
+    if not blocks and not tables:
+        return None
+    notes = extract_notes(region)
+    return _row_from(page, blocks, tables, notes, _available_on(region))
+
+
+def combined_page_rows(page: str, html: str) -> List[dict]:
+    """The combined build's rows for one page: ONE row per product-group.
+
+    A page whose syntax is uniform across its products yields a single row (the common case,
+    incl. `show interface`). A page that ships a different syntax form per product family
+    (`duplex`: `{auto|full}` on the chassis families, `{auto|full|half}` on the rest) yields
+    one row per distinct family group, so the per-family variant comparison the read path and
+    prompts rely on is preserved — the same shape the July per-device zips produced.
+
+    Grouping is by product-specific SYNTAX blocks only (`zccmdnamesyntax` + `ss-on-*`). Every
+    group also carries the page's shared blocks (examples, device output, non-`ss-on` syntax)
+    and the shared tables + notes; product-specific NON-syntax blocks and per-product table
+    cells are treated as shared (see the plan's deferred B2). A syntax block shown to no
+    product (`ss-on-none` only) is dropped.
+    """
+    if H._SOFT404_RX.search(html[:4000]):
+        return []
+    m = _ARTICLE_RX.search(html)
+    region = m.group(0) if m else html
+    ann = _pre_blocks_annotated(region)
+    # Drop blocks shown to no product (an ss-on class that was `none`-only -> empty set).
+    ann = [(t, s, p) for (t, s, p) in ann if not (p is not None and len(p) == 0)]
+    tables = extract_tables(region)
+    if not ann and not tables:
+        return []
+    notes = extract_notes(region)
+    avail = _available_on(region)
+
+    # Indices of the product-specific syntax blocks, and the products they name.
+    spec = [(i, p) for i, (t, s, p) in enumerate(ann) if s and p]     # p is a non-empty set
+    if not spec:
+        blocks = [t for t, _, _ in ann]
+        return [_row_from(page, blocks, tables, notes, avail)]        # single row, unchanged
+
+    shared_idx = [i for i, (t, s, p) in enumerate(ann) if (i not in {j for j, _ in spec})]
+    named = frozenset().union(*[p for _, p in spec])
+    # "available on all products" (or no sentence) alongside a split: the ss-on classes are
+    # the only concrete product list, so the named union IS the universe.
+    universe = named if (avail == [ALL_PRODUCTS] or not avail) else (frozenset(avail) | named)
+
+    groups: Dict[tuple, set] = {}
+    for prod in named:
+        vis = tuple(i for i, p in spec if prod in p)                  # which variant(s) it sees
+        groups.setdefault(vis, set()).add(prod)
+
+    # Products the page lists as available but that NO syntax block tags (thrash-limiting
+    # names 29 in its sentence, 25 on the block). A syntax-less row for them would be worse
+    # than the common form, so fold them into the largest variant group — the best single
+    # guess at the default. Deferred refinement: attribute them from a per-product table.
+    extra = universe - named
+    if extra:
+        biggest = max(groups, key=lambda v: len(groups[v]))
+        groups[biggest] |= extra
+
+    rows: List[dict] = []
+    for vis, prods in groups.items():
+        idxs = sorted(set(vis) | set(shared_idx))
+        blocks = [ann[i][0] for i in idxs]
+        rows.append(_row_from(page, blocks, tables, notes, sorted(prods)))
+    return rows
 
 
 # --------------------------------------------------------------------------- zip I/O
@@ -280,6 +397,27 @@ def parse_zip(product: str, path: Path) -> List[dict]:
             parsed = parse_page(page, html)
             if parsed:
                 rows.append(parsed)
+    return rows
+
+
+def parse_combined_zip(path: Path) -> List[dict]:
+    """Every page of the combined archive, flattened to one row per product-group.
+
+    Single-syntax pages keep the page's 'available on' `products` (`['*']` / [] / explicit),
+    so main()'s universe/fallback expansion still applies to them; split pages arrive with a
+    concrete per-group product list already resolved."""
+    rows: List[dict] = []
+    with zipfile.ZipFile(path) as z:
+        for name in z.namelist():
+            m = _ZIP_ENTRY_RX.search(name)
+            if not m:
+                continue
+            page = f"{m.group(1)}/{m.group(2)}"
+            try:
+                html = z.read(name).decode("utf-8", errors="replace")
+            except Exception:
+                continue
+            rows.extend(combined_page_rows(page, html))
     return rows
 
 
@@ -339,7 +477,7 @@ def main() -> int:
         if not cz.exists():
             print(f"combined zip not found at {cz}", file=sys.stderr)
             return 2
-        rows = parse_zip("combined", cz)         # _ZIP_ENTRY_RX matches the combined tree as-is
+        rows = parse_combined_zip(cz)            # one row per product-group per page
         if not rows:
             print("no rows parsed — nothing written")
             return 1
@@ -364,12 +502,14 @@ def main() -> int:
         stamp = {
             "loaded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "source": f"combined archive {cz.name} ({cz.stat().st_size} bytes)",
-            "single_variant": True,
+            "single_variant": False,
             "products": products,
             "product_fallback": args.product_fallback,
             "note": "one combined reference build (no per-device split); cli_commands hard-"
                     "overwritten; product membership parsed from each page's 'available on' "
-                    "sentence. Per-family variant comparison is unavailable from this source.",
+                    "sentence. Per-family syntax variants are RECOVERED from the build's "
+                    "ss-on-<product> classes: a page ships one row per syntax group (duplex "
+                    "-> {auto|full} on 8 chassis families, {auto|full|half} on 25).",
         }
         conn.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('cli_docs_load', ?)",
                      (json.dumps(stamp),))

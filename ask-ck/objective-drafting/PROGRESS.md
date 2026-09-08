@@ -4,6 +4,62 @@
 
 **Last Updated**: 2026-09-08 (by Claude)
 
+## Latest session (2026-09-09) — plan A–F started; STEP 1 (option B) built + dry-run green, NOT yet loaded — PAUSED before the live reload
+
+**Pick up here.** Terrence committed + pushed the combined-corpus swap (`b854e4c`) and the
+follow-up plan `ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`, then said "start the
+plan". Step 1 of that plan — **option B, per-product syntax variants** — is now implemented in
+`tool/load_cli_docs_from_zips.py` (uncommitted) and verified against a fresh copy of the backup.
+Nothing has touched the live `ask-ck/var/ck.db` this session; the service is unchanged.
+
+**What B does (loader only).** The combined build tags each per-product `<pre>` with
+`ss-on-<product>` CSS classes (39 real products; the one non-product token `ss-on-none` = a
+form shipped on no current product, dropped). New `_pre_blocks_annotated()` carries each merged
+block's syntax flag + product set; new `combined_page_rows()` emits ONE row per distinct
+product-specific **syntax** group, each row also carrying the page's shared blocks/tables/notes.
+A page with uniform syntax stays a single row (the common case, incl. `show interface`).
+`_pre_blocks_merged()` output is unchanged, so the per-device path and the existing dry-run
+checks are untouched. Products a page lists as available but that no syntax block tags (e.g.
+`thrash-limiting`: 29 in the sentence, 25 on the block) fold into the largest variant group —
+a heuristic, recorded for review; never a syntax-less row.
+
+**Dry-run result** (`--db <scratch copy of backup>`, ~5 s):
+
+| | value |
+|---|---|
+| content blobs | 3,535 (was 3,462 flattened; +73 variant rows) |
+| distinct commands | 3,415 (0 lost vs backup) |
+| product×command rows | 77,588 over 39 products |
+| `duplex` | 2 variants — `{auto|full}` (8 chassis families), `{auto|full|half}` (25) ✓ |
+| `show interface` | still 1 row ✓ |
+| multi-group pages with an empty-syntax row | 0 ✓ |
+| all-prompt stored samples | 3 (source shape, unchanged) |
+| read-path samples lost vs backup | 0 (27 gained) |
+| local-info 77-line labelled block / `show lldp interface` `PdSnSdScMa` | both intact ✓ |
+
+The stamp now records `single_variant: False` with a note on the ss-on recovery.
+
+**RESUME, in order:**
+1. **DECISION + timing gate before the live load.** Loading needs `systemctl --user stop
+   ask-ck.service` → load → start (~30 s LAN downtime; `_PROBE_CACHE`/`_ALIAS_CACHE` key on the
+   DB path, so a reload under a running server strands it on the old probe set). Confirm the
+   window with Terrence. Command: `PYTHONNOUSERSITE=1 .venv/bin/python
+   tool/load_cli_docs_from_zips.py --combined-zip awplus-cmdref-combined.zip` then `/health`.
+2. **Step 2 (A): the five red tests, against the B corpus.** `test_duplex_variants_are_recorded_per_product`
+   should now PASS unchanged (confirm). The two LPI tests + two phase-4 tests still need the
+   rewrites in the plan's step-2 table (their premises are genuinely gone). Decision A2 stands.
+3. **Steps 3–5 (D/E/F):** stats() dual-stamp; LLDP `FEATURE_ALIASES` entry; the spoken
+   `management address` probe form. Decisions E1/F2 open.
+4. **Step 6 (C + docs + commit):** zip location (rec: LFS at `ask-ck/var/cli_zips/` + SHA in the
+   stamp), CHANGELOG, SERVER-README CLI section, memory `atlnz-docs-cli-reference`, then ONE
+   commit with explicit paths incl. ck.db; no push.
+
+**Open decisions** (also in the plan's closing table): reload timing; **B-scope** — B splits on
+SYNTAX only (48 pages); full per-`<pre>` visible-set splitting (233 pages, incl. per-product
+examples/output and the 387 table-cell pages / B2) is deferred, recommend keeping it deferred;
+the unnamed-product fold heuristic; A2; E1; F2; C. Backup `ck.db.pre-combined-cli.bak` is still
+in the session scratchpad under `/tmp` (will not survive a reboot).
+
 ## Latest session (2026-09-08, afternoon → evening) — CLI corpus REPLACED from the combined docs zip; live and verified; gate red on 5 corpus-premise tests, decisions pending
 
 **Where it stands.** Terrence dropped `awplus-cmdref-combined.zip` (15.9 MB, docs build dated

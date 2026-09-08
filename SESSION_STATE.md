@@ -3909,3 +3909,27 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   is unanswered.
 - **Superseded:** LOGGING-CONTRACT §3.3 / TEMPLATE-SPEC C6 "exactly one determination" (both
   carry dated revision notes).
+
+## Session Close / Handoff (2026-09-09) — CLI corpus follow-up plan A–F started; step 1 (option B) built + dry-run green, not yet loaded
+
+- **Context:** Terrence committed + pushed the combined-corpus swap (`b854e4c`, gate red on the
+  same 5 corpus-premise tests) and the follow-up plan
+  `ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`, then said "start the plan".
+- **Shipped this session (uncommitted → committed at wrap):** step 1, option B — per-product
+  syntax variants in `tool/load_cli_docs_from_zips.py`. The combined build tags each per-product
+  `<pre>` with `ss-on-<product>` classes; `_pre_blocks_annotated()` + `combined_page_rows()` emit
+  one row per distinct syntax group (duplex → `{auto|full}` on 8 chassis families,
+  `{auto|full|half}` on 25). Uniform-syntax pages stay one row. `_pre_blocks_merged()` output and
+  the per-device path are unchanged. Dry-run against a fresh copy of the backup: 3,535 blobs,
+  3,415 commands (0 lost), 0 empty-syntax rows, 0 samples lost, local-info + `show lldp interface`
+  intact. NOT loaded to the live `ask-ck/var/ck.db` — that is the next action and is gated on
+  Terrence's timing (a ~30 s service stop; `_PROBE_CACHE`/`_ALIAS_CACHE` key on the DB path).
+- **Gate at close:** both guards OK; pytest 5 failed / 1403 passed (the SAME 5 pre-existing
+  corpus-premise failures from `b854e4c` — this session added none); vitest 252 passed; ck.db not
+  dirtied. The 5 clear only once B is loaded and the step-2 test rewrites land.
+- **Resume:** the 2026-09-09 entry at the top of `PROGRESS.md` has the ordered resume list. Open
+  decisions (plan's closing table): reload timing; keep B scoped to syntax only (rec: yes);
+  the unnamed-product fold heuristic; A2; E1; F2; C.
+- **Left undone (all next-session, by design):** the live load; step 2 test rewrites; D/E/F;
+  the SERVER-README CLI-reference section and the `atlnz-docs-cli-reference` memory (both name the
+  July per-device source and are pending the step-6 update — deliberately NOT restamped here).

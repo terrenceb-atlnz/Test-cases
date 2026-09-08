@@ -2,7 +2,11 @@
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-09 — nothing below is built. Awaiting Terrence's decisions** (listed at
+> **IN PROGRESS 2026-09-09.** Step 1 (option B, per-product syntax variants) is BUILT in
+> `tool/load_cli_docs_from_zips.py` and dry-run green against the backup (duplex splits
+> 8/25; see the 2026-09-09 PROGRESS.md entry). NOT yet loaded to the live ck.db — paused
+> before the reload timing gate. Steps 2–6 and the decisions below are still open.
+> Originally **PROPOSED 2026-09-09 — awaiting Terrence's decisions** (listed at
 > the end). Written at his request after the corpus swap itself landed: the live
 > `ask-ck/var/ck.db` holds the combined-zip CLI corpus as of 2026-09-08 16:20 (see the
 > 2026-09-08 entry in `ask-ck/objective-drafting/PROGRESS.md` for the before/after table and
