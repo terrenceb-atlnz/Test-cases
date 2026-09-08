@@ -54,7 +54,71 @@ DATA_BASE = "https://docs.atlnz.lc/preview/data"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import harvest_cli_docs as H  # noqa: E402
 
-_ZIP_ENTRY_RX = re.compile(r"(?:^|/)([a-z0-9][a-z0-9_\-]*_cmd)/([^/]+\.html)$", re.I)
+# `_cmds?`, not `_cmd` (2026-09-08): the doc build names two groups `ping_cmds/` and
+# `sflow_cmds/` — 36 command pages, `ping` and `traceroute` among them, that a `_cmd`-only
+# match skipped silently in every load before this one.
+_ZIP_ENTRY_RX = re.compile(r"(?:^|/)([a-z0-9][a-z0-9_\-]*_cmds?)/([^/]+\.html)$", re.I)
+# "This command is available on AR1050, AR3050, ... x908Gen3 and x980." — every page of the
+# combined build carries this sentence; it is the per-product membership the per-device zips
+# encoded in their file names.
+_AVAILABLE_ON_RX = re.compile(r"available on\s+(.+?)\.(?:\s|<|$)", re.S | re.I)
+_PRODUCT_TOKEN_RX = re.compile(r"[a-z]{1,6}\d[a-z0-9\-]*")
+_NO_DIGIT_PRODUCTS = {"vaa", "vfw"}
+ALL_PRODUCTS = "*"          # "This command is available on all products." — expanded at load time
+# The combined build renders one long output as an HTML table with ONE <pre> PER ROW, so a
+# 40-line `show lldp local-info` reply arrives as seven blocks and `classify` (longest block
+# wins) hands the prompt the ETS section instead of the labelled LLDP block. Consecutive
+# <pre> blocks separated by nothing but cell/row boundaries are one output. 315 of 3,462
+# pages in awplus-cmdref-combined.zip are chunked this way (2026-09-08).
+# At least ONE cell break is required (`+`, not `*`). With whitespace-only separators
+# allowed as well, 2,845 pairs of adjacent SYNTAX variants glued into one block — 25 of them
+# long and placeholder-sparse enough that `reclassify` read them as device output (`debug
+# lldp`, `terminal monitor`, `clear mac-filter counter`...). Measured 2026-09-08: every one of
+# the 280 genuine output rejoins sits behind a cell break. Four pages DO abut real output
+# across whitespace alone (show counter dhcp-server, both show scada modbus pages, show
+# profinet interface); they stay split — as the July per-device build also left them — and
+# the longest piece is still the sample. The other whitespace-only candidates were prompt
+# lines the harvest regex misses (a mode name over 31 chars) and wrapped syntax.
+_CELL_BREAK_RX = re.compile(r"^\s*(?:</td>\s*</tr>\s*<tr[^>]*>\s*<td[^>]*>\s*)+$", re.S | re.I)
+
+
+def _pre_blocks_merged(region: str) -> List[str]:
+    """H.pre_blocks(), but joining a run of <pre> blocks that the build split across table
+    rows back into the single output it was."""
+    out: List[str] = []
+    prev_end: Optional[int] = None
+    for m in H._PRE_RX.finditer(region):
+        text = unescape(H._TAG_RX.sub("", m.group(1))).strip()
+        # Only OUTPUT joins output. A block that is (or contains) a command line is an
+        # example step, and gluing it to its neighbour makes `classify` read the next
+        # command as this one's reply — measured on the first load: 2,029 rows whose
+        # "sample output" was nothing but `awplus(config)# ...` lines.
+        joinable = (out and prev_end is not None
+                    and _CELL_BREAK_RX.match(region[prev_end:m.start()])
+                    and not H._PROMPT_ANY_RX.search(text)
+                    and not H._PROMPT_ANY_RX.search(out[-1]))
+        if joinable:
+            out[-1] = out[-1] + "\n" + text
+        else:
+            out.append(text)
+        prev_end = m.end()
+    return out
+
+
+def _available_on(region: str) -> List[str]:
+    """Lower-cased product names the page says the command is available on; [] if absent."""
+    txt = unescape(re.sub(r"<[^>]+>", " ", region))
+    m = _AVAILABLE_ON_RX.search(txt)
+    if not m:
+        return []
+    if re.match(r"\s*all\s+products", m.group(1), re.I):
+        return [ALL_PRODUCTS]
+    out: List[str] = []
+    for part in re.split(r",\s*|\s+and\s+", m.group(1)):
+        t = part.strip().lower().rstrip(".")
+        if (t and (_PRODUCT_TOKEN_RX.fullmatch(t) or t in _NO_DIGIT_PRODUCTS)) and t not in out:
+            out.append(t)
+    return out
 _ARTICLE_RX = re.compile(r"<article\b.*?</article>", re.S | re.I)
 _TABLE_RX = re.compile(r"<table\b.*?</table>", re.S | re.I)
 _TR_RX = re.compile(r"<tr\b.*?</tr>", re.S | re.I)
@@ -158,7 +222,7 @@ def parse_page(page: str, html: str) -> Optional[dict]:
         return None
     m = _ARTICLE_RX.search(html)
     region = m.group(0) if m else html   # /data/ pages are lean; article is the whole content
-    blocks = H.pre_blocks(region)
+    blocks = _pre_blocks_merged(region)
     tables = extract_tables(region)
     if not blocks and not tables:
         return None
@@ -167,6 +231,7 @@ def parse_page(page: str, html: str) -> Optional[dict]:
     body = json.dumps([blocks, tables, notes], sort_keys=True, ensure_ascii=False)
     return {
         "content_sha": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+        "products": _available_on(region),      # used by --combined-zip; per-device path ignores it
         "command": H.command_name(page),
         "page": page,
         "cmd_group": page.split("/")[0],
@@ -251,11 +316,73 @@ def main() -> int:
     ap.add_argument("--all", action="store_true", help="every device zip in the index")
     ap.add_argument("--zip-dir", default=None, help="where zips are / will be cached")
     ap.add_argument("--download", action="store_true", help="fetch missing zips from the data index")
+    ap.add_argument("--combined-zip", default=None,
+                    help="ONE combined reference archive (a single <group>_cmd/<page>.html tree, "
+                         "no per-device split, e.g. awplus-cmdref-combined.zip). Hard-overwrites "
+                         "cli_commands with its pages; product membership is read from each "
+                         "page's 'This command is available on ...' sentence. Same entry regex "
+                         "and parsers as the per-device path, so the row shape is identical. "
+                         "Trade-off: a combined build is SINGLE-VARIANT (one page per command), "
+                         "so the per-family variant comparison the per-device zips fed is gone.")
+    ap.add_argument("--product-fallback", default="awplus",
+                    help="--combined-zip: label for a page with no 'available on' sentence")
+    ap.add_argument("--db", default=None, help=f"database to write (default {DB}); a scratch copy for a dry run")
     args = ap.parse_args()
+    db_path = Path(args.db) if args.db else DB
 
-    if not DB.exists():
-        print(f"ck.db not found at {DB}", file=sys.stderr)
+    if not db_path.exists():
+        print(f"ck.db not found at {db_path}", file=sys.stderr)
         return 2
+
+    if args.combined_zip:
+        cz = Path(args.combined_zip)
+        if not cz.exists():
+            print(f"combined zip not found at {cz}", file=sys.stderr)
+            return 2
+        rows = parse_zip("combined", cz)         # _ZIP_ENTRY_RX matches the combined tree as-is
+        if not rows:
+            print("no rows parsed — nothing written")
+            return 1
+        universe = sorted({p for r in rows for p in r.get("products") or [] if p != ALL_PRODUCTS})
+        pairs = []
+        n_fallback = n_all = 0
+        for r in rows:
+            prods = r.get("products") or []
+            if prods == [ALL_PRODUCTS]:
+                prods, n_all = universe, n_all + 1
+            elif not prods:
+                prods, n_fallback = [args.product_fallback], n_fallback + 1
+            pairs += [(prod, r) for prod in prods]
+        products = sorted({prod for prod, _ in pairs})
+        print(f"  {cz.name}: {len(rows)} command pages, {len(products)} products; "
+              f"{n_all} page(s) 'available on all products' -> all {len(universe)}, "
+              f"{n_fallback} page(s) with no sentence -> {args.product_fallback!r}")
+        conn = sqlite3.connect(db_path)
+        conn.executescript(SCHEMA)               # DROP + recreate: the hard overwrite
+        n_content, n_pairs = store(conn, pairs)
+        conn.execute("INSERT INTO cli_commands_fts(cli_commands_fts) VALUES('rebuild')")
+        stamp = {
+            "loaded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "source": f"combined archive {cz.name} ({cz.stat().st_size} bytes)",
+            "single_variant": True,
+            "products": products,
+            "product_fallback": args.product_fallback,
+            "note": "one combined reference build (no per-device split); cli_commands hard-"
+                    "overwritten; product membership parsed from each page's 'available on' "
+                    "sentence. Per-family variant comparison is unavailable from this source.",
+        }
+        conn.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('cli_docs_load', ?)",
+                     (json.dumps(stamp),))
+        conn.commit()
+        n_cmd = conn.execute("SELECT COUNT(*) FROM cli_commands").fetchone()[0]
+        n_dc = conn.execute("SELECT COUNT(DISTINCT command) FROM cli_commands").fetchone()[0]
+        n_out = conn.execute("SELECT COUNT(*) FROM cli_commands WHERE sample_output IS NOT NULL AND sample_output != ''").fetchone()[0]
+        n_map = conn.execute("SELECT COUNT(*) FROM cli_command_products").fetchone()[0]
+        conn.close()
+        print(f"\nhard-overwrote cli_commands in {db_path.name} from {cz.name}:")
+        print(f"  cli_commands          {n_cmd:>6} content blobs, {n_dc} distinct commands, {n_out} with sample output")
+        print(f"  cli_command_products  {n_map:>6} product×command rows over {len(products)} products")
+        return 0
 
     zip_dir = Path(args.zip_dir) if args.zip_dir else (REPO / "ask-ck" / "var" / "cli_zips")
     zip_dir.mkdir(parents=True, exist_ok=True)
@@ -285,7 +412,7 @@ def main() -> int:
         print("no rows parsed — nothing written")
         return 1
 
-    conn = sqlite3.connect(DB)
+    conn = sqlite3.connect(db_path)
     conn.executescript(SCHEMA)
     n_content, n_pairs = store(conn, all_rows)
     conn.execute("INSERT INTO cli_commands_fts(cli_commands_fts) VALUES('rebuild')")

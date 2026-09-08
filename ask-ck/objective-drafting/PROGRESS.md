@@ -2,7 +2,83 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-07 (by Claude)
+**Last Updated**: 2026-09-08 (by Claude)
+
+## Latest session (2026-09-08, afternoon → evening) — CLI corpus REPLACED from the combined docs zip; live and verified; gate red on 5 corpus-premise tests, decisions pending
+
+**Where it stands.** Terrence dropped `awplus-cmdref-combined.zip` (15.9 MB, docs build dated
+2026-09-07, ONE `<group>_cmd/<page>.html` tree, no per-device split) in the repo root and asked
+for the ck.db CLI commands to be replaced from it — "to ensure there's no dupes, just hard
+overwrite that section". **Done: the live `ask-ck/var/ck.db` now holds the combined corpus**,
+loaded 16:20 by `tool/load_cli_docs_from_zips.py --combined-zip awplus-cmdref-combined.zip`
+(its `SCHEMA` drops and recreates `cli_commands` / `cli_command_products` / `_fts` — that is the
+hard overwrite; `meta.cli_docs_load` records the source). Verified against a pre-load backup:
+
+| | July (37 per-device zips) | now (combined zip) |
+|---|---|---|
+| content blobs | 6,323 | 3,462 |
+| distinct commands | 3,297 | 3,415 (0 lost, 118 new) |
+| stored samples | 528 cmds | 826 cmds (0 lost) |
+| read-path samples (`reclassify`) | 799 cmds | 826 cmds (0 lost, 27 gained — all real output, none shrank) |
+| products | 37 | 39 (from "This command is available on …"; 672 pages say all) |
+| all-prompt "samples" | 3 (source shape) | the same 3 |
+
+`show lldp local-info` carries its 77-line labelled block with `Management Address`;
+`show lldp interface` carries `PdSnSdScMa`. Sessions untouched (61). `pragma integrity_check` ok.
+Service restarted via `systemctl --user` and `/health` is green with `is_permanent_db: true`.
+**Disclosure:** the service was DOWN from 13:26 to 16:21 — stopped for the interim load before
+the pause, and the paused handoff wrongly said it was running.
+
+**Two loader defects fixed since the pause (uncommitted, `tool/load_cli_docs_from_zips.py`):**
+1. `_pre_blocks_merged` joins a block to its predecessor only when NEITHER matches
+   `H._PROMPT_ANY_RX` — output joins output, never a command line. Without it 2,029 rows had a
+   "sample" of nothing but `awplus(config)# …` lines.
+2. `_CELL_BREAK_RX` now requires at least ONE table cell break (`+`, was `*`). Whitespace-only
+   separators had glued 2,845 pairs of adjacent SYNTAX variants into one block, 25 of them long
+   and placeholder-sparse enough that `reclassify` served them as device output (`debug lldp`,
+   `terminal monitor`, `clear mac-filter counter`…). Measured: all 280 genuine output rejoins
+   sit behind a cell break; four pages (show counter dhcp-server, both show scada modbus, show
+   profinet interface) do abut real output across whitespace and stay split, as July left them.
+
+**Gate:** both guards OK; pytest **1,403 passed, 5 failed**; vitest **252 passed** (run by hand:
+`run_tests.sh` is `set -e` and stops at the pytest failure, so its ck.db-untouched check did not
+run either). The five, all in the CLI corpus tests, all premise failures, none a loss the loader
+caused:
+- `test_cli_docs.py::test_duplex_variants_are_recorded_per_product` — wants ≥2 rows for `duplex`
+  (x930 drops `half`). The combined build has ONE page carrying BOTH syntax lines under headings
+  "On XS900MX, x930, x950…:" / "On all other products:". **The per-product distinction is in the
+  source — 779 pages carry such headings, and parameter cells carry `ss-on-<product>` classes —
+  but the loader flattens it**, so every product now sees both forms.
+- `test_cli_feature_grounding.py::test_show_interface_does_report_lpi_on_some_families` and
+  `::test_family_specific_field_is_flagged` — both assume several `show interface` variants of
+  which only the chassis one prints `current ecofriendly lpi`. One variant now, and it has the
+  field; the "family-specific" flag needs disagreeing variants to fire. Real effect: the prompt
+  shows an LPI line to every platform, and can no longer say it is not universal.
+- `test_cli_grounding_phase4.py::test_reclassify_recovers_output_at_scale` and
+  `::test_atmf_link_gains_its_output` — pin the July STORED classification being stale (awplus-
+  only hostname) so `reclassify` recovers >400 rows. The loader stores the Phase-4.5 classification,
+  so stored == re-derived and there is nothing to recover; `atmf-link` now has stored output.
+
+**Decisions for Terrence (nothing below is built):**
+- A. Disposition of the five tests (rewrite to the single-variant corpus / delete / keep red).
+- B. Whether the loader should parse the per-product syntax headings (779 pages) and `ss-on-*`
+  classes into `cli_command_products`-level syntax, restoring what the duplex test protected.
+- C. Where `awplus-cmdref-combined.zip` should live (untracked in the repo root; 15.9 MB).
+- D. `cli_lookup.stats()` still reads `meta.cli_docs_harvest` (July: 37 products, 73,006 fetches)
+  and ignores `cli_docs_load`; no server code calls it, so only ad-hoc reports are wrong.
+- E. The 14-line reference budget drops `Management Address` from the local-info block in a real
+  unit prompt (only `feature_terms` lines survive the cut; there are no LLDP terms).
+- F. `detect_commands` maps the prose "management address" to the AWC wireless-controller
+  `management address` and never surfaces `lldp management-address` (the T44297 unit 10/11 trap).
+
+**Held until A/B settle** (they may change the loader and the counts): CHANGELOG entry;
+SERVER-README "CLI command reference" section (still says 4,652 rows and a 59-minute harvest
+re-run); memory `atlnz-docs-cli-reference` (source is now the combined zip); the commit of
+loader + ck.db (gate is red). **Reload rule, already true:** stop the service → load → start —
+`_PROBE_CACHE`/`_ALIAS_CACHE` are keyed on the DB PATH, so a reload under a running server leaves
+it on the old probe set. Backup `ck.db.pre-combined-cli.bak` (463 MB) is still in the session
+scratchpad under `/tmp` and will not survive a reboot; the committed ck.db + a fresh load is the
+fallback.
 
 ## Latest session (2026-09-07, later) — the combined re-run judged; the frame and prompt now emulate the ART suite shape
 
