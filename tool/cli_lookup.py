@@ -456,6 +456,34 @@ FEATURE_ALIASES: Dict[str, dict] = {
         "output_terms": ["spanning tree", "root path cost", "root port", "bridge priority",
                          "forwarding", "blocking", "cist"],
     },
+    "lldp": {
+        # ADDED 2026-09-09 by the criterion this table sets for itself: a real case
+        # surfaced the need. AWPTCM-T44297 units 10/11 name LLDP in prose ("the management
+        # address TLV", "advertise the system name") but never write a show command, so the
+        # lexical matcher had no path to the rich LLDP output already in ck.db
+        # (`show lldp local-info` 3,716 chars, neighbours detail 2,913).
+        "prose": ["lldp", "link layer discovery", "lldp-med", "lldp med"],
+        # CONTEXT-GATED tokens (Terrence, 2026-09-09). A bare three-letter token like `tlv`
+        # is exactly the ambiguous alias the header warns against — but rather than banning
+        # it outright (as `stp` is banned from spanning-tree) or firing it raw, it is GATED
+        # to context, never dropped. At THIS trigger layer it does not open LLDP grounding on
+        # its own (there is no scope to make it safe — see `feature_commands`); where it IS
+        # usable is the narrow shared-prose disambiguation, where "management address" has
+        # already established that we are talking about LLDP-vs-wireless and a nearby `tlv`
+        # divines LLDP (`_SHARED_PROSE`). The trigger-layer guard is pinned by
+        # `test_context_gated_tokens_never_fire_alone`.
+        "prose_weak": ["tlv"],
+        # Real CLI only; slug spellings as stored (`display_name()` renders the hyphens).
+        # Each carries output or examples worth grounding: localinfo 3,716 chars, neighbours
+        # detail 2,913, show lldp interface 1,346; tlvselect 24 examples, managementaddress
+        # 12. `management address` (AWC wireless-controller) shares a prose spelling with
+        # `lldp managementaddress` — see `_SHARED_PROSE` / `disambiguate_shared`.
+        "commands": ["show lldp localinfo", "show lldp interface",
+                     "show lldp neighbors detail", "lldp tlvselect",
+                     "lldp managementaddress"],
+        "output_terms": ["management address", "port description", "system name",
+                         "system description", "chassis id", "port id"],
+    },
 }
 
 
@@ -467,17 +495,83 @@ def feature_commands(text: str) -> tuple:
     name the command, the feature, or (usually) some of each.
     """
     low = " " + re.sub(r"\s+", " ", text.lower()) + " "
+
+    def _hit(phrase: str) -> bool:
+        # word-boundary match so 'eee' doesn't fire inside 'seee'/'IEEE', and 'lpi'
+        # doesn't fire inside a longer token
+        return re.search(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])",
+                         low) is not None
+
     cmds: List[str] = []
     terms: List[str] = []
     for spec in FEATURE_ALIASES.values():
-        for phrase in spec["prose"]:
-            # word-boundary match so 'eee' doesn't fire inside 'seee'/'IEEE', and 'lpi'
-            # doesn't fire inside a longer token
-            if re.search(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])", low):
-                cmds += [c for c in spec["commands"] if c not in cmds]
-                terms += [t for t in spec["output_terms"] if t not in terms]
-                break
+        # Only a strong, unambiguous prose signal OPENS a feature here. Short/ambiguous
+        # tokens live in `prose_weak` (e.g. 'tlv') and deliberately do NOT trigger grounding
+        # on their own at this layer: with no surrounding scope to lean on, a bare
+        # three-letter token would fire unguarded (Terrence, 2026-09-09). They are NOT
+        # dropped — they act as context signals in the narrow shared-prose disambiguation
+        # (`_SHARED_PROSE`), where the shared spelling supplies the scope that makes them
+        # safe. The gate here is pinned by `test_context_gated_tokens_never_fire_alone`.
+        if not any(_hit(p) for p in spec["prose"]):
+            continue
+        cmds += [c for c in spec["commands"] if c not in cmds]
+        terms += [t for t in spec["output_terms"] if t not in terms]
     return cmds, terms
+
+
+# Commands that DIFFERENT features spell the same way in prose. `management address` is both
+# an LLDP TLV (`lldp managementaddress`) and an AWC wireless-controller command
+# (`management address`), so a step that only says "management address" is genuinely
+# ambiguous. Each option maps to the context signals that mean THAT feature is the one meant.
+#
+# SHORT AMBIGUOUS TOKENS ARE INCLUDED HERE, NOT DROPPED (Terrence, 2026-09-09): `tlv` (LLDP),
+# `ap` / `awc` (wireless). At the trigger layer a bare `tlv` is too dangerous to fire raw, but
+# HERE the shared spelling ("management address") has already narrowed the scope — we are
+# provably "talking about a management address" — so a nearby `ap` reliably divines wireless
+# and `tlv` divines LLDP. That narrowing is the context gate; the tokens are usable rather
+# than passed raw across all text or dropped from the vocabulary.
+_SHARED_PROSE: Dict[str, Dict[str, List[str]]] = {
+    "management address": {
+        "lldp managementaddress": ["lldp", "link layer discovery", "lldp-med", "lldp med",
+                                   "tlv"],
+        "management address": ["wireless", "wireless controller", "access point",
+                               "ap", "awc"],
+    },
+}
+
+
+def disambiguate_shared(commands: List[str], text: str) -> List[str]:
+    """Resolve commands that share a prose spelling across features, using `text` as context.
+
+    F2 (Terrence, 2026-09-09): a step that says "management address" with LLDP named
+    elsewhere in the case should ground the LLDP TLV, not the AWC wireless-controller
+    command — and vice versa. When EXACTLY ONE option's context signals are present, keep
+    that option (adding it if only the collided sibling was detected lexically) and drop the
+    sibling(s). When BOTH contexts are present, or NEITHER, leave the list unchanged rather
+    than guess. Order-preserving; only the shared spellings are ever touched.
+    """
+    low = " " + re.sub(r"\s+", " ", text.lower()) + " "
+
+    def _ctx(signals: List[str]) -> bool:
+        return any(re.search(r"(?<![a-z0-9])" + re.escape(s) + r"(?![a-z0-9])", low)
+                   for s in signals)
+
+    out = list(commands)
+    for options in _SHARED_PROSE.values():
+        active = [cmd for cmd, signals in options.items() if _ctx(signals)]
+        if len(active) != 1:
+            continue                            # ambiguous or no context — do not guess
+        winner = active[0]
+        # only act when one of the colliding commands is actually in play
+        if not any(cmd in out for cmd in options):
+            continue
+        for cmd in options:
+            if cmd == winner:
+                if cmd not in out:
+                    out.append(cmd)
+            elif cmd in out:
+                out.remove(cmd)
+    return out
 
 
 def prompt_block(commands: List[str], product: Optional[str] = None,
@@ -753,6 +847,16 @@ def _probes(conn: sqlite3.Connection) -> list:
         real = (idx.get(norm_cmd(name)) or {}).get("real")
         if real:
             forms.add(real)
+            # 4.7 (2026-09-09) — the SPOKEN spelling: the real hyphenated name with hyphens
+            # read as spaces (`lldp management-address` -> `lldp management address`). A step
+            # often writes the feature the way it is said aloud; longest-first matching then
+            # lets `lldp management address` claim the span before the shorter AWC
+            # `management address` probe runs, so the wireless command is not returned for
+            # LLDP prose. See `disambiguate_shared` for the residual (bare "management
+            # address" with LLDP named elsewhere in the case).
+            spoken = real.replace("-", " ")
+            if spoken != real:
+                forms.add(spoken)
         for f in forms:
             probes.append((f, name))
     # Longest search text first, so `show interface status` still beats `show interface`.
@@ -917,10 +1021,24 @@ def unresolved_abbreviations(text: str,
 def stats(conn: Optional[sqlite3.Connection] = None) -> dict:
     c = conn or _conn()
     q = lambda s: c.execute(s).fetchone()[0]
-    try:
-        meta = c.execute("SELECT v FROM meta WHERE k='cli_docs_harvest'").fetchone()
-    except sqlite3.OperationalError:
-        meta = None
+
+    def _stamp(k: str):
+        try:
+            row = c.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()
+        except sqlite3.OperationalError:
+            return None
+        try:
+            return json.loads(row[0]) if row else None
+        except Exception:
+            return None
+
+    # Two stamps can describe how the CLI tables were built: `cli_docs_load` is the
+    # combined-zip loader (2026-09-07+, `load_cli_docs_from_zips.py --combined-zip`);
+    # `cli_docs_harvest` is the older per-device fetch. Report `load` when present and keep
+    # `harvest` as the fallback, so a ck.db built either way is described correctly — the
+    # old code read only `harvest` and so mis-reported every combined-corpus build.
+    load = _stamp("cli_docs_load")
+    harvest = _stamp("cli_docs_harvest")
     return {
         "unique_content_blobs": q("SELECT COUNT(*) FROM cli_commands"),
         "distinct_commands": q("SELECT COUNT(DISTINCT command) FROM cli_commands"),
@@ -929,7 +1047,9 @@ def stats(conn: Optional[sqlite3.Connection] = None) -> dict:
         "product_command_rows": q("SELECT COUNT(*) FROM cli_command_products"),
         "products": q("SELECT COUNT(DISTINCT product) FROM cli_command_products"),
         "command_groups": q("SELECT COUNT(DISTINCT cmd_group) FROM cli_commands"),
-        "harvest": json.loads(meta[0]) if meta else None,
+        "source": "load" if load else ("harvest" if harvest else None),
+        "load": load,
+        "harvest": harvest,
     }
 
 
@@ -952,7 +1072,12 @@ def main() -> int:
     if args.stats:
         s = stats(c)
         print(json.dumps(s, indent=2) if args.json else
-              "\n".join(f"{k:<24} {v}" for k, v in s.items() if k != "harvest"))
+              "\n".join(f"{k:<24} {v}" for k, v in s.items()
+                        if k not in ("harvest", "load")))
+        if not args.json and s.get("load"):
+            l = s["load"]
+            print(f"{'loaded from':<24} {l.get('source')} "
+                  f"({l.get('loaded_at')})")
         if not args.json and s.get("harvest"):
             h = s["harvest"]
             print(f"{'last harvest':<24} {h.get('harvested_at')} "

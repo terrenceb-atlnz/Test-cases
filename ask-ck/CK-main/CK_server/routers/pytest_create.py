@@ -2029,6 +2029,11 @@ def _cli_reference_for_text(text: str, product: Optional[str] = None,
         # `ecofriendly` tree was in ck.db the whole time.
         feat_cmds, feat_terms = cli_lookup.feature_commands(text)
         cmds = cmds + [c for c in feat_cmds if c not in cmds]
+        # Resolve commands two features spell the same way in prose (`management address` is
+        # both an LLDP TLV and an AWC wireless-controller command) using the whole text as
+        # context — F2. The step-6 call site passes the entire sequence, so "LLDP named
+        # elsewhere in the case" is visible here.
+        cmds = cli_lookup.disambiguate_shared(cmds, text)
         if not cmds:
             return ""
         # feature_terms also steers VARIANT choice: `show interface` reports LPI on only

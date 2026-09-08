@@ -2,7 +2,49 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-08 (by Claude)
+**Last Updated**: 2026-09-09 (by Claude)
+
+## Latest session (2026-09-09, later) — plan A–F COMPLETE; option B loaded to live ck.db; D/E/F/F2 shipped; gate green
+
+**Where it stands.** The CLI-corpus combined follow-up plan
+(`ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`) is done through step 6, uncommitted
+until this session's single commit. Terrence gave the go-ahead for the live load and worked
+through every open decision.
+
+**Shipped this session:**
+1. **Live load of option B** into `ask-ck/var/ck.db` (service stopped for the load; caches key
+   on the DB path). Verified: `duplex` 8/25 split, 0 commands lost (3,415), integrity ok,
+   `single_variant: False`. Server restarted, `/health` → `is_permanent_db: true`. Pre-B backup
+   is in the session scratchpad (`ck.db*.pre-B.bak`, `/tmp` — will not survive a reboot).
+2. **Step 2 (A):** the five corpus-premise tests rewritten to the combined source
+   (`test_duplex_variants…` passes unchanged; the LPI + phase-4 tests inverted to the new
+   truth). **A2 accepted** — "LPI is chassis-only" has left the prompt (gone from the source),
+   preserved in [[awplus-ecofriendly-and-port-naming]]; `show ecofriendly` still grounds it.
+3. **D:** `cli_lookup.stats()` reads `cli_docs_load` (was only `cli_docs_harvest`); `main()`
+   prints the load source.
+4. **E + E1:** LLDP `FEATURE_ALIASES` entry. **Short-token rule (Terrence, 2026-09-09):** any
+   3-letter token — and specific 2-letter ones like `ap` — is **gated to context, never raw and
+   never dropped**. Two layers: trigger layer (`prose_weak`, e.g. `tlv`) needs a strong
+   same-feature signal; disambiguation layer uses the shared spelling as scope so `tlv`→LLDP,
+   `ap`/`awc`→wireless.
+5. **F + F2:** the spoken probe spelling (`lldp management address`) claims the span for LLDP;
+   `disambiguate_shared()` resolves a bare "management address" by case context (LLDP → the TLV,
+   wireless → AWC, both/neither → unchanged), wired into the router's grounding path.
+
+**Gate at close:** both guards OK; pytest **1424 passed / 1 skipped**; vitest **252 passed**;
+ck.db not dirtied by the tests. Files: `tool/cli_lookup.py`,
+`ask-ck/CK-main/CK_server/routers/pytest_create.py`, `tests/test_cli_feature_grounding.py`,
+`tests/test_cli_grounding_phase4.py`, `ask-ck/var/ck.db`, plus docs. (`load_cli_docs_from_zips.py`
+option B was already committed as `2f1130e`.)
+
+**Decisions (plan's closing table), all resolved:** reload timing — done; A2 — accept; E1 —
+short tokens gated, not dropped (Terrence's restated spirit, broader than the plan's "no"); F2 —
+implement bidirectional context disambiguation (Terrence overrode the plan's "leave it out"); C —
+zip NOT committed (Terrence will delete it; SHA-256 recorded in CHANGELOG/SERVER-README/memory
+for provenance); B2 — still deferred.
+
+**Left for a future session:** B2 (per-product TABLE cells, 387 pages — defer until a case needs
+it); watch F2 on the next real generation pass. **No push** this session (Terrence pushes).
 
 ## Latest session (2026-09-09) — plan A–F started; STEP 1 (option B) built + dry-run green, NOT yet loaded — PAUSED before the live reload
 

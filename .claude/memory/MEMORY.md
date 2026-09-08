@@ -21,7 +21,7 @@
 - [Scoped directives stay scoped](scoped-directives-stay-scoped.md) — a one-line ruling binds to the layer under discussion, not every layer it could touch; name the others instead of assuming (the "no version control" / Zephyr-vs-audit-log mix-up)
 - [Checks must not match their own advice](checks-must-not-match-their-own-advice.md) — a grep for a bad pattern finds it in the text forbidding it (4x in one session); use tests/_prose.py: code_lines / flat / code_fences
 - [Scripts must be hardware-agnostic](scripts-must-be-hardware-agnostic.md) — run on ALL platforms interchangeably; do NOT pass `product=` to grounding; `.setup` binding is two layers (`dutA = init_swi('swi_a')`), locals not `self.` in init()
-- [AlliedWare Plus CLI docs](atlnz-docs-cli-reference.md) — docs.atlnz.lc/preview/ = authoritative CLI reference; ~3000 command pages, real sample output in `<pre>` blocks (curl, not WebFetch)
+- [AlliedWare Plus CLI docs](atlnz-docs-cli-reference.md) — docs.atlnz.lc/preview/; ck.db CLI built from ONE combined zip (ss-on-<product> classes) since 2026-09-08, not 37 per-device; renewable, stop→load→start
 - [CLI fabrication starts at step 2](cli-fabrication-originates-step2.md) — `speed=1000` originates in Sequence Extraction, not Generate; skeleton repeats it 4×/TestCase; step6 amplifies 13→57
 - [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; resourcing gap (prompt shows zero sample output), not model quality
 - [Part 3 grading session](part3-grading-session.md) — 2026-07-27: judges = Opus + vllm-fast (NOT plan's vllm-thinking); T33235 generated; tb470 configs = /home/st-art/st-art/configs; Part 3b blocked — cause identified 2026-08-03, see [[run-thread-contextvar-lock]] (not the bench)

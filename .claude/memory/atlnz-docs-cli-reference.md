@@ -1,41 +1,48 @@
 ---
 name: atlnz-docs-cli-reference
-description: "docs.atlnz.lc/preview/ is the authoritative AlliedWare Plus CLI reference — reachable, ~3000 command pages with real sample output; the fix for generator CLI hallucination"
+description: "AlliedWare Plus CLI reference in ck.db: since 2026-09-08 built from ONE combined docs zip (ss-on-<product> classes), not 37 per-device zips; renewable tables, stop→load→start"
+verified: 2026-09-09
 metadata: 
   node_type: memory
   type: reference
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
-  modified: 2026-07-27T02:10:19.211Z
+  modified: 2026-09-09T00:00:00.000Z
 ---
 
-**https://docs.atlnz.lc/preview/** — internal Allied Telesis documentation preview
-(resolves to marvin-builder.atlnz.lc, HTTP 200 from the Linux seat, no auth, no robots.txt).
-Being built as a sole source of truth; Terrence pointed at it 2026-07-27.
+**https://docs.atlnz.lc/preview/** — internal Allied Telesis CLI documentation (marvin-builder.atlnz.lc,
+HTTP 200 from the Linux seat, no auth). WebFetch's markdown conversion DROPS the `<pre>`
+sample-output blocks — use `curl` + a `<pre>` regex. The real content of each ~630 KB page is
+its `<pre>` blocks (~0.3%); extract those, never store raw pages.
 
-**Structure (machine-consumable):**
-- 37 command-reference documents, one per product family (`x530`, `x930`, `x220`, `x550`,
-  `SBx8100`, `AR4050`, GS/IE/SE/TQ series, …).
-- `/<product>/index.html` is a **meta-refresh redirect** (curl -L will NOT follow it) →
-  `_bookmap_files/frontmatter/cmdref_Introduction.html`, which links ~3,017 per-command pages.
-- Per-command URL pattern: `/<product>/<group>_cmd/<command>.html`
-  e.g. `x530/int_cmd/show_interface_status.html`, `swi_cmd/speed_ak.html`,
-  `swi_cmd/duplex_ak.html`, `swi_cmd/polarity_ak.html`.
-- Each page is ~630KB (whole nav tree inlined) but the real content is in `<pre>` blocks —
-  only ~2,200 chars (0.3%). **Extract the `<pre>` blocks; never store raw pages.**
-- WebFetch's markdown conversion DROPS the `<pre>` sample-output blocks — use
-  `curl` + a `<pre>` regex instead.
+**Source shape changed 2026-09-08.** The docs team now ships ONE **combined build**
+(`awplus-cmdref-combined.zip`, a single `<group>_cmd/<page>.html` tree with every family in
+it) instead of the July **37 per-device zips**. The old per-device harvester
+(`tool/harvest_cli_docs.py`, `meta.cli_docs_harvest`) is superseded by
+`tool/load_cli_docs_from_zips.py --combined-zip …` (stamps `meta.cli_docs_load`).
 
-**Why this matters:** the PyTest Creator generate prompt says `show interface` 27 times and
-contains ZERO examples of its output, so every model invents the format. Real output is:
+- **Per-product differences are `ss-on-<product>` CSS classes on the `<pre>` blocks**, so the
+  combined build is MORE informative, not less. The loader emits one `cli_commands` row per
+  distinct product-specific **syntax** group (`duplex` → `{auto|full}` on 8 chassis families,
+  `{auto|full|half}` on 25); uniform-syntax pages stay one row.
+- **Some per-family facts are GONE from the source and cannot be parsed back:** `show interface`
+  now shows every output form on ONE unattributed variant, so "only chassis print
+  `current ecofriendly lpi`" is no longer derivable — it survives only in
+  [[awplus-ecofriendly-and-port-naming]].
+- Live corpus (2026-09-09): 3,535 content rows / 3,415 commands (0 lost vs July) / 39 products;
+  847 rows carry sample output.
 
-    current duplex full, current speed 1000, current polarity mdix
-    configured duplex auto, configured speed auto, configured polarity auto
+**Reloading is stop→load→start** — `cli_lookup`'s `_PROBE_CACHE`/`_ALIAS_CACHE` key on the DB
+path, so a load under a running server strands it on the old probe set (~30 s LAN downtime).
+The loader `DROP`s/recreates only `cli_commands`/`cli_command_products`/`cli_commands_fts` — the
+documented RENEWABLE tables, so this does NOT violate the ck.db invariant. Combined-zip SHA-256
+(2026-09-07 build): `d6abc0c13d821349afefb5457907a9634dbc55d9d44fc9d00b33d187b247c4a9`.
 
-and `show interface status` is column-formatted (`a-full`, `a-1000`, `connected`/`notconnect`).
-Generated code asserts `'speed=1000' in output` / `'state=up' in output` — tokens that never
-appear. Ports are `port1.0.1`, not `1/0/1`. Real output also distinguishes **current** vs
-**configured**, which is exactly what the Fixed-Speed case tests.
-
-**How to apply:** harvest the `<pre>` blocks per command into `ck.db` and feed the relevant
-command's syntax + sample output into the generate prompt. See [[part3-grading-session]] and
-[[generator-cli-hallucination]].
+**Why it exists:** the generate/extract prompts demanded exact CLI fields while showing zero
+real output, so every model invented a `speed=1000`/`state=up` schema the switch never prints
+(real: `current duplex full, current speed 1000, current polarity mdix`; ports are `port1.0.1`).
+Two matchers feed grounding: `detect_commands()` (lexical) and `feature_commands()` (semantic,
+`FEATURE_ALIASES` prose). **Short ambiguous tokens (any 3-letter; specific 2-letter like `ap`)
+are gated to context — never raw, never dropped** (Terrence 2026-09-09): a bare `tlv` can't open
+a feature at the trigger layer (`prose_weak`), but inside the `management address` shared-prose
+disambiguation (`disambiguate_shared`/`_SHARED_PROSE`) the spelling supplies scope so `tlv`→LLDP,
+`ap`/`awc`→wireless. See [[part3-grading-session]] and [[generator-cli-hallucination]].

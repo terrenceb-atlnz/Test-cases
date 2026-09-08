@@ -11,6 +11,57 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-09 — CLI corpus from the combined docs build: per-product syntax + LLDP grounding
+
+The July CLI reference was 37 per-device zips; the docs team now ships ONE combined build
+(`awplus-cmdref-combined.zip`, build 2026-09-07: a single `<group>_cmd/<page>.html` tree).
+The combined corpus was loaded into `ck.db` on 2026-09-08 (`b854e4c`), then this session
+worked through the follow-up plan `ask-ck/ck-facelift/PLAN-cli-corpus-combined-followups.md`
+(A–F). The renewable `cli_commands` / `cli_command_products` / `cli_commands_fts` tables were
+hard-overwritten — allowed, they are the documented renewable tables and the ck.db invariant
+is untouched. Source zip SHA-256 `d6abc0c13d821349afefb5457907a9634dbc55d9d44fc9d00b33d187b247c4a9`
+(recorded for provenance; the zip itself is not committed — the loaded tables live in `ck.db`).
+
+**Per-product syntax variants recovered (option B).** The combined build tags each
+per-product `<pre>` with `ss-on-<product>` CSS classes. The loader had flattened them, so
+every product saw every syntax form — `duplex` showed `{auto|full|half}` to the chassis
+families that only accept `{auto|full}`, which is what turned
+`test_duplex_variants_are_recorded_per_product` red. `load_cli_docs_from_zips.py` now emits one
+row per distinct product-specific SYNTAX group (`duplex` → `{auto|full}` on 8 chassis families,
+`{auto|full|half}` on 25); uniform-syntax pages stay a single row (`show interface` included).
+Live corpus: 3,535 content rows / 3,415 commands (0 lost vs the July build) / 39 products;
+847 rows carry sample output. **A load requires a service stop:** `systemctl --user stop
+ask-ck.service` → load → start, because `cli_lookup`'s probe/alias caches key on the DB path.
+
+**Grounding follow-ups (A–F):**
+- **A** — the five corpus-premise tests rewritten to the combined source. Two facts are gone
+  for good and cannot be parsed back: `show interface` no longer carries per-family markup
+  (every output form is shown on one unattributed variant), so the prompt can no longer tell
+  the model "LPI is chassis-only" — that fact stays recorded in the
+  `awplus-ecofriendly-and-port-naming` memory, and `show ecofriendly` still grounds the feature
+  on every family (decision A2, accepted).
+- **D** — `cli_lookup.stats()` reads the `cli_docs_load` stamp (was reading only the older
+  `cli_docs_harvest`, so it mis-described every combined build); `main()` prints the load source.
+- **E** — an LLDP entry in `FEATURE_ALIASES` (a real case surfaced it: AWPTCM-T44297 units
+  10/11 name LLDP in prose but write no show command). Grounds `show lldp local-info` /
+  `interface` / `neighbors detail`, `lldp tlv-select`, `lldp management-address`.
+- **E1 + short-token rule (Terrence, 2026-09-09).** A short, ambiguous token (any 3-letter
+  token; specific 2-letter ones like `ap`) is **gated to context, never passed raw and never
+  dropped** — dropping them makes prompts worse. Two layers gate differently: at the trigger
+  layer a bare `tlv` does NOT open LLDP grounding on its own (`prose_weak`, no scope to make it
+  safe); inside the narrow shared-prose disambiguation the surrounding spelling supplies the
+  scope, so `tlv` divines LLDP and `ap`/`awc` divine wireless.
+- **F + F2** — `management address` is both an LLDP TLV (`lldp management-address`) and an AWC
+  wireless-controller command. The loader's probe set gains the spoken spelling
+  (`lldp management-address` → `lldp management address`) so longest-first matching claims the
+  span for LLDP; and `disambiguate_shared()` resolves a bare "management address" by the
+  surrounding context (LLDP named in the case → the TLV; wireless → the AWC command; both or
+  neither → left unchanged, no guess).
+
+Gate: backend pytest 1424 passed / 1 skipped, frontend vitest 252. The live LAN server reloaded
+the router change cleanly (`--reload`); `/health` reports `is_permanent_db: true`.
+
+
 ## 2026-09-08 — a per-unit prompt is "edited" only when the browser says so
 
 Two 38-unit passes on AWPTCM-T44297 (2026-09-07 14:21 and 2026-09-08 08:35) ran on the

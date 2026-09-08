@@ -243,28 +243,47 @@ def test_short_block_stays_syntax():
     assert syn and best is None
 
 
-def test_reclassify_recovers_output_at_scale(conn):
-    """The aggregate: rows that had no sample_output and gain one."""
-    gained = 0
+def test_stored_output_agrees_with_reclassify(conn):
+    """The aggregate invariant, after the loader started storing the Phase-4.5 classification.
+
+    History: under the July per-device zips the stored `sample_output` came from an
+    awplus-only prompt regex, so hundreds of non-awplus-hostname rows had an empty column that
+    `reclassify(pre_blocks)` RECOVERED at read time — this test asserted `gained > 400`. The
+    combined loader (2026-09-07) stores `reclassify`'s result directly, so nothing is gained at
+    read time (measured: 0). What must hold instead is that the stored column and a fresh
+    reclassification never DISAGREE, and that a meaningful number of rows carry output — the
+    read path's `sample or reclassify` fallback then can only ever confirm, never contradict."""
+    checked = disagreements = 0
     for so, pre in conn.execute(
             "SELECT sample_output, pre_blocks FROM cli_commands WHERE pre_blocks IS NOT NULL"):
-        if so:
+        if not so:
             continue
+        checked += 1
         try:
-            if C.reclassify(json.loads(pre))[2]:
-                gained += 1
+            derived = C.reclassify(json.loads(pre))[2]
         except Exception:
             continue
-    assert gained > 400, f"expected hundreds of rows to gain output, got {gained}"
+        if derived is not None and derived.rstrip() != so.rstrip():
+            disagreements += 1
+    assert checked > 400, f"too few rows carry stored output ({checked})"
+    assert disagreements == 0, \
+        f"{disagreements} rows' stored output disagrees with a fresh reclassify"
 
 
 def test_atmf_link_gains_its_output(conn):
-    """A concrete non-awplus-hostname row: 0 chars stored, real output recovered."""
+    """A concrete non-awplus-hostname row (`Node_1(config-if)#`): its output is present and
+    `lookup` returns it.
+
+    History: under the July zips this row had 0 chars stored (the awplus-only prompt regex
+    filed the reply as syntax) and the read path RECOVERED it via reclassify — the test
+    asserted the stored column was empty ("fixture drifted" otherwise). The combined loader
+    stores the reclassified output, so the row now carries it directly and that assertion is
+    gone; what must hold is that the output is stored and reaches a caller."""
     stored = conn.execute(
         "SELECT sample_output FROM cli_commands WHERE command='atmf-link'").fetchone()
-    assert not (stored and stored[0]), "fixture drifted: this row now has stored output"
+    assert stored and stored[0], "atmf-link has no stored output"
     v = C.lookup("atmf-link", conn=conn)
-    assert v and (v[0]["sample_output"] or ""), "output not recovered"
+    assert v and (v[0]["sample_output"] or ""), "output not returned by lookup"
 
 
 def test_lookup_never_erases_stored_output(conn):
@@ -481,3 +500,46 @@ def test_show_lldp_interface_reference_now_carries_a_data_row(conn):
     assert "Base:  Pd = Port Description" in block, "the legend head is still there"
     assert "PdSnSdScMa" in block, "a table row must reach the model"
     assert "lines omitted" in block
+
+
+# ---------------------------------------------------------------------------
+# D (2026-09-09) — stats() must read the combined-zip load stamp, not only harvest
+# ---------------------------------------------------------------------------
+
+def _mem_db_with_meta(*stamps):
+    """A minimal in-memory ck.db carrying only what stats() reads, plus the given
+    (key, json-value) meta rows."""
+    mem = sqlite3.connect(":memory:")
+    mem.executescript(
+        "CREATE TABLE cli_commands (content_sha TEXT, command TEXT, cmd_group TEXT, "
+        "  sample_output TEXT);"
+        "CREATE TABLE cli_command_products (product TEXT, content_sha TEXT);"
+        "CREATE TABLE meta (k TEXT, v TEXT);")
+    mem.execute("INSERT INTO cli_commands VALUES (?,?,?,?)",
+                ("a" * 40, "show interface", "int_cmd", "out"))
+    mem.execute("INSERT INTO cli_command_products VALUES (?,?)", ("x930", "a" * 40))
+    for k, payload in stamps:
+        mem.execute("INSERT INTO meta (k, v) VALUES (?, ?)", (k, json.dumps(payload)))
+    mem.commit()
+    return mem
+
+
+def test_stats_reports_the_load_stamp_when_present():
+    """The combined loader writes `cli_docs_load`; stats() used to read only the older
+    per-device `cli_docs_harvest` and so mis-described every combined build."""
+    mem = _mem_db_with_meta(
+        ("cli_docs_load", {"source": "combined archive foo.zip", "loaded_at": "2026-09-09"}))
+    s = C.stats(conn=mem)
+    assert s["source"] == "load"
+    assert s["load"]["source"] == "combined archive foo.zip"
+    assert s["harvest"] is None
+
+
+def test_stats_falls_back_to_harvest_stamp():
+    """A ck.db built the old way is still described correctly."""
+    mem = _mem_db_with_meta(
+        ("cli_docs_harvest", {"harvested_at": "2026-07-01", "fetches": 73006}))
+    s = C.stats(conn=mem)
+    assert s["source"] == "harvest"
+    assert s["load"] is None
+    assert s["harvest"]["fetches"] == 73006

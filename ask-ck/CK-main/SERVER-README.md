@@ -557,33 +557,71 @@ of how the DB was constructed and refuses to run. The one raw original kept, pur
 root (not read by anything), is the Zephyr XML export at
 `ask-ck/objective-drafting/data/zephyr_full/Zephyr-Database-*.xml`.
 
-### CLI command reference (`cli_commands`, added 2026-07-27)
+### CLI command reference (`cli_commands`, added 2026-07-27; combined source 2026-09-08)
 
 A **renewable** reference table — deliberately unlike the corpora above, which are permanent
 and never rebuilt. It holds the real AlliedWare Plus CLI: command syntax and the switch's
-actual sample output, harvested from the internal docs site `https://docs.atlnz.lc/preview/`.
+actual sample output, from the internal docs site `https://docs.atlnz.lc/preview/`.
 
-- `cli_commands` — one row per **unique content hash** (4,652 rows; 993 carry sample output):
+**Source (since 2026-09-08): one combined build, not 37 per-device zips.** The docs team ships
+a single `awplus-cmdref-combined.zip` (`<group>_cmd/<page>.html` tree) that carries every
+product family in one place. Per-product differences are encoded as `ss-on-<product>` CSS
+classes on the `<pre>` blocks, so the combined build is *more* informative than the old
+per-device split, not less.
+
+- `cli_commands` — one row per **unique content hash** (3,535 rows; 847 carry sample output):
   `command`, `page`, `cmd_group`, `syntax` (JSON), `examples` (JSON), `sample_output`,
-  `pre_blocks`. Content is byte-identical across product families ~96% of the time, so it is
-  content-addressed and stored once.
-- `cli_command_products` — the thin support matrix (61,240 rows): which product family ships
-  which variant. This is how per-family differences are represented, e.g. `duplex` is
-  `{auto|full|half}` on x530/x220/x550 but `{auto|full}` on x930/x950 (half duplex is
-  impossible at ≥1 Gig, so platforms that never go below it cannot offer it).
+  `pre_blocks`, `tables`, `notes`. Content is content-addressed and stored once. A page that
+  ships **different syntax to different families** stores one row per distinct SYNTAX group
+  (from the `ss-on-*` classes), e.g. `duplex` → `{auto|full}` on 8 chassis families
+  (x8100/x908gen2/x908gen3/x930/x950/x950gen2/x980/xs900mx), `{auto|full|half}` on the other
+  25 (half duplex is impossible at ≥1 Gig, so platforms that never go below it cannot offer it).
+  A uniform-syntax page stays a single row — `show interface` included: the combined build shows
+  every output form there on ONE unattributed variant, so per-family facts that page once
+  carried (e.g. "only chassis print `current ecofriendly lpi`") are no longer in the source.
+- `cli_command_products` — the support matrix (~77,600 rows over 39 products): which family
+  ships which content row. `lookup(cmd)` returns every variant with its products;
+  `lookup(cmd, product)` returns only that family's.
 - `cli_commands_fts` — FTS5 over command/group/syntax/sample output.
 
-**Re-run any time:** `python3 tool/harvest_cli_docs.py --all` (73,006 fetches, ~59 min,
-idempotent — rows are replaced per (product, command), and `meta.cli_docs_harvest` records
-when it last ran and what it saw). Read it with `python3 tool/cli_lookup.py <command>` or
-`--prompt-block`. This does **not** violate the no-rebuild invariant: it adds a new,
-externally-sourced reference table and never touches the Zephyr/TestLink/ATP/script corpora.
+**Reloading the reference (stop → load → start):**
 
-**Why it exists:** the PyTest Creator prompts demanded "exact CLI fields" while showing zero
-examples of real output, so every model in the Part 2B matrix — Claude Opus included —
-invented a `speed=1000` / `state=up` schema the switch never prints. Real output is
-`current duplex full, current speed 1000, current polarity mdix`. Both the sequence-extraction
-and generate prompts now inject the relevant commands' syntax + sample output.
+```bash
+systemctl --user stop ask-ck.service
+PYTHONNOUSERSITE=1 .venv/bin/python tool/load_cli_docs_from_zips.py \
+    --combined-zip awplus-cmdref-combined.zip     # add --db <copy> for a dry run
+systemctl --user start ask-ck.service             # then /health -> is_permanent_db: true
+```
+
+The service **must** be stopped for the load: `cli_lookup`'s `_PROBE_CACHE` / `_ALIAS_CACHE`
+key on the DB path, so a load under a running server strands it on the old probe set. The
+loader `DROP`s and recreates only `cli_commands` / `cli_command_products` / `cli_commands_fts`
+and stamps `meta.cli_docs_load` (source + `loaded_at`). This does **not** violate the no-rebuild
+invariant: these are the documented renewable tables and it never touches the
+Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 tool/cli_lookup.py
+<command>`, `--prompt-block`, or `--stats` (which reports the load source).
+
+**Grounding (why it exists):** the PyTest Creator prompts demanded "exact CLI fields" while
+showing zero examples of real output, so every model in the Part 2B matrix — Claude Opus
+included — invented a `speed=1000` / `state=up` schema the switch never prints (real output:
+`current duplex full, current speed 1000, current polarity mdix`). Both the sequence-extraction
+and generate prompts inject the relevant commands' syntax + sample output. Two matchers feed it:
+`detect_commands()` (lexical, over command names + spellings) and `feature_commands()`
+(semantic, `FEATURE_ALIASES` prose → commands, for features named in prose but never as a
+command — `ecofriendly`, `spanning-tree`, `lldp`).
+
+**Short, ambiguous tokens are gated to context, never raw and never dropped** (Terrence,
+2026-09-09). Any 3-letter token — and specific 2-letter ones like `ap` — is too ambiguous to
+fire grounding on its own, but dropping it would make prompts worse, so it is *gated* instead:
+- At the **trigger** layer a token in a `FEATURE_ALIASES` `prose_weak` list (e.g. `tlv`) does
+  not open a feature on its own — it needs a strong same-feature signal — because arbitrary
+  step text gives it no scope to be safe.
+- At the **disambiguation** layer (`disambiguate_shared`, `_SHARED_PROSE`) the shared spelling
+  supplies the scope. `management address` is both an LLDP TLV (`lldp management-address`) and
+  an AWC wireless-controller command; once a step is provably about a management address, a
+  nearby `tlv` divines LLDP and `ap`/`awc` divine wireless. The loader's probe set also carries
+  the spoken spelling (`lldp management address`) so longest-first matching claims that span
+  for LLDP; a bare "management address" with no context is left exactly as detected.
 
 **Caveat — not a validity oracle.** Cross-command physical constraints are absent from the
 source (the x530 `duplex` page lists `half` unconditionally; nothing says it is impossible at

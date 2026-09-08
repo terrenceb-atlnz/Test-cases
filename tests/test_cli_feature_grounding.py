@@ -108,14 +108,20 @@ def test_unrelated_text_does_not_pull_in_ecofriendly(text):
 
 @needs_showif
 def test_show_interface_does_report_lpi_on_some_families():
-    """The fact the fix rests on. `show interface` was assumed not to report EEE at all
-    (Opus's judge rationale said so too); it does — on the chassis variant, which is why
-    relevance ranking has something to find."""
+    """The fact the fix rests on: `show interface`'s stored sample DOES print the LPI field.
+
+    `show interface` was assumed not to report EEE at all (Opus's judge rationale said so
+    too); it does, which is why relevance ranking has something to find. Under the July
+    per-device zips this was ONE of eight product variants (chassis only), so the test also
+    pinned `len(with_lpi) < len(variants)`. The combined build (2026-09-07) carries no
+    per-family markup on this page — every output form is shown unattributed on a SINGLE
+    variant (PLAN-cli-corpus-combined-followups finding 2), so that half is gone for good.
+    What still matters, and is all relevance ranking needs, is that the field is PRESENT in
+    the sample the prompt uses."""
     variants = cli_lookup.lookup("show interface", None)
     with_lpi = [v for v in variants
                 if "ecofriendly lpi" in (v["sample_output"] or "").lower()]
     assert with_lpi, "no show interface variant reports LPI; re-read the fix rationale"
-    assert len(with_lpi) < len(variants), "expected LPI to be family-specific"
 
 
 @needs_showif
@@ -169,13 +175,71 @@ def test_feature_lines_survive_a_tight_output_budget():
     assert "ecofriendly lpi" in block
 
 
+def _two_variant_conn():
+    """A minimal in-memory corpus with ONE command split into two family-specific variants
+    — one whose sample prints LPI, one whose sample does not — enough for prompt_block's
+    variant selection and its family-specific note to run end to end."""
+    c = sqlite3.connect(":memory:")
+    c.executescript(
+        "CREATE TABLE cli_commands (content_sha TEXT, command TEXT, page TEXT, "
+        "  cmd_group TEXT, syntax TEXT, examples TEXT, sample_output TEXT, "
+        "  pre_blocks TEXT, n_blocks INTEGER, tables TEXT, notes TEXT, harvested_at TEXT);"
+        "CREATE TABLE cli_command_products (page TEXT, product TEXT, content_sha TEXT);")
+    rows = [
+        ("a" * 40, "p_chassis",
+         "Interface port1.0.1\n  current ecofriendly lpi: Enabled\n  link is up\n",
+         ["x8100", "x908gen2"]),
+        ("b" * 40, "p_switch",
+         "Interface eth1\n  link is up\n",
+         ["x220", "x230", "x510"]),
+    ]
+    for sha, page, sample, prods in rows:
+        c.execute("INSERT INTO cli_commands (content_sha,command,page,cmd_group,syntax,"
+                  "examples,sample_output,pre_blocks,n_blocks,tables,notes,harvested_at) "
+                  "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                  (sha, "show interface", page, "int_cmd", '["show interface"]', "[]",
+                   sample, None, 1, "[]", "{}", ""))
+        for pr in prods:
+            c.execute("INSERT INTO cli_command_products (page,product,content_sha) "
+                      "VALUES (?,?,?)", (page, pr, sha))
+    c.commit()
+    return c
+
+
 @needs_showif
-def test_family_specific_field_is_flagged():
-    """A model told to match formats exactly should know the field is not universal."""
+def test_family_specific_field_is_flagged(monkeypatch):
+    """Two truths, one code path.
+
+    NEGATIVE (real corpus): the combined build carries no per-family markup on
+    `show interface`, so it is a SINGLE variant — and prompt_block must NOT emit a
+    family-specific note, because a false flag is wrong grounding: it would tell the model a
+    field is missing on hardware the source cannot say any such thing about. See
+    PLAN-cli-corpus-combined-followups finding 2 / decision A2.
+
+    POSITIVE (synthetic): the flag's code path — a model told to match formats exactly should
+    learn a field is not universal — still matters and would fire the moment a future corpus
+    splits the page again. Exercise it on a two-variant fixture where one variant prints LPI
+    and the other does not."""
+    # NEGATIVE — the live single-variant corpus must not raise a false flag
     _, terms = cli_lookup.feature_commands("Disable EcoMode on the port.")
     block = cli_lookup.prompt_block(["show interface"], None,
                                     max_output_lines=14, feature_terms=terms)
-    assert "family-specific" in block
+    assert "family-specific" not in block, (
+        "a family-specific note fired on a single-variant page — false grounding")
+
+    # POSITIVE — the note returns when the page genuinely splits by family. The alias index
+    # caches on str(DB), so point DB at a unique sentinel and clear the cache around the call
+    # to keep the synthetic index isolated from the live one.
+    synth = _two_variant_conn()
+    monkeypatch.setattr(cli_lookup, "DB", ":memory:synth")
+    cli_lookup._ALIAS_CACHE.clear()
+    try:
+        block2 = cli_lookup.prompt_block(["show interface"], None, conn=synth,
+                                         max_output_lines=14, feature_terms=["lpi"])
+    finally:
+        cli_lookup._ALIAS_CACHE.clear()
+    assert "family-specific" in block2, (
+        "the family-specific note did not fire on a genuine two-variant split")
 
 
 # --- end-to-end through the server helper ---------------------------------------------
@@ -487,3 +551,130 @@ def test_lint_stackport_check_is_silenced_by_the_guard_and_by_read_only_loops():
         "            if line.split()[:1] == [self.dut.portA.name]:\n"
         "                self.dut.cmd('show interface {}'.format(line.split()[0]))\n")
     assert not any("stackport" in w for w in _lint_warnings(read_only))
+
+
+# --- LLDP feature alias + context-gated tokens (2026-09-09, steps E / E1) --------------
+
+@pytest.mark.parametrize("text", [
+    "Verify LLDP advertises the system name and port description",
+    "configure link layer discovery on the port",
+    "enable lldp-med on the interface",
+])
+def test_lldp_prose_resolves_to_the_command_tree(text):
+    """A real case surfaced the need (AWPTCM-T44297 units 10/11): the steps name LLDP in
+    prose but write no show command, so only the semantic table can reach the rich LLDP
+    output already in ck.db."""
+    cmds, terms = cli_lookup.feature_commands(text)
+    for c in ("show lldp localinfo", "show lldp neighbors detail", "lldp tlvselect",
+              "lldp managementaddress"):
+        assert c in cmds, f"{c!r} missing for {text!r}"
+    assert "management address" in terms and "system name" in terms
+
+
+@pytest.mark.parametrize("text", [
+    "configure the speed and duplex to auto",
+    "verify the port is connected",
+    "run show interface status",
+])
+def test_unrelated_text_does_not_pull_in_lldp(text):
+    """A wrong alias injects confidently-wrong grounding — worse than none."""
+    cmds, _ = cli_lookup.feature_commands(text)
+    assert not any("lldp" in c for c in cmds), cmds
+
+
+def test_context_gated_tokens_never_fire_alone():
+    """The E1 rule (Terrence, 2026-09-09): a bare three-letter token like `tlv` must carry
+    its logical system. Every token in a spec's `prose_weak` must be absent from `prose`,
+    must NOT trigger the feature on its own, and MUST trigger it when a strong signal of the
+    same feature co-occurs. Generic over the table so a future weak token is covered too."""
+    checked = 0
+    for name, spec in cli_lookup.FEATURE_ALIASES.items():
+        for tok in spec.get("prose_weak", []):
+            checked += 1
+            assert tok not in spec["prose"], f"{tok!r} is both weak and strong in {name!r}"
+            alone, _ = cli_lookup.feature_commands(f"verify the {tok} is transmitted")
+            assert not any(c in alone for c in spec["commands"]), \
+                f"weak token {tok!r} fired {name!r} with no context"
+            withctx, _ = cli_lookup.feature_commands(
+                f"{spec['prose'][0]}: verify the {tok} is transmitted")
+            assert any(c in withctx for c in spec["commands"]), \
+                f"weak token {tok!r} did not fire {name!r} even with context"
+    assert checked, "no prose_weak tokens exercised — did the registry move?"
+
+
+# --- shared prose spelling: LLDP vs AWC `management address` (2026-09-09, steps F / F2) -
+
+needs_mgmt = pytest.mark.skipif(not _has("management address"),
+                                reason="AWC `management address` not harvested")
+
+
+@needs_mgmt
+def test_spoken_form_claims_management_address_for_lldp():
+    """F: the spoken spelling `lldp management address` is longer than the AWC
+    `management address`, so longest-first matching hands the span to the LLDP TLV."""
+    got = [c for c in cli_lookup.detect_commands("configure lldp management address")
+           if "management" in c]
+    assert got == ["lldp managementaddress"], got
+
+
+@needs_mgmt
+def test_bare_management_address_still_detects_the_awc_command():
+    """The wireless-controller command is not collateral damage: with no LLDP spelling the
+    lexical matcher still returns it."""
+    got = [c for c in cli_lookup.detect_commands("set the device management address")
+           if "management" in c]
+    assert got == ["management address"], got
+
+
+def test_disambiguate_prefers_lldp_when_lldp_is_in_context():
+    """F2: bare `management address` with LLDP named elsewhere in the case grounds the LLDP
+    TLV and drops the AWC command."""
+    got = cli_lookup.disambiguate_shared(
+        ["management address"],
+        "lldp is configured on the port; the management address is advertised")
+    assert got == ["lldp managementaddress"], got
+
+
+def test_disambiguate_prefers_awc_when_wireless_is_in_context():
+    """...and vice versa: a wireless-controller context keeps AWC and drops the LLDP TLV."""
+    got = cli_lookup.disambiguate_shared(
+        ["lldp managementaddress"],
+        "wireless controller setup: set the management address")
+    assert got == ["management address"], got
+
+
+def test_disambiguate_does_not_guess_without_context_or_with_both():
+    """No single winner -> leave the list exactly as detected."""
+    assert cli_lookup.disambiguate_shared(
+        ["management address"], "set the management address") == ["management address"]
+    both = cli_lookup.disambiguate_shared(
+        ["management address"],
+        "lldp and the wireless controller both carry a management address")
+    assert both == ["management address"], both
+
+
+def test_short_tokens_divine_context_within_the_disambiguation_scope():
+    """Short ambiguous tokens are kept and USABLE, not dropped (Terrence, 2026-09-09). The
+    shared spelling has already narrowed the scope to 'we are talking about a management
+    address', so a nearby three-letter `tlv` divines LLDP and a two-letter `ap` divines
+    wireless — even with no long-form signal present."""
+    # `tlv` alone (no 'lldp' word) tips a bare management-address step to the LLDP TLV
+    assert cli_lookup.disambiguate_shared(
+        ["management address"],
+        "advertise the management address in the tlv") == ["lldp managementaddress"]
+    # `ap` alone (no 'wireless'/'access point' phrase) keeps it on the AWC command
+    assert cli_lookup.disambiguate_shared(
+        ["lldp managementaddress"],
+        "set the ap management address") == ["management address"]
+    # `awc` likewise
+    assert cli_lookup.disambiguate_shared(
+        ["lldp managementaddress"],
+        "awc: set the management address") == ["management address"]
+
+
+def test_short_disambiguation_tokens_do_not_match_inside_longer_words():
+    """`ap`/`tlv` must be whole tokens: 'apply', 'captive', 'catalyst' must not trip them."""
+    got = cli_lookup.disambiguate_shared(
+        ["management address"],
+        "apply the management address to the catalyst uplink")
+    assert got == ["management address"], got  # no wireless/lldp context -> unchanged

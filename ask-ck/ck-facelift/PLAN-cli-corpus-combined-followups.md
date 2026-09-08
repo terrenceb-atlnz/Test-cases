@@ -2,16 +2,23 @@
 
 > ## Status (read first)
 >
-> **IN PROGRESS 2026-09-09.** Step 1 (option B, per-product syntax variants) is BUILT in
-> `tool/load_cli_docs_from_zips.py` and dry-run green against the backup (duplex splits
-> 8/25; see the 2026-09-09 PROGRESS.md entry). NOT yet loaded to the live ck.db — paused
-> before the reload timing gate. Steps 2–6 and the decisions below are still open.
-> Originally **PROPOSED 2026-09-09 — awaiting Terrence's decisions** (listed at
-> the end). Written at his request after the corpus swap itself landed: the live
-> `ask-ck/var/ck.db` holds the combined-zip CLI corpus as of 2026-09-08 16:20 (see the
-> 2026-09-08 entry in `ask-ck/objective-drafting/PROGRESS.md` for the before/after table and
-> the two loader defects fixed on the way). The loader (`tool/load_cli_docs_from_zips.py`)
-> and ck.db are **uncommitted** until this plan's gate is green.
+> **COMPLETE 2026-09-09** (through step 6; uncommitted until this session's single commit).
+> Option B loaded to the live `ask-ck/var/ck.db` (duplex 8/25, 0 commands lost, service
+> stopped for the load); steps 2–6 all shipped and the gate is green (pytest 1424, vitest
+> 252). Every decision below is resolved — with two departures from the recommendations,
+> both on Terrence's direction: **E1** — short ambiguous tokens (any 3-letter; specific
+> 2-letter like `ap`) are GATED TO CONTEXT, never passed raw and never dropped (broader than
+> the plan's "no"; two-layer gating — trigger-layer `prose_weak` vs the shared-prose
+> disambiguation scope); **F2** — the bidirectional `management address` context
+> disambiguation IS implemented (the plan had recommended leaving it out). **C** — the zip is
+> NOT committed: Terrence will delete it once unneeded; its SHA-256 is recorded in
+> CHANGELOG/SERVER-README/the `atlnz-docs-cli-reference` memory for provenance. See the
+> 2026-09-09 (later) entry in `ask-ck/objective-drafting/PROGRESS.md`.
+>
+> Originally **PROPOSED 2026-09-09** after the corpus swap itself landed
+> (`b854e4c`); the live `ask-ck/var/ck.db` held the flattened combined-zip corpus from
+> 2026-09-08 16:20 (see the 2026-09-08 PROGRESS.md entry for the before/after table and the
+> two loader defects fixed on the way).
 >
 > Authority: `cli_commands` / `cli_command_products` / `cli_commands_fts` are the documented
 > RENEWABLE tables; replacing them does not violate the ck.db invariant. Tests must never
