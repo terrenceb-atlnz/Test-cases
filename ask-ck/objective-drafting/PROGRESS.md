@@ -128,19 +128,15 @@ Review step; **item 5 is a data-safety hazard** and outranks the rest.
    clear on restart (server's own open-unlinked fds); verify the base via a main-file-only copy
    per [[ckdb-corrupt-wal-recovery]]; snapshot the cache-held session with
    `GET /api/pytest-create/session/<key>` (serves from memory) *before* restarting.
-6. **Review(LLM) should not depend on a live SSH/browser session — route it through a headless
-   transport** (found 2026-09-09). `review_script` uses `_llm_cfg(sess)` = the workspace LLM,
-   which is `claude_agent` (browser-brokered via the user's local ck-agent bridge, tethered to
-   the SSH session). On the T44297 pass a long (~4 min) Opus review **failed twice** when the
-   SSH session dropped mid-call — the browser got `NetworkError … local agent unreachable — is
-   ck-agent running?` after burning the full duration, and stored nothing (the prior review had
-   already been invalidated by re-assembly, so the script was left with no review at all). The
-   multi-minute holistic review is exactly the call most exposed to a session drop. Fix: route
-   the review through `claude_code` (headless server-side Claude CLI — the path every unattended
-   batch run already takes) instead of `claude_agent`, or add a per-task model/transport route
-   for "review" the way `unit_fill` has one (decision 6), so a dropped SSH session can't kill
-   it. Per-unit generate/fix over `claude_agent` are short enough to tolerate the browser path;
-   the review is not.
+6. **Review(LLM) must not depend on a live SSH/browser session** (found 2026-09-09; **reshaped
+   2026-09-10**). A ~4-min Opus review over `claude_agent` died twice when the SSH session
+   dropped, and re-assembly had already invalidated the prior review, leaving the script with
+   no review at all. The first draft said "route it through `claude_code`" — **withdrawn**: the
+   server-side CLI is demo-only and will not ship (`claude-agent-is-the-release-transport`,
+   2026-09-07 — a memory that had fallen off the over-length MEMORY.md when the draft was
+   written). The fix stays on `claude_agent`: durable agent job results collected on reconnect
+   (job TTL) + never invalidate the stored review until a new one lands (mark it STALE).
+   Details and D6 in `ask-ck/pytest-create/PLAN-t44297-pass-followups.md` #6.
 7. **⚠ Guardrail `fix_units` so it can only write the unit a finding actually names** — full
    plan at `ask-ck/pytest-create/PLAN-fix-units-guardrails.md` (**PROPOSED 2026-09-09**, six
    decisions D1–D6 pending Terrence). Motivation: on T44297, 6 of 8 review/fix runs in 24 h were

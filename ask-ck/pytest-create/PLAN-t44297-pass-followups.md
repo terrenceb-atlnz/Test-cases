@@ -17,7 +17,7 @@
 
 One case, one day, one full loop: 39 generate units, 3 reviews, 5 fix runs (debug log,
 `sess-pjkmca6yz2`). Six of the eight review/fix runs were rework. Along the way the loop
-exposed: a WAL corruption of the permanent DB on the NFS share (#5), a review transport that
+exposed: a WAL corruption of the permanent DB on the NFS share (#5), a review call that
 dies with the user's SSH session (#6), a fixer that rewrites units a finding never named (#7),
 loose review taxonomy (#4), and three UI gaps that made the state of the run hard to read
 (#1–#3). Every item below cites the evidence it was seen with.
@@ -99,24 +99,40 @@ server's — the two must not drift. → **D4**.
 
 **Evidence.** `review_script` uses `_llm_cfg(sess)` — the workspace LLM — which is
 `claude_agent`: browser-brokered through the user's local ck-agent bridge, tethered to the SSH
-session. On 2026-09-09 a ~4-min Opus review **failed** when the SSH session dropped mid-call:
-the browser reported `NetworkError … local agent unreachable — is ck-agent running?` after
-burning the full 228 s, and stored nothing. Because the prior review had already been
+session. On 2026-09-09 a ~4-min Opus review **failed twice** when the SSH session dropped
+mid-call: the browser reported `NetworkError … local agent unreachable — is ck-agent running?`
+after burning the full 228 s, and stored nothing. Because the prior review had already been
 **invalidated by re-assembly**, the script was left with **no review at all** until a manual
 re-fire. Per-unit generate/fix calls are short enough to tolerate the browser path; the
 multi-minute holistic review is the one call most exposed to a session drop.
 
-**Fix.** Add a per-task route for `review` the way `unit_fill` has one (decision 6,
-`_llm_cfg_for(sess, task)`), pointing at `claude_code` — the headless server-side Claude CLI,
-already "the path every unattended batch run takes". `review_script` calls
-`_llm_cfg_for(sess, "review")` instead of `_llm_cfg(sess)`. Model stays Opus. The workspace
-default and the `unit_fill` route are untouched, so generate/fix keep their current behaviour.
+**Fix — stay on the release transport.** *(Reshaped 2026-09-10.)* `claude_agent` is the release
+transport and the server-side CLI is **demo-only and will not ship**
+(`[[claude-agent-is-the-release-transport]]`, 2026-09-07; seat governance in
+`ask-ck/CK-main/PLAN-per-user-agent.md`). So the fix is durability *within* `claude_agent`, not a
+transport swap. The first draft of this item said "route the review through `claude_code`" —
+**withdrawn**: it was written while that ruling's memory had fallen off the over-length index
+(see the 2026-09-10 MEMORY.md trim), a live instance of an unloaded memory misleading a plan.
+Two halves:
 
-**Tests.** `review_script` resolves the `review` task route; with a faked `llm._run_cli`
-(tests fake `_run_cli`, **not** `subprocess.run` — `[[claude-code-cli-transport-contract]]`)
-assert the headless path is taken and no `X-CK-Session` is required. A route-absent fallback
-still reaches the workspace LLM, so nothing regresses if the route is unset. → **D6**.
+1. **The job survives the tab.** Today `agent.js` drives the local ck-agent's `/run` and posts
+   the result back; when the tab/SSH dies mid-call the CLI's work is orphaned and the server
+   records the `NetworkError`. Make the result durable: the agent completes the CLI call
+   regardless of the tab, and the result is **collected on reconnect** — the per-session job
+   registry (`agent_jobs`) holds a finished result under a TTL and `/api/agent/next` hands it
+   back when that session polls again, instead of the request dying at the 228-s mark.
+2. **Never review-less.** `_assemble_and_store` invalidates the stored review on re-assembly.
+   Keep it instead, **marked STALE** (`assembled_at > review.at`) until a new review lands, so a
+   dropped call leaves the last findings visible rather than nothing.
 
+Generate/fix are untouched; the workspace default and the `unit_fill` route are untouched.
+
+**Tests.** A review job whose session disconnects mid-call is **not** failed: a result posted
+by the agent is held and delivered on that session's next `/api/agent/next` (fake the agent,
+drop the session, reconnect); an uncollected result expires at the TTL; re-assembly leaves
+`step6.review` present with the stale marker, and a completed review replaces it. Tests fake
+`llm._run_cli` / the agent bridge — never a real CLI (`[[claude-code-cli-transport-contract]]`).
+→ **D6**.
 ---
 
 ## #1 — Error chunks need a timestamp in the UI
@@ -186,7 +202,7 @@ and its **G7 UI lands with #1–#3** (its D6). Decisions D1–D6 live in that fi
 1. **#5** — data-safety first; at minimum the operating rule and runbook are in force today,
    and the A/B/C decision is made (A likely spawns its own plan).
 2. **#4** — small, and it unblocks #7's G5.
-3. **#6** — small, independent, stops a whole class of wasted 4-minute calls.
+3. **#6** — independent; no longer small (touches `agent_jobs`, the bridge and `agent.js`), but it stops a whole class of wasted 4-minute calls and the review-less state.
 4. **UI batch: #1 + #2 + #3 (+ #7's G7 render)** — one step-5 UI change, not four.
 5. **#7** — per its own plan's order (G1+G5 → G4 → G2+G6 → G3+G7), interleaved with the above
    where it shares code.
@@ -202,7 +218,7 @@ explicit paths. **No push** (Terrence pushes).
 | D5-1 | #5 root fix: A (off NFS) / B (serialize) / C (drop WAL)? | **A** — the only one that removes the hazard |
 | D5-2 | Does A get its own plan (it touches the LFS-source invariant + hosting)? | yes — too consequential to ride inside a follow-ups plan |
 | D4 | Adopt the proposed 7-value `kind` enum, with `structural` as G5's routing key? | yes; unknown → `other`, raw tag kept in provenance |
-| D6 | #6 as a per-task `review` route (recommended) vs flipping the workspace default to `claude_code`? | per-task route — leaves generate/fix untouched |
+| D6 | #6 durability: TTL for an uncollected agent result (rec: align with `LOCK_IDLE_TTL`, 15 min)? keep a superseded review visibly STALE rather than deleting it (rec: yes)? | 15 min / yes |
 | D1 | #1 timestamp: local time + relative? also stamp `ok` chunks? | yes / yes |
 | D3 | #3 legend copy — draft for Terrence's review before implementing? write for the G7 end state? | yes / yes |
 | D-UI | Land #1–#3 and G7's render in one pass? | yes (= guardrails plan D6) |
