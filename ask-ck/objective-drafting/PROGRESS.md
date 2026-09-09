@@ -2,7 +2,158 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-09 (by Claude)
+**Last Updated**: 2026-09-09, evening (by Claude)
+
+## Latest session (2026-09-09, evening) — T44297 through the full generate→review→fix loop on the ART frame; ck.db WAL corrupted on NFS; two plans written, nothing implemented
+
+**Where it stands.** No code changed in this stretch (the last code commit is `6abec4b`, this
+morning). The session *operated* the PyTest Creator end-to-end on AWPTCM-T44297 to judge the new
+ART-frame shape, and the loop exposed seven issues — now planned, not fixed:
+`ask-ck/pytest-create/PLAN-t44297-pass-followups.md` (items 1–6, ordered by severity) and
+`PLAN-fix-units-guardrails.md` (item 7). **Thirteen decisions are pending Terrence** (7 + 6, in
+each plan's closing table). The "Pending fixes" block below is the index and defers to them.
+
+**The loop, by the numbers** (debug log `sess-pjkmca6yz2`, all AWPTCM-T44297, last 24 h): 39
+units regenerated (Sonnet via `claude_agent`, 906k in / 366k out, 77 % cache-read); 3 Opus
+reviews (2 completed, 1 died); 5 fix runs / 13 per-unit calls. **6 of the 8 review/fix runs
+were rework** — the reviews policing the fixes (~90k in each) were the token sink, not the fixes.
+
+**What the model pass established.** The ART-frame shape holds: TestSet frame, per-case
+configure/main/tear_down, `library_awptcm_t44297.py` with real provenance, topology handles,
+ATPackets capture, multi-checkpoint verdicts. Review #1 (Opus) found 4 real defects the linter
+can't see — all confirmed in-code (2-of-5 TLV under-check, `baseRow[4]` vs siblings' `[6]/[-4]`,
+missing `lldp tlv-select management-address`, CLI-vs-CLI verdicts). Review #2 found 5 more; its
+two HIGHs were **fix-introduced**: Sonnet's tc6 re-fix read phantom `lldp_basic` attributes
+(`port_desc`/`sys_name`/`sys_desc` — no scapy layer here has them), and Claude's own tc27 fix
+injected a `medPkt` with no distinguishing `src`, so the case could pass on its own stimulus.
+The final **Opus fix run was 5/5 correct** at attribute-level verification; Sonnet's had been 2/3.
+
+**Decisions Terrence made:** (1) **per-unit Fix runs on Opus** (via the unit-model dropdown — it
+drives generate *and* fix; there is no separate fix-model slot) to cut re-review churn — see
+memory `opus-for-per-unit-fix`; (2) review #2 finding 5 (step-1 verify lives in the config-only
+setup) is a *design* call, not a mechanical fix — but the fixer acted on it anyway and extended
+**tc1** (guardrails plan D5, open); (3) the seven found issues get plans, not ad-hoc fixes.
+
+**Incidents (all recovered, all recorded):** ① **ck.db WAL corruption on the NFS share** at
+~13:47 during the review-driven fix (3 rapid CAS writes + a second session holding the files
+open → NFS silly-rename, `.nfs*` orphans, "file is not a database"). Base survived; restart
+recovered; **the three un-checkpointed fixes were lost and re-run.** Operating rule until
+plan #5 lands: no concurrent sessions during a fix; a 200 is provisional until a disk read shows
+the rev advanced. ② The Opus review **died twice on an SSH drop** — `claude_agent` is tethered to
+the session (`NetworkError … ck-agent unreachable`), and since re-assembly had already
+invalidated the prior review, the script sat with **no review**. ③ Claude verified Sonnet's tc6
+fix by *structure* (checks all five names) not *attribute validity*, and the regression reached a
+paid review — the lesson is in the new memory. ④ Two over-claims caught and retracted earlier
+today (stale 2026-09-07 chunks reported as fresh; "nothing generates headless").
+
+**Also found (UI/process):** the step-5 "If something's wrong" legend never names the
+"⤺ Fix units (LLM)" button and its re-assemble warning is wrong for the per-unit path; the two
+LLM Fix buttons are styled inconsistently; error chunks carry no timestamp; per-unit regenerate
+gives no cue; review `kind` tags are loose (`naming_inconsistency` on a parse-index bug). All in
+the follow-ups plan. Also: a zombie browser tab (`sess-ry6a677105`) has polled the broker for 8 h
+with zero work — harmless, holds no lock, cannot be closed from here.
+
+**State of T44297 right now:** assembled, **lint ok / 0 blocking**, all 9 review findings from
+both passes fixed (last Opus run), **NOT confirmed**; **tc1 carries an unapproved step-1 scope
+change**; saved to `generated/` by Terrence through the UI.
+
+**Gate at close:** both guards OK; pytest **1424 passed / 1 skipped**; vitest **252 passed**;
+ck.db content signature unchanged by tests — identical to the morning close.
+
+**Left uncommitted, deliberately:** `ask-ck/var/ck.db` (live traffic — legitimate); the
+generated T44297 artefacts (`generated/Management/261_…`, `library_awptcm_t44297.py`,
+`history/iter-10…14`) — Terrence's UI saves, and whether review copies get committed is still
+the deferred 2026-08-06 question; the concurrent stream's two new memories
+(`ie520-mcast-l3-test-method`, `awplus-service-gated-routing-daemons`) — MEMORY.md was staged
+by hunk so only this session's index lines landed, theirs stay for their own wrap.
+
+**Pick up here:** (1) the 13 plan decisions — start with follow-ups **D5-1/D5-2** (ck.db off
+NFS; own plan?) since it is the data-safety one; (2) guardrails **D5** — keep or revert tc1's
+step-1 change; (3) then one final Opus review of T44297 → Save → Confirm step 5; (4) nothing in
+either plan is started — read their status headers before touching `fix_units`, the review
+prompt, or the step-5 UI.
+
+## Pending fixes (deferred, not started) — PyTest Creator
+
+**Planned 2026-09-09 — the authority is now `ask-ck/pytest-create/PLAN-t44297-pass-followups.md`
+(items 1–6, with order + decisions) and `PLAN-fix-units-guardrails.md` (item 7).** The list
+below is the index; read the plans before touching any of it.
+
+Noticed while driving the T44297 pass. Items 1–3 are Generate/step-5 UI polish; item 4 is the
+Review step; **item 5 is a data-safety hazard** and outranks the rest.
+
+1. **Error chunks need a timestamp in the UI.** A failed unit shows its error text but no
+   time, so you can't tell a fresh failure from a stale one. Stamp each error chunk with its
+   `at` time (the chunk already records `at` on failure — see `_apply_crash` in
+   `routers/pytest_create.py`; surface it in the unit-chip / status render in
+   `static/js/pytest.js`).
+2. **Per-unit regenerate has no visual cue.** Clicking a single case's regenerate produced no
+   feedback that it fired/succeeded (reported 2026-09-09). Give it the same in-flight → done
+   affordance the bulk generate has.
+3. **The "If something's wrong" legend and Fix-button styling are out of sync with the
+   buttons** (found 2026-09-09). The visible legend
+   ([static/index.html:708-711](../CK-main/CK_server/static/index.html#L708-L711)) documents
+   only the **whole-script** "Fix with LLM" and per-unit *regenerate-from-page* — it never
+   names the **"⤺ Fix units (LLM)"** button ([index.html:737-740](../CK-main/CK_server/static/index.html#L737-L740)),
+   whose only accurate description is its hover `title=` and an **unrendered HTML comment**
+   ([index.html:730-733](../CK-main/CK_server/static/index.html#L730-L733)). The legend's
+   "don't re-Assemble after a Fix — it re-splices the units and discards the fix" is TRUE for
+   the whole-script Fix but MISLEADING for `fix_units`, which re-syncs chunks from the file,
+   writes the fix into the chunk, AND re-assembles+lints itself (so re-assembling is merely
+   redundant, not destructive). Also: both are LLM calls but **"Fix units" is blue
+   (`btn-primary`) while "Fix whole script" is grey (`btn-compact`)**, contradicting the
+   page's own "grey = local, blue = LLM" convention ([index.html:722](../CK-main/CK_server/static/index.html#L722)).
+   Fix: rewrite the visible legend to name both Fix buttons and their opposite re-assemble
+   behaviour, and make both LLM Fixes read as LLM.
+4. **Tighten the Review(LLM) `kind` vocabulary** (Review step, not UI — found 2026-09-09). The
+   holistic review's findings carry a `kind` tag that is occasionally the wrong label: on the
+   T44297 pass, a parse-index bug came back tagged `naming_inconsistency` and a *missing*-setup
+   came back `duplicate_setup` (the opposite). The `what`/`evidence`/`suggestion` bodies were
+   all accurate — only the tag is loose — so it matters only where the UI groups/filters by
+   `kind`. Fix: constrain the review prompt to a small, defined `kind` enum (or map/normalise
+   the returned tag) so the label matches the finding.
+5. **⚠ DATA-SAFETY: `ck.db` is WAL-mode SQLite on the NFS share — it corrupts under concurrent
+   write load** (incident 2026-09-09 ~13:47). During the review-driven Fix on T44297 (three
+   rapid per-unit CAS re-writes of the ~1.2 MB session row, with a *second* session
+   `sess-ry6a677105` also hammering the broker), the server's ck.db `-wal`/`-shm` were
+   unlinked/replaced while it still held them open → NFS **silly-rename** (`.nfs*` orphans left
+   in `ask-ck/var/`, held by the server pid), after which every disk-backed session op returned
+   *"file is not a database"*. The permanent **base survived** (`integrity_check` ok on a
+   main-file-only copy; `-wal` truncated to 0) and recovery was a restart — but the tc6/tc11/tc12
+   fixes not yet committed (cache rev 446 vs disk rev 444) were lost and had to be re-run. This
+   is [[stale-session-connection-bug]] escalated by NFS. Root fix (pick one): move `ck.db` off
+   NFS onto local disk (best — WAL mode is unsafe on NFS by design), or serialize session writes
+   / drop WAL mode. Until then: avoid concurrent sessions during a Fix/generate, and treat a 200
+   as provisional until a disk read shows the rev advanced. Recurrence runbook: `.nfs*` orphans
+   clear on restart (server's own open-unlinked fds); verify the base via a main-file-only copy
+   per [[ckdb-corrupt-wal-recovery]]; snapshot the cache-held session with
+   `GET /api/pytest-create/session/<key>` (serves from memory) *before* restarting.
+6. **Review(LLM) should not depend on a live SSH/browser session — route it through a headless
+   transport** (found 2026-09-09). `review_script` uses `_llm_cfg(sess)` = the workspace LLM,
+   which is `claude_agent` (browser-brokered via the user's local ck-agent bridge, tethered to
+   the SSH session). On the T44297 pass a long (~4 min) Opus review **failed twice** when the
+   SSH session dropped mid-call — the browser got `NetworkError … local agent unreachable — is
+   ck-agent running?` after burning the full duration, and stored nothing (the prior review had
+   already been invalidated by re-assembly, so the script was left with no review at all). The
+   multi-minute holistic review is exactly the call most exposed to a session drop. Fix: route
+   the review through `claude_code` (headless server-side Claude CLI — the path every unattended
+   batch run already takes) instead of `claude_agent`, or add a per-task model/transport route
+   for "review" the way `unit_fill` has one (decision 6), so a dropped SSH session can't kill
+   it. Per-unit generate/fix over `claude_agent` are short enough to tolerate the browser path;
+   the review is not.
+7. **⚠ Guardrail `fix_units` so it can only write the unit a finding actually names** — full
+   plan at `ask-ck/pytest-create/PLAN-fix-units-guardrails.md` (**PROPOSED 2026-09-09**, six
+   decisions D1–D6 pending Terrence). Motivation: on T44297, 6 of 8 review/fix runs in 24 h were
+   rework, and the reviews that policed the fixes (~90k in each) were the token sink. Root causes
+   proven from code: the finding's `evidence` prose hijacks the target unit (finding 5 →
+   `where=TestSet.configure` landed on **tc1** because `_TC_NAME_RX` runs before
+   `_SETUP_REF_RX` on `where+evidence`); scope is a prompt *suggestion* with no diff/frozen-line
+   check; every unit is re-written on every fix; a fix is trusted on shape alone; structural
+   findings (new case / verdicts in config-only setup) are auto-fixed. Seven guardrails
+   G1–G7 (where-authoritative targeting, frozen scaffold enforced, blast-radius diff gate,
+   never write untouched units, structural → decision not fixer, verify-before-store,
+   preview/approve). Absorbs the "unreliable fix" concern; depends on #4, shrinks #5's write
+   pattern.
 
 ## Latest session (2026-09-09, later) — plan A–F COMPLETE; option B loaded to live ck.db; D/E/F/F2 shipped; gate green
 

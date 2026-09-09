@@ -3,7 +3,7 @@ name: browser-fanout-connection-ceiling
 description: "A page cannot fan out N blocking requests to Ask CK — HTTP/1.1 allows 6 connections per origin and they starve the agent broker's own poll; dispatch as ONE request + polling"
 metadata:
   type: project
-  verified: 2026-09-02
+  verified: 2026-09-09
 ---
 
 **Never fan out N blocking requests from the Ask CK page. The browser allows 6 connections

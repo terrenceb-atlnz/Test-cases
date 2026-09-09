@@ -3,7 +3,7 @@ name: setup-unit-reindent-at-assembly
 description: Why the PyTest Creator's setup unit consistently comes back mis-indented (it's the only non-top-level unit) and where that's fixed — _assemble_units re-indents it
 metadata:
   type: project
-  verified: 2026-09-04
+  verified: 2026-09-09
 ---
 
 In the PyTest Creator's per-unit generate (step 6), the **`setup` unit** (the

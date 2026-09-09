@@ -4,7 +4,7 @@ description: If the gate aborts with "database disk image is malformed", the ck.
 metadata:
   node_type: memory
   type: reference
-  verified: 2026-09-03
+  verified: 2026-09-09
 ---
 
 Symptom (seen 2026-09-03): the gate aborts before pytest with `ckdb_signature.py …

@@ -4,6 +4,7 @@ description: Headless curl to LLM endpoints 502s unless the _workspace_llm defau
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-09
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T01:10:33.063Z
 ---

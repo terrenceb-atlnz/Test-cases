@@ -3,7 +3,7 @@ name: prompt-cache-needs-block-boundaries
 description: A shared PREFIX inside one user message never caches — the API matches only at content-block boundaries/breakpoints, so shared text must be the SYSTEM prompt (or its own block); measured 2026-09-07 on 38 calls (0 read) + a 4-call probe (0 vs 7,879 read)
 metadata:
   type: project
-  verified: 2026-09-07
+  verified: 2026-09-09
 ---
 
 **A shared prefix is not a cacheable prefix unless it ends at a content-block boundary.** On

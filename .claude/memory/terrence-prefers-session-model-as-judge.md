@@ -3,7 +3,7 @@ name: terrence-prefers-session-model-as-judge
 description: For quality judging of generated artifacts, Terrence wants the session's own model (the most capable one available) to read and judge directly, not `claude -p` judge calls or the vLLM judge
 metadata:
   type: feedback
-  verified: 2026-09-04
+  verified: 2026-09-09
 ---
 
 When a task needs a quality verdict on generated output (whole-script vs per-unit, one model's

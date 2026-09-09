@@ -3933,3 +3933,32 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Left undone (all next-session, by design):** the live load; step 2 test rewrites; D/E/F;
   the SERVER-README CLI-reference section and the `atlnz-docs-cli-reference` memory (both name the
   July per-device source and are pending the step-6 update — deliberately NOT restamped here).
+
+## Session Close / Handoff (2026-09-09, evening) — T44297 run end-to-end on the ART frame; ck.db WAL corrupted on NFS and recovered; seven issues planned, none implemented
+
+- **Context:** after the morning's plan A–F commit (`6abec4b`), Terrence drove AWPTCM-T44297 through
+  generate → review → fix on the new ART-frame shape to judge it, with Claude verifying every
+  finding and fix in-context. No code changed this stretch.
+- **Outcome:** the frame shape holds. Two Opus reviews found 9 real logic defects the linter
+  cannot see (all confirmed against the code); two of the second review's HIGHs were introduced
+  by fixes (Sonnet's tc6 phantom `lldp_basic` attributes; Claude's tc27 `medPkt` with no `src`).
+  The closing Opus fix run was 5/5 correct. T44297 is assembled, lint-clean, all findings fixed,
+  **not confirmed**, and **tc1 carries an unapproved step-1 scope change** (guardrails D5).
+- **Incidents:** ck.db WAL corruption on the NFS share (~13:47; 3 CAS writes + a second session
+  holding the files → silly-rename → "file is not a database"; base intact; 3 fixes lost and
+  re-run); the Opus review died twice when the SSH session dropped (`claude_agent` is tethered);
+  Claude verified a fix by structure and missed a regression.
+- **Shipped:** `ask-ck/pytest-create/PLAN-t44297-pass-followups.md` (items 1–6, severity order;
+  #5 ck.db-off-NFS is data-safety) and `PLAN-fix-units-guardrails.md` (item 7: seven guardrails
+  against five code-proven root causes) — both PROPOSED; PROGRESS.md "Pending fixes" indexes
+  them; new memory `opus-for-per-unit-fix`; `stale-session-connection-bug` escalated; nine
+  memories re-verified and stamped.
+- **Decisions Terrence made:** per-unit Fix on Opus (net token saving via fewer re-reviews);
+  found issues get plans, not ad-hoc fixes. **13 plan decisions open** (7 + 6).
+- **Gate at close:** both guards OK; pytest 1424 passed / 1 skipped; vitest 252 passed; ck.db
+  signature unchanged by tests — identical to the morning close.
+- **Left undone, by design:** every plan item (nothing started); the 13 decisions; tc1
+  keep/revert; a final Opus review → Save → Confirm of T44297. Uncommitted on purpose: `ck.db`
+  (live traffic), the generated T44297 artefacts (UI saves), the concurrent stream's two
+  memories (MEMORY.md staged by hunk).
+- **Resume:** the 2026-09-09 (evening) entry at the top of `PROGRESS.md`.
