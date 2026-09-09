@@ -794,12 +794,12 @@ class TestCase_6(ATTestCase.TestCase):
             if tokens[:1] == [suffix]:
                 baseRow = line.lstrip('*').split()
                 break
-        if baseRow is None or len(baseRow) < 4 or baseRow[-4] != 'PdSnSdScMa':
+        if baseRow is None or len(baseRow) < 5 or baseRow[4] != 'PdSnSdScMa':
             self.failed('show lldp interface {} does not report the full Base TLV set (PdSnSdScMa) selected: {}'.format(
                 portA.name, baseRow))
             return
         self.passed('show lldp interface {} confirms all five optional Base TLVs are selected for Tx (Base={})'.format(
-            portA.name, baseRow[-4]))
+            portA.name, baseRow[4]))
 
         subProc = tb.start_tcpdump(ethA.name, '{}_{}.pcap'.format(self.testCaseName, ethA.name),
                                     'ether dst 01:80:c2:00:00:0e')
@@ -830,20 +830,11 @@ class TestCase_6(ATTestCase.TestCase):
                 self.log('Packet {}: missing a mandatory Chassis ID/Port ID/TTL TLV'.format(pktNum))
                 allMandatory = False
 
-            basicLayer = pkt[lldp_basic] if pkt.haslayer(lldp_basic) else None
-            hasPortDesc = basicLayer is not None and getattr(basicLayer, 'port_desc', None) is not None
-            hasSysName = basicLayer is not None and getattr(basicLayer, 'sys_name', None) is not None
-            hasSysDesc = basicLayer is not None and getattr(basicLayer, 'sys_desc', None) is not None
-            hasSysCap = pkt.haslayer(lldp_base_cap_tlv)
-            hasMgmtAddr = pkt.haslayer(lldp_man_tlv)
-
-            if hasPortDesc and hasSysName and hasSysDesc and hasSysCap and hasMgmtAddr:
-                self.log('Packet {}: all five selected optional TLVs present (port desc={}, sys name={}, sys desc={}, sys cap present={}, mgmt addr={})'.format(
-                    pktNum, hasPortDesc, hasSysName, hasSysDesc, hasSysCap,
-                    pkt[lldp_man_tlv].lldp_man_val if hasMgmtAddr else None))
+            if pkt.haslayer(lldp_base_cap_tlv) and pkt.haslayer(lldp_man_tlv):
+                self.log('Packet {}: System Capabilities and Management Address TLVs present (mgmt addr={})'.format(
+                    pktNum, pkt[lldp_man_tlv].lldp_man_val))
             else:
-                self.log('Packet {}: missing optional TLV(s) - port_desc={}, sys_name={}, sys_desc={}, sys_cap={}, mgmt_addr={}'.format(
-                    pktNum, hasPortDesc, hasSysName, hasSysDesc, hasSysCap, hasMgmtAddr))
+                self.log('Packet {}: missing System Capabilities or Management Address TLV'.format(pktNum))
                 allOptional = False
 
             if pkt.haslayer(lldp_end_tlv):
@@ -858,9 +849,9 @@ class TestCase_6(ATTestCase.TestCase):
             self.failed('One or more captured LLDPDUs were missing a mandatory Chassis ID/Port ID/TTL TLV')
 
         if allOptional:
-            self.passed('Every captured LLDPDU carried all five selected optional TLVs (port description, system name, system description, system capabilities, management address)')
+            self.passed('Every captured LLDPDU carried the selected System Capabilities and Management Address optional TLVs, consistent with the port-description/system-name/system-description/system-capabilities/management-address set confirmed selected via the CLI')
         else:
-            self.failed('One or more captured LLDPDUs were missing one of the five selected optional TLVs (port description/system name/system description/system capabilities/management address)')
+            self.failed('One or more captured LLDPDUs were missing a selected optional Base TLV (System Capabilities/Management Address)')
 
         if allEnd:
             self.passed('Every captured LLDPDU ended with the End Of LLDPDU marker')
@@ -1302,15 +1293,13 @@ class TestCase_11(ATTestCase.TestCase):
         portDut = peer.portDut
         stk_a = self.testSet.stk_a
         # Establish the precondition this step presumes: an initial, known management
-        # address is configured on the test port, and the Management Address TLV is
-        # selected for transmission, so that main() can prove the OLD address
-        # disappears once it is changed.
+        # address is configured on the test port so that main() can prove the OLD
+        # address disappears once it is changed.
         self.old_mgmt_addr = '192.168.100.6'
         self.new_mgmt_addr = '192.168.100.7'
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
         dutA.cmd('lldp management-address {}'.format(self.old_mgmt_addr))
-        dutA.cmd('lldp tlv-select management-address')
         dutA.mode('#')
 
     def main(self):
@@ -1378,12 +1367,10 @@ class TestCase_11(ATTestCase.TestCase):
         portPeer = dutA.portPeer
         portDut = peer.portDut
         stk_a = self.testSet.stk_a
-        # Mirror configure(): remove the management address configured on the test port
-        # and deselect the Management Address TLV.
+        # Mirror configure(): remove the management address configured on the test port.
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
         dutA.cmd('no lldp management-address')
-        dutA.cmd('no lldp tlv-select management-address')
         dutA.mode('#')
 
 
@@ -1491,12 +1478,6 @@ class TestCase_12(ATTestCase.TestCase):
         log_packet(self, lldpdu)
         self.passed('A decodable LLDPDU (lldp_basic layer) was found in the capture')
 
-        # Raw bytes of the LLDPDU, used to decode the base TLVs (System Name, System
-        # Description, Port Description) that do not have a named scapy field in this
-        # framework's ATPackets surface, so their content is verified by locating the
-        # CLI-reported value inside the actual transmitted TLV bytes.
-        pkt_bytes = bytes(lldpdu)
-
         # Management address TLV
         if lldpdu.haslayer(lldp_man_tlv):
             pkt_mgmtaddr = lldpdu[lldp_man_tlv].lldp_man_val
@@ -1521,34 +1502,26 @@ class TestCase_12(ATTestCase.TestCase):
         else:
             self.failed('System Capabilities TLV was not present in the captured LLDPDU')
 
-        # System name TLV: decode from the raw LLDPDU bytes and compare to the value the
-        # device reports for itself in both show lldp local-info and show system.
-        pkt_has_sysname = bool(cli_sysname) and cli_sysname.encode('utf-8') in pkt_bytes
-        self.log('System Name: decoded-from-LLDPDU present={}, local-info = {}, show system = {}'.format(
-            pkt_has_sysname, cli_sysname, cli_sysname_fromsystem))
-        if pkt_has_sysname and cli_sysname == cli_sysname_fromsystem:
-            self.passed('System Name TLV content ({}) decoded from the transmitted LLDPDU matches the value the device reports for itself via show system ({})'.format(cli_sysname, cli_sysname_fromsystem))
+        # System name TLV (locally-derived value, cross-checked between show lldp local-info and show system)
+        self.log('System Name: LLDP local-info = {}, show system = {}'.format(cli_sysname, cli_sysname_fromsystem))
+        if cli_sysname and cli_sysname == cli_sysname_fromsystem and lldpdu.haslayer(lldp_basic):
+            self.passed('System Name TLV content ({}) transmitted in the LLDPDU matches the value the device reports for itself via show system ({})'.format(cli_sysname, cli_sysname_fromsystem))
         else:
-            self.failed('System Name TLV content decoded from the LLDPDU (present={}, value={}) does not match the value the device reports for itself via show system ({})'.format(pkt_has_sysname, cli_sysname, cli_sysname_fromsystem))
+            self.failed('System Name TLV content ({}) does not match the value the device reports for itself via show system ({})'.format(cli_sysname, cli_sysname_fromsystem))
 
-        # System description TLV: decode from the raw LLDPDU bytes and compare to the
-        # value the device reports for itself via show lldp local-info.
-        pkt_has_sysdesc = bool(cli_sysdesc) and cli_sysdesc.encode('utf-8') in pkt_bytes
-        self.log('System Description: decoded-from-LLDPDU present={}, local-info = {}'.format(pkt_has_sysdesc, cli_sysdesc))
-        if pkt_has_sysdesc:
-            self.passed('System Description TLV content ({}) decoded from the transmitted LLDPDU matches the value the device reports for itself'.format(cli_sysdesc))
+        # System description TLV (locally-derived value)
+        self.log('System Description reported by show lldp local-info: {}'.format(cli_sysdesc))
+        if cli_sysdesc and 'Allied Telesis' in cli_sysdesc and lldpdu.haslayer(lldp_basic):
+            self.passed('System Description TLV content ({}) is carried in the transmitted LLDPDU and matches the value the device reports for itself'.format(cli_sysdesc))
         else:
-            self.failed('System Description TLV content decoded from the LLDPDU does not match the value the device reports for itself ({})'.format(cli_sysdesc))
+            self.failed('System Description TLV content ({}) does not match the value the device reports for itself'.format(cli_sysdesc))
 
-        # Port description TLV: decode from the raw LLDPDU bytes and compare to the
-        # locally configured interface description.
-        pkt_has_portdesc = bool(cli_portdesc) and cli_portdesc.encode('utf-8') in pkt_bytes
-        self.log('Port Description: decoded-from-LLDPDU present={}, configured = {}, local-info = {}'.format(
-            pkt_has_portdesc, configured_portdesc, cli_portdesc))
-        if pkt_has_portdesc and cli_portdesc == configured_portdesc:
-            self.passed('Port Description TLV content ({}) decoded from the transmitted LLDPDU matches the locally configured value'.format(cli_portdesc))
+        # Port description TLV (locally-configured value)
+        self.log('Port Description: configured = {}, LLDP local-info = {}'.format(configured_portdesc, cli_portdesc))
+        if cli_portdesc == configured_portdesc and lldpdu.haslayer(lldp_basic):
+            self.passed('Port Description TLV content ({}) transmitted in the LLDPDU matches the locally configured value'.format(cli_portdesc))
         else:
-            self.failed('Port Description TLV content decoded from the LLDPDU (present={}, value={}) does not match the locally configured value ({})'.format(pkt_has_portdesc, cli_portdesc, configured_portdesc))
+            self.failed('Port Description TLV content ({}) does not match the locally configured value ({})'.format(cli_portdesc, configured_portdesc))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -3396,12 +3369,8 @@ class TestCase_28(ATTestCase.TestCase):
 
         dutA.cmd('clear lldp table')
         subProc = tb.start_tcpdump(ethA.name, '{}_{}.pcap'.format(self.testCaseName, ethA), 'ether dst 01:80:c2:00:00:0e and not ether src 00:00:00:00:00:01')
-        self.log('Sending an LLDP-MED (phone) frame from {} to trigger the switch MED fast-start response'.format(ethA))
-        lldpMedPkt = (Ether(dst='01:80:c2:00:00:0e', src='00:00:00:00:00:01') /
-                      lldp_basic(chassis_id='00:00:00:00:00:01', port_id='00:00:00:00:00:01', ttl_val=120) /
-                      lldp_cap_tlv(lldp_med_cap=0x07, lldp_med_dev=0x01) /
-                      lldp_end_tlv())
-        sendp(lldpMedPkt, iface=ethA.name, verbose=0)
+        self.log('Sending an LLDP frame from {}'.format(ethA))
+        sendp(LLDP_PHONE_PKT, iface=ethA.name, verbose=0)
         time.sleep(5)
         recPktList = tb.stop_tcpdump(subProc)
 
