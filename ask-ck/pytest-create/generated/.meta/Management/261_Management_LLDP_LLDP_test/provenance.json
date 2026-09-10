@@ -2,8 +2,8 @@
   "case_key": "AWPTCM-T44297",
   "group": "Management",
   "name": "261_Management_LLDP_LLDP_test",
-  "saved_at": "2026-09-09T03:17:37.810353+00:00",
-  "iterations": 14,
+  "saved_at": "2026-09-09T20:56:09.020214+00:00",
+  "iterations": 15,
   "fragments": [
     {
       "source_id": "art/1332_lldp_med/test-1332.1001.py",

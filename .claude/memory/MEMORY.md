@@ -15,7 +15,7 @@
 - [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; NOT documented, so a docs harvest alone can't capture cross-command physical rules
 - [AW+ ecofriendly + port naming](awplus-ecofriendly-and-port-naming.md) — `ecofriendly` not "ecomode"; `lpi` deprecated but TestLink says LPI; port1.1.x = chassis/slot — never hardcode a port
 - [Prompt examples ARE the spec](prompt-examples-are-the-spec.md) — where prose and EXAMPLE disagree the model copies the example; test examples against real data; add a lint when prose doesn't hold
-- [ck.db WAL + test isolation](ckdb-wal-and-test-isolation.md) — md5/mtime can't see ck.db writes (WAL); tests must NOT dirty it — tool/run_scratch_server.sh; never rm scratch.db without -wal/-shm
+- [ck.db WAL + test isolation](ckdb-wal-and-test-isolation.md) — md5/mtime can't see WAL writes (ckdb_signature); tests never dirty ck.db; ONE SQLite lib per server process; no RW outside opens
 - [Old sessions are not coverage](old-sessions-are-not-coverage.md) — a green suite over STORED sessions proves nothing about a new flow; build the new shape explicitly, pin legacy + fresh + reject
 - [Mutate before you claim](mutate-before-you-claim.md) — run mutation checks BEFORE writing the diagnosis; a mutation that stays green = an overclaim or dead code
 - [Scoped directives stay scoped](scoped-directives-stay-scoped.md) — a one-line ruling binds to the layer under discussion, not every layer it could touch; name the others instead of assuming
@@ -28,7 +28,7 @@
 - [Generator CLI hallucination](generator-cli-hallucination.md) — ALL 5 models fabricate CLI output formats; a resourcing gap (no sample output in the prompt), not model quality
 - [Part 3 grading session](part3-grading-session.md) — 2026-07-27: judges = Opus + vllm-fast; tb470 configs = /home/st-art/st-art/configs; Part 3b cause → [[run-thread-contextvar-lock]]
 - [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users
-- [Stale session connection bug](stale-session-connection-bug.md) — a 200 whose write never reaches ck.db (stale thread-local conn); on NFS it ESCALATES to WAL corruption; restart + verify rev
+- [Stale session connection bug](stale-session-connection-bug.md) — a 200 outside readers never see: CAUSE (FIXED 2026-09-10) = two SQLite libs in one process stripped server locks; .nfs* orphans
 - [Workspace LLM default gotcha](workspace-llm-default-gotcha.md) — headless curl 502s "needs a browser session id" unless the workspace LLM is local_llm; per-case llm_config is not authoritative
 - [PyTest artefact-review worklist](pytest-artefact-review-worklist.md) — T33233 review findings #1/2/4/5/7 DONE; #3 partial; D1/D2/D3 resolved 2026-07-27
 - [D1 fragment-resolver boundaries](d1-fragment-resolver-boundaries.md) — D1 DONE 2026-07-27: hardened single _resolve_symbol_code; 27 adversarial checks green
@@ -78,7 +78,7 @@
 - [i2c stress tooling](i2c-stress-tooling.md) — ~/old test runs/IE520/i2c-stress/ = validated IE520 i2c stress scripts; smoke-clean tb470 2026-08-26; the full 300 run not yet fired
 - [IE520 silent-reboot watch 2026-09-02](ie520-silent-reboot-watch-2026-09-02.md) — DEFERRED to a weekend run; caught member 1's silent reboot; 3 harness defects to fix first; only console.py survives
 - [Don't ceremonialize a clear fix](dont-ceremonialize-a-clear-fix.md) — removing a false/misplaced check is a plain fix, not a contract change needing sign-off
-- [ck.db corrupt-WAL recovery](ckdb-corrupt-wal-recovery.md) — "malformed" usually = bad WAL, fine BASE (check a main-file-only copy); recover with tool/db_wal_recover.sh, never a bare sqlite3
+- [ck.db corrupt-WAL recovery](ckdb-corrupt-wal-recovery.md) — "malformed" = bad WAL, fine BASE (check a main-file-only copy); tool/db_wal_recover.sh, never bare sqlite3; cause fixed 2026-09-10
 - [IE520 DoS test method](ie520-dos-test-method.md) — AWPTCM DoS suite on tb470: attacks must TRANSIT the switch; batch sendp (fastdos.py); disarm `no dos <type>`; method in DOS-METHOD.md
 - [Prefer a pragmatic fix over infra debugging](prefer-pragmatic-fix-over-infra-debugging.md) — when incidental infra breaks mid-task, take the deterministic fix (static IP, skip); don't rabbit-hole
 - [Terrence prefers the session model as judge](terrence-prefers-session-model-as-judge.md) — quality verdicts: READ AND JUDGE IN-CONTEXT, no claude -p / vLLM judge calls; generation runs are fine

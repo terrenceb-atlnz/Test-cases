@@ -24,14 +24,36 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
-import sqlite3
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# ONE SQLite library per process — bind exactly what CK_server/db.py binds, in the same order.
+#
+# The server imports this module while rendering unit prompts (routers/pytest_create.py), so
+# its connections live in the SAME process as db.py's. Until 2026-09-10 this file did a plain
+# `import sqlite3` (the stdlib, SQLite 3.37) while db.py's connections came from pysqlite3
+# (SQLite 3.51). POSIX advisory locks belong to the PROCESS, not the descriptor, and each
+# SQLite library keeps its own per-inode lock bookkeeping — so when one of this module's
+# short-lived read-only connections closed, that library saw "my last connection" and issued a
+# real F_UNLCK, which released every lock the server's pysqlite3 connections held on ck.db and
+# ck.db-shm. Lockless, the WAL could be deleted from under the live server by any read-write
+# open from another process (the orphaned-WAL data loss of 2026-09-09/10), and two writer
+# threads could corrupt it with no outside help at all ("database disk image is malformed",
+# 2026-09-09 during a fan-out fix). Reproduced step by step with throwaway databases; binding
+# the same module fixes it because SQLite's in-process accounting then keeps the shared lock
+# until the LAST connection closes. Guard: tests/test_sqlite_single_library.py.
+try:
+    import pysqlite3 as sqlite3            # type: ignore
+except ImportError:
+    import sqlite3                          # type: ignore
+
 REPO = Path(__file__).resolve().parent.parent
-DB = REPO / "ask-ck" / "var" / "ck.db"
+# Same resolution as db._resolve_db_path(): the isolated test copy and the scratch server set
+# CK_DB_PATH, and this module must read the SAME file the server it lives in reads.
+DB = Path(os.environ.get("CK_DB_PATH") or (REPO / "ask-ck" / "var" / "ck.db"))
 
 
 def _conn() -> sqlite3.Connection:

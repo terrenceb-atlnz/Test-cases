@@ -72,3 +72,38 @@ for reading exact CLI tokens out of ck.db.
   Discover/Request (keeps the host's own routing untouched); confirm `show ip dhcp binding`.
 - Guest-vlan L3 forwarding cases (T28126-129) need **two supplicant ports + line rate** →
   not doable on this one-host-NIC bench; VCS/tri-auth needs a working 2-member stack.
+
+**L3 routing cases (PIM-SM/SSM, static mroute, VRRP), added 2026-09-10** (logs:
+`old test runs/IE520/ipv4-routing/{7741,11405,11402,11762,11773,30403,18945}.log`):
+- **Daemons are `service`-gated, NOT licence-gated** — see [[awplus-service-gated-routing-daemons]].
+  `service pim|ospf|rip|vrrp` starts the daemon LIVE (no reboot); then `ip pim sparse-mode`,
+  `router ospf`, `router vrrp` are accepted. u4/u5 lack AT-IE520-FL01 yet run all of it.
+- **PIM-SM single-box fabric that works reliably:** u4 = RP (`ip pim rp-address <lo>`) + FHR +
+  LHR; host tagged sub-ifs are the source (one vlan) and receivers (other vlans); `ip igmp` +
+  `ip pim sparse-mode` on every SVI. mroute oif-list = the joined vlans exactly (that IS the
+  "no leakage" proof). SPT bit sets after the RP-tree join. HSL "Entry exists" error must be absent.
+- **PIM-SSM:** `access-list 40 permit <range> <wild>` + `ip pim ssm range 40`. Receiver join =
+  scapy IGMPv3 CHANGE_TO_INCLUDE (rtype=3, srcaddrs=[S]) to 224.0.0.22, RA option, on-subnet src
+  → `show ip igmp groups <G> detail` shows Include-mode + source list. In-range: source-specific
+  (unjoined source hits an empty-oif (S,G) → dropped). Out-of-range (*,G) EXCLUDE join builds an
+  RP shared tree (ASM); in-range (*,G) builds NO shared tree → arbitrary source dropped. That
+  ASM-in/out contrast is the clean SSM-range discriminator.
+- **Static mroute (`ip mroute <src/mask> <rpf-addr>`):** only load-bearing for a REMOTE source
+  with NO unicast route (remove the unicast route first). Verify with `show ip rpf <src>` →
+  "RPF type: static"; removed → "failed, no route exists". Working method WITHOUT relying on a
+  switch as source: inject the source on the transit vlan (host eth2.<transit>, spoofed src) whose
+  RPF neighbour IS a real PIM router (u5) — u4 then RPF-accepts on that vlan and forwards. A
+  phantom source whose RPF neighbour is a host does NOT forward (no PIM adjacency). A switch
+  `ping <grp>` as a PIM SOURCE does not register cleanly, and `ip igmp static-group <G> source <S>`
+  registers the IGMP membership but does NOT trigger a PIM SSM (S,G) join.
+- **VRRP:** `router vrrp <vrid> <ifname>` / `virtual-ip <ip> [master|backup|owner]` (VIP MUST be
+  inside the SVI subnet, else "Init - no matching subnet") / `priority` / `preempt-mode true` /
+  `enable`; disable the instance with `disable`. VMAC = 00:00:5e:00:01:VRID. Graceful `disable`
+  fails over in ~1 probe interval (<<1s); measure by 50 pps ICMP to the VIP with `ping -D`,
+  correlate the outage gap to the wall-clock epoch of the disable/enable (an uncorrelated gap can
+  be a warm-up artefact — the first cold failover showed 3.1s, precise correlation showed 20ms).
+- **CONSOLE COLLISION:** only ONE accessor per /dev/uN. A backgrounded `drv.py` (e.g. a source
+  `ping`) HOLDS that console — a second query to the same unit gets "device disconnected / multiple
+  access" and returns nothing. Put the source on the HOST (or the unit you don't need to observe).
+  `fuser -k /dev/ttyUSBx` frees a stuck console; a unit left in `config-if` needs `end` (the
+  driver's login terminal-setup fails there, making every command read as "^ % Invalid input").

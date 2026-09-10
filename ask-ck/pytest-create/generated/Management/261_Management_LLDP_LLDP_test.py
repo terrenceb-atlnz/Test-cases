@@ -250,9 +250,24 @@ class TestCase_1(ATTestCase.TestCase):
         self.log('STEP 1: On the test port select only the port-description optional TLV (`lldp tlv-select port-description`).')
 
         dutA.mode('#')
+
+        # Verify LLDP is running (probe for capability, then assert enabled state)
+        lldpGlobal = dutA.cmd('show lldp')
+        if 'Invalid input' in lldpGlobal or 'Unrecognized command' in lldpGlobal:
+            self.supported = False
+            self.log('INFO: {} does not support lldp; case not applicable'.format(dutA))
+            return
+        if 'LLDP Status' in lldpGlobal and 'Enabled' in lldpGlobal:
+            self.passed('LLDP is running (show lldp reports LLDP Status Enabled)')
+        else:
+            self.failed('LLDP is not running (show lldp did not report LLDP Status Enabled)')
+            return
+
+        # Verify the physical link on the test port is up
         if not wait_for_port_link_up(self, dutA, [portA]):
             self.failed('port {} did not come up before the LLDP TLV check'.format(portA.name))
             return
+        self.passed('test port {} link is up'.format(portA.name))
 
         countersBefore = getPortCo(dutA, portA.name, interface=True)
         self.log('Port counters before capture:\n{}'.format(countersBefore))
@@ -274,6 +289,13 @@ class TestCase_1(ATTestCase.TestCase):
             return
 
         rowTokens = row.split()
+        # Confirm the test port has transmit enabled (Tx present in the Rx/Tx column)
+        if 'Tx' in rowTokens[1:3]:
+            self.passed('show lldp interface {} shows transmit enabled on the test port'.format(name))
+        else:
+            self.failed('show lldp interface {} does not show transmit enabled on the test port: {}'.format(name, row))
+            return
+
         baseCol = rowTokens[6] if len(rowTokens) > 6 else ''
         if baseCol.startswith('Pd'):
             self.passed('show lldp interface {} lists port-description (Pd) enabled in the Base TLV column: {}'.format(name, baseCol))
@@ -765,9 +787,11 @@ class TestCase_6(ATTestCase.TestCase):
         stk_a = self.testSet.stk_a
         # Precondition this step presumes: the complete set of optional base LLDP TLVs
         # (port description, system name, system description, system capabilities,
-        # management address) selected for transmission on the test port.
+        # management address) selected for transmission on the test port. A port
+        # description is set so the Port Description TLV carries a deterministic string.
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
+        dutA.cmd('description LLDP-T44297')
         dutA.cmd('lldp tlv-select port-description system-name system-description system-capabilities management-address')
         dutA.mode('#')
 
@@ -801,6 +825,27 @@ class TestCase_6(ATTestCase.TestCase):
         self.passed('show lldp interface {} confirms all five optional Base TLVs are selected for Tx (Base={})'.format(
             portA.name, baseRow[-4]))
 
+        # Retrieve the CLI-reported strings for the base TLVs that have no named scapy
+        # field (Port Description / System Name / System Description). These are decoded
+        # from the raw LLDPDU bytes below, as the port-description/system-name/
+        # system-description base TLVs do not have a named scapy field.
+        localInfo = dutA.cmd('show lldp local-info interface {}'.format(portA.name))
+        liVals = {}
+        for line in localInfo.splitlines():
+            s = line.strip()
+            if '..' in s:
+                idx = s.find('..')
+                label = s[:idx].strip()
+                j = idx
+                while j < len(s) and s[j] == '.':
+                    j += 1
+                liVals[label] = s[j:].strip()
+        sysName = liVals.get('System Name', '')
+        sysDesc = liVals.get('System Description', '')
+        portDesc = liVals.get('Port Description', '')
+        self.log('CLI local-info: Port Description={!r}, System Name={!r}, System Description={!r}'.format(
+            portDesc, sysName, sysDesc))
+
         subProc = tb.start_tcpdump(ethA.name, '{}_{}.pcap'.format(self.testCaseName, ethA.name),
                                     'ether dst 01:80:c2:00:00:0e')
         self.log('Waiting for several consecutive LLDPDU transmissions on {}'.format(ethA.name))
@@ -823,6 +868,7 @@ class TestCase_6(ATTestCase.TestCase):
         allEnd = True
         for idx, pkt in enumerate(recPktList):
             pktNum = idx + 1
+            rawPkt = bytes(pkt)
             if pkt.haslayer(lldp_basic) and pkt[lldp_basic].chassis_id and pkt[lldp_basic].port_id and pkt[lldp_basic].ttl_val is not None:
                 self.log('Packet {}: mandatory Chassis ID/Port ID/TTL TLVs present (chassis={}, port={}, ttl={})'.format(
                     pktNum, pkt[lldp_basic].chassis_id, pkt[lldp_basic].port_id, pkt[lldp_basic].ttl_val))
@@ -830,10 +876,12 @@ class TestCase_6(ATTestCase.TestCase):
                 self.log('Packet {}: missing a mandatory Chassis ID/Port ID/TTL TLV'.format(pktNum))
                 allMandatory = False
 
-            basicLayer = pkt[lldp_basic] if pkt.haslayer(lldp_basic) else None
-            hasPortDesc = basicLayer is not None and getattr(basicLayer, 'port_desc', None) is not None
-            hasSysName = basicLayer is not None and getattr(basicLayer, 'sys_name', None) is not None
-            hasSysDesc = basicLayer is not None and getattr(basicLayer, 'sys_desc', None) is not None
+            # Port Description / System Name / System Description base TLVs do not have a
+            # named scapy field, so decode them from the raw LLDPDU bytes by looking for
+            # the CLI-reported string.
+            hasPortDesc = portDesc not in ('', '[not configured]', '[zero length]') and portDesc.encode() in rawPkt
+            hasSysName = sysName not in ('', '[not configured]', '[zero length]') and sysName.encode() in rawPkt
+            hasSysDesc = sysDesc not in ('', '[not configured]', '[zero length]') and sysDesc.encode() in rawPkt
             hasSysCap = pkt.haslayer(lldp_base_cap_tlv)
             hasMgmtAddr = pkt.haslayer(lldp_man_tlv)
 
@@ -876,10 +924,12 @@ class TestCase_6(ATTestCase.TestCase):
         portPeer = dutA.portPeer
         portDut = peer.portDut
         stk_a = self.testSet.stk_a
-        # Mirror configure(): deselect the optional Base TLV set on the test port.
+        # Mirror configure(): deselect the optional Base TLV set and remove the port
+        # description on the test port.
         dutA.mode(')#')
         dutA.cmd('interface {}'.format(portA.name))
         dutA.cmd('no lldp tlv-select port-description system-name system-description system-capabilities management-address')
+        dutA.cmd('no description')
         dutA.mode('#')
 
 
@@ -1804,15 +1854,27 @@ class TestCase_15(ATTestCase.TestCase):
 
         analyse_lldp_packets(self, recPktList)
 
-        row = next((l for l in output.splitlines() if l.split()[:1] == [portA.name]), None)
+        # show lldp interface prints the port either as the full handle (port1.0.1) or in
+        # the stripped numeric form (1.0.1), optionally prefixed by '*'; accept both.
+        portName = portA.name
+        portNum = portName.replace('port', '', 1)
+        row = None
+        for l in output.splitlines():
+            parts = l.split()
+            if not parts:
+                continue
+            token = parts[0].lstrip('*')
+            if token == portName or token == portNum:
+                row = l
+                break
         if row is None:
-            self.failed('port {} missing from show lldp interface output'.format(portA.name))
+            self.failed('port {} missing from show lldp interface output'.format(portName))
             return
         baseField = row.split()[-4]
         if baseField[0:2] != 'Pd' and baseField[-2:] == 'Ma':
-            self.passed('show lldp interface {} Base TLVs field {} shows port-description cleared while management-address remains selected'.format(portA.name, baseField))
+            self.passed('show lldp interface {} Base TLVs field {} shows port-description cleared while management-address remains selected'.format(portName, baseField))
         else:
-            self.failed('show lldp interface {} Base TLVs field {} still shows port-description selected or lost management-address'.format(portA.name, baseField))
+            self.failed('show lldp interface {} Base TLVs field {} still shows port-description selected or lost management-address'.format(portName, baseField))
 
         pdFound = False
         maFound = False
@@ -1825,14 +1887,14 @@ class TestCase_15(ATTestCase.TestCase):
                     maFound = True
 
         if not pdFound:
-            self.passed('Captured LLDPDUs from {} no longer carry a Port Description TLV'.format(portA.name))
+            self.passed('Captured LLDPDUs from {} no longer carry a Port Description TLV'.format(portName))
         else:
-            self.failed('Captured LLDPDUs from {} still carry a Port Description TLV'.format(portA.name))
+            self.failed('Captured LLDPDUs from {} still carry a Port Description TLV'.format(portName))
 
         if maFound:
-            self.passed('Captured LLDPDUs from {} still carry the Management Address TLV (lldp_man_tlv), remaining selected TLV preserved'.format(portA.name))
+            self.passed('Captured LLDPDUs from {} still carry the Management Address TLV (lldp_man_tlv), remaining selected TLV preserved'.format(portName))
         else:
-            self.failed('Captured LLDPDUs from {} are missing the Management Address TLV although it remains selected'.format(portA.name))
+            self.failed('Captured LLDPDUs from {} are missing the Management Address TLV although it remains selected'.format(portName))
 
     def tear_down(self):
         tb = self.testSet.tb
@@ -2998,6 +3060,10 @@ class TestCase_25(ATTestCase.TestCase):
             return
 
         def _inventory_tlvs_present(pktList):
+            # Detect the inventory-management TLVs via their OWN distinct layers.
+            # lldp_man_tlv is the base management-address TLV in this suite (a 4-byte
+            # IPv4 value), NOT the manufacturer-name inventory TLV, so it is not used
+            # here; the model/asset/revision/serial layers are the distinct ones.
             present = set()
             for pkt in pktList:
                 if pkt.haslayer(lldp_hw_tlv):
@@ -3008,10 +3074,10 @@ class TestCase_25(ATTestCase.TestCase):
                     present.add('sw')
                 if pkt.haslayer(lldp_sn_tlv):
                     present.add('sn')
-                if pkt.haslayer(lldp_man_tlv):
-                    present.add('man')
                 if pkt.haslayer(lldp_model_tlv):
                     present.add('model')
+                if pkt.haslayer(lldp_asset_tlv):
+                    present.add('asset')
             return present
 
         def _extra_optional_tlvs_present(pktList):
@@ -3025,7 +3091,7 @@ class TestCase_25(ATTestCase.TestCase):
                     extras.add('power-management-ext')
             return extras
 
-        expected = set(['hw', 'fw', 'sw', 'sn', 'man', 'model'])
+        expected = set(['hw', 'fw', 'sw', 'sn', 'model', 'asset'])
 
         self.log('---- Capturing LLDPDUs from {} while it is still transmit-and-receive (baseline)'.format(portA.name))
         subProc = tb.start_tcpdump(ethA.name, '{}_baseline.pcap'.format(self.testCaseName), 'ether proto 0x88cc')
@@ -3277,8 +3343,10 @@ class TestCase_27(ATTestCase.TestCase):
         # Construct a minimal LLDP-MED capable frame locally (no shipped LLDP_PHONE_PKT
         # constant exists) using the framework's LLDP layers, carrying both an
         # LLDP-MED Capabilities TLV and a Network Policy TLV so the DUT's fast-start
-        # response can be captured and decoded.
-        medPkt = Ether(dst='01:80:c2:00:00:0e', type=0x88cc) / \
+        # response can be captured and decoded. The source MAC 00:00:00:00:00:01 is the
+        # one the capture filter excludes, so the injected stimulus frame itself is
+        # never captured and only a genuine DUT-transmitted LLDPDU can satisfy the checks.
+        medPkt = Ether(src='00:00:00:00:00:01', dst='01:80:c2:00:00:0e', type=0x88cc) / \
             lldp_basic(chassis_id='0000.0000.5678', port_id='port1', ttl_val=120) / \
             lldp_cap_tlv(lldp_med_cap=0x27, lldp_med_dev=0x03) / \
             lldp_net_tlv(lldp_utx=1, lldp_vlan_id=1, lldp_dscp_val=0, lldp_L2_pri=0) / \

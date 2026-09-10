@@ -2,7 +2,61 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-09, evening (by Claude)
+**Last Updated**: 2026-09-10, morning (by Claude)
+
+## Latest session (2026-09-10, morning) — ck.db corruption ROOT-CAUSED and FIXED (two SQLite libraries in one process, not NFS); tc1 D5 resolved; G8 added
+
+**Where it stands.** One code fix + one guard test landed, gate green (**1429 passed / 1 skipped**,
+vitest 252, ck.db signature unchanged); the live server was soft-reloaded (`ck reload`, 08:55) and
+verified holding its `ck.db`/`ck.db-shm` locks in `/proc/locks`. AWPTCM-T44297 is at **rev 467,
+lint ok, tc1 hand-fixed, final Opus review still to run**, then Save + Confirm.
+
+**The root cause (retracts yesterday's "WAL on NFS" diagnosis).** `db.py` opens ck.db with
+**pysqlite3**; `tool/cli_lookup.py`, imported by `pytest_create.py` during every unit-prompt
+render, opened it with the **stdlib sqlite3** — read-only, per call, GC-closed. POSIX locks belong
+to the process and each SQLite library keeps its own lock accounting, so every stdlib close
+issued a real unlock that **stripped all of the server's locks** on ck.db and its shm. Lockless:
+any read-write outside open+close deleted the WAL from under the server (→ `.nfs*` orphans, a
+WAL only the server could read, rows lost on restart — yesterday's three fixes, today's rev-467
+save), and concurrent fix-fan-out writers could corrupt the WAL with no outside help
+(yesterday's ~13:47 "malformed"; 2026-09-03's too). Found because the live worker held **zero**
+`/proc/locks` entries while a probe holder on the same mount showed both; every step reproduced
+with throwaway databases in `ask-ck/var/` (read-only peers *cannot* delete the WAL — the test
+gate is exonerated; read-write peers can). Full chain + evidence: follow-ups plan **#5**.
+
+**Fix.** `tool/cli_lookup.py` binds the same `pysqlite3`-then-`sqlite3` preference as `db.py`
+and honours `CK_DB_PATH`; `tests/test_sqlite_single_library.py` guards identity
+(`cli_lookup.sqlite3 is db.sqlite3`), statically scans every module that runs in the server
+process, replays the incident path on a tmp WAL db via `/proc/locks`, and carries a negative
+control proving the check sees the bug. `tests/test_cli_grounding_phase4.py` fixtures now build
+connections from `cli_lookup.sqlite3` (the first post-change gate caught one that didn't).
+Rules that remain: one SQLite library per server process; **never open the live ck.db
+read-write from another process while the server runs** (read-only is safe); verify a write
+from a copy of base+wal+shm, never a live open. Options A/B/C in #5 are re-assessed — off-NFS
+is now optional hosting/perf, not data-safety (**D5-1/D5-2 re-scoped**).
+
+**D5 (tc1) resolved.** The fixer's step-1 verification was sound (checked against real
+`show lldp` / `show lldp interface` output; `Rx Tx` are two tokens), but it also added
+`lldp run` to tc1's configure and `no lldp run` to its tear_down — commands the setup unit owns —
+which would have **disabled LLDP for tc2–tc37**. Kept the verification, stripped the pair,
+applied via `save_script` (rev 467). Root cause recorded as **RC6/G8** in the guardrails plan:
+the fix prompt never shows `TestSet.configure()`, and both the SELF-CONTAINED rule and the
+"missing precondition → configure()/tear_down()" rule push the model to duplicate suite state.
+G8 = show the setup body in the shared half + reworded rule + a cross-unit lint (D7 added).
+
+**Process notes.** (1) A background task's "exit code 0" is the wrapper's, not the gate's — read
+the log; I reloaded the server on a red gate once today before catching that. (2) `uvicorn
+--reload` watches `CK-main`, not `tool/` or `tests/` — editing those does **not** recycle the
+worker; `ck reload` does. (3) The `.nfs*` orphans + zero server locks pattern = "the server has
+no locks; find the second opener", not "NFS ate it".
+
+**Uncommitted (this session):** `tool/cli_lookup.py`, `tests/test_sqlite_single_library.py`,
+`tests/test_cli_grounding_phase4.py`, both plans, this file, three memories + MEMORY.md, the
+T44297 generated artefacts (save_script rewrote them), `ask-ck/var/ck.db` (live traffic).
+
+**Pick up here:** (1) fire the final Opus review on T44297 → Save → Confirm step 5; (2) the
+remaining plan decisions (follow-ups D4, D6, D1, D3, D-UI; guardrails D1–D4, D6, D7); (3) the
+"commit review copies?" ruling (de facto yes since `180752c`).
 
 ## Latest session (2026-09-09, evening) — T44297 through the full generate→review→fix loop on the ART frame; ck.db WAL corrupted on NFS; two plans written, nothing implemented
 
@@ -112,22 +166,14 @@ Review step; **item 5 is a data-safety hazard** and outranks the rest.
    all accurate — only the tag is loose — so it matters only where the UI groups/filters by
    `kind`. Fix: constrain the review prompt to a small, defined `kind` enum (or map/normalise
    the returned tag) so the label matches the finding.
-5. **⚠ DATA-SAFETY: `ck.db` is WAL-mode SQLite on the NFS share — it corrupts under concurrent
-   write load** (incident 2026-09-09 ~13:47). During the review-driven Fix on T44297 (three
-   rapid per-unit CAS re-writes of the ~1.2 MB session row, with a *second* session
-   `sess-ry6a677105` also hammering the broker), the server's ck.db `-wal`/`-shm` were
-   unlinked/replaced while it still held them open → NFS **silly-rename** (`.nfs*` orphans left
-   in `ask-ck/var/`, held by the server pid), after which every disk-backed session op returned
-   *"file is not a database"*. The permanent **base survived** (`integrity_check` ok on a
-   main-file-only copy; `-wal` truncated to 0) and recovery was a restart — but the tc6/tc11/tc12
-   fixes not yet committed (cache rev 446 vs disk rev 444) were lost and had to be re-run. This
-   is [[stale-session-connection-bug]] escalated by NFS. Root fix (pick one): move `ck.db` off
-   NFS onto local disk (best — WAL mode is unsafe on NFS by design), or serialize session writes
-   / drop WAL mode. Until then: avoid concurrent sessions during a Fix/generate, and treat a 200
-   as provisional until a disk read shows the rev advanced. Recurrence runbook: `.nfs*` orphans
-   clear on restart (server's own open-unlinked fds); verify the base via a main-file-only copy
-   per [[ckdb-corrupt-wal-recovery]]; snapshot the cache-held session with
-   `GET /api/pytest-create/session/<key>` (serves from memory) *before* restarting.
+5. **✅ FIXED 2026-09-10 — ck.db WAL deleted/corrupted under the live server.** Not NFS: two
+   SQLite libraries in one process (`db.py` → pysqlite3, `tool/cli_lookup.py` → stdlib) stripped
+   the server's POSIX locks on every cli_lookup close, so outside read-write opens could unlink
+   the WAL and concurrent writers could corrupt it. Fixed in `tool/cli_lookup.py`; guarded by
+   `tests/test_sqlite_single_library.py`. Standing rules: one SQLite library per server process;
+   never open the live ck.db read-write from outside while the server runs. Off-NFS (option A)
+   is now optional. Evidence and runbook: follow-ups plan **#5**; memories
+   [[stale-session-connection-bug]], [[ckdb-wal-and-test-isolation]].
 6. **Review(LLM) must not depend on a live SSH/browser session** (found 2026-09-09; **reshaped
    2026-09-10**). A ~4-min Opus review over `claude_agent` died twice when the SSH session
    dropped, and re-assembly had already invalidated the prior review, leaving the script with
@@ -148,8 +194,9 @@ Review step; **item 5 is a data-safety hazard** and outranks the rest.
    findings (new case / verdicts in config-only setup) are auto-fixed. Seven guardrails
    G1–G7 (where-authoritative targeting, frozen scaffold enforced, blast-radius diff gate,
    never write untouched units, structural → decision not fixer, verify-before-store,
-   preview/approve). Absorbs the "unreliable fix" concern; depends on #4, shrinks #5's write
-   pattern.
+   preview/approve). Absorbs the "unreliable fix" concern; depends on #4. **2026-09-10:** RC6/G8
+   added (the fixer cannot see suite-owned state → tc1 gained `no lldp run`; show the setup body,
+   reword the rule, lint cross-unit commands) and D5 resolved; D7 added.
 
 ## Latest session (2026-09-09, later) — plan A–F COMPLETE; option B loaded to live ck.db; D/E/F/F2 shipped; gate green
 

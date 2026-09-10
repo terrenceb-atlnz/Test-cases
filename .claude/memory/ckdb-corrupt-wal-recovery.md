@@ -4,7 +4,7 @@ description: If the gate aborts with "database disk image is malformed", the ck.
 metadata:
   node_type: memory
   type: reference
-  verified: 2026-09-09
+  verified: 2026-09-10
 ---
 
 Symptom (seen 2026-09-03): the gate aborts before pytest with `ckdb_signature.py …
@@ -32,5 +32,11 @@ Two non-obvious facts:
   A read-write open checkpoints on close and folds the corrupt WAL into the base. It destroyed
   a throwaway copy exactly this way. Probe on copies only. A live server holding the DB open
   incidentally protects it, but do not rely on that.
+
+**Root cause of these corruptions found 2026-09-10** — not NFS: a second SQLite library
+(`tool/cli_lookup.py`, stdlib) inside the server process stripped the server's POSIX locks on
+every close, so the WAL could be deleted from outside or corrupted by concurrent writers. Fixed
++ guarded; before running this recovery again, check `/proc/locks` for the server pid — zero
+entries on ck.db means the cause is back. See [[stale-session-connection-bug]].
 
 Relates to the DB-only invariant and the WAL-safe isolation authority `tests/test_db_isolation.py`.

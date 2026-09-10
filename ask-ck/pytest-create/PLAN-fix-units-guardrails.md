@@ -6,7 +6,9 @@
 > T44297 pass: *"a plan to guardrail the 'fix units' command so it cannot write in any other
 > TC that isn't affected by an error. this is costing a lot of rework and i dont want such an
 > unreliable process."* Every root cause below is taken from the code and the stored session,
-> not inferred; every guardrail maps to one. Decisions D1–D6 at the end are Terrence's.
+> not inferred; every guardrail maps to one. Decisions D1–D7 at the end are Terrence's.
+> **2026-09-10:** RC6/G8 added (suite-owned state) after D5's investigation showed the fixer had
+> put `no lldp run` in tc1's `tear_down()` — a command the setup unit owns; D5 resolved.
 >
 > Related pending items in `ask-ck/objective-drafting/PROGRESS.md` ("Pending fixes"): #4
 > (constrained `kind` vocabulary — G5 depends on it), #5 (ck.db WAL-on-NFS — G4 shrinks the
@@ -57,6 +59,19 @@ A finding whose resolution needs a *new* TestCase, or verdicts inside the **conf
 setup unit (the framework contract; see `[[setup-unit-re-indent-at-assembly]]`), is
 indistinguishable from a one-line condition fix, so it gets regenerated like any other —
 producing scope changes nobody approved (finding 5 again).
+
+**RC6 — the fixer cannot see suite-owned state, and the rules push it to duplicate it.**
+`pt_fix_unit.jinja`: *"A precondition the bench result says was missing belongs in this unit's
+`configure()`; its undo belongs in `tear_down()`."* The shared half's SELF-CONTAINED rule
+(`pt_generate_step.jinja`): *"Assume NOTHING another TestCase configured is still in effect …
+only what `configure()` set up … ESTABLISH that state yourself."* Neither prompt shows
+`TestSet.configure()`, so "already owned by the suite" is uncheckable by the model. On T44297
+the Opus fix (run 5) added `dutA.cmd('lldp run')` to tc1's `configure()` and
+`dutA.cmd('no lldp run')` to its `tear_down()` — the setup unit issues both — so tc1's
+tear_down would have **disabled LLDP for tc2–tc37**. The step-1 verification it added in the
+same run was sound (verified against real `show lldp` / `show lldp interface` output). Both
+the correct part and the regression came from following the rules as written. Hand-fixed
+2026-09-10 (D5): verification kept, the `lldp run` pair stripped.
 
 ## Guardrails — one per root cause
 
@@ -117,11 +132,27 @@ review-driven fixes (the class that drifts), **auto-apply** for lint-only fixes 
 low risk). A bad fix then costs one look at a diff, not an Opus review. This is also the
 mechanism G3's "held" state lands in. → **D2**.
 
+### G8 — suite-owned state is shown to the fixer and protected by lint  *(RC6)*
+(a) **Prompt.** Add a *"Given by `TestSet.configure()` — never re-issue, never undo"* block
+carrying the setup unit's `configure()` body verbatim, placed in the **shared half** (cached
+once per case, same for every unit). Reword the fix rule: *"A precondition is missing only if
+neither `TestSet.configure()` (listed above) nor this unit's `configure()` establishes it. Never
+re-issue a command the setup unit issues, and never undo one in `tear_down()`: that undo runs
+before the next case and breaks every case after this one."* The SELF-CONTAINED rule gets the
+same carve-out — it is about *other TestCases'* state, not the suite's.
+(b) **Lint.** Any command a case unit issues that also appears in the setup unit's
+`configure()`/`tear_down()` is flagged (cross-unit, deterministic, no model). Catches both lines
+tc1 gained. Positive form: `lldp run` in tc1 → flagged; `lldp tlv-select port-description`
+(case-specific) → not.
+- Test: pin the real tc1 diff (history iter-14 → fix run 5) as the fixture; the lint names
+  `lldp run` and `no lldp run`; the rendered fix prompt contains the setup body. → **D7**.
+
 ## Order
 
-G1 + G5 first (targeting — they stop the wrong-unit class outright and are small) → G4 (no
-untouched writes) → G2 + G6 (verify-before-store) → G3 + G7 (they share the diff machinery
-and the `held` state). **Gate after every step** (`./tool/run_tests.sh`); tests never write
+G1 + G5 + G8(a) first (targeting + the prompt block — they stop the wrong-unit and
+suite-state classes outright and are small) → G4 (no untouched writes) → G2 + G6 + G8(b)
+(verify-before-store, incl. the suite-owned-command lint) → G3 + G7 (they share the diff
+machinery and the `held` state). **Gate after every step** (`./tool/run_tests.sh`); tests never write
 the permanent `ck.db`. Existing suite to extend, not duplicate: `tests/test_pt_fix_units.py`.
 Frontend: the `held` state and per-unit diff need a render in `static/js/pytest.js` (G7) —
 pairs naturally with PROGRESS #1–#3 (error timestamps, regenerate cue, Fix-button legend).
@@ -143,5 +174,6 @@ pairs naturally with PROGRESS #1–#3 (error timestamps, regenerate cue, Fix-but
 | D2 | G7 default: hold-for-approval for review-driven fixes? auto-apply lint-only? | yes / yes |
 | D3 | G5: a `setup`-mapped finding that asks for a verdict → always structural (never fixed)? | yes — config-only is the contract |
 | D4 | G6 stretch: implement the scapy known-field check (would have caught tc6)? | yes if cheap; it is the one check that catches the class we actually hit |
-| D5 | tc1 already carries an unapproved step-1 scope change from fix run 5 — keep or revert? | Terrence's call; not a plan item, but pending |
+| D5 | tc1's unapproved step-1 change from fix run 5 — keep or revert? | **RESOLVED 2026-09-10:** keep the step-1 verification (grounded, sound), strip the `lldp run`/`no lldp run` pair (setup owns it). Applied via `save_script`, rev 467, lint ok; final review pending |
 | D6 | Land G7's UI in the same pass as PROGRESS #1–#3, or separately? | same pass — one step-5 UI change, not three |
+| D7 | G8(a): show the setup `configure()` body verbatim, or a derived command list? | verbatim body — small, deterministic, cache-shared; a derived list is a second thing to keep in sync |

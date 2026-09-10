@@ -1,12 +1,12 @@
 ---
 name: ckdb-wal-and-test-isolation
-description: ck.db is WAL-mode so md5/mtime of the main file CANNOT detect writes — use tool/ckdb_signature.py; real user traffic SHOULD dirty ck.db but test/smoke/E2E traffic must not (tool/run_scratch_server.sh)
+description: ck.db is WAL-mode so md5/mtime of the main file CANNOT detect writes — use tool/ckdb_signature.py; tests must not dirty it (tool/run_scratch_server.sh); ONE SQLite library per server process and no read-write outside opens while it runs (2026-09-10)
 metadata: 
   node_type: memory
   type: project
   originSessionId: 5eff94ba-b305-4e2c-8e60-efda5ba8e420
   modified: 2026-07-28T04:16:43.800Z
-  verified: 2026-09-01
+  verified: 2026-09-10
 ---
 
 **Scratch-harness gotchas (learned the hard way 2026-08-26, ~40 min lost):**
@@ -60,6 +60,17 @@ what failed:
 sqlite-vec), and pysqlite3 IS installed, so **`db.sqlite3 is not sqlite3`**. Patching or
 monkeypatching stdlib `sqlite3` alone does not affect db.py at all. My first version of
 layer 1 did exactly that and would have been a safeguard that looked right and did nothing.
+
+**The same two-library fact caused the 2026-09-03/09/10 corruptions (found 2026-09-10).**
+`tool/cli_lookup.py` ran inside the server with the *stdlib* sqlite3 while db.py used pysqlite3;
+each stdlib close issued a POSIX unlock that stripped the server's locks on ck.db + ck.db-shm, so
+an outside read-write open could delete the WAL under it and concurrent writers could corrupt it.
+Fixed (cli_lookup binds db.py's preference; guard `tests/test_sqlite_single_library.py`). Rules:
+**one SQLite library per server process**; **never open the live ck.db read-write from another
+process while the server runs** — read-only URI opens are safe (they cannot take the exclusive
+lock), a bare `sqlite3 ask-ck/var/ck.db`, an inline `sqlite3.connect("…ck.db")` or a corpus
+loader is not; stop the service (`ck off`) or work on a copy. Full chain:
+[[stale-session-connection-bug]].
 
 **The governing distinction (Terrence, 2026-07-28):** *"ck.db is designed to go dirty when
 users actually operate in it. When tests are run for smoke checks or E2E or whatever, that

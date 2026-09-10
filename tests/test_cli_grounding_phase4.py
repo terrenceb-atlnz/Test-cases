@@ -63,7 +63,10 @@ pytestmark = pytest.mark.skipif(not _DB.exists(), reason="ck.db absent")
 
 @pytest.fixture(scope="module")
 def conn():
-    return sqlite3.connect(f"file:{_DB}?mode=ro", uri=True)
+    # Connections handed to cli_lookup must come from the SQLite library cli_lookup itself
+    # binds (pysqlite3 when installed — the same as db.py, see tests/test_sqlite_single_library.py):
+    # its `except sqlite3.OperationalError` cannot catch another library's exception class.
+    return C.sqlite3.connect(f"file:{_DB}?mode=ro", uri=True)
 
 
 # ---------------------------------------------------------------------------
@@ -464,7 +467,7 @@ def test_detect_commands_compiles_nothing_per_call():
 
 
 def test_the_probe_cache_is_keyed_on_the_connections_file(conn, tmp_path):
-    other = sqlite3.connect(str(tmp_path / "empty.db"))
+    other = C.sqlite3.connect(str(tmp_path / "empty.db"))
     assert C.detect_commands("show interface status", conn=other) == []   # no table: []
     assert C._db_file(other) != C._db_file(conn)
     assert C.detect_commands("show interface status", conn=conn) == ["show interface status"]

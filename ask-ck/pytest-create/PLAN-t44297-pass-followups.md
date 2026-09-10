@@ -2,16 +2,19 @@
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-09 — nothing implemented.** Written at Terrence's request as the plan
+> **PROPOSED 2026-09-09 — #5 ROOT-CAUSED AND FIXED 2026-09-10; items 1–4, 6 unimplemented.**
+> Written at Terrence's request as the plan
 > for the issues found while driving AWPTCM-T44297 through generate → review → fix on
 > 2026-09-09 (the first full loop on the ART-frame shape). This file is the **authority for
 > items 1–6**; **item 7 is delegated** to `PLAN-fix-units-guardrails.md` and only pointed to
 > here. The loose list these came from is the "Pending fixes" block at the top of
 > `ask-ck/objective-drafting/PROGRESS.md`; that block now defers to this plan.
 >
-> Severity is not uniform. **#5 is a data-safety hazard and outranks everything else**; #7 and
-> #6 are process reliability; #4 is review quality; #1–#3 are UI polish. Order below follows
-> that, not the discovery order.
+> Severity is not uniform. **#5 was the data-safety hazard and outranked everything else** —
+> closed 2026-09-10 once the real cause turned out to be two SQLite libraries in one process,
+> not NFS (read the item: the 2026-09-09 diagnosis is retracted there). #7 and #6 are process
+> reliability; #4 is review quality; #1–#3 are UI polish. Order below follows that, not the
+> discovery order.
 
 ## How these were found
 
@@ -24,48 +27,74 @@ loose review taxonomy (#4), and three UI gaps that made the state of the run har
 
 ---
 
-## #5 — ⚠ DATA-SAFETY: `ck.db` is WAL-mode SQLite on the NFS share and corrupts under write load
+## #5 — ⚠ DATA-SAFETY: ck.db WAL deleted/corrupted under the live server — ROOT-CAUSED AND FIXED 2026-09-10
 
-**What happened (2026-09-09 ~13:47).** During the review-driven Fix on T44297 — three rapid
-per-unit CAS re-writes of the ~1.2 MB session row, while a second browser session
-(`sess-ry6a677105`, a zombie tab) held the DB open for reads — the server's `ck.db-wal`/`-shm`
-were unlinked/replaced while still open → NFS **silly-rename** (`.nfs*` orphans in
-`ask-ck/var/`, held by the server pid), after which every disk-backed session op returned
-*"file is not a database"*. The permanent **base survived** (`integrity_check` ok on a
-main-file-only copy; the WAL truncated to 0). Recovery was a restart — but the three fixes
-not yet checkpointed (cache rev 446 vs disk rev 444) were **lost and had to be re-run**. This
-is `[[stale-session-connection-bug]]` escalated from "silent non-persist" to "corruption".
+**Status: FIXED.** `tool/cli_lookup.py` + `tests/test_sqlite_single_library.py` (+ fixture fix in
+`tests/test_cli_grounding_phase4.py`); gate green; live server reloaded 2026-09-10 08:55 and
+verified holding its locks on `ck.db`/`ck.db-shm` in `/proc/locks` afterwards. **The 2026-09-09
+diagnosis ("WAL mode is unsafe on NFS") is retracted** — NFS only supplied the `.nfs*`-orphan
+signature; the same bug corrupts on local disk. Options A/B/C below are re-assessed accordingly.
 
-**Why it matters.** `ck.db` is the permanent single source of truth (invariant 1). WAL mode
-relies on shared-memory locking that NFS does not honour — SQLite's own documentation says WAL
-is unsafe over network filesystems. The corruption is not a fluke; it is the expected failure
-mode of this layout, and the fix loop's write pattern (whole-session CAS writes, several per
-fix) is exactly what provokes it. The next occurrence may not leave the base intact.
+**Root cause — two SQLite libraries in one process.** `db.py` binds `pysqlite3` (SQLite 3.51,
+for `sqlite-vec`). `tool/cli_lookup.py`, imported by `routers/pytest_create.py` while rendering
+every unit prompt, opened `ck.db` through the **stdlib** `sqlite3` (SQLite 3.37) — read-only, a
+fresh connection per call across a dozen call sites, closed by garbage collection. POSIX advisory
+locks belong to the *process*, not the descriptor, and each library keeps its own per-inode lock
+accounting; so when the stdlib connection closed, that library saw "my last connection" and
+issued a real `F_UNLCK`, which released **every** lock the server's pysqlite3 connections held on
+`ck.db` and `ck.db-shm`. Two consequences, both reproduced with throwaway WAL databases on the
+same mount (probes 1–5, 2026-09-10, all cleaned up):
 
-**Root-fix options.**
-- **A — move `ck.db` off NFS onto the host's local disk** (recommended). The server of
-  record runs on `10.33.22.17`; the DB can live on that host's local filesystem with the repo
-  path becoming a symlink/bind, or `CK_DB_PATH` pointing at it. Preserves WAL performance.
-  **Touches two settled things** and therefore needs its own decision, possibly its own plan:
-  the LFS-tracked `ask-ck/var/ck.db` (how does the local copy stay the committed source — a
-  sync step at `/wrap`? — see `[[db-is-permanent-source]]`) and the hosting layout
-  (`[[askck-lan-hosting]]`, none of which is in the repo).
-- **B — serialize session writes** (one writer, a process-level lock around `_pt_persist*`).
-  Reduces contention but does not make WAL-on-NFS safe; readers in other sessions still hold
-  the files open. Mitigation, not a fix.
-- **C — drop WAL mode** (`journal_mode=DELETE`) on NFS. Safer semantics, slower, and the
-  rollback journal has its own NFS caveats. Fallback if A is refused.
+1. **Lockless, the WAL is deletable from outside.** Any *read-write* open+close of `ck.db` by
+   another process takes the exclusive lock SQLite uses to decide "last connection", finds a
+   fully-checkpointed WAL, and unlinks `-wal`/`-shm`. The server keeps writing into the
+   unlinked inode (NFS: silly-rename → `.nfs*` orphans held by the server pid); every outside
+   reader sees base-only and goes stale; a new in-process connection opens the fresh empty WAL
+   → split-brain → *"disk I/O error"* / *"database disk image is malformed"* / *"file is not a
+   database"*; a restart drops the orphan and every un-checkpointed row in it. That is the
+   2026-09-09 loss of three fixes (cache rev 446 vs disk 444) and the 2026-09-10 rev-467 save
+   that only the server could see.
+2. **Lockless, concurrent writers corrupt the WAL on their own.** The shm locks *are* the WAL
+   write lock and reader marks. Two fix-fan-out threads persisting at once with no lock between
+   them is the 2026-09-09 ~13:47 "malformed" — no outside process needed. The 2026-09-03
+   "malformed" (`[[ckdb-corrupt-wal-recovery]]`) fits the same mechanism.
 
-**Until fixed (operating rule).** Avoid concurrent sessions during a Fix/generate; treat a 200
-as provisional until a disk read shows the rev advanced; keep the recurrence runbook: `.nfs*`
-orphans clear on restart; verify the base via a main-file-only copy per
-`[[ckdb-corrupt-wal-recovery]]`; snapshot the cache-held session with
-`GET /api/pytest-create/session/<key>` (serves from memory) **before** restarting.
+**Evidence chain.** Live worker held **zero** `/proc/locks` entries on `ck.db` while a probe
+holder on the same NFS mount showed both READ locks (so NFSv4 locks are visible there — the
+server had *lost* its locks, not hidden them); its `-wal`/`-shm` fds pointed at `.nfs*`
+orphans; base vs base+orphan differed in exactly one row. Probe 4 (pysqlite3 holder + stdlib
+read-only open/close, same process): all locks gone. Probe 5 (same library both sides): locks
+kept. Probe 2/3: a **read-only** peer cannot delete the WAL (`F_WRLCK` on an `O_RDONLY` fd fails),
+a **read-write** peer can — so the test gate's read-only snapshot and read-only diagnostics are
+exonerated; the read-write opener that removed the WAL on 2026-09-09 ~15:40 was not identified
+from the transcripts, and does not change the fix.
 
-**Tests.** Not unit-testable; verified by procedure. `tests/test_db_isolation.py` stays the
-authority that *tests* never write the permanent DB. Whatever A/B/C lands, re-run the
-2026-09-09 provocation (a 3-unit fix with a second session's tab open) and confirm no `.nfs*`
-orphan and rev parity between cache and disk. → **D5-1, D5-2**.
+**Fix.** `cli_lookup` binds `try: import pysqlite3 as sqlite3 / except ImportError: import
+sqlite3` exactly as `db.py`, and resolves `CK_DB_PATH` like `db._resolve_db_path()` (so the test
+copy and the scratch server are honoured). Guard `tests/test_sqlite_single_library.py`: identity
+(`cli_lookup.sqlite3 is db.sqlite3`); a static scan of every module that runs inside the server
+process (CK_server + the `tool/` modules it imports) for stdlib `sqlite3` imports outside the
+preference block; the incident path on a tmp WAL db observed through `/proc/locks`; and a
+**negative control** that proves the check sees the bug (with pysqlite3 installed, a stdlib
+connection closing *does* strip the holder's locks). Tests that hand `cli_lookup` a connection
+now build it from `cli_lookup.sqlite3` — another library's exception classes are not caught.
+
+**Rules that remain.**
+1. **One SQLite library per server process** (guarded). Any new module the server imports that
+   needs SQLite copies db.py's preference block or takes a connection from `db.get_connection()`.
+2. **Never open the live `ck.db` read-write from another process while the server runs.**
+   Read-only URI opens are safe (they cannot take the exclusive lock). `sqlite3 ask-ck/var/ck.db`
+   at a shell, an inline `sqlite3.connect("ask-ck/var/ck.db")`, and the corpus loaders are all
+   read-write. Stop the service first (`ck off`), or work on a copy.
+3. **A 200 is provisional until a disk-side read shows the rev** — from a *copy* of
+   base+`-wal`+`-shm` taken together, never a live open.
+
+**Options A/B/C re-assessed.** None addresses the cause. **A (move `ck.db` off NFS)** removes
+only the `.nfs*` orphan signature and is now an optional hosting/perf question, not data-safety.
+**B (serialize writes)** would have masked consequence 2 without fixing 1. **C (drop WAL)** —
+withdrawn. Recurrence runbook stays valid: `.nfs*` orphans in `ask-ck/var/` held by the server
+pid = the server has no locks → find the second library/opener first, then restart. → **D5-1,
+D5-2 re-scoped.**
 
 ---
 
@@ -215,8 +244,8 @@ explicit paths. **No push** (Terrence pushes).
 
 | # | decision | recommendation |
 |---|---|---|
-| D5-1 | #5 root fix: A (off NFS) / B (serialize) / C (drop WAL)? | **A** — the only one that removes the hazard |
-| D5-2 | Does A get its own plan (it touches the LFS-source invariant + hosting)? | yes — too consequential to ride inside a follow-ups plan |
+| D5-1 | ~~A/B/C~~ — root cause fixed 2026-09-10. Is moving `ck.db` off NFS still wanted as a hosting/perf change (it no longer buys data safety)? | defer; not urgent |
+| D5-2 | Does A get its own plan? | only if D5-1 becomes yes |
 | D4 | Adopt the proposed 7-value `kind` enum, with `structural` as G5's routing key? | yes; unknown → `other`, raw tag kept in provenance |
 | D6 | #6 durability: TTL for an uncollected agent result (rec: align with `LOCK_IDLE_TTL`, 15 min)? keep a superseded review visibly STALE rather than deleting it (rec: yes)? | 15 min / yes |
 | D1 | #1 timestamp: local time + relative? also stamp `ok` chunks? | yes / yes |
