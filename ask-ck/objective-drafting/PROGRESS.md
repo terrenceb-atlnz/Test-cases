@@ -2,9 +2,57 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-10, midday (by Claude)
+**Last Updated**: 2026-09-10, evening (by Claude, autonomous run on Terrence's instruction)
 
-## Latest session (2026-09-10, midday) — LAN server hung and was restarted; no cause captured
+## Latest session (2026-09-10, afternoon → evening) — demo-day #2 root-caused; the seat-setup plan written, decided and EXECUTED (§3–§6); only the Windows-seat demo remains
+
+**Where it stands.** Terrence reported three demo-day failures (installer PATH; a Windows
+seat's Claude "not picked up"; "(this server)" green on Apply then failing every call). All
+three are root-caused in `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §1 — the
+third by reproduction under the live service's environment: the host CLI was pinned at
+**2.1.207** (a headless-only host never self-updates) and `model=default` now needs ≥2.1.251,
+while the error path reported the stream's `init` event instead of the reason. Terrence
+resolved all seven plan decisions (D1–D7, §8), installed `pwsh` (D5), and then said *"Go as far
+as you can … execute the entirety of the plan. Record any decisions I need to make."* It is
+executed, in five commits, gate green at every step (**final: 1450 passed / 1 skipped, vitest
+275**, ck.db signature unchanged, live server reloaded clean throughout):
+
+- `277fbfc` agents: `/health` tells the truth (`logged_in`, versions), `/update`, `/shutdown`,
+  startup `claude update`, failures report the CLI's own reason; page button shows it all.
+- `a541495` **Windows agent in PowerShell** (`ask-ck/agent/ck-agent.ps1`), same contract,
+  pinned against the same captures through `pwsh` in the gate.
+- `2704ce7` **one-line seat setup served from the splash page** (`/setup/…`: `setup.ps1`,
+  `setup.sh`, both agents, sha256 manifest; origin templated in), `?seat-check=1` hand-off,
+  optional autostart (D6). Verified live on this host as the Ubuntu seat (5 runs: fresh,
+  changed bytes, unchanged, from-down, unchanged).
+- `58e7079` **per-seat LLM mode** (`X-CK-LLM`, `effective_llm_config`, `apply_workspace_llm`
+  gone, `set_site_default_llm` is the only writer of the site default — D1-A, D2).
+- `1afc74c` **server-side Claude removed** (D3: code, UI, transport, current-state docs;
+  refused by name; thinking cap moved to the agents, AGENT_VERSION 1.2.0).
+
+Also on the host, outside the repo: `claude update` 2.1.207 → 2.1.267; a daily
+`claude-update.timer` (user unit); Terrence's own agent replaced by the served 1.2.0
+(autostart **off** — see D10). Memory `demo-windows-seat`: the Windows demo seat is
+**10.33.25.50**.
+
+**Pick up here (next session, with Terrence):** (1) **§9 Windows demo on 10.33.25.50** — the
+only plan step not done; needs a person at the seat. (2) **§8b decisions D8–D15** — recorded,
+not decided; D15 (set the site default to Local LLM so a bare seat works before it runs the
+one-liner) and D10 (autostart for Terrence's own agent) are the two worth taking first.
+(3) T44297's final Opus review → Save → Confirm, and the guardrails/follow-ups plan decisions
+from the morning entry below, all untouched today.
+
+**Process notes.** (1) Editing `CK-main/` hot-reloads production; the removal was done as a
+single anchor-checked script so no intermediate import error reached the worker, and the
+one moment `/health` was empty was the reload itself. (2) The no-stray-py hook refuses a
+Bash command whose TEXT names a `.py` path (a heredoc commit message tripped it twice) —
+write commit messages to the scratchpad and `git commit -F`. (3) A parameter named `$args`
+in PowerShell is the automatic variable and arrives empty; `( cd && nohup … & )` leaves a
+bash parent holding the caller's stdout — both found by the Linux smoke tests before any
+Windows seat saw them. (4) The midday LAN-server hang below happened at ~12:52 — the minute
+the morning's commit landed; I saw the server healthy from 14:00 on and did not investigate.
+
+## Previous session (2026-09-10, midday) — LAN server hung and was restarted; no cause captured
 
 **What happened.** At ~12:52 the hosted server stopped answering: unit `active`, port 8000 held
 by the worker, `/health` no reply within 8 s on BOTH `127.0.0.1` and `10.33.22.17`, journal

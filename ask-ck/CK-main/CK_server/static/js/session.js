@@ -21,8 +21,14 @@ const CK_SESSION_ID = (function () {
 // applied under LLM → Configure, stored in localStorage by llm.js, sent on every /api call
 // as X-CK-LLM so the server dispatches THIS seat's requests to THIS seat's backend. Absent
 // (no stored choice) means "use the site default". Format: auth;model;unit;match.
+// Mirrors models.SUPPORTED_AUTH_METHODS. A stored choice outside it (e.g. a browser that
+// last applied a since-retired mode) is NOT sent: the server would 400 every request, and
+// the right outcome for that seat is the site default until it chooses again.
+export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent', 'grok_cli'];
+
 export function seatLlmHeaderValue(cfg) {
   if (!cfg || !cfg.auth_method) return '';
+  if (!SEAT_LLM_METHODS.includes(String(cfg.auth_method).toLowerCase())) return '';
   const f = (v) => (v == null ? '' : String(v)).replace(/[;\r\n]/g, '');
   return [f(cfg.auth_method), f(cfg.model), f(cfg.unit_model), f(cfg.match_model)].join(';');
 }
@@ -30,7 +36,14 @@ export function seatLlmHeaderValue(cfg) {
 export function storedSeatLlm() {
   try {
     const raw = localStorage.getItem('draftingLLMConfig');
-    return raw ? JSON.parse(raw) : null;
+    const cfg = raw ? JSON.parse(raw) : null;
+    if (cfg && cfg.auth_method && !SEAT_LLM_METHODS.includes(String(cfg.auth_method).toLowerCase())) {
+      // Self-heal: a retired stored choice is dropped so the seat falls back to the site
+      // default and the Configure panel shows what its requests will actually get.
+      localStorage.removeItem('draftingLLMConfig');
+      return null;
+    }
+    return cfg;
   } catch (_) { return null; }
 }
 

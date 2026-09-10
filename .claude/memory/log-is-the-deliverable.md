@@ -2,6 +2,7 @@
 name: log-is-the-deliverable
 description: For lab test runs the per-case `<case-id>.log` IS the deliverable — do NOT write an after-action-<id>.md for every test; produce a write-up only when Terrence asks for one
 metadata:
+  verified: 2026-09-10
   node_type: memory
   type: feedback
 ---

@@ -11,6 +11,47 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-10 — Seats set themselves up from the home page; the LLM choice is per seat; the per-user agent is the only Claude path
+
+Written after the second demo day (2026-09-10), which again ended in the RDP-to-localhost
+workaround. Root causes and decisions: `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`.
+Executed the same evening in five commits (`277fbfc`, `a541495`, `2704ce7`, `58e7079`,
+`1afc74c`); the Windows-seat demo (§9 of the plan) is the one step still to run.
+
+**One-line seat setup, served by Ask CK.** The splash page has a "Set up your seat for
+Claude" section: `irm <server>/setup/setup.ps1 | iex` (Windows) or
+`curl -fsSL <server>/setup/setup.sh | bash` (Ubuntu). The server serves the two scripts, the
+two agents and a sha256 `manifest.json` straight from `ask-ck/agent/` (allowlisted route
+`/setup/…`, origin templated in at serve time). Each run: Install ✔ (find/install Claude Code,
+fix the PATH the installer never sets, `claude update`), Login ✔ (`claude auth status` →
+`claude auth login`), Agent ✔ (download by hash, replace a stale agent, start it hidden,
+optional autostart — the user is asked once), then opens Ask CK with `?seat-check=1` so the
+page runs the authoritative check. Why: a Windows seat had the URL and nothing else, and a
+browser cannot run Claude on the PC by itself.
+
+**A Windows agent in PowerShell** (`ask-ck/agent/ck-agent.ps1`, PowerShell 5.1, nothing to
+install) implements the same contract as `ck_agent.py`; the gate pins both against the same
+stream captures through `pwsh`. Both agents: `/health` now reports `logged_in`
+(`claude auth status`), `cli_version` and `agent_version` — an installed-but-logged-out CLI
+no longer reads as ready; `POST /update` runs `claude update` on demand (the "Check my local
+agent" button calls it; skipped while a job is in flight); `claude update` once at startup;
+`POST /shutdown` for replacement; a non-zero exit reports the CLI's own reason from the
+stream's `result` event, never the `init` event. Why: the server host's CLI sat at 2.1.207
+for two months because a headless-only host never self-updates, and the failure it caused
+("does not support this model; 2.1.251 or newer is required") was logged without its reason.
+
+**The LLM choice is per seat.** The browser sends its stored choice on every `/api` call as
+`X-CK-LLM: auth;model;unit;match`; `llm_config.effective_llm_config` resolves seat → site
+default → session copy and never writes a session. Plain Apply writes nothing server-side; a
+separate **Set as site default** control (`POST /api/wizard/set_site_default_llm`) is the only
+writer of the `_workspace_llm` row. Why: the row was authoritative for everyone, so one seat's
+Apply flipped every other seat's transport mid-demo.
+
+**Server-side Claude removed.** The Claude CLI run on the server host (one seat for everyone)
+is gone from the allowlist (now refused by name), the UI, the transport and the current-state
+docs; the per-user agent is the only Claude path and headless tooling uses the org vLLM. The
+thinking cap on long calls moved to the agents.
+
 ## 2026-09-09 — CLI corpus from the combined docs build: per-product syntax + LLDP grounding
 
 The July CLI reference was 37 per-device zips; the docs team now ships ONE combined build

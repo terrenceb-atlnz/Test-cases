@@ -58,6 +58,14 @@ describe('fetch patch', () => {
     await window.fetch('https://example.com/api/x');
     expect(origFetch.mock.calls.at(-1)[1]).toBeUndefined();
   });
+  it('never sends a retired stored choice, and drops it so the seat falls back to the site default', async () => {
+    // A browser that last applied the removed server-side mode must not 400 on every call.
+    localStorage.setItem('draftingLLMConfig', JSON.stringify({ provider: 'claude', auth_method: 'claude_code', model: 'opus' }));
+    await window.fetch('/api/wizard/llm_config');
+    expect(lastHeaders().get('X-CK-LLM')).toBeNull();
+    expect(localStorage.getItem('draftingLLMConfig')).toBeNull();
+    expect(session.seatLlmHeaderValue({ auth_method: 'api_key', model: 'x' })).toBe('');
+  });
   it('reads localStorage at call time, so an Apply changes the very next request', async () => {
     localStorage.setItem('draftingLLMConfig', JSON.stringify({ auth_method: 'local_llm', model: 'vllm-fast' }));
     await window.fetch('/api/a');

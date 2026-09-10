@@ -4,7 +4,7 @@ description: "During the end-of-session doc-sync (the /wrap skill), Claude SHOUL
 metadata: 
   node_type: memory
   type: feedback
-  verified: 2026-08-17
+  verified: 2026-09-10
   originSessionId: fd3dcdc4-34c2-4084-99e5-a506a9647de6
   modified: 2026-07-28T20:28:39.197Z
 ---

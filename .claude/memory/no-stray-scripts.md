@@ -2,6 +2,7 @@
 name: no-stray-scripts
 description: "Throwaway scripts go in the SESSION SCRATCHPAD, never in Terrence's lab tree. A script is either worth keeping (-> the repo, as a flag on an existing tool) or it is not (-> scratchpad). There is no third category. Enforced by the no-stray-py PreToolUse hook, because the instruction alone failed 7 times in one session."
 metadata:
+  verified: 2026-09-10
   node_type: memory
   type: feedback
   modified: 2026-09-02T23:59:00.000Z

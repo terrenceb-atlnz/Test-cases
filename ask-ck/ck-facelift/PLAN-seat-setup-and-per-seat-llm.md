@@ -2,7 +2,9 @@
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-10 — nothing implemented.** Written at Terrence's request after the
+> **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits; only §9's
+> Windows-seat demo remains, plus the decisions in §8b.** Originally PROPOSED the same
+> morning. Written at Terrence's request after the
 > second Ask-CK demo day (2026-09-10, ~13:10–14:05 NZST), which ended in the RDP-to-localhost
 > workaround again. Three failures were seen; all three are root-caused below with evidence
 > from the debug log, the service journal and a reproduction under the live service's
@@ -341,6 +343,21 @@ identity lands, the header value can be attributed; nothing here blocks that.
 
 ## 6. Retire server-side Claude (`claude_code`)
 
+> **As built 2026-09-10 (commit `1afc74c`, self-contained — `git revert 1afc74c` restores
+> the mode).** Executed ahead of the Windows demo on the "entire plan" instruction; see
+> §8b D9. Everything below was done as written, with these specifics: the thinking cap
+> moved to both agents (`--max-thinking-tokens 2048` when the job timeout ≥ 120 s;
+> AGENT_VERSION 1.2.0); the two server transport test files were deleted and their pins
+> re-homed (agents: `tests/test_ck_agent_transport.py`; server half:
+> `tests/test_claude_agent_dispatch.py`) — only the removed server parser's forensic
+> envelope fields (`message_count`, `text_block_boundaries`) were not re-homed, they had
+> no consumer; `tool/enrich_script_index.py` is vLLM-only; the browser never sends a
+> retired stored choice as `X-CK-LLM` and drops it (a seat that last applied "(this
+> server)" would otherwise 400 on every call); the `claude-update.timer` on this host is
+> **left in place** — §4.1 layer 3 said "until §6", but Terrence's own agent on this host
+> is the one that depends on it staying current and autostart is off there (§8b D10).
+> Gate 1450 / vitest 275.
+
 After §3–§5 are verified on a Windows seat and an Ubuntu seat:
 
 - `models.SUPPORTED_AUTH_METHODS` drops `claude_code`; `RETIRED_AUTH_METHODS` gains it with
@@ -399,6 +416,22 @@ for the Ask-CK origin — not seat-side.
 | D6 | Agent autostart: Scheduled Task / systemd-user unit, or rely on re-running the one-liner after each reboot? | **DECIDED 2026-09-10: the user chooses** at the first run (*"some people may not want it to re-run on startup"*); remembered in `ck-agent.conf`; `--autostart`/`--no-autostart` to change |
 | D7 | Order: ship §3+§4 (seat setup + Windows agent) first and demo it before touching §5? | **DECIDED 2026-09-10: yes** — §3+§4 first, demo on the Windows seat, then §5, then §6 |
 | — | CLI currency: agent startup update + button `/update` + interim host timer | **DECIDED 2026-09-10 (Terrence): all three** — see §4.1; the timer can be installed now, ahead of the rest |
+
+## 8b. Decisions surfaced during execution (2026-09-10 evening) — for Terrence
+
+Recorded, not decided. Each is a judgement call the autonomous run either took the
+conservative side of or left open; none blocks the demo.
+
+| # | What surfaced | What was done / recommendation |
+|---|---|---|
+| D8 | **The Windows demo (§9) is the one thing not done** — it needs a person at 10.33.25.50 (memory `demo-windows-seat`). | Run §9 steps 1–6 on that seat. If `?seat-check=1` shows "not reachable" while the script printed three ✔, that is the parked §7 browser policy; the fixes there are server-side. |
+| D9 | §6 (removal) executed **before** the Windows demo, against D7's ordering, because the instruction was the entire plan. | It is one commit (`1afc74c`). If the demo fails in a way that needs "(this server)" back: `git revert 1afc74c`. Nothing you use today depends on it (your agent on this host is `claude_agent`). |
+| D10 | Your own agent on this host was replaced by the served setup (1.0 → 1.1.0 → 1.2.0) with **autostart = no** (no terminal to ask; D6 says the user chooses). | `CK_SETUP_AUTOSTART=yes curl -fsSL http://10.33.22.17:8000/setup/setup.sh \| bash` registers the systemd user unit. Until then a reboot needs a re-run. The daily `claude-update.timer` stays for the same reason. |
+| D11 | "No evidence this existed": the removal commit message, a CHANGELOG entry, this plan, the two superseded plans' status notes and git history all **record** that the mode existed. Current-state docs are clean. | Recommend leaving records as records. If you want the CHANGELOG line and the plan notes gone too, say so — it is a doc-only follow-up. |
+| D12 | The removed server parser's forensic fields (`message_count`, `text_block_boundaries`) were **not** re-homed to the agents. | They had no consumer beyond their own tests. Add to the agents only if a future truncation investigation wants them. |
+| D13 | `tool/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | Accepted consequence of D3; `CK_ENRICH_AUTH=grok_cli` remains the only other headless option. |
+| D14 | Seats whose browser last applied "(this server)" carry a retired value in `localStorage`. | Handled in code: the page never sends a retired value and drops it, so those seats fall back to the site default. No action, noted for awareness. |
+| D15 | The site default row still reads `claude_agent / sonnet` (units Sonnet, matching Opus) from demo day. A brand-new seat therefore starts on **Claude via agent**, which fails until that seat runs the one-liner. | Recommend setting the site default to **Local LLM (vLLM)** via the new **Set as site default** button, so a bare seat works out of the box and Claude is an opt-in after setup. Not changed — it is a live setting. |
 
 ## 9. Verification (manual, per Terrence's preference)
 

@@ -3974,3 +3974,24 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Gate:** guards OK, pytest 1429 / 1 skipped, vitest 252, ck.db untouched.
 - **Memory:** `askck-lan-hosting` re-verified (its `ss -ltnp` diagnosis and systemctl-only rule
   were exactly what the restart used).
+
+## Session Close / Handoff (2026-09-10, evening) — demo-day #2 → seat-setup plan written, decided and executed §3–§6 autonomously; Windows demo pending
+
+- **Context:** second Ask-CK demo day ended in the RDP-to-localhost workaround again. Terrence
+  reported three failures; all three root-caused (installer sets no PATH; a Windows seat had no
+  agent and nothing delivers one; the host CLI was pinned at 2.1.207 and the error path hid the
+  reason). Plan written to `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`; Terrence
+  resolved D1–D7, installed `pwsh`, then instructed: execute the entire plan, record decisions.
+- **Shipped (five commits, gate green each time):** agent health/update/shutdown + failure
+  reasons (`277fbfc`); PowerShell Windows agent pinned via pwsh (`a541495`); one-line seat setup
+  served from the splash page + `?seat-check=1` (`2704ce7`, verified live on this host as the
+  Ubuntu seat); per-seat LLM mode via `X-CK-LLM` + explicit site default (`58e7079`);
+  server-side Claude removed, refused by name, thinking cap moved to the agents (`1afc74c`).
+  Host: `claude update` → 2.1.267, daily `claude-update.timer`, Terrence's agent → 1.2.0.
+- **Gate at close:** both guards OK; pytest 1450 passed / 1 skipped; vitest 275; ck.db
+  signature unchanged; live server healthy.
+- **Left undone, by design:** §9 Windows-seat demo (needs a person at 10.33.25.50); §8b
+  decisions D8–D15 (recorded for Terrence, not decided — D15 site default → Local LLM and D10
+  autostart for his agent first); T44297 final review/confirm and the morning's plan decisions.
+- **Resume:** the 2026-09-10 (afternoon → evening) entry at the top of `PROGRESS.md`, then
+  the plan's §8b.
