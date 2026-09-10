@@ -1,5 +1,10 @@
 # Autopilot batch — resumption note
 
+> **⚠ Historical (2026-09-11).** These instructions can no longer be followed: `tool/pt_autopilot.py`
+> was retired 2026-09-11 and the `claude_code` mode it needed was removed 2026-09-10
+> (`ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §6 and §11). The paused batch was not
+> resumed. Kept as the record of how the 2026-07-30 → 2026-08-03 batch was driven.
+
 **Task:** for the 10 AWPTCM cases in `batch-10.txt`, create objectives + refined test cases +
 pytest scripts with **Opus**, judge them, and attempt to run them on tb470. Started 2026-07-30.
 

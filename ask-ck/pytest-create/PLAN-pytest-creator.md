@@ -12,6 +12,12 @@
 > truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
 > `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
 >
+> **Tooling note (2026-09-11)**: the LLM enrichment pass (`tool/enrich_script_index.py`), the Part 2B / 3a
+> harnesses (`tool/pt_model_matrix.py`, `tool/pt_judge.py`, `tool/pt_matrix_judge.py`) and the headless batch
+> driver (`tool/pt_autopilot.py`) were **retired** as creation-time tooling — every LLM call now starts in a
+> browser and runs on the org vLLM or the user's own Claude seat. See
+> `ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
+>
 > **Objective-in-Generate note (2026-07-29)**: the Generate step now bakes the refined objective
 > into the skeleton as a `# ==== OBJECTIVE ====` header (rides into both the emitted `.py` and the
 > Generate prompt via the embedded skeleton), and generate-prompt rule 1a grounds each verdict in

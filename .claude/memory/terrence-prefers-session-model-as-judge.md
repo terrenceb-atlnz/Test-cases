@@ -18,6 +18,6 @@ cache-write prices, while the session already has it in context.
 **How to apply:** generation runs on the candidate models are still fine (they are the objects
 being compared, not the judges). Read every candidate in full before grading, grade against the
 unit's `verify` contract and the framework surface, show the evidence lines, and say what you
-could not assess (e.g. behaviour on hardware). `pt_matrix_judge.py` / `pt_judge.py` remain in
-the tree for batch matrix work Terrence asks for explicitly. Related: [[mutate-before-you-claim]],
+could not assess (e.g. behaviour on hardware). The batch judges (`pt_judge.py`, `pt_matrix_judge.py`)
+were retired 2026-09-11 with the other creation-time tooling; judging is in-context only. Related: [[mutate-before-you-claim]],
 [[read-the-whole-function-before-judging]].

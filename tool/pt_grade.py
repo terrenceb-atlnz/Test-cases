@@ -377,7 +377,7 @@ def grade_c2_c3(code: str, tree: ast.AST, fragments: List[dict],
     # C2 — reviewer-approved code was available and went unused — but it was invisible
     # (2026-07-28): it sank into the "9/12" ratio with no label, and the two tools
     # disagreed on the count because they define gap-fill differently. The grader means
-    # "no fragment was MAPPED"; pt_judge.py means "the code carries an `# AI` tag". A step
+    # "no fragment was MAPPED"; the (retired) pt_judge.py meant "the code carries an `# AI` tag". A step
     # with a fragment mapped but AI-stamped code is gap-fill to the judge and a plain tag
     # mismatch to the grader, so it appeared in neither total. Name it explicitly.
     ignored_reuse = [p["testcase"] for p in per_step

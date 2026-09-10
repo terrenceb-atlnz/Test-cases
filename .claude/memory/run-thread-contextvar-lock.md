@@ -25,8 +25,7 @@ holder inside RunManager thread: ''                  can write: NO -> LockConfli
 `try/except`, so the lock error surfaced as *"SSH connect failed: … the case is locked"* —
 which is why several sessions went looking at cabling, consoles and `.setup` files. This,
 not D13, is why `step7.runs` was empty for every session that had ever existed. (D13 blocks
-*preflight*, which is still not wired into the run path at all; `pt_autopilot` still has no
-hardware phase.)
+*preflight*, which is still not wired into the run path at all.)
 
 **Copy the whole Context, not one value.** It fixes every ContextVar at once — including the
 one `llm_debug` uses to name its log file, which is why background work had been landing in

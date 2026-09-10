@@ -55,7 +55,7 @@
 > - ✅ **§1.5 inline source-provenance tagging** — done 2026-07-22 (was tracked as
 >   debt out of Part 2A); mechanical server-side re-stamp, verified on a real live
 >   T33234 generate. See **§6 below** for the full bug list found while building it.
-> - ✅ **Part 2B build** (comparison harness `tool/pt_model_matrix.py`) — done
+> - ✅ **Part 2B build** (comparison harness `tool/pt_model_matrix.py`, retired 2026-09-11) — done
 >   2026-07-22; keyword-vs-LLM + 5-model matrix (vLLM-fast/thinking, Claude
 >   Haiku/Sonnet/Opus) run live across all three target cases. Results:
 >   `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI

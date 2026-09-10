@@ -901,8 +901,7 @@ system.
 ```bash
 cd tool
 ./build_script_index.py --mechanical-only   # (historical) AST pass over the script mounts + framework surface
-./enrich_script_index.py --limit 100        # (historical) resumable LLM tagging/summaries
-./build_script_index.py                     # (historical) rebuild with enrichment merged
+./build_script_index.py                     # (historical) rebuild; the LLM enrichment tool was retired 2026-09-11
 ```
 `GET /api/pytest-create/status` reports the DB-backed script count + enrichment %.
 

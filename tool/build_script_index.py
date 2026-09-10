@@ -10,14 +10,14 @@ Ask CK PyTest Creator (`/api/pytest-create`):
     ask-ck/pytest-create/data/framework_surface.json   framework vocabulary
     ask-ck/pytest-create/data/scripts_index.meta.json  build info
 
-Pass 1 (mechanical) needs no LLM. Pass 2 (enrichment) is resumable and appends
-to scripts_index_enrich.jsonl keyed by file sha1; merged results appear in both
-index files on the next build.
+Pass 1 (mechanical) needs no LLM. The LLM enrichment pass (tool/enrich_script_index.py)
+was retired 2026-09-11 with the other creation-time tooling (see
+ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md §11); an existing
+scripts_index_enrich.jsonl is still merged if one is present.
 
 Usage:
     ./build_script_index.py                    # mechanical + framework + merge enrichment
     ./build_script_index.py --mechanical-only  # skip enrichment merge warnings
-    ./build_script_index.py --enrich [N]       # run LLM enrichment on N unenriched files
 """
 import ast
 import argparse
@@ -491,13 +491,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mechanical-only", action="store_true",
                     help="build without merging/expecting LLM enrichment")
-    ap.add_argument("--enrich", nargs="?", const=50, type=int, metavar="N",
-                    help="run LLM enrichment on up to N unenriched files (default 50), then rebuild")
     args = ap.parse_args()
-
-    if args.enrich is not None:
-        from enrich_script_index import run_enrichment  # separate module, needs CK_server LLM config
-        run_enrichment(limit=args.enrich)
 
     records = build_mechanical()
     surface = build_framework_surface()

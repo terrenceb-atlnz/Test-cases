@@ -80,9 +80,6 @@ validate/{key}                                     → confirm_step/{key}/8
 into 5. The `_require_confirmed` chain is: script search needs 2, fragments need 3, generation
 needs 2 **and** 5, execution needs 6.
 
-- `tool/pt_autopilot.py --case <KEY> --phase pytest` drives this headlessly through the running
-  server. It substitutes the LLM's shortlist for the reviewer's click **and records that it did
-  so** — its output is honestly machine-reviewed, not hand-confirmed.
 - **`clear_session` first** when regenerating a case.
 - Internal step numbers ≠ UI labels: internal `step5` = UI "4. Fragments", `step6` = UI
   "5. Generate". Never show a raw `stepN` to a user.

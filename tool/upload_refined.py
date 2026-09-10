@@ -153,7 +153,7 @@ def _server_validator():
     if _CK_SERVER_DIR not in sys.path:
         sys.path.insert(0, _CK_SERVER_DIR)
     try:
-        from llm import validate_zephyr_payload  # CK_server import (cf. tool/pt_judge.py)
+        from llm import validate_zephyr_payload  # CK_server import
         return validate_zephyr_payload
     except Exception as e:                              # pragma: no cover - env-specific
         print(f"  WARNING: could not import the server validator: {e}", file=sys.stderr)
