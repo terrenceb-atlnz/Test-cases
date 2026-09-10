@@ -30,7 +30,20 @@ Then, while Terrence went to the Windows seat: `9d62830` **the Windows agent wri
 read; and `2378e85` **one button** (D17) — Apply also writes the site default invisibly, the
 separate control is gone, the one downside recorded in §8b.
 
-**Gate at close:** both guards OK; **1448 passed / 1 skipped; vitest 279**; live server
+**The Windows demo (§9) ran 07:48–08:08** on 10.33.25.50 — Terrence at the seat with notes
+(`new1.txt`, `new1.png`, repo root), Claude on the journal + debug log. Worked: setup with PATH
+repair, re-run idempotent, logout → login prompt → ✔, "Check my local agent" incl. "update
+skipped: job in flight", two Opus suggest calls brokered through the seat. Four findings, all
+fixed and pinned before he was back (plan §9 has the record): **#1** 20/20 unit calls died in
+300 ms — the 61,367-char unit steer overflowed Windows' 32,767-char command line → the Windows
+agent passes the steer by `--system-prompt-file` (`d2acf50`; proven live under pwsh with a 63k
+steer). **#2** declining autostart killed the script at `schtasks /Query` (stderr is terminating
+under PS 5.1 `Stop`) → `Invoke-Native`. **#3** splash Copy buttons inert on plain http →
+`execCommand('copy')`. **#4** "No credential" after loading a case whose stored copy names
+`claude_code` → the status line shows only the seat's effective backend. Not run: step 6
+(reboot; autostart declined) and the manifest bump.
+
+**Gate at close:** both guards OK; **1448 passed / 1 skipped; vitest 280**; live server
 hot-reloaded clean after each commit (`/health` ok; one transient syntax error from a bad
 route cut lasted under a minute and was fixed before any request hit it — see process notes).
 

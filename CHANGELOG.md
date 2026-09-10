@@ -50,8 +50,17 @@ be runnable by both the vLLM and the Claude (your seat) options."* Plan:
   buttons: no contextual cue for the second, no downside he could see. The one downside is on
   record in the plan — any seat's Apply (or model toggle) moves the default for seats that have
   never chosen; seats that chose keep their own.
+- **The §9 Windows demo ran** (07:48–08:08 on 10.33.25.50, Terrence at the seat, Claude on the
+  journal). Setup, login-loss recovery, "Check my local agent" and two Opus calls all worked.
+  Four findings, all fixed the same morning: **#1** every unit call died in 300 ms — the 61k
+  unit steer overflowed Windows' 32,767-char command line; the Windows agent now passes it by
+  file (`d2acf50`). **#2** declining autostart killed the script (schtasks stderr is terminating
+  under PS 5.1 `Stop`). **#3** the splash Copy buttons need `execCommand` on plain http. **#4**
+  loading a case with a stale `claude_code` copy showed "No credential" (#2–#4: `18159f9`, see
+  plan §9). **Why the record matters:** #1 is a Windows-only limit no Linux test can reach; the
+  live pwsh pin now runs a 63k steer.
 
-Gate at close: both guards OK; pytest 1448 passed / 1 skipped; vitest 279; live server
+Gate at close: both guards OK; pytest 1448 passed / 1 skipped; vitest 280; live server
 hot-reloaded clean after each commit.
 
 ## 2026-09-10 — Seats set themselves up from the home page; the LLM choice is per seat; the per-user agent is the only Claude path
