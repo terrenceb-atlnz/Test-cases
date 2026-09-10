@@ -62,6 +62,23 @@ $Lib = {
   $script:DEFAULT_TIMEOUT = [int]($(if ($env:CK_AGENT_TIMEOUT) { $env:CK_AGENT_TIMEOUT } else { 600 }))
   $script:STATUS_TTL_SEC = 60
 
+  function Write-AgentLog([string]$msg, $state) {
+    # One timestamped line appended to agent.log beside the script ($state.logPath, set by the
+    # listener at startup; unset in the self-test modes, where this is a no-op). The agent runs
+    # HIDDEN, so this file is the only record of what happened on the seat — the Ubuntu agent
+    # has had agent.log since the served setup shipped; the Windows one had nothing until
+    # 2026-09-11. Worker runspaces share the file: a named mutex serialises the appends.
+    try {
+      if ($null -eq $state -or -not $state.ContainsKey('logPath') -or -not $state['logPath']) { return }
+      $line = ('{0} {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg) + [Environment]::NewLine
+      $m = New-Object System.Threading.Mutex($false, 'Local\ck-agent-log')
+      try {
+        [void]$m.WaitOne(2000)
+        [IO.File]::AppendAllText($state['logPath'], $line, (New-Object System.Text.UTF8Encoding($false)))
+      } finally { try { $m.ReleaseMutex() } catch { }; $m.Dispose() }
+    } catch { }
+  }
+
   function Get-NeutralCwd {
     $p = Join-Path ([IO.Path]::GetTempPath()) 'askck-cli-cwd'
     if (-not (Test-Path -LiteralPath $p)) { New-Item -ItemType Directory -Path $p -Force | Out-Null }
@@ -288,6 +305,7 @@ $Lib = {
     if ($r.code -ne 0) { $res['error'] = "claude update exited $($r.code): $output" }
     $state.lastUpdate.Clear()
     foreach ($k in $res.Keys) { $state.lastUpdate[$k] = $res[$k] }
+    Write-AgentLog "claude update: $(if ($res.ContainsKey('error')) { 'FAILED - ' + $res['error'] } elseif ($res['updated']) { "$before -> $after" } else { "up to date ($after)" })" $state
     return $res
   }
 
@@ -312,32 +330,43 @@ $Lib = {
 
   function Invoke-Claude([string]$prompt, [string]$model, [int]$timeoutSec, [string]$jobId, [string]$system, $state) {
     $cli = Find-Claude
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    Write-AgentLog "job $jobId start: model=$model timeout=${timeoutSec}s prompt=$($prompt.Length) chars system=$($system.Length) chars cli=$(if ($cli) { $cli } else { 'NOT FOUND' })" $state
     if (-not $cli) { return @{ content = "ERROR: Claude Code CLI not found on this machine. Install it and run 'claude auth login' with your Claude account before using the agent."; error = $true } }
     $argList = @('-p', '--output-format', 'stream-json', '--verbose', '--tools', '', '--no-session-persistence', '--system-prompt', $(if ($system) { $system } else { $script:DEFAULT_SYSTEM_PROMPT }))
     if ($model -and $model -ne 'default') { $argList += @('--model', $model) }
     if ($timeoutSec -ge $script:LONG_CALL_SECONDS) { $argList += @('--max-thinking-tokens', "$($script:CLI_MAX_THINKING_TOKENS)") }
     try {
       $r = Start-Cli $cli $argList $prompt $timeoutSec $jobId $state.running
-      if ($r.timeout) { return @{ content = "ERROR: claude CLI timed out after ${timeoutSec}s"; error = $true } }
+      $secs = [int]$sw.Elapsed.TotalSeconds
+      if ($r.timeout) {
+        Write-AgentLog "job $jobId TIMEOUT after ${timeoutSec}s" $state
+        return @{ content = "ERROR: claude CLI timed out after ${timeoutSec}s"; error = $true }
+      }
       if ($state.running.ContainsKey("__killed__$jobId")) {
         $state.running.Remove("__killed__$jobId")
+        Write-AgentLog "job $jobId CANCELLED after ${secs}s" $state
         return @{ content = 'ERROR: claude CLI was cancelled on this machine; nothing was kept.'; error = $true; cancelled = $true }
       }
       if ($r.code -ne 0) {
         $detail = Get-FailureDetail $r.out $r.err $r.code
+        Write-AgentLog "job $jobId FAILED after ${secs}s: exit $($r.code): $detail" $state
         return @{ content = "ERROR: claude CLI failed: $detail"; error = $true }
       }
       $parsed = Parse-Stream ($r.out.Trim())
       $env2 = $parsed.envelope
       if ($env2.ContainsKey('is_error') -and $env2['is_error']) {
         $msg = $(if ($env2['result']) { [string]$env2['result'] } else { [string]$parsed.content })
+        Write-AgentLog "job $jobId CLI ERROR after ${secs}s: $($msg.Substring(0, [Math]::Min(300, $msg.Length)))" $state
         return @{ content = "ERROR: $($msg.Substring(0, [Math]::Min(500, $msg.Length)))"; error = $true }
       }
       $res = @{ content = $parsed.content; error = $false }
       if ($env2.ContainsKey('usage') -and $null -ne $env2['usage']) { $res['usage'] = $env2['usage'] }
       if ($env2.ContainsKey('total_cost_usd') -and $null -ne $env2['total_cost_usd']) { $res['total_cost_usd'] = $env2['total_cost_usd'] }
+      Write-AgentLog "job $jobId ok after ${secs}s: $($parsed.content.Length) chars$(if ($res.ContainsKey('total_cost_usd')) { ', $' + $res['total_cost_usd'] })" $state
       return $res
     } catch {
+      Write-AgentLog "job $jobId ERROR after $([int]$sw.Elapsed.TotalSeconds)s: $_" $state
       return @{ content = "ERROR: $_"; error = $true }
     }
   }
@@ -394,6 +423,17 @@ if (Test-Path -LiteralPath $confPath) {
     if ($line -match '^\s*([A-Za-z_]+)\s*=\s*(.*?)\s*$') { $Conf[$Matches[1]] = $Matches[2] }
   }
 }
+# agent.log beside this file: the agent runs hidden, so this is what a person (or Claude,
+# over a redirected RDP drive) reads when a seat misbehaves. Rotated once at 5 MB.
+$LogPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) 'agent.log'
+try {
+  if ((Test-Path -LiteralPath $LogPath) -and (Get-Item -LiteralPath $LogPath).Length -gt 5MB) {
+    Move-Item -LiteralPath $LogPath -Destination "$LogPath.1" -Force
+  }
+} catch { }
+$State['logPath'] = $LogPath
+function Say([string]$msg) { Write-Host $msg; Write-AgentLog $msg $State }
+
 $Port = [int]($(if ($env:CK_AGENT_PORT) { $env:CK_AGENT_PORT } elseif ($Conf.ContainsKey('port') -and $Conf['port']) { $Conf['port'] } else { 8765 }))
 $AllowedOrigin = $(if ($env:CK_AGENT_ORIGIN) { $env:CK_AGENT_ORIGIN } elseif ($Conf.ContainsKey('origin') -and $Conf['origin']) { $Conf['origin'] } else { '*' })
 
@@ -447,6 +487,7 @@ try {
     Send-Json `$ctx 200 `$r
   }
 } catch {
+  Write-AgentLog "ERROR worker `$route : `$_" `$State
   try { Send-Json `$ctx 200 @{ content = "ERROR: `$_"; error = `$true } } catch { }
 }
 "@
@@ -466,26 +507,31 @@ function Start-Worker($ctx, $route, $body) {
 }
 
 $cliNow = Find-Claude
-Write-Host "ck-agent $($script:AGENT_VERSION) (Windows/PowerShell) starting on http://127.0.0.1:$Port"
-Write-Host "  claude CLI: $(if ($cliNow) { "found at $cliNow" } else { 'NOT FOUND - install + log in first' })"
+Say "ck-agent $($script:AGENT_VERSION) (Windows/PowerShell) starting on http://127.0.0.1:$Port (pid $PID, log $LogPath)"
+Say "  claude CLI: $(if ($cliNow) { "found at $cliNow" } else { 'NOT FOUND - install + log in first' })"
 if ($cliNow) {
-  if ($env:CK_AGENT_UPDATE_ON_START -eq '0') { Write-Host '  claude update: skipped (CK_AGENT_UPDATE_ON_START=0)' }
+  if ($env:CK_AGENT_UPDATE_ON_START -eq '0') { Say '  claude update: skipped (CK_AGENT_UPDATE_ON_START=0)' }
   else {
-    Write-Host '  claude update: checking...'
+    Say '  claude update: checking...'
     $u = Invoke-ClaudeUpdate $cliNow $State
-    if ($u.ContainsKey('error')) { Write-Host "  claude update: FAILED - $($u.error) (continuing with $($u.from))" }
-    elseif ($u.updated) { Write-Host "  claude update: $($u.from) -> $($u.to)" }
-    else { Write-Host "  claude update: up to date ($($u.to))" }
+    if ($u.ContainsKey('error')) { Say "  claude update: FAILED - $($u.error) (continuing with $($u.from))" }
+    elseif ($u.updated) { Say "  claude update: $($u.from) -> $($u.to)" }
+    else { Say "  claude update: up to date ($($u.to))" }
   }
   $st = Get-CliStatus $cliNow $State.status
-  Write-Host "  claude login: $(if ($st.logged_in) { "yes ($($st.org))" } else { 'NO - run: claude auth login' })"
+  Say "  claude login: $(if ($st.logged_in) { "yes ($($st.org))" } else { 'NO - run: claude auth login' })"
 }
-Write-Host "  CORS origin: $AllowedOrigin"
-Write-Host "  Leave this running; select 'Claude Code CLI (my local machine)' in Ask CK."
+Say "  CORS origin: $AllowedOrigin"
+Say "  Leave this running; select 'Claude Code CLI (my local machine)' in Ask CK."
 
 $Listener = New-Object System.Net.HttpListener
 $Listener.Prefixes.Add("http://127.0.0.1:$Port/")
-$Listener.Start()
+try { $Listener.Start() } catch {
+  # A hidden process that dies here leaves no trace anywhere else (port taken, URL ACL...).
+  Say "FATAL: cannot listen on http://127.0.0.1:$Port/ - $_"
+  exit 1
+}
+Say "  listening."
 $Stopping = $false
 try {
   while (-not $Stopping -and $Listener.IsListening) {
@@ -524,9 +570,12 @@ try {
       switch ($route) {
         '/cancel' {
           $jid = $(if ($body.PSObject.Properties['job_id']) { [string]$body.job_id } else { '' })
-          Send-Json $ctx 200 @{ ok = $true; killed = (Stop-AgentJob $jid $State) }
+          $killed = Stop-AgentJob $jid $State
+          Write-AgentLog "cancel $jid -> killed=$killed" $State
+          Send-Json $ctx 200 @{ ok = $true; killed = $killed }
         }
         '/shutdown' {
+          Write-AgentLog "shutdown requested by $($req.RemoteEndPoint)" $State
           Send-Json $ctx 200 @{ ok = $true; agent_version = $script:AGENT_VERSION; stopping = $true }
           $Stopping = $true
         }
@@ -539,11 +588,12 @@ try {
         '/update' { Start-Worker $ctx '/update' $body }
       }
     } catch {
+      Write-AgentLog "ERROR handling $route : $_" $State
       try { Send-Json $ctx 500 @{ content = "ERROR: $_"; error = $true } } catch { }
     }
   }
 } finally {
   try { $Listener.Stop() } catch { }
   try { $Pool.Close(); $Pool.Dispose() } catch { }
-  Write-Host 'ck-agent stopped.'
+  Say 'ck-agent stopped.'
 }

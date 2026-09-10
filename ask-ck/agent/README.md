@@ -43,6 +43,12 @@ powershell -ExecutionPolicy Bypass -File ck-agent.ps1
 $env:CK_AGENT_ORIGIN = 'http://10.33.22.17:8000'; powershell -ExecutionPolicy Bypass -File ck-agent.ps1
 ```
 
+It writes `agent.log` beside itself (`%LOCALAPPDATA%\ck-agent\agent.log` when installed by
+the seat setup; rotated once at 5 MB): startup, every job's start and outcome (seconds, sizes,
+the CLI's failure reason — never the prompt), updates, cancels, shutdown. The setup script
+also captures the agent's stderr to `agent.err`, which is where a script that fails to parse
+leaves its error. The Ubuntu agent's equivalent is `~/.local/share/ck-agent/agent.log`.
+
 Leave it running. It binds **127.0.0.1:8765** (localhost only — never exposed to
 the network). Then open the shared Ask CK page in your browser and choose
 **LLM → Configure → Claude Code CLI (my local machine)**. The page checks that

@@ -11,6 +11,7 @@ These drive a REAL fake `claude` (a shell script) because the flags, the cwd and
 stdin are what reach the process, and a mock of `run_claude` would test nothing.
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -427,3 +428,59 @@ def test_the_installer_location_is_searched_when_claude_is_not_on_path(tmp_path,
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setattr(ck_agent.shutil, "which", lambda _n: None)
     assert ck_agent._find_claude() == str(binp)
+
+
+@needs_pwsh
+def test_the_powershell_agent_writes_agent_log_beside_itself(tmp_path):
+    """LIVE run under pwsh (added 2026-09-11, before the Windows demo).
+
+    The agent runs HIDDEN on a seat, so agent.log beside the script is the only record of
+    what happened there; until this change the PowerShell agent wrote nothing at all (the
+    Ubuntu agent has had agent.log since the served setup shipped). Pins that startup, the
+    state-changing requests and the stop line land in the file, timestamped, and that the
+    agent still answers exactly as before.
+    """
+    import os
+    import socket
+    import time
+    import urllib.request
+
+    agent = tmp_path / "ck-agent.ps1"
+    agent.write_text(_PS_AGENT.read_text(encoding="utf-8"), encoding="utf-8")
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    env = dict(os.environ, CK_AGENT_UPDATE_ON_START="0", CK_AGENT_PORT=str(port))
+    proc = _subprocess.Popen([_PWSH, "-NoProfile", "-NonInteractive", "-File", str(agent)],
+                             env=env, stdout=_subprocess.DEVNULL, stderr=_subprocess.PIPE, text=True)
+    try:
+        def post(route, body=b"{}"):
+            req = urllib.request.Request(f"http://127.0.0.1:{port}{route}", data=body, method="POST",
+                                         headers={"Content-Type": "application/json"})
+            return json.loads(urllib.request.urlopen(req, timeout=5).read())
+
+        health, deadline = None, time.time() + 40
+        while time.time() < deadline and proc.poll() is None:
+            try:
+                health = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2).read())
+                break
+            except Exception:
+                time.sleep(0.5)
+        died = proc.stderr.read()[-800:] if proc.poll() is not None else ""
+        assert health and health["ok"], f"agent never answered /health; stderr: {died}"
+        assert post("/cancel", b'{"job_id":"nope"}')["killed"] is False
+        assert post("/shutdown")["stopping"] is True
+        proc.wait(timeout=20)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+
+    log_path = tmp_path / "agent.log"
+    assert log_path.is_file(), "the agent wrote no agent.log beside itself"
+    log = log_path.read_text(encoding="utf-8")
+    lines = log.splitlines()
+    assert lines and all(re.match(r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d ", ln) for ln in lines), log
+    assert f"starting on http://127.0.0.1:{port}" in log, log
+    assert "listening." in log and "cancel nope -> killed=False" in log, log
+    assert "shutdown requested by" in log and lines[-1].endswith("ck-agent stopped."), log

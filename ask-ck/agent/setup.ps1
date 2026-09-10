@@ -176,7 +176,8 @@ $agentArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Ag
 function Start-Agent {
   $env:CK_AGENT_ORIGIN = $CK_SERVER
   $env:CK_AGENT_PORT = "$AgentPort"
-  Start-Process -FilePath 'powershell.exe' -ArgumentList $agentArgs -WindowStyle Hidden -WorkingDirectory $AgentDir | Out-Null
+  # stderr to agent.err: a script that fails to PARSE never reaches its own agent.log.
+  Start-Process -FilePath 'powershell.exe' -ArgumentList $agentArgs -WindowStyle Hidden -WorkingDirectory $AgentDir -RedirectStandardError (Join-Path $AgentDir 'agent.err') | Out-Null
 }
 function Register-Autostart {
   # Per-user task at logon, no admin. The agent reads origin/port from ck-agent.conf when
@@ -221,10 +222,11 @@ if ($choice -eq 'yes') { Register-Autostart } else { Unregister-Autostart }
 # Wait for health - the agent runs `claude update` at startup, which can take a while.
 $final = $null
 for ($i = 0; $i -lt 90; $i++) { $final = Get-Health; if ($final) { break }; Start-Sleep -Seconds 1 }
-if (-not $final) { Die "Agent: not answering on $AgentUrl after start. Check $AgentDir." }
+if (-not $final) { Die "Agent: not answering on $AgentUrl after start. Read $AgentDir\agent.log (and agent.err if the script itself failed)." }
 if (-not $final.claude_cli) { Die "Agent: up ($($final.agent_version)) but it cannot find the Claude CLI. $($final.hint)" }
 if ($final.logged_in -ne $true) { Die "Agent: up ($($final.agent_version)) but the CLI is not logged in as seen by the agent. $($final.hint)" }
 Ok "Agent - ck-agent $($final.agent_version) up on $AgentUrl, CLI $($final.cli_version), logged in$(if ($choice -eq 'yes') { ', autostart on' })"
+Note "Agent log: $AgentDir\agent.log"
 
 Write-Host ''
 Write-Host 'All good. Opening Ask CK - the page will run the final check itself.'

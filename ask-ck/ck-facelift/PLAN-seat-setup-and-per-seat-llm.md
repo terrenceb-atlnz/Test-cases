@@ -222,6 +222,13 @@ logged in" and hands the last word to the page via `?seat-check=1`.
 
 ## 4. A Windows agent in PowerShell
 
+> **As built, addendum 2026-09-11 (before the Windows demo):** the PowerShell agent writes
+> `agent.log` beside itself (startup, each job's start/outcome with seconds and sizes, updates,
+> cancels, shutdown, a FATAL line if the port cannot be bound), rotated at 5 MB, and the setup
+> script captures its stderr to `agent.err`. Until then a hidden agent that died left nothing
+> to read on the seat but `/health` going dark — noticed while preparing the §9 demo. Pinned
+> by a live pwsh run in `tests/test_ck_agent_transport.py`.
+
 `ck-agent.ps1` implements the **same contract** as `ck_agent.py`, and only that:
 
 - `System.Net.HttpListener` on `http://127.0.0.1:8765/` (never `0.0.0.0` — the bind is the
