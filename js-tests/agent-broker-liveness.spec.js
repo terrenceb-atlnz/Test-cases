@@ -124,7 +124,7 @@ describe('broker loop liveness', () => {
     const idx = CODE.indexOf("addEventListener('visibilitychange'");
     const handler = CODE.slice(idx, idx + 300);
     expect(handler).toContain('ckBrokerLoop()');
-    // Guarded on the mode: a tab on local_llm/claude_code must not start brokering just
+    // Guarded on the mode: a tab on local_llm/grok_cli must not start brokering just
     // because it regained focus.
     expect(handler).toContain('ckAgentModeActive()');
   });

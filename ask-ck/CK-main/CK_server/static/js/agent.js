@@ -160,7 +160,7 @@ async function ckBrokerWorker(myGeneration) {
     if (myGeneration !== ckBrokerGeneration) return;
     // The loop must not outlive the mode that started it. ckAgentModeActive() was
     // written for exactly this and was never wired in, so a tab switched to
-    // local_llm/claude_code kept long-polling forever for jobs that can never be
+    // local_llm kept long-polling forever for jobs that can never be
     // queued — and on a server outage fell back to a 2s retry, polling HARDER than
     // when it had work. Clearing the flag lets a later switch back to claude_agent
     // start a fresh loop via either caller in llm.js.
@@ -275,7 +275,7 @@ async function ckBrokerWorker(myGeneration) {
 // event that reliably fires when a frozen renderer thaws, and it is exactly when the user
 // is about to click something that needs the broker.
 //
-// Guarded on the mode, so a tab sitting on local_llm/claude_code does not start brokering
+// Guarded on the mode, so a tab sitting on local_llm does not start brokering
 // just because it regained focus. ckBrokerLoop() is a no-op when the loop is alive and
 // unstale, so this is safe to fire on every visibility change.
 if (typeof document !== 'undefined' && document.addEventListener) {

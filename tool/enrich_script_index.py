@@ -31,29 +31,18 @@ sys.path.insert(0, str(CK_SERVER))
 def _load_workspace_llm() -> dict:
     """Resolve an LLM config usable from THIS standalone (no-browser) process.
 
-    The UI's workspace default may be "claude_agent" (browser-brokered) — that only
-    works with a live browser tab, so it's useless here. This tool runs `claude`/`grok`
-    directly, so we normalize claude_agent -> claude_code (server-local CLI) and keep
-    grok_cli / api_key as-is. Env override: CK_ENRICH_PROVIDER / CK_ENRICH_AUTH.
+    Headless tooling has exactly one backend: the org vLLM (`local_llm`). The Claude paths
+    are per-seat and browser-brokered (`claude_agent`), so they cannot run from a shell —
+    and the server-side Claude CLI mode that used to fill that gap was removed on
+    2026-09-10 (it spent the server's one seat for everyone). Env overrides:
+    CK_ENRICH_PROVIDER / CK_ENRICH_AUTH (e.g. grok_cli) / CK_ENRICH_MODEL.
     """
-    path = CK_SERVER / "sessions" / "_workspace_llm.json"
-    cfg = {}
-    if path.exists():
-        try:
-            cfg = json.load(open(path, encoding="utf-8"))
-        except Exception:
-            cfg = {}
-    # Browser-only mode can't run headless — use the local CLI directly instead.
-    if (cfg.get("auth_method") or "").lower() == "claude_agent":
-        cfg["auth_method"] = "claude_code"
-    # Explicit overrides for running against a chosen backend from the shell.
+    cfg = {"provider": "openai", "auth_method": "local_llm",
+           "model": os.environ.get("CK_ENRICH_MODEL") or "vllm-fast"}
     if os.environ.get("CK_ENRICH_PROVIDER"):
         cfg["provider"] = os.environ["CK_ENRICH_PROVIDER"]
     if os.environ.get("CK_ENRICH_AUTH"):
         cfg["auth_method"] = os.environ["CK_ENRICH_AUTH"]
-    if not cfg:
-        # No stored config: default to the locally logged-in Claude Code CLI.
-        cfg = {"provider": "claude", "auth_method": "claude_code"}
     return cfg
 
 

@@ -34,7 +34,21 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Bump when the contract changes; the setup script compares this against the served
 # manifest to decide whether a running agent is stale and must be replaced.
-AGENT_VERSION = "1.1.0"
+AGENT_VERSION = "1.2.0"
+
+# Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
+# the CLI and not raisable). These are reasoning models, so uncapped thinking silently
+# starves the artefact — measured at 31,100 thinking tokens with zero answer text emitted.
+# 2048 leaves ~30,000 of each message for the answer. NOT a ceiling on the answer: a long
+# reply continues into further assistant messages, which _parse_stream concatenates.
+#
+# Applied ONLY to long calls, because passing the flag at all turns extended thinking ON
+# (2,242ms → 16,426ms on a trivial prompt): the 30s health ping must stay fast. "Long" is
+# decided by the job's timeout — the server floors long calls to 1800s and leaves short
+# ones alone (llm._is_long_call / _cli_timeout), so the two sides agree by construction.
+# Moved here 2026-09-10 from the server-side transport when that path was removed.
+CLI_MAX_THINKING_TOKENS = 2048
+LONG_CALL_SECONDS = 120
 
 def _read_conf() -> dict:
     """`ck-agent.conf` beside this file (written by the seat setup script): origin=, port=,
@@ -56,7 +70,8 @@ def _read_conf() -> dict:
 _CONF = _read_conf()
 PORT = int(os.environ.get("CK_AGENT_PORT") or _CONF.get("port") or "8765")
 
-# MIRRORS THE SERVER'S TRANSPORT (llm._call_claude_code_headless), measured 2026-09-04.
+# THE CLI CONTRACT (measured 2026-09-04). This file and ck-agent.ps1 are the reference
+# implementations; the gate pins both against the same captures (tests/test_ck_agent_transport.py).
 #
 # `claude -p` is a harness, not a completion API. Left to itself it wraps every prompt in
 # its own "interactive coding agent" system prompt plus every CLAUDE.md and memory index it
@@ -348,9 +363,9 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
                job_id: str = "", system: str = "") -> dict:
     """Run one headless `claude -p` completion on this machine's own login.
 
-    Mirrors the server's _call_claude_code_headless — same flags, same neutral cwd, same
-    stream-json parsing — so behaviour is identical whether Claude runs here (agent) or
-    server-side (single-user mode). See the module note above DEFAULT_SYSTEM_PROMPT.
+    Same flags, same neutral cwd, same stream-json parsing as ck-agent.ps1 — the two agents
+    are the Claude transport, and behaviour must be identical on either OS. See the module
+    note above DEFAULT_SYSTEM_PROMPT.
     """
     cli = _find_claude()
     if not cli:
@@ -361,6 +376,8 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
            "--no-session-persistence", "--system-prompt", system or DEFAULT_SYSTEM_PROMPT]
     if model and model != "default":
         cmd += ["--model", model]
+    if timeout >= LONG_CALL_SECONDS:
+        cmd += ["--max-thinking-tokens", str(CLI_MAX_THINKING_TOKENS)]
     try:
         # Popen, not subprocess.run: a run this agent cannot stop is a run that keeps
         # spending the user's seat after they pressed Stop (see _RUNNING). start_new_session
@@ -400,7 +417,7 @@ def run_claude(prompt: str, model: str = "default", timeout: int = DEFAULT_TIMEO
             return {"content": f"ERROR: {str(data.get('result') or content)[:500]}", "error": True}
         # Forward the CLI envelope's token accounting so the shared server's
         # debug-log + token badges populate for agent-brokered calls too
-        # (mirrors server-side claude_code, which keeps the same envelope).
+        # (the exact shape llm_debug.normalize_usage expects).
         usage = data.get("usage")
         cost = data.get("total_cost_usd")
         result = {"content": content, "error": False}

@@ -16,7 +16,7 @@ from models import (
     model_to_dict,
     safe_session_dict,
 )
-from llm import _health_ping, check_claude_cli, check_grok_cli
+from llm import _health_ping, check_grok_cli
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from llm_config import (
     TASK_MODEL_FIELDS,
@@ -51,16 +51,6 @@ async def clear_session(key: str):
         "message": f"Session for {key} cleared (workspace LLM preference kept)",
         "workspace_llm_kept": True,
     }
-
-
-@router.get("/claude_cli_status")
-async def claude_cli_status():
-    """Report whether the Claude Code CLI is installed on the server machine.
-
-    Used by the headless "claude_code" auth mode. Checks binary presence + version
-    only (spends no tokens). Login state surfaces on first real call.
-    """
-    return check_claude_cli()
 
 
 @router.get("/grok_cli_status")
@@ -150,12 +140,6 @@ def _validated_llm_config(body: dict) -> LLMConfig:
       stored server-side; the ENDPOINT IS FIXED IN CODE and is not configurable.
     - "claude_agent": the Claude Code CLI on the user's OWN machine, via the browser
       bridge. No credential is collected; each user spends their own seat.
-    - "claude_code": headless Claude Code CLI on the server host (Claude only). Same
-      destination as claude_agent, but spends the SERVER's seat, shared by every user
-      of the page. Offered in the UI as of 2026-08-26 — the "not offered in the UI"
-      exclusion was reversed deliberately (see the claude_code entry in `models.py`
-      and PLAN-llm-mode-selection.md Option A); hiding it never stopped the spend, it
-      only stopped the UI from reporting the active mode honestly.
     - "grok_cli": headless Grok CLI (subscription OAuth). No credential is collected.
 
     REFUSED (2026-08-04): "api_key" and legacy "account", which took a caller-supplied
@@ -188,8 +172,8 @@ def _validated_llm_config(body: dict) -> LLMConfig:
             400,
             f"unknown auth_method '{auth_method}'. Supported: {', '.join(SUPPORTED_AUTH_METHODS)}.",
         )
-    if auth_method in ("claude_code", "claude_agent") and provider != "claude":
-        raise HTTPException(400, "Claude Code modes are only available for the Claude provider.")
+    if auth_method == "claude_agent" and provider != "claude":
+        raise HTTPException(400, "The Claude Code mode is only available for the Claude provider.")
     if auth_method == "grok_cli" and provider != "grok":
         raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
     if auth_method == "local_llm":
@@ -216,7 +200,7 @@ def _validated_llm_config(body: dict) -> LLMConfig:
     # site default.
     previous = seat_llm_config() or load_global_llm()
     for field in TASK_MODEL_FIELDS.values():
-        if auth_method not in ("claude_code", "claude_agent"):
+        if auth_method != "claude_agent":
             setattr(cfg, field, None)
             continue
         if field in body:
@@ -235,9 +219,9 @@ def _validated_llm_config(body: dict) -> LLMConfig:
             cfg.model = "vllm-fast"
         elif provider == "grok" and auth_method != "grok_cli":
             cfg.model = "grok-beta"
-        elif provider == "claude" and auth_method not in ("claude_code", "claude_agent"):
+        elif provider == "claude" and auth_method != "claude_agent":
             cfg.model = "claude-3-5-sonnet-20241022"
-        # claude_code / claude_agent / grok_cli: leave model unset so the CLI's own default is used
+        # claude_agent / grok_cli: leave model unset so the CLI's own default is used
 
     return cfg
 
@@ -247,7 +231,6 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
     auth_method = cfg.auth_method
     provider = cfg.provider
     # Headless mode readiness comes from the CLI install, not a stored credential
-    cli_status = check_claude_cli() if auth_method == "claude_code" else None
     grok_cli_status = check_grok_cli() if auth_method == "grok_cli" else None
     # local_llm readiness = a key is stored server-side (never echo the key itself)
     local_llm_key_set = bool(get_local_llm_key()) if auth_method == "local_llm" else None
@@ -258,7 +241,7 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
         "auth_method": cfg.auth_method,
         # No `cfg.api_key or cfg.token` term any more: nothing populates them, so readiness
         # is entirely "is the CLI installed / is the server-side vLLM key stored".
-        "has_key": (auth_method == "claude_code" and bool(cli_status and cli_status.get("available"))) or
+        "has_key": (auth_method == "claude_agent") or
                    (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))) or
                    (auth_method == "local_llm" and bool(local_llm_key_set)),
         "model": cfg.model,
@@ -266,8 +249,6 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
         "match_model": cfg.match_model,
         "base_url": cfg.base_url,
     }
-    if cli_status is not None:
-        safe_config["claude_cli"] = cli_status
     if grok_cli_status is not None:
         safe_config["grok_cli"] = grok_cli_status
     if local_llm_key_set is not None:

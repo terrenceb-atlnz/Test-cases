@@ -2,6 +2,14 @@
 
 **Status:** IMPLEMENTED + end-to-end verified. 2026-07-14.
 
+> **2026-09-10 — the agent is the ONLY Claude path, and it is installed by a one-liner.**
+> The server-side Claude mode discussed below (kept, relabelled, given a radio on 08-26)
+> has been removed entirely; `claude_agent` is the release transport. Seats install and
+> maintain the agent from the Ask CK home page (`/setup/…`), there is a PowerShell agent
+> for Windows implementing the same contract, `/health` reports login and versions, and
+> the LLM choice is per seat. See `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`.
+> The body below is the 2026-07-14 record.
+
 > **2026-09-04 — the agent's CLI invocation now mirrors the server's.** `ck_agent.run_claude`
 > runs `claude -p --output-format stream-json --verbose --tools "" --no-session-persistence
 > --system-prompt <steer>` from a neutral cwd, concatenating every assistant text block; the

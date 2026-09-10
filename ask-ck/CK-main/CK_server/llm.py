@@ -8,7 +8,6 @@ Real LLM support — the permitted backends are `models.SUPPORTED_AUTH_METHODS`,
 set is a governance control (see the comment on it). Set via /set_llm_config:
   - "local_llm": the org's self-hosted vLLM. The default. Endpoint fixed in code.
   - "claude_agent": Claude Code CLI on the USER's own machine, via the browser bridge.
-  - "claude_code": headless Claude Code CLI on the server host (Team subscription).
   - "grok_cli": local Grok CLI (SuperGrok / X Premium+ subscription via OAuth at x.ai)
 - No separate API key needed for the CLI modes; auth lives with the locally logged-in CLI.
 - There is NO caller-supplied-key mode and NO configurable endpoint. "api_key"/"account"
@@ -18,11 +17,10 @@ set is a governance control (see the comment on it). Set via /set_llm_config:
 - Capture of prompts + raw responses returned to caller for storage in session.
 
 Parsing improved for robustness (regex + JSON fallback).
-Real LLM only (no MOCK/demo fallbacks). Requires valid credentials or configured subscription CLI login (grok_cli / claude_code).
+Real LLM only (no MOCK/demo fallbacks). Requires the org vLLM key or a logged-in subscription CLI (claude_agent on the user's seat, grok_cli).
 """
 
 import os
-import itertools
 import json
 import re
 import shutil
@@ -69,31 +67,6 @@ def call_llm(prompt: str, model: str = "default") -> str:
     """Backward-compatible wrapper. Now requires real provider/credential (no MOCK)."""
     result = _call_llm_with_meta(prompt, provider="", model=model)
     return result.get("content", "ERROR: no content")
-
-
-def check_claude_cli() -> Dict[str, Any]:
-    """Report whether the Claude Code CLI is installed on this machine.
-
-    Used by the headless "claude_code" auth mode. Only checks binary presence +
-    version (no tokens are spent). Login state can't be verified without making
-    a real call, so login problems surface as errors on first use instead.
-    """
-    path = shutil.which("claude")
-    if not path:
-        return {
-            "available": False,
-            "path": None,
-            "version": None,
-            "hint": ("Claude Code CLI not found on PATH for the user running this server. "
-                     "Install Claude Code, then run 'claude' in a terminal and log in with "
-                     "your Claude Team account before using headless mode."),
-        }
-    try:
-        out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=15)
-        version = (out.stdout or out.stderr or "").strip() or "unknown"
-    except Exception as e:
-        version = f"unknown ({e})"
-    return {"available": True, "path": path, "version": version, "hint": None}
 
 
 def check_grok_cli() -> Dict[str, Any]:
@@ -313,67 +286,16 @@ def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeo
 # framework-run timeout already used as this lab's "long but bounded".
 _CLI_WHOLE_RESPONSE_FLOOR = 1800
 
-# Thinking and the answer share ONE MESSAGE's output budget (`maxOutputTokens`, 32,000 on
-# the CLI and not raisable). These are reasoning models, so uncapped thinking silently
-# starves the artefact — measured at 31,100 thinking tokens with zero answer text emitted.
-# 2048 leaves ~30,000 of each message for the answer.
-#
-# THIS IS NOT A CEILING ON THE ANSWER. A long reply simply continues into further assistant
-# messages, which `_parse_cli_stream` concatenates and `gen_assembly` reassembles: the four
-# stored multi-message generations used 34,966-67,326 output tokens and every one is a
-# complete script. The earlier claim here — that 30,000 "covers a ~44-TestCase script" and
-# that larger cases need chunked generation as "a real limit" — came from
-# FINDINGS-generation-size-ceiling.md, which measured a defective parser's output and
-# attributed it to the model. Phase 7.4 refutes it; see the note above _size_estimate.
-_CLI_MAX_THINKING_TOKENS = 2048
-
-
-# THE CLI IS A HARNESS, AND THE HARNESS IS MOST OF THE BILL (measured 2026-09-04).
-#
-# `claude -p` wraps every prompt in Claude Code's own context: its "you are an interactive
-# coding agent" system prompt (~2.6k tokens) plus everything it auto-discovers from the
-# directory it is started in — every CLAUDE.md up the tree and the project's memory index.
-# Started from this repo, that is ~13.5k tokens per call that no completion needs, and it
-# is paid at the 1-hour cache-WRITE premium (~2x base input) on every call, because the
-# harness prompt also contains per-invocation content, so no call can ever read the
-# previous call's cache. Probe, same 39.7k-char unit prompt, two identical calls each:
-#
-#   production flags, repo cwd            32,378 tokens/call, cache read 0        $0.37 both
-#   + --exclude-dynamic-system-prompt…    32,269 tokens/call, cache read 1,059    $0.34 both
-#   + --system-prompt <one line>          29,676 tokens/call, 2nd call read ALL   $0.42 → $0.14
-#   + neutral cwd + --no-session-persist  16,525 tokens/call, 2nd call read ALL   $0.27 → $0.11
-#   --bare                                fails: needs ANTHROPIC_API_KEY, never OAuth
-#
-# A per-unit generate re-sends the same shared prefix 38 times, so this is the difference
-# between the 2026-09-02 prompt-prefix reorder doing something and doing nothing.
-# Three consequences, all applied in `_call_claude_code_headless` and mirrored in the
-# per-user agent (ask-ck/agent/ck_agent.py):
-#
-#   * `--system-prompt` REPLACES the harness prompt with the caller's steer (or the one-line
-#     default below). It was `--append-system-prompt` on the theory that the harness prompt
-#     "carries context the CLI needs to function"; with `--tools ""` there is nothing for
-#     that context to drive, and keeping it is what defeated caching.
-#   * the subprocess starts in `_cli_neutral_cwd()` — a directory with no CLAUDE.md in any
-#     ancestor and no project memory, so nothing is auto-injected.
-#   * `--no-session-persistence`: a completion is not a session; without it every unit of a
-#     fan-out left a transcript in ~/.claude/projects (66 in one day).
+# The one-line steer a Claude call carries when the caller has none. It rides with every
+# claude_agent job and the user's ck-agent passes it as `claude -p --system-prompt`, which
+# REPLACES the CLI's harness prompt (the harness prompt carries per-invocation content and
+# defeats the prompt cache; measured 2026-09-04). The full CLI contract — tools off,
+# stream-json, neutral cwd, no session persistence, thinking cap on long calls — lives in
+# the agents (ask-ck/agent/ck_agent.py, ck-agent.ps1) and their tests.
 _DEFAULT_CLI_SYSTEM_PROMPT = (
     "You are a precise generator. Follow the user's instructions exactly and return only "
     "what they ask for."
 )
-
-
-def _cli_neutral_cwd() -> str:
-    """A directory the CLI can start in without auto-discovering anything.
-
-    Under the system temp dir, NOT under the repo or the lab home: both carry a CLAUDE.md
-    that the CLI would fold into every call (and, from the repo, the memory index too —
-    ~13.5k tokens, see above). Created on demand; nothing is ever written into it because
-    the CLI runs with `--tools ""` and `--no-session-persistence`.
-    """
-    path = os.path.join(tempfile.gettempdir(), "askck-cli-cwd")
-    os.makedirs(path, exist_ok=True)
-    return path
 
 
 def _is_long_call(timeout: int) -> bool:
@@ -390,8 +312,8 @@ def _is_long_call(timeout: int) -> bool:
 def _cli_timeout(timeout: int) -> int:
     """Whole-response floor for EVERY non-streaming headless CLI backend.
 
-    Applies wherever that CLI runs -- on this server (`claude_code`, `grok_cli`) or on
-    the user's own machine behind the browser bridge (`claude_agent`). What earns the
+    Applies wherever that CLI runs -- on this server (`grok_cli`) or on the user's own
+    machine behind the browser bridge (`claude_agent`). What earns the
     floor is the transport's shape, not its location: one shot at the whole response,
     no stream to keep the budget honest. `claude_agent` was left out for months and was
     the only path where a caller's number was a real wall clock -- see _call_claude_agent.
@@ -399,247 +321,6 @@ def _cli_timeout(timeout: int) -> int:
     Short calls stay short (see _is_long_call). Mirrors the local_llm guard.
     """
     return max(timeout, _CLI_WHOLE_RESPONSE_FLOOR) if _is_long_call(timeout) else timeout
-
-
-def _parse_cli_stream(raw: str):
-    """(content, envelope) from `claude -p --output-format stream-json` stdout.
-
-    Returns the model's FULL answer — every `assistant` text block concatenated in order —
-    plus the terminal `result` event as the envelope (usage, cost, is_error).
-
-    Why not just read `result`: it holds only the final assistant message. When the answer
-    spans several messages the earlier ones are silently dropped, which on a long script
-    means losing the beginning and keeping a mid-class tail. Concatenating is what makes the
-    transport carry a whole artefact.
-
-    Tolerant by construction, because the alternative to a partial answer must never be NO
-    answer: unparseable lines are skipped, and if no assistant text is found at all it falls
-    back to `result`, then to raw stdout. Also still accepts a single-object `json` payload,
-    so an older CLI (or a caller that changes the format back) keeps working.
-    """
-    texts, envelope, message_ids, synthesized = [], {}, [], []
-    for line in (raw or "").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            evt = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if not isinstance(evt, dict):
-            continue
-        kind = evt.get("type")
-        if kind == "assistant":
-            message = evt.get("message") or {}
-            chunks = [b["text"] for b in message.get("content") or []
-                      if isinstance(b, dict) and b.get("type") == "text" and b.get("text")]
-            if not chunks:
-                continue
-            # KEEP THE CLI'S OWN ERROR TEXT OUT OF THE ARTEFACT. When a run hits the
-            # output cap the CLI appends a SYNTHESIZED assistant message carrying
-            # "API Error: Claude's response exceeded the N output token maximum...".
-            # It is not model output, and concatenating it put English prose on the end
-            # of the generated script, where the assembler would treat it as code.
-            # Real API messages are id'd `msg_...`; the synthesized one carries a UUID.
-            #
-            # FAIL OPEN. A message with NO id is kept: dropping real model output is far
-            # worse than keeping one line of CLI error text, and this class of filter is
-            # exactly where an over-eager rule silently eats an artefact. Only an id that
-            # is present AND not a `msg_` id marks a message as synthesized.
-            msg_id = str(message.get("id") or "")
-            if msg_id and not msg_id.startswith("msg_"):
-                synthesized.extend(chunks)
-                continue
-            texts.extend(chunks)
-            message_ids.append(message.get("id"))
-        elif kind == "result":
-            envelope = evt
-        elif kind is None and evt.get("result") is not None:
-            envelope = evt            # single-object `json` output format
-
-    # PHASE 7.1 — DO NOT DISCARD THE TRUNCATION SIGNAL.
-    #
-    # Both HTTP backends raise when a reply stops on `max_tokens`; this path read no
-    # completion signal at all, so a generation that ran out of output budget returned
-    # HTTP 200 and was stamped, linted, persisted and written to disk exactly like a
-    # complete one. With nothing to the contrary, a truncated script is indistinguishable
-    # from a short one.
-    #
-    # THE SIGNAL IS NOT WHERE YOU WOULD EXPECT IT. Captured live against CLI 2.1.207
-    # (`CLAUDE_CODE_MAX_OUTPUT_TOKENS=200`, a deliberately over-long prompt): `stop_reason`
-    # is `null` on EVERY genuine assistant message, including the ones that actually hit
-    # the cap. The only truthy value in the whole stream sits on the CLI's synthesized
-    # error message, and it reads "stop_sequence", not "max_tokens". Reading assistant
-    # `stop_reason` therefore detects nothing — the first version of this fix did exactly
-    # that and was dead code.
-    #
-    # What the CLI does emit, on the terminal `result` event:
-    #     is_error: true, terminal_reason: "api_error",
-    #     result: "API Error: Claude's response exceeded the 200 output token maximum..."
-    # so that is what we read.
-    if envelope:
-        envelope = dict(envelope)
-        result_text = str(envelope.get("result") or "")
-        envelope["truncated"] = bool(
-            envelope.get("is_error")
-            and (envelope.get("terminal_reason") == "api_error"
-                 or "output token maximum" in result_text))
-
-    if texts:
-        joined = "".join(texts)
-        # Text-BLOCK seams, recorded for forensics. Deliberately not called message
-        # boundaries: one assistant message can carry several text blocks (a thinking
-        # block plus a text block share an id), so these are block offsets, and
-        # `message_count` counts distinct message ids.
-        env = dict(envelope) if envelope else {"result": joined}
-        env["text_block_count"] = len(texts)
-        env["message_count"] = len(set(mid for mid in message_ids if mid))
-        env["text_block_boundaries"] = list(itertools.accumulate(len(t) for t in texts))[:-1]
-        if synthesized:
-            env["cli_error_text"] = "".join(synthesized)[:2000]
-        return joined, env
-    if envelope.get("result") is not None:
-        return envelope["result"], envelope
-    if synthesized:
-        # No model text and no result event, but the CLI said something: surface THAT
-        # rather than the raw stdout, which is where its diagnosis would otherwise die.
-        return "", {"stdout": raw, "cli_error_text": "".join(synthesized)[:2000]}
-    return raw, {"stdout": raw}
-
-
-def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180,
-                               system: str = "", cap_thinking: bool = False) -> Dict[str, Any]:
-    """Call the locally logged-in Claude Code CLI in headless print mode.
-
-    Auth model: each user hosts this tool locally and has logged the CLI in with
-    their own Claude Team seat ('claude' -> /login). The server passes the fully
-    templated prompt on stdin ('claude -p --output-format stream-json') and parses the
-    event stream. No API key or token is stored server-side; provenance records
-    auth_method="claude_code" so exports are honest about the transport.
-
-    TWO THINGS THIS MUST DO THAT IT ORIGINALLY DID NOT (both found 2026-07-30):
-
-    `--tools ""` — **`claude -p` is an agentic coding CLI, not a completion endpoint.**
-    Invoked bare it may call tools and loop for many turns, and the JSON wrapper reports
-    only the aggregate. A 65k-token generate prompt consumed **2,670,565 input tokens over
-    ~23 minutes for $4.65 and returned an EMPTY result** — `is_error` false, so the router
-    reported the polite, misleading "LLM returned no python code block". A second attempt
-    cost $5.24 the same way. With tools disabled the identical prompt ran ONE turn. The
-    reason this survived: for the small JSON steps the agentic path happens to return
-    usable output, so the transport looks healthy until an artefact is large.
-
-    `system` — the caller's system message was being DROPPED here entirely. `run_prompt`
-    resolves one for every call (a JSON-only steer by default, a code steer for the two
-    script-emitting templates) and the HTTP backends send it; this path silently discarded
-    it, so the CLI transport alone ran with no steer at all.
-
-    It was then passed as `--append-system-prompt`, on the theory that replacing the CLI's
-    own harness prompt "would strip context the CLI needs to function". Measured on
-    2026-09-04, that theory was wrong and expensive: the harness prompt is what made every
-    call a cache MISS, and the directory the CLI started in added ~13.5k tokens of CLAUDE.md
-    + memory index per call. Now: `--system-prompt` (replace), a neutral cwd, and
-    `--no-session-persistence`. The full measurement is above `_DEFAULT_CLI_SYSTEM_PROMPT`.
-    """
-    cli = shutil.which("claude")
-    if not cli:
-        err_msg = ("ERROR: LLM call failed (claude via claude_code): Claude Code CLI not found on PATH. "
-                   "Install Claude Code and log in ('claude' then /login) with your Team account.")
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": "claude CLI not on PATH"}, "error": True})
-        return meta
-
-    # `--tools ""` is the CLI's documented "disable all tools". Keep it unconditional:
-    # every call through here wants one completion, never an agent session.
-    # `stream-json` rather than `json`, because the single `result` field DOES NOT CONTAIN THE
-    # WHOLE ANSWER when the model emits it across more than one message. Measured on the same
-    # prompt, same model: concatenating the streamed assistant text blocks yields a script
-    # that begins correctly at `#!/usr/bin/python3`, while `result` alone begins MID-CLASS at
-    # `    def tear_down(self):` — the head is simply gone. A mid-class fragment is still
-    # syntactically plausible Python, so it lints as an IndentationError rather than as a
-    # truncation, and nothing points at the transport. `--verbose` is required to use
-    # stream-json in print mode.
-    cmd = [cli, "-p", "--output-format", "stream-json", "--verbose", "--tools", "",
-           "--no-session-persistence"]
-    if model and model != "default":
-        cmd += ["--model", model]
-    # REPLACE the harness prompt, never append to it — see _DEFAULT_CLI_SYSTEM_PROMPT for
-    # the measurement. Always present: an absent flag means the harness prompt is back.
-    cmd += ["--system-prompt", system or _DEFAULT_CLI_SYSTEM_PROMPT]
-    # THE OUTPUT BUDGET IS SHARED BETWEEN THINKING AND THE ANSWER, and these are reasoning
-    # models. Uncapped, thinking eats it: a live generate was observed at 31,100 thinking
-    # tokens with ZERO answer text emitted yet, against a hard `maxOutputTokens` of 32,000
-    # (not raisable — CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 leaves it at 32,000). The answer
-    # then arrives truncated, and because a truncated reply still looks like a reply, it
-    # surfaces as "no python code block" / an unparseable fragment JSON rather than as
-    # "ran out of room".
-    #
-    # So cap thinking to leave the artefact its room. This is a floor on USABLE OUTPUT, not
-    # an opinion about how much reasoning is good: on a task whose answer is ~26k tokens,
-    # every thinking token is one the answer cannot have.
-    #
-    # ONLY on long-artefact calls, because passing the flag at all TURNS EXTENDED THINKING
-    # ON: the same trivial prompt measured 2,242ms bare and 16,426ms with the flag present.
-    # Applied unconditionally it made every small call ~7x slower and pushed the 30s health
-    # ping into a timeout — i.e. the guard against silent truncation broke the one check
-    # whose whole job is to fail fast. `cap_thinking` is derived from the caller's ORIGINAL
-    # timeout by _call_llm_raw, the same signal the whole-response floor uses, so "this is a
-    # long call" is decided in one place rather than guessed twice.
-    if cap_thinking:
-        cmd += ["--max-thinking-tokens", str(_CLI_MAX_THINKING_TOKENS)]
-
-    try:
-        # Prompt via stdin: templated prompts can exceed argv limits. _run_cli is
-        # subprocess.run with a kill handle + live stream-json progress (llm_inflight).
-        proc = _run_cli(cmd, input_text=prompt, timeout=timeout, cwd=_cli_neutral_cwd())
-        if proc.returncode != 0:
-            # The reason is in the STREAM, not at the top of stdout. On a non-zero exit the
-            # CLI still emits its events, and the `result` event (or its synthesized error
-            # message) carries the diagnosis — e.g. "API Error: 400 Claude Code 2.1.207 does
-            # not support this model; version 2.1.251 or newer is required". Slicing raw
-            # stdout reported the `init` event (model name, slash commands) instead: eight
-            # demo-day failures on 2026-09-10 were logged that way, none with the reason.
-            _, fail_env = _parse_cli_stream(proc.stdout or "")
-            detail = ""
-            for candidate in (fail_env.get("result"), fail_env.get("cli_error_text"),
-                              (proc.stderr or "").strip()):
-                text = str(candidate or "").strip()
-                if text and not text.startswith("{"):
-                    detail = text[:500]
-                    break
-            raise RuntimeError(detail or f"exit code {proc.returncode}")
-
-        raw = proc.stdout.strip()
-        content, data = _parse_cli_stream(raw)
-        # PHASE 7.1 — say WHICH failure this was. `data["result"]` carries the CLI's own
-        # diagnosis ("API Error: Claude's response exceeded the N output token maximum");
-        # `content` is the answer text, so raising on `content` first showed 500 characters
-        # of the artefact and hid the reason entirely. Prefer the diagnosis, and name the
-        # budget case explicitly so it cannot be read as a model or prompt fault.
-        if data.get("truncated"):
-            raise RuntimeError(
-                f"the model ran out of output budget after {len(content or ''):,} characters "
-                f"across {data.get('message_count', 1)} message(s) — the answer is "
-                f"incomplete. CLI reported: "
-                f"{str(data.get('result') or data.get('cli_error_text') or '')[:300]}")
-        if data.get("is_error"):
-            raise RuntimeError(str(data.get("result") or content)[:500])
-
-        print(f"[LLM CLAUDE via claude_code] model={model or 'cli-default'}")
-        print("[LLM CLAUDE] Prompt (first 300):", prompt[:300])
-        print("[LLM CLAUDE] Response (first 300):", str(content)[:300], "...")
-        meta.update({"content": content, "raw_response": data, "provider": "claude"})
-        return meta
-
-    except subprocess.TimeoutExpired:
-        err_msg = f"ERROR: LLM call failed (claude via claude_code): CLI call timed out after {timeout}s"
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": "timeout"}, "error": True})
-        return meta
-    except Exception as e:
-        err_msg = f"ERROR: LLM call failed (claude via claude_code): {str(e)}"
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": str(e)}, "error": True})
-        return meta
 
 
 def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id: str, timeout: int,
@@ -652,10 +333,9 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     See ask-ck/CK-main/PLAN-per-user-agent.md.
 
     `system` (2026-09-04) rides with the job so the user's ck-agent can pass it as the
-    CLI's `--system-prompt`, exactly as the server-side transport does. Until then this
-    path dropped the steer entirely — the same defect `_call_claude_code_headless` had
-    fixed on 2026-07-30 — and ran under the CLI's full harness prompt with tools enabled,
-    which is how one unit call went agentic for 20 turns and 528k input tokens (09-02).
+    CLI's `--system-prompt`. Until then this path dropped the steer entirely and ran under
+    the CLI's full harness prompt with tools enabled, which is how one unit call went
+    agentic for 20 turns and 528k input tokens (09-02).
     """
     from agent_jobs import registry  # local import avoids a hard dep at module load
     session_id = session_id or current_session_id.get("")
@@ -676,11 +356,10 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
         llm_inflight.set_cancel(_cid, _cancel)
     # The whole-response floor, which this path never had (2026-09-01).
     #
-    # `claude_agent` is a headless `claude` CLI exactly like `claude_code` -- it just runs
-    # on the user's machine instead of this one. It gets ONE shot at the whole response and
-    # there is no stream to keep the socket honest, so the caller's `timeout` is a wall
-    # clock here. Every other transport was already protected: `claude_code`/`grok_cli` are
-    # floored by `_cli_timeout` inside `_call_*_headless`, and `local_llm` streams, so its
+    # `claude_agent` is a headless `claude` CLI on the user's machine. It gets ONE shot at
+    # the whole response and there is no stream to keep the socket honest, so the caller's
+    # `timeout` is a wall clock here. Every other transport was already protected:
+    # `grok_cli` is floored by `_cli_timeout` inside its headless helper, and `local_llm` streams, so its
     # number bounds the gap between chunks rather than the total. This path alone took the
     # caller's raw value, which is why `gather_fragments` died at a hard 300s on 2026-08-27
     # (AWPTCM-T44191) and why `generate_script` -- measured at 297-778s on real cases and
@@ -762,10 +441,6 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
     below. There is no caller-supplied-key mode and no configurable endpoint.
     - "claude_agent": browser-brokered local Claude Code CLI on the USER's machine
       (shared-server safe — each user spends their own seat; needs session_id).
-    - "claude_code": the same Claude CLI run directly on the SERVER host. Not in the UI
-      (interactive use would spend the server's seat) but NOT dead: claude_agent needs a
-      browser tab to relay through, so it cannot run headless — this is the path every
-      unattended batch run takes. See the note in models.LLMConfig.
     - "grok_cli": headless Grok CLI (SuperGrok / X Premium+ subscription via OAuth).
       No key/token stored by server; auth lives in the local CLI's login.
     - "local_llm": the organization's self-hosted vLLM endpoint (OpenAI-compatible).
@@ -848,13 +523,6 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         # path with a human waiting on the other end.
         return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout,
                                   system=system)
-    if provider == "claude" and auth_method == "claude_code":
-        # `_is_long_call(timeout)` is the single "this call expects a big answer" signal:
-        # it both floors the subprocess budget and caps thinking. Deriving both from one
-        # predicate keeps them from disagreeing about which calls are the long ones.
-        return _call_claude_code_headless(prompt, model, meta, timeout=_cli_timeout(timeout),
-                                          system=system,
-                                          cap_thinking=_is_long_call(timeout))
     if provider == "grok" and auth_method == "grok_cli":
         return _call_grok_cli_headless(prompt, model, meta, timeout=_cli_timeout(timeout))
 
@@ -1831,7 +1499,7 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
     provider = (cfg.get("provider") or "").lower()
     auth_method = (cfg.get("auth_method") or "local_llm").lower()
     credential = cfg.get("api_key") or cfg.get("token")
-    headless = (provider == "claude" and auth_method == "claude_code") or (provider == "grok" and auth_method == "grok_cli")
+    headless = (provider == "grok" and auth_method == "grok_cli")
 
     # Real LLM path only. Falls through to keyword fallback on error.
     # Real LLM path

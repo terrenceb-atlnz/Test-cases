@@ -37,7 +37,7 @@ def _region(start: str, end: str) -> str:
 # --- the config shape ---------------------------------------------------------------
 
 def test_old_persisted_configs_still_deserialize():
-    cfg = LLMConfig(**{"provider": "claude", "auth_method": "claude_code", "model": "opus"})
+    cfg = LLMConfig(**{"provider": "claude", "auth_method": "claude_agent", "model": "opus"})
     assert cfg.unit_model is None and cfg.match_model is None
 
 
@@ -56,9 +56,9 @@ def test_normalize_refuses_a_free_form_model_name():
 # --- dispatch ----------------------------------------------------------------------
 
 def test_the_routed_alias_replaces_model_for_its_task_only():
-    ws = LLMConfig(provider="claude", auth_method="claude_code", model="opus",
+    ws = LLMConfig(provider="claude", auth_method="claude_agent", model="opus",
                    unit_model="sonnet")
-    base = {"provider": "claude", "auth_method": "claude_code", "model": "opus"}
+    base = {"provider": "claude", "auth_method": "claude_agent", "model": "opus"}
     assert cfg_for_task(base, "unit_fill", workspace=ws)["model"] == "sonnet"
     assert cfg_for_task(base, "step_match", workspace=ws)["model"] == "opus"
     assert base["model"] == "opus", "the caller's dict must not be mutated"
@@ -93,7 +93,7 @@ def test_routing_is_inert_under_non_claude_backends():
 
 def test_an_unknown_task_is_a_programming_error_not_a_silent_passthrough():
     with pytest.raises(KeyError):
-        cfg_for_task({"auth_method": "claude_code"}, "review")
+        cfg_for_task({"auth_method": "claude_agent"}, "review")
 
 
 # --- the endpoint --------------------------------------------------------------------
@@ -131,7 +131,7 @@ def test_set_llm_config_returns_and_preserves_the_routing_per_seat(client):
 
 def test_set_llm_config_refuses_a_free_form_routing_model(client):
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "claude", "auth_method": "claude_code",
+                    json={"provider": "claude", "auth_method": "claude_agent",
                           "model": "opus", "unit_model": "gpt-4o"})
     assert r.status_code == 400
     assert "unit_model" in r.json()["detail"]

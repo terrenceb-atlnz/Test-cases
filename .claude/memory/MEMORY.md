@@ -57,7 +57,7 @@
 - [.setup declares topology](setup-file-declares-topology.md) — stack, stackports and cabling are declared there; never infer them from case text; verify consoles are live
 - [Legacy scripts vs current framework](legacy-scripts-vs-framework.md) — py3-only framework, read-only Switch.name, TBv4 paths; patch a staging copy; grep gate strings against real console capture
 - [Prompt cache needs block boundaries](prompt-cache-needs-block-boundaries.md) — a shared PREFIX in a user message never caches; shared text must be the SYSTEM prompt; read cache_read_input_tokens
-- [Claude Code CLI transport contract](claude-code-cli-transport-contract.md) — `claude -p` is an AGENT, not a completion API; the runner is llm._run_cli — tests fake THAT, not subprocess.run
+- [Claude CLI transport contract (the agents')](claude-code-cli-transport-contract.md) — `claude -p` is an AGENT, not a completion API; the contract lives in ck_agent.py/ck-agent.ps1, pinned against shared captures
 - [Silent-degradation audit 2026-07-30](silent-degradation-audit-2026-07-30.md) — 3 features silently dead behind polite failures; check declared deps and parse-failure paths first
 - [Expected results deliberately absent](expected-results-deliberately-absent.md) — Zephyr manual steps are MEANT to have empty expectedResult; D-12 reversed this circularly — do not re-litigate
 - [Pipeline layer contract](pipeline-layer-contract.md) — what each stage is FOR; show output + exact values belong in the SCRIPT; OBJECTIVE_DRAFTING_PROCESS.md is the wizard's authority
@@ -85,7 +85,7 @@
 - [Setup unit re-indent at assembly](setup-unit-reindent-at-assembly.md) — the setup unit is the ONLY non-top-level unit, so models flush-left a def; _assemble_units re-indents it
 - [IE520 4-stack flash-prep](ie520-4stack-flashprep.md) — CONCLUDED NEGATIVE 2026-09-04: IE520 VCStack hard-caps at 2 members; proof in ie520-stack-results.log
 - [ART suite shape is the target](art-suite-shape.md) — the frame/prompt emulate the ART house shape (2026-09-07): (dutA.portA, tb.ethA) + peer, shortcut block, CHECKPOINT verdicts, library_<case>.py
-- [claude_agent is the release transport](claude-agent-is-the-release-transport.md) — claude_agent and the server-side CLI are the SAME endpoint; the server option is DEMO-ONLY and will not ship
+- [claude_agent is the ONLY Claude transport](claude-agent-is-the-release-transport.md) — server-side Claude REMOVED 2026-09-10; seats install the agent from the splash one-liner; LLM choice is per seat (X-CK-LLM)
 - [IE520 mcast/L3 test method](ie520-mcast-l3-test-method.md) — IGMP/MLD-snooping + directed-broadcast on tb470 with ONE host NIC: u4=querier, u5 ping=source, host scapy=receiver; gotchas inside
 - [AW+ service-gated routing daemons](awplus-service-gated-routing-daemons.md) — "daemon is not running or feature license" = run `service ospf|rip|vrrp|pim` first; PIM-DM has no service cmd
 - [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 is the Windows demo/test seat (both demo days); Terrence can remote in; the §9 verification seat for the seat-setup plan

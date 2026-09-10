@@ -147,8 +147,10 @@ the repo and loads offline, so search has no external dependency.
 
 ## 6. LLM strategy — pluggable by design, because output must be comparable
 
-`llm.py` abstracts the provider behind one interface, with **seven auth modes** (`local_llm`,
-`claude_agent`, `claude_code`, `api_key`, `token`, `grok_cli`, `mock`). Three are load-bearing:
+`llm.py` abstracts the provider behind one interface, with a **closed set of three auth modes**
+(`local_llm`, `claude_agent`, `grok_cli` — `models.SUPPORTED_AUTH_METHODS`, a governance
+control). The LLM choice is **per seat** (each browser sends its own as `X-CK-LLM`; a seat that
+has never chosen gets the site default). Two are load-bearing:
 
 - **Local LLM (default)** — the org vLLM, OpenAI-compatible, Fast/Thinking toggle. These are
   *reasoning* models: they emit chain-of-thought before content, and the transport **streams**

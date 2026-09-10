@@ -53,8 +53,9 @@ _CONFIG_SRC = (_SERVER / "routers" / "wizard" / "config.py").read_text()
 # ---------------------------------------------------------------------------
 
 def test_retired_methods_are_not_supported():
-    """The two retired methods must not have crept back into the approved set."""
-    assert set(RETIRED_AUTH_METHODS) == {"api_key", "account"}
+    """The retired methods must not have crept back into the approved set. `claude_code`
+    (the Claude CLI run on the SERVER host, one seat for everyone) joined them 2026-09-10."""
+    assert set(RETIRED_AUTH_METHODS) == {"api_key", "account", "claude_code"}
     assert not set(SUPPORTED_AUTH_METHODS) & set(RETIRED_AUTH_METHODS)
 
 
@@ -65,7 +66,7 @@ def test_supported_set_is_the_approved_four():
     together, so the documented posture and the code cannot drift apart.
     """
     assert set(SUPPORTED_AUTH_METHODS) == {
-        "local_llm", "claude_agent", "claude_code", "grok_cli",
+        "local_llm", "claude_agent", "grok_cli",
     }
 
 
@@ -246,6 +247,7 @@ def test_stale_config_with_a_key_is_not_reported_active():
 
 
 def test_cli_backends_still_report_active():
-    for am, provider in (("grok_cli", "grok"), ("claude_agent", "claude"),
-                         ("claude_code", "claude")):
+    for am, provider in (("grok_cli", "grok"), ("claude_agent", "claude")):
         assert llm_is_active(LLMConfig(provider=provider, auth_method=am)) is True, am
+    # Server-side Claude was removed 2026-09-10: a stored config naming it is NOT active.
+    assert llm_is_active(LLMConfig(provider="claude", auth_method="claude_code")) is False

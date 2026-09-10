@@ -1,5 +1,12 @@
 # PLAN — Honest LLM mode selection in the Configure panel
 
+> **2026-09-10 — SUPERSEDED.** The server-side Claude mode this plan gave a radio to was
+> **removed** (code, UI and current-state docs) and the LLM choice became **per seat**
+> (`X-CK-LLM` header; the workspace row is now only the site default, written by a separate
+> explicit control). Both changes: `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`
+> §5–§6, decisions D1–D3. The §5 hazard named below (an unauthenticated global write) is
+> closed by that plan. The body below is left as the record of 2026-08-20/26.
+
 **Status: OPTION A IMPLEMENTED 2026-08-26.** Terrence chose **Option A** — `claude_code` is now
 a first-class radio, *"Claude Code CLI (this server)"*. The diagnosis in §§1–3 was re-verified
 against a live browser before any edit and reproduced **exactly**: server `auth_method` =

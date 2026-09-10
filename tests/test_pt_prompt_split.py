@@ -138,7 +138,7 @@ def _capture(monkeypatch):
              max_tokens=None, template="(verbatim)"):
         seen.update(prompt=prompt, system=system)
         return {"content": REPLY, "error": False, "usage": None,
-                "provider": "claude", "model": "opus", "auth_method": "claude_code"}
+                "provider": "claude", "model": "opus", "auth_method": "claude_agent"}
     monkeypatch.setattr(pc, "run_prompt_text", fake)
     monkeypatch.setattr(pc, "_pt_persist_fresh", lambda *a, **k: None)
     return seen
@@ -173,7 +173,7 @@ def test_the_context_answers_the_rule_flags_once_per_case():
 # --- the evidence -------------------------------------------------------------------------
 
 def test_the_debug_log_keeps_the_raw_cache_fields_and_still_folds_them():
-    u = llm_debug.normalize_usage("claude_code", {
+    u = llm_debug.normalize_usage("claude_agent", {
         "usage": {"input_tokens": 1, "cache_creation_input_tokens": 180,
                   "cache_read_input_tokens": 7879, "output_tokens": 8},
         "total_cost_usd": 0.0065})

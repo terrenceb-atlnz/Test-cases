@@ -6,9 +6,8 @@
 //      unit_model + match_model, so the server can preserve whichever the body omits.
 //   2. A stored config restores the selects (blank for "same"), so the page tells the
 //      truth about what the next fan-out will spend.
-//   3. REGRESSION: applyClaudeMode posts the CHECKED auth method. It used to post the
-//      literal 'claude_agent', so flipping the model while on "Claude Code CLI (this
-//      server)" silently moved the whole workspace to the browser-brokered agent.
+//   3. REGRESSION: applyClaudeMode posts the CHECKED auth method, never a literal — a
+//      literal once moved the whole workspace to a different backend on a model toggle.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mountFromIndex } from './helpers/fixture-dom.js';
 import { S } from '../ask-ck/CK-main/CK_server/static/js/state.js';
@@ -18,13 +17,13 @@ import { applyClaudeMode, restoreLLMUI, claudeRoutingFromUI }
 function radios(method) {
   return `<label><input type="radio" name="llmAuthMethod" value="local_llm" ${method === 'local_llm' ? 'checked' : ''}></label>
           <label><input type="radio" name="llmAuthMethod" value="claude_agent" ${method === 'claude_agent' ? 'checked' : ''}></label>
-          <label><input type="radio" name="llmAuthMethod" value="claude_code" ${method === 'claude_code' ? 'checked' : ''}></label>
+          <label><input type="radio" name="llmAuthMethod" value="grok_cli" ${method === 'grok_cli' ? 'checked' : ''}></label>
           <span id="llmStatus"></span>`;
 }
 
 let posted;
 beforeEach(() => {
-  document.body.innerHTML = radios('claude_code');
+  document.body.innerHTML = radios('claude_agent');
   mountFromIndex('claudeAgentRow', 'claudeRoutingRow');     // the REAL markup, drift-detected
   S.currentSession = null;
   window.lastLLMConfig = null;
@@ -49,7 +48,7 @@ describe('the routing selects', () => {
   });
 
   it('are restored from the stored config', () => {
-    window.lastLLMConfig = { provider: 'claude', auth_method: 'claude_code', model: 'opus',
+    window.lastLLMConfig = { provider: 'claude', auth_method: 'claude_agent', model: 'opus',
                              unit_model: 'sonnet', match_model: null, has_key: true };
     restoreLLMUI();
     expect(document.getElementById('claudeUnitModel').value).toBe('sonnet');
@@ -59,13 +58,17 @@ describe('the routing selects', () => {
 });
 
 describe('the model toggle', () => {
-  it('posts the CHECKED auth method, not a literal claude_agent', async () => {
+  it('posts the CHECKED auth method, never a literal', async () => {
+    // With one Claude radio left (server-side Claude was removed 2026-09-10) the wire
+    // value cannot distinguish "checked" from "literal", so pin the SOURCE: the body's
+    // auth_method is the variable read from the checked radio.
     await applyClaudeMode();
-    expect(posted[0].body.auth_method).toBe('claude_code');
-    document.body.innerHTML = radios('claude_agent');
-    mountFromIndex('claudeAgentRow', 'claudeRoutingRow');
-    await applyClaudeMode();
-    expect(posted[1].body.auth_method).toBe('claude_agent');
+    expect(posted[0].body.auth_method).toBe('claude_agent');
+    // Comments stripped first: a check must never be satisfied (or tripped) by prose.
+    const src = applyClaudeMode.toString().replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    expect(src).toMatch(/input\[name="llmAuthMethod"\]:checked/);
+    expect(src).toMatch(/auth_method:\s*method\b/);
+    expect(src).not.toMatch(/auth_method:\s*'claude_agent'/);
   });
 
   it('does nothing under a non-Claude method', async () => {

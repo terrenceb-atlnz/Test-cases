@@ -192,7 +192,9 @@ def test_a_stale_headless_session_copy_never_wins(monkeypatch):
     (None, False),
     ({"auth_method": "claude_agent"}, True),
     ({"auth_method": "grok_cli"}, True),
-    ({"auth_method": "claude_code"}, True),
+    # CHANGED 2026-09-10 (was True): server-side Claude was removed; a stored config naming
+    # it is refused by name at the transport and must not read as active here.
+    ({"auth_method": "claude_code"}, False),
     # CHANGED 2026-08-04 (was True). A stored credential no longer makes a config active
     # on its own — the backend has to be on `SUPPORTED_AUTH_METHODS`. Note the case that
     # used to pass here names "openai" as the AUTH METHOD, which was never a valid one;

@@ -169,7 +169,7 @@ def test_the_health_ping_stays_under_the_guard():
             f"reporting. Keep the ping under the guard, or give it an explicit opt-out.")
 
 
-@pytest.mark.parametrize("auth_method", ["claude_code", "grok_cli"])
+@pytest.mark.parametrize("auth_method", ["grok_cli"])
 def test_the_floor_is_wired_into_the_right_dispatch_arms(auth_method):
     """Structural: a floor helper nobody calls is decorative. Checks the dispatch line for
     each server-side headless arm rather than trusting the helper's existence."""
@@ -195,8 +195,8 @@ def test_claude_agent_is_floored_too():
     reasoning.
 
     What the exemption cost: `claude_agent` became the ONLY transport where a caller's
-    number was a whole-response wall clock. `claude_code`/`grok_cli` are floored inside
-    `_call_*_headless`; `local_llm` streams, so its number bounds the inter-chunk gap. So
+    number was a whole-response wall clock. `grok_cli` is floored inside its headless
+    helper; `local_llm` streams, so its number bounds the inter-chunk gap. So
     the same 600s meant "30 minutes" on one transport, "no total limit" on another, and a
     hard kill on the third -- and the third is the workspace default. `gather_fragments`
     died at a hard 300s on 2026-08-27 (AWPTCM-T44191), which was patched by raising THAT

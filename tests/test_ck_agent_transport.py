@@ -78,6 +78,49 @@ def test_no_steer_means_the_default_never_the_harness_prompt(recording_claude):
     assert _flag_value(argv, "--system-prompt") == ck_agent.DEFAULT_SYSTEM_PROMPT
 
 
+def test_thinking_is_capped_on_long_calls_only(recording_claude):
+    """Re-homed from the server-side transport (removed 2026-09-10). Thinking shares one
+    message's output budget with the answer (31,100 thinking tokens with zero answer text
+    was measured), so long calls cap it; but the flag turns extended thinking ON (~7x
+    slower on a trivial prompt), so a short call — the health ping — must not carry it.
+    "Long" is the job's timeout, which the server floors for long calls."""
+    ck_agent.run_claude("p", timeout=ck_agent.LONG_CALL_SECONDS)
+    argv = _argv(recording_claude)
+    assert _flag_value(argv, "--max-thinking-tokens") == str(ck_agent.CLI_MAX_THINKING_TOKENS)
+    ck_agent.run_claude("p", timeout=ck_agent.LONG_CALL_SECONDS - 1)
+    assert "--max-thinking-tokens" not in _argv(recording_claude)
+    assert ck_agent.CLI_MAX_THINKING_TOKENS <= 32000 * 0.2, "the cap must leave the message to the answer"
+
+
+def test_the_model_flag_is_passed_only_when_one_is_chosen(recording_claude):
+    ck_agent.run_claude("p", model="opus", timeout=30)
+    assert _flag_value(_argv(recording_claude), "--model") == "opus"
+    ck_agent.run_claude("p", model="default", timeout=30)
+    assert "--model" not in _argv(recording_claude), "'default' means the CLI's own default"
+
+
+def test_a_truncated_reply_surfaces_the_clis_own_diagnosis(tmp_path, monkeypatch):
+    """Re-homed from the server-side parser tests, against the same committed capture: on
+    `is_error` the CLI's `result` text ("exceeded the N output token maximum") is the
+    message, and the synthesized error message never lands in the content."""
+    truncated = (_REPO / "tests" / "fixtures" / "cli_stream_truncated.jsonl").read_text(encoding="utf-8")
+    content, env = ck_agent._parse_stream(truncated)
+    assert "API Error" not in content, "CLI error text leaked into the artefact"
+    assert "output token maximum" in env.get("cli_error_text", "")
+    assert env.get("is_error") is True and env.get("terminal_reason") == "api_error"
+    binp = tmp_path / "claude"
+    binp.write_text(f"#!/bin/bash\ncat > /dev/null\ncat {tmp_path}/reply.txt\n")
+    binp.chmod(0o755)
+    (tmp_path / "reply.txt").write_text(truncated)
+    monkeypatch.setattr(ck_agent, "_find_claude", lambda: str(binp))
+    r = ck_agent.run_claude("p", timeout=30)
+    assert r["error"] is True and "output token maximum" in r["content"]
+    normal = (_REPO / "tests" / "fixtures" / "cli_stream_normal.jsonl").read_text(encoding="utf-8")
+    (tmp_path / "reply.txt").write_text(normal)
+    r = ck_agent.run_claude("p", timeout=30)
+    assert r["error"] is False and r["content"].strip() == "Hello there, friend!"
+
+
 def test_the_agent_and_server_defaults_are_one_sentence():
     """Two transports, one cache namespace: if the defaults drift, a case whose units
     split across them shares no prefix."""
@@ -364,7 +407,9 @@ def test_the_two_agents_declare_the_same_version_and_cli_contract():
         "ck-agent.ps1 AGENT_VERSION differs from ck_agent.AGENT_VERSION")
     for needle in ("'--tools', ''", "'--no-session-persistence'", "'--system-prompt'",
                    "'stream-json'", "'--verbose'", "http://127.0.0.1:", "application/json",
-                   "'/update', '/shutdown'", "claude auth login", "'auth', 'status'"):
+                   "'/update', '/shutdown'", "claude auth login", "'auth', 'status'",
+                   "'--max-thinking-tokens'", f"CLI_MAX_THINKING_TOKENS = {ck_agent.CLI_MAX_THINKING_TOKENS}",
+                   f"LONG_CALL_SECONDS = {ck_agent.LONG_CALL_SECONDS}"):
         assert needle in ps, f"ck-agent.ps1 is missing {needle!r}"
     assert "0.0.0.0" not in ps.replace("never 0.0.0.0", ""), "the Windows agent must bind loopback only"
     assert ck_agent.DEFAULT_SYSTEM_PROMPT.replace("'", "''") in ps, (

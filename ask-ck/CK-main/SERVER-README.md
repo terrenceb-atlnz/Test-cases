@@ -61,8 +61,8 @@ This version replaces the original single-file static `index.html` approach.
 **LLM Layer** (core of repeatability):
 - Prompt templates in `CK_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
 - **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable review-step field.
-- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI** (`claude_agent`, per-user local agent), **Grok CLI** (`grok_cli`). Legacy `api_key`/`claude_code` server-side only. See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
-- **Workspace LLM default**: Apply/Login (sidebar **LLM → Configure**) persists the workspace default to the sessions table (`id='_workspace_llm'`, migrated off `sessions/_workspace_llm.json` in the 2026-07-16 DB migration); load_case applies it to cases without an active config so switching cases does not reset login. **No case is required** — keyless `POST /api/wizard/set_llm_config` saves the workspace default; when a case is selected, the config is also stored on that case's session. `GET /api/wizard/llm_config` returns the persisted default (no secrets) so a cold page load shows the real status instead of "No credential". **The active workspace default is authoritative (2026-07-22b):** a case session re-syncs to it whenever the session's config is inactive **or** diverges from it on the backend-selecting fields (`_same_backend`: auth_method/provider/model). This fixes the bug where a session with a *stale* headless-CLI config (`claude_agent`/`claude_code`/`grok_cli` — which `_llm_is_active` reports active unconditionally, since there is no server-side key to check) could never re-sync and kept silently hitting the wrong backend. It is safe because `set_llm_config` is the only writer of a case's config and always writes it identical to the workspace default (no legitimate per-case divergence exists); when the workspace default is inactive/absent the re-sync is a no-op, so the login still persists. Applies to both the Generator (`wizard._apply_workspace_llm_if_needed`) and PyTest Creator (`pytest_create._apply_workspace_llm`).
+- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI (my local machine)** (`claude_agent`, the per-user local agent — the only Claude path), **Grok CLI** (`grok_cli`). See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
+- **The LLM choice is PER SEAT (2026-09-10; `PLAN-seat-setup-and-per-seat-llm.md` §5).** Apply/Login (sidebar **LLM → Configure**) sets the LLM for *this browser* only: the page stores it (`localStorage.draftingLLMConfig`) and sends it on every `/api` call as `X-CK-LLM: auth;model;unit;match`; `llm_config.effective_llm_config` resolves seat → site default → session copy at dispatch and never writes a session. The **site default** (`_workspace_llm` row in the sessions table) is what a seat that has never chosen starts from, and only the separate **Set as site default** control (`POST /api/wizard/set_site_default_llm`) writes it; `GET /api/wizard/llm_config` returns it with `scope: site_default`. A header naming a backend outside `SUPPORTED_AUTH_METHODS` is a 400. Pinned by `tests/test_per_seat_llm.py`.
 - Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
 **Data** (SQLite `ck.db` — the permanent single source of truth):
@@ -277,7 +277,7 @@ PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
 **Choosing the LLM backend**: on the Configure page, not in the environment.
 
 The permitted backends are an allowlist — `models.SUPPORTED_AUTH_METHODS`: `local_llm`
-(the org vLLM, the default), `claude_agent`, `claude_code`, `grok_cli`. The set is a
+(the org vLLM, the default), `claude_agent`, `grok_cli`. The set is a
 **governance control**, closed at two layers: `set_llm_config` 400s on anything else, and
 `_call_llm_raw` refuses to dispatch even if a stored session names a retired backend.
 
@@ -322,91 +322,68 @@ Notes:
 - The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
 - Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.
 - **Model selection (2026-07-22d):** the Haiku/Sonnet/Opus radio row sets `llm_config.model`, which flows `job.model` → ck-agent → `claude --model <name>`. It's a live toggle (persists immediately, like the vLLM Fast/Thinking one); a model typed in the free-text field still overrides. Values are CLI aliases (`haiku`/`sonnet`/`opus`).
-- **Per-task model routing (2026-09-07, token-efficiency decision 6):** two selects under the toggle route the fan-out call classes to a cheaper alias — *unit fills* (`unit_model`: per-unit generation and per-unit Fix) and *step matching* (`match_model`); blank = same as the toggle. Review, whole-script Fix and the single-call generate always follow the toggle. Stored on the workspace `_workspace_llm` row and applied at dispatch from it (`llm_config.cfg_for_task`), never from a per-case copy; a toggle POST that omits the fields preserves them. Claude aliases only — this is not a new backend. Evidence: `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §5 (Sonnet 5 matched Opus on 4 of 5 sampled units at ~59% of the cost; same step-match shortlist at under half). The toggle handler also now posts the *checked* auth method — it used to post a literal `claude_agent`, so changing the model under "Claude Code CLI (this server)" silently moved the workspace to the browser agent.
+- **Per-task model routing (2026-09-07, token-efficiency decision 6):** two selects under the toggle route the fan-out call classes to a cheaper alias — *unit fills* (`unit_model`: per-unit generation and per-unit Fix) and *step matching* (`match_model`); blank = same as the toggle. Review, whole-script Fix and the single-call generate always follow the toggle. Stored on the workspace `_workspace_llm` row and applied at dispatch from it (`llm_config.cfg_for_task`), never from a per-case copy; a toggle POST that omits the fields preserves them. Claude aliases only — this is not a new backend. Evidence: `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §5 (Sonnet 5 matched Opus on 4 of 5 sampled units at ~59% of the cost; same step-match shortlist at under half). The toggle handler posts the *checked* auth method, never a literal.
 - **Token usage + cost (2026-07-22d):** the ck-agent lifts `usage` + `total_cost_usd` from the `claude -p --output-format json` envelope and returns them from `/run`; the browser broker forwards them in the `/api/agent/result` POST; `registry.deliver()` stores them on the job result in the exact shape `llm_debug.normalize_usage` expects (usage sub-dict + top-level `total_cost_usd`), so token badges + the debug-log populate for this transport too. **Restart the ck-agent** after upgrading to enable this. When a transport reports nothing, the badge honestly shows "— tok" (never estimated).
 - Usage counts against each user's own Claude seat's limits. Keep the agent running and the tab open while working.
 - Endpoints: `GET /api/agent/next?session=…`, `POST /api/agent/result` (accepts `usage` + `total_cost_usd`), `GET /api/agent/status?session=…`.
 
-### Claude on the server host (single-user hosting only)
+### The agents' CLI contract (what `claude -p` needs to behave like a completion)
 
-`auth_method: "claude_code"` runs `claude -p` on the **server** machine against its own
-login. Correct only when **one person** hosts Ask CK for themselves (e.g. on their
-laptop). It is **not** offered in the UI anymore — a shared instance would pool every
-user through one seat (a subscription-terms problem). Legacy `claude_code` configs still
-deserialize and are mapped to `claude_agent` when restored in the UI. For a genuine
-multi-user *server* that isn't per-user, use the Anthropic **API** (`api_key`), which is
-licensed for that; the code path exists though it isn't surfaced in the UI.
-
-It **is** the only headless Opus path — `claude_agent` needs a browser session and 502s from a
-script — so it is what batch/scripted runs use. That made it the first mode to be exercised on
-large artefacts, which exposed four things about the transport (all fixed 2026-08-03, see
-`llm._call_claude_code_headless`):
+Both agents — `ask-ck/agent/ck_agent.py` (Ubuntu) and `ask-ck/agent/ck-agent.ps1` (Windows) —
+invoke the CLI identically, and the repo's gate pins them against the same captures
+(`tests/fixtures/cli_stream_*.jsonl`, through `pwsh` for the PowerShell one). What the
+contract is, and why each part exists (all measured on real runs, 2026-07-30 → 2026-09-04):
 
 - **`claude -p` is an agentic coding CLI, not a completion endpoint.** Invoked bare it has tools
   and loops. A 65k-token generate prompt consumed **2,670,565 input tokens over 23 minutes for
-  $4.65 and returned an empty result** with `is_error: false` — surfaced as the misleading
-  `502 "LLM returned no python code block."` Now always `--tools ""`.
+  $4.65 and returned an empty result** with `is_error: false`. Always `--tools ""`.
 - **`--output-format stream-json`, and every `assistant` text block is concatenated.** The
   `json` format's `result` field carries only the FINAL assistant message, so a long answer
   loses its *head* and what arrives is a mid-class tail that lints as an `IndentationError`.
-- **The caller's `system` message REPLACES the CLI's harness prompt** (`--system-prompt`; a
-  one-line neutral steer when the caller has none). It used to be dropped entirely, then
-  appended (`--append-system-prompt`) on the theory that the harness prompt carried context
-  the CLI needed. Measured 2026-09-04: with `--tools ""` there is nothing for that context to
-  drive, and the harness prompt carries per-invocation content, so every call was a prompt-cache
+  A long answer arrives in SEVERAL messages (measured `output_tokens` of 34,966–67,326 on
+  complete scripts); `CK_server/gen_assembly.py` stitches continuation seams on the server.
+- **The server's `system` steer REPLACES the CLI's harness prompt** (`--system-prompt`; the
+  one-line neutral steer `llm._DEFAULT_CLI_SYSTEM_PROMPT` when the caller has none). The
+  harness prompt carries per-invocation content, so with it every call was a prompt-cache
   **miss** — the same 39.7k-char unit prompt sent twice cost $0.37 both times; replaced, the
   second call read all 29,674 tokens from cache and cost $0.14.
-- **The CLI starts in a neutral directory, not the repo.** `claude -p` folds every CLAUDE.md
-  above its cwd *and the project's memory index* into every call: from this repo that was
-  16,104 tokens for a trivial prompt against 2,602 from a bare directory — ~13.5k tokens of
-  project files per call, at the 1-hour cache-write premium, 38 times per per-unit generate.
-  `llm._cli_neutral_cwd()` (under the system temp dir) has nothing to discover.
+- **The CLI starts in a neutral directory** under the system temp dir. `claude -p` folds every
+  CLAUDE.md above its cwd *and the project's memory index* into every call.
 - **`--no-session-persistence`.** A completion is not a session; without it each unit of a
   fan-out left a transcript in `~/.claude/projects` (66 in one day).
-- **The prompt cache matches only at content-block boundaries (2026-09-07).** With the harness
-  gone the 38 unit prompts of T44297 shared their first 19,456 chars and the cache still read
-  **zero** tokens on every call: the CLI's breakpoints sit on the system prompt and on the user
-  message, and a shared prefix inside ONE user block whose tail differs can never hit. Probe:
-  the shared half in the user block → 0 read on the second call; the same half as
-  `--system-prompt` → 7,879 of 8,059 read at one twelfth of the price. So the per-unit prompt
-  carries a visible split marker (`routers.pytest_create._PT_PROMPT_SPLIT`) and everything above
-  it travels as the system prompt (behind `_CODE_SYSTEM_PROMPT`), everything below as the user
-  turn — see "Per-unit generation — token-efficiency changes" under PyTest Creator. The debug
-  log now records `system` and keeps `cache_read_input_tokens` / `cache_creation_input_tokens`
-  as fields (still folded into `input_tokens` for every existing consumer).
-- **The per-user agent (`ask-ck/agent/ck_agent.py`) now mirrors all of the above**, and the
-  server's steer rides with each job (`system`) so the agent can pass it. Before 2026-09-04 the
-  agent path ran with tools, under the harness prompt, unsteered, from the user's shell cwd and
-  in `json` format — one unit call went agentic for 20 turns and 528k input tokens.
-- **Thinking is capped, on long calls only.** Thinking shares the output budget with the answer
-  and can consume nearly all of it. But passing `--max-thinking-tokens` at all *enables*
-  extended thinking (2,242ms → 16,426ms on a trivial prompt), so applying it unconditionally
-  timed out the health ping. `llm._is_long_call()` is the single predicate deciding this and the
-  whole-response timeout floor, so the two cannot disagree.
-
-- **A long answer arrives in SEVERAL messages, and is reassembled.** `32,000` bounds one
-  message, not the answer: measured `output_tokens` on the stored multi-message generations are
-  **67,326 / 66,334 / 57,188 / 34,966**, and every one is a complete script.
-  `_parse_cli_stream` concatenates the assistant text blocks and `CK_server/gen_assembly.py`
-  stitches the continuation seams back together, resolving classes a continuation re-emits.
-  A reply that does **not** reassemble cleanly is refused (502) rather than persisted.
+- **The prompt cache matches only at content-block boundaries (2026-09-07).** The per-unit
+  prompt carries a split marker (`routers.pytest_create._PT_PROMPT_SPLIT`); everything above it
+  travels as the system prompt, everything below as the user turn — see "Per-unit generation —
+  token-efficiency changes" under PyTest Creator. The debug log records `system` and keeps
+  `cache_read_input_tokens` / `cache_creation_input_tokens` as fields.
+- **Thinking is capped (`--max-thinking-tokens 2048`) on long calls only.** Thinking shares one
+  message's output budget with the answer and can consume nearly all of it; but passing the
+  flag *enables* extended thinking (2,242ms → 16,426ms on a trivial prompt), so the 30s health
+  ping must not carry it. "Long" is the job's timeout: the server floors long calls to 1800s
+  (`llm._is_long_call` / `_cli_timeout`) and leaves short ones alone, so both sides agree.
 - **Truncation is detected on the `result` envelope, not on `stop_reason`.** Captured against
   CLI 2.1.207, `stop_reason` is `null` on every genuine assistant message *including ones that
-  hit the cap*; the only truthy value sits on a message the CLI synthesizes to carry its error,
-  and that message's text is filtered out so it cannot land inside the generated script.
+  hit the cap*; the only truthy value sits on a message the CLI synthesizes to carry its error.
+  That message's text is kept OUT of the answer and reported as the error.
+- **A non-zero exit reports the stream's `result` text** (the CLI's own diagnosis — e.g. "Claude
+  Code 2.1.207 does not support this model; version 2.1.251 or newer is required"), then the
+  synthesized message, then stderr — never a slice of stdout, which is the `init` event.
+- **The CLI is kept current on headless seats.** The native install only self-updates from an
+  interactive session, so an agent-only seat rots. Each agent runs `claude update` at startup,
+  `POST /update` runs it on demand (the page's **Check my local agent** button, skipped while a
+  job is in flight), and `/health` reports `cli_version`, `logged_in` (`claude auth status`) and
+  `agent_version`.
 
 > **Previously documented here as "a hard output ceiling of roughly 9–20 `TestCase` classes",
 > gated by `_size_overflow()`. That was refuted on 2026-08-03 and both are gone.** The ceiling
 > was a defect in `_parse_generated_blocks`, which stopped at the first *continuation* fence and
-> discarded the rest of the reply — usually mid-token, which read as model truncation. The
-> gate's three "measured" constants were fitted to that parser's output. The real protection is
-> now applied on arrival (reassembly + the completeness lint) instead of predicted before the
-> call. See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the ⚠-bannered
-> `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
+> discarded the rest of the reply. The real protection is applied on arrival (reassembly + the
+> completeness lint). See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the
+> ⚠-bannered `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
 
 ### Grok CLI Subscription Mode (SuperGrok / X Premium+)
 
-`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. **Same seat-sharing caveat as server-local Claude**: it runs on the server host, so it's for single-user hosting (a per-user Grok agent could be added later, mirroring `claude_agent`).
+`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. **Seat-sharing caveat**: it runs on the server host and spends the server's Grok login for every user, so it's for single-user hosting (a per-user Grok agent could be added later, mirroring `claude_agent`).
 
 ### Grok CLI Subscription Mode (SuperGrok / X Premium+)
 

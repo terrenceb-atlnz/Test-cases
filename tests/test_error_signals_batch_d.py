@@ -85,8 +85,7 @@ def test_claude_guards_exist_in_source():
     import pathlib
     src = (pathlib.Path(__file__).resolve().parents[1]
            / "ask-ck" / "CK-main" / "CK_server" / "llm.py").read_text(encoding="utf-8")
-    # Anchor on the HTTP-API branch's own marker — "[LLM CLAUDE via claude_code]" is a
-    # different (CLI) branch earlier in the file.
+    # Anchor on the HTTP-API branch's own marker (the f-string with `{auth_method}`).
     claude_branch = src.split('[LLM CLAUDE via {auth_method}]', 1)[0][-3000:]
     assert 'stop_reason == "max_tokens"' in claude_branch, "no truncation guard"
     assert "empty completion" in claude_branch, "no empty-content guard"

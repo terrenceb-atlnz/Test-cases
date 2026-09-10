@@ -1,10 +1,23 @@
 ---
 name: claude-code-cli-transport-contract
-description: The claude_code (headless `claude -p`) transport needs --tools "" + stream-json + --system-prompt (REPLACE, not append — 2026-09-04) + a neutral cwd + --no-session-persistence + a thinking cap; AND the shared text must be in `system`, not a user-block prefix, or the cache never hits (2026-09-07); the "~9-20 TestCase class output ceiling" is REFUTED — it was a fence-parser defect discarding self-chunked replies
+description: The Claude CLI contract the two AGENTS implement (ck_agent.py / ck-agent.ps1; pinned against tests/fixtures/cli_stream_*.jsonl, pwsh in the gate) — --tools "" + stream-json + --system-prompt (REPLACE) + neutral cwd + --no-session-persistence + thinking cap on long calls + failure detail from the result event; shared text must be the SYSTEM prompt or the cache never hits
 metadata:
   type: project
-  verified: 2026-09-07
+  verified: 2026-09-10
 ---
+
+**Re-scoped 2026-09-10 — this contract lives in the AGENTS.** The server-side transport that
+first embodied it was removed (plan §6, D3); `ask-ck/agent/ck_agent.py` and
+`ask-ck/agent/ck-agent.ps1` are the implementations, `tests/test_ck_agent_transport.py`
+pins both against the same captures (PowerShell through `pwsh`), and
+`tests/test_claude_agent_dispatch.py` pins the server's half (the steer rides with the job,
+the whole-response floor, the two steers). Two additions since the measurements below: the
+thinking cap moved to the agents (`CLI_MAX_THINKING_TOKENS`, long calls only, keyed on the
+job timeout the server floors), and a non-zero exit reports the stream's `result` text —
+never a slice of stdout, which is the `init` event (the 2026-09-10 demo-day failures were
+logged that way, reason hidden). References below to `_call_claude_code_headless` /
+`llm.py` are the historical location; read them as "the agents".
+
 
 **Extended again 2026-09-07 — the cache matches only at CONTENT-BLOCK boundaries.** With the
 harness gone, 38 unit prompts sharing their first 19,456 chars still read ZERO tokens from cache

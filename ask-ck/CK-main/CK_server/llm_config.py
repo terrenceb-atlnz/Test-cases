@@ -22,10 +22,9 @@ whose docstring said "Mirrors wizard…". Both routers now import from here, so 
 tools cannot silently disagree about which LLM they are talking to — which they already
 did once (the 2026-07-20 bug where PyTest Creator endpoints used the wrong backend).
 
-`apply_workspace_llm` is deliberately untyped in its `sess` parameter. wizard's and
-pytest_create's copies were byte-identical bodies differing ONLY in the annotation
-(`WizardSession` vs `PtSession`), and the body touches nothing but `sess.llm_config` —
-so one duck-typed function serves both, and there is nothing left to drift.
+`effective_llm_config` is deliberately untyped in its `sess` parameter: it serves a
+`WizardSession` and a `PtSession` alike (it only ever READS `sess.llm_config`), so one
+duck-typed function serves both routers and there is nothing left to drift.
 
 A leaf: imports `db`, `models` and `local_llm_key` only. It must never import `routers.*`.
 """
@@ -51,8 +50,7 @@ log = logging.getLogger(__name__)
 SEAT_LLM_HEADER = "X-CK-LLM"
 current_seat_llm: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_seat_llm", default="")
 
-_PROVIDER_FOR = {"local_llm": "openai", "claude_agent": "claude", "claude_code": "claude",
-                 "grok_cli": "grok"}
+_PROVIDER_FOR = {"local_llm": "openai", "claude_agent": "claude", "grok_cli": "grok"}
 
 
 def parse_seat_llm(raw: str) -> Optional[LLMConfig]:
@@ -127,7 +125,7 @@ def llm_is_active(cfg: Optional[LLMConfig]) -> bool:
     am = (getattr(cfg, "auth_method", None) or "").lower()
     if am not in SUPPORTED_AUTH_METHODS:
         return False
-    if am in ("claude_code", "claude_agent", "grok_cli"):
+    if am in ("claude_agent", "grok_cli"):
         return True
     if am == "local_llm":
         # Key lives server-side (secrets.local.json), never on the config.
@@ -183,7 +181,7 @@ def save_global_llm(cfg: LLMConfig) -> None:
 
 CLAUDE_MODEL_ALIASES = ("haiku", "sonnet", "opus")
 TASK_MODEL_FIELDS = {"unit_fill": "unit_model", "step_match": "match_model"}
-_ROUTED_AUTH_METHODS = ("claude_code", "claude_agent")
+_ROUTED_AUTH_METHODS = ("claude_agent",)
 
 
 def normalize_task_model(value: Any) -> Optional[str]:

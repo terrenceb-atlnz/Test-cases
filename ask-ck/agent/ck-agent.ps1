@@ -44,7 +44,12 @@ $ErrorActionPreference = 'Stop'
 $Lib = {
   # Bump when the contract changes; the setup script compares this against the served
   # manifest to decide whether a running agent is stale and must be replaced.
-  $script:AGENT_VERSION = '1.1.0'
+  $script:AGENT_VERSION = '1.2.0'
+  # Thinking shares one message's output budget with the answer; cap it on LONG calls only
+  # (passing the flag turns extended thinking on, and the 30s health ping must stay fast).
+  # Mirrors ck_agent.py; "long" is decided by the job's timeout, which the server floors.
+  $script:CLI_MAX_THINKING_TOKENS = 2048
+  $script:LONG_CALL_SECONDS = 120
 
   # MIRRORS THE SERVER'S TRANSPORT (and ck_agent.py), measured 2026-09-04:
   #   --tools ""                 one completion, never an agent session
@@ -310,6 +315,7 @@ $Lib = {
     if (-not $cli) { return @{ content = "ERROR: Claude Code CLI not found on this machine. Install it and run 'claude auth login' with your Claude account before using the agent."; error = $true } }
     $argList = @('-p', '--output-format', 'stream-json', '--verbose', '--tools', '', '--no-session-persistence', '--system-prompt', $(if ($system) { $system } else { $script:DEFAULT_SYSTEM_PROMPT }))
     if ($model -and $model -ne 'default') { $argList += @('--model', $model) }
+    if ($timeoutSec -ge $script:LONG_CALL_SECONDS) { $argList += @('--max-thinking-tokens', "$($script:CLI_MAX_THINKING_TOKENS)") }
     try {
       $r = Start-Cli $cli $argList $prompt $timeoutSec $jobId $state.running
       if ($r.timeout) { return @{ content = "ERROR: claude CLI timed out after ${timeoutSec}s"; error = $true } }
