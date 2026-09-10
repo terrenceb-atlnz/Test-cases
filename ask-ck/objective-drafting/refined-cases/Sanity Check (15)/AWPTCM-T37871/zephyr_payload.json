@@ -1,0 +1,62 @@
+{
+  "AWPTCM-T37871": {
+    "objective": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  }
+}

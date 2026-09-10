@@ -1,0 +1,260 @@
+{
+  "key": "AWPTCM-T37871",
+  "primary": {
+    "m": "AWP-18102",
+    "c": "med",
+    "w": "Reboots 300 iterations (master)"
+  },
+  "step1": {
+    "confirmed": true,
+    "confirmed_at": "2026-09-04 01:50:09.919458+00:00",
+    "none_selected": false,
+    "selections": [],
+    "backfilled": false
+  },
+  "step2": {
+    "confirmed": true,
+    "confirmed_at": "2026-09-10 01:38:23.208547+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "AWPTCM-T17338",
+        "title": "Rebooting stack Master for 300 iterations",
+        "justification": "Objective: Booting stack for 300 iterations.\n\nPrecondition: For x8100:\nFully populated Chassis with CFCs and Lifs.\nFor General Stack Setups\nStack formed correctly with different nodes.\n\nStatus: Approved | Has objective: True | Num steps: 1 | Labels: Stress\n\nSteps:\n1. Rebooting Stack Master over night. - repeatedly (atleast 300 iterations)",
+        "order": 2
+      }
+    ],
+    "backfilled": false
+  },
+  "step3": {
+    "confirmed": true,
+    "confirmed_at": "2026-09-10 01:47:22.309281+00:00",
+    "none_selected": false,
+    "selections": [
+      {
+        "id_or_key": "1343.1.6",
+        "title": "Stack formation check after rebooting one backup member then another one after 20 seconds.",
+        "justification": "Stack formation check after rebooting one backup member then another one after 20 seconds.\n\n[Log-derived analysis] Reboots one backup member and then a second backup member a short time later, verifying the VCS stack reforms with all members rejoining READY state.",
+        "order": 3
+      },
+      {
+        "id_or_key": "1343.1.2",
+        "title": "Perform rolling reboot on n-stack and check whether stack reforms.",
+        "justification": "Perform rolling reboot on n-stack and check whether stack reforms.\n\n[Log-derived analysis] Performs a rolling reboot of the VCS stack (rebooting the master and waiting for backup members to rejoin) and verifies the stack reforms with all members reaching READY state, running-config preserved after teardown, and no exceptions or core dumps.",
+        "order": 4
+      },
+      {
+        "id_or_key": "1343.4.2",
+        "title": "With large config, perform rolling reboot on the stack and check whether stack reforms.",
+        "justification": "With large config, perform rolling reboot on the stack and check whether stack reforms.\n\n[Log-derived analysis] Performs a rolling reboot of the VCS stack (rebooting the master and waiting for backup members to rejoin) and verifies the stack reforms with all members reaching READY state, running-config preserved after teardown, and no exceptions or core dumps. Runs with a large/scaled running-configuration to stress reformation under heavier config.",
+        "order": 5
+      },
+      {
+        "id_or_key": "1343.1.80760",
+        "title": "VCS+ duplicate master after rebooting line cards",
+        "justification": "VCS+ duplicate master after rebooting line cards\n\n[Inferred behavior \u2014 case reported UNSUPPORTED on the current test setup; no recent PASS] Intended to verify that rebooting line cards in a VCS+ chassis stack does not produce a duplicate-master (split-brain) condition, confirming a single Active Master is maintained and the stack stays healthy.",
+        "order": 6
+      }
+    ],
+    "backfilled": false
+  },
+  "step4": {
+    "objective": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>",
+    "provenance": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master) (primary AWP-18102)\n\n## TestLink selections\n\n## Zephyr exemplars\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration, with a new master elected each time</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID, priority, and role assignments remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n<li>Data plane traffic forwarding resumes correctly after each stack reformation</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "objectives"
+    },
+    "confirmed": true,
+    "confirmed_at": "2026-09-10T01:57:51.651507+00:00",
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.",
+          "expectedResult": ""
+        }
+      ]
+    }
+  },
+  "step5": {
+    "testScript": {
+      "type": "steps",
+      "steps": [
+        {
+          "description": "Note: Related ART Tests linked in Traceability.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.",
+          "expectedResult": ""
+        },
+        {
+          "description": "Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.",
+          "expectedResult": ""
+        }
+      ]
+    },
+    "provenance": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master)\n\n## Finalized objective (authoritative)\n<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_quality": {
+        "verification_steps": 12,
+        "steps_source": "json"
+      }
+    }
+  },
+  "gaps": "The selected ART coverage (1343.1.6, 1343.1.2) exercises stack reformation following backup member reboots and rolling reboot scenarios, providing partial confidence in stack resilience under sequential or staggered member disruption. However, this coverage does not directly address the specific scenario described in AWP-18102 and AWPTCM-T17338: sustained, high-volume master reboot cycling across 300 iterations, which targets long-run stability, resource leaks, and cumulative state degradation that short-duration or single-pass tests cannot surface. The related tests 1343.4.2 (large config rolling reboot) and 1343.1.80760 (VCS+ duplicate master detection) touch on configuration scale and master-duplication edge cases but were excluded from the ART string, leaving master-role-specific endurance and duplicate-master detection under repeated reboot stress only loosely corroborated. Overall, iteration-count endurance, master-specific reboot behaviour, and longer-term observability (e.g., logging consistency, convergence timing drift across many cycles) remain gaps not well covered by the current automated selection.",
+  "art_string": "1343.1.6 + 1343.1.2",
+  "full_session": {
+    "llm_objectives": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master) (primary AWP-18102)\n\n## TestLink selections\n\n## Zephyr exemplars\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration, with a new master elected each time</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID, priority, and role assignments remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n<li>Data plane traffic forwarding resumes correctly after each stack reformation</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "objectives"
+    },
+    "llm": {
+      "objective_prompt": "You are an expert test-case objective writer. Strict principles:\n- Objectives are declarative lists of artefacts \u2014 \"what should be true\" (end states), not \"verify\" or instructions.\n- Cover positive (happy/default), negative (unsupported/error), special conditions, and reporting/observability.\n- Platform-agnostic language. Bullet count is not fixed \u2014 use as many as needed for clear coverage, no more.\n- Use the selections below as evidence.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master) (primary AWP-18102)\n\n## TestLink selections\n\n## Zephyr exemplars\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\nProduce ONLY the HTML <ul> of artefact bullets for the objective. No other text.",
+      "objective_response": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration, with a new master elected each time</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID, priority, and role assignments remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n<li>Data plane traffic forwarding resumes correctly after each stack reformation</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master)\n\n## Finalized objective (authoritative)\n<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>",
+      "steps_quality": {
+        "verification_steps": 12,
+        "steps_source": "json"
+      }
+    },
+    "llm_steps": {
+      "steps_prompt": "You are drafting Zephyr-ready verification steps for a manual test case.\nThe objective below is finalized (user-reviewed). Derive the steps from it.\n\nAn objective bullet states an END STATE \u2014 what should be true. A step is a PROCEDURE \u2014 what\nsomeone does, and under what conditions. A step must add test-design information the bullet\ndoes not already carry: the setup, the data, the variation, the thing being exercised.\nRe-wording a bullet adds nothing and is not a step \u2014 whatever verb it opens with. \"Verify \u2026\"\nis a perfectly good way to begin a real step and many steps here should use it; the fault is\nrestatement, never the word.\n\n## Case\nAWPTCM-T37871 \u2014 Reboots 300 iterations (master)\n\n## Finalized objective (authoritative)\n<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>\n\n## Zephyr exemplars (evidence \u2014 match their level of detail)\n- AWPTCM-T17338: Rebooting stack Master for 300 iterations\n\n## ATPyLib coverage (selected ART)\n- 1343.1.6: Stack formation check after rebooting one backup member then another one after 20 seconds.\n- 1343.1.2: Perform rolling reboot on n-stack and check whether stack reforms.\n- 1343.4.2: With large config, perform rolling reboot on the stack and check whether stack reforms.\n- 1343.1.80760: VCS+ duplicate master after rebooting line cards\n\n## Rules\n- The FIRST step is injected server-side as a traceability note \u2014 DO NOT generate it.\n- Generate ONLY the subsequent verification steps exercising the objective's artefacts.\n- Cover each major objective bullet: positive, negative, special conditions, reporting.\n- Keep each step high-level enough to be reusable across platforms, but specific enough to\n  be testable. Naming exact values, counts and timings is the PyTest script's job, not this\n  one \u2014 a manual step that dictates them narrows the tester to one way of exercising the\n  feature instead of leaving them to produce evidence that it works.\n- LEAVE `expectedResult` EMPTY on every step. This is deliberate, not an omission. The\n  tester reads the objective and the step and reasons out what should happen; stating the\n  outcome narrows them to producing exactly that result instead of evidence that the\n  feature works. The objective already carries the expected outcomes.\n- Say WHAT is being exercised, not which command to type. Proving the step was taken \u2014\n  capturing `show` output as evidence \u2014 is the generated PyTest script's job, and naming\n  commands or device registers here invents mechanisms that may not exist and narrows the\n  tester besides.\n- Where a step depends on topology, say which roles it needs (e.g. two links between the DUT\n  and a partner), never a device model or a port number.\n- Platform-agnostic language: no product names, no hardcoded port strings.\n\n## Output format \u2014 this example IS the specification; match its level of detail\n[\n  {\n    \"description\": \"Verify LLDP operation with the DUT and its link partner both running default timers. Confirm neighbours are discovered on the test link and that each side reports the other's chassis and port identity.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the transmit interval and hold multiplier across their supported range, including the minimum and maximum. Confirm advertisements are sent at the configured rate and that the neighbour's advertised lifetime tracks the configured values.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Set the transmit interval below the supported minimum and above the supported maximum. Confirm the DUT rejects both and retains its previous configuration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Disable LLDP transmit on the DUT while leaving receive enabled, then re-enable it. Confirm the neighbour ages out and is rediscovered, and that the port reports the change.\",\n    \"expectedResult\": \"\"\n  }\n]\n\nOutput the JSON array ONLY. No prose, no markdown fence.",
+      "steps_response": "[\n  {\n    \"description\": \"Configure a stack with multiple members and run the full sequence of master reboot cycles back to back without operator intervention between cycles. Confirm each cycle completes and the stack reaches a stable, operational state before the next reboot begins.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm exactly one new master is elected from the remaining members and that every other member recognises it as master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm the stack member count and topology (ring or chain, relative position of each member) match the pre-reboot state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After each reboot cycle, confirm every stack member transitions to a ready/operational state, with none left initializing, mismatched, or in a provisional state.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Apply a large-scale configuration to the stack before starting the reboot sequence. After each reboot cycle, confirm the configuration is retained and correctly applied across all members, including the newly elected master.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Vary the reboot pattern within the iteration set to include rolling reboots of backup members interspersed with, or closely following, master reboots. Confirm the stack reforms correctly for each transition type and that no duplicate master condition results from the overlapping timing.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm no stack split occurs and no member becomes isolated, including cases where reboot timing of adjacent members overlaps.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Across all iterations, confirm stack ID and priority values for each member remain unchanged and consistent before and after every reboot cycle.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm each reboot event, master re-election, and stack formation outcome was recorded for every iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"After completing the full iteration run, review system logs to confirm no unexpected crashes, core dumps, or error conditions were logged during any iteration.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Where any iteration fails to reform the stack correctly, confirm the failure is captured and reported with the iteration number and sufficient detail to diagnose the cause.\",\n    \"expectedResult\": \"\"\n  },\n  {\n    \"description\": \"Measure stack recovery time for each reboot cycle and compare across all iterations, confirming it stays within a consistent range with no iteration showing a disproportionate delay.\",\n    \"expectedResult\": \"\"\n  }\n]",
+      "objective_used": "<ul>\n<li>Stack master reboots successfully across 300 consecutive iterations without manual intervention</li>\n<li>Stack reforms correctly after each master reboot iteration</li>\n<li>A new master is elected each time the master reboots</li>\n<li>Stack member count and topology remain consistent and correct after each reboot iteration</li>\n<li>All stack members rejoin the stack and reach a ready/operational state after each reboot cycle</li>\n<li>Stack configuration (including large-scale configurations) is retained and applied correctly after each reboot iteration</li>\n<li>No duplicate master condition occurs following any reboot iteration</li>\n<li>No stack split or member isolation occurs during or after any reboot iteration</li>\n<li>Stack ID and priority remain stable and correct across all iterations</li>\n<li>System logs record each reboot event, master re-election, and stack formation outcome for every iteration</li>\n<li>No unexpected crashes, core dumps, or error conditions are logged during the 300 reboot iterations</li>\n<li>Any iteration failing to reform the stack correctly is captured and reported with iteration number and failure details</li>\n<li>Stack recovery time after each reboot remains within an acceptable and consistent range across iterations</li>\n</ul>",
+      "provider": "claude",
+      "auth_method": "claude_agent",
+      "model": "sonnet",
+      "error": false,
+      "phase": "steps",
+      "steps_quality": {
+        "verification_steps": 12,
+        "steps_source": "json"
+      }
+    }
+  },
+  "updated_at": "2026-09-10 02:03:56.403665+00:00",
+  "rev": 20,
+  "llm_config": {
+    "provider": "claude",
+    "auth_method": "claude_agent",
+    "api_key": null,
+    "token": null,
+    "base_url": null,
+    "model": "sonnet",
+    "unit_model": "sonnet",
+    "match_model": "opus"
+  }
+}
