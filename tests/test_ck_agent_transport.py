@@ -406,7 +406,7 @@ def test_the_two_agents_declare_the_same_version_and_cli_contract():
     ps = _PS_AGENT.read_text(encoding="utf-8")
     assert f"$script:AGENT_VERSION = '{ck_agent.AGENT_VERSION}'" in ps, (
         "ck-agent.ps1 AGENT_VERSION differs from ck_agent.AGENT_VERSION")
-    for needle in ("'--tools', ''", "'--no-session-persistence'", "'--system-prompt'",
+    for needle in ("'--tools', ''", "'--no-session-persistence'", "'--system-prompt-file'",
                    "'stream-json'", "'--verbose'", "http://127.0.0.1:", "application/json",
                    "'/update', '/shutdown'", "claude auth login", "'auth', 'status'",
                    "'--max-thinking-tokens'", f"CLI_MAX_THINKING_TOKENS = {ck_agent.CLI_MAX_THINKING_TOKENS}",
@@ -415,6 +415,10 @@ def test_the_two_agents_declare_the_same_version_and_cli_contract():
     assert "0.0.0.0" not in ps.replace("never 0.0.0.0", ""), "the Windows agent must bind loopback only"
     assert ck_agent.DEFAULT_SYSTEM_PROMPT.replace("'", "''") in ps, (
         "the default steer differs between the agents")
+    # Windows demo 2026-09-11: the ~61k unit steer as an inline argument overflowed the 32,767
+    # char command-line cap and every unit call died in 300 ms. The steer must never go inline.
+    assert "'--system-prompt', " not in ps, "the Windows agent must pass the steer by file, never inline"
+    assert "[IO.Path]::GetTempPath()" in ps and "Remove-Item -LiteralPath $steerFile" in ps
 
 
 def test_the_installer_location_is_searched_when_claude_is_not_on_path(tmp_path, monkeypatch):

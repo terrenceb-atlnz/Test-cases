@@ -447,6 +447,19 @@ each is in the last column, marked *Resolved*.
 
 ## 9. Verification (manual, per Terrence's preference)
 
+> **Run 2026-09-11 07:48–08:08 on 10.33.25.50 (Terrence at the seat, Claude on the server
+> journal + debug log).** Setup: `/setup/setup.ps1` fetched 07:53:36, manifest + agent 07:53:41
+> (first run); re-runs 07:58:20 and 07:59:14 (manifest only — agent bytes unchanged, as
+> designed). The seat then brokered real calls: **suggest_testlink / suggest_zephyr on Opus
+> succeeded (8.4 s / 9.0 s, usage + cost reported)** — the demo-day failure #2/#3 shape is gone.
+> **Finding #1 — every unit call failed in ~300 ms:** `ERROR: Exception calling "Start" with
+> "0" argument(s): "The filename or extension is too long"` ×20 (two generate_units runs, 10
+> units each). Cause: the unit steer is **61,367 chars** and rode on the command line as
+> `--system-prompt`; Windows caps a command line at 32,767 chars. Linux allows 128 KiB per
+> argument, so the Ubuntu agent never saw it. **Fix:** the Windows agent writes the steer to a
+> temp file and passes `--system-prompt-file` (verified on CLI 2.1.267 with a real call);
+> pinned in `tests/test_ck_agent_transport.py`. Terrence's seat notes: see PROGRESS.md.
+
 On a Windows seat with no Claude installed, from a fresh browser profile:
 1. Open Ask-CK, copy the Windows one-liner, run it. Expect Install → installer runs → PATH
    repaired → Login opens the browser → Agent downloaded, started, task registered → three

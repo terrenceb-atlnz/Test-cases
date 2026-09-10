@@ -53,7 +53,11 @@ $Lib = {
 
   # MIRRORS THE SERVER'S TRANSPORT (and ck_agent.py), measured 2026-09-04:
   #   --tools ""                 one completion, never an agent session
-  #   --system-prompt <steer>    REPLACE the CLI's harness prompt
+  #   --system-prompt-file <f>   REPLACE the CLI's harness prompt. THE FILE FORM, on Windows:
+  #                              a command line is capped at 32,767 chars and the unit steer
+  #                              is ~61k (demo 2026-09-11: every unit call died in 300 ms with
+  #                              "The filename or extension is too long"). ck_agent.py passes
+  #                              --system-prompt inline; Linux allows 128 KiB per argument.
   #   --no-session-persistence   a completion is not a session
   #   cwd = a neutral directory  nothing to auto-discover (no CLAUDE.md, no memory)
   #   stream-json                concatenate every assistant text block; `result` alone
@@ -333,11 +337,15 @@ $Lib = {
     $sw = [Diagnostics.Stopwatch]::StartNew()
     Write-AgentLog "job $jobId start: model=$model timeout=${timeoutSec}s prompt=$($prompt.Length) chars system=$($system.Length) chars cli=$(if ($cli) { $cli } else { 'NOT FOUND' })" $state
     if (-not $cli) { return @{ content = "ERROR: Claude Code CLI not found on this machine. Install it and run 'claude auth login' with your Claude account before using the agent."; error = $true } }
-    $argList = @('-p', '--output-format', 'stream-json', '--verbose', '--tools', '', '--no-session-persistence', '--system-prompt', $(if ($system) { $system } else { $script:DEFAULT_SYSTEM_PROMPT }))
+    # The steer goes through a file (see the contract comment above); UTF-8 without a BOM.
+    $steerFile = Join-Path ([IO.Path]::GetTempPath()) ("ck-agent-steer-" + [guid]::NewGuid().ToString('N') + ".txt")
+    [IO.File]::WriteAllText($steerFile, $(if ($system) { $system } else { $script:DEFAULT_SYSTEM_PROMPT }), (New-Object System.Text.UTF8Encoding($false)))
+    $argList = @('-p', '--output-format', 'stream-json', '--verbose', '--tools', '', '--no-session-persistence', '--system-prompt-file', $steerFile)
     if ($model -and $model -ne 'default') { $argList += @('--model', $model) }
     if ($timeoutSec -ge $script:LONG_CALL_SECONDS) { $argList += @('--max-thinking-tokens', "$($script:CLI_MAX_THINKING_TOKENS)") }
     try {
       $r = Start-Cli $cli $argList $prompt $timeoutSec $jobId $state.running
+      try { Remove-Item -LiteralPath $steerFile -Force -ErrorAction SilentlyContinue } catch { }
       $secs = [int]$sw.Elapsed.TotalSeconds
       if ($r.timeout) {
         Write-AgentLog "job $jobId TIMEOUT after ${timeoutSec}s" $state
@@ -366,6 +374,7 @@ $Lib = {
       Write-AgentLog "job $jobId ok after ${secs}s: $($parsed.content.Length) chars$(if ($res.ContainsKey('total_cost_usd')) { ', $' + $res['total_cost_usd'] })" $state
       return $res
     } catch {
+      try { Remove-Item -LiteralPath $steerFile -Force -ErrorAction SilentlyContinue } catch { }
       Write-AgentLog "job $jobId ERROR after $([int]$sw.Elapsed.TotalSeconds)s: $_" $state
       return @{ content = "ERROR: $_"; error = $true }
     }
