@@ -137,8 +137,10 @@ PROGRESS.md, CHANGELOG.md and the plans hold the same facts.
 1. **`MEMORY.md` is one index.** The harness loads the index from the store a session links
    to. If a store holds a subset of files, its index must list only that subset, or every
    session is told about memories it cannot open.
-2. **`tool/check_memory_links.py` assumes one store.** It verifies every known launch slug
-   under `~/.claude/projects/` points at `claude/Test-cases/.claude/memory/`. A second store,
-   or per-file symlinks, will be reported as broken on every `/orient-ck` and `/wrap-ck` until
-   the tool is taught the new layout. `tool/check_memory_refs.py` (dead-path check) walks
-   whichever directory it is pointed at and needs no change.
+2. **`tool/check_memory_links.py` assumed one store — REPAIRED 2026-09-11 (same day).** It
+   now knows every sibling repo with a `.claude/memory/MEMORY.md` as a legitimate store, requires
+   each repo's slugs to link to that repo's own store (`CROSS_LINK` otherwise), reports a slug
+   outside every repo that links anywhere as `STRAY_LINK` (sessions start only from a repo root
+   since 2026-09-11; `--fix` removes the link), and checks the relative shared symlinks in the
+   store resolve (`DEAD_SHARED_LINK`). `tool/check_memory_refs.py` (dead-path check) walks
+   whichever directory it is pointed at and needed no change.

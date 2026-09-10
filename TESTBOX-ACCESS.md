@@ -83,8 +83,9 @@ ssh-add -l        # → 2048 SHA256:ob3X… terrenceb@terrenceb-dl (RSA)
 ```
 
 `~/.bashrc` exports this for **interactive** shells, so a normal terminal `ssh tb105` just
-works. **Non-interactive / tool shells must set `SSH_AUTH_SOCK` explicitly** (same reason
-`git push` needs the prefix). This is the same key that authenticates GitHub.
+works. **Non-interactive / tool shells must set `SSH_AUTH_SOCK` explicitly.** This is the same
+key that authenticates GitHub — for Terrence's own `git push`; Claude does not push from this
+seat (company-set permissions deny it), it commits and reports the hashes.
 
 ---
 

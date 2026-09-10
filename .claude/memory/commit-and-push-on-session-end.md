@@ -1,24 +1,39 @@
 ---
 name: commit-and-push-on-session-end
-description: "During the end-of-session doc-sync (the /wrap-ck skill), Claude SHOULD commit AND push to main — don't wait for Terrence"
+description: "At the end of a session (the /wrap-ck skill) Claude COMMITS to main without asking and STOPS — it cannot `git push` from this seat (Terrence's company-set permissions deny it every time); Terrence pushes. Never chain, retry or work around a denied push. The name is historical: until 2026-09-10 this memory said push too."
 metadata: 
   node_type: memory
   type: feedback
   verified: 2026-09-11
   originSessionId: fd3dcdc4-34c2-4084-99e5-a506a9647de6
-  modified: 2026-07-28T20:28:39.197Z
+  modified: 2026-09-11
 ---
 
-When running the **end-of-session doc-sync flow** — now the **`/wrap-ck` skill**
-(`.claude/skills/wrap-ck/SKILL.md`); the old `END_OF_SESSION_PROMPT.md` no longer exists —
-Claude should **commit the changes and push to `main`** as the final step — do not stop at
-"leaving the commit to you."
+**The contract (Terrence, 2026-09-11):** at the end-of-session doc-sync (`/wrap-ck`,
+`.claude/skills/wrap-ck/SKILL.md` §7) Claude **commits** the session's changes to `main` —
+explicit paths, clear message, the `Co-Authored-By:` line — and **stops at the commit.**
+*"My company-based permissions do not allow you to push, so don't bother trying. Just commit,
+and I will push."* Report the hashes and how far `main` is ahead of `origin/main`.
 
-**Why:** Terrence explicitly removed the old standing preference on 2026-07-22b ("i DO want you to commit… and pushes"). The prior pattern — every handoff note reading "All uncommitted at session end — Terrence commits himself" — is **superseded**. Committing directly to `main` is the established workflow for this repo (all recent history is direct-to-main; no PR/branch dance).
+**Why:** the push denial is an organisational permission on the seat, not a per-prompt hiccup.
+It was denied on 2026-09-10 and 2026-09-11 in this repo and three times the same day in
+device-testing, including once right after Terrence had approved the step. A wrap that ends on a
+push either stalls waiting for permission or misreports the branch as landed. `main` lagging
+`origin/main` at session end is the normal state here, not an error. The sibling store's
+`claude-cannot-push-terrence-pushes` (device-testing) records the same fact from that side.
 
 **How to apply:**
-- On the end-of-session doc-sync: `git add` the code+doc changes, commit with a clear message (end the body with the required `Co-Authored-By:` line), and `git push` to `main`. No need to ask first for this flow.
-- **Scope:** this authorization is for the end-of-session flow. For mid-session commits, still confirm unless he says otherwise.
-- **Push WORKS from the Linux host** (verified 2026-07-27 `1478952`, again 2026-07-29 `a4435a8`). Remote is SSH (`git@github.com:terrenceb-atlnz/Test-cases.git`). Do NOT assume "can't push."
-- **Mac-attached VS Code Remote-SSH sessions CAN push too** — corrected 2026-07-29; the old "Mac seat lacks a key" story was incomplete. git runs on the LINUX host regardless of where the terminal is. The `Permission denied (publickey)` failure is because VS Code Remote-SSH forwards the Mac's ssh-agent, which is **empty**, and it *shadows* the authorized key held in the host's **gnome-keyring agent** (`$XDG_RUNTIME_DIR/keyring/ssh`, e.g. `/run/user/1971/keyring/ssh`); the on-disk `~/.ssh/id_rsa` is passphrase-encrypted so it's useless non-interactively. **Fix, made permanent 2026-07-29:** a guarded block in `~/.bashrc` exports `SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/keyring/ssh` when that socket exists, so a fresh terminal pushes with no prefix. If a push in an ALREADY-OPEN shell still fails publickey, either `source ~/.bashrc` first or run `SSH_AUTH_SOCK=/run/user/$(id -u)/keyring/ssh git push origin main`. Verify the socket authenticates non-destructively with `ssh -T -o BatchMode=yes git@github.com` (expect `Hi terrenceb-atlnz!`) or `git push --dry-run`. The commit always lands locally regardless, so never invent credentials or switch the remote.
-- **Do NOT stage `ask-ck/var/ck.db` in a doc/code commit** — its working-tree modifications are runtime session-table writes (transient state), not part of the change. Leave it unstaged unless Terrence asks. (`ck.db` is the permanent LFS source of truth — see [[db-is-permanent-source]].)
+- Commit at wrap without asking first — that authorisation (2026-07-22) stands. For mid-session
+  commits, still confirm unless he says otherwise. Stage explicit paths; the tree is shared.
+- Never `&& git push`, never retry a denied push, never propose `--force`, never touch the remote
+  or credentials. `git fetch` / `pull --rebase --autostash` before committing on a remote that may
+  have moved (Terrence also pushes from GitHub's UI) is fine.
+- **Do NOT stage `ask-ck/var/ck.db` in a doc/code commit** — its working-tree modifications are
+  runtime session-table writes, not part of the change. Leave it unstaged unless Terrence asks
+  (`ck.db` is the permanent LFS source of truth — see [[db-is-permanent-source]]).
+
+**Superseded history, kept so nobody re-derives it:** from 2026-07-22 to 2026-09-09 Claude did
+push at wrap, and it worked from the Linux host (`1478952`, `a4435a8`) and from Mac-attached
+Remote-SSH shells once `~/.bashrc` exported `SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/keyring/ssh`. That
+`SSH_AUTH_SOCK` fix is still what makes `ssh tbNNN` and Terrence's own pushes work
+(`TESTBOX-ACCESS.md`); it is not a route around the permission denial.

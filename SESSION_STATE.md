@@ -4044,7 +4044,11 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   symlinks. Index consistent. `check_memory_links.py` now fails 2 slugs by design of the split;
   **do not `--fix`** until Terrence decides which store the lab-home slug should load.
 - **Gate at close:** guards OK; pytest 1450 passed / 1 skipped; vitest 280; ck.db untouched.
-- **Left undone:** D4 decision; tranche 1 of the guardrails; the split's doc/tool follow-ups;
-  §9 steps 4 and 6.
+- **Later, same session:** `check_memory_links.py` repaired for two stores (17 tests; OK on the
+  real home, 3 STRAY_LINK warnings left for Terrence); policy recorded that sessions start only
+  from a repo root; `/wrap-ck` §7 now commits and does NOT push (company permissions deny Claude
+  the push; Terrence pushes) — memory `commit-and-push-on-session-end` rewritten to match.
+- **Left undone:** D4 decision; tranche 1 of the guardrails; §9 steps 4 and 6; the three stray
+  links (`--fix` is one command, Terrence's call).
 - **Resume:** PROGRESS.md top entry (2026-09-11 midday), then the guardrails plan.
 

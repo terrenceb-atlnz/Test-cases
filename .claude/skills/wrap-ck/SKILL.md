@@ -1,11 +1,11 @@
 ---
 name: wrap-ck
-description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit and push to main. Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient-ck, which establishes state at the start of the session.
+description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit to main (Terrence pushes). Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient-ck, which establishes state at the start of the session.
 ---
 
 # Wrap (Ask-CK)
 
-Make the documentation match reality, then commit and push. Pairs with `/orient-ck`, which reads
+Make the documentation match reality, then commit. Pairs with `/orient-ck`, which reads
 these same locations at the start of a session — same doc map both directions, so the docs are
 the trusted handoff between sessions, never memory.
 
@@ -84,7 +84,8 @@ ls .claude/memory/*.md          # the directory IS the list (in-repo since 2026-
 ```
 
 A memory written through the harness lands wherever `~/.claude/projects/<slug>/memory` points.
-If that is not a link into this repo, the memory is stranded: uncommitted, and invisible to the
+If that is not a link into **this** repo's store, the memory is stranded (a real directory) or
+has polluted the sibling repo's store (`CROSS_LINK`): uncommitted here, and invisible to the
 next session. So if the check fails, run `--fix` **first**, and look in the slug's directory for
 anything written this session that must be moved into `.claude/memory/` by hand (the tool names
 such files as STRANDED and refuses to delete them). From 2026-08-17 to 2026-09-04 every session
@@ -170,23 +171,27 @@ prompt this skill's counterpart replaced named four memory files "as at" a date;
 ceased to exist, while the four it declared dead were all still live. A list in prose is a
 cache with no invalidation.
 
-## 7. Commit and push
+## 7. Commit — do NOT push
 
 ```bash
 git add <explicit paths>            # never `git add -A` — the tree is shared with another stream
 git commit                          # clear message; conventional prefix (docs:/feat:/fix:/test:)
-git push origin main
+git log --oneline origin/main..HEAD # what Terrence will push
 ```
 
 - Stage **explicit paths**. Another stream commits to `main` concurrently, so a blanket add can
   capture work that isn't yours.
-- Push is expected as part of wrapping up, not a separate ask.
-- If push fails on auth from a Mac-attached SSH session, `SSH_AUTH_SOCK` needs to point at the
-  keyring agent — see `TESTBOX-ACCESS.md`.
+- **Claude cannot push from this seat — do not try.** Terrence's company-set permissions deny
+  `git push` to Claude every time (2026-09-10 and 2026-09-11, the same denial each time), and
+  they are not something a retry, a different flag or an `SSH_AUTH_SOCK` fix changes. The session
+  ends at the commit: report the hashes and that `main` is N ahead of `origin/main`; **Terrence
+  pushes.** (The `SSH_AUTH_SOCK` note in `TESTBOX-ACCESS.md` is about ssh to testboxes, and about
+  Terrence's own pushes from a Mac-attached shell — not a route around this.)
 
 ## 8. Report back
 
 Show the diff summary, the gate result, confirm the four invariants still hold
 (`ck.db` permanent single source / server reads corpora only from `ck.db` / framework tree
-read-only / org vLLM is the one live external dep), and give the commit + push result. State
+read-only / org vLLM is the one live external dep), and give the commit hashes and the
+ahead-of-origin count for Terrence to push. State
 plainly anything you left undone.

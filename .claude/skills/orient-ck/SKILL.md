@@ -91,11 +91,14 @@ waste. Instead treat these as standing rules for later in the session:
 ls .claude/memory/*.md          # the directory IS the list
 ```
 
-Memories live **in the repo** at `.claude/memory/` as of 2026-07-30;
-`~/.claude/projects/*/memory` are symlinks to it. Before that there were **two** stores keyed on
-the session's launch directory — 38 memories under the `…-copilot-Test-cases` slug and 4 hardware
-ones under `…-testbox-home` — and each was invisible to sessions started in the other directory.
-That, not stale names, is what produced most "I can't find that memory" reports.
+Memories live **in the repo** at `.claude/memory/` as of 2026-07-30, and this repo's slugs
+under `~/.claude/projects/` are symlinks to it. **Since 2026-09-11 there are two stores by
+design** — this one and `../device-testing/.claude/memory/` — and sessions start **only from a
+repo root**, so each stream loads and writes its own set; 12 memories both need are relative
+symlinks from here into the sibling store. A slug linked to the *other* repo's store is
+cross-pollution (`CROSS_LINK`); the checker names it. Before 2026-07-30 there were two stores by
+accident, keyed on launch directory, and each was invisible to the other — that, not stale
+names, produced most "I can't find that memory" reports.
 
 **`ls` proves the memories exist. It does not prove this session loaded them.** The harness
 reads `~/.claude/projects/<slug>/memory/`, where the slug is the launch directory with every

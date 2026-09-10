@@ -70,9 +70,25 @@ moved to `claude/device-testing/.claude/memory/`; **12 shared memories are now R
 signature unchanged. `ask-ck/Fragments_prompt.md` (untracked, 2026-08-31, a captured step-4
 prompt for T33351) left alone — not this stream's file.
 
+**Later the same session — both split consequences CLOSED, and a push policy.** Terrence
+ruled: sessions start **only from a repo root** (never the lab home or `~`), expressly to stop
+cross-pollution. `tool/check_memory_links.py` was repaired for two stores (sibling discovery,
+`CROSS_LINK` / `STRAY_LINK` / `DEAD_SHARED_LINK`; the lab home is no longer an expected launch
+dir; 17 tests); run against his home it now reports every repo slug OK and three `STRAY_LINK`
+warnings (`~`, the lab home, the old copilot slug) — **left in place, `--fix` not run**: removing
+them is his call. The three stale "same set loads whichever directory" sentences were rewritten
+(repo `CLAUDE.md` §Memory, `orient-ck` §4, `wrap-ck` §5). The root lab-home `CLAUDE.md` was
+rewritten by the device-testing session (write boundary, both repos' skills, `raw-data/` now at
+`claude/raw-data/`); read and verified here — every path it names resolves, no revision needed.
+**No live file in this repo pointed at `raw-data/`** (the two memories that did moved to
+device-testing). **Push:** Terrence's company permissions deny Claude `git push` every time —
+`/wrap-ck` §7 is now "Commit — do NOT push", the `commit-and-push-on-session-end` memory says the
+same (name kept; the sibling store cites it), `TESTBOX-ACCESS.md`'s aside corrected.
+
 **Pick up here:** (1) D4 decision, then **tranche 1: G1 + G5 (+ follow-ups #4) + G8(a)**, gate
-after each; existing test home `tests/test_pt_fix_units.py`. (2) The split's two open
-consequences above. (3) §9 steps 4 and 6 still unobserved (need Terrence at a seat).
+after each; existing test home `tests/test_pt_fix_units.py`. (2) §9 steps 4 and 6 still
+unobserved (need Terrence at a seat). (3) Optional: `./tool/check_memory_links.py --fix` to drop
+the three stray links, if Terrence wants them gone.
 
 ---
 

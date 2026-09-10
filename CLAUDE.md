@@ -86,10 +86,13 @@ scripts need a known fix set (including gate strings that no longer exist in the
 
 ## Memory
 
-Memories live **in this repo** at `.claude/memory/`, with `MEMORY.md` as the index.
-`~/.claude/projects/*/memory` are **symlinks** to it, so the same set loads whichever directory
-the session starts in — before 2026-07-30 there were two stores keyed on the launch directory
-and each was invisible to the other. Consequences:
+Memories live **in this repo** at `.claude/memory/`, with `MEMORY.md` as the index. The
+harness reads `~/.claude/projects/<slug>/memory`, and this repo's slugs are **symlinks** to
+that directory. **Since 2026-09-11 there are two stores, not one:** the sibling repo
+`../device-testing` has its own, and **sessions start only from a repo root** — never from the
+lab home or `~` — so the two streams stop polluting each other's memories (the 2026-09-11 split
+moved 28 lab-campaign and closed-work memories out; 12 memories both streams need are kept here
+as *relative* symlinks into the sibling store). Consequences:
 
 - Memory edits show up in `git status`; `/wrap-ck` commits them. That is intended.
 - **Never put a credential in a memory** — this directory is pushed. `secrets.md` (gitignored)
@@ -97,10 +100,12 @@ and each was invisible to the other. Consequences:
 - The links are **absolute paths**, so they die when the tree moves — and the harness then
   silently creates an empty directory in their place. That happened with the `copilot/` →
   `claude/` move: every session from 2026-08-17 to 2026-09-04 ran with **no** auto-loaded
-  memories. `tool/check_memory_links.py` detects it (any slug, any state); `--fix` re-points
-  links and never deletes content. `/orient-ck` and `/wrap-ck` both run it. If `~/.claude` is ever
-  wiped, or `MEMORY.md` is absent from a session's starting context, run it — don't re-write
-  memories.
+  memories. `tool/check_memory_links.py` detects it (any slug, any state), and since
+  2026-09-11 also a slug linked to the *other* repo's store (`CROSS_LINK`), a slug outside every
+  repo linked anywhere (`STRAY_LINK`) and a dead shared symlink in the store; `--fix` re-points
+  or removes links and never deletes content. `/orient-ck` and `/wrap-ck` both run it. If
+  `~/.claude` is ever wiped, or `MEMORY.md` is absent from a session's starting context, run
+  it — don't re-write memories.
 
 Any memory name written down in a document is a **hint, not a guarantee** — verify before acting
 on one, and before reporting it missing.

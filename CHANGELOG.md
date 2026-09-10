@@ -11,6 +11,30 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-11 (later) — Two memory stores by design: `check_memory_links.py` learns the sibling repo; sessions start only from a repo root; Claude commits, Terrence pushes
+
+Terrence split the memory store the same day (`MEMORY-SPLIT-INVENTORY.md`; 88 → 60 here, 15
+lab-campaign memories to `../device-testing/.claude/memory/`, 12 shared ones kept here as relative
+symlinks) and set two policies: **sessions start only from a repo root**, never the lab home or
+`~`, so the two streams stop polluting each other's memories; and **Claude does not `git push`**
+— his company-set permissions deny it every time — so a wrap ends at the commit and he pushes.
+
+- **`tool/check_memory_links.py` repaired** for two stores. *Why:* built 2026-09-04 on a
+  one-store assumption, it reported the split as 2 FAIL and its `--fix` would have re-pointed
+  the device-testing slugs at this store — undoing the split. It now discovers every sibling repo
+  with a `.claude/memory/MEMORY.md`, requires each repo's slugs (root or any directory inside)
+  to link to that repo's own store, names a link into the *other* store `CROSS_LINK` (fatal,
+  fixable), a link from a launch directory outside every repo `STRAY_LINK` (warning; `--fix`
+  removes the link — a symlink is not content), and a dead relative symlink in the store
+  `DEAD_SHARED_LINK` (fatal). The lab home is no longer an expected launch directory. 17 tests
+  pin the states, including both directions of cross-pollution and that no store's content is
+  ever touched. Still deliberately not in the gate (it inspects the home directory).
+- **`/wrap-ck` §7 is now "Commit — do NOT push"**; the memory `commit-and-push-on-session-end`
+  records the same contract (name kept: the sibling store cites it). The root lab-home
+  `CLAUDE.md` (Terrence's, outside git) now says the same and names the write boundary.
+- Skills renamed `orient-ck` / `wrap-ck` (this morning) so they no longer collide with
+  device-testing's `orient-dt` / `wrap-dt`; every live reference swept.
+
 ## 2026-09-11 — Two backends only: Grok removed, the creation-time LLM tooling retired, and a seat is told once when its old choice is gone
 
 Terrence's ruling, reviewing the previous evening's D8–D15: *"Every LLM call on Ask-CK should
