@@ -17,6 +17,23 @@ const CK_SESSION_ID = (function () {
   }
   return id;
 })();
+// The SEAT's LLM choice (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
+// applied under LLM → Configure, stored in localStorage by llm.js, sent on every /api call
+// as X-CK-LLM so the server dispatches THIS seat's requests to THIS seat's backend. Absent
+// (no stored choice) means "use the site default". Format: auth;model;unit;match.
+export function seatLlmHeaderValue(cfg) {
+  if (!cfg || !cfg.auth_method) return '';
+  const f = (v) => (v == null ? '' : String(v)).replace(/[;\r\n]/g, '');
+  return [f(cfg.auth_method), f(cfg.model), f(cfg.unit_model), f(cfg.match_model)].join(';');
+}
+
+export function storedSeatLlm() {
+  try {
+    const raw = localStorage.getItem('draftingLLMConfig');
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) { return null; }
+}
+
 (function patchFetch() {
   const orig = window.fetch;
   window.fetch = function (input, init) {
@@ -29,6 +46,8 @@ const CK_SESSION_ID = (function () {
         const headers = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
         headers.set('X-CK-Session', CK_SESSION_ID);
         if (S.currentPanel) headers.set('X-CK-Panel', S.currentPanel);
+        const seat = seatLlmHeaderValue(storedSeatLlm());
+        if (seat) headers.set('X-CK-LLM', seat);
         init.headers = headers;
       }
     } catch (_) { /* never break fetch */ }

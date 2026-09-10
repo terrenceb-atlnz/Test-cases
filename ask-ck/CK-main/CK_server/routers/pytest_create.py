@@ -43,7 +43,7 @@ from pt_exec import (
 # reaching into another router's internals, so renaming any one of them silently broke
 # a different tool. They now live in leaf modules that both routers import.
 from case_registry import build_case_groups, is_hidden_case, refined_complete_keys
-from llm_config import apply_workspace_llm, cfg_for_task
+from llm_config import cfg_for_task, effective_llm_config
 
 router = APIRouter(tags=["pytest-creator"])
 
@@ -437,17 +437,12 @@ def _pt_persist_fresh(key: str, apply_fn, attempts: int = 0) -> PtSession:
 
 
 def _llm_cfg(sess: PtSession) -> dict:
-    # Apply the workspace LLM login at dispatch time if this session has no
-    # active config of its own. Without this, an LLM endpoint would fall back to
-    # run_prompt's default backend (claude_agent/model=default) instead of the
-    # provider the user configured on the Configure page — silently sending the
-    # prompt to the wrong LLM. load_case applies it once, but a stale/inactive
-    # persisted config (or a session touched before the workspace login) would
-    # otherwise slip through. Centralized here so no endpoint can forget it,
-    # via the shared llm_config.apply_workspace_llm the Generator also calls.
-    if apply_workspace_llm(sess):
-        _pt_persist(sess)
-    return model_to_dict(sess.llm_config)
+    # The dispatch config for THIS request: the requesting seat's X-CK-LLM choice, else
+    # the site default, else the session's own stored config. Resolved at call time and
+    # never written onto the session — the case is shared between seats, the choice is
+    # not (PLAN-seat-setup-and-per-seat-llm.md §5). Centralized here so no endpoint can
+    # resolve it differently; the Generator's _session_llm_cfg uses the same helper.
+    return effective_llm_config(sess)
 
 
 def _llm_cfg_for(sess: PtSession, task: str) -> dict:
@@ -457,7 +452,8 @@ def _llm_cfg_for(sess: PtSession, task: str) -> dict:
     script matching) — the two fan-out call classes that a cheaper Claude alias was judged
     good enough for (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5). Review, whole-script Fix
     and the single-call generate keep `_llm_cfg` and therefore the toggle model. Routing is
-    read from the WORKSPACE row inside cfg_for_task, never from this session's copy.
+    read inside cfg_for_task from the requesting SEAT's header, else the workspace (site
+    default) row — never from this session's copy.
     """
     return cfg_for_task(_llm_cfg(sess), task)
 
@@ -3556,8 +3552,8 @@ async def load_case(key: str, request: Request):
     data = _data(request)
     # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). If another tab/user holds a
     # LIVE lock, serve a read-only snapshot and touch nothing — pt_sessions is shared
-    # across tabs in this one process, so _sweep_stale_runs / apply_workspace_llm here
-    # would mutate THEIR live object, and the hydration _pt_persist would 409.
+    # across tabs in this one process, so _sweep_stale_runs here would mutate THEIR live
+    # object, and the hydration _pt_persist would 409.
     lock = locks.acquire("pt", key)
     if not lock["by_me"]:
         snap = _pt_load(key) or PtSession(key=key)
@@ -3578,7 +3574,9 @@ async def load_case(key: str, request: Request):
         group, payload, trace = _find_refined_case(key)
         sess = PtSession(key=key, group=group, payload=payload, traceability=trace)
     _sweep_stale_runs(sess)
-    changed = apply_workspace_llm(sess)
+    # The LLM choice is per seat since 2026-09-10 (X-CK-LLM, resolved at dispatch); nothing
+    # is copied onto the case any more. The response field below stays for API compatibility.
+    changed = False
     pt_sessions[key] = sess
     _pt_persist(sess)
     fields = _case_payload_fields(sess)

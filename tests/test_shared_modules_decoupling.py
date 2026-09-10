@@ -95,12 +95,14 @@ def test_the_shared_leaves_are_importable_without_fastapi_routing(rel):
 
 # --- the duplicate that was collapsed ----------------------------------------
 
-def test_the_workspace_llm_sync_exists_exactly_once():
-    """Two byte-identical copies differing only in a type annotation, one per router.
+def test_the_dispatch_config_resolver_exists_exactly_once():
+    """One resolver for "which LLM does THIS request go to", in the shared leaf.
 
-    Proven identical before collapsing them (same AST once docstrings are stripped;
-    `WizardSession` vs `PtSession` was the whole difference), and the body touches nothing
-    but `sess.llm_config`, so one duck-typed function serves both.
+    History: two byte-identical `_apply_workspace_llm` copies (one per router, differing
+    only in a type annotation) were collapsed into `llm_config.apply_workspace_llm`; on
+    2026-09-10 that became `effective_llm_config` (per-seat, never writes a session —
+    PLAN-seat-setup-and-per-seat-llm.md §5). The invariant is the same: the routers hold
+    only one-line wrappers, the logic lives in llm_config.py and nowhere else.
     """
     defined = []
     targets = [(str(p.relative_to(_SERVER)), p) for p in wizard_router_paths()]
@@ -109,73 +111,81 @@ def test_the_workspace_llm_sync_exists_exactly_once():
     for rel, path in targets:
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for n in tree.body:
-            if isinstance(n, ast.FunctionDef) and "workspace_llm" in n.name:
+            if isinstance(n, ast.FunctionDef) and ("workspace_llm" in n.name or "effective_llm" in n.name):
                 defined.append(f"{rel}:{n.name}")
-    assert defined == ["llm_config.py:apply_workspace_llm"], (
-        f"workspace-LLM sync is defined in {defined} — it must exist only in llm_config.py")
+    assert defined == ["llm_config.py:effective_llm_config"], (
+        f"dispatch-config resolution is defined in {defined} — it must exist only in llm_config.py")
 
 
-def test_both_routers_reach_the_same_workspace_llm_function():
+def test_both_routers_reach_the_same_dispatch_config_function():
     """Not just "no copy" — they must actually be wired to the shared one."""
     wiz_got = set()
     for path in wizard_router_paths():
         wiz_got |= {name for mod, name in _imports(path) if mod == "llm_config"}
-    assert "apply_workspace_llm" in wiz_got, (
-        f"the wizard router does not import llm_config.apply_workspace_llm (imports: {sorted(wiz_got)})")
+    assert "effective_llm_config" in wiz_got, (
+        f"the wizard router does not import llm_config.effective_llm_config (imports: {sorted(wiz_got)})")
     pc_got = [name for mod, name in _imports(_SERVER / "routers" / "pytest_create.py")
               if mod == "llm_config"]
-    assert "apply_workspace_llm" in pc_got, (
-        f"routers/pytest_create.py does not import llm_config.apply_workspace_llm (imports: {pc_got})")
+    assert "effective_llm_config" in pc_got, (
+        f"routers/pytest_create.py does not import llm_config.effective_llm_config (imports: {pc_got})")
+    assert "apply_workspace_llm" not in wiz_got | set(pc_got), "the old session re-sync is back"
 
 
 # --- behaviour of the shared modules -----------------------------------------
 
-def test_apply_workspace_llm_is_duck_typed_over_both_session_kinds(monkeypatch):
-    """The one real risk in collapsing them: it must work for a PtSession too."""
+def test_effective_llm_config_is_duck_typed_over_both_session_kinds(monkeypatch):
+    """The one real risk in sharing it: it must work for a PtSession too — and it must
+    RESOLVE, never rewrite, either kind."""
     import llm_config
     from models import LLMConfig, PtSession, WizardSession
 
-    workspace = LLMConfig(auth_method="local_llm", provider="vllm", model="fast")
-    monkeypatch.setattr(llm_config, "load_global_llm", lambda: workspace)
+    site = LLMConfig(auth_method="local_llm", provider="vllm", model="fast")
+    monkeypatch.setattr(llm_config, "load_global_llm", lambda: site)
 
+    from models import model_to_dict
     for sess in (WizardSession(key="AWPTCM-T99991"), PtSession(key="AWPTCM-T99991")):
-        assert llm_config.apply_workspace_llm(sess) is True, type(sess).__name__
-        assert sess.llm_config.model == "fast"
-        assert sess.llm_config is not workspace, "sessions must not share the config object"
-        # Idempotent: already on the workspace backend, so no further write.
-        assert llm_config.apply_workspace_llm(sess) is False, type(sess).__name__
+        before = model_to_dict(sess.llm_config) if sess.llm_config is not None else None
+        got = llm_config.effective_llm_config(sess)
+        assert got["model"] == "fast", type(sess).__name__
+        after = model_to_dict(sess.llm_config) if sess.llm_config is not None else None
+        assert after == before, "resolution must not write the session"
+        assert llm_config.effective_llm_config(sess) == got, "idempotent"
 
 
-def test_apply_workspace_llm_leaves_a_session_alone_when_there_is_no_default(monkeypatch):
-    """"The workspace login persists across cases" — with no default, do not clobber."""
+def test_effective_llm_config_falls_back_to_the_sessions_own_config_when_there_is_no_default(monkeypatch):
+    """With no site default and no seat header, a session's own active config still drives it."""
     import llm_config
     from models import LLMConfig, WizardSession
 
     monkeypatch.setattr(llm_config, "load_global_llm", lambda: None)
     sess = WizardSession(key="AWPTCM-T99991")
     sess.llm_config = LLMConfig(auth_method="grok_cli")
-    assert llm_config.apply_workspace_llm(sess) is False
+    assert llm_config.effective_llm_config(sess)["auth_method"] == "grok_cli"
     assert sess.llm_config.auth_method == "grok_cli"
 
 
-def test_a_stale_headless_config_still_resyncs(monkeypatch):
-    """The §7.3 bug this function was rewritten for.
+def test_a_stale_headless_session_copy_never_wins(monkeypatch):
+    """The §7.3 bug, still covered from the other side.
 
     llm_is_active reports a headless CLI mode active unconditionally (there is no
-    server-side key to check), so an "is it active?" test alone can never re-sync a stale
-    claude_agent config — it kept silently hitting the wrong backend. The backend
-    comparison is what fixes it.
+    server-side key to check), so an "is it active?" test alone would let a stale
+    claude_agent copy on the case keep hitting the wrong backend. Resolution order — seat,
+    then site default, then the copy — is what prevents it; the copy is last, always.
     """
     import llm_config
     from models import LLMConfig, WizardSession
 
-    workspace = LLMConfig(auth_method="local_llm", provider="vllm", model="fast")
-    monkeypatch.setattr(llm_config, "load_global_llm", lambda: workspace)
+    site = LLMConfig(auth_method="local_llm", provider="vllm", model="fast")
+    monkeypatch.setattr(llm_config, "load_global_llm", lambda: site)
     sess = WizardSession(key="AWPTCM-T99991")
     sess.llm_config = LLMConfig(auth_method="claude_agent", model="sonnet")
     assert llm_config.llm_is_active(sess.llm_config), "precondition: headless reads active"
-    assert llm_config.apply_workspace_llm(sess) is True
-    assert sess.llm_config.auth_method == "local_llm"
+    assert llm_config.effective_llm_config(sess)["auth_method"] == "local_llm"
+    token = llm_config.current_seat_llm.set("claude_agent;opus")
+    try:
+        assert llm_config.effective_llm_config(sess)["model"] == "opus", "the seat outranks both"
+    finally:
+        llm_config.current_seat_llm.reset(token)
 
 
 @pytest.mark.parametrize("cfg,expected", [

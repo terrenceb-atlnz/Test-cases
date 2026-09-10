@@ -64,15 +64,24 @@ def test_the_routed_alias_replaces_model_for_its_task_only():
     assert base["model"] == "opus", "the caller's dict must not be mutated"
 
 
-def test_routing_is_read_from_the_workspace_not_the_session_copy(monkeypatch):
-    """apply_workspace_llm documents a per-case config as never a legitimate override, so a
-    stale per-case copy carrying its own routing must not win over the workspace row."""
+def test_routing_is_read_from_the_seat_else_the_workspace_never_the_session_copy(monkeypatch):
+    """A per-case config is a legacy value, never a source of truth, so a stale per-case
+    copy carrying its own routing must not win. Without a seat header the site-default
+    (workspace) row decides; WITH one, the seat decides — including "same", which must not
+    fall back to the site default's alias (PLAN-seat-setup-and-per-seat-llm.md §5)."""
     monkeypatch.setattr(llm_config, "load_global_llm",
                         lambda: LLMConfig(provider="claude", auth_method="claude_agent",
                                           model="opus", match_model="haiku"))
     stale = {"provider": "claude", "auth_method": "claude_agent", "model": "opus",
              "match_model": "sonnet"}
     assert cfg_for_task(stale, "step_match")["model"] == "haiku"
+    token = llm_config.current_seat_llm.set("claude_agent;opus;;")
+    try:
+        assert cfg_for_task(stale, "step_match")["model"] == "opus"
+        llm_config.current_seat_llm.set("claude_agent;opus;;sonnet")
+        assert cfg_for_task(stale, "step_match")["model"] == "sonnet"
+    finally:
+        llm_config.current_seat_llm.reset(token)
 
 
 def test_routing_is_inert_under_non_claude_backends():
@@ -89,24 +98,34 @@ def test_an_unknown_task_is_a_programming_error_not_a_silent_passthrough():
 
 # --- the endpoint --------------------------------------------------------------------
 
-def test_set_llm_config_stores_returns_and_preserves_the_routing(client):
+def test_set_llm_config_returns_and_preserves_the_routing_per_seat(client):
+    """Since 2026-09-10 Apply is per SEAT and writes nothing server-side: the browser stores
+    the echoed config and sends it back as X-CK-LLM. So "the routing survives a toggle POST"
+    now means: a POST carrying only `model` keeps the routing the SEAT's header carries."""
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "claude", "auth_method": "claude_code",
+                    json={"provider": "claude", "auth_method": "claude_agent",
                           "model": "opus", "unit_model": "sonnet", "match_model": ""})
     assert r.status_code == 200, r.text
     cfg = r.json()["llm_config"]
     assert cfg["unit_model"] == "sonnet" and cfg["match_model"] is None
-    # The toggle posts only `model`: the routing must survive that.
+    seat = f"{cfg['auth_method']};{cfg['model']};{cfg['unit_model'] or ''};{cfg['match_model'] or ''}"
+    # The toggle posts only `model`: the routing must survive that — read from the header.
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "claude", "auth_method": "claude_code", "model": "haiku"})
+                    json={"provider": "claude", "auth_method": "claude_agent", "model": "haiku"},
+                    headers={"X-CK-LLM": seat})
     assert r.json()["llm_config"]["unit_model"] == "sonnet"
-    # And the cold-load endpoint hands it back.
+    # The cold-load endpoint is the SITE default, written only by the explicit route.
+    r = client.post("/api/wizard/set_site_default_llm",
+                    json={"provider": "claude", "auth_method": "claude_agent",
+                          "model": "haiku", "unit_model": "sonnet"})
+    assert r.status_code == 200, r.text
     got = client.get("/api/wizard/llm_config").json()["llm_config"]
     assert got["unit_model"] == "sonnet" and got["model"] == "haiku"
     # An explicit blank clears it.
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "claude", "auth_method": "claude_code",
-                          "model": "haiku", "unit_model": ""})
+                    json={"provider": "claude", "auth_method": "claude_agent",
+                          "model": "haiku", "unit_model": ""},
+                    headers={"X-CK-LLM": seat})
     assert r.json()["llm_config"]["unit_model"] is None
 
 

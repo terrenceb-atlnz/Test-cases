@@ -1,11 +1,19 @@
-"""The workspace LLM login: what it is, whether it can drive a request, and applying it.
+"""Which LLM a request goes to: the SEAT's choice, else the site default.
 
-One idea, in one place. The workspace default (the `_workspace_llm` row in ck.db) is the
-single source of truth for which backend a request goes to; a per-case `llm_config` that
-diverges from it is a STALE leftover from a previous default, never an intentional
-override. Everything here exists to keep that true — deciding whether a config is usable
-(`llm_is_active`), whether two configs mean the same backend (`same_backend`), and
-re-syncing a session that has drifted (`apply_workspace_llm`).
+One idea, in one place. Since 2026-09-10 (PLAN-seat-setup-and-per-seat-llm.md §5) the
+backend a request is dispatched to is decided PER SEAT: the browser stores the user's
+choice and sends it on every `/api` call as the `X-CK-LLM` header; `effective_llm_config`
+reads it (validated against the governance allowlist), falls back to the site default (the
+`_workspace_llm` row in ck.db) for a seat that has never chosen, and only then to whatever
+a stored session carries. Nothing here writes a session any more: a per-case `llm_config`
+is a legacy copy, never a source of truth — on a shared server two seats work the same case
+with different backends, so the case cannot own the choice.
+
+Before that date the `_workspace_llm` row was authoritative for everyone and
+`apply_workspace_llm` re-synced every session to it at dispatch — which is exactly how one
+seat picking a backend on demo day flipped every other seat (`PLAN-llm-mode-selection.md`
+§5 named the hazard). That function is gone; `effective_llm_config` is its replacement and
+the ONLY dispatch-config resolver, imported by both routers.
 
 Extracted from `routers/wizard.py` (PLAN-backend-module-split.md commit 8) for a specific
 reason: `routers/pytest_create.py` imported `_load_global_llm`, `_llm_is_active` and
@@ -22,14 +30,88 @@ so one duck-typed function serves both, and there is nothing left to drift.
 A leaf: imports `db`, `models` and `local_llm_key` only. It must never import `routers.*`.
 """
 
+import contextvars
 import logging
 from typing import Any, Optional
 
 import db
 from local_llm_key import get_local_llm_key
-from models import SUPPORTED_AUTH_METHODS, LLMConfig, model_to_dict
+from models import RETIRED_AUTH_METHODS, SUPPORTED_AUTH_METHODS, LLMConfig, model_to_dict
 
 log = logging.getLogger(__name__)
+
+# --- the seat's choice -----------------------------------------------------------------
+#
+# The browser sends its stored LLM choice on every /api call as
+#     X-CK-LLM: <auth_method>;<model>;<unit_model>;<match_model>
+# (trailing fields optional). main.py's middleware validates it (400 on a bad value) and
+# binds the raw string here for the duration of the request; ContextVars propagate into
+# run_in_threadpool, the same mechanism llm.current_session_id relies on. Empty for
+# non-browser callers and for a seat that has never chosen — those get the site default.
+SEAT_LLM_HEADER = "X-CK-LLM"
+current_seat_llm: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_seat_llm", default="")
+
+_PROVIDER_FOR = {"local_llm": "openai", "claude_agent": "claude", "claude_code": "claude",
+                 "grok_cli": "grok"}
+
+
+def parse_seat_llm(raw: str) -> Optional[LLMConfig]:
+    """`X-CK-LLM` header -> LLMConfig, or None for an empty header.
+
+    Raises ValueError for anything outside the governance allowlist — the header is
+    client-supplied, so the same closed set `set_llm_config` enforces is enforced here, and
+    a retired method is named as retired rather than "unknown".
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    parts = [p.strip() for p in raw.split(";")]
+    parts += [""] * (4 - len(parts))
+    auth_method, model, unit_model, match_model = (p.lower() for p in parts[:4])
+    if auth_method in RETIRED_AUTH_METHODS:
+        raise ValueError(f"auth_method '{auth_method}' is no longer supported")
+    if auth_method not in SUPPORTED_AUTH_METHODS:
+        raise ValueError(f"unknown auth_method '{auth_method}'. Supported: {', '.join(SUPPORTED_AUTH_METHODS)}")
+    if len(raw) > 200:
+        raise ValueError("header too long")
+    cfg = LLMConfig(provider=_PROVIDER_FOR[auth_method], auth_method=auth_method)
+    if model:
+        cfg.model = model
+    elif auth_method == "local_llm":
+        cfg.model = "vllm-fast"
+    if auth_method in _ROUTED_AUTH_METHODS:
+        cfg.unit_model = normalize_task_model(unit_model)      # ValueError on a non-alias
+        cfg.match_model = normalize_task_model(match_model)
+    return cfg
+
+
+def seat_llm_config() -> Optional[LLMConfig]:
+    """The requesting seat's choice, or None when the request carried no (valid) header."""
+    try:
+        return parse_seat_llm(current_seat_llm.get(""))
+    except ValueError as e:              # the middleware already 400s; belt and braces
+        log.warning("ignoring invalid %s header: %s", SEAT_LLM_HEADER, e)
+        return None
+
+
+def effective_llm_config(sess: Any = None) -> dict:
+    """The dispatch config for THIS request: seat header, else site default, else the
+    session's own stored config, else {} (the transport's default backend).
+
+    Never mutates `sess` — that was `apply_workspace_llm`'s job and it is what made one
+    seat's choice leak into every other seat's requests through the shared case row.
+    Duck-typed over WizardSession and PtSession (anything with an `llm_config`).
+    """
+    seat = seat_llm_config()
+    if seat is not None:
+        return model_to_dict(seat)
+    site = load_global_llm()
+    if site is not None:
+        return model_to_dict(site)
+    own = getattr(sess, "llm_config", None) if sess is not None else None
+    if llm_is_active(own):
+        return model_to_dict(own)
+    return {}
 
 
 def llm_is_active(cfg: Optional[LLMConfig]) -> bool:
@@ -94,10 +176,10 @@ def save_global_llm(cfg: LLMConfig) -> None:
 # Measured on AWPTCM-T44297 (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5): Sonnet 5 matched
 # Opus on 4 of 5 sampled unit fills at ~59% of the cost and returned the same step-match
 # shortlist at under half. The reviewer therefore gets to route those two call classes to a
-# cheaper alias while Review and Fix stay on the toggle model. The routing lives on the
-# WORKSPACE config (the same `_workspace_llm` row as the backend choice) and is applied here
-# at dispatch, so a per-case `llm_config` copy — which `apply_workspace_llm` documents as
-# never a legitimate override — cannot carry a stale routing either.
+# cheaper alias while Review and Fix stay on the toggle model. The routing travels with the
+# backend choice — on the SEAT's X-CK-LLM header, else on the site-default row — and is
+# applied here at dispatch, so a per-case `llm_config` copy (a legacy value, never a source
+# of truth) cannot carry a stale routing either.
 
 CLAUDE_MODEL_ALIASES = ("haiku", "sonnet", "opus")
 TASK_MODEL_FIELDS = {"unit_fill": "unit_model", "step_match": "match_model"}
@@ -117,11 +199,13 @@ def normalize_task_model(value: Any) -> Optional[str]:
 
 def cfg_for_task(cfg: dict, task: str, workspace: Optional[LLMConfig] = None) -> dict:
     """The dispatch config for one call class: `cfg` with `model` swapped for the routed
-    alias when the WORKSPACE says so. Returns a copy; `cfg` is untouched.
+    alias. Returns a copy; `cfg` is untouched.
 
-    Only under a Claude CLI method — the routing fields are Claude aliases and mean nothing
-    to the vLLM or the Grok CLI. `workspace` is injectable for tests; production reads the
-    stored workspace row so a per-case copy can never drift from it.
+    Where the routing comes from: the SEAT's header when the request carries one (a seat
+    pays for its own aliases, and a seat that chose "same" must get its own model, not the
+    site default's routing), else the site default row. Only under a Claude CLI method —
+    the routing fields are Claude aliases and mean nothing to the vLLM or the Grok CLI.
+    `workspace` is injectable for tests; a per-case session copy is never consulted.
     """
     out = dict(cfg or {})
     field = TASK_MODEL_FIELDS.get(task)
@@ -129,47 +213,15 @@ def cfg_for_task(cfg: dict, task: str, workspace: Optional[LLMConfig] = None) ->
         raise KeyError(f"unknown routed task '{task}'; known: {sorted(TASK_MODEL_FIELDS)}")
     if (out.get("auth_method") or "").lower() not in _ROUTED_AUTH_METHODS:
         return out
-    ws = workspace if workspace is not None else load_global_llm()
-    routed = getattr(ws, field, None) if ws else None
+    seat = seat_llm_config()
+    if seat is not None:
+        source = seat
+    else:
+        source = workspace if workspace is not None else load_global_llm()
+    routed = getattr(source, field, None) if source else None
     if routed and routed in CLAUDE_MODEL_ALIASES:
         out["model"] = routed
     return out
-
-
-def apply_workspace_llm(sess: Any) -> bool:
-    """Re-sync this session's LLM config to the active workspace default.
-
-    Returns True if the session was updated (caller should persist).
-
-    Takes any session object with an `llm_config` attribute — a WizardSession or a
-    PtSession. It was two identical functions before commit 8, one per router, differing
-    only in that annotation.
-
-    The active workspace default is the single source of truth: `set_llm_config`
-    always writes a case's config === the workspace default (there is no code path
-    that gives a case a config that legitimately differs), so any divergence is a
-    STALE leftover from a previous default, not an intentional per-case override.
-    We therefore re-sync whenever the case has no active config OR its config no
-    longer matches the workspace default's backend. This fixes the bug where a
-    session whose stale config was a headless CLI mode (claude_agent/claude_code/
-    grok_cli — which `llm_is_active` reports active unconditionally, since there
-    is no server-side key to check) could NEVER re-sync and kept silently hitting
-    the wrong backend. `llm_is_active` is intentionally left unchanged (it is also
-    used for status/`has_key` reporting, where headless=active is correct).
-
-    When there is no active workspace default we leave the session untouched, so
-    "the workspace login persists across cases" still holds.
-    """
-    global_cfg = load_global_llm()
-    if not global_cfg:
-        return False
-    cur = getattr(sess, "llm_config", None)
-    if llm_is_active(cur) and same_backend(cur, global_cfg):
-        return False
-    # Fresh copy so case sessions do not share the same object instance
-    raw = model_to_dict(global_cfg)
-    sess.llm_config = LLMConfig(**raw)
-    return True
 
 
 def preview_from(result) -> dict:

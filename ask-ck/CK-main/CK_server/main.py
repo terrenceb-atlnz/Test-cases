@@ -78,6 +78,7 @@ from routers.llm_debug import router as llm_debug_router
 from routers.admin import router as admin_router
 from routers.locks import router as locks_router
 import llm as _llm
+import llm_config as _llm_config
 
 app = FastAPI(title="Ask CK (Server-Backed)")
 
@@ -143,11 +144,22 @@ async def _bind_session_id(request: Request, call_next):
     ContextVars propagate into run_in_threadpool — the same mechanism
     current_session_id already relies on.
     """
+    # X-CK-LLM: the SEAT's LLM choice (PLAN-seat-setup-and-per-seat-llm.md §5). Client-
+    # supplied, so validated against the governance allowlist here — a bad value is a 400,
+    # never a silent fallback — and bound for llm_config.effective_llm_config to read.
+    seat_raw = request.headers.get(_llm_config.SEAT_LLM_HEADER, "")
+    if seat_raw:
+        try:
+            _llm_config.parse_seat_llm(seat_raw)
+        except ValueError as e:
+            return JSONResponse(status_code=400,
+                                content={"detail": f"{_llm_config.SEAT_LLM_HEADER}: {e}"})
     token = _llm.current_session_id.set(request.headers.get("X-CK-Session", ""))
     panel_token = _llm.current_panel_id.set(request.headers.get("X-CK-Panel", ""))
     path_token = _llm.current_request_path.set(request.url.path)
     # X-CK-LLM-Call: per-call id for live progress + true cancel (llm_inflight).
     call_token = _llm.current_llm_call_id.set(request.headers.get("X-CK-LLM-Call", ""))
+    seat_token = _llm_config.current_seat_llm.set(seat_raw)
     try:
         response = await call_next(request)
     finally:
@@ -155,6 +167,7 @@ async def _bind_session_id(request: Request, call_next):
         _llm.current_panel_id.reset(panel_token)
         _llm.current_request_path.reset(path_token)
         _llm.current_llm_call_id.reset(call_token)
+        _llm_config.current_seat_llm.reset(seat_token)
     # Force revalidation of ES modules. The entry main.js is cache-busted with
     # ?v=N, but its imports (llm.js, nav.js, …) are bare specifiers with no
     # query, so a stale cached child module can shadow a freshly-shipped one

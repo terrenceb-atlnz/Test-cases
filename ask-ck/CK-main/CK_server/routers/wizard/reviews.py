@@ -24,7 +24,7 @@ from llm import (
     suggest_relevant_testlink,
     suggest_relevant_zephyr,
 )
-from llm_config import apply_workspace_llm, preview_from
+from llm_config import effective_llm_config, preview_from
 from session_store import load_persisted, mark_updated, persist_session, sessions
 from generator.backfill import backfill_from_refined
 from generator.gates import (
@@ -80,7 +80,7 @@ async def load_case(key: str, data=Depends(get_data)):
     if not lock["by_me"]:
         # Read-only: someone else is editing. Serve a snapshot of the LAST SAVED state
         # and touch NOTHING — the holder's live in-memory object is shared across tabs in
-        # this one process, so backfill/apply_workspace_llm here would mutate THEIR work.
+        # this one process, so a backfill here would mutate THEIR work.
         # No hydration persist either (it would 409 against their lock).
         snap = load_persisted(key)
         if snap is None and key not in zm:
@@ -116,10 +116,8 @@ async def load_case(key: str, data=Depends(get_data)):
     if backfill_from_refined(sess):
         mark_updated(sess)
 
-    # Carry over workspace LLM preference (last Apply / Login) so switching cases
-    # does not reset provider / CLI mode back to empty defaults.
-    if apply_workspace_llm(sess):
-        mark_updated(sess)
+    # The LLM choice is per SEAT since 2026-09-10 (X-CK-LLM header, resolved at dispatch by
+    # llm_config.effective_llm_config) — nothing is copied onto the case here any more.
 
     persist_session(sess)
 
@@ -623,16 +621,12 @@ async def suggest_atp(key: str, body: dict = Body(default={}), data=Depends(get_
 
 
 def _session_llm_cfg(sess: WizardSession) -> dict:
-    # Apply the workspace LLM login at dispatch time if this session has no active
-    # config of its own — otherwise a stale/inactive persisted config (or a session
-    # whose workspace login was applied after it was first loaded) would fall through
-    # to the LLM layer's default backend, silently using the wrong provider. load_case
-    # applies it once; centralizing here guarantees every LLM handler resolves the
-    # current workspace backend at call time. Same fix as pytest_create._llm_cfg.
-    if apply_workspace_llm(sess):
-        mark_updated(sess)
-        persist_session(sess)
-    return model_to_dict(getattr(sess, "llm_config", None))
+    # The dispatch config for THIS request: the requesting seat's X-CK-LLM choice, else the
+    # site default, else the session's own stored config. Resolved at call time, never
+    # written onto the session — the case is shared between seats, the choice is not.
+    # Centralized so no LLM handler can resolve it differently; same helper as
+    # pytest_create._llm_cfg.
+    return effective_llm_config(sess)
 
 
 @router.post("/suggest_testlink/{key}")

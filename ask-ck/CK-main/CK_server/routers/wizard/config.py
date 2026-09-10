@@ -20,10 +20,12 @@ from llm import _health_ping, check_claude_cli, check_grok_cli
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from llm_config import (
     TASK_MODEL_FIELDS,
+    effective_llm_config,
     llm_is_active,
     load_global_llm,
     normalize_task_model,
     save_global_llm,
+    seat_llm_config,
 )
 from session_store import (
     clear_persisted,
@@ -79,7 +81,7 @@ async def get_llm_config():
     """
     cfg = load_global_llm()
     if not cfg:
-        return {"llm_config": None}
+        return {"llm_config": None, "scope": "site_default"}
     am = (getattr(cfg, "auth_method", None) or "").lower()
     safe = {
         "provider": cfg.provider,
@@ -92,7 +94,9 @@ async def get_llm_config():
     }
     if am == "local_llm":
         safe["local_llm_key_set"] = bool(get_local_llm_key())
-    return {"llm_config": safe}
+    # This is the SITE default — what a seat that has never chosen starts from. A seat's
+    # own choice lives in its browser and rides on X-CK-LLM; the page prefers that.
+    return {"llm_config": safe, "scope": "site_default"}
 
 
 @router.post("/llm_health")
@@ -102,9 +106,11 @@ async def llm_health():
     resolution + credential + transport via _call_llm_with_meta), so it
     distinguishes 'my config is wrong' from 'the backend is down', and the ping
     is recorded in debug-log like any other call. Provider-agnostic: works for
-    whatever auth_method is active, not just local_llm.
+    whatever auth_method is active, not just local_llm. Pings the REQUESTING SEAT's
+    backend (X-CK-LLM), else the site default — the same resolution every real call uses.
     """
-    cfg = load_global_llm()
+    cfg_dict = effective_llm_config()
+    cfg = LLMConfig(**cfg_dict) if cfg_dict else None
     if not cfg or not llm_is_active(cfg):
         return {"ok": False, "reason": "not_configured",
                 "detail": "No active LLM configuration. Apply a provider on the Configure page first."}
@@ -128,16 +134,15 @@ async def llm_health():
             "usage": meta.get("usage")}
 
 
-@router.post("/set_llm_config")
-@router.post("/set_llm_config/{key}")
-async def set_llm_config(body: dict, key: Optional[str] = None):
-    """Login-like endpoint. Sets the workspace LLM provider (and, when a case
-    key is supplied, that case's session config too).
+def _validated_llm_config(body: dict) -> LLMConfig:
+    """Validate an LLM choice from the browser into an LLMConfig, or 400.
 
-    The case key is OPTIONAL: applying an LLM config no longer requires a loaded
-    case. Without a key, the choice is saved as the workspace default
-    (sessions/_workspace_llm.json) and load_case copies it onto any case that has
-    no active config.
+    Shared by `set_llm_config` (THIS SEAT's choice — the browser stores the echoed config
+    and sends it as `X-CK-LLM` on every request from then on; nothing is written
+    server-side) and `set_site_default_llm` (writes the `_workspace_llm` row that seats
+    which have never chosen start from — decision D2 of
+    PLAN-seat-setup-and-per-seat-llm.md). Before 2026-09-10 the first of these wrote the
+    workspace row AND the case session, which is how one seat's Apply flipped every seat.
 
     Only `SUPPORTED_AUTH_METHODS` are accepted, and the set is a governance control
     rather than a convenience list — see the comment on it in `models.py`:
@@ -160,12 +165,6 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     unrecognised auth_method is a 400; it used to be silently downgraded to "api_key",
     which turned a typo into an unintended backend.
     """
-    sess = None
-    if key:
-        # Best-effort: attach to the case session when it exists, but an unknown
-        # key must not block the workspace-level apply.
-        sess = sessions.get(key) or load_persisted(key)
-
     provider = (body.get("provider") or "grok").lower().strip()
     auth_method = (body.get("auth_method") or "local_llm").lower().strip()
     model = body.get("model")
@@ -212,8 +211,10 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
     # PRESENT in the body is set (blank clears it); a field ABSENT is carried over from the
     # stored workspace config, so the Haiku/Sonnet/Opus toggle — which posts only `model` —
     # cannot silently wipe a routing the reviewer chose a moment earlier. Only meaningful
-    # under the Claude CLI methods; stored as None for every other backend.
-    previous = load_global_llm()
+    # under the Claude CLI methods; stored as None for every other backend. "Previous" is
+    # the SEAT's current choice (its X-CK-LLM header rides on this very request), else the
+    # site default.
+    previous = seat_llm_config() or load_global_llm()
     for field in TASK_MODEL_FIELDS.values():
         if auth_method not in ("claude_code", "claude_agent"):
             setattr(cfg, field, None)
@@ -238,15 +239,13 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
             cfg.model = "claude-3-5-sonnet-20241022"
         # claude_code / claude_agent / grok_cli: leave model unset so the CLI's own default is used
 
-    # Remember as workspace default so future case loads keep this LLM choice
-    save_global_llm(cfg)
+    return cfg
 
-    # Also apply to the case session when one is loaded/known
-    if sess:
-        sess.llm_config = cfg
-        mark_updated(sess)
-        persist_session(sess)
 
+def _safe_llm_view(cfg: LLMConfig) -> dict:
+    """The config as the browser may see it: readiness flags, never a credential."""
+    auth_method = cfg.auth_method
+    provider = cfg.provider
     # Headless mode readiness comes from the CLI install, not a stored credential
     cli_status = check_claude_cli() if auth_method == "claude_code" else None
     grok_cli_status = check_grok_cli() if auth_method == "grok_cli" else None
@@ -273,13 +272,41 @@ async def set_llm_config(body: dict, key: Optional[str] = None):
         safe_config["grok_cli"] = grok_cli_status
     if local_llm_key_set is not None:
         safe_config["local_llm_key_set"] = local_llm_key_set
+    return safe_config
 
-    scope = "this case and the workspace default" if sess else "the workspace default"
-    result = {
-        "message": f"LLM config set for {provider} (saved for {scope}).",
-        "llm_config": safe_config,
+
+@router.post("/set_llm_config")
+@router.post("/set_llm_config/{key}")
+async def set_llm_config(body: dict, key: Optional[str] = None):
+    """THIS SEAT's LLM choice: validate and echo. Writes NOTHING server-side.
+
+    The browser stores the echoed config (localStorage) and sends it as `X-CK-LLM` on every
+    later request; `llm_config.effective_llm_config` resolves it at dispatch. The `{key}`
+    form is accepted for URL compatibility and ignored — a case is shared between seats and
+    cannot own the choice (PLAN-seat-setup-and-per-seat-llm.md §5).
+    """
+    cfg = _validated_llm_config(body)
+    return {
+        "message": f"LLM set for this seat: {cfg.provider} via {cfg.auth_method}. "
+                   f"Other seats are unaffected.",
+        "scope": "seat",
+        "llm_config": _safe_llm_view(cfg),
     }
-    if sess:
-        result["session"] = safe_session_dict(sess)   # redacts llm_config secrets
-    return result
+
+
+@router.post("/set_site_default_llm")
+async def set_site_default_llm(body: dict):
+    """The SITE default: what a seat that has never chosen starts from (decision D2).
+
+    Writes the `_workspace_llm` row. Deliberately a separate, explicit endpoint behind a
+    separate, labelled control — plain Apply never reaches it.
+    """
+    cfg = _validated_llm_config(body)
+    save_global_llm(cfg)
+    return {
+        "message": f"Site default set: {cfg.provider} via {cfg.auth_method}. Seats that have "
+                   f"chosen their own LLM keep it; new seats start here.",
+        "scope": "site_default",
+        "llm_config": _safe_llm_view(cfg),
+    }
 

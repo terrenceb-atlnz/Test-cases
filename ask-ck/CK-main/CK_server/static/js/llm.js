@@ -6,42 +6,74 @@ import { ckBrokerLoop, probeLocalAgent } from './agent.js';
 import { fmtTokens } from './llm-debug.js';
 import { llmButtonStart } from './llm-progress.js';
 import { flashButtonDone } from './dom-helpers.js';
+import { storedSeatLlm } from './session.js';
 
-async function setLLMConfig() {
-  // Case is optional: without one the config is saved as the workspace default
-  // (and copied onto cases as they load); with one it is also stored on that session.
-  const key = S.currentKey || getActiveCaseKey();
-  const model = document.getElementById('llmModel').value.trim();
+// The LLM choice is PER SEAT (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
+// applies is stored here and rides on every /api call as X-CK-LLM (session.js). The server
+// writes nothing for a plain Apply; only "Set as site default" writes the row that seats
+// which have never chosen start from.
+export function storeSeatLlm(cfg) {
+  try {
+    localStorage.setItem('draftingLLMConfig', JSON.stringify({
+      provider: cfg.provider,
+      auth_method: cfg.auth_method,
+      model: cfg.model || null,
+      unit_model: cfg.unit_model || null,
+      match_model: cfg.match_model || null,
+    }));
+  } catch (_) {}
+}
 
-  // Determine method from radio (the radios now directly select the subscription provider+mode)
-  const methodRadios = document.querySelectorAll('input[name="llmAuthMethod"]');
+// The body for set_llm_config / set_site_default_llm, read from the Configure panel.
+export function buildLLMBody(doc = document) {
+  const model = (doc.getElementById('llmModel')?.value || '').trim();
   let auth_method = 'local_llm';
-  for (let r of methodRadios) {
+  for (const r of doc.querySelectorAll('input[name="llmAuthMethod"]')) {
     if (r.checked) { auth_method = r.value; break; }
   }
-
   let provider = 'openai';   // org vLLM rides the OpenAI-compatible path
   if (auth_method === 'claude_agent' || auth_method === 'claude_code') provider = 'claude';
-
   const body = { provider, auth_method };
-  // CLI subscription modes require no credential here
   if (model) body.model = model;
-
-  if (auth_method === 'claude_agent' && !model) {
+  if ((auth_method === 'claude_agent' || auth_method === 'claude_code') && !model) {
     // Haiku/Sonnet/Opus toggle picks the model unless an explicit one was typed.
-    const cm = document.querySelector('input[name="claudeMode"]:checked');
+    const cm = doc.querySelector('input[name="claudeMode"]:checked');
     body.model = (cm && cm.value) || 'sonnet';
   }
-
+  if (auth_method === 'claude_agent' || auth_method === 'claude_code') {
+    const pick = (id) => { const el = doc.getElementById(id); return el ? (el.value || '') : ''; };
+    body.unit_model = pick('claudeUnitModel');
+    body.match_model = pick('claudeMatchModel');
+  }
   if (auth_method === 'local_llm') {
     // Fast/Thinking toggle IS the model choice for the org vLLM.
-    const mode = document.querySelector('input[name="localLlmMode"]:checked');
+    const mode = doc.querySelector('input[name="localLlmMode"]:checked');
     body.model = (mode && mode.value) || 'vllm-fast';
     // Key travels ONLY when (re-)entered; blank keeps the server-stored key.
-    const keyEl = document.getElementById('localLlmKey');
+    const keyEl = doc.getElementById('localLlmKey');
     const key = keyEl && keyEl.value.trim();
     if (key) body.local_llm_key = key;
   }
+  return body;
+}
+
+async function setSiteDefaultLLM() {
+  // Decision D2: a separate, labelled control writes the site default; Apply never does.
+  const body = buildLLMBody();
+  if (!confirm(`Set the SITE default LLM to ${body.provider} via ${body.auth_method}${body.model ? ` (${body.model})` : ''}?\n\nSeats that have chosen their own LLM keep it; seats that never chose start from this.`)) return;
+  const res = await fetch('/api/wizard/set_site_default_llm', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (data.llm_config) alert(data.message || 'Site default set.');
+  else alert('Failed to set the site default: ' + (data.detail || data.message || 'unknown'));
+}
+
+async function setLLMConfig() {
+  // THIS SEAT only. The case key is passed for URL compatibility; the server ignores it.
+  const key = S.currentKey || getActiveCaseKey();
+  const body = buildLLMBody();
+  const auth_method = body.auth_method;
 
   const url = key
     ? `/api/wizard/set_llm_config/${encodeURIComponent(key)}`
@@ -54,13 +86,9 @@ async function setLLMConfig() {
   const data = await res.json();
   if (data.llm_config) {
     if (S.currentSession) S.currentSession.llm_config = data.llm_config;
-    // Remember client-side too (survives until hard refresh; server also stores workspace default)
+    // The seat's choice lives HERE (localStorage) and rides on every request from now on.
     window.lastLLMConfig = data.llm_config;
-    try { localStorage.setItem('draftingLLMConfig', JSON.stringify({
-      provider: data.llm_config.provider,
-      auth_method: data.llm_config.auth_method,
-      model: data.llm_config.model || null
-    })); } catch (_) {}
+    storeSeatLlm(data.llm_config);
     updateLLMStatus(data.llm_config);
     if (auth_method === 'claude_agent') {
       ckBrokerLoop();  // ensure the broker is running (idempotent) so jobs get served
@@ -135,13 +163,7 @@ export async function applyLocalLlmMode() {
     if (data.llm_config) {
       if (S.currentSession) S.currentSession.llm_config = data.llm_config;
       window.lastLLMConfig = data.llm_config;
-      try {
-        localStorage.setItem('draftingLLMConfig', JSON.stringify({
-          provider: data.llm_config.provider,
-          auth_method: data.llm_config.auth_method,
-          model: data.llm_config.model || null,
-        }));
-      } catch (_) {}
+      storeSeatLlm(data.llm_config);
       updateLLMStatus(data.llm_config);
       const stateEl = document.getElementById('localLlmKeyState');
       if (stateEl) stateEl.textContent = data.llm_config.local_llm_key_set !== false ? 'key stored ✓' : '⚠ no key stored';
@@ -185,15 +207,7 @@ export async function applyClaudeMode() {
     if (data.llm_config) {
       if (S.currentSession) S.currentSession.llm_config = data.llm_config;
       window.lastLLMConfig = data.llm_config;
-      try {
-        localStorage.setItem('draftingLLMConfig', JSON.stringify({
-          provider: data.llm_config.provider,
-          auth_method: data.llm_config.auth_method,
-          model: data.llm_config.model || null,
-          unit_model: data.llm_config.unit_model || null,
-          match_model: data.llm_config.match_model || null,
-        }));
-      } catch (_) {}
+      storeSeatLlm(data.llm_config);
       updateLLMStatus(data.llm_config);
     }
   } catch (_) { /* leave prior state on a transient failure */ }
@@ -215,7 +229,10 @@ export function updateLLMStatus(config) {
   const statusEl = document.getElementById('llmStatus');
   const sidebarEl = document.getElementById('llm-status-sidebar');
 
-  let c = config || (S.currentSession && S.currentSession.llm_config) || window.lastLLMConfig || {};
+  // Source order: what was just applied, else THIS SEAT's stored choice, else the site
+  // default fetched at boot, else (legacy) whatever the case session carries.
+  const seat = storedSeatLlm();
+  let c = config || seat || window.lastLLMConfig || (S.currentSession && S.currentSession.llm_config) || {};
   c = normalizeLLMConfig(c);
   const provider = c.provider || '';
   const am = (c.auth_method || '').toLowerCase();
@@ -247,6 +264,7 @@ export function updateLLMStatus(config) {
     text = `Using ${p}${m}`;
     ok = true;
   }
+  if (text && ok) text += (seat && seat.auth_method) ? ' · this seat' : ' · site default';
 
   [statusEl, sidebarEl].forEach(el => {
     if (!el) return;
@@ -311,10 +329,14 @@ export function updateAuthMethodUI() {
 }
 
 export async function loadWorkspaceLLMConfig() {
-  // Cold-load status: fetch the persisted workspace LLM config so the status
-  // line + Configure radios reflect the real stored login (incl. whether a
-  // Local LLM key is stored) instead of "No credential" until the user
-  // re-applies. Secrets are never returned by this endpoint.
+  // Cold-load status. THIS SEAT's stored choice wins outright — it is what every request
+  // from this browser carries. Only a seat that has never chosen asks the server for the
+  // site default, so the radios and status line show what its requests will actually get.
+  // Secrets are never returned by that endpoint.
+  if (storedSeatLlm()?.auth_method) {
+    restoreLLMUI();
+    return;
+  }
   try {
     const res = await fetch('/api/wizard/llm_config');
     if (!res.ok) return;
@@ -328,18 +350,14 @@ export async function loadWorkspaceLLMConfig() {
 }
 
 export function restoreLLMUI() {
-  // Prefer active session config; fall back to last applied / localStorage
-  let c = S.currentSession && S.currentSession.llm_config;
-  const am = c && (c.auth_method || '').toLowerCase();
-  const sessionActive = c && (am === 'claude_agent' || am === 'claude_code' || am === 'local_llm' || c.api_key || c.token || c.has_key);
-  if (!sessionActive) {
-    c = window.lastLLMConfig || null;
-    if (!c) {
-      try {
-        const raw = localStorage.getItem('draftingLLMConfig');
-        if (raw) c = JSON.parse(raw);
-      } catch (_) {}
-    }
+  // THIS SEAT's stored choice first (it is what this browser's requests carry), then the
+  // site default fetched at boot, then — legacy — whatever the case session carries.
+  let c = storedSeatLlm();
+  if (!c || !c.auth_method) c = window.lastLLMConfig || null;
+  if (!c || !c.auth_method) {
+    const s = S.currentSession && S.currentSession.llm_config;
+    const am = s && (s.auth_method || '').toLowerCase();
+    if (s && (am === 'claude_agent' || am === 'claude_code' || am === 'local_llm' || s.has_key)) c = s;
   }
   if (!c || !c.provider) return;
 
@@ -443,6 +461,7 @@ export async function checkLlmHealth() {
 // Register this tool's data-action handlers.
 registerActions({
   setLLMConfig,
+  setSiteDefaultLLM,
   checkLlmHealth,
   applyClaudeMode,
 });

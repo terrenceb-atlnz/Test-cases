@@ -32,7 +32,7 @@ from llm import (
     generate_coverage_gaps,
     validate_zephyr_payload,
 )
-from llm_config import apply_workspace_llm
+from llm_config import effective_llm_config
 from session_store import mark_updated, persist_session
 from generator.gates import can_synthesize
 
@@ -113,14 +113,10 @@ async def _ensure_gaps(stored, sess_dict: dict) -> None:
     Gaps belong in Traceability and are LLM-generated at objective synthesis/export, not
     collected as a Step 3 form field.
     """
-    # Apply the workspace LLM at dispatch time so the coverage-gaps call uses the
-    # configured backend, not the default. (`stored` is always the authoritative server
-    # session now — never req.session.)
-    if hasattr(stored, "llm_config") and apply_workspace_llm(stored):
-        mark_updated(stored)
-        persist_session(stored)
-        sess_dict["llm_config"] = model_to_dict(stored.llm_config)
-    llm_cfg = sess_dict.get("llm_config", {})
+    # The coverage-gaps call uses the requesting SEAT's backend (X-CK-LLM), else the site
+    # default — resolved at dispatch, never written onto the session. (`stored` is always
+    # the authoritative server session now — never req.session.)
+    llm_cfg = effective_llm_config(stored)
     if (sess_dict.get("gaps") or "").strip():
         return
     # Run the (blocking) LLM call off the event loop so the agent-bridge long-poll

@@ -26,6 +26,15 @@
 > Windows seat (memory `demo-windows-seat`). §6 is a **complete removal** of server-side
 > Claude, code and current-state docs alike — see the D3 row for scope.
 >
+> **Execution 2026-09-10 (evening, autonomous on Terrence's instruction "execute the
+> entirety of the plan"):** §3 + §4 SHIPPED (`277fbfc`, `a541495`, `2704ce7`; Ubuntu seat
+> verified live on this host, Windows seat NOT yet — §9 remains for the demo seat). §5
+> SHIPPED (per-seat via `X-CK-LLM`, `set_site_default_llm`, `apply_workspace_llm` removed;
+> see §5 "as built"). §6 executed **ahead of the Windows demo** because the instruction was
+> the entire plan — it is its own commit so `git revert` restores server-side Claude if the
+> demo ever needs it, and nothing Terrence relies on today depends on it (his own agent on
+> this host is `claude_agent`). Decisions that surfaced during execution: §8b.
+>
 > Authority for the agent's CLI invocation stays
 > `PLAN-per-user-agent.md` + memory `claude-code-cli-transport-contract`; the backend
 > allowlist stays a governance control (`models.SUPPORTED_AUTH_METHODS`,
@@ -276,6 +285,24 @@ PS side is verified by the manual checklist in §9 only (Terrence's stated prefe
 manual UI testing — memory `user-prefers-manual-ui-testing`). Decision D5.
 
 ## 5. Per-seat LLM mode
+
+> **As built 2026-09-10 (D1-A, D2).** `llm_config.py`: `SEAT_LLM_HEADER = "X-CK-LLM"`,
+> `current_seat_llm` ContextVar, `parse_seat_llm` (allowlist-validated; retired methods
+> named as retired; routing aliases normalised), `seat_llm_config`,
+> **`effective_llm_config(sess)`** = seat → site default → session copy → `{}`, never
+> writes a session. `apply_workspace_llm` is **deleted**; both routers' one-line wrappers
+> (`_session_llm_cfg`, `_llm_cfg`) and `export._ensure_gaps` call the new resolver;
+> `cfg_for_task` reads routing from the seat when present (a seat's "same" never falls back
+> to the site default's alias). `main.py` middleware 400s a bad header and binds it.
+> `set_llm_config` (with or without `{key}`) validates and echoes, **writes nothing**;
+> new `POST /api/wizard/set_site_default_llm` is the only writer of `_workspace_llm`;
+> `GET llm_config` and `llm_health` say/serve `scope: site_default` / the seat's backend.
+> Browser: `session.js` sends the header from `localStorage.draftingLLMConfig` on every
+> `/api` call (never to the agent or foreign hosts); `llm.js` stores routing fields too,
+> prefers the seat's stored choice over the case session everywhere, shows "· this seat" /
+> "· site default", and has a separate **Set as site default** button (confirm dialog).
+> Tests: `tests/test_per_seat_llm.py` (15), decoupling + routing pins re-homed,
+> `js-tests/seat-llm-header.spec.js` (8). Gate 1473 / vitest 274.
 
 **Design (recommended, D1-A):** the seat's choice rides with every request. `llm.js` already
 holds it in `localStorage`; the `fetch` patch that adds `X-CK-Session` adds
