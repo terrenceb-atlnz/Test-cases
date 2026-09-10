@@ -286,7 +286,7 @@ hosts, not of the "(this server)" mode. Three layers, each covering what the oth
    `askck-lan-hosting`). Deleted with the retirement in §6, at which point this host is
    just another seat covered by layers 1 and 2.
 
-Not the gate and not `/orient`: both are meant to stay deterministic and offline, and an
+Not the gate and not `/orient-ck`: both are meant to stay deterministic and offline, and an
 update check reaches the network.
 
 **Testing.** `tests/test_ck_agent_transport.py` already pins the Python agent against the

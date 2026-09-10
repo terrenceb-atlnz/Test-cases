@@ -1,16 +1,16 @@
 ---
 name: commit-and-push-on-session-end
-description: "During the end-of-session doc-sync (the /wrap skill), Claude SHOULD commit AND push to main — don't wait for Terrence"
+description: "During the end-of-session doc-sync (the /wrap-ck skill), Claude SHOULD commit AND push to main — don't wait for Terrence"
 metadata: 
   node_type: memory
   type: feedback
-  verified: 2026-09-10
+  verified: 2026-09-11
   originSessionId: fd3dcdc4-34c2-4084-99e5-a506a9647de6
   modified: 2026-07-28T20:28:39.197Z
 ---
 
-When running the **end-of-session doc-sync flow** — now the **`/wrap` skill**
-(`.claude/skills/wrap/SKILL.md`); the old `END_OF_SESSION_PROMPT.md` no longer exists —
+When running the **end-of-session doc-sync flow** — now the **`/wrap-ck` skill**
+(`.claude/skills/wrap-ck/SKILL.md`); the old `END_OF_SESSION_PROMPT.md` no longer exists —
 Claude should **commit the changes and push to `main`** as the final step — do not stop at
 "leaving the commit to you."
 

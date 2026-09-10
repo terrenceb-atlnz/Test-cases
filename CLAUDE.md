@@ -4,8 +4,8 @@ Server-backed workbench that turns sparse manual test cases into refined Zephyr 
 into runnable Allied Telesis `framework` test scripts. FastAPI backend at
 `ask-ck/CK-main/CK_server/`, browser-native ES modules in `static/js/`, all corpora in SQLite.
 
-**Start a session with `/orient`** — it ground-truths the repo, reads the newest handoff, and
-briefs you. **End with `/wrap`.** Both live in `.claude/skills/`. Don't reimplement what they do.
+**Start a session with `/orient-ck`** — it ground-truths the repo, reads the newest handoff, and
+briefs you. **End with `/wrap-ck`.** Both live in `.claude/skills/`. Don't reimplement what they do.
 
 ## How we work — Terrence's words, 2026-08-05
 
@@ -91,14 +91,14 @@ Memories live **in this repo** at `.claude/memory/`, with `MEMORY.md` as the ind
 the session starts in — before 2026-07-30 there were two stores keyed on the launch directory
 and each was invisible to the other. Consequences:
 
-- Memory edits show up in `git status`; `/wrap` commits them. That is intended.
+- Memory edits show up in `git status`; `/wrap-ck` commits them. That is intended.
 - **Never put a credential in a memory** — this directory is pushed. `secrets.md` (gitignored)
   is where lab/API credentials belong.
 - The links are **absolute paths**, so they die when the tree moves — and the harness then
   silently creates an empty directory in their place. That happened with the `copilot/` →
   `claude/` move: every session from 2026-08-17 to 2026-09-04 ran with **no** auto-loaded
   memories. `tool/check_memory_links.py` detects it (any slug, any state); `--fix` re-points
-  links and never deletes content. `/orient` and `/wrap` both run it. If `~/.claude` is ever
+  links and never deletes content. `/orient-ck` and `/wrap-ck` both run it. If `~/.claude` is ever
   wiped, or `MEMORY.md` is absent from a session's starting context, run it — don't re-write
   memories.
 

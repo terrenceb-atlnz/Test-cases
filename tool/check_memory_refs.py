@@ -16,7 +16,7 @@ worse than useless. The same day, three documents claimed per-case locking was
 unbuilt and the two-tab overwrite bug was "live today". `locks.py` existed and had
 since 2026-07-29. Nothing was missing; a *sentence* had stopped being true. That is
 semantic, and only a reader who knows the subsystem catches it — which is why
-`/wrap` §5 asks you to re-verify the memories you actually relied on this session.
+`/wrap-ck` §5 asks you to re-verify the memories you actually relied on this session.
 This script is the cheap mechanical half, not the whole job.
 
 WHY IT IS ADVISORY, NOT PART OF THE GATE
@@ -26,7 +26,7 @@ Memories legitimately name files on other machines (the read-only `framework` tr
 testboxes), files deliberately deleted and cited AS history, artifact names as
 deployed rather than as stored, and proposals that were reverted before shipping. A
 blocking check with that signal-to-noise trains everyone to ignore it — the exact
-failure `tests/_prose.py` was written to prevent. So: `/wrap` runs it, a human reads
+failure `tests/_prose.py` was written to prevent. So: `/wrap-ck` runs it, a human reads
 it, and it is deliberately NOT in `tool/run_tests.sh`. Memory rot misleads a future
 session; it does not break the software.
 
@@ -157,7 +157,7 @@ def _skip_reason(tok: str) -> str | None:
 def scan(verbose: bool = False) -> int:
     if not MEM_DIR.is_dir():
         print(f"!! no memory directory at {MEM_DIR}", file=sys.stderr)
-        print("   ~/.claude/projects/*/memory should symlink to it — see /orient §4.",
+        print("   ~/.claude/projects/*/memory should symlink to it — see /orient-ck §4.",
               file=sys.stderr)
         return 1
 

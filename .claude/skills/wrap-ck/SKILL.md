@@ -1,11 +1,11 @@
 ---
-name: wrap
-description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit and push to main. Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient, which establishes state at the start of the session.
+name: wrap-ck
+description: Close out an Ask-CK session — reconcile the docs against what actually shipped, sweep for staleness, confirm the gate and invariants, then commit and push to main. Use at the end of a work session, or when asked to "sync the docs", "wrap up", "close the loop", or to record what shipped before finishing. Pairs with /orient-ck, which establishes state at the start of the session.
 ---
 
 # Wrap (Ask-CK)
 
-Make the documentation match reality, then commit and push. Pairs with `/orient`, which reads
+Make the documentation match reality, then commit and push. Pairs with `/orient-ck`, which reads
 these same locations at the start of a session — same doc map both directions, so the docs are
 the trusted handoff between sessions, never memory.
 
@@ -79,7 +79,7 @@ deleting. Any doc describing a retired pipeline or deleted file must carry a
 ## 5. Memory — reconcile only durable facts
 
 ```bash
-./tool/check_memory_links.py    # BEFORE writing any memory — see /orient §4 for what it catches
+./tool/check_memory_links.py    # BEFORE writing any memory — see /orient-ck §4 for what it catches
 ls .claude/memory/*.md          # the directory IS the list (in-repo since 2026-07-30)
 ```
 

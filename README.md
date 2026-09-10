@@ -227,10 +227,10 @@ Test-cases/
 | [`ask-ck/objective-drafting/LESSONS_LEARNED.md`](ask-ck/objective-drafting/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`resources.md`](resources.md) | Links to TestLink, Zephyr, ART |
 
-**Session workflow:** run **`/orient`** at the start of a working session and **`/wrap`** at
-the end — project skills in [`.claude/skills/`](.claude/skills/). `/orient` ground-truths the
+**Session workflow:** run **`/orient-ck`** at the start of a working session and **`/wrap-ck`** at
+the end — project skills in [`.claude/skills/`](.claude/skills/). `/orient-ck` ground-truths the
 live repo (git, guards, gate), reads the newest handoff, and confirms the invariants before
-any work begins; `/wrap` reconciles the docs against what actually shipped and commits. Both
+any work begins; `/wrap-ck` reconciles the docs against what actually shipped and commits. Both
 are plain Markdown with no tool-specific syntax — paste a `SKILL.md` body into any other
 assistant if you are not using Claude Code.
 

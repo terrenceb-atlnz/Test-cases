@@ -13,8 +13,8 @@ The links are absolute paths. When the tree moved from `…/copilot/Test-cases` 
 `…/claude/Test-cases` (some time before 2026-08-17) every link died, and the new slug
 had no entry at all — so the harness quietly created an EMPTY REAL DIRECTORY there.
 From 2026-08-17 to 2026-09-04 every session ran with zero auto-loaded memories. Nobody
-noticed, because `/orient` §4 checked `ls .claude/memory/*.md` — the REPO side, which
-was fine — and never the harness side. `/orient` then read `MEMORY.md` by hand, which
+noticed, because `/orient-ck` §4 checked `ls .claude/memory/*.md` — the REPO side, which
+was fine — and never the harness side. `/orient-ck` then read `MEMORY.md` by hand, which
 hid the symptom. Any memory written through the harness in that window would have
 landed in the empty directory, uncommitted and invisible to the next session.
 
@@ -33,7 +33,7 @@ For EVERY slug under `~/.claude/projects/`: no dead symlinks, no real directory 
 left alone: merge those files into `.claude/memory/` by hand, then run `--fix` again.
 
 Deliberately NOT in `tool/run_tests.sh`: it inspects the developer's home directory,
-not the repo, and the gate must stay a statement about the repo. `/orient` and `/wrap`
+not the repo, and the gate must stay a statement about the repo. `/orient-ck` and `/wrap-ck`
 run it.
 """
 from __future__ import annotations

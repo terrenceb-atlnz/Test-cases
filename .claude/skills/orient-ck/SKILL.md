@@ -1,6 +1,6 @@
 ---
-name: orient
-description: Orient at the start of an Ask-CK session — ground-truth the live repo, read the newest handoff, confirm the invariants, and brief the user on what priorities remain. Use at session start, or whenever asked "where are we", "what's pending", "what priorities remain", or to get up to speed before touching the project. Pairs with /wrap, which closes the loop at the end of the session.
+name: orient-ck
+description: Orient at the start of an Ask-CK session — ground-truth the live repo, read the newest handoff, confirm the invariants, and brief the user on what priorities remain. Use at session start, or whenever asked "where are we", "what's pending", "what priorities remain", or to get up to speed before touching the project. Pairs with /wrap-ck, which closes the loop at the end of the session.
 ---
 
 # Orient (Ask-CK)
@@ -123,7 +123,7 @@ confirm that still exists.
 ### How fresh is what you are about to trust?
 
 A memory claims to be **current truth**, which is exactly what makes a stale one dangerous — it
-misleads with authority, where a stale `SESSION_STATE.md` entry is obviously history. `/wrap`
+misleads with authority, where a stale `SESSION_STATE.md` entry is obviously history. `/wrap-ck`
 §5a stamps `verified: YYYY-MM-DD` in the frontmatter of any memory a session actually
 re-checked against the code. Before leaning on one, look:
 
@@ -181,4 +181,4 @@ Keep it dense and skimmable. Use clickable relative paths (`[PROGRESS.md](ask-ck
 - **(e) Anything uncommitted, or any drift from `origin/main`** — the tree is shared with
   another stream, so `git status` has a short shelf life. Re-check it before claiming clean.
 
-Then wait. Close the loop at the end of the session with `/wrap`.
+Then wait. Close the loop at the end of the session with `/wrap-ck`.
