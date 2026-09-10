@@ -479,6 +479,21 @@ each is in the last column, marked *Resolved*.
 > "update skipped: job in flight (1)" appeared during a live call (step 3b ✔). Step 6 (reboot)
 > not run — autostart was declined. Terrence's raw notes and the failure screenshot:
 > `ask-ck/ck-facelift/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
+>
+> **Second seat, 09:25–09:32 (10.33.22.18, fresh browser, autostart = yes).** With the fixes
+> above served: setup fetched 09:26:22, agent 09:27:45, **the page opened itself with
+> `?seat-check=1` at 09:27:58** (#2 confirmed fixed); **generate_units on T33233 → 10/10 units
+> ok on `claude_agent`/sonnet** (setup unit ~20 s alone, then the fan-out; #1 confirmed fixed);
+> assemble_script 09:31:33; re-run 09:32:13 → page opened again (idempotent). No notice shown
+> (fresh seat, nothing retired to drop — as designed).
+> **Finding #5 — autostart asked on every run, on both seats:** PowerShell variable names are
+> case-insensitive. `$Conf` (the conf path) and `$conf` (the parsed hashtable) were one
+> variable, so `Write-Conf` wrote a file literally named `System.Collections.Hashtable` in the
+> current directory and `ck-agent.conf` never existed — the answer was remembered nowhere, and a
+> logon-task agent would have started without origin/port (CORS `*`, port 8765 defaults). **Fix:**
+> the path is `$ConfPath`; a structural pin in `tests/test_ck_agent_transport.py` forbids two
+> spellings of one variable name in either script. Seats that ran the old script have a stray
+> `System.Collections.Hashtable` file in the folder the one-liner was run from — safe to delete.
 
 On a Windows seat with no Claude installed, from a fresh browser profile:
 1. Open Ask-CK, copy the Windows one-liner, run it. Expect Install → installer runs → PATH

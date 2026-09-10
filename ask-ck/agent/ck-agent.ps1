@@ -413,14 +413,16 @@ if ($FailureDetail) {
   exit 0
 }
 
-# Shared, thread-safe state for the listener and its workers.
-$State = [hashtable]::Synchronized(@{
+# Shared, thread-safe state for the listener and its workers. Named apart from the library
+# functions' `$state` parameter on purpose: PowerShell variable names are case-insensitive,
+# and one spelling per name is the rule (see the pin in tests/test_ck_agent_transport.py).
+$AgentState = [hashtable]::Synchronized(@{
   running    = [hashtable]::Synchronized(@{})   # job_id -> Process (and __killed__<id> markers)
   status     = [hashtable]::Synchronized(@{})   # cli status cache
   lastUpdate = [hashtable]::Synchronized(@{})
 })
 
-if ($Health) { Get-HealthPayload $State | ConvertTo-Json -Compress; exit 0 }
+if ($Health) { Get-HealthPayload $AgentState | ConvertTo-Json -Compress; exit 0 }
 
 # ck-agent.conf beside this file (written by the seat setup script): origin=, port=. The
 # environment wins when set; the conf carries the settings into a Windows logon task,
@@ -440,8 +442,8 @@ try {
     Move-Item -LiteralPath $LogPath -Destination "$LogPath.1" -Force
   }
 } catch { }
-$State['logPath'] = $LogPath
-function Say([string]$msg) { Write-Host $msg; Write-AgentLog $msg $State }
+$AgentState['logPath'] = $LogPath
+function Say([string]$msg) { Write-Host $msg; Write-AgentLog $msg $AgentState }
 
 $Port = [int]($(if ($env:CK_AGENT_PORT) { $env:CK_AGENT_PORT } elseif ($Conf.ContainsKey('port') -and $Conf['port']) { $Conf['port'] } else { 8765 }))
 $AllowedOrigin = $(if ($env:CK_AGENT_ORIGIN) { $env:CK_AGENT_ORIGIN } elseif ($Conf.ContainsKey('origin') -and $Conf['origin']) { $Conf['origin'] } else { '*' })
@@ -463,7 +465,7 @@ function Send-Json($ctx, [int]$code, $payload) {
 
 # Worker: runs a POST body handler in its own runspace so the listener keeps answering.
 $WorkerScript = @"
-param(`$ctx, `$State, `$route, `$body, `$AllowedOrigin, `$Port)
+param(`$ctx, `$AgentState, `$route, `$body, `$AllowedOrigin, `$Port)
 . ([scriptblock]::Create(@'
 $LibText
 '@))
@@ -483,8 +485,8 @@ function Send-Json(`$ctx, [int]`$code, `$payload) {
 }
 try {
   if (`$route -eq '/update') {
-    `$r = Invoke-ClaudeUpdate (Find-Claude) `$State
-    `$r['health'] = Get-HealthPayload `$State
+    `$r = Invoke-ClaudeUpdate (Find-Claude) `$AgentState
+    `$r['health'] = Get-HealthPayload `$AgentState
     Send-Json `$ctx 200 `$r
   } else {
     `$prompt = [string]`$body.prompt
@@ -492,11 +494,11 @@ try {
     `$timeout = `$(if (`$body.PSObject.Properties['timeout'] -and `$body.timeout) { [int]`$body.timeout } else { `$script:DEFAULT_TIMEOUT })
     `$jobId = `$(if (`$body.PSObject.Properties['job_id']) { [string]`$body.job_id } else { '' })
     `$system = `$(if (`$body.PSObject.Properties['system']) { [string]`$body.system } else { '' })
-    `$r = Invoke-Claude `$prompt `$model `$timeout `$jobId `$system `$State
+    `$r = Invoke-Claude `$prompt `$model `$timeout `$jobId `$system `$AgentState
     Send-Json `$ctx 200 `$r
   }
 } catch {
-  Write-AgentLog "ERROR worker `$route : `$_" `$State
+  Write-AgentLog "ERROR worker `$route : `$_" `$AgentState
   try { Send-Json `$ctx 200 @{ content = "ERROR: `$_"; error = `$true } } catch { }
 }
 "@
@@ -508,7 +510,7 @@ $Workers = New-Object System.Collections.ArrayList
 function Start-Worker($ctx, $route, $body) {
   $ps = [powershell]::Create()
   $ps.RunspacePool = $Pool
-  [void]$ps.AddScript($WorkerScript).AddArgument($ctx).AddArgument($State).AddArgument($route).AddArgument($body).AddArgument($AllowedOrigin).AddArgument($Port)
+  [void]$ps.AddScript($WorkerScript).AddArgument($ctx).AddArgument($AgentState).AddArgument($route).AddArgument($body).AddArgument($AllowedOrigin).AddArgument($Port)
   $handle = $ps.BeginInvoke()
   [void]$Workers.Add(@{ ps = $ps; handle = $handle })
   # Reap finished workers.
@@ -522,12 +524,12 @@ if ($cliNow) {
   if ($env:CK_AGENT_UPDATE_ON_START -eq '0') { Say '  claude update: skipped (CK_AGENT_UPDATE_ON_START=0)' }
   else {
     Say '  claude update: checking...'
-    $u = Invoke-ClaudeUpdate $cliNow $State
+    $u = Invoke-ClaudeUpdate $cliNow $AgentState
     if ($u.ContainsKey('error')) { Say "  claude update: FAILED - $($u.error) (continuing with $($u.from))" }
     elseif ($u.updated) { Say "  claude update: $($u.from) -> $($u.to)" }
     else { Say "  claude update: up to date ($($u.to))" }
   }
-  $st = Get-CliStatus $cliNow $State.status
+  $st = Get-CliStatus $cliNow $AgentState.status
   Say "  claude login: $(if ($st.logged_in) { "yes ($($st.org))" } else { 'NO - run: claude auth login' })"
 }
 Say "  CORS origin: $AllowedOrigin"
@@ -559,7 +561,7 @@ try {
         continue
       }
       if ($req.HttpMethod -eq 'GET') {
-        if ($route -eq '/health') { Send-Json $ctx 200 (Get-HealthPayload $State) } else { Send-Json $ctx 404 @{ error = 'not found' } }
+        if ($route -eq '/health') { Send-Json $ctx 200 (Get-HealthPayload $AgentState) } else { Send-Json $ctx 404 @{ error = 'not found' } }
         continue
       }
       if ($req.HttpMethod -ne 'POST' -or $route -notin @('/run', '/cancel', '/update', '/shutdown')) {
@@ -579,12 +581,12 @@ try {
       switch ($route) {
         '/cancel' {
           $jid = $(if ($body.PSObject.Properties['job_id']) { [string]$body.job_id } else { '' })
-          $killed = Stop-AgentJob $jid $State
-          Write-AgentLog "cancel $jid -> killed=$killed" $State
+          $killed = Stop-AgentJob $jid $AgentState
+          Write-AgentLog "cancel $jid -> killed=$killed" $AgentState
           Send-Json $ctx 200 @{ ok = $true; killed = $killed }
         }
         '/shutdown' {
-          Write-AgentLog "shutdown requested by $($req.RemoteEndPoint)" $State
+          Write-AgentLog "shutdown requested by $($req.RemoteEndPoint)" $AgentState
           Send-Json $ctx 200 @{ ok = $true; agent_version = $script:AGENT_VERSION; stopping = $true }
           $Stopping = $true
         }
@@ -597,7 +599,7 @@ try {
         '/update' { Start-Worker $ctx '/update' $body }
       }
     } catch {
-      Write-AgentLog "ERROR handling $route : $_" $State
+      Write-AgentLog "ERROR handling $route : $_" $AgentState
       try { Send-Json $ctx 500 @{ content = "ERROR: $_"; error = $true } } catch { }
     }
   }

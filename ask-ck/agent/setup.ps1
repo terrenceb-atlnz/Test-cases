@@ -30,7 +30,9 @@ $AgentPort = if ($env:CK_AGENT_PORT) { [int]$env:CK_AGENT_PORT } else { 8765 }
 $AgentUrl = "http://127.0.0.1:$AgentPort"
 $AgentDir = Join-Path $env:LOCALAPPDATA 'ck-agent'
 $AgentFile = Join-Path $AgentDir 'ck-agent.ps1'
-$Conf = Join-Path $AgentDir 'ck-agent.conf'
+# NB: PowerShell variable names are case-insensitive — this must not share a name with the
+# parsed hashtable below ($conf). It did, and the conf was never written (demo 2026-09-11).
+$ConfPath = Join-Path $AgentDir 'ck-agent.conf'
 $InstallDir = Join-Path $env:USERPROFILE '.local\bin'
 $TaskName = 'Ask CK agent (ck-agent)'
 
@@ -121,8 +123,8 @@ function Get-Health {
 }
 function Read-Conf {
   $h = @{}
-  if (Test-Path -LiteralPath $Conf) {
-    foreach ($line in Get-Content -LiteralPath $Conf) {
+  if (Test-Path -LiteralPath $ConfPath) {
+    foreach ($line in Get-Content -LiteralPath $ConfPath) {
       if ($line -match '^\s*([A-Za-z_]+)\s*=\s*(.*?)\s*$') { $h[$Matches[1]] = $Matches[2] }
     }
   }
@@ -130,7 +132,7 @@ function Read-Conf {
 }
 function Write-Conf($h) {
   $lines = foreach ($k in ($h.Keys | Sort-Object)) { "$k=$($h[$k])" }
-  Set-Content -LiteralPath $Conf -Value $lines -Encoding ASCII
+  Set-Content -LiteralPath $ConfPath -Value $lines -Encoding ASCII
 }
 
 try { $manifest = Invoke-RestMethod -Uri "$CK_SERVER/setup/manifest.json" -TimeoutSec 15 -UseBasicParsing }

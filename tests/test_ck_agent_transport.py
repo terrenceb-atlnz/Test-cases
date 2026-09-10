@@ -488,3 +488,26 @@ def test_the_powershell_agent_writes_agent_log_beside_itself(tmp_path):
     assert f"starting on http://127.0.0.1:{port}" in log, log
     assert "listening." in log and "cancel nope -> killed=False" in log, log
     assert "shutdown requested by" in log and lines[-1].endswith("ck-agent stopped."), log
+
+
+@pytest.mark.parametrize("script", ["setup.ps1", "ck-agent.ps1"])
+def test_powershell_scripts_never_reuse_a_variable_name_in_a_different_case(script):
+    """PowerShell variable names are CASE-INSENSITIVE: `$Conf` and `$conf` are one variable.
+
+    Windows demo 2026-09-11, second seat: setup.ps1 held the conf PATH in `$Conf` and the parsed
+    hashtable in `$conf`, so Write-Conf wrote to a file literally named
+    'System.Collections.Hashtable' in the current directory, ck-agent.conf never existed, and
+    the autostart question was asked on every run (the answer was "remembered" nowhere). The
+    gate cannot run setup.ps1, so pin the class: within a script, every spelling of a variable
+    name must be identical.
+    """
+    import re as _re
+    src = (_REPO / "ask-ck" / "agent" / script).read_text(encoding="utf-8")
+    # Strip comments; keep strings (a "$var" inside a string is still the variable).
+    code = "\n".join(ln.split("#", 1)[0] if not ln.lstrip().startswith("#") else "" for ln in src.splitlines())
+    names = set(_re.findall(r"(?<![`$])\$(?!env:|script:|_\b|\$)([A-Za-z_][A-Za-z0-9_]*)", code))
+    by_lower = {}
+    for n in names:
+        by_lower.setdefault(n.lower(), set()).add(n)
+    clashes = {k: sorted(v) for k, v in by_lower.items() if len(v) > 1}
+    assert not clashes, f"{script}: variables that differ only by case (they are the SAME variable): {clashes}"
