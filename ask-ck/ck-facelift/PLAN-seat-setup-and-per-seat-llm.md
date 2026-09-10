@@ -458,7 +458,27 @@ each is in the last column, marked *Resolved*.
 > `--system-prompt`; Windows caps a command line at 32,767 chars. Linux allows 128 KiB per
 > argument, so the Ubuntu agent never saw it. **Fix:** the Windows agent writes the steer to a
 > temp file and passes `--system-prompt-file` (verified on CLI 2.1.267 with a real call);
-> pinned in `tests/test_ck_agent_transport.py`. Terrence's seat notes: see PROGRESS.md.
+> pinned in `tests/test_ck_agent_transport.py`.
+> **Finding #2 — the script died after two ✔:** answering "n" to autostart runs `schtasks /Query`
+> on a task that does not exist; it writes to stderr, and under PowerShell 5.1 with
+> `$ErrorActionPreference = 'Stop'` a redirected stderr line is a *terminating*
+> `NativeCommandError`. The agent had already started (so the page's check was green) but the
+> Agent ✔, the final health wait and the page open never ran. **Fix:** `Invoke-Native` runs
+> natives with `Continue` and judges by exit code.
+> **Finding #3 — the splash Copy buttons did nothing:** `navigator.clipboard` exists only in a
+> secure context, and Ask CK is plain http on a LAN address, so it is undefined on every real
+> seat; the fallback selected the text silently. **Fix:** `execCommand('copy')` with feedback.
+> **Finding #4 — LLM → Configure read "No credential" after loading a case:** both demo cases'
+> stored `llm_config` still name `claude_code`, and `load_case` fed that copy to the status
+> line. **Fix:** the status line shows only what the seat's requests will use (seat → site
+> default). The one-time notice (§11.3) rendered as designed on the same screen.
+> **Not bugs, explained:** `claude --version` "not recognised" before the script = demo-day
+> failure #1 exactly (the CLI was at `~\.local\bin`, off PATH; the script fixed PATH and
+> reported 2.1.267 with no install step). No login prompt on the first run = the CLI's stored
+> credentials survived; `claude auth logout` + re-run then prompted and passed (step 3 ✔).
+> "update skipped: job in flight (1)" appeared during a live call (step 3b ✔). Step 6 (reboot)
+> not run — autostart was declined. Terrence's raw notes: `new1.txt` / `new1.png` (repo root,
+> untracked at the time of writing).
 
 On a Windows seat with no Claude installed, from a fresh browser profile:
 1. Open Ask-CK, copy the Windows one-liner, run it. Expect Install → installer runs → PATH

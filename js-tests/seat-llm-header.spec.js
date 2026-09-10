@@ -96,6 +96,13 @@ describe('llm.js stores what the header needs (structural)', () => {
     const apply = LLM_SRC.slice(LLM_SRC.indexOf('async function setLLMConfig'));
     expect(apply.slice(0, apply.indexOf('\n}\n'))).toContain('/api/wizard/set_llm_config');
   });
+  it('loading a case never feeds the case\'s stored llm_config to the status line', () => {
+    // Windows demo 2026-09-11: both demo cases carried a retired `claude_code` copy and the
+    // status read "No credential" while requests were about to run on the site default.
+    const gen = readFileSync(resolve(HERE, '../ask-ck/CK-main/CK_server/static/js/generator.js'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    expect(gen).not.toMatch(/updateLLMStatus\(\s*normalizeLLMConfig\(\s*S\.currentSession/);
+  });
   it('the seat\'s stored choice is preferred over the case session when restoring the UI', () => {
     const fn = LLM_SRC.slice(LLM_SRC.indexOf('export function restoreLLMUI'));
     const body = fn.slice(0, fn.indexOf('\n}\n'));

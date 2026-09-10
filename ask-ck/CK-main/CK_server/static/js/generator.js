@@ -85,9 +85,12 @@ async function loadCase() {
     });
 
     updateUI();
-    // Session may include workspace LLM carried over from last Apply / Login
+    // The status line says what THIS SEAT's requests will use (seat → site default), never
+    // the case's stored copy: a case is shared between seats and its copy can name a retired
+    // backend — both demo cases carried `claude_code`, which rendered "No credential" on the
+    // Windows seat (2026-09-11) although every request was about to run on the site default.
     restoreLLMUI();
-    updateLLMStatus(normalizeLLMConfig(S.currentSession && S.currentSession.llm_config));
+    updateLLMStatus();
 
     // Restore synthesis views after reload
     renderObjectiveResult();

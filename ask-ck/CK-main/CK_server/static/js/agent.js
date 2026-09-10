@@ -365,12 +365,25 @@ async function copySeatSetup(ev) {
   const id = btn && btn.dataset ? btn.dataset.target : '';
   const el = id ? document.getElementById(id) : null;
   if (!el) return;
+  const flash = (text) => { const old = btn.textContent; btn.textContent = text; setTimeout(() => { btn.textContent = old; }, 2000); };
+  // navigator.clipboard exists only in a SECURE context. Ask CK is served over plain http from
+  // a LAN address, so on every real seat it is undefined and the old fallback merely selected
+  // the text with no feedback — "Copy button doesn't work" (Windows demo, 2026-09-11). The
+  // legacy execCommand('copy') still works on http for a user-initiated click.
   try {
-    await navigator.clipboard.writeText(el.textContent);
-    const old = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = old; }, 1500);
-  } catch (_) {
-    // Clipboard blocked (non-secure context): select the text so Ctrl+C works.
-    try { const r = document.createRange(); r.selectNodeContents(el); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (_e) {}
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(el.textContent);
+      flash('Copied');
+      return;
+    }
+  } catch (_) { /* fall through to the legacy path */ }
+  try {
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    const ok = document.execCommand && document.execCommand('copy');
+    flash(ok ? 'Copied' : 'Selected — press Ctrl+C');
+  } catch (_e) {
+    flash('Select the line and press Ctrl+C');
   }
 }
 

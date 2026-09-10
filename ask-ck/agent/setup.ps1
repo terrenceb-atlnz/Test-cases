@@ -179,15 +179,27 @@ function Start-Agent {
   # stderr to agent.err: a script that fails to PARSE never reaches its own agent.log.
   Start-Process -FilePath 'powershell.exe' -ArgumentList $agentArgs -WindowStyle Hidden -WorkingDirectory $AgentDir -RedirectStandardError (Join-Path $AgentDir 'agent.err') | Out-Null
 }
+function Invoke-Native([string]$exe, [string[]]$argv) {
+  # PowerShell 5.1 with $ErrorActionPreference = 'Stop': a native command's stderr line becomes
+  # a TERMINATING NativeCommandError the moment stderr is redirected. schtasks /Query writes
+  # "The system cannot find the file specified." to stderr for a task that was never registered,
+  # which is the normal state of a seat that answered "n" — the 2026-09-11 seat run died right
+  # there, after the agent had started and before the final check and the page open. Run
+  # natives with Continue and judge by exit code only.
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { $null = & $exe @argv 2>&1; return $LASTEXITCODE } finally { $ErrorActionPreference = $prev }
+}
 function Register-Autostart {
   # Per-user task at logon, no admin. The agent reads origin/port from ck-agent.conf when
   # the environment does not carry them, so the task needs no environment of its own.
-  & schtasks.exe /Create /F /SC ONLOGON /TN "$TaskName" /TR "powershell.exe $agentArgs" 2>&1 | Out-Null
-  if ($LASTEXITCODE -eq 0) { Note 'Agent registered to start at logon (Task Scheduler).' } else { Note 'Could not register the logon task (schtasks failed); the agent is running for this session.' }
+  $rc = Invoke-Native 'schtasks.exe' @('/Create', '/F', '/SC', 'ONLOGON', '/TN', "$TaskName", '/TR', "powershell.exe $agentArgs")
+  if ($rc -eq 0) { Note 'Agent registered to start at logon (Task Scheduler).' } else { Note "Could not register the logon task (schtasks exited $rc); the agent is running for this session." }
 }
 function Unregister-Autostart {
-  & schtasks.exe /Query /TN "$TaskName" 2>$null | Out-Null
-  if ($LASTEXITCODE -eq 0) { & schtasks.exe /Delete /F /TN "$TaskName" 2>&1 | Out-Null }
+  if ((Invoke-Native 'schtasks.exe' @('/Query', '/TN', "$TaskName")) -eq 0) {
+    [void](Invoke-Native 'schtasks.exe' @('/Delete', '/F', '/TN', "$TaskName"))
+  }
 }
 function Stop-RunningAgent {
   try { Invoke-RestMethod -Uri "$AgentUrl/shutdown" -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 5 -UseBasicParsing | Out-Null } catch { }
