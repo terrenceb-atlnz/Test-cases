@@ -169,7 +169,7 @@ Bootloader and Other.
 
 Pick a backend first under **LLM → Configure** — most tools need it: **Local LLM** (org vLLM,
 default; Fast/Thinking toggle, Health check button), **Claude Code CLI** (per-user local
-agent, Haiku/Sonnet/Opus selector, reports tokens + cost), or **Grok CLI**. Every LLM panel
+agent, Haiku/Sonnet/Opus selector, reports tokens + cost). Every LLM panel
 exposes a **Provenance** block that copies the exact prompt, or re-renders it live without
 sending (`dry_run`, zero tokens) for use in a competing LLM.
 

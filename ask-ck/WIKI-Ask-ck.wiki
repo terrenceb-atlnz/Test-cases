@@ -17,7 +17,7 @@ __TOC__
 |-
 | Where does it run? || A workstation on the lab network. FastAPI backend, browser front end, binds <code>127.0.0.1</code> by default.
 |-
-| Which AI models? || The organisation's self-hosted vLLM endpoint by default. Claude and Grok are selectable alternatives — see [[#Models and data handling]].
+| Which AI models? || The organisation's self-hosted vLLM endpoint by default. Claude, running on the user's own workstation, is the selectable alternative — see [[#Models and data handling]].
 |-
 | Does AI write to Zephyr? || '''No.''' No model has any credential or network path to Jira. Writes are performed by a separate command-line tool, from a bundle a human exported, behind a typed per-case confirmation.
 |-
@@ -178,8 +178,6 @@ The active model is a workspace-wide setting. Three backends are offered:
 | '''Local LLM (org vLLM)''' — ''the default'' || Self-hosted and internal (<code>vllm.ai.atlnz.lc</code>), OpenAI-compatible. Two models: Fast and Thinking. || '''No'''
 |-
 | Claude Code CLI || The CLI logged in on the '''operator's own workstation''', reached through the browser — the server holds no Claude credential and each user spends their own seat. Haiku / Sonnet / Opus. || '''Yes''' — prompt content is sent to Anthropic
-|-
-| Grok CLI || A locally logged-in Grok CLI (OAuth subscription). No key is stored by the server. || '''Yes''' — prompt content is sent to xAI
 |}
 
 '''The set is closed, and closed in code rather than by convention.''' The server holds an allowlist of permitted backends; anything else is refused at two independent layers — the configuration endpoint rejects it outright, and the transport refuses to dispatch even if a stored configuration names it. Specifically:
@@ -251,7 +249,7 @@ Every LLM request in the system funnels through a single function, which records
 
 Two deliberate properties are worth putting in front of a reviewer:
 
-* '''Unreported usage is shown as unknown, never estimated.''' Some transports (the Grok CLI's plain-text output, for instance) report no token counts. The badge then reads "— tok" rather than a guess. A number on screen is always a number the provider actually returned.
+* '''Unreported usage is shown as unknown, never estimated.''' A transport that reports no token counts (an agent result without a usage block, for instance) is not guessed at. The badge then reads "— tok" rather than a guess. A number on screen is always a number the provider actually returned.
 * '''Cached input still counts as input.''' Where a provider bills cache reads and cache creation separately, both are folded into the input figure rather than being quietly dropped.
 
 Records go to a per-session log on disk (one line per request) and an in-memory buffer the interface can query. '''Credentials are structurally excluded''': each record is assembled from an explicit whitelist of fields, and no credential field is on it. The internal vLLM key never enters that data at all — it is resolved server-side and never travels with the request metadata.
@@ -303,7 +301,7 @@ Listed so the review is working from the real picture:
 # No authentication and no multi-user support; concurrent edits can conflict.
 # Token usage is captured '''per call''' but never aggregated, and nothing attributes it to a person — so "how much, by whom" is unanswerable today.
 # Jira API call volume is unmeasured for anything before 3 August 2026.
-# The two external backends (Claude, Grok) remain selectable by the operator. The backend set is closed and enforced, but whether ''those two'' should be available at all is a policy question for the group, not a technical gap.
+# The one external backend (Claude, on the user's own workstation) remains selectable by the operator. The backend set is closed and enforced, but whether ''it'' should be available at all is a policy question for the group, not a technical gap.
 # The audit log is local to one workstation and is excluded from version control.
 # End-to-end validation on real hardware is not yet complete — the first full hardware run is the current priority.
 

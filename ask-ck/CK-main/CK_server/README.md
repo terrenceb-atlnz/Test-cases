@@ -14,7 +14,7 @@ Also cross-reference higher-level:
 
 This file is intentionally minimal. Please refer to `SERVER-README.md` for:
 - How to run the server (`../run.sh`)
-- LLM configuration (Grok CLI / Claude Code CLI subscription modes — no MOCK)
+- LLM configuration (the org vLLM or the Claude CLI on your own seat — no MOCK)
 - Prompt & output templating
 - nginx hosting
 - Workflow (repeatable process + LLM synthesis)

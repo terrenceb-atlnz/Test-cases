@@ -81,7 +81,7 @@ else
 fi
 
 # Sensible defaults - real use required (no MOCK). The backend is chosen on the LLM
-# Configure page (local vLLM / Claude CLI / Grok CLI); LLM_API_KEY and LLM_BASE_URL were
+# Configure page (local vLLM / Claude CLI on your own seat); LLM_API_KEY and LLM_BASE_URL were
 # removed 2026-08-04 — there is no environment-key fallback and no configurable endpoint.
 : "${PORT:=8000}"
 # Bind to loopback by DEFAULT. Ask-CK has no authentication of any kind, and several
@@ -97,7 +97,7 @@ fi
 : "${HOST:=127.0.0.1}"
 
 echo "🚀 Starting Ask CK (server-backed) - real LLM only"
-echo "   LLM:  choose a backend on the Configure page (local vLLM / Claude CLI / Grok CLI)"
+echo "   LLM:  choose a backend on the Configure page (local vLLM / Claude CLI on your own seat)"
 echo "   Host: ${HOST}"
 echo "   Port: ${PORT}"
 echo "   URL:  http://localhost:${PORT}/   (use http://, not https://)"

@@ -169,18 +169,6 @@ def test_the_health_ping_stays_under_the_guard():
             f"reporting. Keep the ping under the guard, or give it an explicit opt-out.")
 
 
-@pytest.mark.parametrize("auth_method", ["grok_cli"])
-def test_the_floor_is_wired_into_the_right_dispatch_arms(auth_method):
-    """Structural: a floor helper nobody calls is decorative. Checks the dispatch line for
-    each server-side headless arm rather than trusting the helper's existence."""
-    src = _LLM.read_text(encoding="utf-8")
-    arm = src[src.index(f'auth_method == "{auth_method}"'):]
-    arm = arm[:arm.index("\n    if ") if "\n    if " in arm else min(len(arm), 400)]
-    assert "_cli_timeout(timeout)" in arm, (
-        f"the {auth_method} dispatch should pass its timeout through _cli_timeout(); "
-        f"arm reads:\n{arm[:300]}")
-
-
 def test_claude_agent_is_floored_too():
     """`claude_agent` is a headless CLI that happens to run on the USER's machine.
 
@@ -195,10 +183,9 @@ def test_claude_agent_is_floored_too():
     reasoning.
 
     What the exemption cost: `claude_agent` became the ONLY transport where a caller's
-    number was a whole-response wall clock. `grok_cli` is floored inside its headless
-    helper; `local_llm` streams, so its number bounds the inter-chunk gap. So
-    the same 600s meant "30 minutes" on one transport, "no total limit" on another, and a
-    hard kill on the third -- and the third is the workspace default. `gather_fragments`
+    number was a whole-response wall clock. `local_llm` streams, so its number bounds
+    the inter-chunk gap. So the same 600s meant "no total limit" on one transport and a
+    hard kill on the other -- and the other was the workspace default. `gather_fragments`
     died at a hard 300s on 2026-08-27 (AWPTCM-T44191), which was patched by raising THAT
     call site to 600 rather than fixing the arm; `generate_script` -- measured at 297s and
     390s on real cases in the debug log, and 326-778s on multi-message replies -- then hit

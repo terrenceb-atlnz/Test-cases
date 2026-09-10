@@ -8,8 +8,7 @@ Real LLM support — the permitted backends are `models.SUPPORTED_AUTH_METHODS`,
 set is a governance control (see the comment on it). Set via /set_llm_config:
   - "local_llm": the org's self-hosted vLLM. The default. Endpoint fixed in code.
   - "claude_agent": Claude Code CLI on the USER's own machine, via the browser bridge.
-  - "grok_cli": local Grok CLI (SuperGrok / X Premium+ subscription via OAuth at x.ai)
-- No separate API key needed for the CLI modes; auth lives with the locally logged-in CLI.
+- No separate API key is needed for the agent mode; auth lives with the CLI logged in on the seat.
 - There is NO caller-supplied-key mode and NO configurable endpoint. "api_key"/"account"
   and the LLM_API_KEY / LLM_BASE_URL environment fallbacks were removed 2026-08-04: they
   let the tool be pointed at an arbitrary third-party model provider. Do not re-add them.
@@ -17,16 +16,12 @@ set is a governance control (see the comment on it). Set via /set_llm_config:
 - Capture of prompts + raw responses returned to caller for storage in session.
 
 Parsing improved for robustness (regex + JSON fallback).
-Real LLM only (no MOCK/demo fallbacks). Requires the org vLLM key or a logged-in subscription CLI (claude_agent on the user's seat, grok_cli).
+Real LLM only (no MOCK/demo fallbacks). Requires the org vLLM key or a Claude CLI logged in on the user's own seat (claude_agent).
 """
 
 import os
 import json
 import re
-import shutil
-import subprocess
-import tempfile
-import threading
 
 import llm_inflight
 import contextvars
@@ -69,201 +64,7 @@ def call_llm(prompt: str, model: str = "default") -> str:
     return result.get("content", "ERROR: no content")
 
 
-def check_grok_cli() -> Dict[str, Any]:
-    """Report whether the Grok CLI (xAI) is installed on this machine.
-
-    Used by the headless "grok_cli" auth mode for SuperGrok / X Premium+
-    subscriptions. Checks binary presence + version. Login state is verified
-    on first real call (via the CLI's cached OAuth session).
-    """
-    # Prefer "grok" in PATH; fall back to the common user install location.
-    path = shutil.which("grok")
-    if not path:
-        user_bin = os.path.expanduser("~/.grok/bin/grok")
-        if os.path.isfile(user_bin) and os.access(user_bin, os.X_OK):
-            path = user_bin
-    if not path:
-        return {
-            "available": False,
-            "path": None,
-            "version": None,
-            "hint": ("Grok CLI not found on PATH or ~/.grok/bin/grok. "
-                     "Install with the script from x.ai, then run 'grok login --oauth' "
-                     "with your SuperGrok or X Premium+ account."),
-        }
-    try:
-        out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=15)
-        version = (out.stdout or out.stderr or "").strip() or "unknown"
-    except Exception as e:
-        version = f"unknown ({e})"
-    return {"available": True, "path": path, "version": version, "hint": None}
-
-
 _CANCEL_MSG = "cancelled by user (stopped from the UI; no result kept)"
-
-
-def _run_cli(cmd, input_text=None, timeout: int = 180, cwd: Optional[str] = None):
-    """Run a headless LLM CLI with live progress and a true cancel handle.
-
-    `cwd` (2026-09-04): the directory the CLI starts in decides what it silently injects
-    into every call — see `_cli_neutral_cwd`. Callers that want a completion pass that;
-    `None` keeps the server's own cwd for anything else.
-
-    Replaces the transports' blocking `subprocess.run` (2026-08-26, Terrence):
-    that call exposed nothing until the CLI exited — no way to stop a wrong
-    click (the tokens kept spending) and no way to show progress. Semantics are
-    preserved exactly where the transports depend on them:
-
-      * returns a CompletedProcess (cmd, returncode, stdout, stderr), text mode;
-      * raises subprocess.TimeoutExpired after killing the process on deadline
-        (subprocess.run kills the child the same way);
-      * prompt via stdin when `input_text` is given — fed from a thread because
-        templated prompts exceed the 64 KiB pipe buffer, and a blocking write
-        alongside a blocking read is the classic feed deadlock communicate()
-        exists to avoid;
-      * raises RuntimeError(_CANCEL_MSG) when the in-flight registry killed it.
-
-    What it adds: `start_new_session=True` so cancel/timeout can kill the WHOLE
-    process group (the claude CLI spawns children); a stdout reader thread that
-    counts stream-json lines/chars into llm_inflight as they arrive (the CLI
-    streams events live — buffering them was subprocess.run's doing, not the
-    CLI's); and a cancel handle (SIGTERM to the group, SIGKILL 5s later if
-    ignored) registered under the browser's call id.
-    """
-    import os
-    import signal
-
-    call_id = current_llm_call_id.get("")
-    proc = subprocess.Popen(cmd,
-                            stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            text=True, start_new_session=True, cwd=cwd)
-
-    def _kill(sig):
-        try:
-            os.killpg(os.getpgid(proc.pid), sig)
-        except (ProcessLookupError, PermissionError, OSError):
-            pass
-
-    if call_id:
-        def _cancel():
-            _kill(signal.SIGTERM)
-            t = threading.Timer(5.0, lambda: proc.poll() is None and _kill(signal.SIGKILL))
-            t.daemon = True
-            t.start()
-        llm_inflight.set_cancel(call_id, _cancel)
-
-    out_parts: list = []
-    err_parts: list = []
-
-    # context-free: pipe pump — touches only proc + the closed-over buffers;
-    # progress goes to llm_inflight keyed by call_id captured in the parent.
-    def _feed():
-        try:
-            proc.stdin.write(input_text)
-            proc.stdin.close()
-        except Exception:
-            pass  # CLI died early — its returncode/stderr carry the story
-
-    def _read_out():
-        try:
-            for line in proc.stdout:
-                out_parts.append(line)
-                llm_inflight.add_progress(call_id, chars=len(line), events=1)
-        except Exception:
-            pass
-
-    def _read_err():
-        try:
-            err_parts.append(proc.stderr.read())
-        except Exception:
-            pass
-
-    threads = [threading.Thread(target=_read_out, daemon=True),   # context-free: pipe pump (see _feed note)
-               threading.Thread(target=_read_err, daemon=True)]  # context-free: pipe pump (see _feed note)
-    if input_text is not None:
-        threads.append(threading.Thread(target=_feed, daemon=True))  # context-free: pipe pump (see _feed note)
-    for t in threads:
-        t.start()
-    try:
-        proc.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        _kill(signal.SIGKILL)   # subprocess.run also kills on timeout
-        proc.wait()
-        for t in threads:
-            t.join(timeout=2)
-        raise
-    finally:
-        if call_id:
-            llm_inflight.set_cancel(call_id, None)
-    for t in threads:
-        t.join(timeout=5)
-    if llm_inflight.is_cancelled(call_id):
-        raise RuntimeError(_CANCEL_MSG)
-    return subprocess.CompletedProcess(cmd, proc.returncode,
-                                       "".join(out_parts), "".join(err_parts))
-
-
-def _call_grok_cli_headless(prompt: str, model: str, meta: Dict[str, Any], timeout: int = 180) -> Dict[str, Any]:
-    """Call the locally logged-in Grok CLI in single-turn headless mode.
-
-    Auth model: the hosting user has run `grok login --oauth` (SuperGrok or
-    X Premium+). We use --prompt-file for long prompts and read stdout.
-    No API key is involved; usage counts against the subscription.
-    """
-    cli = shutil.which("grok")
-    if not cli:
-        user_bin = os.path.expanduser("~/.grok/bin/grok")
-        if os.path.isfile(user_bin) and os.access(user_bin, os.X_OK):
-            cli = user_bin
-    if not cli:
-        err_msg = ("ERROR: LLM call failed (grok via grok_cli): Grok CLI not found. "
-                   "Run 'grok login' with your subscription account.")
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": "grok CLI not on PATH"}, "error": True})
-        return meta
-
-    import tempfile
-    tmp = None
-    try:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as f:
-            f.write(prompt)
-            tmp = f.name
-
-        cmd = [cli, "--prompt-file", tmp, "--output-format", "plain", "--no-memory", "--no-plan"]
-        if model and model not in ("", "default"):
-            cmd += ["--model", model]
-
-        proc = _run_cli(cmd, timeout=timeout)
-        if proc.returncode != 0:
-            detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
-            raise RuntimeError(detail)
-
-        content = (proc.stdout or "").strip() or (proc.stderr or "").strip()
-
-        print(f"[LLM GROK via grok_cli] model={model or 'cli-default'}")
-        print("[LLM GROK] Prompt (first 300):", prompt[:300])
-        print("[LLM GROK] Response (first 300):", str(content)[:300], "...")
-
-        meta.update({"content": content, "raw_response": {"stdout": content}, "provider": "grok"})
-        return meta
-
-    except subprocess.TimeoutExpired:
-        err_msg = f"ERROR: LLM call failed (grok via grok_cli): CLI call timed out after {timeout}s"
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": "timeout"}, "error": True})
-        return meta
-    except Exception as e:
-        err_msg = f"ERROR: LLM call failed (grok via grok_cli): {str(e)}"
-        print(err_msg)
-        meta.update({"content": err_msg, "raw_response": {"error": str(e)}, "error": True})
-        return meta
-    finally:
-        if tmp and os.path.exists(tmp):
-            try:
-                os.unlink(tmp)
-            except Exception:
-                pass
 
 
 # A headless CLI backend gets ONE shot at the whole response: the subprocess either
@@ -312,11 +113,11 @@ def _is_long_call(timeout: int) -> bool:
 def _cli_timeout(timeout: int) -> int:
     """Whole-response floor for EVERY non-streaming headless CLI backend.
 
-    Applies wherever that CLI runs -- on this server (`grok_cli`) or on the user's own
-    machine behind the browser bridge (`claude_agent`). What earns the
-    floor is the transport's shape, not its location: one shot at the whole response,
-    no stream to keep the budget honest. `claude_agent` was left out for months and was
-    the only path where a caller's number was a real wall clock -- see _call_claude_agent.
+    Today that is `claude_agent` -- the CLI on the user's own machine behind the browser
+    bridge. What earns the floor is the transport's shape, not its location: one shot at
+    the whole response, no stream to keep the budget honest. `claude_agent` was left out
+    for months and was the only path where a caller's number was a real wall clock -- see
+    _call_claude_agent.
 
     Short calls stay short (see _is_long_call). Mirrors the local_llm guard.
     """
@@ -358,9 +159,8 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     #
     # `claude_agent` is a headless `claude` CLI on the user's machine. It gets ONE shot at
     # the whole response and there is no stream to keep the socket honest, so the caller's
-    # `timeout` is a wall clock here. Every other transport was already protected:
-    # `grok_cli` is floored by `_cli_timeout` inside its headless helper, and `local_llm` streams, so its
-    # number bounds the gap between chunks rather than the total. This path alone took the
+    # `timeout` is a wall clock here. The other transport was already protected:
+    # `local_llm` streams, so its number bounds the gap between chunks rather than the total. This path alone took the
     # caller's raw value, which is why `gather_fragments` died at a hard 300s on 2026-08-27
     # (AWPTCM-T44191) and why `generate_script` -- measured at 297-778s on real cases and
     # rising with the fragment count, not the step count -- dies at 600s on a large one.
@@ -441,14 +241,12 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
     below. There is no caller-supplied-key mode and no configurable endpoint.
     - "claude_agent": browser-brokered local Claude Code CLI on the USER's machine
       (shared-server safe — each user spends their own seat; needs session_id).
-    - "grok_cli": headless Grok CLI (SuperGrok / X Premium+ subscription via OAuth).
-      No key/token stored by server; auth lives in the local CLI's login.
     - "local_llm": the organization's self-hosted vLLM endpoint (OpenAI-compatible).
       Key is server-resolved (Configure page -> secrets.local.json); never supplied by
       the browser, and there is no env fallback. Model = vllm-fast | vllm-thinking.
 
-    provider: "grok" | "claude" | "openai" (no "mock")
-    If no valid credential and not using a supported headless CLI auth_method, the call will error.
+    provider: "claude" | "openai" (no "mock")
+    If no valid credential and not using claude_agent, the call will error.
     """
     provider = (provider or "").lower()
     auth_method = (auth_method or "local_llm").lower()
@@ -489,19 +287,16 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         api_key = get_local_llm_key()
 
     if provider == "mock":
-        err_msg = "ERROR: MOCK provider is no longer supported. Use a real provider (grok/claude/openai) with credentials or CLI auth_method."
+        err_msg = "ERROR: MOCK provider is no longer supported. Use a real provider (claude/openai) with credentials or the claude_agent auth_method."
         print(err_msg)
         meta = {"content": err_msg, "raw_response": {"error": "mock removed"}, "error": True, "provider": "mock"}
         return meta
 
     if not provider:
-        provider = "grok"  # sensible default for subscription use
+        provider = "openai"  # the org vLLM rides the OpenAI-compatible path
 
     # Defaults
-    if provider == "grok":
-        base_url = base_url or "https://api.x.ai/v1"
-        model = model or "grok-beta"
-    elif provider == "claude":
+    if provider == "claude":
         base_url = base_url or "https://api.anthropic.com/v1"
         model = model or "claude-3-5-sonnet-20241022"
     else:
@@ -523,8 +318,6 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
         # path with a human waiting on the other end.
         return _call_claude_agent(prompt, model, meta, session_id=session_id, timeout=timeout,
                                   system=system)
-    if provider == "grok" and auth_method == "grok_cli":
-        return _call_grok_cli_headless(prompt, model, meta, timeout=_cli_timeout(timeout))
 
     credential = api_key
     if not credential:
@@ -631,14 +424,11 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             return meta
 
         else:
-            # Grok / OpenAI compatible
+            # OpenAI compatible (the org vLLM)
             headers = {
                 "Authorization": f"Bearer {credential}",
                 "Content-Type": "application/json",
             }
-            # Grok sometimes prefers x-api-key too, but Bearer works for most
-            if provider == "grok":
-                headers["x-api-key"] = credential  # some Grok setups prefer this
 
             # max_tokens covers the WHOLE completion. The org vLLM models are
             # reasoning models: they spend completion tokens on hidden
@@ -820,11 +610,11 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
 
 def parse_llm_to_structured(llm_output: str, case_key: str) -> Dict[str, Any]:
     """Parse LLM output into repeatable objective + testScript.
-    Improved for real LLM (Grok CLI etc.): strips common preamble/thinking text,
+    Strips common preamble/thinking text,
     tries JSON first (when steps template asks for it), then robust regex.
     Note construction is now handled by build_traceability_note for repeatability.
     """
-    # Strip common real-LLM preamble (Grok CLI often emits "Thinking..." or project notes even with --no-plan)
+    # Strip common real-LLM preamble ("Thinking..." or project notes ahead of the answer)
     # Remove lines that look like thinking, notes, or non-content before the actual output.
     cleaned = llm_output
     # Remove leading "thinking" blocks or similar
@@ -1499,7 +1289,6 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
     provider = (cfg.get("provider") or "").lower()
     auth_method = (cfg.get("auth_method") or "local_llm").lower()
     credential = cfg.get("api_key") or cfg.get("token")
-    headless = (provider == "grok" and auth_method == "grok_cli")
 
     # Real LLM path only. Falls through to keyword fallback on error.
     # Real LLM path

@@ -17,7 +17,6 @@ import { applyClaudeMode, restoreLLMUI, claudeRoutingFromUI }
 function radios(method) {
   return `<label><input type="radio" name="llmAuthMethod" value="local_llm" ${method === 'local_llm' ? 'checked' : ''}></label>
           <label><input type="radio" name="llmAuthMethod" value="claude_agent" ${method === 'claude_agent' ? 'checked' : ''}></label>
-          <label><input type="radio" name="llmAuthMethod" value="grok_cli" ${method === 'grok_cli' ? 'checked' : ''}></label>
           <span id="llmStatus"></span>`;
 }
 

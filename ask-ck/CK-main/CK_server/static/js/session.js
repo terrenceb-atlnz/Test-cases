@@ -24,7 +24,7 @@ const CK_SESSION_ID = (function () {
 // Mirrors models.SUPPORTED_AUTH_METHODS. A stored choice outside it (e.g. a browser that
 // last applied a since-retired mode) is NOT sent: the server would 400 every request, and
 // the right outcome for that seat is the site default until it chooses again.
-export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent', 'grok_cli'];
+export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent'];
 
 export function seatLlmHeaderValue(cfg) {
   if (!cfg || !cfg.auth_method) return '';

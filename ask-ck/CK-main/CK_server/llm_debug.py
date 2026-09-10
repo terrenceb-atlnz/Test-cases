@@ -39,14 +39,13 @@ def normalize_usage(auth_method: str, raw_response: Any) -> Optional[Dict[str, A
     Shapes handled:
     - Anthropic HTTP + Claude Code CLI JSON envelope: usage.input_tokens/output_tokens
       (cache_read/creation_input_tokens folded into input; total_cost_usd -> cost_usd).
-    - OpenAI-compatible (Grok HTTP, org vLLM local_llm): usage.prompt_tokens/
+    - OpenAI-compatible (org vLLM local_llm): usage.prompt_tokens/
       completion_tokens/total_tokens.
     - Agent bridge: tolerant probe of raw["usage"] (either shape) when the
       out-of-repo ck-agent starts reporting it.
 
-    Returns None when the transport doesn't report usage (grok CLI plain text,
-    agent bridge without usage) — callers must show that honestly ("— tok"),
-    never estimate. Future: investigate `grok --output-format json` for usage.
+    Returns None when the transport doesn't report usage (an agent bridge result
+    without usage) — callers must show that honestly ("— tok"), never estimate.
     """
     try:
         if not isinstance(raw_response, dict):

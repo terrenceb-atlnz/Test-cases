@@ -63,7 +63,6 @@ class StepState(BaseModel):
 #   local_llm    -> the org's self-hosted vLLM. Internal. No data leaves the org.
 #   claude_agent -> the Claude CLI on the USER's own workstation, via the browser bridge.
 #                   Each user spends their own seat; the server holds no credential.
-#   grok_cli     -> the locally logged-in Grok CLI (subscription OAuth).
 #
 # REMOVED 2026-08-04: "api_key" and legacy "account". They accepted a caller-supplied key
 # and a free-form base_url, so the tool could be pointed at an arbitrary third-party model
@@ -74,11 +73,14 @@ class StepState(BaseModel):
 # REMOVED 2026-09-10: "claude_code" — the Claude CLI run on the SERVER host, spending the
 # server's one seat for every user. Per-seat agents (claude_agent) are the only Claude path;
 # headless tooling on this host uses the org vLLM.
-SUPPORTED_AUTH_METHODS = ("local_llm", "claude_agent", "grok_cli")
+#
+# REMOVED 2026-09-11: "grok_cli" (and the Grok HTTP provider with it). Two backends only:
+# every LLM call runs on the org vLLM or on the user's own Claude seat.
+SUPPORTED_AUTH_METHODS = ("local_llm", "claude_agent")
 
 # Auth methods that once worked and are now deliberately refused. Kept NAMED (rather than
 # just absent) so the refusal can say what happened instead of "unknown auth method".
-RETIRED_AUTH_METHODS = ("api_key", "account", "claude_code")
+RETIRED_AUTH_METHODS = ("api_key", "account", "claude_code", "grok_cli")
 
 
 class LLMConfig(BaseModel):
@@ -93,11 +95,8 @@ class LLMConfig(BaseModel):
     - claude_agent: browser-brokered Claude Code CLI on the USER's own machine
       (Claude only). For a shared server: each user runs ck-agent locally and their
       prompts execute against THEIR OWN seat — seats are never shared.
-    - grok_cli: headless Grok CLI mode (Grok/xAI only). Uses the locally
-      installed + logged-in `grok` CLI (SuperGrok or X Premium+ via `grok login --oauth`).
-      No separate xAI API key. Auth and billing against the subscription.
     """
-    provider: str = "grok"  # "grok", "claude", "openai" (real providers only; no mock)
+    provider: str = "openai"  # "openai" (the org vLLM) or "claude" (real providers only; no mock)
     auth_method: str = "local_llm"  # must be one of SUPPORTED_AUTH_METHODS
     # api_key / token / base_url are INERT. Nothing populates them any more — no supported
     # auth method takes a caller-supplied credential or endpoint. They remain declared so
@@ -200,7 +199,7 @@ class WizardSession(BaseModel):
     # inside the payload JSON — no ck.db schema change. Optional/defaulted so sessions
     # persisted before it deserialize as rev=0. See PLAN-auth-and-case-locking.md Phase 1.
     rev: int = 0
-    llm_config: LLMConfig = LLMConfig()  # Session-scoped login (Grok / Claude)
+    llm_config: LLMConfig = LLMConfig()  # Session-scoped copy; resolution is llm_config.effective_llm_config
 
 class PtSession(BaseModel):
     """PyTest Creator per-case session (see ask-ck/pytest-create/PLAN-pytest-creator.md).

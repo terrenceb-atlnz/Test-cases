@@ -26,7 +26,7 @@ spend the server's own JIRA_KEY against live cases. Exposing it on the network i
 deliberate opt-in (HOST=0.0.0.0 ./ask-ck/CK-main/run.sh) — see the note in run.sh.
 Behind nginx (copy nginx.conf.example to appropriate location).
 
-Note: MOCK/demo removed. Use real credentials or local CLI logins (grok login --oauth / claude /login).
+Note: MOCK/demo removed. Use the org vLLM key or a Claude CLI logged in on the seat (claude /login).
 
 This replaces the old single-file static approach.
 """

@@ -50,7 +50,7 @@ log = logging.getLogger(__name__)
 SEAT_LLM_HEADER = "X-CK-LLM"
 current_seat_llm: "contextvars.ContextVar[str]" = contextvars.ContextVar("ck_seat_llm", default="")
 
-_PROVIDER_FOR = {"local_llm": "openai", "claude_agent": "claude", "grok_cli": "grok"}
+_PROVIDER_FOR = {"local_llm": "openai", "claude_agent": "claude"}
 
 
 def parse_seat_llm(raw: str) -> Optional[LLMConfig]:
@@ -125,7 +125,7 @@ def llm_is_active(cfg: Optional[LLMConfig]) -> bool:
     am = (getattr(cfg, "auth_method", None) or "").lower()
     if am not in SUPPORTED_AUTH_METHODS:
         return False
-    if am in ("claude_agent", "grok_cli"):
+    if am == "claude_agent":
         return True
     if am == "local_llm":
         # Key lives server-side (secrets.local.json), never on the config.
@@ -202,7 +202,7 @@ def cfg_for_task(cfg: dict, task: str, workspace: Optional[LLMConfig] = None) ->
     Where the routing comes from: the SEAT's header when the request carries one (a seat
     pays for its own aliases, and a seat that chose "same" must get its own model, not the
     site default's routing), else the site default row. Only under a Claude CLI method —
-    the routing fields are Claude aliases and mean nothing to the vLLM or the Grok CLI.
+    the routing fields are Claude aliases and mean nothing to the vLLM.
     `workspace` is injectable for tests; a per-case session copy is never consulted.
     """
     out = dict(cfg or {})

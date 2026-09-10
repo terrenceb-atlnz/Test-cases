@@ -147,8 +147,8 @@ the repo and loads offline, so search has no external dependency.
 
 ## 6. LLM strategy — pluggable by design, because output must be comparable
 
-`llm.py` abstracts the provider behind one interface, with a **closed set of three auth modes**
-(`local_llm`, `claude_agent`, `grok_cli` — `models.SUPPORTED_AUTH_METHODS`, a governance
+`llm.py` abstracts the provider behind one interface, with a **closed set of two auth modes**
+(`local_llm`, `claude_agent` — `models.SUPPORTED_AUTH_METHODS`, a governance
 control). The LLM choice is **per seat** (each browser sends its own as `X-CK-LLM`; a seat that
 has never chosen gets the site default). Two are load-bearing:
 

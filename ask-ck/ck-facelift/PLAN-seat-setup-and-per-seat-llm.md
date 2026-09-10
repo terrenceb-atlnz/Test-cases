@@ -3,7 +3,9 @@
 > ## Status (read first)
 >
 > **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits; only §9's
-> Windows-seat demo remains, plus the decisions in §8b.** Originally PROPOSED the same
+> Windows-seat demo remains.** §8b's decisions were reviewed with Terrence on 2026-09-11 and
+> are resolved in place; the two that became work (Grok removal + tool retirement, and the
+> one-time notice) are **§11, executing 2026-09-11**. Originally PROPOSED the same
 > morning. Written at Terrence's request after the
 > second Ask-CK demo day (2026-09-10, ~13:10–14:05 NZST), which ended in the RDP-to-localhost
 > workaround again. Three failures were seen; all three are root-caused below with evidence
@@ -419,19 +421,19 @@ for the Ask-CK origin — not seat-side.
 
 ## 8b. Decisions surfaced during execution (2026-09-10 evening) — for Terrence
 
-Recorded, not decided. Each is a judgement call the autonomous run either took the
-conservative side of or left open; none blocks the demo.
+Recorded during the autonomous run, **reviewed with Terrence 2026-09-11** — the outcome of
+each is in the last column, marked *Resolved*.
 
 | # | What surfaced | What was done / recommendation |
 |---|---|---|
-| D8 | **The Windows demo (§9) is the one thing not done** — it needs a person at 10.33.25.50 (memory `demo-windows-seat`). | Run §9 steps 1–6 on that seat. If `?seat-check=1` shows "not reachable" while the script printed three ✔, that is the parked §7 browser policy; the fixes there are server-side. |
-| D9 | §6 (removal) executed **before** the Windows demo, against D7's ordering, because the instruction was the entire plan. | It is one commit (`1afc74c`). If the demo fails in a way that needs "(this server)" back: `git revert 1afc74c`. Nothing you use today depends on it (your agent on this host is `claude_agent`). |
-| D10 | Your own agent on this host was replaced by the served setup (1.0 → 1.1.0 → 1.2.0) with **autostart = no** (no terminal to ask; D6 says the user chooses). | `CK_SETUP_AUTOSTART=yes curl -fsSL http://10.33.22.17:8000/setup/setup.sh \| bash` registers the systemd user unit. Until then a reboot needs a re-run. The daily `claude-update.timer` stays for the same reason. |
-| D11 | "No evidence this existed": the removal commit message, a CHANGELOG entry, this plan, the two superseded plans' status notes and git history all **record** that the mode existed. Current-state docs are clean. | Recommend leaving records as records. If you want the CHANGELOG line and the plan notes gone too, say so — it is a doc-only follow-up. |
-| D12 | The removed server parser's forensic fields (`message_count`, `text_block_boundaries`) were **not** re-homed to the agents. | They had no consumer beyond their own tests. Add to the agents only if a future truncation investigation wants them. |
-| D13 | `tool/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | Accepted consequence of D3; `CK_ENRICH_AUTH=grok_cli` remains the only other headless option. |
-| D14 | Seats whose browser last applied "(this server)" carry a retired value in `localStorage`. | Handled in code: the page never sends a retired value and drops it, so those seats fall back to the site default. No action, noted for awareness. |
-| D15 | The site default row still reads `claude_agent / sonnet` (units Sonnet, matching Opus) from demo day. A brand-new seat therefore starts on **Claude via agent**, which fails until that seat runs the one-liner. | Recommend setting the site default to **Local LLM (vLLM)** via the new **Set as site default** button, so a bare seat works out of the box and Claude is an opt-in after setup. Not changed — it is a live setting. |
+| D8 | **The Windows demo (§9) is the one thing not done** — it needs a person at 10.33.25.50 (memory `demo-windows-seat`). | Run §9 steps 1–6 on that seat. If `?seat-check=1` shows "not reachable" while the script printed three ✔, that is the parked §7 browser policy; the fixes there are server-side. **Resolved 2026-09-11:** Terrence drives the seat, Claude watches the server side (journal, `/setup/` hits, broker). Still to run. |
+| D9 | §6 (removal) executed **before** the Windows demo, against D7's ordering, because the instruction was the entire plan. | It is one commit (`1afc74c`). If the demo fails in a way that needs "(this server)" back: `git revert 1afc74c`. Nothing you use today depends on it (your agent on this host is `claude_agent`). **Resolved 2026-09-11: stands** — leave removed. |
+| D10 | Your own agent on this host was replaced by the served setup (1.0 → 1.1.0 → 1.2.0) with **autostart = no** (no terminal to ask; D6 says the user chooses). | `CK_SETUP_AUTOSTART=yes curl -fsSL http://10.33.22.17:8000/setup/setup.sh \| bash` registers the systemd user unit. **Resolved 2026-09-11: autostart yes** — re-run done, `ck-agent.service` enabled and active, conf `autostart=yes`. The daily `claude-update.timer` stays. |
+| D11 | "No evidence this existed": the removal commit message, a CHANGELOG entry, this plan, the two superseded plans' status notes and git history all **record** that the mode existed. Current-state docs are clean. | **Resolved 2026-09-11: leave records as records.** |
+| D12 | The removed server parser's forensic fields (`message_count`, `text_block_boundaries`) were **not** re-homed to the agents. | **Resolved 2026-09-11: dropped.** Add to the agents only if a future truncation investigation wants them. |
+| D13 | `tool/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | **Superseded 2026-09-11 by §11:** Grok is removed entirely and the creation-time tools (this one included) are retired. |
+| D14 | Seats whose browser last applied "(this server)" carry a retired value in `localStorage`. | The page never sends a retired value and drops it (2026-09-10). **Resolved 2026-09-11: add a one-time notice** — §11.3. |
+| D15 | The site default row still reads `claude_agent / sonnet` (units Sonnet, matching Opus) from demo day. A brand-new seat therefore starts on **Claude via agent**, which fails until that seat runs the one-liner. | Recommended Local LLM. **Resolved 2026-09-11: keep Claude agent as the site default** (Terrence). A bare seat is expected to run the one-liner first. |
 
 ## 9. Verification (manual, per Terrence's preference)
 
@@ -461,3 +463,84 @@ Gate: `./tool/run_tests.sh` before and after each phase; new pins listed in §4�
 - HTTPS for Ask-CK (same plan, Phase 3) — only becomes necessary if §7 materialises.
 - Any change to the vLLM (`local_llm`) path or its server-held key.
 - A packaged executable or a share-drive distribution (fallback only, per the decision).
+
+## 11. Two backends only: retire Grok and the creation-time tooling; tell a seat its old choice is gone (decided 2026-09-11)
+
+> **Status: EXECUTING 2026-09-11.** Decided in the D8–D15 review the morning after §3–§6
+> shipped. Supersedes the D13 and D14 rows in §8b.
+
+**Terrence's words (2026-09-11), which set the scope:**
+
+- *"I want the grok_cli tooling removed too. Every LLM call on Ask-CK should be runnable by
+  both the vLLM and the Claude (your seat) options. If that is not the case, please map out
+  what features need to be re-written."*
+- On the headless `tool/` scripts: *"are these tools that only ran for the creation of ask-ck?
+  If so, grok out and retire them. do any run today, with ask-ck? if so, grok out and give
+  them a claude path."*
+- `pt_autopilot.py`: **retire it too** (chosen over "keep with a headless Claude broker").
+- D14: **yes, a one-time notice** under LLM → Configure for a seat whose stored choice was retired.
+
+### 11.1 Grok — what goes
+
+Grok had no radio in the UI since `4a769a8`; it survived as backend code, a status route, a
+header value and a set of tests. All of it goes, the same way `claude_code` went in §6 (code and
+current-state docs cleaned; dated records left as records, per D11):
+
+| Where | What |
+|---|---|
+| `llm.py` | `check_grok_cli`, `_call_grok_cli_headless`, the `grok_cli` dispatch arm, the `grok` HTTP provider defaults (`api.x.ai`, `grok-beta`, the `x-api-key` header) and the unused `headless` flag in `analyze_atp_coverage`. `_run_cli` had only the Grok caller left after §6 — it goes with it, and with it the `shutil`/`subprocess`/`tempfile` imports it needed. The empty-provider fallback becomes `openai` (the vLLM path), not `grok`. |
+| `models.py` | `SUPPORTED_AUTH_METHODS = ("local_llm", "claude_agent")`; `grok_cli` joins `RETIRED_AUTH_METHODS` so a persisted session naming it is refused **by name** at the transport, not as "unknown". `LLMConfig.provider` default `"grok"` → `"openai"`. |
+| `llm_config.py` | `_PROVIDER_FOR` and `llm_is_active` lose the Grok entries. |
+| `routers/wizard/config.py` | `GET /api/wizard/grok_cli_status` removed; provider validation is `("claude", "openai")`; the Grok model default and the Grok readiness branch in `_safe_llm_view` go. |
+| `static/js/session.js` | `SEAT_LLM_METHODS = ['local_llm', 'claude_agent']` — a browser still holding `grok_cli` in `localStorage` is handled by the same guard as `claude_code` (§11.3). |
+| Tests | `test_llm_backend_allowlist.py` (the set is **two**, and `grok_cli` is retired), `test_llm_call_timeouts.py` (the "floor is wired into the dispatch arm" pin had only `grok_cli` left — it is retired with the arm; `claude_agent`'s own pin stays), `test_per_seat_llm.py`, `test_shared_modules_decoupling.py`, `js-tests/llm-task-routing.spec.js`, `js-tests/agent-broker-liveness.spec.js` (comments only). |
+| Docs | `SERVER-README.md` (two duplicated Grok sections, the radio list, the allowlist sentence, the quick-start step), `ARCHITECTURE.md`, `README.md`, `CK_server/README.md`, `run.sh` banner, `main.py` docstring, `llm_debug.py` and `llm-progress.js` comments. The governance wiki (`WIKI-Ask-ck.wiki`) rows naming Grok as a selectable backend are corrected — the allowlist tests exist to keep that page true. |
+
+**Why the HTTP `grok` provider goes too, not only `grok_cli`:** the only auth methods that
+could reach it (`api_key`, `account`) were retired 2026-08-04, so it has been unreachable code
+for five weeks. Leaving a provider with no auth method is exactly the "capability we do not
+want to imply we have" the allowlist comment warns about. Not asked for by name; recorded here
+as the one scope call in this section (D16).
+
+### 11.2 "Every LLM call runnable on both backends" — mapped
+
+After §11.1 there are two backends and **every LLM call in the product originates in a
+browser** and dispatches through `llm_config.effective_llm_config` → `_call_llm_raw`, which has
+exactly two arms: `local_llm` (vLLM, streamed) and `claude_agent` (the seat's agent). Every
+prompt template is sent unchanged to either. **Nothing needs re-writing.** The one asymmetry is
+by design, not a gap: per-task routing (`unit_model` / `match_model`) is a set of Claude model
+aliases, so under `local_llm` `cfg_for_task` returns the seat's Fast/Thinking choice for every
+task — the vLLM equivalent of "same".
+
+The headless tools were the other source of LLM calls. Classified by Terrence's criterion:
+
+| Tool | Last real change | What it was for | Runs today? | Verdict |
+|---|---|---|---|---|
+| `tool/enrich_script_index.py` | created 2026-07; edited 2026-09-10 only to drop `claude_code` | Pass 2 of the script index build: LLM summaries/tags appended to a jsonl, merged by `build_script_index.py`, folded into `ck.db` by the DB migration | No — the jsonl it appends to was deleted with the migration; the index lives in `ck.db` | **Retire**, with the `--enrich` hook in `build_script_index.py` and the `enrich_script_index.jinja` template |
+| `tool/pt_model_matrix.py` | 2026-07-22 | Part 2B: generate each case's script on every model, side by side | No | **Retire** |
+| `tool/pt_judge.py` | 2026-07-27 | Part 3a: per-block LLM judge (Opus + vllm-fast) | No — Terrence prefers in-context judging (memory `terrence-prefers-session-model-as-judge`) | **Retire** |
+| `tool/pt_matrix_judge.py` | 2026-07-29 | Companion of the two above; imports both | No | **Retire** |
+| `tool/pt_autopilot.py` | 2026-08-03 | Headless batch driver through the running server; last batch 2026-08-03; its resume note (`autopilot/RESUME.md`) depends on the removed `claude_code` | No | **Retire** (Terrence, 2026-09-11) |
+| `tool/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
+
+`tool/pt_grade.py` and `tool/pt_preflight.py` make no LLM call and stay. The retired tools'
+result directories (`ask-ck/pytest-create/autopilot/`, `comparison/`, `judging/`) are records
+and stay; `autopilot/RESUME.md` gets a "⚠ Historical" banner because its instructions can no
+longer be followed. `.claude/agents/genpop.agent.md` loses its `pt_autopilot` line; the two
+memories that name these tools are corrected.
+
+### 11.3 The one-time notice (D14)
+
+`session.js` already drops a stored seat choice outside `SEAT_LLM_METHODS` (2026-09-10). Now it
+also **remembers that it did** (`localStorage.ckSeatLlmRetired = <the dropped method>`), and
+`llm.js` renders one line under LLM → Configure next to the status: *"Your previous LLM choice
+for this seat is no longer available — this seat uses the site default until you Apply a new
+one."* The wording names no retired mode (D3). **One-time** means: shown from the drop until
+this seat next Applies (any `storeSeatLlm` clears the flag) — cleared on first render it would
+be missed by a seat that lands on the splash page and never opens Configure that visit.
+Pinned in `js-tests/seat-llm-header.spec.js` and a small llm.js spec.
+
+### 11.4 Revert path
+
+One commit per concern (grok removal; tool retirement; notice), so any one can be reverted alone.
+The tools are recoverable from git history by path; nothing they produced is deleted.

@@ -159,9 +159,9 @@ def test_effective_llm_config_falls_back_to_the_sessions_own_config_when_there_i
 
     monkeypatch.setattr(llm_config, "load_global_llm", lambda: None)
     sess = WizardSession(key="AWPTCM-T99991")
-    sess.llm_config = LLMConfig(auth_method="grok_cli")
-    assert llm_config.effective_llm_config(sess)["auth_method"] == "grok_cli"
-    assert sess.llm_config.auth_method == "grok_cli"
+    sess.llm_config = LLMConfig(auth_method="claude_agent")
+    assert llm_config.effective_llm_config(sess)["auth_method"] == "claude_agent"
+    assert sess.llm_config.auth_method == "claude_agent"
 
 
 def test_a_stale_headless_session_copy_never_wins(monkeypatch):
@@ -191,7 +191,8 @@ def test_a_stale_headless_session_copy_never_wins(monkeypatch):
 @pytest.mark.parametrize("cfg,expected", [
     (None, False),
     ({"auth_method": "claude_agent"}, True),
-    ({"auth_method": "grok_cli"}, True),
+    # CHANGED 2026-09-11 (was True): Grok was removed; two backends only.
+    ({"auth_method": "grok_cli"}, False),
     # CHANGED 2026-09-10 (was True): server-side Claude was removed; a stored config naming
     # it is refused by name at the transport and must not read as active here.
     ({"auth_method": "claude_code"}, False),

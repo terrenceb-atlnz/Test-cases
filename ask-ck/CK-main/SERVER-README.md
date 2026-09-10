@@ -61,7 +61,7 @@ This version replaces the original single-file static `index.html` approach.
 **LLM Layer** (core of repeatability):
 - Prompt templates in `CK_server/templates/prompts/` including `generate_objectives.jinja`, `generate_steps.jinja`, **`generate_gaps.jinja`**, `suggest_*.jinja`, `analyze_atp_coverage.jinja` (rank only).
 - **Gaps analysis is LLM-generated at synthesize/export** for Traceability — not an editable review-step field.
-- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI (my local machine)** (`claude_agent`, the per-user local agent — the only Claude path), **Grok CLI** (`grok_cli`). See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
+- UI login modes (radios, top→bottom): **Local LLM** (`local_llm`, default — the org vLLM, see below), **Claude Code CLI (my local machine)** (`claude_agent`, the per-user local agent — the only Claude path). See the **Local LLM** and **LLM request observability** subsections under *Running the Server*.
 - **The LLM choice is PER SEAT (2026-09-10; `PLAN-seat-setup-and-per-seat-llm.md` §5).** Apply/Login (sidebar **LLM → Configure**) sets the LLM for *this browser* only: the page stores it (`localStorage.draftingLLMConfig`) and sends it on every `/api` call as `X-CK-LLM: auth;model;unit;match`; `llm_config.effective_llm_config` resolves seat → site default → session copy at dispatch and never writes a session. The **site default** (`_workspace_llm` row in the sessions table) is what a seat that has never chosen starts from, and only the separate **Set as site default** control (`POST /api/wizard/set_site_default_llm`) writes it; `GET /api/wizard/llm_config` returns it with `scope: site_default`. A header naming a backend outside `SUPPORTED_AUTH_METHODS` is a 400. Pinned by `tests/test_per_seat_llm.py`.
 - Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
@@ -277,7 +277,7 @@ PYTHONPATH=.. python3 -m uvicorn CK_server.main:app --host 127.0.0.1 --port 8000
 **Choosing the LLM backend**: on the Configure page, not in the environment.
 
 The permitted backends are an allowlist — `models.SUPPORTED_AUTH_METHODS`: `local_llm`
-(the org vLLM, the default), `claude_agent`, `grok_cli`. The set is a
+(the org vLLM, the default) and `claude_agent`. The set is a
 **governance control**, closed at two layers: `set_llm_config` 400s on anything else, and
 `_call_llm_raw` refuses to dispatch even if a stored session names a retired backend.
 
@@ -381,20 +381,6 @@ contract is, and why each part exists (all measured on real runs, 2026-07-30 →
 > completeness lint). See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the
 > ⚠-bannered `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
 
-### Grok CLI Subscription Mode (SuperGrok / X Premium+)
-
-`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. **Seat-sharing caveat**: it runs on the server host and spends the server's Grok login for every user, so it's for single-user hosting (a per-user Grok agent could be added later, mirroring `claude_agent`).
-
-### Grok CLI Subscription Mode (SuperGrok / X Premium+)
-
-`auth_method: "grok_cli"` (Grok provider only) calls a locally installed + logged-in Grok CLI (`grok login --oauth`) instead of the HTTP API. 
-
-- `GET /api/wizard/grok_cli_status` reports availability.
-- In the UI (sidebar **LLM → Configure**): select the **Grok CLI (SuperGrok / X Premium+ subscription)** radio, use the "Check Grok CLI" button, then "Apply / Login". Model optional (CLI default used if blank).
-- Prompt passed safely via temp file; output captured cleanly.
-- Fully integrated into synthesis and ATP paths. Real calls were tested on a machine with an active subscription login.
-- Usage counts against the subscription (no separate API billing).
-
 ### Local LLM (organization vLLM)
 
 `auth_method: "local_llm"` calls the org's self-hosted vLLM endpoint (`http://vllm.ai.atlnz.lc/v1`, OpenAI-compatible). Two modes via the **Fast / Thinking** toggle on the Configure page (models `vllm-fast` / `vllm-thinking`).
@@ -407,7 +393,7 @@ contract is, and why each part exists (all measured on real runs, 2026-07-30 →
 
 ### LLM request observability
 
-Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge (`N in / M out (total)`) next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. Grok CLI / agent bridge). Credentials are whitelisted out of records. **The debug-log is development scaffolding**; the durable/portable equivalent is the Provenance block below.
+Every LLM request (success or failure) is recorded to `CK_server/debug-log/<session>.jsonl` (gitignored; full prompts/responses — can grow to a few MB per heavy session, no rotation) and to an in-memory ring served at `GET /api/llm/recent` / `GET /api/llm/log` (keyed by the browser's `X-CK-Session`). In the UI: a per-panel **"Last LLM request (this page)"** footer plus a token badge (`N in / M out (total)`) next to the pressed LLM button (`— tok` where the transport reports no usage, e.g. an agent result without it). Credentials are whitelisted out of records. **The debug-log is development scaffolding**; the durable/portable equivalent is the Provenance block below.
 
 **Live progress + true Stop (2026-08-26).** Every LLM button in the app is a live one while
 busy: `⟳ Generating… 37s / ~45s · 12.3k streamed` with a 2px fill bar. The browser stamps
@@ -415,11 +401,10 @@ each call with an `X-CK-LLM-Call` id (middleware → ContextVar → `llm_infligh
 in-memory single-process registry — same authority caveat as `locks.py`); the button polls
 `GET /api/llm/inflight/{id}` for elapsed / streamed chars / `typical_ms` (median of this
 session's recent successful calls to the same template — that is what the bar fills
-against). Streamed counts are real server-side observation: vLLM SSE chunks, and the
-claude/grok CLI's stream-json lines — the CLI always streamed; `subprocess.run` was
-buffering it. **Clicking the busy button is a TRUE cancel** (`POST /api/llm/cancel/{id}`):
-the CLI process group is killed (SIGTERM, SIGKILL after 5s), the vLLM stream is closed
-mid-generation, an agent job is woken abandoned. The endpoint then errors with
+against). Streamed counts are real server-side observation of the vLLM SSE chunks (an agent
+job reports nothing until it returns). **Clicking the busy button is a TRUE cancel**
+(`POST /api/llm/cancel/{id}`): the vLLM stream is closed mid-generation, an agent job is
+woken abandoned. The endpoint then errors with
 "cancelled by user", so nothing persists, and the UI reports "⏹ stopped — nothing was
 kept" rather than a failure. A UI-only abort (server finishes and spends anyway) was
 explicitly rejected. Transport note: the CLI paths run via `llm._run_cli`
@@ -447,7 +432,7 @@ Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Cr
 UI step numbers below are the visible 1–6 Generator labels.
 
 1. **Step 1 – Cases**: select an AWPTCM case (dual dropdowns populated with real project cases) and click **Load**.
-2. Sidebar **LLM → Configure**: choose a login radio (**Local LLM** is default — pick Fast/Thinking and, first time, paste the key; or select Claude Code CLI / Grok CLI). Optionally check CLI status. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
+2. Sidebar **LLM → Configure**: choose a login radio (**Local LLM** is default — pick Fast/Thinking and, first time, paste the key; or select Claude Code CLI (my local machine) after running the seat setup). Optionally check the local agent. **Apply / Login** — no case required; the workspace default persists across cases (and is also stored on the selected case, if any). Steps 1 and 2 can be done in either order.
 3. **Step 2 – TestLink**  
    Review primary + candidates. Use **Search TestLink** / **Suggest with LLM** to expand or re-rank, then confirm selections.
 4. **Step 3 – Zephyr**  

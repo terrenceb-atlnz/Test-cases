@@ -12,7 +12,7 @@
 //     SAME prompt template (served by GET /api/llm/inflight/{id}), and drives
 //     the fill bar — the single-call equivalent of the suggest-all X/N tally;
 //   * "12.3k streamed" is REAL output observed server-side as it arrives
-//     (vLLM SSE chunks; claude/grok CLI stream-json lines);
+//     (vLLM SSE chunks);
 //   * clicking the busy button fires POST /api/llm/cancel/{id} — a TRUE
 //     server-side cancel (the CLI process group is killed / the vLLM stream is
 //     closed / the agent job is abandoned). Nothing persists; the endpoint

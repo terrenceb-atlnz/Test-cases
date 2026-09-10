@@ -52,7 +52,8 @@ def test_parse_accepts_the_four_field_form_and_derives_the_provider():
     assert (cfg.auth_method, cfg.provider, cfg.model) == ("local_llm", "openai", "vllm-thinking")
     assert cfg.unit_model is None, "routing aliases are Claude-only"
     assert parse_seat_llm("local_llm").model == "vllm-fast", "blank model under local_llm = Fast"
-    assert parse_seat_llm("grok_cli").provider == "grok"
+    with pytest.raises(ValueError):
+        parse_seat_llm("grok_cli")   # retired 2026-09-11: refused like any non-allowlisted value
 
 
 def test_parse_of_an_empty_header_is_none_not_an_error():
@@ -81,11 +82,11 @@ def test_the_seat_header_wins_over_the_site_default_and_the_session(seat, monkey
     monkeypatch.setattr(llm_config, "load_global_llm",
                         lambda: LLMConfig(provider="openai", auth_method="local_llm", model="vllm-fast"))
     sess = WizardSession(key="AWPTCM-T99991")
-    sess.llm_config = LLMConfig(provider="grok", auth_method="grok_cli")
+    sess.llm_config = LLMConfig(provider="claude", auth_method="claude_agent", model="haiku")
     seat("claude_agent;sonnet")
     got = effective_llm_config(sess)
     assert (got["auth_method"], got["model"]) == ("claude_agent", "sonnet")
-    assert sess.llm_config.auth_method == "grok_cli", "the session must never be rewritten"
+    assert sess.llm_config.model == "haiku", "the session must never be rewritten"
 
 
 def test_without_a_header_the_site_default_wins_over_a_stale_session_copy(monkeypatch):
@@ -102,8 +103,8 @@ def test_without_a_header_the_site_default_wins_over_a_stale_session_copy(monkey
 def test_without_header_or_default_the_sessions_own_active_config_is_used(monkeypatch):
     monkeypatch.setattr(llm_config, "load_global_llm", lambda: None)
     sess = WizardSession(key="AWPTCM-T99991")
-    sess.llm_config = LLMConfig(provider="grok", auth_method="grok_cli")
-    assert effective_llm_config(sess)["auth_method"] == "grok_cli"
+    sess.llm_config = LLMConfig(provider="claude", auth_method="claude_agent", model="haiku")
+    assert effective_llm_config(sess)["model"] == "haiku"
     bare = WizardSession(key="AWPTCM-T99992")
     bare.llm_config = None
     assert effective_llm_config(bare) == {}
@@ -172,7 +173,7 @@ def test_apply_writes_nothing_server_side(client, monkeypatch):
     writes = []
     monkeypatch.setattr(cfgmod, "save_global_llm", lambda cfg: writes.append(cfg))
     sess = WizardSession(key="AWPTCM-T99993")
-    sess.llm_config = LLMConfig(provider="grok", auth_method="grok_cli")
+    sess.llm_config = LLMConfig(provider="openai", auth_method="local_llm")
     sessions["AWPTCM-T99993"] = sess
     try:
         r = client.post("/api/wizard/set_llm_config/AWPTCM-T99993",
@@ -181,7 +182,7 @@ def test_apply_writes_nothing_server_side(client, monkeypatch):
         assert r.json()["scope"] == "seat"
         assert r.json()["llm_config"]["auth_method"] == "claude_agent"
         assert writes == [], "Apply wrote the site default"
-        assert sess.llm_config.auth_method == "grok_cli", "Apply wrote the case session"
+        assert sess.llm_config.auth_method == "local_llm", "Apply wrote the case session"
     finally:
         sessions.pop("AWPTCM-T99993", None)
 

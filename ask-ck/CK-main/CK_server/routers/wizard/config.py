@@ -1,6 +1,6 @@
 """Generator configuration endpoints — session clear, CLI status, and LLM config.
 
-clear_session, claude/grok CLI status, get/set LLM config, and the LLM health ping.
+clear_session, get/set LLM config (seat and site default), and the LLM health ping.
 Split out of the monolithic routers/wizard.py (PLAN-backend-module-split.md commit 10).
 """
 import time
@@ -16,7 +16,7 @@ from models import (
     model_to_dict,
     safe_session_dict,
 )
-from llm import _health_ping, check_grok_cli
+from llm import _health_ping
 from local_llm_key import get_local_llm_key, set_local_llm_key
 from llm_config import (
     TASK_MODEL_FIELDS,
@@ -51,12 +51,6 @@ async def clear_session(key: str):
         "message": f"Session for {key} cleared (workspace LLM preference kept)",
         "workspace_llm_kept": True,
     }
-
-
-@router.get("/grok_cli_status")
-async def grok_cli_status():
-    """Report whether the xAI Grok CLI is installed (for SuperGrok/X Premium+ subscription login)."""
-    return check_grok_cli()
 
 
 @router.get("/llm_config")
@@ -140,7 +134,6 @@ def _validated_llm_config(body: dict) -> LLMConfig:
       stored server-side; the ENDPOINT IS FIXED IN CODE and is not configurable.
     - "claude_agent": the Claude Code CLI on the user's OWN machine, via the browser
       bridge. No credential is collected; each user spends their own seat.
-    - "grok_cli": headless Grok CLI (subscription OAuth). No credential is collected.
 
     REFUSED (2026-08-04): "api_key" and legacy "account", which took a caller-supplied
     key and a free-form `base_url` and so could point the tool at any third-party model
@@ -149,17 +142,17 @@ def _validated_llm_config(body: dict) -> LLMConfig:
     unrecognised auth_method is a 400; it used to be silently downgraded to "api_key",
     which turned a typo into an unintended backend.
     """
-    provider = (body.get("provider") or "grok").lower().strip()
+    provider = (body.get("provider") or "openai").lower().strip()
     auth_method = (body.get("auth_method") or "local_llm").lower().strip()
     model = body.get("model")
 
     # Checked BEFORE the coercion below. It used to sit after it, so "mock" was rewritten
-    # to "grok" and this branch could never fire — a validation that read as enforced and
-    # was not.
+    # to the default provider and this branch could never fire — a validation that read as
+    # enforced and was not.
     if provider == "mock":
-        raise HTTPException(400, "MOCK provider removed. Use grok, claude or openai with real auth.")
-    if provider not in ("grok", "claude", "openai"):
-        provider = "grok"
+        raise HTTPException(400, "MOCK provider removed. Use claude or openai with real auth.")
+    if provider not in ("claude", "openai"):
+        provider = "openai"
     if auth_method in RETIRED_AUTH_METHODS:
         raise HTTPException(
             400,
@@ -174,8 +167,6 @@ def _validated_llm_config(body: dict) -> LLMConfig:
         )
     if auth_method == "claude_agent" and provider != "claude":
         raise HTTPException(400, "The Claude Code mode is only available for the Claude provider.")
-    if auth_method == "grok_cli" and provider != "grok":
-        raise HTTPException(400, "Grok CLI (subscription) mode is only available for the Grok provider.")
     if auth_method == "local_llm":
         # The radio always pairs local_llm with openai; coerce rather than 400.
         provider = "openai"
@@ -217,11 +208,9 @@ def _validated_llm_config(body: dict) -> LLMConfig:
         # Sensible defaults per provider
         if auth_method == "local_llm":
             cfg.model = "vllm-fast"
-        elif provider == "grok" and auth_method != "grok_cli":
-            cfg.model = "grok-beta"
         elif provider == "claude" and auth_method != "claude_agent":
             cfg.model = "claude-3-5-sonnet-20241022"
-        # claude_agent / grok_cli: leave model unset so the CLI's own default is used
+        # claude_agent: leave model unset so the seat's toggle / the CLI's own default is used
 
     return cfg
 
@@ -230,8 +219,6 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
     """The config as the browser may see it: readiness flags, never a credential."""
     auth_method = cfg.auth_method
     provider = cfg.provider
-    # Headless mode readiness comes from the CLI install, not a stored credential
-    grok_cli_status = check_grok_cli() if auth_method == "grok_cli" else None
     # local_llm readiness = a key is stored server-side (never echo the key itself)
     local_llm_key_set = bool(get_local_llm_key()) if auth_method == "local_llm" else None
 
@@ -242,15 +229,12 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
         # No `cfg.api_key or cfg.token` term any more: nothing populates them, so readiness
         # is entirely "is the CLI installed / is the server-side vLLM key stored".
         "has_key": (auth_method == "claude_agent") or
-                   (auth_method == "grok_cli" and bool(grok_cli_status and grok_cli_status.get("available"))) or
                    (auth_method == "local_llm" and bool(local_llm_key_set)),
         "model": cfg.model,
         "unit_model": cfg.unit_model,
         "match_model": cfg.match_model,
         "base_url": cfg.base_url,
     }
-    if grok_cli_status is not None:
-        safe_config["grok_cli"] = grok_cli_status
     if local_llm_key_set is not None:
         safe_config["local_llm_key_set"] = local_llm_key_set
     return safe_config

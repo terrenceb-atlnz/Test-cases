@@ -54,20 +54,19 @@ _CONFIG_SRC = (_SERVER / "routers" / "wizard" / "config.py").read_text()
 
 def test_retired_methods_are_not_supported():
     """The retired methods must not have crept back into the approved set. `claude_code`
-    (the Claude CLI run on the SERVER host, one seat for everyone) joined them 2026-09-10."""
-    assert set(RETIRED_AUTH_METHODS) == {"api_key", "account", "claude_code"}
+    (the Claude CLI run on the SERVER host, one seat for everyone) joined them 2026-09-10;
+    `grok_cli` on 2026-09-11 (two backends only: the org vLLM and the user's own Claude seat)."""
+    assert set(RETIRED_AUTH_METHODS) == {"api_key", "account", "claude_code", "grok_cli"}
     assert not set(SUPPORTED_AUTH_METHODS) & set(RETIRED_AUTH_METHODS)
 
 
-def test_supported_set_is_the_approved_four():
+def test_supported_set_is_the_approved_two():
     """A deliberate tripwire: widening the set is a governance decision, not a refactor.
 
     If you are adding a backend, that is fine — but update the wiki page and this list
     together, so the documented posture and the code cannot drift apart.
     """
-    assert set(SUPPORTED_AUTH_METHODS) == {
-        "local_llm", "claude_agent", "grok_cli",
-    }
+    assert set(SUPPORTED_AUTH_METHODS) == {"local_llm", "claude_agent"}
 
 
 def test_default_auth_method_is_the_internal_backend():
@@ -102,7 +101,7 @@ def test_unknown_auth_method_is_rejected_not_downgraded(client):
 def test_caller_supplied_key_and_endpoint_are_ignored(client):
     """Even on a SUPPORTED backend, a key/endpoint in the body must not be stored."""
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "grok", "auth_method": "grok_cli",
+                    json={"provider": "claude", "auth_method": "claude_agent",
                           "api_key": "sk-leak", "token": "tok-leak",
                           "base_url": "https://attacker.example/v1"})
     assert r.status_code == 200, r.text
@@ -115,7 +114,7 @@ def test_caller_supplied_key_and_endpoint_are_ignored(client):
 
 
 def test_mock_provider_still_refused(client):
-    """This 400 used to be unreachable — provider was coerced to "grok" before the check."""
+    """This 400 used to be unreachable — provider was coerced to the default before the check."""
     r = client.post("/api/wizard/set_llm_config",
                     json={"provider": "mock", "auth_method": "local_llm"})
     assert r.status_code == 400
@@ -125,9 +124,9 @@ def test_mock_provider_still_refused(client):
 def test_supported_backend_still_works(client):
     """The allowlist must not have broken the backends we actually use."""
     r = client.post("/api/wizard/set_llm_config",
-                    json={"provider": "grok", "auth_method": "grok_cli"})
+                    json={"provider": "claude", "auth_method": "claude_agent"})
     assert r.status_code == 200, r.text
-    assert r.json()["llm_config"]["auth_method"] == "grok_cli"
+    assert r.json()["llm_config"]["auth_method"] == "claude_agent"
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +246,8 @@ def test_stale_config_with_a_key_is_not_reported_active():
 
 
 def test_cli_backends_still_report_active():
-    for am, provider in (("grok_cli", "grok"), ("claude_agent", "claude")):
-        assert llm_is_active(LLMConfig(provider=provider, auth_method=am)) is True, am
-    # Server-side Claude was removed 2026-09-10: a stored config naming it is NOT active.
+    assert llm_is_active(LLMConfig(provider="claude", auth_method="claude_agent")) is True
+    # Server-side Claude was removed 2026-09-10 and Grok on 2026-09-11: a stored config
+    # naming either is NOT active.
     assert llm_is_active(LLMConfig(provider="claude", auth_method="claude_code")) is False
+    assert llm_is_active(LLMConfig(provider="grok", auth_method="grok_cli")) is False
