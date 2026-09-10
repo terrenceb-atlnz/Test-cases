@@ -2,9 +2,81 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-11, morning (by Claude, with Terrence for the decisions)
+**Last Updated**: 2026-09-11, midday (by Claude, with Terrence for the decisions)
 
-## Latest session (2026-09-11, morning) — D8–D15 reviewed and resolved; Grok removed, creation-time tools retired, one-time notice shipped (plan §11)
+## Latest session (2026-09-11, midday) — guardrails plan DECIDED (D4 costed, open); T44297 review dropped; skills renamed orient-ck/wrap-ck; memory store split 88 → 60
+
+**Where it stands.** Terrence pushed the morning's six commits himself, then set the thread:
+**`PLAN-fix-units-guardrails.md` is the work, whole plan (G1–G8), and the proof is a fresh
+Generate → Review → Fix on T44297 afterwards.** The pre-guardrail T44297 artefact will NOT get its
+final Opus review — no point reviewing what that run replaces — so that item is struck from the
+morning entry's pick-up list and D5 is closed in the plan. Decisions taken as recommended: **D1**
+(40 % non-scaffold lines; lint-only bypasses the gate), **D2** (hold review-driven fixes for
+approval, auto-apply lint-only), **D3** (a setup-mapped finding asking for a verdict is structural,
+never fixed — pulls follow-ups #4, the constrained `kind` enum, into scope), **D6** (G7's UI lands
+with follow-ups #1–#3), **D7** (setup `configure()` body verbatim in the shared half). Status
+header and table updated. Root causes RC1–RC3 re-verified against today's code before starting
+(`where`+`evidence` still concatenated in `_unit_id_for_finding`; `_sync` still rewrites every
+chunk; `_unit_shape_ok` still the only arrival check).
+
+**D4 (scapy known-field check) — costed, Terrence leaning yes, decision open.** The tc6 phantom
+fields were read ONE HOP removed — `basicLayer = pkt[lldp_basic] …; getattr(basicLayer,
+'port_desc', None)` (history iter-14 L833–836) — so the check must track a variable bound from
+`pkt[Layer]`, or it misses the case that motivated it; `getattr` with a default is also why it
+was silent at runtime. Code side: one linter function in the `_lint_unbound_names` style, flat
+scoping, silent when unsure. **Vocabulary is the cost:** (a) the corpus-read fields
+(`db.script_layer_fields`) are far too sparse — 3 fields for `lldp_basic`, 0 for 18 of the 28
+layers — and would flag 8 real fields; (b) the corpus copy of the layer definitions
+(`5003_feature_limits/test-5003.0014-LLDP/lldp_class.py` in `ck.db`, Python 2) carries real
+`fields_desc` for 18 LLDP layers — 11 on `lldp_basic`, none of them `port_desc` — but is a copy
+that may drift from the framework's `ATPackets`, and covers no non-LLDP layer; (c) re-harvesting
+the framework surface doc with `fields_desc` is authoritative but needs the read-only framework
+tree, which this host does not mount. Recommendation: yes, built on (b) now as a per-layer
+`fields` list on the surface doc's ATPackets record (a later harvest overwrites it), error-level,
+silent for layers with no list. **Awaiting Terrence: (b) as interim, or hold for (c).** Tranche 1
+(G1 + G5 + G8(a)) does not depend on it.
+
+**Sidequest 1 — skills renamed.** Terrence renamed the project skills to `orient-ck` / `wrap-ck`
+(the device-testing repo has `orient-dt` / `wrap-dt`) so the names no longer collide across repos.
+The harness registers a skill by DIRECTORY, so nothing broke mechanically; every prose reference
+was swept: both SKILL.md `name:` fields and cross-references, `CLAUDE.md` (repo and lab-home),
+`README.md`, the two memory tools' messages, one plan line, one memory + its index line. Dated
+logs (SESSION_STATE/CHANGELOG/PROGRESS history) keep the old names as history. Verified after:
+skill dir == frontmatter name for both; every repo path either skill cites exists.
+
+**Sidequest 2 — memory inventory → the store was split.** Terrence asked which of the 88 memories
+Ask-CK actually needs; the inventory is `MEMORY-SPLIT-INVENTORY.md` (repo root; five buckets,
+borderline notes, the two things a split must handle). He pointed the device-testing Claude at it
+and the split landed in this shared tree during the session: **88 → 60 memories** (+ index).
+28 removed — 13 closed-work memories deleted outright (in git history), 15 lab-campaign memories
+moved to `claude/device-testing/.claude/memory/`; **12 shared memories are now RELATIVE symlinks**
+(`../../../device-testing/.claude/memory/<name>.md`), all resolving. `MEMORY.md` is consistent:
+60 indexed, 60 present, none orphaned either way.
+
+**Consequences of the split — open, Terrence's call (raised, not acted on):**
+1. `tool/check_memory_links.py` now reports **2 FAIL**: the `…-claude-device-testing` slug and
+   the bare `…-mnt-testbox-home` slug both point at the device-testing store. The first is surely
+   intended; the second means **a session started in the lab home now loads the device-testing
+   set, not Ask-CK's** — is that wanted? **Do NOT run `--fix`**: it would re-point both slugs at
+   this store and undo the split. The tool needs teaching that a second store is legitimate.
+2. Three sentences are now false or half-true and were left for that decision:
+   `CLAUDE.md` §Memory ("the same set loads whichever directory"), the lab-home `CLAUDE.md` line 9,
+   and `orient-ck` §4.
+3. `check_memory_refs.py` (advisory): 4 dead-path citations (2 in `art-suite-shape` — corpus file
+   names cited as vocabulary; 2 in the shared `tb470-topology-and-setup` — device-testing's file)
+   and 4 `file:LINE` citations. None from this session.
+
+**Gate at close:** both guards OK; **pytest 1450 passed / 1 skipped; vitest 280**; `ck.db`
+signature unchanged. `ask-ck/Fragments_prompt.md` (untracked, 2026-08-31, a captured step-4
+prompt for T33351) left alone — not this stream's file.
+
+**Pick up here:** (1) D4 decision, then **tranche 1: G1 + G5 (+ follow-ups #4) + G8(a)**, gate
+after each; existing test home `tests/test_pt_fix_units.py`. (2) The split's two open
+consequences above. (3) §9 steps 4 and 6 still unobserved (need Terrence at a seat).
+
+---
+
+## Previous session (2026-09-11, morning) — D8–D15 reviewed and resolved; Grok removed, creation-time tools retired, one-time notice shipped (plan §11)
 
 **Where it stands.** Terrence reviewed the eight decisions the autonomous run had recorded
 (`PLAN-seat-setup-and-per-seat-llm.md` §8b) one prompt at a time. Outcomes, all written into
@@ -65,9 +137,12 @@ route cut lasted under a minute and was fixed before any request hit it — see 
 
 **Pick up here:** (1) **§9 Windows demo on 10.33.25.50** — Terrence at the seat, Claude on
 `journalctl --user -u ask-ck.service -f`, the `/setup/` hits and the agent broker; fix what
-surfaces. (2) T44297's final Opus review → Save → Confirm, and the guardrails/follow-ups plan
-decisions from the 2026-09-10 morning entry, still untouched. (3) `git push` — denied to Claude
-by permission mode on 2026-09-10; check `git status -sb` for drift from origin.
+surfaces. (2) ~~T44297's final Opus review → Save → Confirm~~ — **dropped 2026-09-11
+(Terrence):** there is no point reviewing the pre-guardrail artefact; once the guardrails are
+in, T44297 gets a fresh Generate and that run is what shows they work. The guardrails plan
+decisions (`ask-ck/pytest-create/PLAN-fix-units-guardrails.md` D1–D4, D6, D7) are the active
+thread. (3) `git push` — denied to Claude by permission mode on 2026-09-10; pushed by Terrence
+2026-09-11 midday.
 
 **Process notes.** (1) The hook that refuses stray `.py` files only inspects CREATE targets
 (redirects, `tee`, `cp`/`mv`); `sed -n`/`cat` on `.py` paths are fine, and multi-file exact-match

@@ -2,7 +2,14 @@
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-09 — nothing implemented.** Written at Terrence's request after the
+> **DECIDED 2026-09-11 — implementation starting; nothing shipped yet.** Terrence took the
+> recommendations on D1, D2, D3, D6 and D7 as written (table at the end); D4 awaits a cost
+> analysis (leaning yes); D5 is closed. Scope is the WHOLE plan, G1–G8 in the order below,
+> and the proof is a fresh Generate → Review → Fix run on T44297 afterwards — the pre-guardrail
+> T44297 artefact will NOT get its final review (no point reviewing what the run will replace).
+> G5 pulls follow-ups #4 (the constrained `kind` enum) into this plan's scope.
+>
+> Originally **PROPOSED 2026-09-09 — nothing implemented.** Written at Terrence's request after the
 > T44297 pass: *"a plan to guardrail the 'fix units' command so it cannot write in any other
 > TC that isn't affected by an error. this is costing a lot of rework and i dont want such an
 > unreliable process."* Every root cause below is taken from the code and the stored session,
@@ -170,10 +177,10 @@ pairs naturally with PROGRESS #1–#3 (error timestamps, regenerate cue, Fix-but
 
 | # | decision | recommendation |
 |---|---|---|
-| D1 | G3 threshold, and do lint-only fixes bypass the gate? | 40 % non-scaffold lines; yes, lint-only bypasses |
-| D2 | G7 default: hold-for-approval for review-driven fixes? auto-apply lint-only? | yes / yes |
-| D3 | G5: a `setup`-mapped finding that asks for a verdict → always structural (never fixed)? | yes — config-only is the contract |
-| D4 | G6 stretch: implement the scapy known-field check (would have caught tc6)? | yes if cheap; it is the one check that catches the class we actually hit |
-| D5 | tc1's unapproved step-1 change from fix run 5 — keep or revert? | **RESOLVED 2026-09-10:** keep the step-1 verification (grounded, sound), strip the `lldp run`/`no lldp run` pair (setup owns it). Applied via `save_script`, rev 467, lint ok; final review pending |
-| D6 | Land G7's UI in the same pass as PROGRESS #1–#3, or separately? | same pass — one step-5 UI change, not three |
-| D7 | G8(a): show the setup `configure()` body verbatim, or a derived command list? | verbatim body — small, deterministic, cache-shared; a derived list is a second thing to keep in sync |
+| D1 | G3 threshold, and do lint-only fixes bypass the gate? | **DECIDED 2026-09-11: as recommended** — 40 % non-scaffold lines; lint-only bypasses. The gate only ever HOLDS, so a wrong threshold costs a click, not a fix |
+| D2 | G7 default: hold-for-approval for review-driven fixes? auto-apply lint-only? | **DECIDED 2026-09-11: yes / yes.** Fix units stops writing straight to the script for review-driven fixes; it shows per-unit diffs with Apply |
+| D3 | G5: a `setup`-mapped finding that asks for a verdict → always structural (never fixed)? | **DECIDED 2026-09-11: yes** — config-only is the contract. Follow-ups #4 (the `kind` enum with `structural`) is built in the same step |
+| D4 | G6 stretch: implement the scapy known-field check (would have caught tc6)? | **OPEN 2026-09-11** — Terrence leaning yes, wants the cost analysis first. Recommendation stands: yes if cheap; it is the one check that catches the class we actually hit |
+| D5 | tc1's unapproved step-1 change from fix run 5 — keep or revert? | **RESOLVED 2026-09-10:** keep the step-1 verification (grounded, sound), strip the `lldp run`/`no lldp run` pair (setup owns it). Applied via `save_script`, rev 467, lint ok. **CLOSED 2026-09-11:** the final review is dropped — T44297 is re-generated from scratch once the guardrails are in, and that run is the proof |
+| D6 | Land G7's UI in the same pass as PROGRESS #1–#3, or separately? | **DECIDED 2026-09-11: same pass** — one step-5 UI change, not three. Follow-ups #1–#3 join this plan's last step |
+| D7 | G8(a): show the setup `configure()` body verbatim, or a derived command list? | **DECIDED 2026-09-11: verbatim body** — small, deterministic, cache-shared; a derived list is a second thing to keep in sync |

@@ -4030,3 +4030,21 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Left undone:** §9 step 6 (reboot with autostart on); the manifest-bump step; T44297 final
   review; the 2026-09-10 morning plan decisions; push if denied to Claude.
 - **Resume:** PROGRESS.md top entry (2026-09-11), then plan §9.
+
+## Session Close / Handoff (2026-09-11, midday) — guardrails plan decided; skills renamed; memory store split
+
+- **Context:** Terrence pushed the morning's commits himself. The thread is now
+  `ask-ck/pytest-create/PLAN-fix-units-guardrails.md`, whole plan; D1/D2/D3/D6/D7 taken as
+  recommended, D5 closed (T44297's final review dropped — a fresh Generate after the guardrails is
+  the proof), **D4 costed and open** (corpus copy of the LLDP layer definitions as interim
+  vocabulary, or wait for a framework harvest). Root causes re-verified against the code.
+- **Sidequests:** skills renamed `orient-ck` / `wrap-ck` with every live reference swept (dated
+  logs untouched); memory inventory written to `MEMORY-SPLIT-INVENTORY.md`, and the
+  device-testing stream executed the split in this tree — 88 → 60 memories, 12 shared as relative
+  symlinks. Index consistent. `check_memory_links.py` now fails 2 slugs by design of the split;
+  **do not `--fix`** until Terrence decides which store the lab-home slug should load.
+- **Gate at close:** guards OK; pytest 1450 passed / 1 skipped; vitest 280; ck.db untouched.
+- **Left undone:** D4 decision; tranche 1 of the guardrails; the split's doc/tool follow-ups;
+  §9 steps 4 and 6.
+- **Resume:** PROGRESS.md top entry (2026-09-11 midday), then the guardrails plan.
+
