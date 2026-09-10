@@ -5,7 +5,7 @@
 > **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits; only §9's
 > Windows-seat demo remains.** §8b's decisions were reviewed with Terrence on 2026-09-11 and
 > are resolved in place; the two that became work (Grok removal + tool retirement, and the
-> one-time notice) are **§11, executing 2026-09-11**. Originally PROPOSED the same
+> one-time notice) are **§11, executed 2026-09-11** (three commits). Originally PROPOSED the same
 > morning. Written at Terrence's request after the
 > second Ask-CK demo day (2026-09-10, ~13:10–14:05 NZST), which ended in the RDP-to-localhost
 > workaround again. Three failures were seen; all three are root-caused below with evidence
@@ -466,8 +466,9 @@ Gate: `./tool/run_tests.sh` before and after each phase; new pins listed in §4�
 
 ## 11. Two backends only: retire Grok and the creation-time tooling; tell a seat its old choice is gone (decided 2026-09-11)
 
-> **Status: EXECUTING 2026-09-11.** Decided in the D8–D15 review the morning after §3–§6
-> shipped. Supersedes the D13 and D14 rows in §8b.
+> **Status: EXECUTED 2026-09-11** — `9bb4d77` (Grok removed), `691e4cc` (tools retired),
+> `12822ae` (the notice); gate green after each. Decided in the D8–D15 review the morning
+> after §3–§6 shipped. Supersedes the D13 and D14 rows in §8b.
 
 **Terrence's words (2026-09-11), which set the scope:**
 

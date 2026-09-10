@@ -11,6 +11,39 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-11 — Two backends only: Grok removed, the creation-time LLM tooling retired, and a seat is told once when its old choice is gone
+
+Terrence's ruling, reviewing the previous evening's D8–D15: *"Every LLM call on Ask-CK should
+be runnable by both the vLLM and the Claude (your seat) options."* Plan:
+`ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §11.
+
+- **Grok is gone** (`9bb4d77`): `grok_cli` and the `grok` HTTP provider. `SUPPORTED_AUTH_METHODS`
+  is exactly `("local_llm", "claude_agent")`; `grok_cli` joins the retired set so a persisted
+  session naming it is refused **by name**. **Why the HTTP provider too:** its only auth methods
+  were retired 2026-08-04, so it had been unreachable code for five weeks — a provider with no
+  auth method is the implied capability the governance allowlist exists to deny. The server's
+  subprocess runner (`_run_cli`) had no caller left and went with it; the server runs no LLM CLI
+  of its own any more, so the cancel path is "close the vLLM stream / abandon the agent job".
+  The governance wiki rows that named Grok as selectable were corrected — the allowlist tests
+  exist to keep that page true.
+- **Creation-time tooling retired** (`691e4cc`): `tool/enrich_script_index.py` (+ its jinja and
+  the `--enrich` hook in `build_script_index.py`), `pt_model_matrix.py`, `pt_judge.py`,
+  `pt_matrix_judge.py`, `pt_autopilot.py`. **Why:** Terrence's criterion was "did it only run
+  for the creation of Ask-CK?" — every one did (last real use 2026-07-22 → 2026-08-03; the
+  enrichment output already lives in `ck.db`). With them gone, every LLM call starts in a browser
+  and dispatches to one of the two backends, so the "runnable on both" property holds by
+  construction rather than by audit. Their result directories stay as records.
+- **The one-time notice** (`12822ae`, D14): a seat whose stored choice named a retired backend
+  already fell back to the site default silently (2026-09-10); now LLM → Configure says so —
+  from the drop until that seat next Applies — in words that name no retired mode.
+- **D8–D15 resolved** in the plan's §8b: Windows demo driven by Terrence with Claude watching
+  the server side (pending); §6 removal stands; his agent autostarts; records stay; forensic
+  parser fields dropped; **site default stays Claude agent** (a bare seat is expected to run the
+  one-liner first).
+
+Gate at close: both guards OK; pytest 1447 passed / 1 skipped; vitest 279; live server
+hot-reloaded clean after each commit.
+
 ## 2026-09-10 — Seats set themselves up from the home page; the LLM choice is per seat; the per-user agent is the only Claude path
 
 Written after the second demo day (2026-09-10), which again ended in the RDP-to-localhost

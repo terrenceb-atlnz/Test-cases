@@ -1,9 +1,9 @@
 ---
 name: claude-agent-is-the-release-transport
-description: "`claude_agent` (browser broker -> ck-agent on the user's seat) is the ONLY Claude transport as of 2026-09-10; seats install the agent from the Ask CK home page one-liner; the LLM choice is per seat (X-CK-LLM)"
+description: "`claude_agent` (browser broker -> ck-agent on the user's seat) is the ONLY Claude transport as of 2026-09-10, and since 2026-09-11 Ask-CK has exactly TWO backends (org vLLM, claude_agent) — Grok is gone; seats install the agent from the home page one-liner; the LLM choice is per seat (X-CK-LLM)"
 metadata:
   type: project
-  verified: 2026-09-10
+  verified: 2026-09-11
 ---
 
 **The Claude path is the per-user agent, and nothing else.** A browser tab brokers each call
@@ -26,6 +26,12 @@ the easy path rather than the RDP-to-localhost workaround of the two demo days.
   `llm_config.effective_llm_config` resolves seat → site default → session copy. Plain Apply
   writes nothing server-side; only **Set as site default** writes the `_workspace_llm` row.
   See [[workspace-llm-default-gotcha]] for what that means for headless curl.
-- Headless tooling on the server host has the org vLLM only; there is no server-side Claude
-  transport to reach for. The CLI contract the agents implement is in
-  [[claude-code-cli-transport-contract]].
+- **Two backends, and only two (2026-09-11).** `models.SUPPORTED_AUTH_METHODS` is exactly
+  `("local_llm", "claude_agent")`; `api_key`, `account`, `claude_code` and `grok_cli` are
+  refused by name. Terrence: *"Every LLM call on Ask-CK should be runnable by both the vLLM
+  and the Claude (your seat) options."* Every LLM call starts in a browser — the headless
+  creation-time tools (enrich, model matrix, judges, autopilot) were retired the same day, so
+  there is no server-side LLM CLI or subprocess runner to reach for. The CLI contract the
+  agents implement is in [[claude-code-cli-transport-contract]]. Adding a backend is a
+  governance decision: update the wiki, `SUPPORTED_AUTH_METHODS` and
+  `tests/test_llm_backend_allowlist.py` together.

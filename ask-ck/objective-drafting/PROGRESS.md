@@ -2,9 +2,48 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-10, evening (by Claude, autonomous run on Terrence's instruction)
+**Last Updated**: 2026-09-11, morning (by Claude, with Terrence for the decisions)
 
-## Latest session (2026-09-10, afternoon → evening) — demo-day #2 root-caused; the seat-setup plan written, decided and EXECUTED (§3–§6); only the Windows-seat demo remains
+## Latest session (2026-09-11, morning) — D8–D15 reviewed and resolved; Grok removed, creation-time tools retired, one-time notice shipped (plan §11)
+
+**Where it stands.** Terrence reviewed the eight decisions the autonomous run had recorded
+(`PLAN-seat-setup-and-per-seat-llm.md` §8b) one prompt at a time. Outcomes, all written into
+§8b: D8 he drives the Windows demo, Claude watches the server side; D9 the §6 removal stands;
+D10 his agent autostarts (done — `ck-agent.service` enabled, conf `autostart=yes`); D11 records
+stay; D12 forensic fields dropped; D15 **the site default stays Claude agent**. D13 and D14
+became work — **§11**, executed in three commits, gate green after each:
+
+- `9bb4d77` **Grok removed** — `grok_cli` and the `grok` HTTP provider; the allowlist is
+  exactly `(local_llm, claude_agent)`; `grok_cli` refused by name; `_run_cli` gone (the server
+  runs no LLM CLI). Two backends is Terrence's ruling: *"Every LLM call on Ask-CK should be
+  runnable by both the vLLM and the Claude (your seat) options."* The wiki rows naming Grok
+  were corrected.
+- `691e4cc` **creation-time tooling retired** — `enrich_script_index.py` (+ jinja, `--enrich`),
+  `pt_model_matrix.py`, `pt_judge.py`, `pt_matrix_judge.py`, `pt_autopilot.py` (his call over a
+  headless Claude broker). Criterion: *"tools that only ran for the creation of ask-ck … retire
+  them."* Every remaining LLM call starts in a browser → both backends by construction (§11.2).
+- `12822ae` **one-time notice** (D14) — a seat whose stored choice was retired is told so under
+  LLM → Configure until it next Applies; wording names no retired mode.
+
+**Gate at close:** both guards OK; **1447 passed / 1 skipped; vitest 279**; live server
+hot-reloaded clean after each commit (`/health` ok; one transient syntax error from a bad
+route cut lasted under a minute and was fixed before any request hit it — see process notes).
+
+**Pick up here:** (1) **§9 Windows demo on 10.33.25.50** — Terrence at the seat, Claude on
+`journalctl --user -u ask-ck.service -f`, the `/setup/` hits and the agent broker; fix what
+surfaces. (2) T44297's final Opus review → Save → Confirm, and the guardrails/follow-ups plan
+decisions from the 2026-09-10 morning entry, still untouched. (3) `git push` — denied to Claude
+by permission mode on 2026-09-10; check `git status -sb` for drift from origin.
+
+**Process notes.** (1) The hook that refuses stray `.py` files only inspects CREATE targets
+(redirects, `tee`, `cp`/`mv`); `sed -n`/`cat` on `.py` paths are fine, and multi-file exact-match
+edits as a scratchpad script are the safest way to touch the hot-reloading production tree.
+(2) A `cut_between(start, end)` whose `end` is a prefix of `start` cuts nothing and then eats
+`end` — that is how `"/grok_cli_status")` was left dangling for one reload cycle. Anchor on
+text that cannot match at the start. (3) Pre-existing advisory `check_memory_refs.py` output:
+eight `file:LINE` citations, none from this session.
+
+## Previous session (2026-09-10, afternoon → evening) — demo-day #2 root-caused; the seat-setup plan written, decided and EXECUTED (§3–§6); only the Windows-seat demo remains
 
 **Where it stands.** Terrence reported three demo-day failures (installer PATH; a Windows
 seat's Claude "not picked up"; "(this server)" green on Apply then failing every call). All

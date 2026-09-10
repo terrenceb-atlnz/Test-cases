@@ -3,7 +3,7 @@ name: workspace-llm-default-gotcha
 description: Since 2026-09-10 the LLM choice is PER SEAT (X-CK-LLM header); a headless curl with no header gets the SITE DEFAULT (`_workspace_llm` row), which only POST /api/wizard/set_site_default_llm writes — plain set_llm_config writes nothing; a Claude-mode default 502s "needs a browser session id" for headless callers
 metadata:
   type: project
-  verified: 2026-09-10
+  verified: 2026-09-11
 ---
 
 **How dispatch resolves the backend (2026-09-10, PLAN-seat-setup-and-per-seat-llm.md §5):**

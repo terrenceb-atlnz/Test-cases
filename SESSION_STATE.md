@@ -3995,3 +3995,19 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   autostart for his agent first); T44297 final review/confirm and the morning's plan decisions.
 - **Resume:** the 2026-09-10 (afternoon → evening) entry at the top of `PROGRESS.md`, then
   the plan's §8b.
+
+## Session Close / Handoff (2026-09-11, morning) — D8–D15 resolved with Terrence; §11 executed: Grok removed, creation-time tools retired, one-time notice
+
+- **Context:** the decisions the 2026-09-10 autonomous run recorded (§8b) were reviewed one
+  prompt at a time. D8 Terrence drives the Windows demo / Claude watches the server; D9 stands;
+  D10 autostart on (done); D11 records stay; D12 dropped; D15 site default stays Claude agent.
+  D13/D14 became plan §11.
+- **Shipped (three commits, gate green each):** Grok removed — `grok_cli` + HTTP provider,
+  allowlist `(local_llm, claude_agent)`, `grok_cli` refused by name, `_run_cli` gone
+  (`9bb4d77`); creation-time tooling retired — enrich, model matrix, judges, autopilot
+  (`691e4cc`); one-time "previous choice retired" notice under LLM → Configure (`12822ae`).
+- **Gate at close:** both guards OK; pytest 1447 passed / 1 skipped; vitest 279; live server
+  healthy.
+- **Left undone:** §9 Windows-seat demo (needs Terrence at 10.33.25.50); T44297 final
+  review/confirm; the 2026-09-10 morning plan decisions; `git push` if still denied to Claude.
+- **Resume:** the 2026-09-11 (morning) entry at the top of `PROGRESS.md`, then the plan's §9.

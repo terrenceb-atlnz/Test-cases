@@ -85,7 +85,7 @@
 - [Setup unit re-indent at assembly](setup-unit-reindent-at-assembly.md) — the setup unit is the ONLY non-top-level unit, so models flush-left a def; _assemble_units re-indents it
 - [IE520 4-stack flash-prep](ie520-4stack-flashprep.md) — CONCLUDED NEGATIVE 2026-09-04: IE520 VCStack hard-caps at 2 members; proof in ie520-stack-results.log
 - [ART suite shape is the target](art-suite-shape.md) — the frame/prompt emulate the ART house shape (2026-09-07): (dutA.portA, tb.ethA) + peer, shortcut block, CHECKPOINT verdicts, library_<case>.py
-- [claude_agent is the ONLY Claude transport](claude-agent-is-the-release-transport.md) — server-side Claude REMOVED 2026-09-10; seats install the agent from the splash one-liner; LLM choice is per seat (X-CK-LLM)
+- [claude_agent is the ONLY Claude transport; TWO backends only](claude-agent-is-the-release-transport.md) — server-side Claude REMOVED 2026-09-10, Grok 2026-09-11; allowlist = (local_llm, claude_agent); seats install the agent from the splash one-liner; LLM choice is per seat (X-CK-LLM)
 - [IE520 mcast/L3 test method](ie520-mcast-l3-test-method.md) — IGMP/MLD-snooping + directed-broadcast on tb470 with ONE host NIC: u4=querier, u5 ping=source, host scapy=receiver; gotchas inside
 - [AW+ service-gated routing daemons](awplus-service-gated-routing-daemons.md) — "daemon is not running or feature license" = run `service ospf|rip|vrrp|pim` first; PIM-DM has no service cmd
 - [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 is the Windows demo/test seat (both demo days); Terrence can remote in; the §9 verification seat for the seat-setup plan
