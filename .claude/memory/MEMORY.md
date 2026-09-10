@@ -29,7 +29,7 @@
 - [Part 3 grading session](part3-grading-session.md) — 2026-07-27: judges = Opus + vllm-fast; tb470 configs = /home/st-art/st-art/configs; Part 3b cause → [[run-thread-contextvar-lock]]
 - [PyTest step numbering divergence](pt-step-numbering-divergence.md) — internal step5 = UI "4. Fragments", step6 = "5. Generate"; never show raw stepN to users
 - [Stale session connection bug](stale-session-connection-bug.md) — a 200 outside readers never see: CAUSE (FIXED 2026-09-10) = two SQLite libs in one process stripped server locks; .nfs* orphans
-- [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT; send the header or POST set_site_default_llm; set_llm_config writes nothing
+- [Site-default LLM gotcha (per-seat since 2026-09-10)](workspace-llm-default-gotcha.md) — headless curl with no X-CK-LLM header gets the SITE DEFAULT, which ANY seat's Apply rewrites (D17); send the header or POST set_site_default_llm
 - [PyTest artefact-review worklist](pytest-artefact-review-worklist.md) — T33233 review findings #1/2/4/5/7 DONE; #3 partial; D1/D2/D3 resolved 2026-07-27
 - [D1 fragment-resolver boundaries](d1-fragment-resolver-boundaries.md) — D1 DONE 2026-07-27: hardened single _resolve_symbol_code; 27 adversarial checks green
 - [D3 py2 fragment translation](d3-py2-fragment-translation.md) — D3 DONE 2026-07-27: _translate_py2 via lib2to3 at resolve time; parse-fail ships original+banner; D2 = keep no cap

@@ -166,8 +166,9 @@ def test_the_header_is_bound_for_the_request_and_released_after(client):
     assert current_seat_llm.get("") == "", "leaked past the request"
 
 
-def test_apply_writes_nothing_server_side(client, monkeypatch):
-    """Plain Apply = this seat only (D2). It used to write the workspace row AND the case."""
+def test_apply_writes_the_site_default_but_never_the_case_session(client, monkeypatch):
+    """Apply = this seat + the site default (D17, 2026-09-11; D2 had it seat-only for a day).
+    The case session is still never written — a case is shared between seats."""
     import routers.wizard.config as cfgmod
     from session_store import sessions
     writes = []
@@ -179,15 +180,17 @@ def test_apply_writes_nothing_server_side(client, monkeypatch):
         r = client.post("/api/wizard/set_llm_config/AWPTCM-T99993",
                         json={"provider": "claude", "auth_method": "claude_agent", "model": "opus"})
         assert r.status_code == 200, r.text
-        assert r.json()["scope"] == "seat"
+        assert r.json()["scope"] == "seat" and r.json()["site_default_written"] is True
         assert r.json()["llm_config"]["auth_method"] == "claude_agent"
-        assert writes == [], "Apply wrote the site default"
+        assert [w.auth_method for w in writes] == ["claude_agent"], "Apply must write the site default (D17)"
         assert sess.llm_config.auth_method == "local_llm", "Apply wrote the case session"
     finally:
         sessions.pop("AWPTCM-T99993", None)
 
 
-def test_set_site_default_is_the_one_route_that_writes_the_row(client, monkeypatch):
+def test_set_site_default_alone_still_writes_the_row_for_headless_callers(client, monkeypatch):
+    """No page control reaches this since D17, but curl/scripts moving the default without
+    posing as a seat still need it (memory workspace-llm-default-gotcha)."""
     import routers.wizard.config as cfgmod
     writes = []
     monkeypatch.setattr(cfgmod, "save_global_llm", lambda cfg: writes.append(cfg))

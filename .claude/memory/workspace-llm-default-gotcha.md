@@ -1,6 +1,6 @@
 ---
 name: workspace-llm-default-gotcha
-description: Since 2026-09-10 the LLM choice is PER SEAT (X-CK-LLM header); a headless curl with no header gets the SITE DEFAULT (`_workspace_llm` row), which only POST /api/wizard/set_site_default_llm writes — plain set_llm_config writes nothing; a Claude-mode default 502s "needs a browser session id" for headless callers
+description: Since 2026-09-10 the LLM choice is PER SEAT (X-CK-LLM header); a headless curl with no header gets the SITE DEFAULT (`_workspace_llm` row), which any seat's Apply (set_llm_config) rewrites and POST /api/wizard/set_site_default_llm writes alone; a Claude-mode default 502s "needs a browser session id" for headless callers
 metadata:
   type: project
   verified: 2026-09-11
@@ -23,7 +23,9 @@ any more. So a case row's `llm_config` tells you nothing about what a request wi
 - change the site default:
   `curl -X POST localhost:8000/api/wizard/set_site_default_llm -H 'Content-Type: application/json' \
     -d '{"provider":"openai","auth_method":"local_llm","model":"vllm-fast"}'`
-  Note: `set_llm_config` no longer does this — it validates and echoes for the seat only.
+  Note: `set_llm_config` (the page's Apply) also writes the row since D17 (2026-09-11), but it
+  is the SEAT's request; from a script use the endpoint above so nothing pretends to be a seat.
+  And know that the row moves whenever anyone Applies — check it before relying on it.
 
 **Why:** the old model (workspace row authoritative for everyone, `apply_workspace_llm`
 re-syncing every session) is exactly how one seat flipped every seat on demo day; per-seat

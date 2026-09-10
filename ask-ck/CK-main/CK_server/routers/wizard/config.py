@@ -243,28 +243,39 @@ def _safe_llm_view(cfg: LLMConfig) -> dict:
 @router.post("/set_llm_config")
 @router.post("/set_llm_config/{key}")
 async def set_llm_config(body: dict, key: Optional[str] = None):
-    """THIS SEAT's LLM choice: validate and echo. Writes NOTHING server-side.
+    """Apply / Login: THIS SEAT's LLM choice, and — invisibly — the site default.
 
     The browser stores the echoed config (localStorage) and sends it as `X-CK-LLM` on every
-    later request; `llm_config.effective_llm_config` resolves it at dispatch. The `{key}`
-    form is accepted for URL compatibility and ignored — a case is shared between seats and
-    cannot own the choice (PLAN-seat-setup-and-per-seat-llm.md §5).
+    later request; `llm_config.effective_llm_config` resolves it at dispatch, so the seat's
+    own choice always wins over the row written here. The `{key}` form is accepted for URL
+    compatibility and ignored — a case is shared between seats and cannot own the choice
+    (PLAN-seat-setup-and-per-seat-llm.md §5). The case session is never written.
+
+    D17 (Terrence, 2026-09-11, having seen the two buttons side by side): the separate
+    "Set as site default" control had no contextual cue, so Apply now writes the
+    `_workspace_llm` row too. Consequence, recorded in the plan: every Apply — and the model
+    toggles, which post here — changes what a seat that has NEVER chosen starts from. Seats
+    that chose keep their own.
     """
     cfg = _validated_llm_config(body)
+    save_global_llm(cfg)
     return {
         "message": f"LLM set for this seat: {cfg.provider} via {cfg.auth_method}. "
-                   f"Other seats are unaffected.",
+                   f"Seats that chose their own LLM are unaffected; new seats start here.",
         "scope": "seat",
+        "site_default_written": True,
         "llm_config": _safe_llm_view(cfg),
     }
 
 
 @router.post("/set_site_default_llm")
 async def set_site_default_llm(body: dict):
-    """The SITE default: what a seat that has never chosen starts from (decision D2).
+    """The SITE default alone: what a seat that has never chosen starts from.
 
-    Writes the `_workspace_llm` row. Deliberately a separate, explicit endpoint behind a
-    separate, labelled control — plain Apply never reaches it.
+    Writes the `_workspace_llm` row without touching any seat. Since D17 (2026-09-11) the
+    page no longer has a control for this — Apply writes the row itself — but a headless
+    caller (curl, a script) that wants to move the default without pretending to be a seat
+    still needs an endpoint that does only that.
     """
     cfg = _validated_llm_config(body)
     save_global_llm(cfg)

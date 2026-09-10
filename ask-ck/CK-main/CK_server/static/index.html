@@ -288,7 +288,7 @@
     <div id="panel-llm-config" class="card tool-panel hidden">
       <div class="section">
         <div class="section-heading">LLM Provider Login</div>
-        <div class="section-description">Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys. <strong>Apply / Login sets the LLM for <em>this seat</em></strong> (this browser) only — every request from here carries it, other seats are unaffected. A seat that has never chosen starts from the <em>site default</em>, which only the separate <em>Set as site default</em> button changes. <strong>Claude Code CLI (my local machine)</strong> brokers each call through the agent on your own PC, so every seat spends its own Claude subscription and nothing is shared — run the one-line seat setup on the home page first.</div>
+        <div class="section-description">Use a locally logged-in subscription CLI or the org's vLLM — no developer API keys. <strong>Apply / Login sets the LLM for <em>this seat</em></strong> (this browser) — every request from here carries it, and seats that chose their own LLM are unaffected. It also becomes the <em>site default</em> that a seat which has never chosen starts from. <strong>Claude Code CLI (my local machine)</strong> brokers each call through the agent on your own PC, so every seat spends its own Claude subscription and nothing is shared — run the one-line seat setup on the home page first.</div>
 
         <div class="radio-group">
           <label class="radio-label">
@@ -300,8 +300,7 @@
           <button id="agentStatusBtn" data-action="checkLocalAgent" class="btn btn-secondary btn-compact-small">Check my local agent</button>
 
           <input id="llmModel" placeholder="Model (optional)" class="form-input form-input-small">
-          <button data-action="setLLMConfig" class="btn btn-primary" title="Sets the LLM for THIS seat (this browser) only">Apply / Login</button>
-          <button data-action="setSiteDefaultLLM" class="btn btn-secondary btn-compact-small" title="Writes the site default — what a seat that has never chosen starts from. Seats that chose their own LLM keep it.">Set as site default</button>
+          <button data-action="setLLMConfig" class="btn btn-primary" title="Sets the LLM for THIS seat (this browser), and the site default that a seat which has never chosen starts from">Apply / Login</button>
           <span id="llmStatus" class="llm-status-inline"></span>
           <span id="llmSeatNotice" class="justification-note hidden"></span>
         </div>

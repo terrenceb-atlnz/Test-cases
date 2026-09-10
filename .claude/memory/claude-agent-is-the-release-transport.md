@@ -23,8 +23,10 @@ the easy path rather than the RDP-to-localhost workaround of the two demo days.
   agent, and hands the final check to the page (`?seat-check=1`). Re-running it is the
   update/repair ritual. Plan: `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`.
 - The LLM choice is **per seat**: the browser sends `X-CK-LLM` on every `/api` call;
-  `llm_config.effective_llm_config` resolves seat → site default → session copy. Plain Apply
-  writes nothing server-side; only **Set as site default** writes the `_workspace_llm` row.
+  `llm_config.effective_llm_config` resolves seat → site default → session copy. Apply
+  stores the seat's choice in the browser AND writes the `_workspace_llm` site-default row
+  (D17, 2026-09-11 — one button; the separate control is gone). A seat's own header always
+  outranks the row, so an Apply elsewhere never changes a seat that has chosen.
   See [[workspace-llm-default-gotcha]] for what that means for headless curl.
 - **Two backends, and only two (2026-09-11).** `models.SUPPORTED_AUTH_METHODS` is exactly
   `("local_llm", "claude_agent")`; `api_key`, `account`, `claude_code` and `grok_cli` are

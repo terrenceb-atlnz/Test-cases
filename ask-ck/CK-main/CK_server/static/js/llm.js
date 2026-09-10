@@ -9,9 +9,9 @@ import { flashButtonDone } from './dom-helpers.js';
 import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from './session.js';
 
 // The LLM choice is PER SEAT (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
-// applies is stored here and rides on every /api call as X-CK-LLM (session.js). The server
-// writes nothing for a plain Apply; only "Set as site default" writes the row that seats
-// which have never chosen start from.
+// applies is stored here and rides on every /api call as X-CK-LLM (session.js). Apply also
+// writes the site default server-side (D17, 2026-09-11) — the row a seat that has never
+// chosen starts from — so there is one button and no separate control for it.
 export function storeSeatLlm(cfg) {
   try {
     localStorage.setItem('draftingLLMConfig', JSON.stringify({
@@ -75,20 +75,9 @@ export function buildLLMBody(doc = document) {
   return body;
 }
 
-async function setSiteDefaultLLM() {
-  // Decision D2: a separate, labelled control writes the site default; Apply never does.
-  const body = buildLLMBody();
-  if (!confirm(`Set the SITE default LLM to ${body.provider} via ${body.auth_method}${body.model ? ` (${body.model})` : ''}?\n\nSeats that have chosen their own LLM keep it; seats that never chose start from this.`)) return;
-  const res = await fetch('/api/wizard/set_site_default_llm', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (data.llm_config) alert(data.message || 'Site default set.');
-  else alert('Failed to set the site default: ' + (data.detail || data.message || 'unknown'));
-}
-
 async function setLLMConfig() {
-  // THIS SEAT only. The case key is passed for URL compatibility; the server ignores it.
+  // THIS SEAT (stored below) and, server-side, the site default (D17). The case key is
+  // passed for URL compatibility; the server ignores it.
   const key = S.currentKey || getActiveCaseKey();
   const body = buildLLMBody();
   const auth_method = body.auth_method;
@@ -444,7 +433,6 @@ export async function checkLlmHealth() {
 // Register this tool's data-action handlers.
 registerActions({
   setLLMConfig,
-  setSiteDefaultLLM,
   checkLlmHealth,
   applyClaudeMode,
 });

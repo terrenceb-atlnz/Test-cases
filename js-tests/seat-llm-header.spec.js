@@ -88,11 +88,13 @@ describe('llm.js stores what the header needs (structural)', () => {
     // every success path uses the one store helper — no stray localStorage.setItem of the key
     expect(LLM_SRC.match(/localStorage\.setItem\('draftingLLMConfig'/g) || []).toHaveLength(1);
   });
-  it('the site default is a separate action and plain Apply posts only set_llm_config', () => {
-    expect(LLM_SRC).toContain("'/api/wizard/set_site_default_llm'");
+  it('one button: Apply posts set_llm_config only, and no separate site-default action remains (D17)', () => {
+    // The server writes the site default from that same POST; a second control would be the
+    // uncued button Terrence removed on 2026-09-11.
+    expect(LLM_SRC).not.toContain('set_site_default_llm');
+    expect(LLM_SRC).not.toContain('setSiteDefaultLLM');
     const apply = LLM_SRC.slice(LLM_SRC.indexOf('async function setLLMConfig'));
-    expect(apply.slice(0, apply.indexOf('\n}\n'))).not.toContain('set_site_default_llm');
-    expect(LLM_SRC).toMatch(/registerActions\(\{[\s\S]*setSiteDefaultLLM/);
+    expect(apply.slice(0, apply.indexOf('\n}\n'))).toContain('/api/wizard/set_llm_config');
   });
   it('the seat\'s stored choice is preferred over the case session when restoring the UI', () => {
     const fn = LLM_SRC.slice(LLM_SRC.indexOf('export function restoreLLMUI'));

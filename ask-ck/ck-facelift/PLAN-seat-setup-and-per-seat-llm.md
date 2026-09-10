@@ -305,13 +305,15 @@ manual UI testing — memory `user-prefers-manual-ui-testing`). Decision D5.
 > (`_session_llm_cfg`, `_llm_cfg`) and `export._ensure_gaps` call the new resolver;
 > `cfg_for_task` reads routing from the seat when present (a seat's "same" never falls back
 > to the site default's alias). `main.py` middleware 400s a bad header and binds it.
-> `set_llm_config` (with or without `{key}`) validates and echoes, **writes nothing**;
-> new `POST /api/wizard/set_site_default_llm` is the only writer of `_workspace_llm`;
+> `set_llm_config` (with or without `{key}`) validates and echoes, **writes nothing**
+> (**changed by D17 on 2026-09-11: it now also writes the site default row** — see §8b);
+> new `POST /api/wizard/set_site_default_llm` writes the row alone (headless callers);
 > `GET llm_config` and `llm_health` say/serve `scope: site_default` / the seat's backend.
 > Browser: `session.js` sends the header from `localStorage.draftingLLMConfig` on every
 > `/api` call (never to the agent or foreign hosts); `llm.js` stores routing fields too,
 > prefers the seat's stored choice over the case session everywhere, shows "· this seat" /
-> "· site default", and has a separate **Set as site default** button (confirm dialog).
+> "· site default", and has a separate **Set as site default** button (confirm dialog)
+> (**removed by D17 on 2026-09-11** — one button; Apply writes the default invisibly).
 > Tests: `tests/test_per_seat_llm.py` (15), decoupling + routing pins re-homed,
 > `js-tests/seat-llm-header.spec.js` (8). Gate 1473 / vitest 274.
 
@@ -418,7 +420,7 @@ for the Ask-CK origin — not seat-side.
 | # | Question | Recommendation |
 |---|---|---|
 | D1 | Per-seat mode carried as a per-request header (A) or a server-side per-tab store (B)? | **DECIDED 2026-09-10: A** — in the browser, sent as `X-CK-LLM` on every request |
-| D2 | Does "Apply" still write the workspace **default** for never-configured seats, or does the default become code-fixed `local_llm`? | **DECIDED 2026-09-10:** plain Apply is seat-only; a separate, clearly-labelled "set as site default" control writes the workspace row |
+| D2 | Does "Apply" still write the workspace **default** for never-configured seats, or does the default become code-fixed `local_llm`? | **DECIDED 2026-09-10:** plain Apply is seat-only; a separate, clearly-labelled "set as site default" control writes the workspace row. **Revised by D17 (2026-09-11)** — one button, Apply writes the default invisibly |
 | D3 | After retirement, keep `_call_claude_code_headless` callable for headless tooling? | **DECIDED 2026-09-10: REMOVE ENTIRELY.** Terrence: *"Claude Code CLI (my local machine) — this button will stay, usable by everyone, including myself, the same way I do today. Claude Code CLI (this server) — this button will go, and so will all associated code. I want no evidence this existed at any point."* Scope as implemented in §6: code, tests re-homed then deleted, UI, and current-state docs. Dated records and git history are left as written unless Terrence asks for that separately. Headless tooling on this host becomes vLLM-only |
 | D4 | Should Login ✔ require `orgName` to be the team org? | **DECIDED 2026-09-10: no** — any logged-in account passes; `orgName` is printed, not enforced |
 | D5 | Install `pwsh` on the server host so the PowerShell parser runs in the gate over the shared fixtures, or verify the Windows agent manually only? | **DECIDED 2026-09-10: installed** — `snap install powershell --classic`, 7.6.5 at `/snap/bin/pwsh`, resolves from the service's PATH too. The gate pins the PS parser against the shared fixtures; the test skips with a clear message where `pwsh` is absent |
@@ -440,6 +442,7 @@ each is in the last column, marked *Resolved*.
 | D12 | The removed server parser's forensic fields (`message_count`, `text_block_boundaries`) were **not** re-homed to the agents. | **Resolved 2026-09-11: dropped.** Add to the agents only if a future truncation investigation wants them. |
 | D13 | `tool/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | **Superseded 2026-09-11 by §11:** Grok is removed entirely and the creation-time tools (this one included) are retired. |
 | D14 | Seats whose browser last applied "(this server)" carry a retired value in `localStorage`. | The page never sends a retired value and drops it (2026-09-10). **Resolved 2026-09-11: add a one-time notice** — §11.3. |
+| D17 | **Two buttons → one** (Terrence, 2026-09-11, seeing them side by side: *"Theres no contextual cues in the UI for using the site default button, and i see no downside from applying its effects invisibly."*). | **Done, `Apply / Login` now sets this seat AND writes the site default**; the "Set as site default" button and its confirm dialog are gone; `set_site_default_llm` stays as a headless-only endpoint. **The one downside, on record:** every Apply by any seat — and the Haiku/Sonnet/Opus and Fast/Thinking toggles, which post the same request — silently changes what a seat that has *never* chosen starts from. Seats that chose are unaffected (their header wins), so this is a weaker form of the D2 concern, not the demo-day hazard. Revert = one commit. |
 | D15 | The site default row still reads `claude_agent / sonnet` (units Sonnet, matching Opus) from demo day. A brand-new seat therefore starts on **Claude via agent**, which fails until that seat runs the one-liner. | Recommended Local LLM. **Resolved 2026-09-11: keep Claude agent as the site default** (Terrence). A bare seat is expected to run the one-liner first. |
 
 ## 9. Verification (manual, per Terrence's preference)
