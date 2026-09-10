@@ -297,6 +297,80 @@ def test_the_agent_serves_update_and_shutdown_routes_json_only():
     assert "self.server.shutdown" in src
 
 
+# ---------------------------------------------------------------------------
+# The Windows agent (ck-agent.ps1) must parse and report EXACTLY like this one.
+#
+# Two implementations of one contract, pinned against the same captures so a transport
+# change made on one side is caught on the other. Runs through `pwsh` (installed on the
+# server host 2026-09-10 for exactly this, plan §4 / D5); skips with a clear message where
+# pwsh is absent — a second checkout of this repo exists without it.
+# ---------------------------------------------------------------------------
+import shutil as _shutil
+import subprocess as _subprocess
+
+_PWSH = _shutil.which("pwsh")
+_PS_AGENT = _REPO / "ask-ck" / "agent" / "ck-agent.ps1"
+_FIXTURES = _REPO / "tests" / "fixtures"
+needs_pwsh = pytest.mark.skipif(not _PWSH, reason="pwsh not installed — the PowerShell agent parity pins need it (snap install powershell --classic)")
+
+
+def _ps(*args, timeout=60):
+    proc = _subprocess.run([_PWSH, "-NoProfile", "-NonInteractive", "-File", str(_PS_AGENT), *args],
+                           capture_output=True, text=True, timeout=timeout)
+    assert proc.returncode == 0, f"pwsh failed: {proc.stderr[-800:]}"
+    return proc.stdout.strip()
+
+
+def _py_parse_view(raw):
+    content, env = ck_agent._parse_stream(raw)
+    return {"content": content, "cli_error_text": env.get("cli_error_text"),
+            "is_error": bool(env.get("is_error")), "result": env.get("result")}
+
+
+@needs_pwsh
+@pytest.mark.parametrize("fixture", ["cli_stream_normal.jsonl", "cli_stream_truncated.jsonl"])
+def test_powershell_parser_matches_python_on_the_committed_captures(fixture):
+    path = _FIXTURES / fixture
+    ps_view = json.loads(_ps("-ParseStream", str(path)))
+    assert ps_view == _py_parse_view(path.read_text(encoding="utf-8")), (
+        f"ck-agent.ps1 and ck_agent.py disagree on {fixture} — the two agents have drifted")
+
+
+@needs_pwsh
+def test_powershell_parser_matches_python_on_the_demo_day_failure(tmp_path):
+    path = tmp_path / "failing.jsonl"
+    path.write_text(_failing_stream(), encoding="utf-8")
+    assert json.loads(_ps("-ParseStream", str(path))) == _py_parse_view(_failing_stream())
+
+
+@needs_pwsh
+def test_powershell_failure_detail_matches_python(tmp_path):
+    failing = tmp_path / "failing.jsonl"
+    failing.write_text(_failing_stream(), encoding="utf-8")
+    init_only = tmp_path / "init.jsonl"
+    init_only.write_text(_INIT_EVENT, encoding="utf-8")
+    assert _ps("-FailureDetail", str(failing), "-Stderr", "", "-ExitCode", "1") == \
+        ck_agent._failure_detail(_failing_stream(), "", 1)
+    assert _ps("-FailureDetail", str(init_only), "-Stderr", "boom from stderr", "-ExitCode", "1") == \
+        ck_agent._failure_detail(_INIT_EVENT, "boom from stderr", 1) == "boom from stderr"
+    assert _ps("-FailureDetail", str(init_only), "-Stderr", "", "-ExitCode", "3") == "exit code 3"
+
+
+def test_the_two_agents_declare_the_same_version_and_cli_contract():
+    """Structural: the served manifest carries ONE agent_version, so the two agents must
+    agree on it, and the CLI flags that cost money or correctness must be present in both."""
+    ps = _PS_AGENT.read_text(encoding="utf-8")
+    assert f"$script:AGENT_VERSION = '{ck_agent.AGENT_VERSION}'" in ps, (
+        "ck-agent.ps1 AGENT_VERSION differs from ck_agent.AGENT_VERSION")
+    for needle in ("'--tools', ''", "'--no-session-persistence'", "'--system-prompt'",
+                   "'stream-json'", "'--verbose'", "http://127.0.0.1:", "application/json",
+                   "'/update', '/shutdown'", "claude auth login", "'auth', 'status'"):
+        assert needle in ps, f"ck-agent.ps1 is missing {needle!r}"
+    assert "0.0.0.0" not in ps.replace("never 0.0.0.0", ""), "the Windows agent must bind loopback only"
+    assert ck_agent.DEFAULT_SYSTEM_PROMPT.replace("'", "''") in ps, (
+        "the default steer differs between the agents")
+
+
 def test_the_installer_location_is_searched_when_claude_is_not_on_path(tmp_path, monkeypatch):
     """The native installer writes ~/.local/bin/claude and does NOT put it on PATH
     (demo-day issue #1). A seat that never fixed PATH must still be found."""

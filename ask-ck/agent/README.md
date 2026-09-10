@@ -16,12 +16,31 @@ See the design in [`../CK-main/PLAN-per-user-agent.md`](../CK-main/PLAN-per-user
   claude          # run once, then /login with your Claude account
   ```
 
-## Run it
+## The easy way: the one-line seat setup
+
+The shared Ask CK page serves a setup script for each OS that installs Claude Code, fixes
+PATH, logs you in, downloads this agent and starts it — and, re-run, updates or repairs all
+of that. Open the Ask CK home page and copy the line for your OS. Everything below is the
+manual route it automates.
+
+## Run it by hand
+
+Ubuntu (Python 3, stdlib only):
 
 ```bash
 ./run-agent.sh
 # or, to lock CORS to your shared Ask CK server:
 CK_AGENT_ORIGIN=http://ck-box.lan:8000 ./run-agent.sh
+```
+
+Windows (PowerShell 5.1+, nothing to install) — `ck-agent.ps1` is the same contract, same
+endpoints, same `claude -p` flags and parsing, pinned against the same captures by the
+repo's gate through `pwsh`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ck-agent.ps1
+# lock CORS to your server:
+$env:CK_AGENT_ORIGIN = 'http://10.33.22.17:8000'; powershell -ExecutionPolicy Bypass -File ck-agent.ps1
 ```
 
 Leave it running. It binds **127.0.0.1:8765** (localhost only — never exposed to
