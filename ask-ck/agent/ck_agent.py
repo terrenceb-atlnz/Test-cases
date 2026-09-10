@@ -36,7 +36,25 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 # manifest to decide whether a running agent is stale and must be replaced.
 AGENT_VERSION = "1.1.0"
 
-PORT = int(os.environ.get("CK_AGENT_PORT", "8765"))
+def _read_conf() -> dict:
+    """`ck-agent.conf` beside this file (written by the seat setup script): origin=, port=,
+    autostart=. The environment wins when set; the conf carries the settings into starts
+    that have no environment of their own (a Windows logon task, a bare double-click)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ck-agent.conf")
+    conf = {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "=" in line and not line.lstrip().startswith("#"):
+                    k, v = line.split("=", 1)
+                    conf[k.strip()] = v.strip()
+    except OSError:
+        pass
+    return conf
+
+
+_CONF = _read_conf()
+PORT = int(os.environ.get("CK_AGENT_PORT") or _CONF.get("port") or "8765")
 
 # MIRRORS THE SERVER'S TRANSPORT (llm._call_claude_code_headless), measured 2026-09-04.
 #
@@ -138,7 +156,7 @@ def _failure_detail(out: str, err: str, returncode: int) -> str:
 
 # Allowed browser origin (the shared Ask CK server). "*" echoes the caller's
 # origin — convenient for local testing; set CK_AGENT_ORIGIN in real use.
-ALLOWED_ORIGIN = os.environ.get("CK_AGENT_ORIGIN", "*")
+ALLOWED_ORIGIN = os.environ.get("CK_AGENT_ORIGIN") or _CONF.get("origin") or "*"
 DEFAULT_TIMEOUT = int(os.environ.get("CK_AGENT_TIMEOUT", "600"))
 
 # job_id -> Popen, for the running CLI calls this agent owns.
@@ -493,6 +511,12 @@ def _startup_update(cli):
 
 
 def main():
+    # Line-buffered stdout: when the setup script runs us detached with stdout to agent.log,
+    # block buffering held the startup lines back until exit and the log looked stuck.
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:  # noqa: BLE001 — cosmetic; never a reason not to start
+        pass
     cli = _find_claude()
     print(f"ck-agent {AGENT_VERSION} starting on http://127.0.0.1:{PORT}")
     print(f"  claude CLI: {'found at ' + cli if cli else 'NOT FOUND — install + log in first'}")

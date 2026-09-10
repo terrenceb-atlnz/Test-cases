@@ -3,6 +3,7 @@ import { registerActions } from './actions.js';
 import { CK_SESSION_ID } from './session.js';
 import { S } from './state.js';
 import { escapeHtml } from './dom-helpers.js';
+import { goToPanel } from './nav.js';
 
 const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
 
@@ -336,7 +337,61 @@ async function checkLocalAgent() {
   resultDiv.innerHTML = renderAgentStatus(s, upd);
 }
 
+// ---------------------------------------------------------------------------
+// Seat setup (plan §3.2 / §3.3): the splash page's one-liners carry THIS server's origin,
+// filled in at load so nothing is hard-coded; and `?seat-check=1`, which the setup script
+// opens when it finishes, makes the page run the authoritative check itself and show it
+// where the user will look for it (LLM → Configure).
+// ---------------------------------------------------------------------------
+export function seatSetupCommands(origin) {
+  const o = String(origin || '').replace(/\/+$/, '');
+  return {
+    windows: `irm ${o}/setup/setup.ps1 | iex`,
+    ubuntu: `curl -fsSL ${o}/setup/setup.sh | bash`,
+  };
+}
+
+export function fillSeatSetupSnippets(doc = document, origin = window.location.origin) {
+  const cmds = seatSetupCommands(origin);
+  const w = doc.getElementById('seatSetupWindows');
+  const u = doc.getElementById('seatSetupUbuntu');
+  if (w) w.textContent = cmds.windows;
+  if (u) u.textContent = cmds.ubuntu;
+  return cmds;
+}
+
+async function copySeatSetup(ev) {
+  const btn = ev && ev.currentTarget ? ev.currentTarget : (ev && ev.target);
+  const id = btn && btn.dataset ? btn.dataset.target : '';
+  const el = id ? document.getElementById(id) : null;
+  if (!el) return;
+  try {
+    await navigator.clipboard.writeText(el.textContent);
+    const old = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = old; }, 1500);
+  } catch (_) {
+    // Clipboard blocked (non-secure context): select the text so Ctrl+C works.
+    try { const r = document.createRange(); r.selectNodeContents(el); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (_e) {}
+  }
+}
+
+export function seatCheckRequested(search = window.location.search) {
+  try { return new URLSearchParams(search).get('seat-check') === '1'; } catch (_) { return false; }
+}
+
+if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.location) {
+  try { fillSeatSetupSnippets(); } catch (_) {}
+  if (seatCheckRequested()) {
+    // Go where the result is shown, then run the check the setup script deferred to us.
+    // Deferred a tick so the boot navigation in main.js has finished.
+    setTimeout(() => {
+      try { goToPanel('panel-llm-config'); } catch (_) {}
+      checkLocalAgent();
+    }, 0);
+  }
+}
+
 // Register this tool's data-action handlers.
 registerActions({
   checkLocalAgent,
+  copySeatSetup,
 });

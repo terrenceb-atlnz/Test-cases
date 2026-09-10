@@ -378,8 +378,18 @@ $State = [hashtable]::Synchronized(@{
 
 if ($Health) { Get-HealthPayload $State | ConvertTo-Json -Compress; exit 0 }
 
-$Port = [int]($(if ($env:CK_AGENT_PORT) { $env:CK_AGENT_PORT } else { 8765 }))
-$AllowedOrigin = $(if ($env:CK_AGENT_ORIGIN) { $env:CK_AGENT_ORIGIN } else { '*' })
+# ck-agent.conf beside this file (written by the seat setup script): origin=, port=. The
+# environment wins when set; the conf carries the settings into a Windows logon task,
+# which has no environment of its own.
+$Conf = @{}
+$confPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) 'ck-agent.conf'
+if (Test-Path -LiteralPath $confPath) {
+  foreach ($line in Get-Content -LiteralPath $confPath) {
+    if ($line -match '^\s*([A-Za-z_]+)\s*=\s*(.*?)\s*$') { $Conf[$Matches[1]] = $Matches[2] }
+  }
+}
+$Port = [int]($(if ($env:CK_AGENT_PORT) { $env:CK_AGENT_PORT } elseif ($Conf.ContainsKey('port') -and $Conf['port']) { $Conf['port'] } else { 8765 }))
+$AllowedOrigin = $(if ($env:CK_AGENT_ORIGIN) { $env:CK_AGENT_ORIGIN } elseif ($Conf.ContainsKey('origin') -and $Conf['origin']) { $Conf['origin'] } else { '*' })
 
 function Send-Json($ctx, [int]$code, $payload) {
   $res = $ctx.Response

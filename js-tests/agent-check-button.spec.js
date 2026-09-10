@@ -21,6 +21,7 @@ const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 vi.mock('../ask-ck/CK-main/CK_server/static/js/actions.js', () => ({ registerActions: () => {} }));
 vi.mock('../ask-ck/CK-main/CK_server/static/js/session.js', () => ({ CK_SESSION_ID: 'sess-test' }));
 vi.mock('../ask-ck/CK-main/CK_server/static/js/state.js', () => ({ S: {} }));
+vi.mock('../ask-ck/CK-main/CK_server/static/js/nav.js', () => ({ goToPanel: () => {} }));
 
 let agent;
 beforeEach(async () => {
@@ -81,6 +82,33 @@ describe('renderAgentStatus', () => {
     const html = agent.renderAgentStatus(up({ org: '<img src=x onerror=alert(1)>' }), { ok: true });
     expect(html).not.toContain('<img');
     expect(html).toContain('&lt;img');
+  });
+});
+
+describe('seat setup on the splash page', () => {
+  it('builds the one-liners from THIS server\'s origin, never a hard-coded host', () => {
+    const c = agent.seatSetupCommands('http://10.33.25.99:8000/');
+    expect(c.windows).toBe('irm http://10.33.25.99:8000/setup/setup.ps1 | iex');
+    expect(c.ubuntu).toBe('curl -fsSL http://10.33.25.99:8000/setup/setup.sh | bash');
+    expect(CODE).not.toMatch(/10\.33\.22\.17/);
+  });
+  it('fills the splash snippets in place', () => {
+    document.body.innerHTML = '<code id="seatSetupWindows">x</code><code id="seatSetupUbuntu">y</code>';
+    agent.fillSeatSetupSnippets(document, 'http://ck-box.lan:8000');
+    expect(document.getElementById('seatSetupWindows').textContent).toContain('ck-box.lan:8000/setup/setup.ps1');
+    expect(document.getElementById('seatSetupUbuntu').textContent).toContain('ck-box.lan:8000/setup/setup.sh');
+  });
+  it('recognises the setup script\'s hand-off flag and nothing else', () => {
+    expect(agent.seatCheckRequested('?seat-check=1')).toBe(true);
+    expect(agent.seatCheckRequested('?seat-check=0')).toBe(false);
+    expect(agent.seatCheckRequested('')).toBe(false);
+    expect(agent.seatCheckRequested('?case=AWPTCM-T1')).toBe(false);
+  });
+  it('on ?seat-check=1 goes to the LLM panel and runs the check (structural)', () => {
+    const block = CODE.slice(CODE.indexOf('if (seatCheckRequested())'));
+    const body = block.slice(0, block.indexOf('registerActions('));
+    expect(body).toContain("goToPanel('panel-llm-config')");
+    expect(body).toContain('checkLocalAgent()');
   });
 });
 

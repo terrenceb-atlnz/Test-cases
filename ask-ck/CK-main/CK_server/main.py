@@ -73,7 +73,7 @@ from routers.wizard import router as wizard_router
 from routers.zephyr_tool import router as zephyr_tool_router
 from routers.test_composer import router as test_composer_router
 from routers.pytest_create import router as pytest_create_router
-from routers.agent_bridge import router as agent_bridge_router
+from routers.agent_bridge import router as agent_bridge_router, setup_router as seat_setup_router
 from routers.llm_debug import router as llm_debug_router
 from routers.admin import router as admin_router
 from routers.locks import router as locks_router
@@ -217,6 +217,9 @@ app.include_router(zephyr_tool_router, prefix="/api/zephyr-tool")
 app.include_router(test_composer_router, prefix="/api/test-composer")
 app.include_router(pytest_create_router, prefix="/api/pytest-create")
 app.include_router(agent_bridge_router, prefix="/api/agent")
+# Seat setup: the one-liners on the splash page fetch from here (setup scripts + agents +
+# manifest, served from ask-ck/agent/ — see routers/agent_bridge.py `setup_router`).
+app.include_router(seat_setup_router, prefix="/setup")
 app.include_router(llm_debug_router, prefix="/api/llm")
 app.include_router(admin_router, prefix="/api/admin")
 app.include_router(locks_router, prefix="/api/locks")

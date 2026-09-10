@@ -169,6 +169,34 @@
           subscription CLI — set that up first under <b>LLM → Configure</b>.</p>
         </div>
 
+        <div class="splash-tag" style="margin:14px 0 8px;">Set up your seat for Claude (one time)</div>
+
+        <details class="splash-section" open id="seatSetupSection">
+          <summary>Set up your seat for Claude</summary>
+          <div class="splash-body">
+            Ask CK runs in your browser; it <b>cannot run Claude on your PC by itself</b>. A small
+            agent on your PC does that, using <b>your own</b> Claude seat — nothing is shared and
+            the server never sees a credential. One line installs Claude Code if needed, fixes
+            your PATH, logs you in, installs the agent and starts it. Re-run the same line any
+            time to update or repair.
+            <ol>
+              <li><b>Windows</b> — open <b>PowerShell</b> and paste:<br>
+                <code id="seatSetupWindows" class="seat-setup-cmd">irm http://…/setup/setup.ps1 | iex</code>
+                <button type="button" class="btn btn-secondary btn-compact-small" data-action="copySeatSetup" data-target="seatSetupWindows">Copy</button>
+                <span class="justification-note">(or <a id="seatSetupWindowsLink" href="/setup/setup.ps1" download>download setup.ps1</a> and run it with <code>powershell -ExecutionPolicy Bypass -File setup.ps1</code>)</span></li>
+              <li><b>Ubuntu</b> — open a terminal and paste:<br>
+                <code id="seatSetupUbuntu" class="seat-setup-cmd">curl -fsSL http://…/setup/setup.sh | bash</code>
+                <button type="button" class="btn btn-secondary btn-compact-small" data-action="copySeatSetup" data-target="seatSetupUbuntu">Copy</button>
+                <span class="justification-note">(or <a id="seatSetupUbuntuLink" href="/setup/setup.sh" download>download setup.sh</a>)</span></li>
+              <li>It asks once whether the agent should start when you log in, then opens Ask CK,
+                which runs the final check itself — the result appears under <b>LLM → Configure</b>.
+                Pick <b>Claude Code CLI (my local machine)</b> there and you are ready.</li>
+            </ol>
+            <span class="justification-note">Manual route and details: <code>ask-ck/agent/README.md</code>.
+            Later, <b>Check my local agent</b> under LLM → Configure also updates the Claude CLI on your PC.</span>
+          </div>
+        </details>
+
         <div class="splash-tag" style="margin:14px 0 8px;">Tool guides (inverse order of the sidebar list)</div>
 
         <details class="splash-section" open>

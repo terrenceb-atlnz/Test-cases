@@ -103,23 +103,29 @@ Two cross-cutting facts from the code that shape everything below:
 
 ### 3.1 What the server serves
 
-Source of truth stays `ask-ck/agent/`. Add a `dist/` subfolder holding exactly what a seat
-may download, served at **`/setup/…`** by a second `StaticFiles` mount in `main.py`
-(`ASKCK_ROOT / "agent" / "dist"`, alongside the `/static` mount ≈L171 — never the whole
-`agent/` folder, which carries README/`__pycache__`):
+> **As built 2026-09-10:** no `dist/` copies and no `StaticFiles` mount. An allowlisted
+> route (`routers/agent_bridge.py` → `setup_router`, mounted at `/setup`) serves the four
+> files straight from `ask-ck/agent/` — the single source of truth, so nothing can drift —
+> and computes `manifest.json` on the fly. The server's own origin (from `Host` /
+> `X-Forwarded-Host`) is templated into the setup scripts at serve time in place of
+> `__CK_SERVER__`, so the one-liner needs **no argument** and the same file works if the
+> host moves. `CK_SERVER` in the environment still overrides. Pinned by
+> `tests/test_seat_setup_route.py`.
+
+Source of truth is `ask-ck/agent/`. Served at **`/setup/…`** (allowlisted names only —
+README, `__pycache__`, anything else in that folder is never served):
 
 | Path | Content |
 |---|---|
-| `/setup/setup.ps1` | Windows seat setup (§3.3) |
-| `/setup/setup.sh` | Ubuntu seat setup (§3.3) |
-| `/setup/ck-agent.ps1` | Windows agent (§4) |
-| `/setup/ck_agent.py` | Ubuntu agent — a **copy** of `ask-ck/agent/ck_agent.py`; a gate test asserts the two are byte-identical so they cannot drift |
-| `/setup/manifest.json` | `{agent_version, files: {name: sha256}}` — the seat's update signal |
+| `/setup/setup.ps1` | Windows seat setup (§3.3), origin templated in |
+| `/setup/setup.sh` | Ubuntu seat setup (§3.3), origin templated in |
+| `/setup/ck-agent.ps1` | Windows agent (§4), byte-identical to the repo file |
+| `/setup/ck_agent.py` | Ubuntu agent, byte-identical to the repo file |
+| `/setup/manifest.json` | `{agent_version, server, files: {name: sha256}, one_liners}` — the seat's update signal; hashes are of the bytes as served |
 
-The server URL is **not** hard-coded in the scripts. Each script reads it from a
-`CK_SERVER` variable that the one-liner sets (`$env:CK_SERVER='http://10.33.22.17:8000'` /
-`CK_SERVER=http://10.33.22.17:8000`), defaulting to that URL, so the same file works if the
-host ever moves. The agent's CORS lock (`CK_AGENT_ORIGIN`) is set from the same value.
+The agent's CORS lock (`CK_AGENT_ORIGIN`) is set from the same origin; both agents also
+read `ck-agent.conf` beside themselves (`origin=`, `port=`, `autostart=`, written by the
+setup script) so a Windows logon task, which has no environment, still locks CORS.
 
 ### 3.2 The splash page
 
