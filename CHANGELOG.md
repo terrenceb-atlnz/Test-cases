@@ -41,7 +41,17 @@ be runnable by both the vLLM and the Claude (your seat) options."* Plan:
   parser fields dropped; **site default stays Claude agent** (a bare seat is expected to run the
   one-liner first).
 
-Gate at close: both guards OK; pytest 1447 passed / 1 skipped; vitest 279; live server
+- **The Windows agent logs** (`9d62830`): `agent.log` beside the script (startup, each job's
+  start/outcome, updates, cancels, shutdown, a FATAL line if the port cannot be bound) and
+  `agent.err` from the setup script. **Why:** noticed while preparing the Windows demo — a hidden
+  agent that died left nothing to read on the seat. Pinned by a live pwsh run in the gate.
+- **One button** (`2378e85`, D17): Apply / Login sets this seat and writes the site default
+  invisibly; the "Set as site default" control is gone. **Why:** Terrence, seeing the two
+  buttons: no contextual cue for the second, no downside he could see. The one downside is on
+  record in the plan — any seat's Apply (or model toggle) moves the default for seats that have
+  never chosen; seats that chose keep their own.
+
+Gate at close: both guards OK; pytest 1448 passed / 1 skipped; vitest 279; live server
 hot-reloaded clean after each commit.
 
 ## 2026-09-10 — Seats set themselves up from the home page; the LLM choice is per seat; the per-user agent is the only Claude path

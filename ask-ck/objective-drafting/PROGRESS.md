@@ -25,7 +25,12 @@ became work — **§11**, executed in three commits, gate green after each:
 - `12822ae` **one-time notice** (D14) — a seat whose stored choice was retired is told so under
   LLM → Configure until it next Applies; wording names no retired mode.
 
-**Gate at close:** both guards OK; **1447 passed / 1 skipped; vitest 279**; live server
+Then, while Terrence went to the Windows seat: `9d62830` **the Windows agent writes
+`agent.log`** (+ `agent.err` from setup; live pwsh pin) — a hidden agent had left nothing to
+read; and `2378e85` **one button** (D17) — Apply also writes the site default invisibly, the
+separate control is gone, the one downside recorded in §8b.
+
+**Gate at close:** both guards OK; **1448 passed / 1 skipped; vitest 279**; live server
 hot-reloaded clean after each commit (`/health` ok; one transient syntax error from a bad
 route cut lasted under a minute and was fixed before any request hit it — see process notes).
 
