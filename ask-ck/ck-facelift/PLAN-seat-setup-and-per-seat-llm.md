@@ -2,8 +2,9 @@
 
 > ## Status (read first)
 >
-> **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits; only §9's
-> Windows-seat demo remains.** §8b's decisions were reviewed with Terrence on 2026-09-11 and
+> **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits. §9 RAN
+> 2026-09-11 on two Windows seats: five findings, all fixed the same morning (see §9); the
+> only step not yet observed is 6 (reboot with autostart on, now that the conf is real).** §8b's decisions were reviewed with Terrence on 2026-09-11 and
 > are resolved in place; the two that became work (Grok removal + tool retirement, and the
 > one-time notice) are **§11, executed 2026-09-11** (three commits). Originally PROPOSED the same
 > morning. Written at Terrence's request after the

@@ -2,7 +2,7 @@
 name: user-prefers-manual-ui-testing
 description: "Terrence prefers to do UI testing themselves — skip browser automation, provide a manual test checklist instead"
 metadata: 
-  verified: 2026-09-10
+  verified: 2026-09-11
   node_type: memory
   type: feedback
   originSessionId: 7b099baa-982b-422b-b526-185d1f362884

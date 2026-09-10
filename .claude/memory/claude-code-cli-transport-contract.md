@@ -1,9 +1,9 @@
 ---
 name: claude-code-cli-transport-contract
-description: The Claude CLI contract the two AGENTS implement (ck_agent.py / ck-agent.ps1; pinned against tests/fixtures/cli_stream_*.jsonl, pwsh in the gate) — --tools "" + stream-json + --system-prompt (REPLACE) + neutral cwd + --no-session-persistence + thinking cap on long calls + failure detail from the result event; shared text must be the SYSTEM prompt or the cache never hits
+description: The Claude CLI contract the two AGENTS implement (ck_agent.py / ck-agent.ps1; pinned against tests/fixtures/cli_stream_*.jsonl, pwsh in the gate) — --tools "" + stream-json + --system-prompt (REPLACE; by FILE on Windows — 32,767-char command line) + neutral cwd + --no-session-persistence + thinking cap on long calls + failure detail from the result event; shared text must be the SYSTEM prompt or the cache never hits
 metadata:
   type: project
-  verified: 2026-09-10
+  verified: 2026-09-11
 ---
 
 **Re-scoped 2026-09-10 — this contract lives in the AGENTS.** The server-side transport that
@@ -36,8 +36,8 @@ plus every CLAUDE.md above its cwd and the project memory index (~13.5k tokens f
 writes all of it to the 1-hour cache tier on every call, and — because that harness prompt
 carries per-invocation content — **no call ever reads the previous call's cache**. The
 2026-09-02 template prefix reorder was inert until this was fixed. Three flags/settings, all
-now unconditional in `_call_claude_code_headless` and pinned in `tests/test_claude_cli_transport.py`
-+ `tests/test_ck_agent_transport.py`:
+now unconditional in the agents and pinned in `tests/test_ck_agent_transport.py` (the server-side
+`_call_claude_code_headless` and `tests/test_claude_cli_transport.py` were deleted 2026-09-10):
 
 - **`--system-prompt <steer>`** REPLACES the harness prompt (the bullet below saying
   `--append-system-prompt` is the 2026-07-30 state and is superseded). With `--tools ""` there is
@@ -139,3 +139,8 @@ not. The ceiling tables in `ask-ck/pytest-create/FINDINGS-generation-size-ceilin
 `autopilot/RESULTS-2026-08-03.md` record parser output and carry that correction. Related:
 [[vllm-reasoning-model-path]], [[workspace-llm-default-gotcha]], [[generator-cli-hallucination]],
 [[mutate-before-you-claim]], [[silent-degradation-audit-2026-07-30]].
+
+**2026-09-11 — delivery differs by OS, the contract does not.** The steer REPLACES the harness
+prompt on both agents; `ck_agent.py` passes it inline, `ck-agent.ps1` writes it to a temp file
+and passes `--system-prompt-file` because a Windows command line is capped at 32,767 chars and
+the unit steer is ~61k (verified on CLI 2.1.267). See [[windows-seat-gotchas]].

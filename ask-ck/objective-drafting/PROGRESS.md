@@ -40,10 +40,26 @@ agent passes the steer by `--system-prompt-file` (`d2acf50`; proven live under p
 steer). **#2** declining autostart killed the script at `schtasks /Query` (stderr is terminating
 under PS 5.1 `Stop`) → `Invoke-Native`. **#3** splash Copy buttons inert on plain http →
 `execCommand('copy')`. **#4** "No credential" after loading a case whose stored copy names
-`claude_code` → the status line shows only the seat's effective backend. Not run: step 6
-(reboot; autostart declined) and the manifest bump.
+`claude_code` → the status line shows only the seat's effective backend.
 
-**Gate at close:** both guards OK; **1448 passed / 1 skipped; vitest 280**; live server
+**Second seat (10.33.22.18, fresh browser, 09:25–09:32)** with those fixes served: the page
+opened itself after setup (#2 confirmed) and **generate_units → 10/10 units on the seat's own
+Claude** (#1 confirmed); no notice (nothing retired to drop). **#5** autostart asked on every
+run — `$Conf` (path) and `$conf` (hashtable) are ONE variable in PowerShell, so the conf was
+written to a file named `System.Collections.Hashtable` in the cwd and never existed → `$ConfPath`
++ a structural pin (no two spellings of a variable name in either script; it also flagged
+`$State`/`$state` in the agent, renamed `$AgentState`). Not yet observed: step 6 (reboot with
+autostart on) and the manifest bump. Seats that ran the old script have a stray
+`System.Collections.Hashtable` file to delete.
+
+**Observation, not fixed (raise with Terrence):** `tests/test_db_isolation.py::test_the_copy_
+reflects_the_current_real_db` failed once in the wrap gate — a live seat wrote the sessions
+table at 10:05:40 mid-run. The snapshot cache key is the main file's `(size, mtime_ns)`, which
+a WAL write does not touch, so live traffic during a gate can make the isolated copy read
+stale. Re-run green. Worth a keyed-on-WAL-mtime fix; decision is his.
+
+**Gate at close:** both guards OK; **1450 passed / 1 skipped; vitest 280** (one live-traffic
+race on re-run, see above); live server
 hot-reloaded clean after each commit (`/health` ok; one transient syntax error from a bad
 route cut lasted under a minute and was fixed before any request hit it — see process notes).
 

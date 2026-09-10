@@ -57,8 +57,11 @@ be runnable by both the vLLM and the Claude (your seat) options."* Plan:
   file (`d2acf50`). **#2** declining autostart killed the script (schtasks stderr is terminating
   under PS 5.1 `Stop`). **#3** the splash Copy buttons need `execCommand` on plain http. **#4**
   loading a case with a stale `claude_code` copy showed "No credential" (#2–#4: `18159f9`, see
-  plan §9). **Why the record matters:** #1 is a Windows-only limit no Linux test can reach; the
-  live pwsh pin now runs a 63k steer.
+  plan §9). A second, fresh seat then confirmed #1 and #2 fixed (10/10 units on its own Claude)
+  and surfaced **#5**: the autostart answer was never remembered because `$Conf` and `$conf`
+  are one variable in PowerShell (`2e82af1`; a structural pin now forbids two spellings of a
+  name in either script). **Why the record matters:** #1 and #5 are Windows/PowerShell facts no
+  Linux test can reach by running the code; the live pwsh pin now runs a 63k steer.
 
 Gate at close: both guards OK; pytest 1448 passed / 1 skipped; vitest 280; live server
 hot-reloaded clean after each commit.

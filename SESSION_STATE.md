@@ -4011,3 +4011,22 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Left undone:** §9 Windows-seat demo (needs Terrence at 10.33.25.50); T44297 final
   review/confirm; the 2026-09-10 morning plan decisions; `git push` if still denied to Claude.
 - **Resume:** the 2026-09-11 (morning) entry at the top of `PROGRESS.md`, then the plan's §9.
+
+## Session Close / Handoff (2026-09-11, late morning) — Windows demo ran on two seats; five findings fixed; one button; agent log
+
+- **Context:** after the morning's §11 work, Terrence drove §9 on 10.33.25.50 (07:48–08:08) and
+  a fresh seat 10.33.22.18 (09:25–09:32) while Claude watched the journal and debug log.
+  Before he left: the Windows agent got `agent.log` (`9d62830`) and Apply/Login became one
+  button that also writes the site default (D17, `2378e85`).
+- **Findings, all fixed and pinned the same morning:** #1 the 61k unit steer overflowed the
+  Windows command line → `--system-prompt-file` (`d2acf50`); #2 `schtasks` stderr killed the
+  script under PS 5.1 `Stop`; #3 Copy buttons need `execCommand` on http; #4 "No credential"
+  from a case's stale `claude_code` copy (`18159f9`); #5 `$Conf`/`$conf` one variable → conf
+  never written, autostart asked every run (`2e82af1`). Evidence in
+  `ask-ck/ck-facelift/demo-2026-09-11/`. Second seat: 10/10 units on its own Claude.
+- **Gate at close:** both guards OK; pytest 1450 passed / 1 skipped; vitest 280. One
+  live-traffic race in `test_db_isolation` during the wrap gate, green on re-run — recorded as
+  an observation in PROGRESS.md for Terrence.
+- **Left undone:** §9 step 6 (reboot with autostart on); the manifest-bump step; T44297 final
+  review; the 2026-09-10 morning plan decisions; push if denied to Claude.
+- **Resume:** PROGRESS.md top entry (2026-09-11), then plan §9.

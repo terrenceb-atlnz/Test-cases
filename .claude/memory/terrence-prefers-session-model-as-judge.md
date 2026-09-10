@@ -8,7 +8,7 @@ metadata:
 
 When a task needs a quality verdict on generated output (whole-script vs per-unit, one model's
 units vs another's), **be the judge yourself, in-context** — read the artifacts and grade them.
-Do not fire `tool/pt_matrix_judge.py`-style judge calls to Opus or the vLLM.
+Do not fire batch judge calls to Opus or the vLLM (the `tool/pt_matrix_judge.py` that did so was deleted 2026-09-11).
 
 **Why:** Terrence, 2026-09-04, when I proposed the matrix judge for the token-efficiency
 investigation: *"Re: judging - I'd rather you be the solo-judge, as you are the most competent
@@ -18,6 +18,6 @@ cache-write prices, while the session already has it in context.
 **How to apply:** generation runs on the candidate models are still fine (they are the objects
 being compared, not the judges). Read every candidate in full before grading, grade against the
 unit's `verify` contract and the framework surface, show the evidence lines, and say what you
-could not assess (e.g. behaviour on hardware). The batch judges (`pt_judge.py`, `pt_matrix_judge.py`)
-were retired 2026-09-11 with the other creation-time tooling; judging is in-context only. Related: [[mutate-before-you-claim]],
+could not assess (e.g. behaviour on hardware). The batch judges `pt_judge.py` / `pt_matrix_judge.py` were deleted 2026-09-11 (no longer exist)
+with the other creation-time tooling; judging is in-context only. Related: [[mutate-before-you-claim]],
 [[read-the-whole-function-before-judging]].

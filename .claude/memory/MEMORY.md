@@ -74,6 +74,7 @@
 - [IE520 SPIFlash goes dark](ie520-spiflash-goes-dark.md) — SPIFlash is incredibly slow (41 MB copy ≈ 12 min) and the unit answers NOTHING meanwhile — looks like a crash; wait it out
 - [IE520 TFTP boot needs a USB NIC](ie520-tftp-boot-needs-usb-nic.md) — no onboard mgmt eth; the .setup's eth0 is an ASIX USB dongle seen only by the bootloader; link is up only DURING BOOT
 - [IE520 bootloader console driving](ie520-bootloader-console-driving.md) — POINTER only: mechanics live in orient-ie520 skill §3; the worked example of a bench fact copied into a mechanics memory
+- [tb470 IE520s flash-boot — reboots OK](tb470-ie520-flash-boot-reboots-ok.md) — 2026-09-11: all IE520s default-boot from flash .rel so `reload` is safe; verify `show boot` image `(file exists)` first — a stale boot-image pointer still won't come back
 - [Run attribution: 5700 campaign](run-attribution-5700-campaign.md) — only the 2026-08-07/08 run is bidhanc's; everything from 2026-08-10 is OURS; TestCases belong to the suite
 - [i2c stress tooling](i2c-stress-tooling.md) — ~/old test runs/IE520/i2c-stress/ = validated IE520 i2c stress scripts; smoke-clean tb470 2026-08-26; the full 300 run not yet fired
 - [IE520 silent-reboot watch 2026-09-02](ie520-silent-reboot-watch-2026-09-02.md) — DEFERRED to a weekend run; caught member 1's silent reboot; 3 harness defects to fix first; only console.py survives
@@ -88,4 +89,5 @@
 - [claude_agent is the ONLY Claude transport; TWO backends only](claude-agent-is-the-release-transport.md) — server-side Claude REMOVED 2026-09-10, Grok 2026-09-11; allowlist = (local_llm, claude_agent); seats install the agent from the splash one-liner; LLM choice is per seat (X-CK-LLM)
 - [IE520 mcast/L3 test method](ie520-mcast-l3-test-method.md) — IGMP/MLD-snooping + directed-broadcast on tb470 with ONE host NIC: u4=querier, u5 ping=source, host scapy=receiver; gotchas inside
 - [AW+ service-gated routing daemons](awplus-service-gated-routing-daemons.md) — "daemon is not running or feature license" = run `service ospf|rip|vrrp|pim` first; PIM-DM has no service cmd
-- [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 is the Windows demo/test seat (both demo days); Terrence can remote in; the §9 verification seat for the seat-setup plan
+- [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 (TROLLEY3-N11) is the Windows demo/test seat; §9 ran there and on fresh 10.33.22.18 on 2026-09-11
+- [Windows seat gotchas](windows-seat-gotchas.md) — 32,767-char command line (steer by file); $Conf == $conf; native stderr is terminating under Stop; no navigator.clipboard on http
