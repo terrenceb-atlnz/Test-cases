@@ -2,7 +2,30 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-10, morning (by Claude)
+**Last Updated**: 2026-09-10, midday (by Claude)
+
+## Latest session (2026-09-10, midday) — LAN server hung and was restarted; no cause captured
+
+**What happened.** At ~12:52 the hosted server stopped answering: unit `active`, port 8000 held
+by the worker, `/health` no reply within 8 s on BOTH `127.0.0.1` and `10.33.22.17`, journal
+silent after a normal burst of static/`/api/version` traffic at 12:52:19 — no reload, error or
+traceback in the preceding 3 h. Terrence asked for a graceful restart over a diagnosis:
+`systemctl --user restart ask-ck.service` at 12:55; `/health` 200 in 30 ms on both addresses
+after. (`ck reload` at 08:55 that morning was an in-process reload — the unit had been up since
+2026-09-09 08:10.)
+
+**What it means.** Second hung-event-loop shape since 2026-09-08. That one was per-unit render
+on the event loop (fixed `b004e59`); this one has NO identified cause and no evidence was kept.
+If it recurs, capture BEFORE restarting: `py-spy dump --pid <worker>` (or
+`cat /proc/<worker>/stack`, `/proc/<worker>/wchan`) and `ss -tnp | grep :8000` for stuck
+clients; then restart. Worker pid = the child of the unit's Main PID (the reloader).
+
+**Also noted, not this session's:** untracked
+`ask-ck/objective-drafting/refined-cases/Sanity Check (15)/AWPTCM-T37871/` (session.json,
+traceability.md, zephyr_payload.json, 14:03) — a wizard export from live UI traffic; its
+siblings are tracked (`856adc6`), so it is Terrence's to commit when the case is final.
+
+Gate at this wrap: guards OK, pytest 1429 passed / 1 skipped, vitest 252, ck.db untouched.
 
 ## Latest session (2026-09-10, morning) — ck.db corruption ROOT-CAUSED and FIXED (two SQLite libraries in one process, not NFS); tc1 D5 resolved; G8 added
 

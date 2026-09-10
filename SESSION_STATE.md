@@ -3962,3 +3962,15 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   (live traffic), the generated T44297 artefacts (UI saves), the concurrent stream's two
   memories (MEMORY.md staged by hunk).
 - **Resume:** the 2026-09-09 (evening) entry at the top of `PROGRESS.md`.
+
+## Session Close / Handoff (2026-09-10, midday) — server hang + graceful restart; nothing else changed
+
+- **Event:** hosted server unresponsive from ~12:52 (unit active, port held, `/health` silent on
+  localhost AND the LAN address, journal quiet, no reload/error). Restarted with
+  `systemctl --user restart ask-ck.service` at 12:55 on Terrence's instruction; healthy in 30 ms.
+  No root cause captured — see the 2026-09-10 (midday) PROGRESS.md entry for what to grab next time.
+- **Code/data:** none this session. The earlier loader work (`2f1130e`) and the concurrent stream's
+  option-B live load + follow-ups (`6abec4b`…`5876fd6`) are all on origin.
+- **Gate:** guards OK, pytest 1429 / 1 skipped, vitest 252, ck.db untouched.
+- **Memory:** `askck-lan-hosting` re-verified (its `ss -ltnp` diagnosis and systemctl-only rule
+  were exactly what the restart used).
