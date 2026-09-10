@@ -477,8 +477,8 @@ each is in the last column, marked *Resolved*.
 > reported 2.1.267 with no install step). No login prompt on the first run = the CLI's stored
 > credentials survived; `claude auth logout` + re-run then prompted and passed (step 3 ✔).
 > "update skipped: job in flight (1)" appeared during a live call (step 3b ✔). Step 6 (reboot)
-> not run — autostart was declined. Terrence's raw notes: `new1.txt` / `new1.png` (repo root,
-> untracked at the time of writing).
+> not run — autostart was declined. Terrence's raw notes and the failure screenshot:
+> `ask-ck/ck-facelift/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
 
 On a Windows seat with no Claude installed, from a fresh browser profile:
 1. Open Ask-CK, copy the Windows one-liner, run it. Expect Install → installer runs → PATH

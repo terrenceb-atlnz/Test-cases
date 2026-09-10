@@ -1,0 +1,138 @@
+1. The seat didnt hold the old browser version, because it called the live URL location and was re-served the newest one.
+2. No claude anywhere. suspect seat wipe on logout. Raw output:
+PS H:\> claude --version
+claude : The term 'claude' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ claude --version
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (claude:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+PS H:\> cd C:/
+
+PS C:\> claude --version
+claude : The term 'claude' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ claude --version
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (claude:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+PS C:\> pwd
+
+Path
+----
+C:\ 
+
+
+
+PS C:\> cd .\Users
+
+PS C:\Users> cd .\terrenceb
+
+PS C:\Users\terrenceb> claude --version
+claude : The term 'claude' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ claude --version
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (claude:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+PS C:\Users\terrenceb> cd .\Documents
+
+PS C:\Users\terrenceb\Documents> claude --version
+claude : The term 'claude' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ claude --version
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (claude:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Not sure if its hiding somewhere. ill try the script anyway
+
+3a. UI Copy button doesnt work in windows / chrome, had to manually copy (just a note, not really a bug)
+3b. raw output from command resolution:
+PS C:\Users\terrenceb\Documents> irm http://10.33.22.17:8000/setup/setup.ps1 | iex
+Ask CK seat setup - server http://10.33.22.17:8000
+
+      PATH fixed for your account - new terminals will see 'claude'; existing ones need reopening.
+      claude update...
+[OK]  Install - Claude Code 2.1.267 at C:\Users\terrenceb\.local\bin\claude.exe
+[OK]  Login - logged in as Allied Telesis Labs NZ
+      ck-agent 1.2.0 downloaded.
+Start the Ask CK agent automatically when you log in? [Y/n]: n
+schtasks.exe : ERROR: The system cannot find the file specified.
+At line:189 char:3
++   & schtasks.exe /Query /TN "$TaskName" 2>$null | Out-Null
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR: The syst...file specified.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 4. got two checks, thats kinda good
+ 5. I did answer the auto check negatively
+ 6. It does say ✓ Local agent ready (agent 1.2.0 · CLI 2.1.267 · logged in as Allied Telesis Labs NZ) 
+ 6a. I was not prompted to login anywhere, could be captured creds from last session, even though i couldnt find the claude cli?
+7. ran it again, same prompt and output. 
+PS C:\Users\terrenceb\Documents> 
+PS C:\Users\terrenceb\Documents> irm http://10.33.22.17:8000/setup/setup.ps1 | iex
+Ask CK seat setup - server http://10.33.22.17:8000
+
+      PATH fixed for your account - new terminals will see 'claude'; existing ones need reopening.
+      claude update...
+[OK]  Install - Claude Code 2.1.267 at C:\Users\terrenceb\.local\bin\claude.exe
+[OK]  Login - logged in as Allied Telesis Labs NZ
+Start the Ask CK agent automatically when you log in? [Y/n]: n
+schtasks.exe : ERROR: The system cannot find the file specified.
+At line:189 char:3
++   & schtasks.exe /Query /TN "$TaskName" 2>$null | Out-Null
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR: The syst...file specified.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+8. logout definitely worked, stll have same script issue though
+PS C:\Users\terrenceb\Documents> 
+PS C:\Users\terrenceb\Documents> claude auth logout
+Successfully logged out from your Anthropic account.
+
+PS C:\Users\terrenceb\Documents> irm http://10.33.22.17:8000/setup/setup.ps1 | iex
+Ask CK seat setup - server http://10.33.22.17:8000
+
+      PATH fixed for your account - new terminals will see 'claude'; existing ones need reopening.
+      claude update...
+[OK]  Install - Claude Code 2.1.267 at C:\Users\terrenceb\.local\bin\claude.exe
+      Not logged in - starting 'claude auth login' (it opens your browser)...
+Opening browser to sign inâ€¦
+If the browser didn't open, visit: https://claude.com/cai/oauth/authorize?code=true&client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e&response_type=code&redirect_uri=https%3
+A%2F%2Fplatform.claude.com%2Foauth%2Fcode%2Fcallback&scope=org%3Acreate_api_key+user%3Aprofile+user%3Ainference+user%3Asessions%3Aclaude_code+user%3Amcp_servers+user%3Afi
+le_upload&code_challenge=IrvGDDetZ2zvnNrdnkiQX-VHleCIzyqCwATLfwQobgQ&code_challenge_method=S256&state=5zdmRlDBdPFsLHDIlmuweeoAfOkQFbCKoKv7OrdG2xw
+Paste code here if prompted > Login successful.
+[OK]  Login - logged in as Allied Telesis Labs NZ
+Start the Ask CK agent automatically when you log in? [Y/n]: n
+schtasks.exe : ERROR: The system cannot find the file specified.
+At line:189 char:3
++   & schtasks.exe /Query /TN "$TaskName" 2>$null | Out-Null
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR: The syst...file specified.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+9. CMLA (check my local agent) still happy:
+✓ Local agent ready (agent 1.2.0 · CLI 2.1.267 · logged in as Allied Telesis Labs NZ)
+Prompts will run on YOUR machine against YOUR own seat while this tab is open.
+
+10. Loaded case in pyscript, clicked llm. that triggered the prompt we were looking for earlier:
+No credential (use CLI login or set key)
+Your previous LLM choice for this seat is no longer available — this seat uses the site default until you Apply a new one.
+re-ran LLM attempt at generate, produced new failures. (PIC)
+successful Suggest with LLM call in a test case though.
+
+11. attempted during a different llm call:
+✓ Local agent ready (agent 1.2.0 · CLI 2.1.267 · update skipped: job in flight (1); retry when the run finishes · logged in as Allied Telesis Labs NZ)
+Prompts will run on YOUR machine against YOUR own seat while this tab is open.
+ 
+ 12. didnt attempt.

@@ -31,7 +31,7 @@ read; and `2378e85` **one button** (D17) — Apply also writes the site default 
 separate control is gone, the one downside recorded in §8b.
 
 **The Windows demo (§9) ran 07:48–08:08** on 10.33.25.50 — Terrence at the seat with notes
-(`new1.txt`, `new1.png`, repo root), Claude on the journal + debug log. Worked: setup with PATH
+(`ask-ck/ck-facelift/demo-2026-09-11/`), Claude on the journal + debug log. Worked: setup with PATH
 repair, re-run idempotent, logout → login prompt → ✔, "Check my local agent" incl. "update
 skipped: job in flight", two Opus suggest calls brokered through the seat. Four findings, all
 fixed and pinned before he was back (plan §9 has the record): **#1** 20/20 unit calls died in
