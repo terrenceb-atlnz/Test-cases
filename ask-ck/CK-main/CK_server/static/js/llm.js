@@ -6,7 +6,7 @@ import { ckBrokerLoop, probeLocalAgent } from './agent.js';
 import { fmtTokens } from './llm-debug.js';
 import { llmButtonStart } from './llm-progress.js';
 import { flashButtonDone } from './dom-helpers.js';
-import { storedSeatLlm } from './session.js';
+import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from './session.js';
 
 // The LLM choice is PER SEAT (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
 // applies is stored here and rides on every /api call as X-CK-LLM (session.js). The server
@@ -21,7 +21,25 @@ export function storeSeatLlm(cfg) {
       unit_model: cfg.unit_model || null,
       match_model: cfg.match_model || null,
     }));
+    // A fresh choice ends the "your previous choice was retired" notice (§11.3).
+    localStorage.removeItem(SEAT_LLM_RETIRED_KEY);
   } catch (_) {}
+}
+
+// The one-time notice (plan §11.3, D14): session.js dropped this seat's stored choice because
+// the backend it named was retired, and remembered that it did. Say so under LLM → Configure
+// until the seat next Applies. Names no retired mode on purpose.
+export const SEAT_LLM_RETIRED_TEXT =
+  'Your previous LLM choice for this seat is no longer available — this seat uses the site default until you Apply a new one.';
+
+export function renderSeatLlmRetiredNotice(doc = document) {
+  const el = doc.getElementById('llmSeatNotice');
+  if (!el) return false;
+  let retired = null;
+  try { retired = localStorage.getItem(SEAT_LLM_RETIRED_KEY); } catch (_) {}
+  el.textContent = retired ? SEAT_LLM_RETIRED_TEXT : '';
+  el.classList.toggle('hidden', !retired);
+  return !!retired;
 }
 
 // The body for set_llm_config / set_site_default_llm, read from the Configure panel.
@@ -249,6 +267,7 @@ export function updateLLMStatus(config) {
     el.classList.remove('llm-status-ok', 'llm-status-warn');
     el.classList.add(ok ? 'llm-status-ok' : 'llm-status-warn');
   });
+  renderSeatLlmRetiredNotice();
 }
 
 function updateLLMDefaults() {

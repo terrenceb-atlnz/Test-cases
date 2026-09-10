@@ -64,7 +64,10 @@ describe('fetch patch', () => {
     await window.fetch('/api/wizard/llm_config');
     expect(lastHeaders().get('X-CK-LLM')).toBeNull();
     expect(localStorage.getItem('draftingLLMConfig')).toBeNull();
+    // ...and remembers the drop, so LLM → Configure can say so once (plan §11.3, D14).
+    expect(localStorage.getItem(session.SEAT_LLM_RETIRED_KEY)).toBe('claude_code');
     expect(session.seatLlmHeaderValue({ auth_method: 'api_key', model: 'x' })).toBe('');
+    expect(session.seatLlmHeaderValue({ auth_method: 'grok_cli', model: 'x' })).toBe('');
   });
   it('reads localStorage at call time, so an Apply changes the very next request', async () => {
     localStorage.setItem('draftingLLMConfig', JSON.stringify({ auth_method: 'local_llm', model: 'vllm-fast' }));

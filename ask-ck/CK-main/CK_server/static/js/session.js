@@ -25,6 +25,8 @@ const CK_SESSION_ID = (function () {
 // last applied a since-retired mode) is NOT sent: the server would 400 every request, and
 // the right outcome for that seat is the site default until it chooses again.
 export const SEAT_LLM_METHODS = ['local_llm', 'claude_agent'];
+// Set when storedSeatLlm() drops a retired choice; read by llm.js for the one-time notice.
+export const SEAT_LLM_RETIRED_KEY = 'ckSeatLlmRetired';
 
 export function seatLlmHeaderValue(cfg) {
   if (!cfg || !cfg.auth_method) return '';
@@ -39,7 +41,10 @@ export function storedSeatLlm() {
     const cfg = raw ? JSON.parse(raw) : null;
     if (cfg && cfg.auth_method && !SEAT_LLM_METHODS.includes(String(cfg.auth_method).toLowerCase())) {
       // Self-heal: a retired stored choice is dropped so the seat falls back to the site
-      // default and the Configure panel shows what its requests will actually get.
+      // default and the Configure panel shows what its requests will actually get. The drop
+      // is remembered so LLM → Configure can say so once (llm.js renders it; the seat's next
+      // Apply clears it) — plan §11.3, decision D14.
+      try { localStorage.setItem(SEAT_LLM_RETIRED_KEY, String(cfg.auth_method)); } catch (_) {}
       localStorage.removeItem('draftingLLMConfig');
       return null;
     }
