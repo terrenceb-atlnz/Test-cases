@@ -65,13 +65,15 @@ async function setLLMConfig() {
     if (auth_method === 'claude_agent') {
       ckBrokerLoop();  // ensure the broker is running (idempotent) so jobs get served
       const a = await probeLocalAgent();
-      if (a.ok && a.claude_cli) {
+      if (a.ok && a.claude_cli && a.logged_in === false) {
+        alert("Agent reachable and Claude is installed, but it is NOT logged in on your machine.\n\nRun 'claude auth login' there, then click 'Check my local agent'.");
+      } else if (a.ok && a.claude_cli) {
         const cm = body.model ? ` — ${body.model} model` : '';
         alert(`Claude (my local machine) enabled${cm}. Calls run through the ck-agent on YOUR machine against YOUR own Claude seat. Keep the agent running and this tab open.`);
       } else if (a.ok && !a.claude_cli) {
-        alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude' -> /login, then retry.");
+        alert("Agent reachable, but the Claude CLI wasn't found on your machine. Install Claude Code and run 'claude auth login', then retry.");
       } else {
-        alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nStart it: cd ask-ck/agent && ./run-agent.sh — then click 'Check my local agent'.");
+        alert("Claude (my local machine) selected, but your local agent isn't reachable.\n\nRun the one-line seat setup from the Ask CK home page (or: cd ask-ck/agent && ./run-agent.sh), then click 'Check my local agent'.");
       }
     } else if (auth_method === 'claude_code') {
       // Mirrors the claude_agent branch, but the CLI being probed is the

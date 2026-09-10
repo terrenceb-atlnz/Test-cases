@@ -7,12 +7,42 @@ import { escapeHtml } from './dom-helpers.js';
 const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
 
 export async function probeLocalAgent() {
-  // Ask the user's own ck-agent whether it's up and whether claude is installed.
+  // Ask the user's own ck-agent whether it's up, whether claude is installed, and — since
+  // agent 1.1.0 — whether it is LOGGED IN and which versions are in play. An older agent
+  // omits those fields; `logged_in` is then undefined (unknown), never false.
   try {
     const res = await fetch(CK_AGENT_URL + '/health', { method: 'GET' });
     if (!res.ok) return { ok: false };
     const s = await res.json();
-    return { ok: true, claude_cli: !!s.claude_cli, path: s.claude_path, hint: s.hint };
+    return {
+      ok: true, claude_cli: !!s.claude_cli, path: s.claude_path, hint: s.hint,
+      logged_in: (typeof s.logged_in === 'boolean') ? s.logged_in : undefined,
+      org: s.org || null, cli_version: s.cli_version || null,
+      agent_version: s.agent_version || null, update_error: s.update_error || null,
+    };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// "Ready" means: agent up, CLI found, and not known to be logged out. An old agent that
+// cannot report login is still treated as ready (unknown ≠ no), so upgrading the page
+// never strands a seat that has not upgraded its agent yet.
+export function agentIsReady(s) {
+  return !!(s && s.ok && s.claude_cli && s.logged_in !== false);
+}
+
+// Layer 2 of keeping the CLI current (plan §4.1): ask the agent to run `claude update`.
+// Separate from /health so health stays instant; the agent skips it while a job is
+// running and says so. Returns null for an agent too old to have the route.
+export async function requestAgentUpdate() {
+  try {
+    const res = await fetch(CK_AGENT_URL + '/update', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    return await res.json();
   } catch (e) {
     return { ok: false, error: String(e) };
   }
@@ -253,19 +283,57 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   });
 }
 
+// The one line the user reads. Built from the probe and the update result; exported so
+// the unit tests can pin what "ready" and "not ready" look like without a DOM.
+export function renderAgentStatus(s, upd) {
+  if (!s || !s.ok) {
+    return `<span class="status-err">&#10007; Agent not reachable at ${escapeHtml(CK_AGENT_URL)}.</span> `
+      + `Run the one-line seat setup from the Ask CK home page (or <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code>), then retry.`;
+  }
+  if (!s.claude_cli) {
+    return `<span class="status-err">&#10007; Agent up, but Claude CLI not found on your machine.</span> ${escapeHtml(s.hint || "Install Claude Code and run 'claude auth login'.")}`;
+  }
+  const parts = [];
+  if (s.agent_version) parts.push(`agent ${escapeHtml(s.agent_version)}`);
+  if (s.cli_version) {
+    let v = `CLI ${escapeHtml(s.cli_version)}`;
+    if (upd && upd.updated && upd.from) v += ` (updated from ${escapeHtml(upd.from)})`;
+    parts.push(v);
+  }
+  if (upd && upd.skipped) parts.push(`update skipped: ${escapeHtml(upd.reason || 'job in flight')}`);
+  else if (upd && upd.error) parts.push(`update failed: ${escapeHtml(upd.error)}`);
+  else if (upd === null) parts.push('update: agent too old to support it — re-run the seat setup');
+  if (s.logged_in === false) {
+    parts.push('<span class="status-err">NOT logged in</span>');
+    return `<span class="status-err">&#10007; Not ready</span> <span class="status-muted">(${parts.join(' · ')})</span><br>`
+      + `<span class="status-err">${escapeHtml(s.hint || "Run 'claude auth login' on your machine, then retry.")}</span>`;
+  }
+  parts.push(s.logged_in === true
+    ? `logged in${s.org ? ` as ${escapeHtml(s.org)}` : ''}`
+    : 'login: unknown (old agent)');
+  return `<span class="status-ok">&#10003; Local agent ready</span> <span class="status-muted">(${parts.join(' · ')})</span><br>`
+    + `<span class="status-muted">Prompts will run on YOUR machine against YOUR own seat while this tab is open.</span>`;
+}
+
 async function checkLocalAgent() {
   const resultDiv = document.getElementById('agentStatusResult');
   if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Checking your local agent…</em>';
   const s = await probeLocalAgent();
-  if (!resultDiv) return;
-  if (!s.ok) {
-    resultDiv.innerHTML = `<span class="status-err">&#10007; Agent not reachable at ${escapeHtml(CK_AGENT_URL)}.</span> `
-      + `Start it: <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code>, then retry.`;
-  } else if (!s.claude_cli) {
-    resultDiv.innerHTML = `<span class="status-err">&#10007; Agent up, but Claude CLI not found on your machine.</span> ${escapeHtml(s.hint || "Install Claude Code and run 'claude' -> /login.")}`;
-  } else {
-    resultDiv.innerHTML = `<span class="status-ok">&#10003; Local agent ready</span> <span class="status-muted">(claude at ${escapeHtml(s.path || '')})</span><br><span class="status-muted">Prompts will run on YOUR machine against YOUR own seat while this tab is open.</span>`;
+  let upd;
+  if (s.ok && s.claude_cli) {
+    if (resultDiv) resultDiv.innerHTML = '<em class="status-muted">Agent up — checking for a Claude CLI update…</em>';
+    upd = await requestAgentUpdate();
+    // The update may have changed the version or the login view; re-probe for the line.
+    if (upd && (upd.updated || upd.health)) {
+      const fresh = upd.health ? { ok: true, claude_cli: !!upd.health.claude_cli, path: upd.health.claude_path,
+        hint: upd.health.hint, logged_in: (typeof upd.health.logged_in === 'boolean') ? upd.health.logged_in : undefined,
+        org: upd.health.org || null, cli_version: upd.health.cli_version || null,
+        agent_version: upd.health.agent_version || null } : await probeLocalAgent();
+      if (fresh.ok) Object.assign(s, fresh);
+    }
   }
+  if (!resultDiv) return;
+  resultDiv.innerHTML = renderAgentStatus(s, upd);
 }
 
 // Register this tool's data-action handlers.

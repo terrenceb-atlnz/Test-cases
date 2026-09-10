@@ -47,7 +47,16 @@ ever runs here, on your machine, as you.
 
 ## Endpoints (for reference)
 
-- `GET /health` → `{ok, claude_cli, claude_path, hint}` — is the agent up and is `claude` installed/logged in.
+- `GET /health` → `{ok, agent_version, claude_cli, claude_path, cli_version, logged_in, org,
+  jobs_in_flight, update_error, hint}` — is the agent up, is `claude` installed, **is it
+  logged in** (from `claude auth status`, cached 60 s), and which versions are in play.
+  Before agent 1.1.0 this reported only binary presence, so a logged-out CLI read as ready.
+- `POST /update` `{}` (JSON content type required) → `{ok, updated, from, to, skipped, reason,
+  error, health}` — runs `claude update`. Skipped, and says so, while a job is in flight.
+  The page's **Check my local agent** button calls this after `/health`.
+- `POST /shutdown` `{}` (JSON content type required) → stops the agent. Used by the seat
+  setup script to replace a stale agent; the agent also runs `claude update` once at startup
+  (`CK_AGENT_UPDATE_ON_START=0` disables that).
 - `POST /run` `{prompt, model?, timeout?, job_id?, system?}` → `{content, error, usage?, total_cost_usd?}` —
   runs one `claude -p` completion exactly as the server's own transport does: `--tools ""`,
   `--system-prompt <system>` (replacing the CLI's harness prompt so a fan-out's shared prefix

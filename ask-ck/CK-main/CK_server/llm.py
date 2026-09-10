@@ -592,8 +592,21 @@ def _call_claude_code_headless(prompt: str, model: str, meta: Dict[str, Any], ti
         # subprocess.run with a kill handle + live stream-json progress (llm_inflight).
         proc = _run_cli(cmd, input_text=prompt, timeout=timeout, cwd=_cli_neutral_cwd())
         if proc.returncode != 0:
-            detail = (proc.stderr or proc.stdout or "").strip()[:500] or f"exit code {proc.returncode}"
-            raise RuntimeError(detail)
+            # The reason is in the STREAM, not at the top of stdout. On a non-zero exit the
+            # CLI still emits its events, and the `result` event (or its synthesized error
+            # message) carries the diagnosis — e.g. "API Error: 400 Claude Code 2.1.207 does
+            # not support this model; version 2.1.251 or newer is required". Slicing raw
+            # stdout reported the `init` event (model name, slash commands) instead: eight
+            # demo-day failures on 2026-09-10 were logged that way, none with the reason.
+            _, fail_env = _parse_cli_stream(proc.stdout or "")
+            detail = ""
+            for candidate in (fail_env.get("result"), fail_env.get("cli_error_text"),
+                              (proc.stderr or "").strip()):
+                text = str(candidate or "").strip()
+                if text and not text.startswith("{"):
+                    detail = text[:500]
+                    break
+            raise RuntimeError(detail or f"exit code {proc.returncode}")
 
         raw = proc.stdout.strip()
         content, data = _parse_cli_stream(raw)

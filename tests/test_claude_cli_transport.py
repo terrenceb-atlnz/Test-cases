@@ -453,6 +453,53 @@ def test_an_error_envelope_is_reported_as_an_error(captured):
     assert "529" in meta["content"]
 
 
+_INIT_EVENT = {"type": "system", "subtype": "init", "cwd": "/tmp/askck-cli-cwd",
+               "model": "claude-fable-5-1", "tools": [], "slash_commands": ["doctor", "loop"]}
+_STALE_CLI_MSG = ("API Error: 400 Claude Code 2.1.207 does not support this model; version "
+                  "2.1.251 or newer is required. Run 'claude update', or update the Claude "
+                  "desktop app, then try again.")
+
+
+def test_a_nonzero_exit_reports_the_result_event_not_the_init_event(captured, monkeypatch):
+    """THE DEMO-DAY DEFECT (2026-09-10). The CLI exited 1 with an EMPTY stderr; its stream
+    still carried the init event, a synthesized error message and a `result` event with the
+    reason. The old path did `(stderr or stdout)[:500]`, which is the init event — model name
+    and slash commands — so eight failures were logged without the reason once."""
+    class _Failing(_FakeProc):
+        returncode = 1
+
+    captured["reply"] = [_INIT_EVENT,
+                         {"type": "assistant", "message": {"id": "0f7e-not-a-msg-id",
+                                                           "content": [{"type": "text", "text": _STALE_CLI_MSG}]}},
+                         {"type": "result", "subtype": "success", "is_error": True,
+                          "api_error_status": 400, "result": _STALE_CLI_MSG}]
+
+    def failing_run(cmd, input_text=None, timeout=None, **kw):
+        return _Failing(captured["reply"])
+
+    monkeypatch.setattr(llm, "_run_cli", failing_run)
+    meta = llm._call_claude_code_headless("hi", "m", {}, timeout=60)
+    assert meta.get("error") is True
+    assert "2.1.251 or newer is required" in meta["content"], meta["content"]
+    assert "slash_commands" not in meta["content"] and '"init"' not in meta["content"], (
+        "the init event is back in the error message — the reason is being hidden again")
+
+
+def test_a_nonzero_exit_with_only_stderr_still_reports_stderr(captured, monkeypatch):
+    class _Failing(_FakeProc):
+        returncode = 2
+
+        def __init__(self, payload):
+            super().__init__(payload)
+            self.stdout = ""
+            self.stderr = "claude: command exploded"
+
+    monkeypatch.setattr(llm, "_run_cli", lambda *a, **k: _Failing([]))
+    meta = llm._call_claude_code_headless("hi", "m", {}, timeout=60)
+    assert meta.get("error") is True
+    assert "command exploded" in meta["content"]
+
+
 def test_json_steer_still_default_for_the_json_steps():
     """The fix must not have flipped every step to the code steer: the JSON templates
     depend on the JSON steer (measured ~22x fewer completion tokens)."""
