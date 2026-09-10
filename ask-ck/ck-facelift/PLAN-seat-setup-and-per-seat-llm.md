@@ -21,7 +21,12 @@
 >   **retired immediately after per-seat works** — it was demo-only since 2026-09-07
 >   (memory `claude-agent-is-the-release-transport`).
 >
-> Open decisions are in §8. Authority for the agent's CLI invocation stays
+> **All decisions D1–D7 resolved by Terrence 2026-09-10 (later)** — see §8. Phase 1 is
+> §3 + §4 (seat setup + Windows agent + CLI currency); §5 then §6 follow a demo on the
+> Windows seat (memory `demo-windows-seat`). §6 is a **complete removal** of server-side
+> Claude, code and current-state docs alike — see the D3 row for scope.
+>
+> Authority for the agent's CLI invocation stays
 > `PLAN-per-user-agent.md` + memory `claude-code-cli-transport-contract`; the backend
 > allowlist stays a governance control (`models.SUPPORTED_AUTH_METHODS`,
 > `tests/test_llm_backend_allowlist.py`). The ck.db invariant is untouched: nothing here adds
@@ -153,9 +158,9 @@ exits non-zero at the first `✘` it cannot repair, and never asks for admin.
 **Login ✔**
 5. `claude auth status` (verified on 2.1.207 and 2.1.267: JSON, exit 0 logged in / 1 not).
    Not logged in → run `claude auth login` **interactively** (it opens the browser; a seat
-   has one) → re-run `auth status`. Still not → `✘` with the message. Optional strictness
-   in §8 (D4): assert `orgName` is the team org so a personal login is caught here rather
-   than on first call.
+   has one) → re-run `auth status`. Still not → `✘` with the message. Any logged-in account
+   passes (D4: no org check); the result line still prints `orgName` so a personal login is
+   visible.
 
 **Agent ✔**
 6. Fetch `manifest.json`; compare the local agent file's sha256; download when different or
@@ -164,9 +169,14 @@ exits non-zero at the first `✘` it cannot repair, and never asks for admin.
    → ask it to stop (`POST /shutdown`, new, loopback-only like everything else) → start the
    new one. Down → start it **detached and hidden**: Windows `Start-Process powershell
    -WindowStyle Hidden -File ck-agent.ps1`; Ubuntu `systemd-run --user` or `nohup … &`.
-8. **Autostart** so a reboot does not need a re-run: Windows a per-user Scheduled Task "at
-   logon" (`schtasks /Create /SC ONLOGON`, no admin); Ubuntu a `systemd --user` unit with
-   `WantedBy=default.target`. Both idempotent.
+8. **Autostart is the user's choice (D6).** On the **first** run the script asks once:
+   *"Start the agent automatically when you log in? [Y/n]"*. Yes → Windows a per-user
+   Scheduled Task "at logon" (`schtasks /Create /SC ONLOGON`, no admin); Ubuntu a
+   `systemd --user` unit with `WantedBy=default.target`. No → nothing registered; the
+   one-liner starts the agent each time. The answer is remembered in a small config file
+   beside the agent (`ck-agent.conf`, `autostart=yes|no`) so re-runs do not ask again;
+   `--autostart` / `--no-autostart` flags change it later and register/unregister
+   accordingly. Both paths idempotent.
 9. Re-probe `/health` and require `ok && claude_cli && logged_in`. Print the three versions.
 
 **Finish.** Print the happy line and open `${CK_SERVER}/?seat-check=1` in the default
@@ -307,17 +317,29 @@ After §3–§5 are verified on a Windows seat and an Ubuntu seat:
 - UI: the radio (`index.html:273`), the help block (≈L337–345), the
   `claudeCodeStatusResult` branch in `llm.js` (15 refs) go. The `/claude_cli_status` route
   and `check_claude_cli` go with them.
-- **Keep** `llm._call_claude_code_headless` as the **reference implementation** of the CLI
-  contract (`tests/test_claude_cli_transport.py`, 18 pins; `test_cli_truncation_signal.py`)
-  — both agents mirror it and the fixtures are shared — but it is no longer reachable from
-  a user-selectable backend. Decision D3 says whether it stays callable for tooling.
-- **Named consequence:** `claude_code` is today "the only headless Claude path — batch and
-  scripted runs use it" (SERVER-README ≈L330; `tool/enrich_script_index.py` names it). With
-  it retired, headless tooling has vLLM only, or must go through a browser tab. The
-  `llm_health` ping under a Claude mode already 502s without a tab. D3.
-- Docs: SERVER-README "Claude on the server host" section becomes a retirement note;
-  `PLAN-llm-mode-selection.md` gets a status line; memory
-  `claude-agent-is-the-release-transport` is confirmed rather than changed.
+- **Remove `llm._call_claude_code_headless` and everything that exists only for it (D3:
+  "no evidence this existed").** The CLI contract it embodies does not disappear — it moves
+  to where it is actually used: the two agents. `tests/test_claude_cli_transport.py` (18
+  pins) and `tests/test_cli_truncation_signal.py` are **re-homed onto `ck_agent.run_claude`
+  and the PowerShell parser** against the same `tests/fixtures/cli_stream_*.jsonl`, so no
+  pin is lost, then deleted. `llm._parse_cli_stream`, `_cli_neutral_cwd`,
+  `_DEFAULT_CLI_SYSTEM_PROMPT`, `_CLI_MAX_THINKING_TOKENS` and the `claude_code` branch of
+  `_call_llm_raw` go with it; the `claude_agent` branch keeps its own steer/split code
+  (`_PT_PROMPT_SPLIT` is about prompt caching on both routes and stays).
+- **Named consequence, accepted:** headless tooling on this host has **vLLM only**.
+  `tool/enrich_script_index.py` loses its `claude_code` option; the `llm_health` ping under
+  a Claude mode needs a browser tab (already true for `claude_agent`).
+- **Docs — current-state docs are scrubbed, records are not rewritten.** SERVER-README's
+  "Claude on the server host" section, the README/CHANGELOG *current* feature lists, the
+  Configure-panel help text, `models.py`'s allowlist comment and the `run.sh` banner lose
+  every mention. `PLAN-llm-mode-selection.md` (whose Option A created the radio) gets a
+  status line saying the mode was removed and points here. Dated history — CHANGELOG
+  entries, SESSION_STATE, PROGRESS entries, git history, the `TOKEN-EFFICIENCY-REPORT` — is
+  left as written: those are records of what happened, and git keeps them regardless. If
+  Terrence wants those rewritten too, that is a separate, explicit ask (see the D3 row).
+- Memories: `claude-agent-is-the-release-transport` is rewritten to state the release
+  transport without reference to a retired alternative; `claude-code-cli-transport-contract`
+  is retitled to the agents' contract (its content is what the agents implement).
 - Remove the interim `claude-update.timer` on the server host (§4.1 layer 3) — its job
   passes to the agent's startup update and the button.
 
@@ -336,13 +358,13 @@ for the Ask-CK origin — not seat-side.
 
 | # | Question | Recommendation |
 |---|---|---|
-| D1 | Per-seat mode carried as a per-request header (A) or a server-side per-tab store (B)? | **A** — the browser already owns the value; no schema, survives restarts |
-| D2 | Does "Apply" still write the workspace **default** for never-configured seats, or does the default become code-fixed `local_llm`? | write the default only from a new, clearly-labelled "set as site default" control; plain Apply is seat-only |
-| D3 | After retirement, keep `_call_claude_code_headless` callable for headless tooling (`tool/enrich_script_index.py`, batch runs) under an env-gated non-UI switch, or make vLLM the only headless path? | keep it env-gated and off by default — it is the reference implementation anyway; document that it spends the host's seat |
-| D4 | Should Login ✔ require `orgName` to be the team org? | yes — a personal login would otherwise fail on the first call with a worse message |
-| D5 | Install `pwsh` on the server host so the PowerShell parser runs in the gate over the shared fixtures, or verify the Windows agent manually only? | install `pwsh` — one apt package, and it is the only way a transport change is caught on both agents at once |
-| D6 | Agent autostart: Scheduled Task / systemd-user unit (recommended), or rely on re-running the one-liner after each reboot? | autostart; the re-run remains the repair path |
-| D7 | Order: ship §3+§4 (seat setup + Windows agent) first and demo it before touching §5? | yes — §3+§4 fix demo day on their own; §5 and §6 follow once a seat has been seen working |
+| D1 | Per-seat mode carried as a per-request header (A) or a server-side per-tab store (B)? | **DECIDED 2026-09-10: A** — in the browser, sent as `X-CK-LLM` on every request |
+| D2 | Does "Apply" still write the workspace **default** for never-configured seats, or does the default become code-fixed `local_llm`? | **DECIDED 2026-09-10:** plain Apply is seat-only; a separate, clearly-labelled "set as site default" control writes the workspace row |
+| D3 | After retirement, keep `_call_claude_code_headless` callable for headless tooling? | **DECIDED 2026-09-10: REMOVE ENTIRELY.** Terrence: *"Claude Code CLI (my local machine) — this button will stay, usable by everyone, including myself, the same way I do today. Claude Code CLI (this server) — this button will go, and so will all associated code. I want no evidence this existed at any point."* Scope as implemented in §6: code, tests re-homed then deleted, UI, and current-state docs. Dated records and git history are left as written unless Terrence asks for that separately. Headless tooling on this host becomes vLLM-only |
+| D4 | Should Login ✔ require `orgName` to be the team org? | **DECIDED 2026-09-10: no** — any logged-in account passes; `orgName` is printed, not enforced |
+| D5 | Install `pwsh` on the server host so the PowerShell parser runs in the gate over the shared fixtures, or verify the Windows agent manually only? | **DECIDED 2026-09-10: installed** — `snap install powershell --classic`, 7.6.5 at `/snap/bin/pwsh`, resolves from the service's PATH too. The gate pins the PS parser against the shared fixtures; the test skips with a clear message where `pwsh` is absent |
+| D6 | Agent autostart: Scheduled Task / systemd-user unit, or rely on re-running the one-liner after each reboot? | **DECIDED 2026-09-10: the user chooses** at the first run (*"some people may not want it to re-run on startup"*); remembered in `ck-agent.conf`; `--autostart`/`--no-autostart` to change |
+| D7 | Order: ship §3+§4 (seat setup + Windows agent) first and demo it before touching §5? | **DECIDED 2026-09-10: yes** — §3+§4 first, demo on the Windows seat, then §5, then §6 |
 | — | CLI currency: agent startup update + button `/update` + interim host timer | **DECIDED 2026-09-10 (Terrence): all three** — see §4.1; the timer can be installed now, ahead of the rest |
 
 ## 9. Verification (manual, per Terrence's preference)

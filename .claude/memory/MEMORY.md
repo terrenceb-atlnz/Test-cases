@@ -88,3 +88,4 @@
 - [claude_agent is the release transport](claude-agent-is-the-release-transport.md) — claude_agent and the server-side CLI are the SAME endpoint; the server option is DEMO-ONLY and will not ship
 - [IE520 mcast/L3 test method](ie520-mcast-l3-test-method.md) — IGMP/MLD-snooping + directed-broadcast on tb470 with ONE host NIC: u4=querier, u5 ping=source, host scapy=receiver; gotchas inside
 - [AW+ service-gated routing daemons](awplus-service-gated-routing-daemons.md) — "daemon is not running or feature license" = run `service ospf|rip|vrrp|pim` first; PIM-DM has no service cmd
+- [Demo Windows seat](demo-windows-seat.md) — 10.33.25.50 is the Windows demo/test seat (both demo days); Terrence can remote in; the §9 verification seat for the seat-setup plan
