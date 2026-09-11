@@ -4,6 +4,7 @@ description: Ask-CK has a 3-layer test suite + one gate — pytest (backend) + V
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-11
   originSessionId: 5da34e66-6995-49af-8d5e-491007959772
   modified: 2026-07-27T00:32:32.933Z
 ---

@@ -32,7 +32,7 @@ scratch server (throwaway DB copy, port 8123): green** — index, every sorted m
 `is_permanent_db: false`, zero tracebacks, real ck.db signature unchanged. It caught one break
 the gate cannot: `run_scratch_server.sh` still called `$ROOT/tool/ckdb_scratch.py` (the 6a rule
 skipped slash-prefixed `tool/` tokens; nine more such pointers found and fixed the same way).
-**Still his:** restart the server (`ck on`) and push both repos. The hook: a `git mv`
+**Done 15:32:** Terrence pushed both repos; `ck on` brought the hosted server up on the new layout — `/health` reports `ask-ck/db/ck.db`, `is_permanent_db: true`, 62 sessions; the pending WAL replayed; page, modules, `/process`, seat setup and the routers answer 200; no tracebacks. The hook: a `git mv`
 naming a `.py` passes when the command text has no absolute lab path, so the plan ran without the
 allowance; the patch is in the session scratchpad if wanted. (4) `npm install` in a command that
 also names a `.py` file trips the hook (it matches the word "install") — split such commands.

@@ -4061,8 +4061,9 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   moved to `ask-ck/functions/generator/PROGRESS.md`.
 - **Later, same afternoon:** 6b done (`pt_media` stays in tools; the two page scripts moved);
   Terrence's three files updated with consent; scratch-server smoke test green after fixing
-  `run_scratch_server.sh`'s stale `$ROOT/tool/` call. **Left undone:** server restart (`ck on`) and
-  the push of both repos — his.
+  `run_scratch_server.sh`'s stale `$ROOT/tool/` call. Server restarted 15:32 on the new layout (`/health`: permanent DB at `ask-ck/db/ck.db`),
+  both repos pushed by Terrence. **Left undone:** nothing from the restructure; the guardrails
+  tranche 1 and the D4 decision are the next thread.
 - **Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-11 afternoon), then plan §7.
 

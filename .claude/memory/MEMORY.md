@@ -7,6 +7,7 @@
 - [tb470 routing memory](tb470-topology-and-setup.md) — WHERE each tb470 fact lives (one fact, one home): bench-state.md GENERATES tb470.setup; mechanics → orient-ie520 skill; always `show stack`
 - [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table
 - [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — a concurrent stream edits this repo; re-run gate + git status before stating either; stage explicit paths
+- [Gate does not start the server](gate-does-not-start-the-server.md) — after layout/anchor changes smoke-test on the SCRATCH server (run_scratch_server.sh --bg, port 8123); grep slash-prefixed old paths too; `npm install` + a .py name trips the hook
 - [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; Playwright E2E is sparingly-run, NOT in the gate
 
 - [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; NOT documented, so a docs harvest alone can't capture cross-command physical rules
