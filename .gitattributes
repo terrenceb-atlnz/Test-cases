@@ -1,13 +1,8 @@
 # Git LFS tracking for large raw source data that the tools depend on.
-# Paths are repo-root-relative and reflect the 2026-07-13 restructure
-# (data now lives under ask-ck/objective-drafting/).
-Zephyr-Database-*.xml filter=lfs diff=lfs merge=lfs -text
-ask-ck/objective-drafting/data/zephyr_full/zephyr_cases.jsonl filter=lfs diff=lfs merge=lfs -text
-ask-ck/objective-drafting/data/zephyr_full/index.json filter=lfs diff=lfs merge=lfs -text
-ask-ck/objective-drafting/data/suites/testlink_awp.json filter=lfs diff=lfs merge=lfs -text
-# Literal script source + code chunks (build input for ck.db script-code search);
-# a captured snapshot of testbox .py sources, same category as zephyr_cases.jsonl.
-ask-ck/pytest-create/data/scripts_sources.jsonl filter=lfs diff=lfs merge=lfs -text
+# Paths are repo-root-relative (restructured 2026-07-13 and 2026-09-11).
+# (The raw Zephyr/TestLink extracts and the script-source snapshot that ck.db was built from
+#  were deleted from the tree on 2026-09-11 — ck.db is the permanent source; their LFS objects
+#  remain in history.)
 # ck.db is the PERMANENT single source of truth (built once, not rebuildable) +
 # the bundled offline embedding model. Both versioned via LFS.
 ask-ck/var/ck.db filter=lfs diff=lfs merge=lfs -text

@@ -2,8 +2,8 @@
 Data loading for server-backed drafting tool.
 
 Migrates patterns from:
-- tool/build_drafting_tool.py
-- tool/build_review_html.py
+- tool/build_drafting_tool.py  (deleted 2026-09-11 — pre-server drafting tool)
+- tool/build_review_html.py    (deleted 2026-09-11)
 - tool/common.py
 
 Loads the three databases + indices on server startup.

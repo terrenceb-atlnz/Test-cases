@@ -53,6 +53,9 @@ backups/
 *.tmp
 *.log
 
+# pytest
+.pytest_cache/
+
 # IDE / editor
 .idea/
 .vscode/
