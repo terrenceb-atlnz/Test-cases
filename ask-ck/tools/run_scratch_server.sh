@@ -33,7 +33,7 @@ for arg in "$@"; do
   fi
 done
 
-CK_DB_PATH="$("$PY" "$ROOT/tool/ckdb_scratch.py")"
+CK_DB_PATH="$("$PY" "$ROOT/ask-ck/tools/ckdb_scratch.py")"
 export CK_DB_PATH
 echo "▶ scratch ck.db: $CK_DB_PATH"
 echo "  the real ask-ck/db/ck.db will NOT be written by this server"

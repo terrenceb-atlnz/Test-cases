@@ -20,7 +20,7 @@ lists, memory names, test counts or hashes written down here — globs and greps
 git status -sb                      # -sb shows drift from origin; the tree is shared
 git log --oneline origin/main..HEAD # this session's commits, if any are already local
 git diff --stat                     # uncommitted work
-./tool/run_tests.sh                 # both guards + backend pytest + frontend vitest
+./ask-ck/tools/run_tests.sh                 # both guards + backend pytest + frontend vitest
 ```
 
 Document from this, not from recollection of what you intended. The gate must be green before
@@ -79,7 +79,7 @@ deleting. Any doc describing a retired pipeline or deleted file must carry a
 ## 5. Memory — reconcile only durable facts
 
 ```bash
-./tool/check_memory_links.py    # BEFORE writing any memory — see /orient-ck §4 for what it catches
+./ask-ck/tools/check_memory_links.py    # BEFORE writing any memory — see /orient-ck §4 for what it catches
 ls .claude/memory/*.md          # the directory IS the list (in-repo since 2026-07-30)
 ```
 
@@ -136,8 +136,8 @@ stamped one is the same defect this whole step exists to prevent.
 ### 5b. Run the mechanical check
 
 ```bash
-./tool/check_memory_refs.py        # add -v to see what it skipped, and why
-./tool/check_memory_links.py       # again, after any memory write: the links must still be links
+./ask-ck/tools/check_memory_refs.py        # add -v to see what it skipped, and why
+./ask-ck/tools/check_memory_links.py       # again, after any memory write: the links must still be links
 ```
 
 The first reports memory citations naming a repo path that no longer exists, plus any

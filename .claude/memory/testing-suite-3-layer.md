@@ -21,7 +21,7 @@ automated-test layers:
   LLM synthesis, so the deterministic assertion is the blocked outcome).
 
 **How to run:**
-- `./tool/run_tests.sh` = THE regular gate: guards + pytest + `npm test` (Vitest). Fails loudly if
+- `./ask-ck/tools/run_tests.sh` = THE regular gate: guards + pytest + `npm test` (Vitest). Fails loudly if
   Node deps aren't installed.
 - `npm test` / `npm run test:watch` — frontend units only.
 - `npm run e2e` — Playwright E2E (sparingly; starts/reuses the server via run.sh).
@@ -37,7 +37,7 @@ where a defect has a machine-checkable form. Test fixtures must clear BOTH the i
 the persisted `ck.db` row — an in-memory-only pop leaks throwaway keys into the permanent DB and
 masks failures across tests.
 
-**How to apply:** run `./tool/run_tests.sh` before committing frontend/backend changes; run the
+**How to apply:** run `./ask-ck/tools/run_tests.sh` before committing frontend/backend changes; run the
 E2E on demand (pre-release), not every commit. JS tooling (`package.json`, configs, `e2e/`,
 `tests/js/`) lives at repo root, separate from the front-end tree (`ask-ck/frontend/ck-main/current/`); `node_modules` + PW artifacts are
 gitignored. No CI runner yet (`.github/workflows`). See [[user-prefers-manual-ui-testing]] — the

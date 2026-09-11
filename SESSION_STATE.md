@@ -4059,9 +4059,10 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   New homes: `docs/`, `tests/{,js,e2e}`, `archive/`, `ask-ck/{frontend/ck-main/{current,svelte},
   functions/<page>,tools,plans,db}`. The gate is now `./ask-ck/tools/run_tests.sh`. PROGRESS.md
   moved to `ask-ck/functions/generator/PROGRESS.md`.
-- **Left undone:** batch 6b (page-button scripts; `pt_media` placement is Terrence's call);
-  three of Terrence's own files still name old paths (root CLAUDE.md, the hook message, one
-  device-testing memory); server restart and push are his.
+- **Later, same afternoon:** 6b done (`pt_media` stays in tools; the two page scripts moved);
+  Terrence's three files updated with consent; scratch-server smoke test green after fixing
+  `run_scratch_server.sh`'s stale `$ROOT/tool/` call. **Left undone:** server restart (`ck on`) and
+  the push of both repos — his.
 - **Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-11 afternoon), then plan §7.
 

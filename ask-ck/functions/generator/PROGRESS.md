@@ -22,13 +22,17 @@ Terrence's request); the Vitest fixture helper sat one level deeper than the spe
 three function docs had relative links batch 5 missed because they never named a directory
 (caught by resolving every relative link mechanically in 6a).
 
-**Open — needs Terrence:** (1) **batch 6b**, the three page-button scripts: `pt_profiles.py`
-(tools) imports from `pt_media.py`, so the plan's page-dir placement would make a shared tool
-import from a page; recommendation `pt_media` → `tools/` (plan §7). (2) Two paths in the root lab
-`CLAUDE.md` (`Test-cases/tool/check_memory_links.py` → `ask-ck/tools/`, `ask-ck/var/ck.db` →
-`ask-ck/db/`), the stray-script hook's message (`{repo}/ask-ck/test-composer/`) and device-testing's
-shared memory `grep-shim-honors-gitignore` (`ask-ck/var/`) — his files. (3) Restart the server
-(`ck on`) and push (20 local commits incl. the guardrails-decision one). The hook: a `git mv`
+**Closed the same afternoon (Terrence's answers):** batch 6b done — `pt_media.py` stays in tools
+(`pt_profiles` imports it); `upload_refined.py` → `frontend/ck-main/current/generator/`,
+`cli_lookup.py` → `…/current/pytest-creator/`, anchors swept. His three files updated with his
+consent: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, device-testing's
+shared memory `grep-shim-honors-gitignore` (committed there, `9db53c7`). **Smoke test on the
+scratch server (throwaway DB copy, port 8123): green** — index, every sorted module (with
+`Cache-Control: no-cache`), assets, `/process`, the four routers, `/health` with
+`is_permanent_db: false`, zero tracebacks, real ck.db signature unchanged. It caught one break
+the gate cannot: `run_scratch_server.sh` still called `$ROOT/tool/ckdb_scratch.py` (the 6a rule
+skipped slash-prefixed `tool/` tokens; nine more such pointers found and fixed the same way).
+**Still his:** restart the server (`ck on`) and push both repos. The hook: a `git mv`
 naming a `.py` passes when the command text has no absolute lab path, so the plan ran without the
 allowance; the patch is in the session scratchpad if wanted. (4) `npm install` in a command that
 also names a `.py` file trips the hook (it matches the word "install") — split such commands.

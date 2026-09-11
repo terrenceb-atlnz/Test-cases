@@ -318,7 +318,7 @@ if [ -d "$VENV_DIR" ] && py_ok "$VENV_PY"; then
     echo "      PYTHONNOUSERSITE=1 .venv313/bin/pytest -q tests   # must be green first"
     echo "      mv .venv .venv-old && mv .venv313 .venv"
     echo "      grep -rl '\.venv313' .venv/bin .venv/pyvenv.cfg | xargs sed -i 's|\.venv313|.venv|g'"
-    echo "      ./tool/run_tests.sh                                # confirm, then rm -rf .venv-old"
+    echo "      ./ask-ck/tools/run_tests.sh                                # confirm, then rm -rf .venv-old"
   fi
 else
   if [ -d "$VENV_DIR" ]; then

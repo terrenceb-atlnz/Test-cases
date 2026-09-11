@@ -257,7 +257,7 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
 
 ---
 
-## 1. Indexer pipeline — new `Test-cases/tool/build_script_index.py`
+## 1. Indexer pipeline — new `Test-cases/ask-ck/tools/build_script_index.py`
 
 Standalone script following `ask-ck/tools/` conventions (`#!/usr/bin/env python3`, argv output path).
 
@@ -396,7 +396,7 @@ Run → parse → failures feed `POST /fix_script` (archives prior code to `hist
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/pt_exec.py` (new)
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/templates/prompts/pt_*.jinja` + `enrich_script_index.jinja` (new)
 - `copilot/Test-cases/ask-ck/frontend/ck-main/current/index.html` (~1325, ~2627-2700)
-- `copilot/Test-cases/tool/build_script_index.py` (new)
+- `copilot/Test-cases/ask-ck/tools/build_script_index.py` (new)
 
 ---
 
