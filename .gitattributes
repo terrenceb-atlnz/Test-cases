@@ -5,8 +5,8 @@
 #  remain in history.)
 # ck.db is the PERMANENT single source of truth (built once, not rebuildable) +
 # the bundled offline embedding model. Both versioned via LFS.
-ask-ck/var/ck.db filter=lfs diff=lfs merge=lfs -text
-ask-ck/var/models/** filter=lfs diff=lfs merge=lfs -text
+ask-ck/db/ck.db filter=lfs diff=lfs merge=lfs -text
+ask-ck/db/models/** filter=lfs diff=lfs merge=lfs -text
 # Text files that should not be converted
 *.md text
 *.py text
