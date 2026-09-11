@@ -3,7 +3,7 @@
 #
 # Use this for anything that DRIVES the app as a test would — Playwright E2E, curl smoke
 # checks after a refactor, manual poking you do not want recorded. A real person operating
-# the app SHOULD dirty ask-ck/var/ck.db (a case load writes a session row; that is the tool
+# the app SHOULD dirty ask-ck/db/ck.db (a case load writes a session row; that is the tool
 # working). A test doing it is worthless data landing in the permanent, LFS-committed
 # source of truth, and on 2026-07-28 exactly that had to be undone by hand.
 #
@@ -36,6 +36,6 @@ done
 CK_DB_PATH="$("$PY" "$ROOT/tool/ckdb_scratch.py")"
 export CK_DB_PATH
 echo "▶ scratch ck.db: $CK_DB_PATH"
-echo "  the real ask-ck/var/ck.db will NOT be written by this server"
+echo "  the real ask-ck/db/ck.db will NOT be written by this server"
 
 exec "$ROOT/run.sh" "$@"

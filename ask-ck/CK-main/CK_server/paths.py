@@ -36,9 +36,9 @@ LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"    # app-owned Local LL
 # ck.db is the PERMANENT single source of truth — built once, shipped via Git LFS,
 # NOT rebuildable and NOT a cache. The intermediate corpus JSON it was built from has
 # been retired/deleted; the running server reads corpora ONLY from ck.db (db.py).
-VAR_DIR = ASKCK_ROOT / "var"                                # .../ask-ck/var
-DB_PATH = VAR_DIR / "ck.db"                                 # SQLite (FTS5 + sqlite-vec) single file
-EMBED_MODEL_DIR = VAR_DIR / "models"                        # local sentence-transformers cache
+DB_DIR = ASKCK_ROOT / "db"                                  # .../ask-ck/db  (was var/ until 2026-09-11)
+DB_PATH = DB_DIR / "ck.db"                                  # SQLite (FTS5 + sqlite-vec) single file
+EMBED_MODEL_DIR = DB_DIR / "models"                         # local sentence-transformers cache
 
 # The current (pre-Svelte) front-end: index.html, styles.css, assets and the ES modules sorted
 # into page directories (generator/, pytest-creator/, llm-config/, admin/, shared/). Served at

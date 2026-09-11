@@ -10,7 +10,7 @@ The gate aborts before pytest with:
 ckdb_signature.py ... sqlite3.DatabaseError: database disk image is malformed
 ```
 
-and `PRAGMA integrity_check` on `ask-ck/var/ck.db` reports structural damage
+and `PRAGMA integrity_check` on `ask-ck/db/ck.db` reports structural damage
 (e.g. `On tree page 91 cell 0: 2nd reference to page 103657`, plus many `never used` pages).
 
 ## First: is the *base* actually damaged, or only the WAL?
@@ -20,16 +20,16 @@ and `PRAGMA integrity_check` on `ask-ck/var/ck.db` reports structural damage
 only the main file (no `-wal`/`-shm` beside it) and checking the copy:
 
 ```bash
-T=$(mktemp); cp ask-ck/var/ck.db "$T"; sqlite3 "$T" 'PRAGMA integrity_check;'; rm -f "$T"
+T=$(mktemp); cp ask-ck/db/ck.db "$T"; sqlite3 "$T" 'PRAGMA integrity_check;'; rm -f "$T"
 ```
 
 - **base-only `ok`** → the corruption is in the uncommitted WAL overlay. The committed
   source of truth is intact; use this runbook to discard the WAL.
 - **base-only NOT ok** → the base itself is damaged. STOP. This runbook does not apply;
-  the tool refuses to run. Restore `ck.db` from Git LFS (`git checkout ask-ck/var/ck.db`)
+  the tool refuses to run. Restore `ck.db` from Git LFS (`git checkout ask-ck/db/ck.db`)
   or from a backup, and treat any WAL data as lost.
 
-> ⚠️ **Never run a bare `sqlite3 ask-ck/var/ck.db` on a corrupt-WAL DB that will be the
+> ⚠️ **Never run a bare `sqlite3 ask-ck/db/ck.db` on a corrupt-WAL DB that will be the
 > LAST connection to close.** A read-write connection checkpoints on close, and if that is
 > the last connection SQLite deletes the WAL. On 2026-09-03 a throwaway *copy* was
 > destroyed exactly this way. The live server incidentally protects the real file by
@@ -57,12 +57,12 @@ to the whole control group (no checkpoint), and the explicit stop marks the unit
 ## Run it
 
 ```bash
-./ask-ck/tools/db_wal_recover.sh                 # real: ask-ck.service + ask-ck/var/ck.db
+./ask-ck/tools/db_wal_recover.sh                 # real: ask-ck.service + ask-ck/db/ck.db
 ```
 
 Fail-closed contract:
 - Refuses unless **base-only** integrity is `ok` (never discards the WAL when the base is bad).
-- Backs up `ck.db{,-wal,-shm}` to `ask-ck/var/wal-recover-backup-<stamp>/` before stopping.
+- Backs up `ck.db{,-wal,-shm}` to `ask-ck/db/wal-recover-backup-<stamp>/` before stopping.
 - If post-discard integrity is not `ok`, **restores** base+wal+shm from that backup, re-arms
   normal service config, leaves the server **stopped**, and exits non-zero.
 - On success: removes the drop-in, restarts the service, re-verifies `ok`.
@@ -71,7 +71,7 @@ After it finishes, confirm and re-baseline:
 
 ```bash
 curl -s http://127.0.0.1:8000/health | grep is_permanent_db   # true
-git status --porcelain ask-ck/var/ck.db                       # empty = base unchanged
+git status --porcelain ask-ck/db/ck.db                       # empty = base unchanged
 ./ask-ck/tools/run_tests.sh                                           # gate green again
 ```
 

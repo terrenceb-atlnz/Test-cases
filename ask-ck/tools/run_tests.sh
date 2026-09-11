@@ -36,7 +36,7 @@ echo "== invariant guards =="
 #
 # It compares a CONTENT signature, not a file hash. ck.db is WAL-mode, so a committed
 # write lands in ck.db-wal and can leave the main file's bytes and mtime untouched for a
-# long time: `md5sum ask-ck/var/ck.db` reported "identical" while a mutated test had in
+# long time: `md5sum ask-ck/db/ck.db` reported "identical" while a mutated test had in
 # fact DELETED a real session row (2026-07-28; recovered from a snapshot). Asking SQLite
 # reads main+WAL together and sees the write. ~0.4s.
 _CKDB_SIG_BEFORE="$(mktemp)"
@@ -71,7 +71,7 @@ echo "== ck.db untouched =="
 PYTHONNOUSERSITE=1 "$PY" ask-ck/tools/ckdb_signature.py > "$_CKDB_SIG_AFTER"
 if ! diff -u "$_CKDB_SIG_BEFORE" "$_CKDB_SIG_AFTER"; then
   echo >&2
-  echo "ERROR: the test run CHANGED ask-ck/var/ck.db — the permanent source of truth." >&2
+  echo "ERROR: the test run CHANGED ask-ck/db/ck.db — the permanent source of truth." >&2
   echo "  ck.db is built once and committed via git-LFS; tests must run against the" >&2
   echo "  isolated copy that tests/conftest.py creates (CK_DB_PATH). Check that the" >&2
   echo "  isolation in tests/conftest.py still runs at IMPORT time: db.get_connection()" >&2

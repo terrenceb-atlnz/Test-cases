@@ -290,7 +290,7 @@ def test_the_audit_log_is_not_committed():
     """It records production writes and can quote case content."""
     rel = pathlib.Path(ur.AUDIT_PATH).resolve().relative_to(_REPO)
     ignore = (_REPO / ".gitignore").read_text(encoding="utf-8")
-    assert "ask-ck/var/*" in ignore, f"{rel} would be committed"
+    assert "ask-ck/db/*" in ignore, f"{rel} would be committed"
 
 
 # --- −1.4  a real push needs an explicit per-case confirmation ------------------

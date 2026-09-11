@@ -11,7 +11,7 @@
 #   HOST=0.0.0.0 ./ask-ck/CK-main/run.sh   # EXPOSE ON THE LAN — see the note below
 #
 # A plain restart needs ONLY this script — it starts against the existing
-# ask-ck/var/ck.db in seconds. setup.sh is for first-time setup / DB rebuilds
+# ask-ck/db/ck.db in seconds. setup.sh is for first-time setup / DB rebuilds
 # (it re-ingests all corpora), which a restart does not require.
 #
 # Pass extra arguments to uvicorn:
@@ -106,7 +106,7 @@ echo
 
 export PYTHONPATH="$SCRIPT_DIR"
 
-# Stand-alone: the semantic-search embedding model is bundled under ask-ck/var/models/
+# Stand-alone: the semantic-search embedding model is bundled under ask-ck/db/models/
 # and loads from disk. Force HuggingFace offline so the server never reaches out to
 # huggingface.co at runtime (not to download, not even for a revision check). Ask CK
 # depends on nothing external but its own LLM endpoint. (Refreshing the model is a

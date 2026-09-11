@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
-DB = REPO / "ask-ck" / "var" / "ck.db"
+DB = REPO / "ask-ck" / "db" / "ck.db"
 
 # Import the SERVER's own helpers so grading can never drift from generation.
 # Both dirs are needed: the package root for `CK_server.*`, and CK_server itself

@@ -416,7 +416,7 @@ async def health():
         "db": {
             "ready": chk.get("ok", False),
             # WHICH database this server is on, and whether it is the permanent one.
-            # ask-ck/var/ck.db is meant to be written when a person operates the app (a
+            # ask-ck/db/ck.db is meant to be written when a person operates the app (a
             # case load persists a session); a server being DRIVEN BY TESTS must not touch
             # it, and runs against a throwaway copy via CK_DB_PATH (see
             # ask-ck/tools/run_scratch_server.sh). Until this was reported, the only way to tell

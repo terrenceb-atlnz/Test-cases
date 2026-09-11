@@ -4,7 +4,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // E2E drives real case loads, which WRITE session rows. It must never do that to
-// ask-ck/var/ck.db (the permanent, LFS-committed source of truth), so it runs on its own
+// ask-ck/db/ck.db (the permanent, LFS-committed source of truth), so it runs on its own
 // port against a throwaway copy — see ask-ck/tools/run_scratch_server.sh. Port 8123, not 8000,
 // precisely so `reuseExistingServer` can never latch onto the real dev server.
 const E2E_PORT = process.env.CK_E2E_PORT || '8123';

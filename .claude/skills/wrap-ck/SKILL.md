@@ -26,7 +26,7 @@ git diff --stat                     # uncommitted work
 Document from this, not from recollection of what you intended. The gate must be green before
 you commit; note the pass counts so drift is visible next session.
 
-A green gate is also the evidence that `ask-ck/var/ck.db` was not dirtied by tests —
+A green gate is also the evidence that `ask-ck/db/ck.db` was not dirtied by tests —
 `md5`/`mtime` cannot see a write to it (WAL), and `tests/test_db_isolation.py` is the
 WAL-safe authority. Real user traffic legitimately dirties `ck.db`; tests, smoke checks and
 E2E must not.
@@ -74,7 +74,7 @@ ls ask-ck/plans/PLAN-*.md
 If a plan advanced or a decision changed, update its **status header** (mark phases done, add
 a superseded / final-state note). Leave the historical body intact — add banners rather than
 deleting. Any doc describing a retired pipeline or deleted file must carry a
-"⚠ Historical / superseded" banner pointing at the current source of truth (`ask-ck/var/ck.db`).
+"⚠ Historical / superseded" banner pointing at the current source of truth (`ask-ck/db/ck.db`).
 
 ## 5. Memory — reconcile only durable facts
 

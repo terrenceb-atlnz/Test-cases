@@ -3,7 +3,7 @@
 
 Ask CK is strictly DB-only at runtime (PLAN-db-only-search Phase 1): every corpus
 — Zephyr, TestLink, ATP, scripts (incl. literal source code), candidates, decisions,
-framework surface — is served from ask-ck/var/ck.db. This guard fails if any
+framework surface — is served from ask-ck/db/ck.db. This guard fails if any
 CK_server/*.py source reaches for that data anywhere other than ck.db, so a second,
 divergent source of truth can't silently creep back in. It catches four shapes:
   1. Reading a retired corpus JSON/JSONL file at runtime (FORBIDDEN / decisions).

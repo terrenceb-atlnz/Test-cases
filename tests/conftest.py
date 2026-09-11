@@ -32,7 +32,7 @@ for _p in (str(_CK_MAIN), str(_CK_SERVER)):
 # ---------------------------------------------------------------------------
 # ck.db isolation — the test suite must never write to the source of truth.
 #
-# `ask-ck/var/ck.db` is built ONCE and committed via git-LFS; it is the permanent
+# `ask-ck/db/ck.db` is built ONCE and committed via git-LFS; it is the permanent
 # runtime source. Several suites legitimately exercise session persistence
 # (test_confirm_step_validation, test_export_gate, test_export_authority_batch_a,
 # test_pydantic_v2_and_logging, test_pt_session_staleness, test_tz_aware_timestamps),
@@ -65,9 +65,9 @@ for _p in (str(_CK_MAIN), str(_CK_SERVER)):
 # seat does run pytest) cannot share or clobber it.
 #
 # Escape hatches: set CK_DB_PATH yourself to point somewhere specific, or
-# CK_TEST_USE_REAL_DB=1 to deliberately run against ask-ck/var/ck.db.
+# CK_TEST_USE_REAL_DB=1 to deliberately run against ask-ck/db/ck.db.
 # ---------------------------------------------------------------------------
-_REAL_DB = _REPO_ROOT / "ask-ck" / "var" / "ck.db"
+_REAL_DB = _REPO_ROOT / "ask-ck" / "db" / "ck.db"
 
 
 def _db_revision(real: pathlib.Path) -> str:
@@ -82,7 +82,7 @@ def _db_revision(real: pathlib.Path) -> str:
     snapshot was served and the suite ran against superseded data.
 
     This is the SAME blind spot that hid the AWPTCM-T30649 deletion, where `md5sum
-    ask-ck/var/ck.db` reported "byte-identical" throughout (see SESSION_STATE.md
+    ask-ck/db/ck.db` reported "byte-identical" throughout (see SESSION_STATE.md
     2026-07-28e, and ask-ck/tools/ckdb_signature.py, which exists because of it). Any check on
     the main file alone inherits it.
 
@@ -155,7 +155,7 @@ _isolate_db()
 # between the suite and the permanent DB. It is not enough, because it can be wrong:
 # on 2026-07-28 the isolation was deliberately disabled to mutation-test the guards in
 # tests/test_db_isolation.py, and a test that named a real session id then DELETED
-# `AWPTCM-T30649` out of ask-ck/var/ck.db for real. (Recovered from a snapshot — luck,
+# `AWPTCM-T30649` out of ask-ck/db/ck.db for real. (Recovered from a snapshot — luck,
 # not design.)
 #
 # This layer does not depend on the isolation being correct. It hooks the single choke
@@ -208,7 +208,7 @@ def _make_guarded_connect(original):
             raise RuntimeError(
                 "REFUSED: writable connect() to the REAL ck.db during tests.\n"
                 f"  target: {target[0]} (mode={target[1]})\n"
-                "  ask-ck/var/ck.db is built once and committed via git-LFS; it is the\n"
+                "  ask-ck/db/ck.db is built once and committed via git-LFS; it is the\n"
                 "  permanent source of truth and the suite must never write to it.\n"
                 "  Tests run against the isolated copy that tests/conftest.py creates and\n"
                 "  points CK_DB_PATH at. If you are seeing this, that isolation is broken:\n"
@@ -318,7 +318,7 @@ if os.environ.get("CK_TEST_USE_REAL_DB") == "1":
     sys.stderr.write(
         "\n"
         "!! CK_TEST_USE_REAL_DB=1 — ck.db PROTECTIONS ARE OFF.\n"
-        "!! The suite will read AND WRITE ask-ck/var/ck.db, the permanent git-LFS\n"
+        "!! The suite will read AND WRITE ask-ck/db/ck.db, the permanent git-LFS\n"
         "!! source of truth. Snapshot first:\n"
         "!!     ask-ck/tools/ckdb_signature.py > /tmp/before.txt\n"
         "!! and verify afterwards. Unset the variable to restore isolation.\n"
@@ -350,7 +350,7 @@ def pytest_report_header(config):
     if os.environ.get("CK_TEST_USE_REAL_DB") == "1":
         return [
             "ck.db: *** REAL DATABASE, PROTECTIONS OFF (CK_TEST_USE_REAL_DB=1) ***",
-            "ck.db: writes go to ask-ck/var/ck.db — snapshot with ask-ck/tools/ckdb_signature.py",
+            "ck.db: writes go to ask-ck/db/ck.db — snapshot with ask-ck/tools/ckdb_signature.py",
         ]
     target = os.environ.get("CK_DB_PATH")
     if not target:

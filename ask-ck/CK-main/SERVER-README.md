@@ -66,7 +66,7 @@ This version replaces the original single-file static `index.html` approach.
 - Full provenance (prompts/responses/provider/auth) captured per session, plus a per-request debug log — see **LLM request observability**.
 
 **Data** (SQLite `ck.db` — the permanent single source of truth):
-- All corpora + sessions live in **`ask-ck/var/ck.db`**, **committed to the repo via Git LFS**
+- All corpora + sessions live in **`ask-ck/db/ck.db`**, **committed to the repo via Git LFS**
   (with its ~84k vectors + the bundled offline embedding model). Built **once** from the provided
   data; **NOT rebuildable** — a fresh clone gets the populated DB with no build step. `db.py` is
   the single access layer:
@@ -75,7 +75,7 @@ This version replaces the original single-file static `index.html` approach.
   - Sessions (per-case + workspace LLM) with `llm_config` isolated in its own column
   - Literal script **source code** + code chunks (`script_chunks` / `chunks_fts`) — `db.search_code` / `search_code_hybrid`
   - ~84k semantic vectors across all corpora incl. code chunks; embedding model bundled under
-    `ask-ck/var/models/`, loads **fully offline** (`HF_HUB_OFFLINE`) — no external dependency
+    `ask-ck/db/models/`, loads **fully offline** (`HF_HUB_OFFLINE`) — no external dependency
 - **Strict DB-only runtime:** the server reads corpora **only** from `ck.db` — **zero runtime
   JSON**. `data.py` sources every reference (zephyr_master, candidates, decisions,
   framework_surface, scripts_index_meta) from `db.*` getters; startup **fails fast** if `ck.db`
@@ -232,7 +232,7 @@ HOST=0.0.0.0 ./run.sh
 > host, and any LAN seat can switch the workspace onto this box's Claude seat.
 
 > **A plain restart needs only `run.sh`, not `setup.sh`.** `run.sh` starts the
-> server against the existing `ask-ck/var/ck.db` in seconds. `setup.sh` is for
+> server against the existing `ask-ck/db/ck.db` in seconds. `setup.sh` is for
 > first-time environment setup — venv/deps + `git lfs pull` to materialize the
 > committed DB, then a quick sanity-check (it does **not** rebuild the DB; the DB
 > is shipped). Day-to-day, use `run.sh --bg` / `--restart`. The server also runs
@@ -452,7 +452,7 @@ UI step numbers below are the visible 1–6 Generator labels.
    - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `ask-ck/tools/upload_refined.py`** (flags `--fix-title --new-version --verify`; `--force` is opt-in per request since 2026-07-27g and the UI does not send it). The server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
    - **A real push requires a confirmation token** (2026-08-03): `dry_run=false` is rejected with 400 unless the request body carries `{"confirm": "<case key>"}` matching the key in the path. `dry_run` is a query parameter, so without this a production write was one character from a preview for any non-browser client, and the browser-side `confirm()` is not executed by curl. It is not authentication — it is the second fact that has to be supplied deliberately.
    - **Nothing unvalidated reaches a live case** (2026-08-03). `upload_refined.py` imports `validate_zephyr_payload` from `llm.py` — the shape rules have one owner. The import is lazy and **fails closed**: if it cannot be loaded the case is refused, never passed. Validation also runs under `--dry-run`, so the preview reports what would be refused. `--skip-validation` is the deliberate override. A blocked case makes the process exit non-zero, so a refused push cannot read as success in the UI. **(2026-08-05: the added `expectedResult` content rule was removed — a Zephyr manual step is *designed* to leave `expectedResult` empty, so the field is forced empty at generation and never blocks a push. See memory `expected-results-deliberately-absent`.)**
-   - **Every `--execute` is audited** to `ask-ck/var/zephyr-push-audit.jsonl` (gitignored; the server never reads it). A `push.intent` record is written **before the first network call** — who, when, key, argv, flags, the pre-push state including the full prior objective/testScript, and what it intends to change — then `push.version` and `push.outcome`. **A case whose audit record cannot be written is refused.** Zephyr keeps no version trail for these pushes (the process is capped at v2.0), so this log is the only local record of replaced content.
+   - **Every `--execute` is audited** to `ask-ck/db/zephyr-push-audit.jsonl` (gitignored; the server never reads it). A `push.intent` record is written **before the first network call** — who, when, key, argv, flags, the pre-push state including the full prior objective/testScript, and what it intends to change — then `push.version` and `push.outcome`. **A case whose audit record cannot be written is refused.** Zephyr keeps no version trail for these pushes (the process is capped at v2.0), so this log is the only local record of replaced content.
    - **Loading a Complete case** rehydrates step4/step5 (objective+steps) from the on-disk `zephyr_payload.json` when the runtime session lacks them (`wizard._backfill_from_refined`), so previously-refined cases reflect correctly and can be pushed. The Zephyr instance is Jira Server / Adaptavist ATM; the internal `tests/1.0` API accepts the Bearer PAT.
 
 Tables are compact to fit on one page with no side-scroll. The Zephyr review contains only external cases (current Cases list entries, including the primary, are omitted).
@@ -504,7 +504,7 @@ Access via your local IP / hostname that nginx serves.
 
 ## Data Source
 
-**There is exactly one data source: `ask-ck/var/ck.db`** (shipped via Git LFS). The server reads
+**There is exactly one data source: `ask-ck/db/ck.db`** (shipped via Git LFS). The server reads
 all corpora from it via `db.py` — no JSON, ever (enforced by `ask-ck/tools/guard_db_only.py`). It holds:
 Zephyr (45,427 XML cases + 410 API targets), TestLink historical (21,620), ATPyLib/ATP (10,157),
 the script index + literal source code / chunks (830 scripts / 5,782 chunks), candidates,
@@ -890,7 +890,7 @@ also takes a free-text remote path, so requiring one would only make the profile
 file everyone's de-facto default under another name.
 
 **Building the script index** — ⚠ **Historical / provenance only.** The script index,
-literal source code, code chunks, and framework surface now live in **`ask-ck/var/ck.db`**
+literal source code, code chunks, and framework surface now live in **`ask-ck/db/ck.db`**
 (the permanent single source of truth); the runtime reads only the DB (`db.search_scripts`,
 `db.get_script_source`, `db.get_json_doc("framework_surface")`). The AST-pass builder below
 describes how the index was originally constructed from the script mounts — those mounts are
@@ -1249,7 +1249,7 @@ path — a green export needs synthesized objective+steps, so the honest asserti
 outcome). Run on demand, e.g. pre-release.
 
 > **E2E runs against a THROWAWAY copy of ck.db, on port 8123** (`ask-ck/tools/run_scratch_server.sh`).
-> `ask-ck/var/ck.db` going dirty is *correct* when a person operates the app — a case load persists
+> `ask-ck/db/ck.db` going dirty is *correct* when a person operates the app — a case load persists
 > a session row, and that is the tool working. A test doing it is worthless data landing in the
 > permanent, LFS-committed source of truth. Until 2026-07-28 the Playwright `webServer` was
 > `./run.sh --bg` with `reuseExistingServer: true`, so on a seat with the dev server already up it

@@ -45,7 +45,7 @@ class _Expanded:
 GENERATE = _Expanded(TPL / "prompts" / "pt_generate_script.jinja")
 EXTRACT = TPL / "prompts" / "pt_extract_sequence.jinja"
 SKELETON = TPL / "pt_script_template.py.jinja"
-DB = REPO / "ask-ck" / "var" / "ck.db"
+DB = REPO / "ask-ck" / "db" / "ck.db"
 
 
 def _sample_rows(command: str, prefix: str = "port"):

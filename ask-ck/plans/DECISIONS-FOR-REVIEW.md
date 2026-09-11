@@ -479,7 +479,7 @@ Set-diff of the zero-detection cases: **5 fixed** (T33277, T33279, T37861, T3786
 
 ### D-24 — All of it is READ-TIME. Nothing normalises `ck.db`
 
-`ask-ck/var/ck.db` is the permanent single source of truth: built once, shipped via LFS,
+`ask-ck/db/ck.db` is the permanent single source of truth: built once, shipped via LFS,
 `build_db.py` refuses to rebuild, no migration framework. 4.1 offers "derive at read time
 (or normalise via 0.1)" and 4.5 says "re-classify from the data already in ck.db". So the
 repair lives in `cli_lookup.py` and re-derives on the way out.

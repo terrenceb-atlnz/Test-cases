@@ -4,7 +4,7 @@
 # WITHOUT letting a checkpoint fold the corruption into the permanent base file.
 #
 # ── Why this exists ──────────────────────────────────────────────────────────────────
-# ask-ck/var/ck.db runs in WAL mode (db.py: PRAGMA journal_mode=WAL). On 2026-09-03 the
+# ask-ck/db/ck.db runs in WAL mode (db.py: PRAGMA journal_mode=WAL). On 2026-09-03 the
 # base file was intact (integrity_check ok read alone) but its uncommitted -wal overlay
 # was malformed, and the gate's ckdb_signature.py aborted with "database disk image is
 # malformed". The safe fix is to throw the WAL away and keep the good base — but two
@@ -57,11 +57,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # ask-ck/tools/ -> repo root
 
 SERVICE="${CK_RECOVER_SERVICE:-ask-ck.service}"
-DB="${CK_RECOVER_DB:-$ROOT/ask-ck/var/ck.db}"
+DB="${CK_RECOVER_DB:-$ROOT/ask-ck/db/ck.db}"
 DROPIN_DIR="$HOME/.config/systemd/user/${SERVICE}.d"
 DROPIN="$DROPIN_DIR/zz-wal-recover-killhard.conf"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP_DIR="${CK_RECOVER_BACKUP_DIR:-$ROOT/ask-ck/var/wal-recover-backup-$STAMP}"
+BACKUP_DIR="${CK_RECOVER_BACKUP_DIR:-$ROOT/ask-ck/db/wal-recover-backup-$STAMP}"
 
 say()  { printf '\n\033[1m▶ %s\033[0m\n' "$*"; }
 info() { printf '  %s\n' "$*"; }

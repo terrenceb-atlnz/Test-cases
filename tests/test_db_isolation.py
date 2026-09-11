@@ -1,4 +1,4 @@
-"""The test suite must never write to ask-ck/var/ck.db, the permanent source of truth.
+"""The test suite must never write to ask-ck/db/ck.db, the permanent source of truth.
 
 ck.db is built ONCE and committed via git-LFS. Six suites legitimately exercise session
 persistence, and before conftest's isolation those writes landed in the real file. They
@@ -15,7 +15,7 @@ run's date — so nothing was lost. The damage was subtler:
 
 These tests pin the isolation itself, not the cleanup discipline that used to stand in
 for it. The load-bearing one is test_writes_do_not_reach_the_real_db: it performs a real
-persist and then proves the row is absent from ask-ck/var/ck.db.
+persist and then proves the row is absent from ask-ck/db/ck.db.
 """
 import os
 import pathlib
@@ -24,7 +24,7 @@ import sqlite3
 import pytest
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_REAL_DB = _REPO_ROOT / "ask-ck" / "var" / "ck.db"
+_REAL_DB = _REPO_ROOT / "ask-ck" / "db" / "ck.db"
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("CK_TEST_USE_REAL_DB") == "1",
@@ -38,7 +38,7 @@ def _real_db_ids() -> set:
     mode=ro so this assertion can never itself be the thing that dirties the file.
     """
     if not _REAL_DB.exists():
-        pytest.skip("ask-ck/var/ck.db not present in this checkout")
+        pytest.skip("ask-ck/db/ck.db not present in this checkout")
     con = sqlite3.connect(f"file:{_REAL_DB.resolve()}?mode=ro", uri=True)
     try:
         return {r[0] for r in con.execute("SELECT id FROM sessions")}
@@ -188,7 +188,7 @@ def test_writes_do_not_reach_the_real_db():
         assert key in got, "the write did not land anywhere — the test proves nothing"
         # ...and absent from the real one.
         assert key not in _real_db_ids(), (
-            f"{key} reached ask-ck/var/ck.db — the permanent source of truth was written")
+            f"{key} reached ask-ck/db/ck.db — the permanent source of truth was written")
     finally:
         store.clear_persisted(key)
         store.sessions.pop(key, None)
@@ -245,7 +245,7 @@ def test_a_writable_connect_to_the_real_db_is_refused():
 
 def test_a_writable_connect_is_refused_however_the_path_is_spelled():
     """Path spelling must not be a way around it — the guard resolves before comparing."""
-    weird = _REAL_DB.parent / ".." / "var" / _REAL_DB.name       # same file, silly route
+    weird = _REAL_DB.parent / ".." / "db" / _REAL_DB.name       # same file, silly route
     with pytest.raises(RuntimeError, match="REFUSED"):
         sqlite3.connect(str(weird))
     with pytest.raises(RuntimeError, match="REFUSED"):

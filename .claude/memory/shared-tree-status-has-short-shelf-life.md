@@ -38,7 +38,7 @@ quoting (190 mine + 18 theirs).
   hunk-by-hunk to avoid sweeping in their step-label change).
 - **`git add <paths>` is NOT enough. Use `git commit -- <pathspec>` every time.** A bare
   `git commit` commits whatever is *already in the index*, including work someone else — or an
-  earlier session — left staged. 2026-08-04: `ask-ck/var/ck.db` was staged before the session
+  earlier session — left staged. 2026-08-04: `ask-ck/db/ck.db` was staged before the session
   began; eight commits passed an explicit pathspec and were clean, one used `git add -- <paths>`
   followed by a bare `git commit`, and that one swept a new ~460 MB LFS object onto `origin`.
   Not harmful (it is a valid LFS pointer holding real session traffic, and `ck.db` belongs in

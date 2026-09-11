@@ -49,7 +49,7 @@ def load_all_data() -> Dict[str, Any]:
     corpora (TestLink, ATP, scripts) with lazy db-backed maps (Commit B).
 
     The big keyword corpora — full Zephyr text, TestLink, ATP descriptions, the
-    script index — now live in ask-ck/var/ck.db and are read on demand via db.*
+    script index — now live in ask-ck/db/ck.db and are read on demand via db.*
     (searches) or the _DbMap lazy lookups below (per-id enrichment). This removes
     ~50 MB of boot-time RAM and the per-request zephyr_cases.jsonl scan. Run
     `python3 ask-ck/tools/build_db.py --fresh` to (re)build the DB from source JSON.

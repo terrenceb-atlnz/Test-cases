@@ -20,10 +20,10 @@ metadata:
    hit the predecessor's 15-min lock (locks are in-memory: a scratch-server restart clears
    them). Use distinct cases per run, or restart between runs.
 
-`ask-ck/var/ck.db` is **WAL-mode**. A committed write lands in `ask-ck/var/ck.db-wal` and
+`ask-ck/db/ck.db` is **WAL-mode**. A committed write lands in `ask-ck/db/ck.db-wal` and
 can leave the main file's bytes AND mtime untouched for a long time. So:
 
-**`md5sum ask-ck/var/ck.db` cannot detect a write. Neither can `stat -c %Y`.** Use
+**`md5sum ask-ck/db/ck.db` cannot detect a write. Neither can `stat -c %Y`.** Use
 `ask-ck/tools/ckdb_signature.py` (added 2026-07-28) — it asks SQLite, which reads main+WAL
 together. Default mode is ~0.4s and covers schema + a full row hash of `sessions`, the only
 table the running app writes. `--tables` adds row counts (~15s, NFS-bound); `--full` adds
@@ -68,7 +68,7 @@ an outside read-write open could delete the WAL under it and concurrent writers 
 Fixed (cli_lookup binds db.py's preference; guard `tests/test_sqlite_single_library.py`). Rules:
 **one SQLite library per server process**; **never open the live ck.db read-write from another
 process while the server runs** — read-only URI opens are safe (they cannot take the exclusive
-lock), a bare `sqlite3 ask-ck/var/ck.db`, an inline `sqlite3.connect("…ck.db")` or a corpus
+lock), a bare `sqlite3 ask-ck/db/ck.db`, an inline `sqlite3.connect("…ck.db")` or a corpus
 loader is not; stop the service (`ck off`) or work on a copy. Full chain:
 [[stale-session-connection-bug]].
 
@@ -85,7 +85,7 @@ its own pid/log). **Use it for anything that drives the app as a test would.**
 on. Guarded by `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 If test rows do land in ck.db: stop the server, `rm ck.db-wal ck.db-shm` **before**
-`git checkout -- ask-ck/var/ck.db` (a stale WAL must not replay onto the restored file),
+`git checkout -- ask-ck/db/ck.db` (a stale WAL must not replay onto the restored file),
 then verify with `ask-ck/tools/ckdb_signature.py`. Do not "just delete the WAL" — while
 un-checkpointed it holds the NEWEST commits, not stale leftovers.
 

@@ -1,4 +1,4 @@
-"""Test traffic must never reach `ask-ck/var/ck.db`. Real user traffic is meant to.
+"""Test traffic must never reach `ask-ck/db/ck.db`. Real user traffic is meant to.
 
 The distinction, stated by Terrence 2026-07-28: **ck.db is designed to go dirty when a
 person actually operates the app** — a case load persists a session row, and that is the
@@ -35,7 +35,7 @@ _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _PW_CONFIG = _ROOT / "playwright.config.js"
 _SCRATCH_SH = _ROOT / "ask-ck" / "tools" / "run_scratch_server.sh"
 _SCRATCH_PY = _ROOT / "ask-ck" / "tools" / "ckdb_scratch.py"
-_REAL_DB = _ROOT / "ask-ck" / "var" / "ck.db"
+_REAL_DB = _ROOT / "ask-ck" / "db" / "ck.db"
 
 
 # --- the E2E wiring ----------------------------------------------------------

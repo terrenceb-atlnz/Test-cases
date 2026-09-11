@@ -59,7 +59,7 @@ fi
 # them commonly do NOT: python3 ships without the venv module (python3-venv, so
 # `python3 -m venv` dies with "ensurepip is not available"), and minimal cloud
 # images often lack curl (used by the git-lfs installer). git-lfs is required to
-# materialize the LFS-tracked permanent database (ask-ck/var/ck.db) + embedding
+# materialize the LFS-tracked permanent database (ask-ck/db/ck.db) + embedding
 # model the server reads directly (the DB is shipped, not built). When anything is
 # missing we offer to install it via the detected package manager, and only fall
 # back to printed instructions when non-interactive or on an unknown distro.
@@ -287,7 +287,7 @@ else
 fi
 
 if [ "$LFS_PULL_OK" != "1" ]; then
-  echo "⚠ LFS content may be incomplete. The permanent database ask-ck/var/ck.db (and"
+  echo "⚠ LFS content may be incomplete. The permanent database ask-ck/db/ck.db (and"
   echo "  the bundled embedding model) are shipped via Git LFS — the server needs them"
   echo "  materialized. If the DB check below fails, fix LFS and re-run:"
   echo "    git lfs install && git lfs pull"
@@ -408,8 +408,8 @@ then VEC_OK=1; else VEC_OK=0; fi
 # with its embeddings and the bundled offline model. `git lfs pull` (step 2)
 # already materialized it — there is NO build step. We only sanity-check it here.
 echo "▶ Verifying ck.db (shipped via Git LFS; not rebuilt)"
-if [ ! -s ask-ck/var/ck.db ]; then
-  echo "✗ ask-ck/var/ck.db is missing or empty. Run 'git lfs pull' to materialize it."; exit 1
+if [ ! -s ask-ck/db/ck.db ]; then
+  echo "✗ ask-ck/db/ck.db is missing or empty. Run 'git lfs pull' to materialize it."; exit 1
 fi
 "$VENV_PY" - <<'PY' || { echo "✗ ck.db present but not readable/populated — check 'git lfs pull'."; exit 1; }
 import sys; sys.path.insert(0, "ask-ck/CK-main/CK_server")
@@ -427,7 +427,7 @@ fi
 echo
 echo "✅ Setup complete."
 echo "   Virtual env: $VENV_DIR"
-echo "   Database:    ask-ck/var/ck.db — shipped via Git LFS; permanent single source of"
+echo "   Database:    ask-ck/db/ck.db — shipped via Git LFS; permanent single source of"
 echo "               truth, built once. NOT rebuildable (source couriers retired)."
 echo "   NOTE: this activated the venv only for this script. To run the server or"
 echo "         tools yourself later, activate it: source .venv/bin/activate"

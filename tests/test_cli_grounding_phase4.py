@@ -52,7 +52,7 @@ import pytest
 
 _REPO = Path(__file__).resolve().parents[1]
 _TOOL = _REPO / "ask-ck" / "tools"
-_DB = _REPO / "ask-ck" / "var" / "ck.db"
+_DB = _REPO / "ask-ck" / "db" / "ck.db"
 sys.path.insert(0, str(_TOOL))
 
 import cli_lookup as C            # noqa: E402

@@ -28,7 +28,7 @@ push either stalls waiting for permission or misreports the branch as landed. `m
 - Never `&& git push`, never retry a denied push, never propose `--force`, never touch the remote
   or credentials. `git fetch` / `pull --rebase --autostash` before committing on a remote that may
   have moved (Terrence also pushes from GitHub's UI) is fine.
-- **Do NOT stage `ask-ck/var/ck.db` in a doc/code commit** — its working-tree modifications are
+- **Do NOT stage `ask-ck/db/ck.db` in a doc/code commit** — its working-tree modifications are
   runtime session-table writes, not part of the change. Leave it unstaged unless Terrence asks
   (`ck.db` is the permanent LFS source of truth — see [[db-is-permanent-source]]).
 

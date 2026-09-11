@@ -41,7 +41,7 @@ cd Test-cases
 
 `setup.sh` runs a preflight and prompts before each fix (needs `sudo` for installs): base
 toolchain (`git`, `git-lfs`, `curl`) → **Python ≥ 3.10** → **Git LFS ≥ 3.3** + `git lfs pull`
-→ virtual environment + dependencies → verify `ask-ck/var/ck.db` → offer to launch.
+→ virtual environment + dependencies → verify `ask-ck/db/ck.db` → offer to launch.
 
 After the first successful setup you almost always just want `run.sh`:
 
@@ -112,7 +112,7 @@ modern Git. Install from the git-lfs repo instead:
 Flag immediately if any of these is violated — they are load-bearing, and two are enforced by
 guards in the test gate.
 
-1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Built **once**, shipped via
+1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built **once**, shipped via
    Git LFS, **not** gitignored, **not** rebuildable. A fresh clone gets a complete, populated,
    semantically-searchable database with no build step. `ask-ck/tools/build_db.py` is kept only as
    provenance and refuses to run.
@@ -143,7 +143,7 @@ Playwright golden path) — which is deliberately **not** in the gate and is run
 
 ## The data
 
-Everything lives in `ask-ck/var/ck.db` (SQLite; FTS5 keyword + sqlite-vec semantic/hybrid
+Everything lives in `ask-ck/db/ck.db` (SQLite; FTS5 keyword + sqlite-vec semantic/hybrid
 search, including literal script-code chunks):
 
 | Corpus | Rows |

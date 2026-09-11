@@ -10,7 +10,7 @@
 > (`build_script_index.py` → `scripts_index.json` / `scripts_slim_index.json` /
 > `scripts_sources.jsonl` / `framework_surface.json` / `scripts_index_enrich.jsonl`) is now
 > **provenance-only**. Those files have been **deleted**; the script index, literal source code,
-> code chunks, and framework surface all live in **`ask-ck/var/ck.db`** (permanent single source of
+> code chunks, and framework surface all live in **`ask-ck/db/ck.db`** (permanent single source of
 > truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
 > `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
 >
@@ -185,7 +185,7 @@
   profile or UI-uploaded content"* — and that `RunManager._run` already SFTPs any
   `{filename: code}` entry into the guarded workdir, so the transport needs no change. Three
   decisions taken: storage is BOTH a committed `ask-ck/functions/pytest-creator/setups/` and a personal
-  `ask-ck/var/setups/` (already gitignored, no `.gitignore` edit); every template must carry
+  `ask-ck/db/setups/` (already gitignored, no `.gitignore` edit); every template must carry
   its `[misc]` profile claims so `pt_profiles`/`pt_preflight` can answer "which template fits
   this case" and "will this script bind" offline; and the design lands in writing before code.
   Recorded the boundary that matters: this is RUN-time only — generation must still never read
@@ -443,7 +443,7 @@ consequences:
 | Origin | Path | Tracked? |
 |---|---|---|
 | **shared** | `ask-ck/functions/pytest-creator/setups/<name>.setup` | committed — diffable, reviewable, travels with the tool |
-| **personal** | `ask-ck/var/setups/<name>.setup` | already gitignored by the existing `ask-ck/var/*` rule — **no `.gitignore` change needed** |
+| **personal** | `ask-ck/db/setups/<name>.setup` | already gitignored by the existing `ask-ck/db/*` rule — **no `.gitignore` change needed** |
 
 - A template is identified by `(origin, name)`, never by name alone, so a personal
   `ie520-pair` and a shared `ie520-pair` are two distinct entries and neither shadows the

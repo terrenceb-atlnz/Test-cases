@@ -94,7 +94,7 @@ Sweep: `pytest_create.py:1477` (`_MEDIA_HELPER_SRC`), `:2010` (`tool_dir` for `c
 
 Sweep: relative imports in all 23 modules and `index.html`'s `<script type=module>`; `main.py` StaticFiles mount + index path; 24 Vitest specs' import paths; `tests/e2e/pages`; `vitest.config.js`; the module map in the moved README.
 
-### Batch 8 — `ask-ck/var/` → `ask-ck/db/`  *(server stopped; WAL checkpointed by the clean stop)*
+### ✅ Batch 8 — `ask-ck/var/` → `ask-ck/db/`  *(server stopped; WAL checkpointed by the clean stop)*
 `git mv ask-ck/var ask-ck/db` (ck.db + models/; the -wal/-shm side files are ignored and move with a plain `mv` if present). Sweep: `paths.py` `VAR_DIR`, `.gitattributes` (2 LFS lines), `.gitignore` (var block), `run_tests.sh` messages, `ckdb_signature.py`, `db_wal_recover.sh`, `run_scratch_server.sh`, tests, CLAUDE.md invariant 1 and root CLAUDE.md line, README, SERVER-README, 10 memory citations, `check_memory_refs.py` ALLOW if any.
 
 ### Batch 9 — Svelte scaffold

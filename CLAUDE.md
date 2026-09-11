@@ -55,7 +55,7 @@ prompt rules reverted on 2026-08-05 came from a single autonomous commit.
 
 ## Invariants — flag immediately if any is violated
 
-1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Built once, shipped via Git
+1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Built once, shipped via Git
    LFS, **not** gitignored, **not** rebuildable. No courier JSON, no corpus APIs, no re-fetch.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
    `ask-ck/tools/guard_db_only.py`.

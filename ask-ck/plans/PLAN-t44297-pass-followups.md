@@ -83,8 +83,8 @@ now build it from `cli_lookup.sqlite3` — another library's exception classes a
 1. **One SQLite library per server process** (guarded). Any new module the server imports that
    needs SQLite copies db.py's preference block or takes a connection from `db.get_connection()`.
 2. **Never open the live `ck.db` read-write from another process while the server runs.**
-   Read-only URI opens are safe (they cannot take the exclusive lock). `sqlite3 ask-ck/var/ck.db`
-   at a shell, an inline `sqlite3.connect("ask-ck/var/ck.db")`, and the corpus loaders are all
+   Read-only URI opens are safe (they cannot take the exclusive lock). `sqlite3 ask-ck/db/ck.db`
+   at a shell, an inline `sqlite3.connect("ask-ck/db/ck.db")`, and the corpus loaders are all
    read-write. Stop the service first (`ck off`), or work on a copy.
 3. **A 200 is provisional until a disk-side read shows the rev** — from a *copy* of
    base+`-wal`+`-shm` taken together, never a live open.
@@ -92,7 +92,7 @@ now build it from `cli_lookup.sqlite3` — another library's exception classes a
 **Options A/B/C re-assessed.** None addresses the cause. **A (move `ck.db` off NFS)** removes
 only the `.nfs*` orphan signature and is now an optional hosting/perf question, not data-safety.
 **B (serialize writes)** would have masked consequence 2 without fixing 1. **C (drop WAL)** —
-withdrawn. Recurrence runbook stays valid: `.nfs*` orphans in `ask-ck/var/` held by the server
+withdrawn. Recurrence runbook stays valid: `.nfs*` orphans in `ask-ck/db/` held by the server
 pid = the server has no locks → find the second library/opener first, then restart. → **D5-1,
 D5-2 re-scoped.**
 

@@ -124,7 +124,7 @@ unratified step through.
 
 ## 5. Data layer — one permanent database
 
-`ask-ck/var/ck.db` is the **single runtime source of truth**: built once from supplied data,
+`ask-ck/db/ck.db` is the **single runtime source of truth**: built once from supplied data,
 shipped via Git LFS, and **never rebuilt**. There is no corpus API, no JSON fallback, no
 refresh path. A fresh clone gets a working, fully-populated database with zero build step.
 

@@ -5,7 +5,7 @@
 
 Why this exists
 ---------------
-`ask-ck/var/ck.db` going dirty is CORRECT when a person operates the app — a case load
+`ask-ck/db/ck.db` going dirty is CORRECT when a person operates the app — a case load
 writes a session row, and that is the tool doing its job. Data written by a TEST is the
 opposite: worthless, and it must not propagate into the permanent, git-LFS-committed
 source of truth.
@@ -44,7 +44,7 @@ import sys
 import tempfile
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
-REAL_DB = REPO_ROOT / "ask-ck" / "var" / "ck.db"
+REAL_DB = REPO_ROOT / "ask-ck" / "db" / "ck.db"
 
 
 def db_revision(real: pathlib.Path) -> str:

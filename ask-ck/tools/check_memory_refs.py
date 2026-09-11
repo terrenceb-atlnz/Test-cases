@@ -52,7 +52,7 @@ FILE_EXT = (".py", ".js", ".md", ".sh", ".json", ".jsonl", ".jinja",
 
 # Where a memory's bare path is likely rooted. Order matters only for reporting.
 PREFIXES = [
-    "", "ask-ck/", "ask-ck/var/", "ask-ck/CK-main/", "ask-ck/CK-main/CK_server/",
+    "", "ask-ck/", "ask-ck/db/", "ask-ck/CK-main/", "ask-ck/CK-main/CK_server/",
     "ask-ck/CK-main/CK_server/routers/", "ask-ck/CK-main/CK_server/templates/",
     "ask-ck/CK-main/CK_server/templates/prompts/", "ask-ck/frontend/",
     "ask-ck/functions/generator/",

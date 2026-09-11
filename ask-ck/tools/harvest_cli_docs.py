@@ -51,7 +51,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
-DB = REPO / "ask-ck" / "var" / "ck.db"
+DB = REPO / "ask-ck" / "db" / "ck.db"
 BASE = "https://docs.atlnz.lc/preview"
 TOC = "_bookmap_files/frontmatter/cmdref_Introduction.html"
 
@@ -178,7 +178,7 @@ def classify(blocks: List[str]) -> Tuple[List[str], List[dict], Optional[str]]:
     a different hostname (`Node_1(config)#`, `master_1#`, `controller-1(config)#`), and
     output shown without the command above it.
 
-    THE LIVE PATH DOES NOT DEPEND ON THIS FIX. `ask-ck/var/ck.db` is built once and never
+    THE LIVE PATH DOES NOT DEPEND ON THIS FIX. `ask-ck/db/ck.db` is built once and never
     rebuilt, so the rows already stored keep their old split; `cli_lookup.reclassify()`
     re-derives at READ time from the verbatim `pre_blocks` column. This is fixed so a
     future harvest cannot reintroduce the defect, and the two implementations are pinned

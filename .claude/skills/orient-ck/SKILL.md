@@ -21,8 +21,8 @@ Run this. It is fast, and it starts the gate in the background so it finishes wh
 git fetch --quiet origin
 git status -sb                      # -sb shows ahead/behind: another stream commits to main
 git log --oneline -12
-ls -la ask-ck/var/ck.db             # must exist, must be LFS-tracked, must not be gitignored
-git check-ignore -v ask-ck/var/ck.db && echo "!! ck.db IS GITIGNORED — invariant violated"
+ls -la ask-ck/db/ck.db             # must exist, must be LFS-tracked, must not be gitignored
+git check-ignore -v ask-ck/db/ck.db && echo "!! ck.db IS GITIGNORED — invariant violated"
 ```
 
 Then launch the full gate **in the background** and keep reading while it runs:
@@ -35,7 +35,7 @@ Note the pass counts it prints. Establishing baseline-green *now* is what makes 
 found later in the session attributable to this session. Playwright E2E is deliberately not
 in the gate — do not run it as part of orienting.
 
-**Never start the real server just to look around** — it writes `ask-ck/var/ck.db`, the
+**Never start the real server just to look around** — it writes `ask-ck/db/ck.db`, the
 permanent source of truth. Use `ask-ck/tools/run_scratch_server.sh` for any exploratory or test
 traffic. Start the real one (`./run.sh --bg`, `--restart`, `--stop`) only when the user
 actually wants the running app; then `/health` should report `is_permanent_db: true`.
@@ -151,7 +151,7 @@ The mechanical half of that check is available on demand and is **not** in the g
 
 ## 5. Confirm the invariants (flag immediately if any is violated)
 
-1. **`ask-ck/var/ck.db` is the permanent single source of truth** — built once, shipped via
+1. **`ask-ck/db/ck.db` is the permanent single source of truth** — built once, shipped via
    Git LFS, **not** gitignored, **not** rebuildable. No courier/source JSON files, no corpus
    APIs, no re-fetch.
 2. **The running server reads corpora only from `ck.db`** (`db.py`); zero runtime JSON.

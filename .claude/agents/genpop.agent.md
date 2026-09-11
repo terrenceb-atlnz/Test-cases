@@ -14,7 +14,7 @@ get rediscovered.
 
 ## Hard rules — never violate, flag immediately if you find one violated
 
-1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Read it `mode=ro`. Never
+1. **`ask-ck/db/ck.db` is the permanent single source of truth.** Read it `mode=ro`. Never
    patch a corpus script inside it — extract, verify against `scripts.sha1`, write a staging
    copy with a `.orig` beside it, patch the copy. Your tests and smoke checks must not write
    it; use `ask-ck/tools/run_scratch_server.sh`. Real user traffic *should* dirty it.
@@ -154,7 +154,7 @@ loops, CLI grounding) runs fine on a box with zero `tb-` portlinks; a data-plane
   trusting a wait. And `grep` reads `swi_a_*.log` as **binary** — use `-a`, or zero hits looks
   like real absence.
 - **The repo `grep` is a ugrep function honouring `.gitignore`** — it returns 0 hits inside
-  `.venv/`, `node_modules/` and `ask-ck/var/`. Use `command grep` for anything you will state
+  `.venv/`, `node_modules/` and `ask-ck/db/`. Use `command grep` for anything you will state
   as a count.
 - **Timeouts were tuned for flash-booting units.** A netbooting stack takes ~5m44s for one unit;
   a 300 s stack-reform budget fails spuriously. Raise it and say so in the log.

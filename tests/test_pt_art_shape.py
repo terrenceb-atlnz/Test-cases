@@ -395,7 +395,7 @@ def test_surface_slice_turns_atpackets_classes_into_layers_with_fields(monkeypat
     pc._atpackets_layer_fields.cache_clear()
 
 
-@pytest.mark.skipif(not (_REPO / "ask-ck" / "var" / "ck.db").exists(), reason="ck.db absent")
+@pytest.mark.skipif(not (_REPO / "ask-ck" / "db" / "ck.db").exists(), reason="ck.db absent")
 def test_corpus_field_mining_finds_the_lldp_med_fields():
     got = pc.dbx.script_layer_fields(["lldp_cap_tlv", "lldp_lacp_tlv"])
     assert "lldp_med_cap" in got["lldp_cap_tlv"] and "lldp_med_dev" in got["lldp_cap_tlv"]

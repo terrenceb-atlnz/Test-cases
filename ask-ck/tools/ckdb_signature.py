@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Print a content signature for ask-ck/var/ck.db. Use this to check it is untouched.
+"""Print a content signature for ask-ck/db/ck.db. Use this to check it is untouched.
 
 WHY THIS EXISTS — a real incident, 2026-07-28.
 
-To verify that a test run had not written to ck.db, `md5sum ask-ck/var/ck.db` was compared
+To verify that a test run had not written to ck.db, `md5sum ask-ck/db/ck.db` was compared
 before and after. It matched, and that was reported as "ck.db byte-identical". The check
 was worthless: **ck.db runs in WAL mode**, so a committed write lands in `ck.db-wal` and
 may not touch the main file for a long time. During that same session a mutated test
@@ -36,7 +36,7 @@ import sqlite3
 import sys
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
-DB = REPO_ROOT / "ask-ck" / "var" / "ck.db"
+DB = REPO_ROOT / "ask-ck" / "db" / "ck.db"
 
 
 def _connect() -> sqlite3.Connection:

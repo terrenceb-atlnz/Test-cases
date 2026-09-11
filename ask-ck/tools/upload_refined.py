@@ -44,7 +44,7 @@ from the server (CK_server/llm.py:validate_zephyr_payload — imported, not rest
 plus the rule that every verification step must carry an expectedResult. An invalid
 payload is refused; --skip-validation overrides. Validation runs in --dry-run too, so
 the preview reports what would be refused. Every --execute writes an audit record to
-ask-ck/var/zephyr-push-audit.jsonl before the first network write, and a case whose
+ask-ck/db/zephyr-push-audit.jsonl before the first network write, and a case whose
 audit record cannot be written is refused.
 
 Never modifies files on disk.
@@ -204,13 +204,13 @@ def validate_for_push(key, payload):
 #
 # A real push mutates data outside this repository, in a system this project does not
 # own, and until now it left no record at all: nothing said which case was written,
-# by whom, when, or what it looked like beforehand. The log lives under ask-ck/var/,
+# by whom, when, or what it looked like beforehand. The log lives under ask-ck/db/,
 # which .gitignore excludes (:79) — deliberately, since it records production writes
 # and can quote case content.
 
 AUDIT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),  # ask-ck/tools/ -> repo root
-    "ask-ck", "var", "zephyr-push-audit.jsonl",
+    "ask-ck", "db", "zephyr-push-audit.jsonl",
 )
 
 

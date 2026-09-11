@@ -1,6 +1,6 @@
 # Ask CK — Orientation for a Code Reviewer
 
-**Scope of your review:** the database (`ask-ck/var/ck.db`) and every Python module that
+**Scope of your review:** the database (`ask-ck/db/ck.db`) and every Python module that
 touches it as part of an Ask CK function.
 
 **Audience:** a developer new to this codebase who will read it, run it locally, and give
@@ -48,7 +48,7 @@ A human confirms at every step. The tool proposes; it never silently advances.
 
 ## 2. The one rule that matters most
 
-**`ask-ck/var/ck.db` is a permanent artefact. It was built once, on 2026-07-20, and it cannot
+**`ask-ck/db/ck.db` is a permanent artefact. It was built once, on 2026-07-20, and it cannot
 be rebuilt.**
 
 The source files it was built from have been deleted. `ask-ck/tools/build_db.py` still exists purely as
@@ -165,7 +165,7 @@ read-only and expect the `vec_*` tables to be unreadable without the extension:
 ```bash
 PYTHONNOUSERSITE=1 .venv/bin/python -c "
 import sqlite3
-c = sqlite3.connect('file:ask-ck/var/ck.db?mode=ro', uri=True)   # ?mode=ro — always
+c = sqlite3.connect('file:ask-ck/db/ck.db?mode=ro', uri=True)   # ?mode=ro — always
 print(c.execute('select count(*) from zephyr_cases').fetchone())
 "
 ```

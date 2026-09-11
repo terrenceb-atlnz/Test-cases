@@ -355,9 +355,9 @@ regression floor on the committed corpus.
 **−1.4 DONE, with one deliberate deviation.** A real push now requires `{"confirm": "<case key>"}`
 in the request body, and the token must equal the case key — so no single edit to a URL turns a
 preview into a production write. Every `--execute` writes a `push.intent` record to
-`ask-ck/var/zephyr-push-audit.jsonl` **before the first network call** (who, when, key, argv,
+`ask-ck/db/zephyr-push-audit.jsonl` **before the first network call** (who, when, key, argv,
 pre-push state, and what it intends to change), and a `push.outcome` after; **a case whose audit
-record cannot be written is refused.** `ask-ck/var/*` is gitignored, which is correct — the log
+record cannot be written is refused.** `ask-ck/db/*` is gitignored, which is correct — the log
 records production writes and can quote case content. A blocked case now makes the process exit
 non-zero, so the UI cannot report a refused push as success.
 
@@ -381,7 +381,7 @@ had already gone out. What is already out there:
 - Each carries an attached `traceability.md` with the defects Phase 3 documents — "Objective:
   No" rendered for cross-references that *do* have objectives, a blank `Folder:` on every line,
   and a provenance sentence citing `data/zephyr_full/`.
-- **No record of which 43, what payload, or when.** `ask-ck/var/zephyr-push-audit.jsonl` does
+- **No record of which 43, what payload, or when.** `ask-ck/db/zephyr-push-audit.jsonl` does
   not exist on disk — confirmed. The audit log arrived with −1.4, five weeks late. The only
   reconstruction available is git history plus whatever Zephyr's own version log retained.
 
@@ -415,7 +415,7 @@ Two consequences follow:
    > it: the heuristic and the version are different questions, and only the version decides
    > whether the old text survives.
 
-   The log stays local and disposable: `ask-ck/var/*` is gitignored, the server never reads
+   The log stays local and disposable: `ask-ck/db/*` is gitignored, the server never reads
    it, and it is a few hundred KB for all 43.
 
 2. **A re-push needs `--force`.** All 43 classify as `refined`, so the CLI's own "already

@@ -53,7 +53,7 @@ except ImportError:
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 # Same resolution as db._resolve_db_path(): the isolated test copy and the scratch server set
 # CK_DB_PATH, and this module must read the SAME file the server it lives in reads.
-DB = Path(os.environ.get("CK_DB_PATH") or (REPO / "ask-ck" / "var" / "ck.db"))
+DB = Path(os.environ.get("CK_DB_PATH") or (REPO / "ask-ck" / "db" / "ck.db"))
 
 
 def _conn() -> sqlite3.Connection:
@@ -64,7 +64,7 @@ def _conn() -> sqlite3.Connection:
 # PHASE 4 — read-time repair of the harvested reference
 #
 # Everything below fixes the STORED data at READ time. It must stay that way:
-# `ask-ck/var/ck.db` is the permanent single source of truth, built once and shipped via
+# `ask-ck/db/ck.db` is the permanent single source of truth, built once and shipped via
 # Git LFS. `ask-ck/tools/build_db.py` refuses to rebuild it, there is no migration framework, and
 # 4.5's own wording is "re-classify from the data already in ck.db — no re-fetch, no
 # network". So none of this normalises the database; it re-derives on the way out.

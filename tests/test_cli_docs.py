@@ -20,7 +20,7 @@ sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 harvest = pytest.importorskip("harvest_cli_docs")
 cli_lookup = pytest.importorskip("cli_lookup")
 
-DB = REPO / "ask-ck" / "var" / "ck.db"
+DB = REPO / "ask-ck" / "db" / "ck.db"
 
 
 def _has_command(name: str) -> bool:

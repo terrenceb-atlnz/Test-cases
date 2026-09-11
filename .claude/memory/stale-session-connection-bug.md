@@ -53,7 +53,7 @@ Same bug on local disk; NFS only added the `.nfs*` signature.
 `ck.db` while a throwaway WAL holder on the same NFSv4 mount showed both READ locks (db file +
 shm) — so NFS locks *are* visible there and the server had lost its; its `-wal`/`-shm` fds pointed
 at `.nfs*` orphans (`ls -l /proc/<pid>/fd`); base vs base+orphan copied to the scratchpad
-differed in exactly one row. Five probes on throwaway dbs in `ask-ck/var/` pinned each step:
+differed in exactly one row. Five probes on throwaway dbs in `ask-ck/db/` pinned each step:
 a plain `open()/close()` in the holder's process drops its db-file lock; a **read-only** peer
 *cannot* delete the WAL (`F_WRLCK` on an `O_RDONLY` fd fails → the test gate and read-only
 diagnostics are innocent); a **read-write** peer can; pysqlite3 holder + stdlib RO close → all
@@ -66,7 +66,7 @@ incident on a tmp WAL db via `/proc/locks`, and has a negative control. Standing
 SQLite library per server process**; **never open the live `ck.db` read-write from another
 process while the server runs** (`sqlite3` CLI, inline `sqlite3.connect`, corpus loaders — stop
 the service first or use a copy; read-only URI opens are safe); verify a write from a *copy* of
-base+`-wal`+`-shm`, never a live open. Runbook: `.nfs*` orphans in `ask-ck/var/` + zero server
+base+`-wal`+`-shm`, never a live open. Runbook: `.nfs*` orphans in `ask-ck/db/` + zero server
 locks = find the second opener, snapshot the cache-held session via
 `GET /api/pytest-create/session/<key>` if you need its rows, then `ck reload`/restart. Plan record:
 `ask-ck/plans/PLAN-t44297-pass-followups.md` #5; WAL triage: [[ckdb-corrupt-wal-recovery]];

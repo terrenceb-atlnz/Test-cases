@@ -47,7 +47,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
-DB = REPO / "ask-ck" / "var" / "ck.db"
+DB = REPO / "ask-ck" / "db" / "ck.db"
 DATA_BASE = "https://docs.atlnz.lc/preview/data"
 
 # Reuse the scrape harvester's proven parsers so downstream output is identical.
@@ -524,7 +524,7 @@ def main() -> int:
         print(f"  cli_command_products  {n_map:>6} product×command rows over {len(products)} products")
         return 0
 
-    zip_dir = Path(args.zip_dir) if args.zip_dir else (REPO / "ask-ck" / "var" / "cli_zips")
+    zip_dir = Path(args.zip_dir) if args.zip_dir else (REPO / "ask-ck" / "db" / "cli_zips")
     zip_dir.mkdir(parents=True, exist_ok=True)
 
     if args.products:
