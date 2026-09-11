@@ -62,7 +62,7 @@ monkeypatching stdlib `sqlite3` alone does not affect db.py at all. My first ver
 layer 1 did exactly that and would have been a safeguard that looked right and did nothing.
 
 **The same two-library fact caused the 2026-09-03/09/10 corruptions (found 2026-09-10).**
-`ask-ck/tools/cli_lookup.py` ran inside the server with the *stdlib* sqlite3 while db.py used pysqlite3;
+`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py` ran inside the server with the *stdlib* sqlite3 while db.py used pysqlite3;
 each stdlib close issued a POSIX unlock that stripped the server's locks on ck.db + ck.db-shm, so
 an outside read-write open could delete the WAL under it and concurrent writers could corrupt it.
 Fixed (cli_lookup binds db.py's preference; guard `tests/test_sqlite_single_library.py`). Rules:

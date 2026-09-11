@@ -1,7 +1,7 @@
 """One SQLite library per server process — the lock-stripping bug of 2026-09-10.
 
 db.py binds `sqlite3` to pysqlite3 when it is installed (it is, here), so every server
-connection to ck.db comes from that library. ask-ck/tools/cli_lookup.py — imported by
+connection to ck.db comes from that library. ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py — imported by
 routers/pytest_create.py while rendering unit prompts — used to open ck.db through the
 STDLIB sqlite3, read-only, a fresh connection per call, a dozen call sites.
 
@@ -37,8 +37,13 @@ import pytest
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 _CK_SERVER = _REPO_ROOT / "ask-ck" / "CK-main" / "CK_server"
 _TOOL_DIR = _REPO_ROOT / "ask-ck" / "tools"
-if str(_TOOL_DIR) not in sys.path:
-    sys.path.insert(0, str(_TOOL_DIR))
+# Page-button scripts live in their page directories (2026-09-11); cli_lookup is the PyTest
+# Creator's. Both places count as "tool modules the server imports".
+_PAGE_DIRS = sorted((_REPO_ROOT / "ask-ck" / "frontend" / "ck-main" / "current").glob("*/"))
+_TOOL_DIRS = [_TOOL_DIR] + [d for d in _PAGE_DIRS if d.is_dir()]
+for _d in _TOOL_DIRS:
+    if str(_d) not in sys.path:
+        sys.path.insert(0, str(_d))
 
 # db.py's preference block, verbatim. Any server-process module that needs SQLite must use it.
 _PREFERENCE_BLOCK = re.compile(
@@ -53,8 +58,8 @@ def _server_sources():
 
 
 def _tool_modules_the_server_imports():
-    """ask-ck/tools/*.py module names imported anywhere under CK_server (today: cli_lookup)."""
-    tool_stems = {p.stem for p in _TOOL_DIR.glob("*.py")}
+    """Tool/page-script module names imported anywhere under CK_server (today: cli_lookup)."""
+    tool_stems = {p.stem for d in _TOOL_DIRS for p in d.glob("*.py")}
     found = set()
     for src in _server_sources():
         for m in _IMPORT_RX.finditer(src.read_text(encoding="utf-8")):
@@ -66,7 +71,8 @@ def _tool_modules_the_server_imports():
 
 def _server_process_sources():
     """Every source file whose code runs inside the server process."""
-    return _server_sources() + [_TOOL_DIR / f"{m}.py" for m in _tool_modules_the_server_imports()]
+    return _server_sources() + [next(d / f"{m}.py" for d in _TOOL_DIRS if (d / f"{m}.py").is_file())
+                                for m in _tool_modules_the_server_imports()]
 
 
 def test_the_server_still_imports_cli_lookup():

@@ -739,7 +739,7 @@ async function exportBundle() {
 }
 
 // Push the current Complete case to Zephyr (title fix + new version + payload)
-// by asking the server to shell out to ask-ck/tools/upload_refined.py. `execute=false`
+// by asking the server to shell out to ask-ck/frontend/ck-main/current/generator/upload_refined.py. `execute=false`
 // runs a dry-run preview (no writes); `execute=true` performs the real push.
 async function pushToZephyr(execute) {
   const key = S.currentKey || getActiveCaseKey();

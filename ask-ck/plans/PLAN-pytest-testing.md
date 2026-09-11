@@ -1446,7 +1446,7 @@ visible in the diff between families. It IS recoverable from the ART corpus, whi
 - **`ask-ck/tools/harvest_cli_docs.py`** — renewable harvest into `ck.db` (`cli_commands` +
   `cli_command_products` + FTS). Full run: **73,006 fetches, 58.6 min, 0 failures**,
   4,652 unique commands (993 with sample output), 61,240 product×command rows.
-- **`ask-ck/tools/cli_lookup.py`** — retrieval + `prompt_block()` for prompt injection, and
+- **`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`** — retrieval + `prompt_block()` for prompt injection, and
   `detect_commands()` so only commands the case actually references are injected.
 - **Grounding wired into BOTH prompts** — step 2 (`_cli_reference_for_case`, capped at 8
   output lines, 300-800 chars) and step 6 (`_cli_reference_block`, ~1.9k chars).
@@ -1576,7 +1576,7 @@ and two independent defects kept it out.
 
 1. **`detect_commands()` is purely lexical.** A feature named in PROSE has no path to its
    commands: "EcoMode", "LPI" and "EEE" appear nowhere inside `ecofriendly lpi`. No matcher
-   tuning bridges that, so `FEATURE_ALIASES` (`ask-ck/tools/cli_lookup.py`) maps feature prose →
+   tuning bridges that, so `FEATURE_ALIASES` (`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`) maps feature prose →
    command tree + the output terms that prove the field. Hand-curated deliberately: a wrong
    alias injects confidently-wrong grounding, which is worse than none.
 2. **Variant selection hid the field under test — the sharp one.** `prompt_block()` preferred

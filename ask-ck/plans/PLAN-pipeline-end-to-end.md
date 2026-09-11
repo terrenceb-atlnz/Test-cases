@@ -19,7 +19,7 @@
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
 > | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
 > | **Phase 7.8** (generate-prompt contradictions) | ✅ **DONE** — rule 3 2026-08-04 (`9c1a553`), the rest 2026-08-05. Untrimmed device list, on-code FILL markers and the rules 1/8 clash all closed, plus a fourth defect found while fixing them (the stripper's verb allowlist). 20 tests, 12 mutations all caught. |
-> | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `ask-ck/tools/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
+> | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
 > | **Phases 0, 1, 3, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
 >
@@ -301,7 +301,7 @@
 
 **What is actually wrong (all verified directly):**
 
-1. **No validation before a live write.** `ask-ck/tools/upload_refined.py` never imports
+1. **No validation before a live write.** `ask-ck/frontend/ck-main/current/generator/upload_refined.py` never imports
    `validate_zephyr_payload`. It pushes whatever JSON is on disk.
 2. **A silent escape-repair.** [upload_refined.py:76-80] catches a JSON parse failure and
    retries with `raw.replace("\\'", "'").replace("\\ ", " ")`. A malformed bundle is repaired

@@ -44,7 +44,7 @@ import pytest
 from _prose import expand_includes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
+sys.path.insert(0, str(REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "pytest-creator"))   # cli_lookup, the PyTest Creator page's script
 
 cli_lookup = pytest.importorskip("cli_lookup")
 DB = REPO / "ask-ck" / "db" / "ck.db"

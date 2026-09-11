@@ -1,6 +1,6 @@
 """Phase −1 — the Zephyr push must validate before it writes to production.
 
-`ask-ck/tools/upload_refined.py` is the only thing in this project that mutates data outside
+`ask-ck/frontend/ck-main/current/generator/upload_refined.py` is the only thing in this project that mutates data outside
 the repository, in a system the project does not own. Before this suite it:
 
   * imported no validator of any kind and pushed whatever JSON was on disk;
@@ -24,7 +24,7 @@ import sys
 import pytest
 
 _REPO = pathlib.Path(__file__).resolve().parents[1]
-_TOOL = _REPO / "ask-ck" / "tools"
+_TOOL = _REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "generator"   # the Generator page's button script
 _SERVER = _REPO / "ask-ck" / "CK-main" / "CK_server"
 for _p in (str(_TOOL), str(_SERVER)):
     if _p not in sys.path:

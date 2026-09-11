@@ -375,7 +375,7 @@ These cases were reviewed from the full Zephyr database for style, objective str
 
 Always use the full markdown web link format shown above so the keys are clickable. The base URL is `https://jira.atlnz.lc/secure/Tests.jspa#/testCase/{KEY}`.
 
-When you later run the uploader (`ask-ck/tools/upload_refined.py --execute`), the cases listed in this section will automatically have **web links (tracelinks)** created inside the target Zephyr case (exactly like the ATPyLib entries). The full `traceability.md` is also attached.
+When you later run the uploader (`ask-ck/frontend/ck-main/current/generator/upload_refined.py --execute`), the cases listed in this section will automatically have **web links (tracelinks)** created inside the target Zephyr case (exactly like the ATPyLib entries). The full `traceability.md` is also attached.
 
 Record the final list in `traceability.md`. This becomes part of the permanent traceability for the case.
 
@@ -559,11 +559,11 @@ After completing Steps 1–4:
 
    ```
    cd Test-cases
-   JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-Txxxx
-   JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-Txxxx --verify
+   JIRA_KEY=... python3 ask-ck/frontend/ck-main/current/generator/upload_refined.py --dry-run --keys AWPTCM-Txxxx
+   JIRA_KEY=... python3 ask-ck/frontend/ck-main/current/generator/upload_refined.py --execute --keys AWPTCM-Txxxx --verify
    ```
 
-   Or target groups: `--groups "Port (7)" "IPv4 (44)"` (etc). See `ask-ck/tools/upload_refined.py --help`.
+   Or target groups: `--groups "Port (7)" "IPv4 (44)"` (etc). See `ask-ck/frontend/ck-main/current/generator/upload_refined.py --help`.
    The script sends `objective` (as `<ul>`) + `testScript` (normalized to `STEP_BY_STEP`) via the ATM REST API.
 
 7. After upload, mark progress (e.g. update review batches or a tracking md) and optionally rebuild `refined-viewer.html`.

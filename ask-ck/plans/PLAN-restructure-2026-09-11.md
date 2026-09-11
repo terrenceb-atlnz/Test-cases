@@ -2,7 +2,7 @@
 
 > ## Status (read first)
 >
-> **EXECUTED 2026-09-11, batches 0–9 ✅ (19 commits, gate green after every sweep). OPEN: batch 6b — the three page-button scripts (`upload_refined.py`, `cli_lookup.py`, `pt_media.py`) still sit in `ask-ck/tools/` pending Terrence's call on `pt_media` (see §7). Also open, his files: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, and device-testing's `grep-shim-honors-gitignore` memory still name `tool/` / `ask-ck/var/`.** Originally IN PROGRESS from 2026-09-11 (server stopped by Terrence's go). Every decision below is
+> **EXECUTED 2026-09-11, batches 0–9 incl. 6b ✅ (21 commits, gate green after every sweep). `pt_media.py` stays in `ask-ck/tools/` (Terrence, §7); `upload_refined.py` and `cli_lookup.py` sit in their page directories. Also done the same day, Terrence's files: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, and device-testing's `grep-shim-honors-gitignore` memory still name `tool/` / `ask-ck/var/`.** Originally IN PROGRESS from 2026-09-11 (server stopped by Terrence's go). Every decision below is
 > Terrence's, taken in conversation on 2026-09-11 from a full inventory (git last-commit dates,
 > live references, server anchors). §6's three questions were answered: Q-a move + symlink,
 > Q-b `functions/test-composer/`, Q-c the batch-7 table as written. Batch progress is marked
@@ -126,7 +126,7 @@ Stop the server before batch 6 (or 5), restart after the final sweep, push after
 - **Q-c. JS sort.** Confirm the table in batch 7, in particular `shared/` as the name for the
   14 multi-page modules and `db-search.js`/`chosen.js`/`tables.js` under `generator/`.
 
-## 7. Batch 6b — the page-button scripts (OPEN)
+## 7. ✅ Batch 6b — the page-button scripts (DONE 2026-09-11: Terrence took the recommendation — `pt_media` stays in tools)
 
 The plan's rule sends `upload_refined.py` to `frontend/ck-main/current/generator/` and
 `cli_lookup.py` + `pt_media.py` to `frontend/ck-main/current/pytest-creator/`. Executing 6a

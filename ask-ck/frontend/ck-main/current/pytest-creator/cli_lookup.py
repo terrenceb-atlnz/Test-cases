@@ -14,11 +14,11 @@ NOT a validity oracle: cross-command physical constraints are absent from the so
 unconditionally and neither page says so). Use the ART corpus for those.
 
 Usage:
-  python3 ask-ck/tools/cli_lookup.py "show interface"
-  python3 ask-ck/tools/cli_lookup.py --product x930 duplex
-  python3 ask-ck/tools/cli_lookup.py --search "mdi polarity"
-  python3 ask-ck/tools/cli_lookup.py --prompt-block "show interface,speed,duplex"
-  python3 ask-ck/tools/cli_lookup.py --stats
+  python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py "show interface"
+  python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py --product x930 duplex
+  python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py --search "mdi polarity"
+  python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py --prompt-block "show interface,speed,duplex"
+  python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py --stats
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ try:
 except ImportError:
     import sqlite3                          # type: ignore
 
-REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
+REPO = Path(__file__).resolve().parents[5]  # frontend/ck-main/current/pytest-creator/ -> repo root
 # Same resolution as db._resolve_db_path(): the isolated test copy and the scratch server set
 # CK_DB_PATH, and this module must read the SAME file the server it lives in reads.
 DB = Path(os.environ.get("CK_DB_PATH") or (REPO / "ask-ck" / "db" / "ck.db"))

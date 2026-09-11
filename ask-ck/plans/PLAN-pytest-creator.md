@@ -236,7 +236,7 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
   `db._relevance_score`**, NOT the wizard — its private `_score_zephyr_candidate` was deleted
   in `4578030` (see *Matching/scoring* below). LLM CLI invocation in `llm.py` (`render_prompt`,
   `_call_llm_with_meta`; hardcoded 180s subprocess timeouts). Secrets convention: `.gitignore`
-  ignores `secrets.*`; loader precedent `ask-ck/tools/upload_refined.py::_find_secrets_file()`.
+  ignores `secrets.*`; loader precedent `ask-ck/frontend/ck-main/current/generator/upload_refined.py::_find_secrets_file()`.
   paramiko 2.9.3 is installed.
   > ⚠ **CORRECTED 2026-08-03:** that sentence was a fact about ONE machine, not a declaration —
   > `paramiko` was in **no requirements file**, so on any fresh venv the whole "6. Run" step was

@@ -34,7 +34,7 @@ Two non-obvious facts:
   incidentally protects it, but do not rely on that.
 
 **Root cause of these corruptions found 2026-09-10** — not NFS: a second SQLite library
-(`ask-ck/tools/cli_lookup.py`, stdlib) inside the server process stripped the server's POSIX locks on
+(`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`, stdlib) inside the server process stripped the server's POSIX locks on
 every close, so the WAL could be deleted from outside or corrupted by concurrent writers. Fixed
 + guarded; before running this recovery again, check `/proc/locks` for the server pid — zero
 entries on ck.db means the cause is back. See [[stale-session-connection-bug]].

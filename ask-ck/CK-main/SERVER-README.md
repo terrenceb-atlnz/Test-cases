@@ -459,7 +459,7 @@ UI step numbers below are the visible 1–6 Generator labels.
 9. **Push to Zephyr** (2026-07-22c; buttons next to Export) — publishes the exported bundle to the live Zephyr case.
    - **Preview Push (dry-run)** shows the exact plan with zero writes; **Push to Zephyr** performs it (with a confirm dialog).
    - On the case, in order: strip a leading `(N)`/`(…)` group from the **Name** → ensure **version 2.0** (`POST /rest/tests/1.0/testcase/{id}/newversion`; idempotent — bumps 1.0→2.0, skips if already ≥2.0) → PUT objective+testScript (lands on the new latest version) → replace `traceability.md` attachment (no duplicates) → post ART web-links.
-   - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `ask-ck/tools/upload_refined.py`** (flags `--fix-title --new-version --verify`; `--force` is opt-in per request since 2026-07-27g and the UI does not send it). The server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
+   - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `ask-ck/frontend/ck-main/current/generator/upload_refined.py`** (flags `--fix-title --new-version --verify`; `--force` is opt-in per request since 2026-07-27g and the UI does not send it). The server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
    - **A real push requires a confirmation token** (2026-08-03): `dry_run=false` is rejected with 400 unless the request body carries `{"confirm": "<case key>"}` matching the key in the path. `dry_run` is a query parameter, so without this a production write was one character from a preview for any non-browser client, and the browser-side `confirm()` is not executed by curl. It is not authentication — it is the second fact that has to be supplied deliberately.
    - **Nothing unvalidated reaches a live case** (2026-08-03). `upload_refined.py` imports `validate_zephyr_payload` from `llm.py` — the shape rules have one owner. The import is lazy and **fails closed**: if it cannot be loaded the case is refused, never passed. Validation also runs under `--dry-run`, so the preview reports what would be refused. `--skip-validation` is the deliberate override. A blocked case makes the process exit non-zero, so a refused push cannot read as success in the UI. **(2026-08-05: the added `expectedResult` content rule was removed — a Zephyr manual step is *designed* to leave `expectedResult` empty, so the field is forced empty at generation and never blocks a push. See memory `expected-results-deliberately-absent`.)**
    - **Every `--execute` is audited** to `ask-ck/db/zephyr-push-audit.jsonl` (gitignored; the server never reads it). A `push.intent` record is written **before the first network call** — who, when, key, argv, flags, the pre-push state including the full prior objective/testScript, and what it intends to change — then `push.version` and `push.outcome`. **A case whose audit record cannot be written is refused.** Zephyr keeps no version trail for these pushes (the process is capped at v2.0), so this log is the only local record of replaced content.
@@ -569,7 +569,7 @@ key on the DB path, so a load under a running server strands it on the old probe
 loader `DROP`s and recreates only `cli_commands` / `cli_command_products` / `cli_commands_fts`
 and stamps `meta.cli_docs_load` (source + `loaded_at`). This does **not** violate the no-rebuild
 invariant: these are the documented renewable tables and it never touches the
-Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 ask-ck/tools/cli_lookup.py
+Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py
 <command>`, `--prompt-block`, or `--stats` (which reports the load source).
 
 **Grounding (why it exists):** the PyTest Creator prompts demanded "exact CLI fields" while
@@ -954,7 +954,7 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
   Inline, a 38-unit Re-render held the single worker's loop for ~40 s and the server answered
   nothing meanwhile. Because the batch handler now yields mid-request, units are marked in
   flight *before* the render (undone if it fails), so a second click cannot double-dispatch.
-  The render itself is cheap now that `ask-ck/tools/cli_lookup.py` caches its probe set per database
+  The render itself is cheap now that `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py` caches its probe set per database
   and prefilters probes by token set (1.5 s → ~55 ms per `detect_commands` call). `ask-ck/tools/` is
   not watched by `--reload`: a change there reaches the live worker only on the next
   `CK_server` save or `ck` restart.
@@ -1057,7 +1057,7 @@ Fixes, all in `pytest_create.py` unless said: `_build_library` admits a `self`-f
 SOURCE defines it at column 0 (ART helpers take the TestCase as `self`); the frame imports `re`
 and the shortcut block names `portDut = peer.portDut`; three lint checks — `_lint_unbound_names`
 (blocking; silent behind a star import the surface doc cannot see through), `_lint_port_owner`
-(policy; DUT/neighbour boundary only) and `_lint_verdict_echo` (warning); and `ask-ck/tools/cli_lookup.py`
+(policy; DUT/neighbour boundary only) and `_lint_verdict_echo` (warning); and `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`
 `prompt_block` renders a long sample as head + omitted-marker + tail so a table's rows and header
 reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
@@ -1066,7 +1066,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.
 - The old single-file app and its design-system files were archived to `archive/CK-main/` on 2026-09-11.
 - The server version adds LLM synthesis, backend enforcement of the process, templated repeatability — and (2026-07-13) the Ask CK multi-tool shell.
-- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `ask-ck/tools/upload_refined.py`.
+- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `ask-ck/frontend/ck-main/current/generator/upload_refined.py`.
 
 ## Adding a New Tool (Ask CK pattern)
 

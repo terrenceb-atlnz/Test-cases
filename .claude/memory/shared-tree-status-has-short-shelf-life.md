@@ -10,7 +10,7 @@ metadata:
 ---
 
 The Test-cases working tree is shared with an **active parallel stream** (2026-07-27g: CLI-docs
-grounding work — `ask-ck/tools/harvest_cli_docs.py`, `ask-ck/tools/cli_lookup.py`, `tests/test_cli_docs.py`, plus
+grounding work — `ask-ck/tools/harvest_cli_docs.py`, `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`, `tests/test_cli_docs.py`, plus
 edits inside `routers/pytest_create.py` and the prompt templates). Files appear, change and get
 fixed mid-session without any action from me.
 

@@ -53,7 +53,8 @@ import pytest
 _REPO = Path(__file__).resolve().parents[1]
 _TOOL = _REPO / "ask-ck" / "tools"
 _DB = _REPO / "ask-ck" / "db" / "ck.db"
-sys.path.insert(0, str(_TOOL))
+sys.path.insert(0, str(_TOOL))                                                          # harvest_cli_docs
+sys.path.insert(0, str(_REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "pytest-creator"))   # cli_lookup
 
 import cli_lookup as C            # noqa: E402
 import harvest_cli_docs as H      # noqa: E402

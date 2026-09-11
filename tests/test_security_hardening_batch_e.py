@@ -101,7 +101,7 @@ def test_ui_does_not_send_force():
 
 def test_the_cli_protection_force_would_bypass_still_exists():
     """Pin the upstream guard this change restores — if the CLI drops it, the fix is moot."""
-    cli = (_REPO / "ask-ck" / "tools" / "upload_refined.py").read_text(encoding="utf-8")
+    cli = (_REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "generator" / "upload_refined.py").read_text(encoding="utf-8")
     assert "not args.force" in cli
     assert "already appears refined" in cli
 

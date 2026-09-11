@@ -32,7 +32,7 @@ So it is a **best-effort guess, not absolute garbage**: correct structure, corre
 
 **FIXED 2026-07-27.** Harvested the real reference into ck.db and grounded BOTH prompts
 (step 2 `pt_extract_sequence.jinja` and step 6 `pt_generate_script.jinja`) via
-`ask-ck/tools/cli_lookup.py::prompt_block`. Measured result across all three cases:
+`ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py::prompt_block`. Measured result across all three cases:
 
 | | before | after |
 |---|---|---|

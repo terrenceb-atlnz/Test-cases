@@ -583,7 +583,7 @@ The headless tools were the other source of LLM calls. Classified by Terrence's 
 | `ask-ck/tools/pt_judge.py` | 2026-07-27 | Part 3a: per-block LLM judge (Opus + vllm-fast) | No — Terrence prefers in-context judging (memory `terrence-prefers-session-model-as-judge`) | **Retire** |
 | `ask-ck/tools/pt_matrix_judge.py` | 2026-07-29 | Companion of the two above; imports both | No | **Retire** |
 | `ask-ck/tools/pt_autopilot.py` | 2026-08-03 | Headless batch driver through the running server; last batch 2026-08-03; its resume note (`autopilot/RESUME.md`) depends on the removed `claude_code` | No | **Retire** (Terrence, 2026-09-11) |
-| `ask-ck/tools/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
+| `ask-ck/frontend/ck-main/current/generator/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
 
 `ask-ck/tools/pt_grade.py` and `ask-ck/tools/pt_preflight.py` make no LLM call and stay. The retired tools'
 result directories (`ask-ck/functions/pytest-creator/autopilot/`, `comparison/`, `judging/`) are records

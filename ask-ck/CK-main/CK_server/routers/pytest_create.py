@@ -2006,8 +2006,8 @@ def _cli_reference_for_text(text: str, product: Optional[str] = None,
     """
     try:
         import sys as _sys
-        # routers/ -> CK_server/ -> CK-main/ -> ask-ck/ -> repo root
-        tool_dir = str(Path(__file__).resolve().parents[4] / "ask-ck" / "tools")
+        # routers/ -> CK_server/ -> CK-main/ -> ask-ck/; cli_lookup is the PyTest Creator page's script
+        tool_dir = str(Path(__file__).resolve().parents[3] / "frontend" / "ck-main" / "current" / "pytest-creator")
         if tool_dir not in _sys.path:
             _sys.path.insert(0, tool_dir)
         import cli_lookup

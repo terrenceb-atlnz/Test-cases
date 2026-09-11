@@ -2,7 +2,7 @@
 
 Three concerns, all hardware-adjacent (see ask-ck/plans/PLAN-pytest-creator.md §2):
 - Testbox profiles: named SSH/testbox records stored in the gitignored
-  secrets.testboxes.json (same discovery convention as ask-ck/tools/upload_refined.py).
+  secrets.testboxes.json (same discovery convention as ask-ck/frontend/ck-main/current/generator/upload_refined.py).
 - parse_framework_log(): pure parser for the ATTestSet/ATTestCase log format —
   unit-testable offline.
 - run_script_on_testbox(): paramiko SSH+SFTP round trip, driven from a

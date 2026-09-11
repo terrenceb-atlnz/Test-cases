@@ -15,7 +15,8 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))                                                   # harvest_cli_docs
+sys.path.insert(0, str(REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "pytest-creator"))   # cli_lookup, the PyTest Creator page's script
 
 harvest = pytest.importorskip("harvest_cli_docs")
 cli_lookup = pytest.importorskip("cli_lookup")

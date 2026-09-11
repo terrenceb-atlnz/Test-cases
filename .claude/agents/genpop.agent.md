@@ -181,7 +181,7 @@ loops, CLI grounding) runs fine on a box with zero `tb-` portlinks; a data-plane
 
 ## CLI grounding
 
-`python3 ask-ck/tools/cli_lookup.py "show interface"` (also `--product x930`, `--search`,
+`python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py "show interface"` (also `--product x930`, `--search`,
 `--prompt-block`, `--stats`) reads AlliedWare Plus syntax and **real sample output** from
 `ck.db`. Use it rather than recalling syntax: every model in the matrix — Opus included —
 invented a `speed=1000`/`state=up` output schema the switch never prints; the real string is

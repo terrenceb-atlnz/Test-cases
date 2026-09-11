@@ -29,14 +29,14 @@ loose review taxonomy (#4), and three UI gaps that made the state of the run har
 
 ## #5 — ⚠ DATA-SAFETY: ck.db WAL deleted/corrupted under the live server — ROOT-CAUSED AND FIXED 2026-09-10
 
-**Status: FIXED.** `ask-ck/tools/cli_lookup.py` + `tests/test_sqlite_single_library.py` (+ fixture fix in
+**Status: FIXED.** `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py` + `tests/test_sqlite_single_library.py` (+ fixture fix in
 `tests/test_cli_grounding_phase4.py`); gate green; live server reloaded 2026-09-10 08:55 and
 verified holding its locks on `ck.db`/`ck.db-shm` in `/proc/locks` afterwards. **The 2026-09-09
 diagnosis ("WAL mode is unsafe on NFS") is retracted** — NFS only supplied the `.nfs*`-orphan
 signature; the same bug corrupts on local disk. Options A/B/C below are re-assessed accordingly.
 
 **Root cause — two SQLite libraries in one process.** `db.py` binds `pysqlite3` (SQLite 3.51,
-for `sqlite-vec`). `ask-ck/tools/cli_lookup.py`, imported by `routers/pytest_create.py` while rendering
+for `sqlite-vec`). `ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py`, imported by `routers/pytest_create.py` while rendering
 every unit prompt, opened `ck.db` through the **stdlib** `sqlite3` (SQLite 3.37) — read-only, a
 fresh connection per call across a dozen call sites, closed by garbage collection. POSIX advisory
 locks belong to the *process*, not the descriptor, and each library keeps its own per-inode lock

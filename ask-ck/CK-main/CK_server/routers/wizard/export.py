@@ -455,7 +455,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
 @router.post("/push_to_zephyr/{key}")
 async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
                          confirm: str = Body(default="", embed=True)):
-    """Push a Complete refined case to Zephyr via ask-ck/tools/upload_refined.py.
+    """Push a Complete refined case to Zephyr via ask-ck/frontend/ck-main/current/generator/upload_refined.py.
 
     Shells out to the CLI (the single owner of Zephyr-write logic), which:
       1. strips a leading '(N)'/'(...)' group from the test-case Name,
@@ -488,8 +488,8 @@ async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
                     f"request body. Use dry_run=true to preview with no writes."),
         )
 
-    repo_root = ASKCK_ROOT.parent           # .../Test-cases
-    cli = repo_root / "ask-ck" / "tools" / "upload_refined.py"
+    # The Generator page's button script (PLAN-restructure-2026-09-11 batch 6b).
+    cli = ASKCK_ROOT / "frontend" / "ck-main" / "current" / "generator" / "upload_refined.py"
     if not cli.is_file():
         raise HTTPException(status_code=500, detail=f"upload tool not found: {cli}")
 
@@ -510,7 +510,7 @@ async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
 
     def _run():
         return subprocess.run(
-            cmd, cwd=str(repo_root),
+            cmd, cwd=str(ASKCK_ROOT.parent),           # repo root: the CLI resolves refined-cases itself
             capture_output=True, text=True, timeout=180,
         )
 

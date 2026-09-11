@@ -179,7 +179,7 @@ refined one over six gated steps: *Cases* → *TestLink* → *Zephyr* → *ATPyL
 2–4 use a two-table "chosen shortlist": search/suggest results land in the top candidates
 table, and **Confirm reads only the bottom chosen table**. A seventh action pushes the
 exported bundle to the live Zephyr case (dry-run Preview first; ensures version 2.0; shells
-out to `ask-ck/tools/upload_refined.py` so the server never holds the JIRA token).
+out to `ask-ck/frontend/ck-main/current/generator/upload_refined.py` so the server never holds the JIRA token).
 
 **PyTest Creator** — turns a Complete case into a runnable `framework` (ATTestSet /
 ATTestCase) script over seven gated steps: *Cases* → *Sequence* (LLM extracts automatable
