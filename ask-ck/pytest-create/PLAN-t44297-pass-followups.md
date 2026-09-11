@@ -175,7 +175,7 @@ stamp `at` on every error chunk. Surface it in the unit-chip tooltip and the sta
 `static/js/pytest.js` (render local time + a relative "3 min ago"). Consider the same stamp on
 `ok` chunks — "generated 14:41" — since freshness was the whole question.
 
-**Tests.** Vitest (`js-tests/`): an `error` chunk with `at` renders the timestamp; one without
+**Tests.** Vitest (`tests/js/`): an `error` chunk with `at` renders the timestamp; one without
 `at` (legacy rows — `[[old-sessions-are-not-coverage]]`) renders without crashing. → **D1**.
 
 ---

@@ -26,7 +26,7 @@ function mountSuggestProvenance(mountId, panelId, endpoint) {
 }
 
 /** Merge new ATP rows into window.currentATP by id (prefer higher score / richer reason).
- *  Exported for unit tests (js-tests/merge.spec.js); the app calls it internally. */
+ *  Exported for unit tests (tests/js/merge.spec.js); the app calls it internally. */
 export function mergeATPCandidates(incoming, { precheckIds = null, source = 'search' } = {}) {
   const existing = window.currentATP || [];
   const byId = {};

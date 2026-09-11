@@ -10,8 +10,8 @@ import {
   mergeTestLinkCandidates,
   mergeZephyrCandidates,
   mergeATPCandidates,
-} from '../ask-ck/CK-main/CK_server/static/js/db-search.js';
-import { S } from '../ask-ck/CK-main/CK_server/static/js/state.js';
+} from '../../ask-ck/CK-main/CK_server/static/js/db-search.js';
+import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
 import { mountFromIndex, resetDom } from './helpers/fixture-dom.js';
 
 beforeEach(() => {

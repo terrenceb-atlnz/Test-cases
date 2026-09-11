@@ -85,8 +85,8 @@ ask-ck/var/*
 ask-ck/var/ck.db-wal
 ask-ck/var/ck.db-shm
 
-# Playwright E2E (ask-ck/ck-facelift/PLAN-playwright-e2e.md)
+# Playwright E2E (archive/plans/PLAN-playwright-e2e.md); suite lives at tests/e2e/ since 2026-09-11
 node_modules/
-e2e/.report/
-e2e/.artifacts/
+tests/e2e/.report/
+tests/e2e/.artifacts/
 test-results/

@@ -318,7 +318,7 @@ manual UI testing — memory `user-prefers-manual-ui-testing`). Decision D5.
 > "· site default", and has a separate **Set as site default** button (confirm dialog)
 > (**removed by D17 on 2026-09-11** — one button; Apply writes the default invisibly).
 > Tests: `tests/test_per_seat_llm.py` (15), decoupling + routing pins re-homed,
-> `js-tests/seat-llm-header.spec.js` (8). Gate 1473 / vitest 274.
+> `tests/js/seat-llm-header.spec.js` (8). Gate 1473 / vitest 274.
 
 **Design (recommended, D1-A):** the seat's choice rides with every request. `llm.js` already
 holds it in `localStorage`; the `fetch` patch that adds `X-CK-Session` adds
@@ -555,7 +555,7 @@ current-state docs cleaned; dated records left as records, per D11):
 | `llm_config.py` | `_PROVIDER_FOR` and `llm_is_active` lose the Grok entries. |
 | `routers/wizard/config.py` | `GET /api/wizard/grok_cli_status` removed; provider validation is `("claude", "openai")`; the Grok model default and the Grok readiness branch in `_safe_llm_view` go. |
 | `static/js/session.js` | `SEAT_LLM_METHODS = ['local_llm', 'claude_agent']` — a browser still holding `grok_cli` in `localStorage` is handled by the same guard as `claude_code` (§11.3). |
-| Tests | `test_llm_backend_allowlist.py` (the set is **two**, and `grok_cli` is retired), `test_llm_call_timeouts.py` (the "floor is wired into the dispatch arm" pin had only `grok_cli` left — it is retired with the arm; `claude_agent`'s own pin stays), `test_per_seat_llm.py`, `test_shared_modules_decoupling.py`, `js-tests/llm-task-routing.spec.js`, `js-tests/agent-broker-liveness.spec.js` (comments only). |
+| Tests | `test_llm_backend_allowlist.py` (the set is **two**, and `grok_cli` is retired), `test_llm_call_timeouts.py` (the "floor is wired into the dispatch arm" pin had only `grok_cli` left — it is retired with the arm; `claude_agent`'s own pin stays), `test_per_seat_llm.py`, `test_shared_modules_decoupling.py`, `tests/js/llm-task-routing.spec.js`, `tests/js/agent-broker-liveness.spec.js` (comments only). |
 | Docs | `SERVER-README.md` (two duplicated Grok sections, the radio list, the allowlist sentence, the quick-start step), `ARCHITECTURE.md`, `README.md`, `CK_server/README.md`, `run.sh` banner, `main.py` docstring, `llm_debug.py` and `llm-progress.js` comments. The governance wiki (`WIKI-Ask-ck.wiki`) rows naming Grok as a selectable backend are corrected — the allowlist tests exist to keep that page true. |
 
 **Why the HTTP `grok` provider goes too, not only `grok_cli`:** the only auth methods that
@@ -600,7 +600,7 @@ for this seat is no longer available — this seat uses the site default until y
 one."* The wording names no retired mode (D3). **One-time** means: shown from the drop until
 this seat next Applies (any `storeSeatLlm` clears the flag) — cleared on first render it would
 be missed by a seat that lands on the splash page and never opens Configure that visit.
-Pinned in `js-tests/seat-llm-header.spec.js` and a small llm.js spec.
+Pinned in `tests/js/seat-llm-header.spec.js` and a small llm.js spec.
 
 ### 11.4 Revert path
 

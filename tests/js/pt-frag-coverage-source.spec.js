@@ -26,7 +26,7 @@ import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC = readFileSync(
-  resolve(HERE, '../ask-ck/CK-main/CK_server/static/js/pytest.js'), 'utf8');
+  resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/pytest.js'), 'utf8');
 const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 // The fragments renderer only.

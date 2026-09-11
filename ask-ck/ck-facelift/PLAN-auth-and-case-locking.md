@@ -35,7 +35,7 @@
 > acquire-on-load, 5-min heartbeat, `navigator.sendBeacon` release on `pagehide`, read-only
 > banner + disabled inputs + "Take over" once idle. Tests: `tests/test_case_locks.py` (24) +
 > `tests/test_no_unguarded_session_write.py` (structural — no write bypasses the guard) +
-> `js-tests/locks.spec.js` (7). Decisions D3–D6 implemented as recommended; D1/D2 still open.
+> `tests/js/locks.spec.js` (7). Decisions D3–D6 implemented as recommended; D1/D2 still open.
 >
 > **Original requirement (unchanged):**
 >

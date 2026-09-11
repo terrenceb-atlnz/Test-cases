@@ -23,7 +23,7 @@ import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CSS = readFileSync(
-  resolve(HERE, '../ask-ck/CK-main/CK_server/static/styles.css'), 'utf8');
+  resolve(HERE, '../../ask-ck/CK-main/CK_server/static/styles.css'), 'utf8');
 
 beforeEach(() => {
   document.head.innerHTML = '';

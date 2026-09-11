@@ -17,7 +17,7 @@ import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const JS = (name) =>
-  resolve(HERE, `../ask-ck/CK-main/CK_server/static/js/${name}`);
+  resolve(HERE, `../../ask-ck/CK-main/CK_server/static/js/${name}`);
 
 const read = (name) => readFileSync(JS(name), 'utf8');
 

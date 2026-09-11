@@ -136,7 +136,7 @@ Tests, smoke checks and E2E must **not** write the permanent `ck.db` — use
 
 Run it before and after a change. Three layers: **backend** (`tests/`, in-process — no mocks,
 network or testbox; several are *structural*, e.g. an AST sweep proving no async handler calls
-a blocking function unwrapped), **frontend units** (`js-tests/`, Vitest + jsdom, with DOM
+a blocking function unwrapped), **frontend units** (`tests/js/`, Vitest + jsdom, with DOM
 fixtures lifted from the real `index.html` so they detect drift), and **E2E** (`e2e/`, one
 Playwright golden path) — which is deliberately **not** in the gate and is run sparingly via
 `npm run e2e`. There is no CI runner.

@@ -30,7 +30,7 @@ import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC = readFileSync(
-  resolve(HERE, '../ask-ck/CK-main/CK_server/static/js/agent.js'), 'utf8');
+  resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/agent.js'), 'utf8');
 
 // Strip block and line comments so prose can never satisfy an assertion.
 const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');

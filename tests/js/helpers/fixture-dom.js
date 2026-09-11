@@ -13,7 +13,7 @@ import { JSDOM } from 'jsdom';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const INDEX_HTML = resolve(
   HERE,
-  '../../ask-ck/CK-main/CK_server/static/index.html',
+  '../../../ask-ck/CK-main/CK_server/static/index.html',
 );
 
 let _cachedDoc = null;

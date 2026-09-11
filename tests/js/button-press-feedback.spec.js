@@ -30,14 +30,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(resolve(HERE, rel), 'utf8');
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const CSS = strip(read('../ask-ck/CK-main/CK_server/static/styles.css'));
-const PYTEST = strip(read('../ask-ck/CK-main/CK_server/static/js/pytest.js'));
-const HTML = read('../ask-ck/CK-main/CK_server/static/index.html')
+const CSS = strip(read('../../ask-ck/CK-main/CK_server/static/styles.css'));
+const PYTEST = strip(read('../../ask-ck/CK-main/CK_server/static/js/pytest.js'));
+const HTML = read('../../ask-ck/CK-main/CK_server/static/index.html')
   .replace(/<!--[\s\S]*?-->/g, '');
 
 // actions.js registers its document listeners at import time. It imports nothing,
 // so a bare import is enough to install them.
-await import('../ask-ck/CK-main/CK_server/static/js/actions.js');
+await import('../../ask-ck/CK-main/CK_server/static/js/actions.js');
 
 describe('press pulse (live, via the delegated listener)', () => {
   beforeEach(() => { vi.useFakeTimers(); document.body.innerHTML = ''; });

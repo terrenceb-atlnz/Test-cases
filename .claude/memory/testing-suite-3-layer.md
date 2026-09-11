@@ -12,7 +12,7 @@ Built 2026-07-27f (commits `4f990ea`→`e871caa`, pushed to `main`). Ask-CK now 
 automated-test layers:
 
 - **Backend units** — `tests/` (pytest, in-process TestClient, no network/LLM/testbox; **190 tests** as of 2026-07-27g).
-- **Frontend units** — `js-tests/` at repo root (Vitest + jsdom, no browser/server/LLM; **72 tests** as of 2026-07-27g).
+- **Frontend units** — `tests/js/` (moved from repo-root `js-tests/` 2026-09-11; Vitest + jsdom, no browser/server/LLM; **72 tests** as of 2026-07-27g).
   Covers DOM/button helpers, table renderers, chosen-list, and `db-search.js` `merge*` (exported
   for testability). DOM fixtures are lifted from the REAL `index.html` and throw on a renamed id
   (drift-detection).
@@ -39,7 +39,7 @@ masks failures across tests.
 
 **How to apply:** run `./tool/run_tests.sh` before committing frontend/backend changes; run the
 E2E on demand (pre-release), not every commit. JS tooling (`package.json`, configs, `e2e/`,
-`js-tests/`) lives at repo root, separate from `static/js`; `node_modules` + PW artifacts are
+`tests/js/`) lives at repo root, separate from `static/js`; `node_modules` + PW artifacts are
 gitignored. No CI runner yet (`.github/workflows`). See [[user-prefers-manual-ui-testing]] — the
 E2E/manual layer still owns the visual checks jsdom can't see (spinner animation, flash colors).
 Plans: `ask-ck/ck-facelift/PLAN-playwright-e2e.md`, `PLAN-frontend-unit-tests.md`.

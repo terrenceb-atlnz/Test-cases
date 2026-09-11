@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const read = (p) => readFileSync(resolve(HERE, `../ask-ck/CK-main/CK_server/static/${p}`), 'utf8');
+const read = (p) => readFileSync(resolve(HERE, `../../ask-ck/CK-main/CK_server/static/${p}`), 'utf8');
 const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const JS = code(read('js/pytest.js'));
 const HTML = read('index.html');

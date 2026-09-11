@@ -1,6 +1,6 @@
 // Playwright config for the Ask-CK E2E gate.
 // SPARINGLY-RUN — this is the golden-path integration layer, not a per-commit gate.
-// See ask-ck/ck-facelift/PLAN-playwright-e2e.md for the full design + rationale.
+// See archive/plans/PLAN-playwright-e2e.md (complete; archived 2026-09-11) for the design + rationale.
 import { defineConfig, devices } from '@playwright/test';
 
 // E2E drives real case loads, which WRITE session rows. It must never do that to
@@ -11,8 +11,8 @@ const E2E_PORT = process.env.CK_E2E_PORT || '8123';
 const BASE_URL = process.env.CK_BASE_URL || `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
-  testDir: './e2e',
-  outputDir: './e2e/.artifacts',
+  testDir: './tests/e2e',
+  outputDir: './tests/e2e/.artifacts',
   // Deterministic gate: no test-level retries (a flake should be seen, not masked),
   // fully serial (the app is stateful — one session/case at a time on the server).
   fullyParallel: false,
@@ -20,7 +20,7 @@ export default defineConfig({
   retries: 0,
   timeout: 60_000,             // whole-test budget; LLM is NOT on the asserted path
   expect: { timeout: 10_000 }, // per-assertion wait (search round-trips, table repaint)
-  reporter: [['list'], ['html', { outputFolder: 'e2e/.report', open: 'never' }]],
+  reporter: [['list'], ['html', { outputFolder: 'tests/e2e/.report', open: 'never' }]],
   use: {
     baseURL: BASE_URL,
     headless: true,

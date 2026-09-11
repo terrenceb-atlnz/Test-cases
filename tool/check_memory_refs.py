@@ -56,7 +56,7 @@ PREFIXES = [
     "ask-ck/CK-main/CK_server/routers/", "ask-ck/CK-main/CK_server/templates/",
     "ask-ck/CK-main/CK_server/templates/prompts/", "ask-ck/CK-main/CK_server/static/",
     "ask-ck/CK-main/CK_server/static/js/", "ask-ck/objective-drafting/",
-    "ask-ck/pytest-create/", "ask-ck/ck-facelift/", "tool/", "tests/", "js-tests/",
+    "ask-ck/pytest-create/", "ask-ck/ck-facelift/", "tool/", "tests/", "tests/js/",
     ".claude/memory/", ".claude/skills/",
 ]
 

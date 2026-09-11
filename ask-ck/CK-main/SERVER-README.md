@@ -1233,7 +1233,7 @@ so they catch the *next* regression, not only the one filed. `PYTHONNOUSERSITE=1
 fastapi/starlette in `~/.local` can't shadow the venv's. Dev deps (`pytest`, `httpx`) in
 `ask-ck/CK-main/requirements-dev.txt` (runtime `requirements.txt` stays lean).
 
-**2. Frontend units** — repo-root `js-tests/` (Vitest + jsdom — no browser, server, or LLM; 85
+**2. Frontend units** — `tests/js/` (Vitest + jsdom — no browser, server, or LLM; 85
 tests). Covers the pure-logic ~80% of the frontend: the DOM/button-feedback helpers
 (`setButtonBusy`/`flashButtonDone`/`showStatus`), the table renderers (`tables.js`), the
 chosen-list machinery (`chosen.js`), and the candidate-merge logic (`db-search.js` `merge*`, made

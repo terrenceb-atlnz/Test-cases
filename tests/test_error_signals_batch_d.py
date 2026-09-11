@@ -16,7 +16,7 @@ already detected.
     lifetime of the process, keyed by an unvalidated client header.
 
 The two frontend rows (provenance.js / generator.js missing res.ok) are covered in
-js-tests/error-guards.spec.js. No network, no LLM, no testbox here.
+tests/js/error-guards.spec.js. No network, no LLM, no testbox here.
 """
 import time
 

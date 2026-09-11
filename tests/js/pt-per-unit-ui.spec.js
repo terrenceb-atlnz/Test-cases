@@ -20,12 +20,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-import '../ask-ck/CK-main/CK_server/static/js/actions.js';
-import { S } from '../ask-ck/CK-main/CK_server/static/js/state.js';
-import { ptLoadCase, renderPtGenPanel } from '../ask-ck/CK-main/CK_server/static/js/pytest.js';
+import '../../ask-ck/CK-main/CK_server/static/js/actions.js';
+import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
+import { ptLoadCase, renderPtGenPanel } from '../../ask-ck/CK-main/CK_server/static/js/pytest.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const JS = readFileSync(resolve(HERE, '../ask-ck/CK-main/CK_server/static/js/pytest.js'), 'utf8')
+const JS = readFileSync(resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/pytest.js'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const DOM = `

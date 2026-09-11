@@ -13,7 +13,7 @@
 //   Every claim below is network- or DOM-observable, which is exactly what the manual
 //   checklist could only eyeball: whether a fetch happened, how many times, for which
 //   step, and whether an in-flight response is allowed to destroy user work. The Vitest
-//   layer (js-tests/step-candidates.spec.js) pins loadStepCandidates in isolation; this
+//   layer (tests/js/step-candidates.spec.js) pins loadStepCandidates in isolation; this
 //   layer proves it is actually WIRED — that goToStep triggers it against the real
 //   server and the real tables.
 //

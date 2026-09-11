@@ -820,7 +820,7 @@ So the revised sequence:
    independent reason to fix, so a reviewed script with real findings and a green lint no
    longer 409s "nothing to fix". A review never calls `_invalidate_from` — it reads the
    artefact and writes an opinion, so discarding a confirmation for having looked would be
-   wrong. Tests: `tests/test_pt_review_pass.py` (21), `js-tests/pt-review-panel.spec.js` (11).
+   wrong. Tests: `tests/test_pt_review_pass.py` (21), `tests/js/pt-review-panel.spec.js` (11).
    **Not yet exercised against a real model** — the wiring is proved, the finding QUALITY is
    not, and that needs a run on a script with a known verdict/verify mismatch.
 3. ~~**Then chunking**, with §9.9's open questions answered.~~ **DONE 2026-09-02.**
@@ -874,7 +874,7 @@ So the revised sequence:
      screen. "Generate all" dispatches every unit at once (`Promise.allSettled`).
 
    **Open:** none of this has run against a real model. The wiring is proved
-   (`tests/test_pt_per_unit.py` 31, `js-tests/pt-per-unit-ui.spec.js` 20,
+   (`tests/test_pt_per_unit.py` 31, `tests/js/pt-per-unit-ui.spec.js` 20,
    `tests/test_pt_prompt_rules_partial.py` 5, broker concurrency 8); per-unit output
    QUALITY, and whether 30 units beat one 673s call in wall clock, are unmeasured.
 

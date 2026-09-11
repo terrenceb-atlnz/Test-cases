@@ -62,7 +62,7 @@
 ### ✅ Batch 2 — `docs/` (repo-level documents)
 `REVIEWER-ONBOARDING.md`, `TOKEN-EFFICIENCY-REPORT-2026-09-04.md`, `resources.md`, `MEMORY-SPLIT-INVENTORY.md`, `ask-ck/Fragments_prompt.md`, `ask-ck/WIKI-Ask-ck.wiki` (a single file). `TESTBOX-ACCESS.md` / `TB470-HOST-NETWORKING.md`: see §6 Q-a.
 
-### Batch 3 — tests consolidated under `tests/`
+### ✅ Batch 3 — tests consolidated under `tests/`
 `js-tests/` → `tests/js/`; `e2e/` → `tests/e2e/`. Sweep: `vitest.config.js` include, `playwright.config.js` testDir, `.gitignore` e2e lines, `package.json` e2e:report path, `run_tests.sh` → its new home.
 
 ### Batch 4 — `ask-ck/plans/`
