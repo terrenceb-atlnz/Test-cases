@@ -5,10 +5,10 @@ Scans the three test-script databases (testsuites_art, svt_scripts, test_scripts
 and the shared `framework` library, producing the indexes consumed by the
 Ask CK PyTest Creator (`/api/pytest-create`):
 
-    ask-ck/pytest-create/data/scripts_index.json       full mechanical records
-    ask-ck/pytest-create/data/scripts_slim_index.json  search/scoring corpus
-    ask-ck/pytest-create/data/framework_surface.json   framework vocabulary
-    ask-ck/pytest-create/data/scripts_index.meta.json  build info
+    ask-ck/functions/pytest-creator/data/scripts_index.json       full mechanical records
+    ask-ck/functions/pytest-creator/data/scripts_slim_index.json  search/scoring corpus
+    ask-ck/functions/pytest-creator/data/framework_surface.json   framework vocabulary
+    ask-ck/functions/pytest-creator/data/scripts_index.meta.json  build info
 
 Pass 1 (mechanical) needs no LLM. The LLM enrichment pass (tool/enrich_script_index.py)
 was retired 2026-09-11 with the other creation-time tooling (see
@@ -55,7 +55,7 @@ EXCLUDES = (
 _SUITE_DIR_RX = re.compile(r"^\d+_")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PT_DATA_DIR = REPO_ROOT / "ask-ck" / "pytest-create" / "data"
+PT_DATA_DIR = REPO_ROOT / "ask-ck" / "functions" / "pytest-creator" / "data"
 
 TESTCASE_META_ATTRS = ("testCaseDesc", "testCaseRef", "testCaseMethod")
 

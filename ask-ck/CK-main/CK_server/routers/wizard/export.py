@@ -405,7 +405,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
     # try-block (whose broad `except Exception` would otherwise soften a 400 into a
     # "failed to write" message). Defends against a manipulated folder-derived `group`.
     # Post-restructure (2026-07-13) refined-cases live under
-    # ask-ck/objective-drafting/refined-cases/ — use the REFINED_DIR anchor from paths.py,
+    # ask-ck/functions/generator/refined-cases/ — use the REFINED_DIR anchor from paths.py,
     # matching case_registry.get_refined_group and refined_complete_keys.
     _export_group = get_refined_group(case_key, data)
     target_dir = REFINED_DIR / _export_group / case_key

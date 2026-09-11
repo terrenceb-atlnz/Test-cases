@@ -1003,11 +1003,11 @@ MORE INFO
 
     # Discover payloads (run from project root or tool/).
     # Post-2026-07-13 restructure, refined-cases live under
-    # ask-ck/objective-drafting/refined-cases/; fall back to the pre-restructure
+    # ask-ck/functions/generator/refined-cases/; fall back to the pre-restructure
     # root location for older checkouts.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(script_dir)  # copilot/Test-cases
-    base = os.path.join(root, "ask-ck", "objective-drafting", "refined-cases")
+    base = os.path.join(root, "ask-ck", "functions", "generator", "refined-cases")
     if not os.path.isdir(base):
         base = os.path.join(root, "refined-cases")  # pre-restructure fallback
     pattern = os.path.join(base, "**", "zephyr_payload.json")

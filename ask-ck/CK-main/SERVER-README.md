@@ -7,7 +7,7 @@ This document contains **all instructions for use, setup, configuration, archite
 > data layer, the four invariants, and where the risk actually sits. Read it first; this file is
 > the deep reference behind it.
 
-> **Layout note (2026-07-13):** the repo was restructured. Server code: `ask-ck/CK-main/CK_server/` (was `drafting-tool/drafting_server/`). Generator data, process docs, and `refined-cases/`: `ask-ck/objective-drafting/`. Filesystem anchors live in `CK_server/paths.py`. Historical session summaries at the bottom of this file keep their original (pre-move) paths.
+> **Layout note (2026-07-13):** the repo was restructured. Server code: `ask-ck/CK-main/CK_server/` (was `drafting-tool/drafting_server/`). Generator data, process docs, and `refined-cases/`: `ask-ck/functions/generator/`. Filesystem anchors live in `CK_server/paths.py`. Historical session summaries at the bottom of this file keep their original (pre-move) paths.
 
 ## Overview and Goals
 
@@ -32,7 +32,7 @@ The server-backed workbench fulfills the two main functions:
 
 This version replaces the original single-file static `index.html` approach.
 
-**Project state reference**: ~42 cases already processed using the overall workflow. The server version uses the same data sources and output formats (`ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
+**Project state reference**: ~42 cases already processed using the overall workflow. The server version uses the same data sources and output formats (`ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/{traceability.md, zephyr_payload.json}`).
 
 ## Architecture
 
@@ -445,7 +445,7 @@ UI step numbers below are the visible 1–6 Generator labels.
 7. **Step 6 – Test Steps (LLM)**: **Synthesize Test Steps** (first testScript step is always the server-built traceability note); edit/revise as needed.
 8. Click the teal **Export Repeatable Bundle** (appears after steps exist).
    - Produces: `traceability.md` (templated; **Gaps Noted** from LLM at synthesis/export), `AWPTCM-Txxxx-zephyr_payload.json` (exact Zephyr Scale shape), and session JSON (full provenance).
-   - Auto-persists server-side to `ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/`.
+   - Auto-persists server-side to `ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/`.
 9. **Push to Zephyr** (2026-07-22c; buttons next to Export) — publishes the exported bundle to the live Zephyr case.
    - **Preview Push (dry-run)** shows the exact plan with zero writes; **Push to Zephyr** performs it (with a confirm dialog).
    - On the case, in order: strip a leading `(N)`/`(…)` group from the **Name** → ensure **version 2.0** (`POST /rest/tests/1.0/testcase/{id}/newversion`; idempotent — bumps 1.0→2.0, skips if already ≥2.0) → PUT objective+testScript (lands on the new latest version) → replace `traceability.md` attachment (no duplicates) → post ART web-links.
@@ -457,7 +457,7 @@ UI step numbers below are the visible 1–6 Generator labels.
 
 Tables are compact to fit on one page with no side-scroll. The Zephyr review contains only external cases (current Cases list entries, including the primary, are omitted).
 
-The process and output formats are identical to what is documented in `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`.
+The process and output formats are identical to what is documented in `ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`.
 
 ## LLM Templating & Repeatability
 
@@ -516,7 +516,7 @@ source/courier files it was originally built from have been **retired and delete
 JSON/JSONL corpora on disk and **no rebuild step**. `tool/build_db.py` remains only as provenance
 of how the DB was constructed and refuses to run. The one raw original kept, purely as a provenance
 root (not read by anything), is the Zephyr XML export at
-`ask-ck/objective-drafting/data/zephyr_full/Zephyr-Database-*.xml`.
+`ask-ck/functions/generator/data/zephyr_full/Zephyr-Database-*.xml`.
 
 ### CLI command reference (`cli_commands`, added 2026-07-27; combined source 2026-09-08)
 
@@ -773,7 +773,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    portlink, and **asserts the bound port's media** via a shipped `ck_media.py`. Generation
    itself still reads **no** bench file — it targets the contract, because a bench-reading
    generator would silently weaken a test to fit the hardware present. Spec:
-   `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`; checker `tool/pt_profiles.py`; script-level
+   `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`; checker `tool/pt_profiles.py`; script-level
    check `tool/pt_preflight.py`. **`tests/test_pt_preflight.py` asserts over the real
    `generated/` tree, so what counts as a generated TEST SCRIPT matters (2026-08-31):** it
    globbed every `*.py` under `generated/`, which swept in both the `library` companion the
@@ -849,10 +849,10 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    shut one and **split the stack mid-run**, which then reads as a product failure rather
    than a test bug. Both key off the code shape, not the case text, so they fire whether or
    not the case is "about" stacking; both are silenced by the correct fix. See
-   `ask-ck/pytest-create/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
+   `ask-ck/functions/pytest-creator/{TEMPLATE-SPEC,LOGGING-CONTRACT,PART2A-WALKTHROUGH}.md`.
 6. **Run** — pick a stored testbox from the dropdown (or ➕ Add new testbox…), pick
    the `.setup` (schema + a real worked example:
-   **`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`** — it declares stack membership
+   **`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`** — it declares stack membership
    `[stack]`, the ports a test must never touch `[configured_stackport]`, and the testbox
    NIC ↔ switch port cabling `[portlink] tb-swi_X = ethN-portA.B.C`; these are DECLARED
    there and must never be inferred from case text), **Check Connection**,
@@ -862,7 +862,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
    refuses any SFTP write or remote command that would mutate it (guarded by
    `tool/guard_framework_readonly.py`); copy a framework file into the run workdir to
-   edit it. See the run-chain reference `ask-ck/test-composer/ART-EXECUTION-CHAIN.md`.
+   edit it. See the run-chain reference `ask-ck/functions/test-composer/ART-EXECUTION-CHAIN.md`.
 7. **Validate** — Final Validation = run done + every case PASS + zero failures +
    exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
    archived), which un-confirms steps 5-6 (Generate/Run) so the revision is re-reviewed
@@ -904,7 +904,7 @@ cd tool
 ```
 `GET /api/pytest-create/status` reports the DB-backed script count + enrichment %.
 
-**Generated artifacts:** `ask-ck/pytest-create/generated/<Group>/<Name>.py`, with
+**Generated artifacts:** `ask-ck/functions/pytest-creator/generated/<Group>/<Name>.py`, with
 per-test provenance, sequence, iteration history, and run logs under
 `generated/.meta/<Group>/<Name>/`. Generated scripts carry **inline source-provenance
 tags** on reused blocks (`# ART/SVT/legacy <id> <lines>`) and gap-fill (`# AI <model>
@@ -1316,7 +1316,7 @@ For the full approved plan, usage philosophy, and trade-off history, read `archi
 
 This SERVER-README.md is the single source of operational instructions.
 
-**For future sessions**: Start with `ask-ck/objective-drafting/PROGRESS.md`. It contains current status, completed work, open tasks, technical debt, prioritized backlog with effort estimates, and a handoff checklist.
+**For future sessions**: Start with `ask-ck/functions/generator/PROGRESS.md`. It contains current status, completed work, open tasks, technical debt, prioritized backlog with effort estimates, and a handoff checklist.
 
 Cross-reference higher-level project docs every session:
 - Root `README.md` (project framing, quick start, the four invariants, the documentation map —
@@ -1324,7 +1324,7 @@ Cross-reference higher-level project docs every session:
 - Root `CHANGELOG.md` (what changed, when, and why)
 - Root `SESSION_STATE.md` (broader session history)
 - Root `TESTBOX-ACCESS.md` (read in full before touching lab hardware)
-- `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
+- `ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md` (the authoritative process this tool supports)
 
 ---
 

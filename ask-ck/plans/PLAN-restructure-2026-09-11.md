@@ -68,7 +68,7 @@
 ### ✅ Batch 4 — `ask-ck/plans/`
 `ask-ck/ck-facelift/` → `ask-ck/plans/` (rename), plus `pytest-create/PLAN-*.md` (4), `CK-main/PLAN-*.md` (2, unless archived above), this file. `DECISIONS-FOR-REVIEW.md` and `demo-2026-09-11/` ride along. Sweep: `ask-ck/*/PLAN-*.md` globs in both skills → `ask-ck/plans/PLAN-*.md`; CLAUDE.md working-notes line; memories citing `ck-facelift/`.
 
-### Batch 5 — `ask-ck/functions/<page>/`
+### ✅ Batch 5 — `ask-ck/functions/<page>/`
 `objective-drafting/` → `functions/generator/`; `pytest-create/` → `functions/pytest-creator/`; `test-composer/` → `functions/test-composer/`; new empty `functions/zephyr-tool/` (with a README stub). Sweep: `paths.py` (5 anchors), `main.py` comments, `models.py:205`, the PROGRESS.md path in CLAUDE.md / both skills / README / memories, the process-doc path in the `pipeline-layer-contract` memory.
 
 ### Batch 6 — `ask-ck/tools/` and the page script dirs  *(server stopped)*

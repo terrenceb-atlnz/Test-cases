@@ -34,7 +34,7 @@ get rediscovered.
 
 ## Job 1 — author a `.setup`
 
-Reference: `ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`. The authoritative parser is
+Reference: `ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`. The authoritative parser is
 `framework/Setup.py` on the testbox (read-only); where the doc and `Setup.py` disagree,
 `Setup.py` wins.
 

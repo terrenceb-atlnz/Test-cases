@@ -5,10 +5,11 @@ Single source of truth for repo-layout paths after the ask-ck/ restructure:
     Test-cases/
     └── ask-ck/
         ├── CK-main/CK_server/       <- this package
-        ├── objective-drafting/      <- Generator data, refined-cases, process docs
-        ├── pytest-create/
-        ├── test-composer/
-        └── zephyr-tool/
+        └── functions/               <- one directory per page (2026-09-11 restructure)
+            ├── generator/           <- Generator data, refined-cases, process docs, PROGRESS.md
+            ├── pytest-creator/      <- PyTest Creator specs + generated/
+            ├── test-composer/
+            └── zephyr-tool/
 """
 
 from pathlib import Path
@@ -16,7 +17,7 @@ from pathlib import Path
 CK_SERVER_DIR = Path(__file__).resolve().parent            # .../ask-ck/CK-main/CK_server
 ASKCK_ROOT = CK_SERVER_DIR.parent.parent                   # .../ask-ck
 
-OBJECTIVE_DRAFTING_ROOT = ASKCK_ROOT / "objective-drafting"
+OBJECTIVE_DRAFTING_ROOT = ASKCK_ROOT / "functions" / "generator"
 REFINED_DIR = OBJECTIVE_DRAFTING_ROOT / "refined-cases"
 PROCESS_MD = OBJECTIVE_DRAFTING_ROOT / "OBJECTIVE_DRAFTING_PROCESS.md"
 # NOTE: the old corpus dir OBJECTIVE_DRAFTING_ROOT/"data" (and pytest-create/"data")
@@ -24,7 +25,7 @@ PROCESS_MD = OBJECTIVE_DRAFTING_ROOT / "OBJECTIVE_DRAFTING_PROCESS.md"
 # exists on purpose: nothing at runtime may read corpus JSON off disk.
 
 # PyTest Creator (see ask-ck/plans/PLAN-pytest-creator.md)
-PYTEST_CREATE_ROOT = ASKCK_ROOT / "pytest-create"
+PYTEST_CREATE_ROOT = ASKCK_ROOT / "functions" / "pytest-creator"
 PT_GENERATED_DIR = PYTEST_CREATE_ROOT / "generated"
 
 # LLM observability (see archive/plans/PLAN-llm-observability.md)

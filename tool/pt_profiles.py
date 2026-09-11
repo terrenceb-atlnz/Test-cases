@@ -58,7 +58,7 @@ the same pair is meant — exactly the copper/fibre ambiguity above. Keep link v
 comma-free: the framework turns any comma-bearing [misc] value into a list.
 
 TO ADD A PROFILE: add an entry to PROFILES below and a row to the table in
-`ask-ck/pytest-create/TOPOLOGY-PROFILES.md`. A test asserts those two agree, so they
+`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`. A test asserts those two agree, so they
 cannot drift.
 """
 from __future__ import annotations

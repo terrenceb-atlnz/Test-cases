@@ -7,7 +7,7 @@ implemented, 2026-07-30) and been worth nothing. So every conformance assertion 
 paired with a bench MUTATION that must break it.
 
 The other guarded failure is silent drift between `PROFILES` in the code and the profile
-table in `ask-ck/pytest-create/TOPOLOGY-PROFILES.md` — a doc that lists a profile the tool
+table in `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md` — a doc that lists a profile the tool
 does not implement, or vice versa, is worse than no doc.
 
 Pure unit tests — no DB, no network, no hardware, no LLM.
@@ -31,7 +31,7 @@ PROFILES = pt_profiles.PROFILES
 check_profile = pt_profiles.check_profile
 parse_link_ref = pt_profiles.parse_link_ref
 
-SPEC = REPO / "ask-ck" / "pytest-create" / "TOPOLOGY-PROFILES.md"
+SPEC = REPO / "ask-ck" / "functions" / "pytest-creator" / "TOPOLOGY-PROFILES.md"
 
 
 # --------------------------------------------------------------------------- fixture

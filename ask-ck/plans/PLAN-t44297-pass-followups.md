@@ -8,7 +8,7 @@
 > 2026-09-09 (the first full loop on the ART-frame shape). This file is the **authority for
 > items 1–6**; **item 7 is delegated** to `PLAN-fix-units-guardrails.md` and only pointed to
 > here. The loose list these came from is the "Pending fixes" block at the top of
-> `ask-ck/objective-drafting/PROGRESS.md`; that block now defers to this plan.
+> `ask-ck/functions/generator/PROGRESS.md`; that block now defers to this plan.
 >
 > Severity is not uniform. **#5 was the data-safety hazard and outranked everything else** —
 > closed 2026-09-10 once the real cause turned out to be two SQLite libraries in one process,

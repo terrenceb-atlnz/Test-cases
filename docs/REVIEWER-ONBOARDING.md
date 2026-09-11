@@ -356,7 +356,7 @@ Each of these looks like a defect and is not. They are settled, with reasons.
    endpoint and follow it.
 7. `ask-ck/CK-main/SERVER-README.md` — the deep reference. Use it as a lookup, not a read.
 
-`CHANGELOG.md` explains *why* things changed, and `ask-ck/objective-drafting/PROGRESS.md` has
+`CHANGELOG.md` explains *why* things changed, and `ask-ck/functions/generator/PROGRESS.md` has
 the current state at the top.
 
 ---

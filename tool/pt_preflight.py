@@ -31,7 +31,7 @@ Two failure classes, both observed on the real tb470 bench (2026-07-30):
 
 Usage:
   python3 tool/pt_preflight.py --setup /path/to/tb470.setup
-  python3 tool/pt_preflight.py --setup tb470.setup --script ask-ck/pytest-create/generated/Port/x.py
+  python3 tool/pt_preflight.py --setup tb470.setup --script ask-ck/functions/pytest-creator/generated/Port/x.py
   python3 tool/pt_preflight.py --setup tb470.setup --json
 
 The bench file lives outside this repo. For tb470 use the always-current local copy on
@@ -59,7 +59,7 @@ from typing import Dict, List, Optional, Sequence, Set, Tuple
 LOCAL_TB470_SETUP = "~/claude/IE520-testing/bench-setup/tb470.setup.current"
 
 REPO = Path(__file__).resolve().parent.parent
-DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "pytest-create" / "generated"
+DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "functions" / "pytest-creator" / "generated"
 
 TB = "tb"  # the framework's reserved name for the testbox itself
 
@@ -550,7 +550,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     help="the bench .setup file (copy it down from the testbox first)")
     ap.add_argument("--script", action="append", default=[], metavar="PATH",
                     help="a generated script; repeatable. Default: every .py under "
-                         "ask-ck/pytest-create/generated/")
+                         "ask-ck/functions/pytest-creator/generated/")
     ap.add_argument("--json", action="store_true", help="machine-readable report on stdout")
     ap.add_argument("--profile", action="append", default=[], metavar="NAME",
                     help="instead of checking scripts, check whether the bench IMPLEMENTS "

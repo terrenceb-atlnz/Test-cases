@@ -90,7 +90,7 @@
 
 ## Status Checklist
 
-- [x] **Phase 0 — Plan tracker:** this file saved to `ask-ck/pytest-create/` (2026-07-14)
+- [x] **Phase 0 — Plan tracker:** this file saved to `ask-ck/functions/pytest-creator/` (2026-07-14)
 - [x] **Phase A — Index** (no hardware/UI) — DONE 2026-07-14
   - [x] `tool/build_script_index.py` mechanical AST pass over the 3 script roots (999 files: art 188 tests + 51 libs, svt 77 files, legacy 683 files; 120 py2-vintage regex fallbacks)
   - [x] `--framework` pass → `framework_surface.json` (55 modules from `DeviceSkrips/framework`)
@@ -122,7 +122,7 @@
 1. Run the enrichment pass with a logged-in CLI: `tool/enrich_script_index.py --limit 100` (repeat to taste), then `tool/build_script_index.py` to merge.
 2. First full walkthrough of steps 2–6 with a real LLM on `AWPTCM-T33234` (Port — Auto MDI/MDI-X; the mechanical search already surfaces `legacy/5000_mdi_mdix/*` as top hits).
 3. Add a real testbox in the Testboxes panel, `Check Connection`, and shake out the SSH run path end-to-end.
-4. Consider `.gitignore`/LFS treatment for `ask-ck/pytest-create/data/` (~2.6 MB regenerable index files) — currently untracked.
+4. Consider `.gitignore`/LFS treatment for `ask-ck/functions/pytest-creator/data/` (~2.6 MB regenerable index files) — currently untracked.
 5. **Server-side setup templates — designed 2026-09-01, not built. See §8.** Storage decided
    (shared committed + personal gitignored), `[misc]` profile claims mandatory, run wiring is
    a one-branch change because `_run` already SFTPs arbitrary files. Four open questions in §8.8.
@@ -184,7 +184,7 @@
   already specified this half — §2 says the run SFTPs the chosen setup as *"remote path from
   profile or UI-uploaded content"* — and that `RunManager._run` already SFTPs any
   `{filename: code}` entry into the guarded workdir, so the transport needs no change. Three
-  decisions taken: storage is BOTH a committed `ask-ck/pytest-create/setups/` and a personal
+  decisions taken: storage is BOTH a committed `ask-ck/functions/pytest-creator/setups/` and a personal
   `ask-ck/var/setups/` (already gitignored, no `.gitignore` edit); every template must carry
   its `[misc]` profile claims so `pt_profiles`/`pt_preflight` can answer "which template fits
   this case" and "will this script bind" offline; and the design lands in writing before code.
@@ -219,7 +219,7 @@
 
 ## Context
 
-Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI test-engineering workbench. Its mature tool (the Objective/Test Case Generator) refines AWPTCM manual test cases; ~42 completed cases exist under `ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/` with Zephyr-ready steps in `zephyr_payload.json`.
+Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI test-engineering workbench. Its mature tool (the Objective/Test Case Generator) refines AWPTCM manual test cases; ~42 completed cases exist under `ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/` with Zephyr-ready steps in `zephyr_payload.json`.
 
 **Goal:** build the **PyTest Creator** — currently a stub (`CK_server/routers/pytest_create.py` returns 501; the "Cases" sidebar step already lists Complete cases) — into a guided pipeline: extract a prescriptive test-step sequence from a completed case → search a new index of the three script databases for full/partial/no coverage → decide reuse vs new → gather reusable fragments → LLM-generate the composite script using the Allied Telesis `framework` library → execute on a real testbox selected from a stored dropdown → parse the framework log → LLM-fix and repeat until Final Validation. Every step has a human review/confirm gate, mirroring the existing wizard.
 
@@ -252,7 +252,7 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
 
 1. **Indexing:** hybrid — re-runnable offline pipeline: mechanical AST extraction + LLM enrichment → index JSONs loaded at startup.
 2. **Testing:** the tool executes generated scripts on a testbox. The UI presents a **dropdown of stored testboxes (IP address and tb number at minimum)** plus an **"Add new testbox…" option** that opens a form to populate the dropdown for repeated use.
-3. **Output:** function-based names organized by the refined-cases group structure — `ask-ck/pytest-create/generated/<Group>/<FunctionName>.py` (e.g. `generated/Port/MDIX_test.py`). At creation the tool proposes a group + name and **prompts the user to edit the naming** before saving. Promotion to testsuites_art is manual after validation.
+3. **Output:** function-based names organized by the refined-cases group structure — `ask-ck/functions/pytest-creator/generated/<Group>/<FunctionName>.py` (e.g. `generated/Port/MDIX_test.py`). At creation the tool proposes a group + name and **prompts the user to edit the naming** before saving. Promotion to testsuites_art is manual after validation.
 4. **Plan tracking:** this file is the living progress tracker.
 
 ---
@@ -271,7 +271,7 @@ EXCLUDES = ["1371_trex_traffic_tests", "trex_libs", "3009_pluggable_qualificatio
 
 **Pass 2 — LLM enrichment (resumable):** reuse `llm.render_prompt` + `llm._call_llm_with_meta` via `sys.path` insert of `CK_server/`. New template `templates/prompts/enrich_script_index.jinja`: batches of ~10 mechanical records (never full source) → `{summary, feature_tags[], covered_actions[]}` per id. Append to `pytest-create/data/scripts_index_enrich.jsonl` keyed by sha1; reruns skip seen sha1s. `--mechanical-only` flag so Phase A completes without LLM.
 
-**Outputs** in `ask-ck/pytest-create/data/`: `scripts_index.json` (full records), `scripts_slim_index.json` (`{id, db, suite_dir, kind, title, feature_tags, summary, n_cases}` — the search corpus), `scripts_index.meta.json` (build info, enrichment coverage %).
+**Outputs** in `ask-ck/functions/pytest-creator/data/`: `scripts_index.json` (full records), `scripts_slim_index.json` (`{id, db, suite_dir, kind, title, feature_tags, summary, n_cases}` — the search corpus), `scripts_index.meta.json` (build info, enrichment coverage %).
 
 **Framework surface index (same script, `--framework` pass):** walk `DeviceSkrips/framework/` (`ATTestSet.py`, `ATTestCase.py`, `Setup.py`, `ATPackets.py`, `ATDrivers/*.py`, `ATLibrary/*.py`) and emit `framework_surface.json` — per module: classes, public methods (name, args, first docstring line). This is the vocabulary the matching and generation prompts use, so generated code can call any part of the library (drivers, helpers, packet builders), not just the two base classes. Mechanical `imports` extraction in Pass 1 records which framework modules each existing script actually uses — a strong matching signal (e.g. a case needing PoE points at scripts importing `ATDrivers.ATPower`/Sifos helpers).
 
@@ -442,7 +442,7 @@ consequences:
 
 | Origin | Path | Tracked? |
 |---|---|---|
-| **shared** | `ask-ck/pytest-create/setups/<name>.setup` | committed — diffable, reviewable, travels with the tool |
+| **shared** | `ask-ck/functions/pytest-creator/setups/<name>.setup` | committed — diffable, reviewable, travels with the tool |
 | **personal** | `ask-ck/var/setups/<name>.setup` | already gitignored by the existing `ask-ck/var/*` rule — **no `.gitignore` change needed** |
 
 - A template is identified by `(origin, name)`, never by name alone, so a personal

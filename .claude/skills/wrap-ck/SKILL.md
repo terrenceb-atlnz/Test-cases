@@ -48,7 +48,7 @@ E2E must not.
 
 ## 3. Dated logs — APPEND, never rewrite
 
-- `ask-ck/objective-drafting/PROGRESS.md` — add a `## Latest session (YYYY-MM-DD…)` entry at
+- `ask-ck/functions/generator/PROGRESS.md` — add a `## Latest session (YYYY-MM-DD…)` entry at
   the **top**. This is the file the next session reads first, so it carries the real weight:
   what shipped, what is pending, what is blocked and on what, and where to pick up.
 - `SESSION_STATE.md` — add a `## Session Close / Handoff (YYYY-MM-DD…)` entry at the **end**.

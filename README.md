@@ -29,7 +29,7 @@ It draws on two historical silos to decide what a case *should* verify:
 | **ATPyLib** (automated) | Enriched suites describing what automation actually tests *for* |
 
 **Authoritative process:**
-[`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md).
+[`ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md).
 
 ## Quick start
 
@@ -156,11 +156,11 @@ search, including literal script-code chunks):
 | Semantic embeddings | 83,816 |
 
 The former on-disk courier corpora were retired into `ck.db` and **deleted** — do not look for
-them on disk. What remains under `ask-ck/objective-drafting/data/` is the immutable Zephyr XML
+them on disk. What remains under `ask-ck/functions/generator/data/` is the immutable Zephyr XML
 export (LFS) that `ck.db` was built from, enrichment *docs*, and review scratch.
 
 **Output:** refined cases are exported to
-`ask-ck/objective-drafting/refined-cases/<Group>/AWPTCM-Txxxx/` as `traceability.md` +
+`ask-ck/functions/generator/refined-cases/<Group>/AWPTCM-Txxxx/` as `traceability.md` +
 `zephyr_payload.json`. A case is **Complete** once that bundle exists. There are currently
 **53** across Port, IPv4, Switching, QoS, Sanity Check, Authentication & Security, Management,
 Bootloader and Other.
@@ -216,15 +216,15 @@ Test-cases/
 
 | Doc | Use for |
 |---|---|
-| [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md) | **Start here** — status, backlog, handoff (newest entry at the top) |
+| [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md) | **Start here** — status, backlog, handoff (newest entry at the top) |
 | [`ask-ck/ARCHITECTURE.md`](ask-ck/ARCHITECTURE.md) | Executive summary — system shape, the invariants, where the risk sits |
 | [`ask-ck/CK-main/SERVER-README.md`](ask-ck/CK-main/SERVER-README.md) | The deep technical reference — run, architecture, LLM modes, nginx |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed, when, and **why** |
-| [`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md) | The Generator's authority (Steps 1–2) |
+| [`ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md) | The Generator's authority (Steps 1–2) |
 | [`ask-ck/plans/PLAN-pytest-creator.md`](ask-ck/plans/PLAN-pytest-creator.md) | PyTest Creator plan + progress tracker |
-| [`ask-ck/pytest-create/TOPOLOGY-PROFILES.md`](ask-ck/pytest-create/TOPOLOGY-PROFILES.md) | Topology contract that generated scripts target |
-| [`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](ask-ck/pytest-create/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
-| [`ask-ck/objective-drafting/LESSONS_LEARNED.md`](ask-ck/objective-drafting/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
+| [`ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`](ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md) | Topology contract that generated scripts target |
+| [`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
+| [`ask-ck/functions/generator/LESSONS_LEARNED.md`](ask-ck/functions/generator/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
 | [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
 | [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 
@@ -251,5 +251,5 @@ gated on an organisational decision. Never commit credentials — `secrets.md`,
 
 > **Note:** primary development is on an internal machine; this GitHub tree is a published
 > copy. On 2026-07-13 the repo was restructured (`drafting-tool/` → `ask-ck/CK-main/`; root
-> `data/` and `refined-cases/` → `ask-ck/objective-drafting/`), so historical documents may
+> `data/` and `refined-cases/` → `ask-ck/functions/generator/`), so historical documents may
 > still reference pre-move paths.

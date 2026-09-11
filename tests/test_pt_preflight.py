@@ -400,7 +400,7 @@ def _is_test_script(path: Path) -> bool:
 # that was regenerated BECAUSE it was wrong reddens the gate forever, and _verdicts (keyed
 # on p.name) silently collapses a snapshot and its live file into one entry. Latent since
 # the first multi-iteration case; it only bites once a case is generated more than once.
-_GENERATED = sorted(p for p in (REPO / "ask-ck" / "pytest-create" / "generated").rglob("*.py")
+_GENERATED = sorted(p for p in (REPO / "ask-ck" / "functions" / "pytest-creator" / "generated").rglob("*.py")
                     if ".meta" not in p.parts)
 REAL_SCRIPTS = [p for p in _GENERATED if _is_test_script(p)]
 # A filter that quietly matched nothing would turn every assertion below into a vacuous

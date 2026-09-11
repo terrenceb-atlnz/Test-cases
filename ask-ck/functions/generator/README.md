@@ -2,15 +2,15 @@
 
 Data, process docs, and exported artefacts for the **Objective/Test Case Generator** — the first tool in the **Ask CK** workbench (`ask-ck/CK-main/`). The generator implements **`OBJECTIVE_DRAFTING_PROCESS.md`**: review TestLink → Zephyr → ATPyLib, then synthesize Objectives + testScript with a real LLM, and export drop-in `refined-cases/` artifacts.
 
-> **Layout note (2026-07-13):** the former `drafting-tool/` directory was split — server code now lives in `ask-ck/CK-main/CK_server/`, while this directory (`ask-ck/objective-drafting/`) holds the generator's data, process docs, and outputs.
+> **Layout note (2026-07-13):** the former `drafting-tool/` directory was split — server code now lives in `ask-ck/CK-main/CK_server/`, while this directory (`ask-ck/functions/generator/`) holds the generator's data, process docs, and outputs.
 
 ## Start here
 
 | Doc | Purpose |
 |-----|---------|
 | **[PROGRESS.md](PROGRESS.md)** | Current status, backlog, technical debt, session handoff |
-| **[../CK-main/SERVER-README.md](../CK-main/SERVER-README.md)** | Run, architecture, LLM CLI modes, nginx, workflow |
-| [PLAN-server-backed.md](../../archive/records/PLAN-server-backed.md) | Approved design and rationale (historical paths; archived 2026-09-11) |
+| **[../CK-main/SERVER-README.md](../../CK-main/SERVER-README.md)** | Run, architecture, LLM CLI modes, nginx, workflow |
+| [PLAN-server-backed.md](../../../archive/records/PLAN-server-backed.md) | Approved design and rationale (historical paths; archived 2026-09-11) |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Decisions and pitfalls from prior sessions |
 
 ## Quick start
@@ -70,15 +70,15 @@ ask-ck/
 
 ## Legacy single-file UI
 
-The old single-file `index.html` and its design assets were archived to `archive/CK-main/` on 2026-09-11 (reference only). **New work belongs in `../CK-main/CK_server/`.**
+The old single-file `index.html` and its design assets were archived to `archive/CK-main/` on 2026-09-11 (reference only). **New work belongs in `../../CK-main/CK_server/`.**
 
-Design tokens / showcase (the 2026-07-13 design system; archived 2026-09-11, superseded by the Svelte front-end work): `../../archive/CK-main/design-tokens.css`, `design-guidelines-showcase.html`, `STYLE-GUIDELINES.md`.
+Design tokens / showcase (the 2026-07-13 design system; archived 2026-09-11, superseded by the Svelte front-end work): `../../../archive/CK-main/design-tokens.css`, `design-guidelines-showcase.html`, `STYLE-GUIDELINES.md`.
 
 ## Project context
 
 Root docs:
 
-- `../../README.md` — project overview
+- `../../../README.md` — project overview
 - `OBJECTIVE_DRAFTING_PROCESS.md` — process source of truth (lives here)
-- `../../SESSION_STATE.md` — broader history
+- `../../../SESSION_STATE.md` — broader history
 - `refined-cases/` — exported artefacts (lives here)

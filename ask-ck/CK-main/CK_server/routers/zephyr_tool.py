@@ -1,8 +1,8 @@
 """Zephyr Templating Tool — backend stub.
 
 Paired with the "Zephyr Templating Tool" sidebar section in the Ask CK UI.
-Tool-specific assets will live under ask-ck/zephyr-tool/ (mirroring how
-ask-ck/objective-drafting/ backs the Objective/Test Case Generator).
+Tool-specific assets will live under ask-ck/functions/zephyr-tool/ (mirroring how
+ask-ck/functions/generator/ backs the Objective/Test Case Generator).
 """
 
 from fastapi import APIRouter

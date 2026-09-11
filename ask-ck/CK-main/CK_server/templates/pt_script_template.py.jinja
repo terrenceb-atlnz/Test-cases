@@ -171,7 +171,7 @@ class TestSet(ATTestSet.TestSet):
              where they are meaningless, so the run would report a PRODUCT failure that is
              really a cabling error.
         Raising aborts the suite on purpose: "this bench cannot host this test" is not a
-        test result. See ask-ck/pytest-create/TOPOLOGY-PROFILES.md.
+        test result. See ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md.
         """
         import ck_media
         ref = misc.get('ck_link_' + role)

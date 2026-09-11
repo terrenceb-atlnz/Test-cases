@@ -187,7 +187,7 @@ def test_the_real_bundles_now_yield_their_links():
     Before the fix this was 1 bundle and 2 links — the single hand-written bundle that
     happened to use the parser's spelling.
     """
-    base = _REPO / "ask-ck" / "objective-drafting" / "refined-cases"
+    base = _REPO / "ask-ck" / "functions" / "generator" / "refined-cases"
     if not base.is_dir():
         pytest.skip("refined-cases/ not present in this checkout")
     total = sum(len(ur.parse_zephyr_links(str(md)))

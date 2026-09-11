@@ -586,7 +586,7 @@ The headless tools were the other source of LLM calls. Classified by Terrence's 
 | `tool/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
 
 `tool/pt_grade.py` and `tool/pt_preflight.py` make no LLM call and stay. The retired tools'
-result directories (`ask-ck/pytest-create/autopilot/`, `comparison/`, `judging/`) are records
+result directories (`ask-ck/functions/pytest-creator/autopilot/`, `comparison/`, `judging/`) are records
 and stay; `autopilot/RESUME.md` gets a "⚠ Historical" banner because its instructions can no
 longer be followed. `.claude/agents/genpop.agent.md` loses its `pt_autopilot` line; the two
 memories that name these tools are corrected.

@@ -17,7 +17,7 @@
 > **2026-09-10:** RC6/G8 added (suite-owned state) after D5's investigation showed the fixer had
 > put `no lldp run` in tc1's `tear_down()` — a command the setup unit owns; D5 resolved.
 >
-> Related pending items in `ask-ck/objective-drafting/PROGRESS.md` ("Pending fixes"): #4
+> Related pending items in `ask-ck/functions/generator/PROGRESS.md` ("Pending fixes"): #4
 > (constrained `kind` vocabulary — G5 depends on it), #5 (ck.db WAL-on-NFS — G4 shrinks the
 > write pattern that triggered it), #6 (headless review transport).
 

@@ -17,7 +17,7 @@ import pathlib
 import pytest
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_REFINED = _REPO_ROOT / "ask-ck" / "objective-drafting" / "refined-cases"
+_REFINED = _REPO_ROOT / "ask-ck" / "functions" / "generator" / "refined-cases"
 _THROWAWAY_KEY = "AWPTCM-T99990"
 
 

@@ -18,7 +18,7 @@ a bench:
 - a bench → declares the profiles it **implements**, in its own `[misc]`
 - `tool/pt_profiles.py` → **matches** them, emits a shopping list
 
-Spec: `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`. Check:
+Spec: `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`. Check:
 `python3 tool/pt_preflight.py --setup <bench>.setup --profile all`.
 **`tool/pt_profiles.py` is authoritative**; a test asserts the spec's table and `PROFILES`
 list identical names, so they cannot drift (mutation-verified).

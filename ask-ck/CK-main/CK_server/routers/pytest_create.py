@@ -3038,7 +3038,7 @@ def _lint_generated(sess: PtSession) -> dict:
                 f"run-time MEDIA assertion. Bind through `self.{_helper}(setup, <dut>, misc, "
                 f"'<role>')` instead — a port bound without that check can be the wrong media, "
                 f"and the resulting failure reads as a product defect rather than a cabling "
-                f"error. See ask-ck/pytest-create/TOPOLOGY-PROFILES.md")
+                f"error. See ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md")
         if not _calls_helper:
             _port_attr_rx = re.compile(r"\.port[A-Z]\w*\b")
             for _i, _line in enumerate(code.splitlines(), 1):

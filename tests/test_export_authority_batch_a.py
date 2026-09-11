@@ -191,7 +191,7 @@ def test_every_refined_bundle_is_valid_json():
     import pathlib
 
     refined = (pathlib.Path(__file__).resolve().parents[1]
-               / "ask-ck" / "objective-drafting" / "refined-cases")
+               / "ask-ck" / "functions" / "generator" / "refined-cases")
     if not refined.exists():
         pytest.skip("refined-cases/ not present")
 
@@ -209,7 +209,7 @@ def test_every_refined_bundle_passes_the_export_gate():
     import pathlib
 
     refined = (pathlib.Path(__file__).resolve().parents[1]
-               / "ask-ck" / "objective-drafting" / "refined-cases")
+               / "ask-ck" / "functions" / "generator" / "refined-cases")
     if not refined.exists():
         pytest.skip("refined-cases/ not present")
 

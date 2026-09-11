@@ -1,7 +1,7 @@
 """Test Composer — backend stub.
 
 Paired with the "Test Composer" sidebar section in the Ask CK UI.
-Tool-specific assets will live under ask-ck/test-composer/.
+Tool-specific assets will live under ask-ck/functions/test-composer/.
 """
 
 from fastapi import APIRouter

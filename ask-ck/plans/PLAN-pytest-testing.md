@@ -60,7 +60,7 @@
 > - ✅ **Part 2B build** (comparison harness `tool/pt_model_matrix.py`, retired 2026-09-11) — done
 >   2026-07-22; keyword-vs-LLM + 5-model matrix (vLLM-fast/thinking, Claude
 >   Haiku/Sonnet/Opus) run live across all three target cases. Results:
->   `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI
+>   `ask-ck/functions/pytest-creator/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI
 >   logged in but quota-exhausted (real 403) — omitted with reason, not silently
 >   dropped, per the plan's own instruction (§2 Phase 2B).
 > - ✅ **Streaming transport for the vLLM path** (the "fix #2" §7.7 flagged as the
@@ -646,7 +646,7 @@ Two independent comparisons, both **logged for side-by-side analysis**:
 UI. Part 2B needs a small **offline harness** that, given a case + step, runs the same
 rendered prompt through each model in the matrix and writes a structured result row
 (model, step, case, prompt_hash, output, tok_in, tok_out, latency, score) to a results
-file under `ask-ck/pytest-create/data/` (or `.meta/`). This is a build item, scoped as
+file under `ask-ck/functions/pytest-creator/data/` (or `.meta/`). This is a build item, scoped as
 part of Part 2B, not free.
 
 **Model-access note (confirmed direction):** the matrix includes Claude Haiku/Sonnet/
@@ -737,7 +737,7 @@ run (now unblocked — tb470 is live).
    objective-drafting does** (`refined-cases/<Group>/AWPTCM-Txxxx/…`). The generated
    Python tests and their comparison/judging artifacts sort by case so they relate
    back to the source case for later reference. (Concretely: results under
-   `ask-ck/pytest-create/generated/<Group>/` and `.meta/<Group>/<Name>/` already key
+   `ask-ck/functions/pytest-creator/generated/<Group>/` and `.meta/<Group>/<Name>/` already key
    by case; the Part 2B/3 comparison + judging files join that per-case structure and
    are committed, not gitignored.)
 
@@ -961,7 +961,7 @@ stale-config or empty-fragments paths).
    run requested this session — leaving them broken would have meant the
    matrix couldn't run at all for 2 of 3 target cases. The wizard-side twin of
    7.3 was explicitly NOT fixed (bigger blast radius, not blocking).
-2. **Result-file placement:** `ask-ck/pytest-create/comparison/<Group>/<CaseKey>/<step>.json`
+2. **Result-file placement:** `ask-ck/functions/pytest-creator/comparison/<Group>/<CaseKey>/<step>.json`
    — invented (no `generated/` dir exists yet to mirror), but follows the same
    per-case-under-Group convention as `refined-cases/` and the planned
    `generated/` layout per §5 decision 4. Committed, not gitignored (prompts/
@@ -979,7 +979,7 @@ stale-config or empty-fragments paths).
 ### 7.7 Part 2B results — model matrix (75 real calls: 3 cases × 5 steps × 5 models)
 
 Full run: 71/75 completed, 4 real (non-silent) failures. Results committed at
-`ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`.
+`ask-ck/functions/pytest-creator/comparison/Port (7)/<CaseKey>/<step>.json`.
 
 **Per-model reliability + latency (successful calls only):**
 
@@ -1146,7 +1146,7 @@ per chunk and converted to tokens via the authoritative final
      streaming does not make the thinking model practical for large output.
 - **Infographic (both models' reasoning-vs-answer token curves on a shared token axis,
   own time axes, with hover):** self-contained HTML at
-  `ask-ck/pytest-create/comparison/vllm_tokens.html`; also published as a Claude
+  `ask-ck/functions/pytest-creator/comparison/vllm_tokens.html`; also published as a Claude
   artifact. Token axis is derived (streamed chars × each run's final `usage` ratio) —
   labelled as such, not per-token telemetry.
 
@@ -1304,7 +1304,7 @@ unreviewed artifact.
 
 ### 10.5 Results (criteria 1-3 + 6-offline, all three cases)
 
-Artifacts: `ask-ck/pytest-create/judging/Port (7)/<CaseKey>/mechanical.json`.
+Artifacts: `ask-ck/functions/pytest-creator/judging/Port (7)/<CaseKey>/mechanical.json`.
 
 | Case | C1 template | C2 snippets | C3 order | C6 logging (offline) |
 |---|---|---|---|---|

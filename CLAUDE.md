@@ -112,7 +112,7 @@ on one, and before reporting it missing.
 
 ## Working notes
 
-`ask-ck/objective-drafting/PROGRESS.md` is the highest-value file in the repo (newest entry at
+`ask-ck/functions/generator/PROGRESS.md` is the highest-value file in the repo (newest entry at
 the **top**). `SESSION_STATE.md` is long-form history; only its tail is current. Plans are
 `ask-ck/plans/PLAN-*.md` — read a plan's status header before touching its subsystem, and treat
 settled decisions there as settled. This tree is shared with a concurrent stream, so re-check

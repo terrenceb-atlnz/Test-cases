@@ -53,7 +53,7 @@
 - **Why here:** a testset can't `init()` its devices without it. **This is the one hard
   dependency the DIRECT single-script path shares** (`-s <setup>`).
 - **Full schema + a real worked example:**
-  **[`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](../pytest-create/SETUP-FILE-REFERENCE.md)**
+  **[`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](../pytest-creator/SETUP-FILE-REFERENCE.md)**
   — every section `Setup.py` parses, with `[stack]` (stack membership),
   `[configured_stackport]` (ports a test must never touch) and
   `[portlink] tb-swi_X = ethN-portA.B.C` (testbox NIC ↔ switch port cabling) called out,
@@ -113,7 +113,7 @@
      numFailed f)` block around each.
   6. `TestSet.tear_down()` — one-time suite cleanup. (Skipped if `noconf`.)
 - **Log contract** (per-step PASS/FAIL) is specified in
-  `../pytest-create/LOGGING-CONTRACT.md`.
+  `../pytest-creator/LOGGING-CONTRACT.md`.
 
 ### 7–9. Result retrieval (our path)
 - **7. Log produced:** `test-<suiteNum>.<setNum>.log` next to the script.
@@ -131,7 +131,7 @@ chain collapses to:
 1. **`configs/<hostname>.setup` exists** (topology; device on u5). ← hard requirement.
 2. *(maybe)* **`configs/<hostname>.cfg` exists** — needed by the suite runners; the
    direct `-s` path appears NOT to read it. **VERIFY on first real run** (§5b of
-   `../plans/PLAN-pytest-testing.md`): if the direct run errors on a missing
+   `../../plans/PLAN-pytest-testing.md`): if the direct run errors on a missing
    config.cfg, generate it with `config_gen.py`; else it's out of scope.
 3. *(optional)* firmware already loaded (skip build-load unless testing a build).
 4. `sudo python3 test-<suite>.<set>.py -s <setup> -v` → log → SFTP back → parse.
@@ -154,7 +154,7 @@ the test SCRIPT only; setup/config are environment inputs.
 ## Open verifications (do on the first real tb470 run)
 - [ ] Does the direct `-s` single-script path need `config.cfg`, or only the `.setup`?
 - [x] Exact `.setup` schema needed for tb470 (device on u5) — captured 2026-07-28 in
-      **[`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](../pytest-create/SETUP-FILE-REFERENCE.md)**:
+      **[`ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`](../pytest-creator/SETUP-FILE-REFERENCE.md)**:
       a real worked example plus every section `Setup.py` accepts, including `[stack]`,
       `[configured_stackport]`, and the `tb-swi_X = ethN-portA.B.C` cabling convention.
       Writing `configs/tb470.setup` still needs tb470's device list and cabling.

@@ -37,7 +37,7 @@ Phase 4's CLI grounding is correctly scoped to `pt_extract_sequence.jinja` and
 had been told to state measurable outcomes, which is the script's job. Removing the demand
 removed the need for the grounding.
 
-**The authority for the wizard layer is `ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`**,
+**The authority for the wizard layer is `ask-ck/functions/generator/OBJECTIVE_DRAFTING_PROCESS.md`**,
 Steps 1 and 2 — not the prompt files. Its banner disclaims only the data-access paths and
 explicitly vouches for the METHOD, and on every point checked so far the doc was right and
 `generate_steps.jinja` had drifted. See [[scoped-directives-stay-scoped]].

@@ -48,7 +48,7 @@ of the handoff log carried most of the value. Budget accordingly:
 
 | Read | How much | Why |
 |---|---|---|
-| `ask-ck/objective-drafting/PROGRESS.md` | **`head -60`** — the newest entry only | Highest value per line in the repo. Newest entries are at the TOP and are current truth. Read further only where that entry points forward. |
+| `ask-ck/functions/generator/PROGRESS.md` | **`head -60`** — the newest entry only | Highest value per line in the repo. Newest entries are at the TOP and are current truth. Read further only where that entry points forward. |
 | `SESSION_STATE.md` | the **last** `## Session Close / Handoff` entry (`tail`) | Long-form history; the tail is the only current part. Watch for "superseded by …" notes that make older docs wrong. |
 | `CHANGELOG.md` | **`head -40`** — the newest dated entry only | The dated feature history, newest first (split out of the README's old status table on 2026-08-17). Tells you what shipped most recently and *why*. |
 | `README.md` | **skip at orientation** unless the task needs it | It is now a short navigational entry point (what the system is, quick start, the invariants, the doc map) — not a status document. Nothing in it changes session to session, so it is not worth the budget. |
@@ -169,7 +169,7 @@ Real user traffic *should* dirty `ck.db`; that is not a violation.
 
 ## 6. Brief the user, then stop
 
-Keep it dense and skimmable. Use clickable relative paths (`[PROGRESS.md](ask-ck/objective-drafting/PROGRESS.md#L12)`).
+Keep it dense and skimmable. Use clickable relative paths (`[PROGRESS.md](ask-ck/functions/generator/PROGRESS.md#L12)`).
 
 - **(a) Where it stands** — 4–6 concrete sentences from the newest handoff entry.
 - **(b) What remains, ranked**, grouped as: *active thread — pick up here* / *blocked or
