@@ -5,7 +5,7 @@ locally-logged-in Claude Code CLI seat — even when Ask CK itself is a shared
 webpage hosted on another box. Your seat is never shared with other users; the
 shared server never sees a credential.
 
-See the design in [`../CK-main/PLAN-per-user-agent.md`](../CK-main/PLAN-per-user-agent.md).
+See the design in [`archive/plans/PLAN-per-user-agent.md`](../../archive/plans/PLAN-per-user-agent.md) (archived 2026-09-11).
 
 ## Prerequisites
 

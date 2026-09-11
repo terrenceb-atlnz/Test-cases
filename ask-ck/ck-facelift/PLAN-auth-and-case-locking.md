@@ -2,6 +2,8 @@
 
 > ## Status (read first)
 >
+> **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
+>
 > **PHASE 1 (case locking) — DONE 2026-07-29.** Phases 2 (identity) and 3 (attribution +
 > TLS) remain PLANNED and are gated on the org identity decision (D1/D2). Captured
 > 2026-07-27g at Terrence's direction after the adversarial review closed; Terrence chose

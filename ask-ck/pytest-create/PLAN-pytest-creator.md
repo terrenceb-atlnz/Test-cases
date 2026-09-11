@@ -4,6 +4,8 @@
 > as milestones land (same convention as `ck-facelift/PLAN-facelift.md`).
 > Approved: 2026-07-14.
 >
+> **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
+>
 > **Data-layer note (2026-07-20)**: the script-index build described here
 > (`build_script_index.py` → `scripts_index.json` / `scripts_slim_index.json` /
 > `scripts_sources.jsonl` / `framework_surface.json` / `scripts_index_enrich.jsonl`) is now

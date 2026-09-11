@@ -1,5 +1,7 @@
 # PyTest Creator — Testing & Standardization Plan
 
+> **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
+>
 > **Bench note (2026-08-04b) — no phase advanced, but tb470's HOST config changed.** A DHCP
 > repair session altered tb470 outside this plan's scope: `INTERFACESv4` is now `"eth1 eth3"` and
 > `dhcpd.conf` serves a new `10.38.215.64/27` subnet on eth3 (range `.68–.94`). eth3's own address

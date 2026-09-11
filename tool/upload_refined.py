@@ -61,7 +61,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from common import JIRA_BASE, JIRA_PROJECT_ID, SSL_CTX, need
+from jira_testlink_access import JIRA_BASE, JIRA_PROJECT_ID, SSL_CTX, need
 
 
 def load_payload(path):

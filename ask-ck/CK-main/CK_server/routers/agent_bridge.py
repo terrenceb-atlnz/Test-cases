@@ -3,7 +3,7 @@
 The user's browser tab long-polls /next for prompt jobs the server queued for its
 session, runs each on the user's own machine (ck-agent), and POSTs the result to
 /result. This is the transport that lets a shared Ask CK server use each user's own
-local Claude seat. See ask-ck/CK-main/PLAN-per-user-agent.md.
+local Claude seat. See archive/plans/PLAN-per-user-agent.md.
 """
 import asyncio
 import hashlib

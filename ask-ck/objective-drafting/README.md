@@ -10,7 +10,7 @@ Data, process docs, and exported artefacts for the **Objective/Test Case Generat
 |-----|---------|
 | **[PROGRESS.md](PROGRESS.md)** | Current status, backlog, technical debt, session handoff |
 | **[../CK-main/SERVER-README.md](../CK-main/SERVER-README.md)** | Run, architecture, LLM CLI modes, nginx, workflow |
-| [PLAN-server-backed.md](PLAN-server-backed.md) | Approved design and rationale (historical paths) |
+| [PLAN-server-backed.md](../../archive/records/PLAN-server-backed.md) | Approved design and rationale (historical paths; archived 2026-09-11) |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Decisions and pitfalls from prior sessions |
 
 ## Quick start
@@ -70,9 +70,9 @@ ask-ck/
 
 ## Legacy single-file UI
 
-`../CK-main/index.html` and related design assets remain for reference only. **New work belongs in `../CK-main/CK_server/`.**
+The old single-file `index.html` and its design assets were archived to `archive/CK-main/` on 2026-09-11 (reference only). **New work belongs in `../CK-main/CK_server/`.**
 
-Design tokens / showcase (for UI consistency): `../CK-main/design-tokens.css`, `../CK-main/design-guidelines-showcase.html`, `../CK-main/STYLE-GUIDELINES.md`.
+Design tokens / showcase (the 2026-07-13 design system; archived 2026-09-11, superseded by the Svelte front-end work): `../../archive/CK-main/design-tokens.css`, `design-guidelines-showcase.html`, `STYLE-GUIDELINES.md`.
 
 ## Project context
 

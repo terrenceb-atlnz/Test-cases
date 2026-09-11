@@ -46,7 +46,7 @@
     File-based JSON for full WizardSession (confirms+selections + LLM creds/auth + step4 + prompts/responses) enables restart survival and audit without heavy DB. Lightweight and sufficient for local hosted tool.
 
 ## Artifacts Saved This Session
-- `PLAN-server-backed.md` (full plan)
+- `archive/records/PLAN-server-backed.md` (full plan; archived 2026-09-11)
 - `SERVER-README.md` (primary documentation, updated)
 - `drafting_server/` (gating+persistence+real LLM+UI)
 - `LESSONS_LEARNED.md` (this file, extended)

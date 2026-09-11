@@ -1,4 +1,7 @@
-"""Shared helpers for TestLink / Zephyr data extraction (supporting the Test-cases project).
+"""Access layer for the internal Jira/Zephyr and TestLink services: endpoints, the AWPTCM project
+scope, a TLS context for their self-signed certificates, and the env-var credential getter.
+(Renamed from `common.py` on 2026-09-11; also carries two extraction helpers the archived
+build-time scripts used.)
 
 The Test-cases project improves AWPTCM Manual Test Cases by deriving Objectives from TestLink historical data and enriched Automated (ATPyLib) suites, and records many-to-one mappings.
 

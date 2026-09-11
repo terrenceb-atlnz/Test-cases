@@ -10,7 +10,7 @@ metadata:
 journal for 2026-09-10 13:04–13:34 NZST: it loaded the page, applied LLM config on
 AWPTCM-T43852, then long-polled `/api/agent/next` 64 times with no agent to serve it, and
 went quiet exactly when the RDP-to-localhost workaround (127.0.0.1 traffic) began. The
-same address is the remote seat in `ask-ck/CK-main/PLAN-llm-mode-selection.md` §1
+same address is the remote seat in `archive/plans/PLAN-llm-mode-selection.md` §1 (archived 2026-09-11)
 (2026-08-20, "local agent unreachable"). Terrence confirmed it is the demo device and can
 remote into it.
 

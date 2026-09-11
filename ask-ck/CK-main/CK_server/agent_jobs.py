@@ -6,7 +6,7 @@ long-polls for it, runs it on the user's own machine (via ck-agent), and posts t
 completion back. The original synchronous LLM caller blocks here on a threading
 primitive until that result arrives (or times out).
 
-See ask-ck/CK-main/PLAN-per-user-agent.md.
+See archive/plans/PLAN-per-user-agent.md.
 """
 import threading
 import time

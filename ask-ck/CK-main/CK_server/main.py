@@ -24,7 +24,7 @@ The LLM backend is chosen on the Configure page and is limited to an approved se
 The server binds LOOPBACK by default: it has no authentication, and push_to_zephyr can
 spend the server's own JIRA_KEY against live cases. Exposing it on the network is a
 deliberate opt-in (HOST=0.0.0.0 ./ask-ck/CK-main/run.sh) — see the note in run.sh.
-Behind nginx (copy nginx.conf.example to appropriate location).
+Behind nginx (an example config is archived at archive/CK-main/nginx-CK_server.conf.example; the LAN host runs systemd instead).
 
 Note: MOCK/demo removed. Use the org vLLM key or a Claude CLI logged in on the seat (claude /login).
 

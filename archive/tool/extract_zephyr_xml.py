@@ -32,7 +32,7 @@ from datetime import datetime
 
 # Reuse the project's html cleaner when available
 try:
-    from common import html_to_text as common_html_to_text
+    from jira_testlink_access import html_to_text as common_html_to_text  # was tool/common.py
 except Exception:
     common_html_to_text = None
 

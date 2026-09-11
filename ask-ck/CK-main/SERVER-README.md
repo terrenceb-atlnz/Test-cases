@@ -107,7 +107,6 @@ ask-ck/
 ├── CK-main/
 │   ├── SERVER-README.md             ← This file (all instructions)
 │   ├── run.sh                       ← Start script (PYTHONPATH=CK-main, CK_server.main:app)
-│   ├── nginx-drafting-server.conf.example
 │   ├── (design assets + legacy single-file index.html, reference only)
 │   └── CK_server/                   ← The actual server application
 │       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers
@@ -379,7 +378,7 @@ contract is, and why each part exists (all measured on real runs, 2026-07-30 →
 > was a defect in `_parse_generated_blocks`, which stopped at the first *continuation* fence and
 > discarded the rest of the reply. The real protection is applied on arrival (reassembly + the
 > completeness lint). See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the
-> ⚠-bannered `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md`.
+> ⚠-bannered `archive/records/FINDINGS-generation-size-ceiling.md` (archived 2026-09-11).
 
 ### Local LLM (organization vLLM)
 
@@ -487,7 +486,7 @@ After the LLM returns text, `llm.py` parses/normalizes and export uses `template
 Copy the example:
 
 ```bash
-cp ask-ck/CK-main/nginx-drafting-server.conf.example /etc/nginx/sites-available/ask-ck
+cp archive/CK-main/nginx-drafting-server.conf.example /etc/nginx/sites-available/ask-ck   # example only; the LAN host runs systemd, not nginx (archived 2026-09-11)
 # edit and enable, then nginx -t && systemctl reload nginx
 ```
 
@@ -912,7 +911,7 @@ tags** on reused blocks (`# ART/SVT/legacy <id> <lines>`) and gap-fill (`# AI <m
 <date>`), so a reviewer can trace any block back to its origin script + lines or to the
 model that synthesised it.
 
-**Session persistence:** `CK_server/sessions/pt-<KEY>.json` (separate from wizard
+**Session persistence:** the ck.db `sessions` table (kind `pt`; the pre-migration `sessions/*.json` files are frozen under `archive/CK_server/sessions/`) (separate from wizard
 sessions). Confirming step N invalidates all later confirmations. Runs interrupted
 by a server restart are marked `stale` on the next load_case.
 
@@ -1055,7 +1054,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 ## Migration from Original Single-File Tool
 
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.
-- Old static files remain in `CK-main/` for reference.
+- The old single-file app and its design-system files were archived to `archive/CK-main/` on 2026-09-11.
 - The server version adds LLM synthesis, backend enforcement of the process, templated repeatability — and (2026-07-13) the Ask CK multi-tool shell.
 - Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `tool/upload_refined.py`.
 
@@ -1072,7 +1071,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 - To iterate on prompts: edit the `.jinja` files and restart (or use `--reload`).
 - To iterate on the UI: edit `static/index.html` (no rebuild step).
 - The wizard still supports manual editing of objectives/steps after LLM synthesis.
-- Session state is file-persisted under `CK_server/sessions/`.
+- Session state lives in the ck.db `sessions` table (since 2026-07-16); the old `CK_server/sessions/*.json` are frozen under `archive/CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.
 
 ## Security Posture (hardened 2026-07-27c–g)
@@ -1085,7 +1084,7 @@ hardened the boundaries so untrusted/LLM-derived input can't escape its lane eve
 > **Review closed 2026-07-27g.** All 62 candidate findings are resolved: 31 fixed, 31 dismissed
 > as not-real after tracing them against live code. The full record — including *why* each
 > dismissal is not a bug, so they are not re-raised — is
-> `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`.
+> `archive/records/ADVERSARIAL-REVIEW-BACKLOG.md` (archived 2026-09-11).
 
 ### Concurrency + case locking (Phase 1, 2026-07-29)
 
@@ -1282,7 +1281,7 @@ commit is the current discipline.
 
 ## Relation to the Approved Plan
 
-See `ask-ck/objective-drafting/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `ask-ck/ck-facelift/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
+See `archive/records/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `ask-ck/ck-facelift/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
 
 The plan explicitly chose server-backed because:
 - LLM is required for creation.
@@ -1313,7 +1312,7 @@ print(synthesize_objectives_and_steps(sess))
 '
 ```
 
-For the full approved plan, usage philosophy, and trade-off history, read `ask-ck/objective-drafting/PLAN-server-backed.md`.
+For the full approved plan, usage philosophy, and trade-off history, read `archive/records/PLAN-server-backed.md` (archived 2026-09-11).
 
 This SERVER-README.md is the single source of operational instructions.
 
@@ -1376,7 +1375,7 @@ Zephyr / no testbox exercised):
 Also this session (earlier): reconciled the stale backlog + cleared 4 quality items (in-page error
 banners, export refuse-to-write hardening, `/process` anchor fix), and stood up the **first backend
 test suite** (`tests/`, now 48 tests). See the **Security Posture** and **Testing** sections above,
-`ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md` (remaining ~40 candidate findings, verify before
+`archive/records/ADVERSARIAL-REVIEW-BACKLOG.md` (remaining ~40 candidate findings, verify before
 fixing), and `PROGRESS.md` for the per-batch detail.
 
 ## Session Summary (2026-07-20, later — LLM-config bug, prompt trims, health check, provenance/dry-run)

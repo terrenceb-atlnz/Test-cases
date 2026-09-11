@@ -138,7 +138,7 @@ multi-minute holistic review is the one call most exposed to a session drop.
 **Fix — stay on the release transport.** *(Reshaped 2026-09-10.)* `claude_agent` is the release
 transport and the server-side CLI is **demo-only and will not ship**
 (`[[claude-agent-is-the-release-transport]]`, 2026-09-07; seat governance in
-`ask-ck/CK-main/PLAN-per-user-agent.md`). So the fix is durability *within* `claude_agent`, not a
+`archive/plans/PLAN-per-user-agent.md`). So the fix is durability *within* `claude_agent`, not a
 transport swap. The first draft of this item said "route the review through `claude_code`" —
 **withdrawn**: it was written while that ruling's memory had fallen off the over-length index
 (see the 2026-09-10 MEMORY.md trim), a live instance of an unloaded memory misleading a plan.

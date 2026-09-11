@@ -135,7 +135,7 @@ Structural captures are committed at `tests/fixtures/cli_stream_*.jsonl`.
 raw reply from `debug-log/*.jsonl` and count what the model actually sent** — any artefact
 stored before 2026-08-03c is parser output, not model output. The debug-log is gitignored
 (`.gitignore:70`), so that evidence is local-only and disposable; the committed fixtures are
-not. The ceiling tables in `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md` and
+not. The ceiling tables in `archive/records/FINDINGS-generation-size-ceiling.md` (archived 2026-09-11) and
 `autopilot/RESULTS-2026-08-03.md` record parser output and carry that correction. Related:
 [[vllm-reasoning-model-path]], [[workspace-llm-default-gotcha]], [[generator-cli-hallucination]],
 [[mutate-before-you-claim]], [[silent-degradation-audit-2026-07-30]].

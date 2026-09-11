@@ -69,7 +69,8 @@ sessions: Dict[str, WizardSession] = {}
 def persist_session(sess: WizardSession) -> None:
     """Persist full session (confirmed flags + selections + step4/5) to ck.db
     (Commit C). llm_config is split into its own column by db.save_session. The
-    old sessions/{key}.json file stays in place as a frozen pre-migration backup.
+    old sessions/{key}.json files are frozen pre-migration backups, archived to
+    archive/CK_server/sessions/ on 2026-09-11.
 
     Failures are RAISED, not swallowed (2026-07-28, user decision). This used to
     `log.error(...)` and return, so a handler completed with 200 while the user's

@@ -2,6 +2,8 @@
 
 > ## Status (read first)
 >
+> **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
+>
 > **Status:** ACTIVE. Written 2026-08-03 from a 12-stage adversarially-verified audit —
 > 27 agents, **284 findings, 206 CONFIRMED, 77 PARTLY, 1 unverified, 0 refuted.**
 >

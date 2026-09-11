@@ -5,7 +5,7 @@ Runs on the USER's OWN machine so their Ask CK LLM requests execute against
 THEIR OWN locally-logged-in Claude Code CLI seat, never a shared one. The
 shared Ask CK server never runs `claude`; instead the user's browser tab brokers
 prompts from the server to this agent and posts completions back. See
-ask-ck/CK-main/PLAN-per-user-agent.md and, for the seat-setup flow that installs
+archive/plans/PLAN-per-user-agent.md and, for the seat-setup flow that installs
 and keeps this agent current, ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md.
 
 Stdlib only — no pip install. Run it, leave it running, open the shared Ask CK

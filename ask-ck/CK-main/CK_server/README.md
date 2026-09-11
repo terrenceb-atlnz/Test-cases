@@ -19,7 +19,7 @@ This file is intentionally minimal. Please refer to `SERVER-README.md` for:
 - nginx hosting
 - Workflow (repeatable process + LLM synthesis)
 - Full directory layout
-- Links to the approved plan (`../../objective-drafting/PLAN-server-backed.md`)
+- Links to the approved plan (`archive/records/PLAN-server-backed.md`, archived 2026-09-11)
 
 The server code lives in this directory (`CK_server/`). Filesystem anchors (data, refined-cases, process md) are defined in `paths.py` and point into `../../objective-drafting/`.
 

@@ -2,6 +2,8 @@
 
 > ## Status (read first)
 >
+> **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
+>
 > **EXECUTED 2026-09-10 (evening) — §3, §4, §5, §6 shipped in five commits. §9 RAN
 > 2026-09-11 on two Windows seats: five findings, all fixed the same morning (see §9); the
 > only step not yet observed is 6 (reboot with autostart on, now that the conf is real).** §8b's decisions were reviewed with Terrence on 2026-09-11 and

@@ -131,7 +131,7 @@ def _call_claude_agent(prompt: str, model: str, meta: Dict[str, Any], session_id
     The server does not run `claude`; it enqueues the prompt for `session_id` and
     blocks until that user's browser (which talks to their local ck-agent) posts the
     completion back. This is what makes a shared server use each user's own seat.
-    See ask-ck/CK-main/PLAN-per-user-agent.md.
+    See archive/plans/PLAN-per-user-agent.md.
 
     `system` (2026-09-04) rides with the job so the user's ck-agent can pass it as the
     CLI's `--system-prompt`. Until then this path dropped the steer entirely and ran under

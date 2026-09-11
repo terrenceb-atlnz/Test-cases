@@ -8,7 +8,7 @@ Walks all first-level suites of the AWP project and pulls every test case with
 summary, preconditions and steps via the efficient bulk call.
 """
 import sys, xmlrpc.client
-from common import TESTLINK_RPC, TESTLINK_PROJECT_ID, SSL_CTX, need, html_to_text, dump
+from jira_testlink_access import TESTLINK_RPC, TESTLINK_PROJECT_ID, SSL_CTX, need, html_to_text, dump
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "testlink_awp.json"
 key = need("TESTLINK_DEVKEY")

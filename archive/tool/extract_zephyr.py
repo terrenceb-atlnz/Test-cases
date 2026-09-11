@@ -8,7 +8,7 @@ Enumerates every subfolder path under MASTER (atm folder search is non-recursive
 searches each, then fetches the full case (incl. testScript) for each key.
 """
 import sys, json, urllib.parse, urllib.request
-from common import (JIRA_BASE, JIRA_PROJECT_KEY, JIRA_PROJECT_ID, MASTER_FOLDER,
+from jira_testlink_access import (JIRA_BASE, JIRA_PROJECT_KEY, JIRA_PROJECT_ID, MASTER_FOLDER,
                     SSL_CTX, need, html_to_text, dump)
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "zephyr_master.json"
