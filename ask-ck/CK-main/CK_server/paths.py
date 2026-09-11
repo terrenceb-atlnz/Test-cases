@@ -4,12 +4,16 @@ Filesystem anchors for the Ask CK server.
 Single source of truth for repo-layout paths after the ask-ck/ restructure:
     Test-cases/
     └── ask-ck/
-        ├── CK-main/CK_server/       <- this package
-        └── functions/               <- one directory per page (2026-09-11 restructure)
-            ├── generator/           <- Generator data, refined-cases, process docs, PROGRESS.md
-            ├── pytest-creator/      <- PyTest Creator specs + generated/
-            ├── test-composer/
-            └── zephyr-tool/
+        ├── CK-main/CK_server/       <- this package (the backend)
+        ├── frontend/ck-main/current <- the served front-end (FRONTEND_DIR); svelte/ beside it
+        ├── functions/               <- one directory per page (2026-09-11 restructure)
+        │   ├── generator/           <- Generator data, refined-cases, process docs, PROGRESS.md
+        │   ├── pytest-creator/      <- PyTest Creator specs + generated/
+        │   ├── test-composer/
+        │   └── zephyr-tool/
+        ├── tools/                   <- scripts not called by a page button (gate, guards, loaders)
+        ├── plans/
+        └── db/                      <- ck.db + models/ (DB_DIR)
 """
 
 from pathlib import Path

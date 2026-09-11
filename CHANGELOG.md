@@ -11,6 +11,40 @@ current working thread see
 [`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
 
 
+## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
+
+Terrence's brief (`ask-ck/plans/PLAN-restructure-2026-09-11.md`): tidy the root, archive or delete
+what is unused, one home for tests, one for tools, one for plans, one for each page's data, one
+for the front-end, and a name for the database directory that says what it holds — then scaffold
+Svelte. Executed as nine batches, each a pure-move commit followed by a pointer-sweep commit with
+the gate green in between (19 commits). **Why pure moves:** git records every old→new path at
+100 % similarity, so the sweep is mechanical and auditable, and nothing depends on a hand-written
+mapping. The hosted server was stopped for the whole run and nothing systemd or `ck` names moved.
+
+- **Deleted** (history and LFS objects remain): the 121 MB raw Zephyr/TestLink extracts
+  (`paths.py` had declared them retired), the 16 MB CLI-docs zip, four pre-server drafting tools.
+- **`archive/`** (mirrors the original sub-paths): 8 creation-time tools, the autopilot/comparison/
+  judging result dirs, 10 closed records, the 4.5 MB pre-server single-file app and the 2026-07-13
+  design-system files, both nginx examples, 35 frozen pre-migration session JSONs, 11 completed plans.
+- **`docs/`** for repo-level documents. `TESTBOX-ACCESS.md` and `TB470-HOST-NETWORKING.md` now
+  live in device-testing (which cites them in eight places) and are relative symlinks here.
+- **`tests/`** holds every layer: pytest at `tests/`, Vitest at `tests/js/`, Playwright at `tests/e2e/`.
+- **`ask-ck/plans/`** holds every active plan; `ck-facelift/` is gone.
+- **`ask-ck/functions/<page>/`** — `generator/`, `pytest-creator/`, `test-composer/`, `zephyr-tool/` —
+  each page's data, results and docs, kept out of the front-end tree so Vite never watches them.
+- **`ask-ck/tools/`** — every script not called by a page button, the gate included:
+  `./ask-ck/tools/run_tests.sh`. `common.py` became `jira_testlink_access.py` (the name must say
+  what it does); the gate caught its wrongful archiving because `upload_refined.py` imports it.
+- **`ask-ck/frontend/ck-main/current/`** — the served front-end, its 23 modules sorted into page
+  directories (`generator/`, `pytest-creator/`, `llm-config/`, `admin/`, `shared/`); `main.py` mounts
+  it at `/static` via the new `FRONTEND_DIR` anchor. **`…/svelte/`** — Vite + Svelte 5 (JavaScript),
+  scaffolded and build-verified; serving `dist/` from FastAPI is the design branch's first task.
+- **`ask-ck/db/`** replaces `var/`: `ck.db` + the embedding model, LFS and ignore rules moved with
+  them in the same commit; `paths.py` says `DB_DIR`.
+- **Open:** batch 6b (the three page-button scripts wait on the `pt_media` placement); two paths
+  in the root lab `CLAUDE.md`, the stray-script hook's message and one device-testing memory
+  still name the old locations — Terrence's files.
+
 ## 2026-09-11 (later) — Two memory stores by design: `check_memory_links.py` learns the sibling repo; sessions start only from a repo root; Claude commits, Terrence pushes
 
 Terrence split the memory store the same day (`MEMORY-SPLIT-INVENTORY.md`; 88 → 60 here, 15

@@ -103,14 +103,14 @@ This version replaces the original single-file static `index.html` approach.
 ## Directory Structure
 
 ```
-ask-ck/
-├── CK-main/
+ask-ck/                              (layout of 2026-09-11 — PLAN-restructure-2026-09-11)
+├── CK-main/                         ← the BACKEND (systemd and the `ck` command anchor here)
 │   ├── SERVER-README.md             ← This file (all instructions)
 │   ├── run.sh                       ← Start script (PYTHONPATH=CK-main, CK_server.main:app)
-│   ├── (design assets + legacy single-file index.html, reference only)
+│   ├── requirements.txt / requirements-dev.txt
 │   └── CK_server/                   ← The actual server application
-│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers
-│       ├── paths.py                 ← Filesystem anchors (DATA_DIR / REFINED_DIR / PROCESS_MD)
+│       ├── main.py                  ← FastAPI entry point ("Ask CK"); includes all routers; mounts the front-end at /static
+│       ├── paths.py                 ← Filesystem anchors (REFINED_DIR / PROCESS_MD / PT_GENERATED_DIR / DB_PATH / FRONTEND_DIR)
 │       ├── data.py                  ← Data loading (three DBs + indices)
 │       ├── llm.py                   ← Prompt templating + LLM call + parser
 │       ├── models.py                ← Pydantic models
@@ -131,18 +131,28 @@ ask-ck/
 │       │   │   └── export.py        ← drop-in refined-cases bundle + push_to_zephyr
 │       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
-│       │   └── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
-│       ├── frontend/ck-main/current/index.html        ← Ask CK frontend (all tools + process links)
-│       ├── templates/
-│       │   ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, analyze_atp_coverage
-│       │   └── outputs/traceability.md.jinja
-│       └── sessions/                ← _workspace_llm.json + per-case AWPTCM-*.json
-├── objective-drafting/              ← Generator data + docs + outputs
-│   ├── PROGRESS.md / LESSONS_LEARNED.md / PLAN-server-backed.md / OBJECTIVE_DRAFTING_PROCESS.md
-│   ├── data/ ...
-│   └── refined-cases/<Group>/AWPTCM-Txxxx/
-├── archive/plans/PLAN-facelift.md     ← 2026-07-13 facelift plan (as executed)
-├── pytest-create/  test-composer/  zephyr-tool/   ← future per-tool assets
+│       │   ├── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
+│       │   ├── agent_bridge.py      ← the seat-agent broker (/api/agent) + /setup/ (seat setup)
+│       │   └── admin.py, llm_debug.py, locks.py
+│       └── templates/
+│           ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, pt_*
+│           └── outputs/traceability.md.jinja
+├── frontend/ck-main/
+│   ├── current/                     ← the served front-end: index.html, styles.css, assets, modules by page
+│   │   ├── generator/  pytest-creator/  llm-config/  admin/  shared/
+│   │   └── README.md                ← module map + conventions
+│   └── svelte/                      ← the Svelte rewrite (Vite + Svelte 5, JavaScript)
+├── functions/                       ← one directory per page: data, results, docs
+│   ├── generator/                   ← PROGRESS.md, LESSONS_LEARNED.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/<Group>/AWPTCM-Txxxx/
+│   ├── pytest-creator/              ← TOPOLOGY-PROFILES.md, TEMPLATE-SPEC.md, SETUP-FILE-REFERENCE.md, LOGGING-CONTRACT.md, generated/
+│   ├── test-composer/               ← ART-EXECUTION-CHAIN.md + bench scripts
+│   └── zephyr-tool/                 ← stub
+├── tools/                           ← every script not called by a page button: run_tests.sh (the gate), the two guards,
+│                                       ckdb_*, check_memory_*, db_wal_recover.sh, the CLI corpus loaders, pt_*, upload_refined.py
+├── plans/                           ← PLAN-*.md (active) + DECISIONS-FOR-REVIEW.md; completed plans are in ../archive/plans/
+├── agent/                           ← ck_agent.py / ck-agent.ps1 + setup scripts, served at /setup/
+└── db/                              ← ck.db (Git LFS, the permanent source of truth) + models/ (bundled embeddings)
+```
 ```
 
 All new server code lives under `ask-ck/CK-main/CK_server/`.

@@ -200,16 +200,27 @@ hardware, read [`TESTBOX-ACCESS.md`](TESTBOX-ACCESS.md) in full.
 Test-cases/
 ├── CHANGELOG.md                    # Feature history (newest first)
 ├── SESSION_STATE.md                # Long-form session history
-├── TESTBOX-ACCESS.md               # Read before touching lab hardware
-├── ask-ck/
-│   ├── ARCHITECTURE.md             # Executive summary — read before the deep reference
-│   ├── CK-main/                    # App: run.sh, requirements.txt, SERVER-README.md
-│   │   └── CK_server/              # FastAPI server (main.py, routers/, frontend/ck-main/current/, templates/)
-│   ├── objective-drafting/         # Generator: process docs, PROGRESS.md, data/, refined-cases/
-│   ├── pytest-create/              # PyTest Creator: plans, specs, generated/<Group>/<Name>.py
-│   ├── plans/                # Subsystem plans (PLAN-*.md)
-│   └── var/ck.db                   # THE permanent database (Git LFS)
-└── ask-ck/tools/                           # Guards, the test gate, upload_refined.py, checkers
+├── TESTBOX-ACCESS.md               # Read before touching lab hardware (symlink → ../device-testing/)
+├── docs/                           # Repo-level documents: reviewer onboarding, reports, inventories
+├── tests/                          # The whole test layer: pytest at tests/, Vitest at tests/js/, Playwright at tests/e2e/
+├── archive/                        # Retired tools, completed plans, closed records — kept, not live
+└── ask-ck/
+    ├── ARCHITECTURE.md             # Executive summary — read before the deep reference
+    ├── CK-main/                    # Backend: run.sh, requirements.txt, SERVER-README.md
+    │   └── CK_server/              # FastAPI server (main.py, paths.py, routers/, templates/)
+    ├── frontend/ck-main/
+    │   ├── current/                # The served front-end: index.html, styles.css, modules by page
+    │   │                           #   (generator/, pytest-creator/, llm-config/, admin/, shared/)
+    │   └── svelte/                 # The Svelte rewrite (Vite + Svelte 5) — the design branch's home
+    ├── functions/                  # One directory per page: its data, results and docs
+    │   ├── generator/              # PROGRESS.md, OBJECTIVE_DRAFTING_PROCESS.md, refined-cases/
+    │   ├── pytest-creator/         # Specs (TOPOLOGY-PROFILES, TEMPLATE-SPEC, …) and generated/
+    │   ├── test-composer/          # ART execution-chain doc + bench scripts
+    │   └── zephyr-tool/            # Stub
+    ├── tools/                      # Every script not called by a page button: gate, guards, checkers, corpus loaders
+    ├── plans/                      # Active plans (PLAN-*.md) + DECISIONS-FOR-REVIEW.md
+    ├── agent/                      # The seat agent, served at /setup/
+    └── db/                         # ck.db — THE permanent database (Git LFS) + the embedding model
 ```
 
 ## Documentation map

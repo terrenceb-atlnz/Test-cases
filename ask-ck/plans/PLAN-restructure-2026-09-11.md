@@ -2,7 +2,7 @@
 
 > ## Status (read first)
 >
-> **IN PROGRESS from 2026-09-11 (server stopped by Terrence's go).** Every decision below is
+> **EXECUTED 2026-09-11, batches 0–9 ✅ (19 commits, gate green after every sweep). OPEN: batch 6b — the three page-button scripts (`upload_refined.py`, `cli_lookup.py`, `pt_media.py`) still sit in `ask-ck/tools/` pending Terrence's call on `pt_media` (see §7). Also open, his files: the root lab `CLAUDE.md` (two paths), the stray-script hook's message, and device-testing's `grep-shim-honors-gitignore` memory still name `tool/` / `ask-ck/var/`.** Originally IN PROGRESS from 2026-09-11 (server stopped by Terrence's go). Every decision below is
 > Terrence's, taken in conversation on 2026-09-11 from a full inventory (git last-commit dates,
 > live references, server anchors). §6's three questions were answered: Q-a move + symlink,
 > Q-b `functions/test-composer/`, Q-c the batch-7 table as written. Batch progress is marked
@@ -125,3 +125,18 @@ Stop the server before batch 6 (or 5), restart after the final sweep, push after
   framework, not front-end code). Confirm, or `frontend/ck-main/current/test-composer/`.
 - **Q-c. JS sort.** Confirm the table in batch 7, in particular `shared/` as the name for the
   14 multi-page modules and `db-search.js`/`chosen.js`/`tables.js` under `generator/`.
+
+## 7. Batch 6b — the page-button scripts (OPEN)
+
+The plan's rule sends `upload_refined.py` to `frontend/ck-main/current/generator/` and
+`cli_lookup.py` + `pt_media.py` to `frontend/ck-main/current/pytest-creator/`. Executing 6a
+surfaced one coupling the plan missed: **`pt_profiles.py` (tools) imports `parse_link_ref` from
+`pt_media.py`**, so placing `pt_media` in a page directory makes a shared tool import from a page
+— the reverse of the natural direction (`upload_refined` → `jira_testlink_access` is page → tools).
+Recommendation put to Terrence: `pt_media.py` → `tools/` (two consumers: the assemble step and the
+profiles contract), leaving `upload_refined.py` and `cli_lookup.py` as the only page-directory
+scripts. Anchors that move with 6b: `wizard/export.py:492` (subprocess path),
+`pytest_create.py` `_MEDIA_HELPER_SRC` and the `cli_lookup` import site, `tests/test_media_assertion_wiring.py`,
+`tests/test_zephyr_push_validation.py`, `tests/test_security_hardening_batch_e.py`, `tests/test_sqlite_single_library.py`,
+the `sys.path` inserts in the tests that import these modules, and `upload_refined`'s own import
+of `jira_testlink_access` (needs a `sys.path` insert of `ask-ck/tools` once it leaves that dir).

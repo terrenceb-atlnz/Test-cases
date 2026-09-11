@@ -2,9 +2,47 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-11, midday (by Claude, with Terrence for the decisions)
+**Last Updated**: 2026-09-11, afternoon (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-11, midday) — guardrails plan DECIDED (D4 costed, open); T44297 review dropped; skills renamed orient-ck/wrap-ck; memory store split 88 → 60
+## Latest session (2026-09-11, afternoon) — the Ask-CK tree RESTRUCTURED (PLAN-restructure-2026-09-11, batches 0–9); this file now lives at ask-ck/functions/generator/PROGRESS.md
+
+**Where it stands.** Terrence set the target layout in conversation (every decision his; the
+plan records them) and stopped the hosted server; nine batches ran as pure-move commit + sweep
+commit, gate green after each (19 commits, last `60aafcc`). The tree now reads: `docs/`, `tests/`
+(pytest + `tests/js` + `tests/e2e`), `archive/`, and under `ask-ck/`: `CK-main/` (backend, unmoved
+— systemd and `ck` anchor there), `frontend/ck-main/{current,svelte}`, `functions/{generator,
+pytest-creator,test-composer,zephyr-tool}`, `tools/` (every non-button script, gate included:
+**`./ask-ck/tools/run_tests.sh`**), `plans/`, `agent/`, `db/` (ck.db + models, LFS). Deleted: the
+raw extracts, the CLI zip, four drafting tools. Details and the why: CHANGELOG (top) and the plan.
+
+**What the gate caught during the run (all fixed before the batch committed):** `common.py` was
+archived but `upload_refined.py` imports it (restored, renamed `jira_testlink_access.py` at
+Terrence's request); the Vitest fixture helper sat one level deeper than the specs (batch 3);
+`upload_refined.py` computed the repo root from its own parent (batch 6a: three tests went red);
+three function docs had relative links batch 5 missed because they never named a directory
+(caught by resolving every relative link mechanically in 6a).
+
+**Open — needs Terrence:** (1) **batch 6b**, the three page-button scripts: `pt_profiles.py`
+(tools) imports from `pt_media.py`, so the plan's page-dir placement would make a shared tool
+import from a page; recommendation `pt_media` → `tools/` (plan §7). (2) Two paths in the root lab
+`CLAUDE.md` (`Test-cases/tool/check_memory_links.py` → `ask-ck/tools/`, `ask-ck/var/ck.db` →
+`ask-ck/db/`), the stray-script hook's message (`{repo}/ask-ck/test-composer/`) and device-testing's
+shared memory `grep-shim-honors-gitignore` (`ask-ck/var/`) — his files. (3) Restart the server
+(`ck on`) and push (20 local commits incl. the guardrails-decision one). The hook: a `git mv`
+naming a `.py` passes when the command text has no absolute lab path, so the plan ran without the
+allowance; the patch is in the session scratchpad if wanted. (4) `npm install` in a command that
+also names a `.py` file trips the hook (it matches the word "install") — split such commands.
+
+**Gate at close:** guards OK; **pytest 1457 passed / 1 skipped; vitest 280**; ck.db signature
+unchanged at `ask-ck/db/ck.db`. Both memory checkers OK (4 pre-existing advisory items).
+
+**Pick up here:** (1) Terrence's 6b answer → move the two/three scripts + their anchors; (2) the
+guardrails tranche 1 (G1 + G5 + G8(a)) and the D4 decision — unchanged from midday; (3) the
+design branch starts from `ask-ck/frontend/ck-main/svelte/`.
+
+---
+
+## Previous session (2026-09-11, midday) — guardrails plan DECIDED (D4 costed, open); T44297 review dropped; skills renamed orient-ck/wrap-ck; memory store split 88 → 60
 
 **Where it stands.** Terrence pushed the morning's six commits himself, then set the thread:
 **`PLAN-fix-units-guardrails.md` is the work, whole plan (G1–G8), and the proof is a fresh
