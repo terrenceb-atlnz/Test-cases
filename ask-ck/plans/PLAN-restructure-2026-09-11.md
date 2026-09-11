@@ -97,7 +97,7 @@ Sweep: relative imports in all 23 modules and `index.html`'s `<script type=modul
 ### ✅ Batch 8 — `ask-ck/var/` → `ask-ck/db/`  *(server stopped; WAL checkpointed by the clean stop)*
 `git mv ask-ck/var ask-ck/db` (ck.db + models/; the -wal/-shm side files are ignored and move with a plain `mv` if present). Sweep: `paths.py` `VAR_DIR`, `.gitattributes` (2 LFS lines), `.gitignore` (var block), `run_tests.sh` messages, `ckdb_signature.py`, `db_wal_recover.sh`, `run_scratch_server.sh`, tests, CLAUDE.md invariant 1 and root CLAUDE.md line, README, SERVER-README, 10 memory citations, `check_memory_refs.py` ALLOW if any.
 
-### Batch 9 — Svelte scaffold
+### ✅ Batch 9 — Svelte scaffold
 `cd ask-ck/frontend/ck-main && npm create vite@latest svelte -- --template svelte && cd svelte && npm install`. Adds `svelte` 5.57, `vite` 8.3, `@sveltejs/vite-plugin-svelte` in its own `package.json`; `.gitignore` gets `ask-ck/frontend/ck-main/svelte/node_modules/` and `dist/`. Serving the built `dist/` from FastAPI is the design branch's first task, not this plan's.
 
 ### Final sweep
