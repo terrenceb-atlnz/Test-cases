@@ -1,7 +1,7 @@
 # PyTest Creator — Implementation Plan & Progress Tracker
 
 > Living tracker for the PyTest Creator build-out. Update the checklist and Progress Log
-> as milestones land (same convention as `ck-facelift/PLAN-facelift.md`).
+> as milestones land (same convention as `archive/plans/PLAN-facelift.md`).
 > Approved: 2026-07-14.
 >
 > **Archive note (2026-09-11):** the result directories and records this plan cites — `autopilot/`, `comparison/`, `judging/`, `FINDINGS-*.md`, `NEXT-SESSION-REVIEW.md`, `ADVERSARIAL-REVIEW-BACKLOG.md`, `SURVEY-step4-step5.md`, the nginx examples — now live under `archive/` (PLAN-restructure-2026-09-11, batch 1). Paths in the body are pre-move.
@@ -18,7 +18,7 @@
 > harnesses (`tool/pt_model_matrix.py`, `tool/pt_judge.py`, `tool/pt_matrix_judge.py`) and the headless batch
 > driver (`tool/pt_autopilot.py`) were **retired** as creation-time tooling — every LLM call now starts in a
 > browser and runs on the org vLLM or the user's own Claude seat. See
-> `ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
+> `plans/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
 >
 > **Objective-in-Generate note (2026-07-29)**: the Generate step now bakes the refined objective
 > into the skeleton as a `# ==== OBJECTIVE ====` header (rides into both the emitted `.py` and the
@@ -26,7 +26,7 @@
 > the objective slice its step covers. Validated by a 5-model matrix + opus/vllm-fast judging
 > (`tool/pt_matrix_judge.py`): T33233/T33235 → "good". The next generation bottleneck is
 > **sequence-step `kind` misclassification** (T33234), tracked in
-> `ck-facelift/PLAN-permutation-expander.md`.
+> `plans/PLAN-permutation-expander.md`.
 >
 > **Generation note (2026-07-21)**: Step 6 (Generate) no longer composes a script freely from a
 > style exemplar — it **fills a standardized skeleton** (`templates/pt_script_template.py.jinja`)

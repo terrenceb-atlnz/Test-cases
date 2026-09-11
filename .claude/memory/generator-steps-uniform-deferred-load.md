@@ -41,5 +41,5 @@ Zephyr's hand-rolled 45k scan did, one screen away. If a heuristic is genuinely
 load-bearing, port it INTO `db._relevance_score` where all three corpora benefit — never
 back into a router.
 
-Full plan: `ask-ck/ck-facelift/PLAN-backend-module-split.md` (11 commits, all approved).
+Full plan: `archive/plans/PLAN-backend-module-split.md` (11 commits, all approved).
 See also [[shared-tree-status-has-short-shelf-life]], [[pt-step-numbering-divergence]].

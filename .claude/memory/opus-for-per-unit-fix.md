@@ -31,7 +31,7 @@ rework.
   framework contrib); the contrast case (a sibling that does the same thing correctly) is the
   fastest oracle. A structure-only check is how a regression reaches a paid review.
 - This is a per-*unit* question; it does not change which model generates or reviews. The
-  durable fix for the rework itself is `ask-ck/pytest-create/PLAN-fix-units-guardrails.md`.
+  durable fix for the rework itself is `ask-ck/plans/PLAN-fix-units-guardrails.md`.
 
 Related: [[terrence-prefers-session-model-as-judge]] (judge in-context — but judge *deeply*),
 [[mutate-before-you-claim]], [[prompt-cache-needs-block-boundaries]] (why a fix reads the

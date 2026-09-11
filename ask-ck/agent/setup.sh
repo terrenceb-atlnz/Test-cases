@@ -13,7 +13,7 @@
 #              optionally register it to start at login, and confirm it is up + logged in
 # then it opens Ask CK, which runs the final, authoritative check itself.
 #
-# Contract + design: ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md §3.3.
+# Contract + design: ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md §3.3.
 #
 # Knobs (environment variables, because `curl | bash` cannot take arguments):
 #   CK_SERVER=http://host:port   the Ask CK server (the served copy has it filled in)

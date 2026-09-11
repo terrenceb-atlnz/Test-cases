@@ -69,7 +69,7 @@ the service first or use a copy; read-only URI opens are safe); verify a write f
 base+`-wal`+`-shm`, never a live open. Runbook: `.nfs*` orphans in `ask-ck/var/` + zero server
 locks = find the second opener, snapshot the cache-held session via
 `GET /api/pytest-create/session/<key>` if you need its rows, then `ck reload`/restart. Plan record:
-`ask-ck/pytest-create/PLAN-t44297-pass-followups.md` #5; WAL triage: [[ckdb-corrupt-wal-recovery]];
+`ask-ck/plans/PLAN-t44297-pass-followups.md` #5; WAL triage: [[ckdb-corrupt-wal-recovery]];
 the isolation authority: [[ckdb-wal-and-test-isolation]].
 
 **Still open (the original symptom's other half):** the thread-local connection cache with no

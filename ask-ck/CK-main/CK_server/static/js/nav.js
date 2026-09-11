@@ -191,7 +191,7 @@ export function updatePageHeader() {
 }
 
 // ============================================================================
-// PyTest Creator (see ask-ck/pytest-create/PLAN-pytest-creator.md)
+// PyTest Creator (see ask-ck/plans/PLAN-pytest-creator.md)
 // Session state lives server-side (sessions/pt-{key}.json); this module renders
 // it and drives the gated flow. ptSession mirrors the server PtSession.
 // ============================================================================

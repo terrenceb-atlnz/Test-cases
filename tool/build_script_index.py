@@ -12,7 +12,7 @@ Ask CK PyTest Creator (`/api/pytest-create`):
 
 Pass 1 (mechanical) needs no LLM. The LLM enrichment pass (tool/enrich_script_index.py)
 was retired 2026-09-11 with the other creation-time tooling (see
-ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md §11); an existing
+ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md §11); an existing
 scripts_index_enrich.jsonl is still merged if one is present.
 
 Usage:

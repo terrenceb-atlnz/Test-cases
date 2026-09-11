@@ -6,7 +6,7 @@ THEIR OWN locally-logged-in Claude Code CLI seat, never a shared one. The
 shared Ask CK server never runs `claude`; instead the user's browser tab brokers
 prompts from the server to this agent and posts completions back. See
 archive/plans/PLAN-per-user-agent.md and, for the seat-setup flow that installs
-and keeps this agent current, ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md.
+and keeps this agent current, ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md.
 
 Stdlib only — no pip install. Run it, leave it running, open the shared Ask CK
 page, and choose "Claude Code CLI (my local machine)" in LLM -> Configure.

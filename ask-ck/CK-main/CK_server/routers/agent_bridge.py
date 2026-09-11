@@ -28,7 +28,7 @@ router = APIRouter(tags=["agent-bridge"])
 # anything else in that folder are never served. The server's own origin is templated
 # into the setup scripts at serve time (`__CK_SERVER__`) so the one-liner needs no
 # argument and the same file works if the host moves. Design:
-# ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md §3.
+# ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md §3.
 # ---------------------------------------------------------------------------
 setup_router = APIRouter(tags=["seat-setup"])
 

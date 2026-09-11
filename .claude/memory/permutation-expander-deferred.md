@@ -1,6 +1,6 @@
 ---
 name: permutation-expander-deferred
-description: "deterministic CLI-bounded permutation-expander is a WANTED subsystem, deferred to its own planning session; brief at ck-facelift/PLAN-permutation-expander.md"
+description: "deterministic CLI-bounded permutation-expander is a WANTED subsystem, deferred to its own planning session; brief at plans/PLAN-permutation-expander.md"
 metadata: 
   node_type: memory
   type: project
@@ -20,7 +20,7 @@ re-enumerates differently each run — see [[cli-fabrication-originates-step2]])
 repeatedly blocked the PyTest Creator's generation. Terrence: fuzzy "which speeds exist" logic
 is a waste of time; include all permutations and check each as best-effort.
 
-**How to apply:** resume from `ask-ck/ck-facelift/PLAN-permutation-expander.md` (full brief +
+**How to apply:** resume from `ask-ck/plans/PLAN-permutation-expander.md` (full brief +
 7 open design decisions + the T33234 worked-evidence section). First step is a 20-min read of
 `cli_commands.tables` JSON shape across ~5 varied devices. Honour [[awplus-speed-duplex-constraint]]
 (half-duplex≥1G prune is the one place hardware knowledge enters, as a deterministic rule) and

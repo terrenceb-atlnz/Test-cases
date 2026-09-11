@@ -14,7 +14,7 @@ same address is the remote seat in `archive/plans/PLAN-llm-mode-selection.md` §
 (2026-08-20, "local agent unreachable"). Terrence confirmed it is the demo device and can
 remote into it.
 
-**Why:** the seat-setup plan (`ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §9)
+**Why:** the seat-setup plan (`ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md` §9)
 needs a real Windows seat to verify the served one-liner, the PowerShell agent, login and
 autostart. This is that seat; no other Windows client has been seen hitting the server.
 

@@ -1,7 +1,7 @@
 # Memory Index
 
 - [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps load identically & on-demand, never at case-load; use db.* search + shared _relevance_score
-- [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at ck-facelift/PLAN-permutation-expander.md
+- [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at plans/PLAN-permutation-expander.md
 - [Topology profiles contract](topology-profiles-contract.md) — generation targets a PROFILE, never a bench .setup; spec TOPOLOGY-PROFILES.md + tool/pt_profiles.py; roles name LINKS not devices
 - [Preflight topology check](preflight-topology-check.md) — tool/pt_preflight.py: can this bench run this script? init_portlink fails SILENTLY, so a missing cable reads as a script defect
 - [tb470 routing memory](tb470-topology-and-setup.md) — WHERE each tb470 fact lives (one fact, one home): bench-state.md GENERATES tb470.setup; mechanics → orient-ie520 skill; always `show stack`
@@ -38,7 +38,7 @@
 - [grep shim honors .gitignore](grep-shim-honors-gitignore.md) — `grep` is a FUNCTION wrapping ugrep --ignore-files, so 0 hits in .venv/ node_modules/ var/ looks like absence; use `command grep`
 
 <!-- hardware / testbox lane (was a separate store keyed on ~/testbox_home until 2026-07-30) -->
-- [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 7-step flow; tracker at ask-ck/pytest-create/PLAN-pytest-creator.md; Part 3b needs tb470 wiring
+- [PyTest Creator (Ask CK)](pytest-creator-askck.md) — 7-step flow; tracker at ask-ck/plans/PLAN-pytest-creator.md; Part 3b needs tb470 wiring
 - [Testbox console access](testbox-console-access.md) — ssh tbNNN → uN alias → /dev/uN; drive it with pyserial, not minicom
 - [.setup declares topology](setup-file-declares-topology.md) — stack, stackports and cabling are declared there; never infer them from case text; verify consoles are live
 - [Legacy scripts vs current framework](legacy-scripts-vs-framework.md) — py3-only framework, read-only Switch.name, TBv4 paths; patch a staging copy; grep gate strings against real console capture

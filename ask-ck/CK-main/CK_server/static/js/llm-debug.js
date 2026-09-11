@@ -4,7 +4,7 @@
 // responses, so failures (pytest 502s, wizard error-provenance) surface too.
 // The per-panel store is a plain object that dies with the page (deliberately
 // not persisted across browser sessions); the server keeps the durable history
-// in debug-log/<session>.jsonl. See ask-ck/ck-facelift/PLAN-llm-observability.md.
+// in debug-log/<session>.jsonl. See archive/plans/PLAN-llm-observability.md.
 //
 // Token counts are shown honestly: transports that don't report usage
 // (the agent bridge) render as "— tok", never estimated.

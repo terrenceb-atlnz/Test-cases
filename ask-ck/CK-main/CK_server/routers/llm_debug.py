@@ -3,7 +3,7 @@
 Debug info is served from separate GET endpoints rather than embedded in the
 wizard/pytest responses, so it works uniformly for success AND failure paths
 (pytest endpoints raise 502 before any response body exists; wizard endpoints
-return 200-with-provenance). See ask-ck/ck-facelift/PLAN-llm-observability.md.
+return 200-with-provenance). See archive/plans/PLAN-llm-observability.md.
 """
 import json
 

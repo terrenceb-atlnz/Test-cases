@@ -7,7 +7,7 @@ overwrite (`db._write_session`). So two people — or one person in two browser 
 who open the same case both read, both edit, both save, and the SECOND write silently
 wins: the first person's work is gone, no error, no trace. It is a read-modify-write
 across SEPARATE requests, which no event-loop serialisation prevents. See
-`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` §1.2 — this is Phase 1.
+`ask-ck/plans/PLAN-auth-and-case-locking.md` §1.2 — this is Phase 1.
 
 The lock is held per (tool, case). The holder identity is the per-tab `X-CK-Session`
 id (`llm.current_session_id`); Phase 2 upgrades that to a real user with no change here.

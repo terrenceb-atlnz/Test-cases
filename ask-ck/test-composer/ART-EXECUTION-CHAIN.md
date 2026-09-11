@@ -131,7 +131,7 @@ chain collapses to:
 1. **`configs/<hostname>.setup` exists** (topology; device on u5). ← hard requirement.
 2. *(maybe)* **`configs/<hostname>.cfg` exists** — needed by the suite runners; the
    direct `-s` path appears NOT to read it. **VERIFY on first real run** (§5b of
-   `../pytest-create/PLAN-pytest-testing.md`): if the direct run errors on a missing
+   `../plans/PLAN-pytest-testing.md`): if the direct run errors on a missing
    config.cfg, generate it with `config_gen.py`; else it's out of scope.
 3. *(optional)* firmware already loaded (skip build-load unless testing a build).
 4. `sudo python3 test-<suite>.<set>.py -s <setup> -v` → log → SFTP back → parse.

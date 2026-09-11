@@ -1,6 +1,6 @@
 // Ask-CK golden-path E2E — the deterministic, non-LLM integration gate.
 //
-// WHY THIS SHAPE (see ask-ck/ck-facelift/PLAN-playwright-e2e.md):
+// WHY THIS SHAPE (see archive/plans/PLAN-playwright-e2e.md):
 //   The keyword-only path CANNOT produce a green export — /api/wizard/export is
 //   gated by validate_zephyr_payload, which requires a synthesized objective
 //   (<ul> + >=3 <li>) and >=2 test steps, both LLM-only artefacts. So the honest,

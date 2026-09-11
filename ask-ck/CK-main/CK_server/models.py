@@ -202,7 +202,7 @@ class WizardSession(BaseModel):
     llm_config: LLMConfig = LLMConfig()  # Session-scoped copy; resolution is llm_config.effective_llm_config
 
 class PtSession(BaseModel):
-    """PyTest Creator per-case session (see ask-ck/pytest-create/PLAN-pytest-creator.md).
+    """PyTest Creator per-case session (see ask-ck/plans/PLAN-pytest-creator.md).
 
     Steps 2-8 are free-form dicts each carrying confirmed/confirmed_at, mirroring
     the wizard's step4/step5 shape. Persisted as sessions/pt-{key}.json.

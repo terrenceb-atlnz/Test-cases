@@ -7,7 +7,7 @@ metadata:
 ---
 
 **Four things a Linux gate cannot reach by running the code** — each cost a demo step on
-2026-09-11 (plan `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md` §9):
+2026-09-11 (plan `ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md` §9):
 
 1. **A Windows command line is capped at 32,767 chars.** The 61k unit steer as an inline
    `--system-prompt` made `Process.Start` fail with *"The filename or extension is too long"*

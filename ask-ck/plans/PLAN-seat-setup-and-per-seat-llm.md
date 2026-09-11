@@ -481,7 +481,7 @@ each is in the last column, marked *Resolved*.
 > credentials survived; `claude auth logout` + re-run then prompted and passed (step 3 ✔).
 > "update skipped: job in flight (1)" appeared during a live call (step 3b ✔). Step 6 (reboot)
 > not run — autostart was declined. Terrence's raw notes and the failure screenshot:
-> `ask-ck/ck-facelift/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
+> `ask-ck/plans/demo-2026-09-11/` (`seat-notes.txt`, `unit-failures.png`).
 >
 > **Second seat, 09:25–09:32 (10.33.22.18, fresh browser, autostart = yes).** With the fixes
 > above served: setup fetched 09:26:22, agent 09:27:45, **the page opened itself with

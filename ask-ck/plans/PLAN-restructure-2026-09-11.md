@@ -65,7 +65,7 @@
 ### ✅ Batch 3 — tests consolidated under `tests/`
 `js-tests/` → `tests/js/`; `e2e/` → `tests/e2e/`. Sweep: `vitest.config.js` include, `playwright.config.js` testDir, `.gitignore` e2e lines, `package.json` e2e:report path, `run_tests.sh` → its new home.
 
-### Batch 4 — `ask-ck/plans/`
+### ✅ Batch 4 — `ask-ck/plans/`
 `ask-ck/ck-facelift/` → `ask-ck/plans/` (rename), plus `pytest-create/PLAN-*.md` (4), `CK-main/PLAN-*.md` (2, unless archived above), this file. `DECISIONS-FOR-REVIEW.md` and `demo-2026-09-11/` ride along. Sweep: `ask-ck/*/PLAN-*.md` globs in both skills → `ask-ck/plans/PLAN-*.md`; CLAUDE.md working-notes line; memories citing `ck-facelift/`.
 
 ### Batch 5 — `ask-ck/functions/<page>/`

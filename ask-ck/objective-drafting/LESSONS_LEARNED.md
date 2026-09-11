@@ -203,7 +203,7 @@ Higher-level cross-references: root [`README.md`](../../README.md) (framing, qui
 
 ## New Insights from 2026-07-13 Session (later) — Repo Restructure + Ask CK Multi-Tool Facelift
 
-**Context**: The tool was renamed **Ask CK** and generalized from single-use to a multi-tool workbench. The user restructured the repo mid-session (`drafting-tool/` → `ask-ck/CK-main/` with `drafting_server/` → `CK_server/`; root `data/` + `refined-cases/` + process docs → `ask-ck/objective-drafting/`; per-tool dirs `pytest-create/`, `test-composer/`, `zephyr-tool/` pre-staged). See `ask-ck/ck-facelift/PLAN-facelift.md` for the executed plan.
+**Context**: The tool was renamed **Ask CK** and generalized from single-use to a multi-tool workbench. The user restructured the repo mid-session (`drafting-tool/` → `ask-ck/CK-main/` with `drafting_server/` → `CK_server/`; root `data/` + `refined-cases/` + process docs → `ask-ck/objective-drafting/`; per-tool dirs `pytest-create/`, `test-composer/`, `zephyr-tool/` pre-staged). See `archive/plans/PLAN-facelift.md` for the executed plan.
 
 **Restructure / repathing**:
 - Moving a served app breaks silently in three kinds of places: CWD-relative data loads (`BASE = "."` in data.py), `__file__`-relative escapes (`BASE_DIR.parent.parent / "refined-cases"` in wizard.py, `../../OBJECTIVE_DRAFTING_PROCESS.md` in main.py), and launcher scripts (run.sh `PYTHONPATH`/module target).

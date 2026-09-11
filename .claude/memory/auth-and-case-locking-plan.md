@@ -15,7 +15,7 @@ not localhost-forever. He added a requirement the adversarial review had not rai
 > *"There should be a session-lockout for each test case selected so concurrent overwrites are
 > impossible, both for the PyTest Creator and for the test-case generator."*
 
-Captured as `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` (commit `94b98cf`).
+Captured as `ask-ck/plans/PLAN-auth-and-case-locking.md` (commit `94b98cf`).
 
 **Phase 1 (locking) SHIPPED 2026-07-29 — `CK_server/locks.py`.** The bug it closed: sessions are
 keyed by case with **no owner column** and every persist is an unconditional whole-blob upsert, so

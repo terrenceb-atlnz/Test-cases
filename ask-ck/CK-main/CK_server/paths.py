@@ -23,15 +23,15 @@ PROCESS_MD = OBJECTIVE_DRAFTING_ROOT / "OBJECTIVE_DRAFTING_PROCESS.md"
 # is retired — all corpora live in ck.db now. No DATA_DIR / PT_DATA_DIR anchor
 # exists on purpose: nothing at runtime may read corpus JSON off disk.
 
-# PyTest Creator (see ask-ck/pytest-create/PLAN-pytest-creator.md)
+# PyTest Creator (see ask-ck/plans/PLAN-pytest-creator.md)
 PYTEST_CREATE_ROOT = ASKCK_ROOT / "pytest-create"
 PT_GENERATED_DIR = PYTEST_CREATE_ROOT / "generated"
 
-# LLM observability (see ask-ck/ck-facelift/PLAN-llm-observability.md)
+# LLM observability (see archive/plans/PLAN-llm-observability.md)
 DEBUG_LOG_DIR = CK_SERVER_DIR / "debug-log"                 # per-session LLM request JSONL (gitignored)
 LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"    # app-owned Local LLM key (gitignored via secrets.*)
 
-# SQLite data layer (see ask-ck/ck-facelift/PLAN-db-only-search.md)
+# SQLite data layer (see archive/plans/PLAN-db-only-search.md)
 # ck.db is the PERMANENT single source of truth — built once, shipped via Git LFS,
 # NOT rebuildable and NOT a cache. The intermediate corpus JSON it was built from has
 # been retired/deleted; the running server reads corpora ONLY from ck.db (db.py).

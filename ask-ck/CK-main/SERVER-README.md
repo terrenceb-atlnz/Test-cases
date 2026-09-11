@@ -87,7 +87,7 @@ This version replaces the original single-file static `index.html` approach.
   remains only as provenance of how the DB was constructed and **refuses to run** (it would
   delete the committed DB and cannot repopulate it). The one raw original kept is the Zephyr XML
   export, as an immutable provenance root. There are no corpus APIs and no re-fetch — the corpus
-  data is a fixed snapshot. See **`ask-ck/ck-facelift/PLAN-db-only-search.md`**.
+  data is a fixed snapshot. See **`archive/plans/PLAN-db-only-search.md`**.
 
 **Hosting**:
 - Intended to run behind nginx on a local IP.
@@ -141,7 +141,7 @@ ask-ck/
 │   ├── PROGRESS.md / LESSONS_LEARNED.md / PLAN-server-backed.md / OBJECTIVE_DRAFTING_PROCESS.md
 │   ├── data/ ...
 │   └── refined-cases/<Group>/AWPTCM-Txxxx/
-├── ck-facelift/PLAN-facelift.md     ← 2026-07-13 facelift plan (as executed)
+├── archive/plans/PLAN-facelift.md     ← 2026-07-13 facelift plan (as executed)
 ├── pytest-create/  test-composer/  zephyr-tool/   ← future per-tool assets
 ```
 
@@ -377,7 +377,7 @@ contract is, and why each part exists (all measured on real runs, 2026-07-30 →
 > gated by `_size_overflow()`. That was refuted on 2026-08-03 and both are gone.** The ceiling
 > was a defect in `_parse_generated_blocks`, which stopped at the first *continuation* fence and
 > discarded the rest of the reply. The real protection is applied on arrival (reassembly + the
-> completeness lint). See `ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md` Phase 7 and the
+> completeness lint). See `ask-ck/plans/PLAN-pipeline-end-to-end.md` Phase 7 and the
 > ⚠-bannered `archive/records/FINDINGS-generation-size-ceiling.md` (archived 2026-09-11).
 
 ### Local LLM (organization vLLM)
@@ -387,7 +387,7 @@ contract is, and why each part exists (all measured on real runs, 2026-07-30 →
 - **Key**: set it once on the Configure page (stored gitignored in `CK_server/secrets.local.json`; survives restarts and new sessions). Re-enter to update when it expires; leave blank to keep the stored key. For headless runs, `export LOCAL_LLM_KEY=...` works as a fallback. The key never leaves the server (not in sessions, responses, or the debug log).
 - This transport reports real token usage (`usage.prompt_tokens/completion_tokens`), so the LLM debug footer/badges show actual in / out counts.
 - **Reasoning-model handling (2026-07-21).** *Both* org models are reasoning models: they spend completion tokens on hidden chain-of-thought (returned in `message.reasoning_content`) **before** emitting the answer in `message.content`. The OpenAI-compatible call path in `llm.py` accounts for this in three ways: (1) `max_tokens` is raised to **16000** for `local_llm` (the legacy 2000 was exhausted mid-reasoning, leaving `content` null); (2) the response parser guards a null/empty/`finish_reason=length`-truncated `content` and raises a *clear* error (falling back to `reasoning_content` for a reasoning-only reply) instead of a cryptic `NoneType` crash; (3) requests are sent as a **system + user** message pair (the shape documented in `docs/resources.md`) — `run_prompt` prepends a default JSON-only steer (`_JSON_SYSTEM_PROMPT`) that skips the model's scratchpad and cuts completion tokens sharply (measured ~35% on `extract_sequence`, ~22× on a trivial JSON ask). Callers can override the system message per call; the health-ping sends none. Anthropic's native path uses the top-level `system` field instead of a message role.
-- **Streaming transport (2026-07-22).** The OpenAI-compatible (vLLM) call path **streams** the response (`stream: true` + `stream_options.include_usage`), consuming the SSE body and accumulating `content`/`reasoning_content` deltas into the same result the non-streamed path produced (all guards + token badges unchanged). This is the structural fix for the read-timeout failure the reasoning models hit on the largest-output step (`generate_script`): with a streamed body the HTTP `read` timeout bounds the gap **between chunks**, not the whole response, so a reasoning phase of *any* length completes as long as chunks keep flowing — a static timeout ceiling (even 600s) could still be exceeded and was (see `ask-ck/pytest-create/PLAN-pytest-testing.md` §7.7/§8). Verified live: a `vllm-thinking` call with a 30s read timeout ran 21+ minutes without timing out. `max_tokens` is also now overridable per call (`generate_script`/`fix_script` request 32000; default stays 16000 for `local_llm`). The Anthropic native path stays non-streaming (it had no such failure).
+- **Streaming transport (2026-07-22).** The OpenAI-compatible (vLLM) call path **streams** the response (`stream: true` + `stream_options.include_usage`), consuming the SSE body and accumulating `content`/`reasoning_content` deltas into the same result the non-streamed path produced (all guards + token badges unchanged). This is the structural fix for the read-timeout failure the reasoning models hit on the largest-output step (`generate_script`): with a streamed body the HTTP `read` timeout bounds the gap **between chunks**, not the whole response, so a reasoning phase of *any* length completes as long as chunks keep flowing — a static timeout ceiling (even 600s) could still be exceeded and was (see `ask-ck/plans/PLAN-pytest-testing.md` §7.7/§8). Verified live: a `vllm-thinking` call with a 30s read timeout ran 21+ minutes without timing out. `max_tokens` is also now overridable per call (`generate_script`/`fix_script` request 32000; default stays 16000 for `local_llm`). The Anthropic native path stays non-streaming (it had no such failure).
 - **Health check** (next to the "key stored ✓" note): pings the *currently-selected* model with a minimal completion via the same real-call path (`POST /api/wizard/llm_health` → `_health_ping`), and reports `✓ up — <model> (<ms>) · N in / M out (total)` or a clean error. Distinguishes "my config is wrong" from "the backend is down" without spending a real synthesize. Provider-agnostic (works for any auth_method). Note: `vllm-thinking` reasons before replying, so even a trivial ping shows a large *output* count — that's the model's reasoning, and it's exactly the cost signal for comparing Fast vs. Thinking.
 
 ### LLM request observability
@@ -479,7 +479,7 @@ After the LLM returns text, `llm.py` parses/normalizes and export uses `template
 > and Ask-CK itself has no authentication.** Following this section as-is publishes an
 > unauthenticated tool that can spend the shared `JIRA_KEY` against live Zephyr cases to
 > anyone who can reach the host. Do not use it for a shared deployment until
-> `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` lands (that plan replaces these
+> `ask-ck/plans/PLAN-auth-and-case-locking.md` lands (that plan replaces these
 > examples with TLS + auth in Phase 3). For local single-user use, you do not need nginx
 > at all — `run.sh` on loopback is the supported path.
 
@@ -595,7 +595,7 @@ harvester detects and counts those separately rather than recording them as empt
 
 Turns a **Complete** case (one with a refined `zephyr_payload.json`) into a runnable
 Allied Telesis framework test script. Full plan + progress tracker:
-`ask-ck/pytest-create/PLAN-pytest-creator.md`.
+`ask-ck/plans/PLAN-pytest-creator.md`.
 
 **Objective-coverage gate (2026-07-27).** *Every objective links to a Zephyr step, and
 every Zephyr step needs at least one PyTest step — otherwise that part of the objective is
@@ -819,7 +819,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    *per-case* partner-polarity reconfigs in `setup` (so they collapse into one-time `configure()`
    and the forced-polarity matrix never varies) and marked the *physical* cable-swaps `verify`
    (so the models faked them with DUT-side CLI = false green). Fix belongs in Sequence
-   extraction, not Generate — tracked in `ask-ck/ck-facelift/PLAN-permutation-expander.md`.
+   extraction, not Generate — tracked in `ask-ck/plans/PLAN-permutation-expander.md`.
    The prompt (`pt_generate_script.jinja`) instructs the LLM
    to fill the FILL slots with the reused fragments + gap-fill and to keep the three
    logging-contract calls. The prompt also mandates **deleting** each `# >>> FILL … <<<`
@@ -1078,7 +1078,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
 Ask CK is designed for **localhost / single-user** use (a shared multi-tenant deployment is
 explicitly out of contract — see *Known Issues*, and the multi-user plan at
-`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`). A full adversarial review (2026-07-27)
+`ask-ck/plans/PLAN-auth-and-case-locking.md`). A full adversarial review (2026-07-27)
 hardened the boundaries so untrusted/LLM-derived input can't escape its lane even so.
 
 > **Review closed 2026-07-27g.** All 62 candidate findings are resolved: 31 fixed, 31 dismissed
@@ -1091,7 +1091,7 @@ hardened the boundaries so untrusted/LLM-derived input can't escape its lane eve
 Two people — or one person in two browser tabs — could open the same case and silently
 overwrite each other: every persist was an unconditional whole-blob write, so the second save
 won and the first person's work vanished with no error. Phase 1 of
-`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` closes this for **both** tools.
+`ask-ck/plans/PLAN-auth-and-case-locking.md` closes this for **both** tools.
 
 - **A per-(tool, case) lock** (`CK_server/locks.py`) is acquired on `load_case`, heartbeated
   every 5 min, released on tab close (`navigator.sendBeacon` on `pagehide`), and idles out after
@@ -1195,7 +1195,7 @@ Still accepted, unchanged: **no authentication on any endpoint.** `HOST=0.0.0.0`
 safe configuration. Note `X-CK-Session` is **not** a credential — the browser tab invents it and
 the server never verifies it; it is a per-tab correlation id for the agent bridge only.
 
-**This is tracked work, not just a caveat:** `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`
+**This is tracked work, not just a caveat:** `ask-ck/plans/PLAN-auth-and-case-locking.md`
 (multi-user identity + per-case session locking).
 
 **Phase 1 — locking — is DONE (2026-07-29).** It closed a concurrency bug that did not need a
@@ -1219,7 +1219,7 @@ identity decision.
 
 ## Testing
 
-Three test layers, one regular gate (established 2026-07-27). Design: `ask-ck/ck-facelift/`
+Three test layers, one regular gate (established 2026-07-27). Design: `ask-ck/plans/`
 `PLAN-frontend-unit-tests.md` + `PLAN-playwright-e2e.md`.
 
 **1. Backend units** — repo-root `tests/` (pytest, in-process `TestClient` — no mocks, network, or
@@ -1281,7 +1281,7 @@ commit is the current discipline.
 
 ## Relation to the Approved Plan
 
-See `archive/records/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `ask-ck/ck-facelift/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
+See `archive/records/PLAN-server-backed.md` for the complete approved plan that this implementation follows (its paths are pre-restructure), and `archive/plans/PLAN-facelift.md` for the 2026-07-13 multi-tool facelift plan.
 
 The plan explicitly chose server-backed because:
 - LLM is required for creation.
@@ -1356,7 +1356,7 @@ four themed batches, the two accepted-risk security rows taken to Terrence and a
 Two defects were found by skeptics **while refuting** other claims: the SSE latin-1 mojibake (the
 most consequential correctness bug of the pass) and the inert Py2 prompt marker. Tests 48 → 190
 pytest / 47 → 72 Vitest. Backlog closed as a historical record; multi-user auth + per-case locking
-captured in `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`.
+captured in `ask-ck/plans/PLAN-auth-and-case-locking.md`.
 
 ## Session Summary (2026-07-27c–e — full adversarial review + 15 security/correctness fixes + test suite)
 
@@ -1391,7 +1391,7 @@ Files touched: `llm.py`, `models.py`, `routers/{wizard,pytest_create}.py`, `stat
 
 ## Session Summary (2026-07-13, later session — Ask CK facelift)
 
-Repo restructure support + multi-tool facelift (see `ask-ck/ck-facelift/PLAN-facelift.md`):
+Repo restructure support + multi-tool facelift (see `archive/plans/PLAN-facelift.md`):
 
 - **Repathing** after the `drafting-tool/` → `ask-ck/` restructure: new `CK_server/paths.py` anchors (DATA_DIR / REFINED_DIR / PROCESS_MD); fixed `data.py` (was CWD-relative), `wizard.py` refined-cases roots, `main.py` process page path, and `run.sh` (now `CK_server.main:app`). Boot-verified with full data (410 cases).
 - **Ask CK rename**: page title, sidebar logo, FastAPI title.

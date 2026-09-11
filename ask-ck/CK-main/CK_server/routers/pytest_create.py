@@ -1,6 +1,6 @@
 """PyTest Creator — turn completed (refined) test cases into runnable framework scripts.
 
-Guided 8-step gated flow (see ask-ck/pytest-create/PLAN-pytest-creator.md):
+Guided 8-step gated flow (see ask-ck/plans/PLAN-pytest-creator.md):
   1 Cases (select a Complete case)        5 Fragments (reuse real code by symbol)
   2 Sequence (prescriptive steps, LLM)    6 Generate (LLM composite + naming + lint)
   3 Script Search (index + LLM re-rank)   7 Run (execute on a stored testbox)

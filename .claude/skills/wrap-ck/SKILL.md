@@ -68,7 +68,7 @@ Convert relative dates to absolute ("last Tuesday" is useless in three months).
 Find them by glob, never by a list written down here:
 
 ```bash
-ls ask-ck/*/PLAN-*.md
+ls ask-ck/plans/PLAN-*.md
 ```
 
 If a plan advanced or a decision changed, update its **status header** (mark phases done, add

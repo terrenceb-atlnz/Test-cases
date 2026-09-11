@@ -15,7 +15,7 @@ Everything here is offline: no network, no Zephyr, no testbox, no subprocess tha
 could reach one. The HTTP tests stop at the 400 that precedes the shell-out, or stub
 the shell-out outright.
 
-See ask-ck/ck-facelift/PLAN-pipeline-end-to-end.md, Phase −1.
+See ask-ck/plans/PLAN-pipeline-end-to-end.md, Phase −1.
 """
 import json
 import pathlib

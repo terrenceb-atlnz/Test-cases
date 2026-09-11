@@ -21,7 +21,7 @@ the easy path rather than the RDP-to-localhost workaround of the two demo days.
 - A seat needs only the Ask CK URL: the home page's one-liner (`/setup/setup.ps1` or
   `/setup/setup.sh`) installs Claude Code, fixes PATH, logs in, installs and starts the
   agent, and hands the final check to the page (`?seat-check=1`). Re-running it is the
-  update/repair ritual. Plan: `ask-ck/ck-facelift/PLAN-seat-setup-and-per-seat-llm.md`.
+  update/repair ritual. Plan: `ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md`.
 - The LLM choice is **per seat**: the browser sends `X-CK-LLM` on every `/api` call;
   `llm_config.effective_llm_config` resolves seat → site default → session copy. Apply
   stores the seat's choice in the browser AND writes the `_workspace_llm` site-default row

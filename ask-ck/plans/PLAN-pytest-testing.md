@@ -96,7 +96,7 @@
 >   and ran a 5-model generation matrix (vllm-fast/thinking + claude haiku/sonnet/opus) judged
 >   holistically by opus + vllm-fast (`tool/pt_matrix_judge.py`; artifacts under `comparison/`).
 >   **T33233/T33235 → "good" (sonnet/opus); T33234 → 10/10 "bad"** — root-caused NOT to model quality
->   but to sequence-step `kind` misclassification; see `ck-facelift/PLAN-permutation-expander.md`.
+>   but to sequence-step `kind` misclassification; see `plans/PLAN-permutation-expander.md`.
 > - ✅ **Part 3b UNBLOCKED + topology corrected (2026-07-29).** `configs/tb470.setup` existed
 >   as of 2026-07-27 but was the `SETUP-FILE-REFERENCE.md` worked example (x930/AR4050S/x530)
 >   copied verbatim — a placeholder that did NOT match the bench (those u0/u2 devices are
@@ -405,7 +405,7 @@
 >
 > **Companion docs:** `PART2A-WALKTHROUGH.md` (Part 2A results + the LLM-path fixes),
 > `PLAN-pytest-creator.md` (the original build, the flow it describes is the thing
-> under test here), `../ck-facelift/PLAN-db-only-search.md` (the DB-only invariant
+> under test here), `../../archive/plans/PLAN-db-only-search.md` (the DB-only invariant
 > this must respect).
 
 ---

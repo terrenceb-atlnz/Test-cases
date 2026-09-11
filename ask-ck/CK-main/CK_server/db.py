@@ -1,4 +1,4 @@
-"""SQLite access layer for Ask-CK  (see ask-ck/ck-facelift/PLAN-db-migration.md).
+"""SQLite access layer for Ask-CK  (see archive/plans/PLAN-db-migration.md).
 
 Commit A: reads + search (keyword/FTS5) + session CRUD. No vector search yet
 (Stage D adds sqlite-vec); the connection factory already best-effort-loads the

@@ -14,7 +14,7 @@ The **PyTest Creator** (a tool inside the Ask CK FastAPI workbench at
 Allied Telesis `framework` (ATTestSet/ATTestCase) scripts, then runs them on real hardware
 over SSH and iterates via an LLM fix loop.
 
-The living plan/progress tracker is `ask-ck/pytest-create/PLAN-pytest-creator.md`
+The living plan/progress tracker is `ask-ck/plans/PLAN-pytest-creator.md`
 — **update it as milestones land** (user explicitly wants progress tracked there). Testing
 status lives in the companion `PLAN-pytest-testing.md`.
 

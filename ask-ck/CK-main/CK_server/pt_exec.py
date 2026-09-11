@@ -1,6 +1,6 @@
 """PyTest Creator execution engine.
 
-Three concerns, all hardware-adjacent (see ask-ck/pytest-create/PLAN-pytest-creator.md §2):
+Three concerns, all hardware-adjacent (see ask-ck/plans/PLAN-pytest-creator.md §2):
 - Testbox profiles: named SSH/testbox records stored in the gitignored
   secrets.testboxes.json (same discovery convention as tool/upload_refined.py).
 - parse_framework_log(): pure parser for the ATTestSet/ATTestCase log format —

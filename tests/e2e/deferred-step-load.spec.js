@@ -1,6 +1,6 @@
 // Ask-CK E2E — deferred per-step candidate loading (the Generator's three DB reviews).
 //
-// WHY THIS EXISTS (see ask-ck/ck-facelift/PLAN-backend-module-split.md A1):
+// WHY THIS EXISTS (see archive/plans/PLAN-backend-module-split.md A1):
 //   The three review steps used to receive their candidate pools inside the load_case
 //   response, i.e. the server built data for panels the user had not opened. That
 //   caused two separate incidents:

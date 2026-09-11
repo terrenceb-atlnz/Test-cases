@@ -60,7 +60,7 @@ Reference: `ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`. The authoritative par
 
 **Always go through the PyTest Creator.** The prompts, CLI grounding, coverage gate, skeleton
 and lints *are* the product; calling a model directly tests the model instead of the tool, and
-produces nothing `ck.db` knows about. Design docs: `ask-ck/pytest-create/PLAN-pytest-creator.md`
+produces nothing `ck.db` knows about. Design docs: `ask-ck/plans/PLAN-pytest-creator.md`
 and `TOPOLOGY-PROFILES.md` — read the status header before changing that subsystem.
 
 Server of record is the LAN host `http://10.33.22.17:8000/`; use

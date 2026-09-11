@@ -12,7 +12,7 @@ below.
 
 **This is where per-case locking lands.** `sessions` is a global mutable dict with no
 locking, and two browser tabs on one case can silently overwrite each other TODAY. That is
-owned by `ask-ck/ck-facelift/PLAN-auth-and-case-locking.md` Phase 1 — do not re-raise it
+owned by `ask-ck/plans/PLAN-auth-and-case-locking.md` Phase 1 — do not re-raise it
 elsewhere, and put the fix here rather than in a router.
 
 --- Two deviations from the plan, both measured rather than assumed -------------------

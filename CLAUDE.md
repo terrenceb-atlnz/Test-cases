@@ -11,7 +11,7 @@ briefs you. **End with `/wrap-ck`.** Both live in `.claude/skills/`. Don't reimp
 
 Written after a session in which I exceeded the explicit ask **nine times**, twice while
 actively diagnosing that as the problem. The root cause he identified is the subtitle of
-`ask-ck/ck-facelift/DECISIONS-FOR-REVIEW.md`: *"Every judgement call made without you"* — a
+`ask-ck/plans/DECISIONS-FOR-REVIEW.md`: *"Every judgement call made without you"* — a
 whole file whose purpose is to catalogue unilateral decisions for retrospective review. The
 measured result of that model is **5 of 12** blind decisions matching, and all three of the
 prompt rules reverted on 2026-08-05 came from a single autonomous commit.
@@ -114,6 +114,6 @@ on one, and before reporting it missing.
 
 `ask-ck/objective-drafting/PROGRESS.md` is the highest-value file in the repo (newest entry at
 the **top**). `SESSION_STATE.md` is long-form history; only its tail is current. Plans are
-`ask-ck/*/PLAN-*.md` — read a plan's status header before touching its subsystem, and treat
+`ask-ck/plans/PLAN-*.md` — read a plan's status header before touching its subsystem, and treat
 settled decisions there as settled. This tree is shared with a concurrent stream, so re-check
 `git status` before claiming it clean, and stage explicit paths.

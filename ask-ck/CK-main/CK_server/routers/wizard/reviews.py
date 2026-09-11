@@ -68,7 +68,7 @@ async def load_case(key: str, data=Depends(get_data)):
         mode deadlocks without.
 
     So: no step does work here, and all three behave identically. See
-    ask-ck/ck-facelift/PLAN-backend-module-split.md A1.
+    archive/plans/PLAN-backend-module-split.md A1.
     """
     # Per-case lock (PLAN-auth-and-case-locking.md Phase 1). Acquire for this tab; if
     # another tab/user holds a LIVE lock we do NOT acquire (by_me=False) and serve a

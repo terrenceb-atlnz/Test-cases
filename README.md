@@ -207,7 +207,7 @@ Test-cases/
 │   │   └── CK_server/              # FastAPI server (main.py, routers/, static/js/, templates/)
 │   ├── objective-drafting/         # Generator: process docs, PROGRESS.md, data/, refined-cases/
 │   ├── pytest-create/              # PyTest Creator: plans, specs, generated/<Group>/<Name>.py
-│   ├── ck-facelift/                # Subsystem plans (PLAN-*.md)
+│   ├── plans/                # Subsystem plans (PLAN-*.md)
 │   └── var/ck.db                   # THE permanent database (Git LFS)
 └── tool/                           # Guards, the test gate, upload_refined.py, checkers
 ```
@@ -221,7 +221,7 @@ Test-cases/
 | [`ask-ck/CK-main/SERVER-README.md`](ask-ck/CK-main/SERVER-README.md) | The deep technical reference — run, architecture, LLM modes, nginx |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed, when, and **why** |
 | [`ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md`](ask-ck/objective-drafting/OBJECTIVE_DRAFTING_PROCESS.md) | The Generator's authority (Steps 1–2) |
-| [`ask-ck/pytest-create/PLAN-pytest-creator.md`](ask-ck/pytest-create/PLAN-pytest-creator.md) | PyTest Creator plan + progress tracker |
+| [`ask-ck/plans/PLAN-pytest-creator.md`](ask-ck/plans/PLAN-pytest-creator.md) | PyTest Creator plan + progress tracker |
 | [`ask-ck/pytest-create/TOPOLOGY-PROFILES.md`](ask-ck/pytest-create/TOPOLOGY-PROFILES.md) | Topology contract that generated scripts target |
 | [`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](ask-ck/pytest-create/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
 | [`ask-ck/objective-drafting/LESSONS_LEARNED.md`](ask-ck/objective-drafting/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
@@ -245,7 +245,7 @@ purpose** (a durable table would have been the first in-place schema change to t
 `ck.db`), so running multi-worker would silently reintroduce the overwrite bug — `locks.py`
 says so prominently. Multi-user **identity** (Phase 2) and attribution + TLS (Phase 3) remain
 planned in
-[`ask-ck/ck-facelift/PLAN-auth-and-case-locking.md`](ask-ck/ck-facelift/PLAN-auth-and-case-locking.md),
+[`ask-ck/plans/PLAN-auth-and-case-locking.md`](ask-ck/plans/PLAN-auth-and-case-locking.md),
 gated on an organisational decision. Never commit credentials — `secrets.md`,
 `secrets.local.json` and `secrets.testboxes.json` are gitignored.
 
