@@ -8,10 +8,10 @@
 // seat next Applies — and the text names no retired mode (D3: no evidence it existed).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mountFromIndex } from './helpers/fixture-dom.js';
-import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
+import { S } from '../../ask-ck/frontend/ck-main/current/shared/state.js';
 import { updateLLMStatus, storeSeatLlm, renderSeatLlmRetiredNotice, SEAT_LLM_RETIRED_TEXT }
-  from '../../ask-ck/CK-main/CK_server/static/js/llm.js';
-import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from '../../ask-ck/CK-main/CK_server/static/js/session.js';
+  from '../../ask-ck/frontend/ck-main/current/llm-config/llm.js';
+import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from '../../ask-ck/frontend/ck-main/current/shared/session.js';
 
 const SITE_DEFAULT = { provider: 'openai', auth_method: 'local_llm', model: 'vllm-fast',
                        has_key: true, local_llm_key_set: true };

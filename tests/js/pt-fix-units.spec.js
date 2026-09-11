@@ -11,9 +11,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { modulePath, assetPath } from './helpers/frontend-paths.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const read = (p) => readFileSync(resolve(HERE, `../../ask-ck/CK-main/CK_server/static/${p}`), 'utf8');
+const read = (p) => readFileSync(p.startsWith('js/') ? modulePath(p) : assetPath(p), 'utf8');
 const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const JS = code(read('js/pytest.js'));
 const HTML = read('index.html');

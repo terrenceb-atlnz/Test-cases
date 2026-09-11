@@ -172,7 +172,7 @@ one from a previous pass are indistinguishable — this is exactly the ambiguity
 
 **Fix.** The data already exists: `_apply_crash` and `_fail` in `routers/pytest_create.py`
 stamp `at` on every error chunk. Surface it in the unit-chip tooltip and the status line in
-`static/js/pytest.js` (render local time + a relative "3 min ago"). Consider the same stamp on
+`frontend/ck-main/current/pytest-creator/pytest.js` (render local time + a relative "3 min ago"). Consider the same stamp on
 `ok` chunks — "generated 14:41" — since freshness was the whole question.
 
 **Tests.** Vitest (`tests/js/`): an `error` chunk with `at` renders the timestamp; one without
@@ -196,7 +196,7 @@ never a second blocking request per unit (`[[browser-fanout-connection-ceiling]]
 
 ## #3 — The "If something's wrong" legend and Fix-button styling are out of sync with the buttons
 
-**Evidence.** `static/index.html:708-711` documents only the **whole-script** "Fix with LLM"
+**Evidence.** `frontend/ck-main/current/index.html:708-711` documents only the **whole-script** "Fix with LLM"
 and per-unit *regenerate-from-page*; it never names **"⤺ Fix units (LLM)"** (`:737-740`), whose
 only accurate description is its hover `title=` and an **unrendered HTML comment** (`:730-733`).
 The legend's "don't re-Assemble after a Fix — it re-splices the units and discards the fix" is

@@ -1,14 +1,14 @@
 // PyTest Creator: the full 8-step gated flow.
-import { registerActions } from './actions.js';
-import { S } from './state.js';
-import { dataArgs, escapeHtml, setButtonBusy, flashButtonDone } from './dom-helpers.js';
-import { refreshCaseSelects } from './cases.js';
-import { goToPanel } from './nav.js';
-import { recordLLMDebug } from './llm-debug.js';
-import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
-import { onCaseLoaded, registerReloader } from './locks.js';
-import { llmButtonStart, isCancelMessage, newCallId, cancelLlmCall } from './llm-progress.js';
-import { rememberCase } from './session-restore.js';
+import { registerActions } from '../shared/actions.js';
+import { S } from '../shared/state.js';
+import { dataArgs, escapeHtml, setButtonBusy, flashButtonDone } from '../shared/dom-helpers.js';
+import { refreshCaseSelects } from '../shared/cases.js';
+import { goToPanel } from '../shared/nav.js';
+import { recordLLMDebug } from '../shared/llm-debug.js';
+import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from '../shared/provenance.js';
+import { onCaseLoaded, registerReloader } from '../shared/locks.js';
+import { llmButtonStart, isCancelMessage, newCallId, cancelLlmCall } from '../shared/llm-progress.js';
+import { rememberCase } from '../shared/session-restore.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
 registerReloader('pt', ptLoadCase);

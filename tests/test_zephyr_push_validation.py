@@ -351,7 +351,7 @@ def test_confirmation_lets_a_real_push_through(client, monkeypatch):
 
 
 def test_the_ui_sends_the_token_only_on_execute():
-    js = (_SERVER / "static" / "js" / "generator.js").read_text(encoding="utf-8")
+    js = (_SERVER.parents[1] / "frontend" / "ck-main" / "current" / "generator" / "generator.js").read_text(encoding="utf-8")
     call = js.split("push_to_zephyr", 1)[1][:600]
     assert "confirm: key" in call, "the UI cannot perform a real push any more"
     assert "execute ?" in call, "the token must be conditional on execute"

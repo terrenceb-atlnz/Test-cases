@@ -26,8 +26,8 @@ import pytest
 import pt_exec
 
 REPO = Path(__file__).resolve().parents[1]
-INDEX_HTML = REPO / "ask-ck" / "CK-main" / "CK_server" / "static" / "index.html"
-PYTEST_JS = REPO / "ask-ck" / "CK-main" / "CK_server" / "static" / "js" / "pytest.js"
+INDEX_HTML = REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "index.html"
+PYTEST_JS = REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "pytest-creator" / "pytest.js"
 
 
 def _body(**over):

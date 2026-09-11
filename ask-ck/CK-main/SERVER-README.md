@@ -45,7 +45,7 @@ This version replaces the original single-file static `index.html` approach.
 - REST API consumed by the frontend: `/api/wizard` (Generator) + stub routers `/api/zephyr-tool`, `/api/test-composer`, `/api/pytest-create`.
 - Serves the process documentation as interactive web pages.
 
-**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `CK_server/static/index.html`
+**Frontend**: Static web UI (vanilla JS + HTML, served by the backend) — `frontend/ck-main/current/index.html`
 - **Ask CK multi-tool sidebar** (always-expanded sections, top→bottom):
   - **LLM** — live status + **Configure** entry (opens the LLM Provider Login as a main-area panel)
   - **Zephyr Templating Tool** — 1. Info / 2. Test Plan / Cycle / Cases / 3. Link Test Scripts / 4. TBD (placeholder panels)
@@ -132,7 +132,7 @@ ask-ck/
 │       │   ├── zephyr_tool.py       ← Zephyr Templating Tool stub (/api/zephyr-tool)
 │       │   ├── test_composer.py     ← Test Composer stub (/api/test-composer)
 │       │   └── pytest_create.py     ← PyTest Creator (/api/pytest-create) — fully implemented
-│       ├── static/index.html        ← Ask CK frontend (all tools + process links)
+│       ├── frontend/ck-main/current/index.html        ← Ask CK frontend (all tools + process links)
 │       ├── templates/
 │       │   ├── prompts/             ← generate_objectives/steps/gaps, suggest_*, analyze_atp_coverage
 │       │   └── outputs/traceability.md.jinja
@@ -412,7 +412,7 @@ transport-contract tests pin the boundary and pass unchanged; dry-runs never reg
 
 ### LLM Provenance (portable prompts) + dry-run preview
 
-Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fragments, generate) carries a collapsible **LLM Provenance** block (`static/js/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
+Every LLM panel (Generator: objectives, steps, the 3 *Suggest* panels; PyTest Creator: sequence, script-search, fragments, generate) carries a collapsible **LLM Provenance** block (`frontend/ck-main/current/shared/provenance.js`, shared) with **↻ Refresh (no send)** and **Copy prompt / Copy response** buttons. Purpose: grab the exact prompt to paste into a competing LLM (comparative analysis / free-LLM fallback).
 
 - **Refresh** re-invokes the panel's own endpoint with `dry_run: true`. The backend renders the prompt through the *real* context path and returns it **without sending** to the LLM — no tokens, not recorded to the debug-log. Because it reuses the real call path with one flag flipped, the previewed/copied prompt is **1-for-1** (byte-identical) with what a real send transmits — verified in-repo.
 - **The preview uses the panel's LIVE inputs, and targets the endpoint the panel actually drives (2026-08-31).** `registerProvenance` takes a `bodyFn` evaluated at click time — that is what makes the preview 1-for-1 with a real send — but every PyTest Creator panel passed a hard-coded empty body, so Refresh rendered against the endpoint's server-side *defaults* rather than what the page showed. On **Generate** that surfaced as a 400: the default group for a case in `Authentication & Security` failed `_validate_naming`, so Refresh answered "Invalid group name" for a group the reviewer had already edited away, while the Generate button (which does post its inputs) worked. On **Script Search** the mount still pointed at the retired whole-case `/suggest_scripts` — its last reference anywhere in the frontend — so Refresh rendered a mega-prompt this flow never sends. Both fixed: Generate passes its live naming, Script Search resolves `/suggest_scripts_step/{key}/{n}` at click time so the preview follows the step pager.
@@ -1060,7 +1060,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
 ## Adding a New Tool (Ask CK pattern)
 
-1. **Frontend** (`CK_server/static/index.html`): add a `.card.tool-panel` div with a unique panel id, a `PANEL_META` entry (title/desc), and a sidebar nav item with `data-panel="<panel-id>"` + `onclick="goToPanel('<panel-id>')"`.
+1. **Frontend** (`frontend/ck-main/current/index.html`): add a `.card.tool-panel` div with a unique panel id, a `PANEL_META` entry (title/desc), and a sidebar nav item with `data-panel="<panel-id>"` + `onclick="goToPanel('<panel-id>')"`.
 2. **Backend**: add `CK_server/routers/<tool>.py` (plain `APIRouter`), then `include_router(..., prefix="/api/<tool>")` in `main.py`.
 3. **Assets/data**: use the matching `ask-ck/<tool>/` directory (mirrors how `objective-drafting/` backs the Generator).
 4. Do not touch the Generator's numeric step scheme (`data-step`, `step-N` ids, `stepN` session keys, `confirm_step` 1–3).
@@ -1069,7 +1069,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
 - Most logic is in `CK_server/`.
 - To iterate on prompts: edit the `.jinja` files and restart (or use `--reload`).
-- To iterate on the UI: edit `static/index.html` (no rebuild step).
+- To iterate on the UI: edit `frontend/ck-main/current/index.html` (no rebuild step).
 - The wizard still supports manual editing of objectives/steps after LLM synthesis.
 - Session state lives in the ck.db `sessions` table (since 2026-07-16); the old `CK_server/sessions/*.json` are frozen under `archive/CK_server/sessions/`.
 - Full prompt + LLM response is captured in the exported session JSON for auditability.
@@ -1385,9 +1385,9 @@ Four pieces of work (all **uncommitted** at session end — Terrence commits him
 1. **LLM-config bug (dangerous — fixed).** PyTest Creator LLM endpoints resolved `_llm_cfg` raw and only `load_case` applied the workspace login, so a stale/inactive session silently fell back to the default backend (`claude_agent`/`model=default`) instead of the configured `local_llm` — surfaced by the debug-log (a real T33233 `extract_sequence` recorded `auth=claude_agent`). Fixed by folding the workspace-apply into `_llm_cfg` (pytest_create.py) so every endpoint gets the right backend at dispatch. Audit found the **same latent bug in the wizard** (`_session_llm_cfg` + inline reads in suggest_atp/synthesize/coverage) — hardened `_session_llm_cfg` and routed all wizard LLM endpoints through it. `load_case`→analyze_atp was already safe.
 2. **Prompt trims.** `pt_extract_sequence.jinja` −46% (dropped the traceability dump), `generate_steps.jinja` −51% (dropped selections — the finalized objective already carries them), `generate_objectives.jinja` −16% (dropped duplicate `process_principles`, raw `primary` dict, blank-line padding). Removed a **`(typically 4-10)` bullet-count anchor** that contradicted `OBJECTIVE_DRAFTING_PROCESS.md` ("not uniform"), plus the matching silent code caps (`bullets[:10]`, `ranked[:10]`, fallback `[:6]`) and the suggest/analyze selection caps — ranking now covers all relevant candidates; input-pool caps (`candidates[:20]`) kept as legit token bounds.
 3. **Health check** (Configure page): `POST /api/wizard/llm_health` + `_health_ping` — minimal completion via the real path, reports `✓ up — <model> (ms) · N in / M out`. Both vLLM models confirmed healthy; earlier 500s were transient. Token badges relabelled from `17→179 tok` (ambiguous) to `N in / M out (total)` via a single shared `fmtTokens`.
-4. **LLM Provenance + dry-run** (see the section above): every LLM panel gets a copy-able, live-refreshable prompt preview via a `dry_run` flag that renders 1-for-1 without sending. New file `static/js/provenance.js`; `main.js?v=…` bumped to 7.
+4. **LLM Provenance + dry-run** (see the section above): every LLM panel gets a copy-able, live-refreshable prompt preview via a `dry_run` flag that renders 1-for-1 without sending. New file `frontend/ck-main/current/shared/provenance.js`; `main.js?v=…` bumped to 7.
 
-Files touched: `llm.py`, `models.py`, `routers/{wizard,pytest_create}.py`, `static/index.html`, `static/js/{provenance(new),generator,pytest,db-search,llm,llm-debug,main}.js`, `static/styles.css`, 4 prompt templates. Memory: `pytest-creator-llm-config-bug`, `llm-health-check-button`, `llm-provenance-portability`.
+Files touched: `llm.py`, `models.py`, `routers/{wizard,pytest_create}.py`, `frontend/ck-main/current/index.html`, `frontend/ck-main/current/{provenance(new),generator,pytest,db-search,llm,llm-debug,main}.js`, `static/styles.css`, 4 prompt templates. Memory: `pytest-creator-llm-config-bug`, `llm-health-check-button`, `llm-provenance-portability`.
 
 ## Session Summary (2026-07-13, later session — Ask CK facelift)
 

@@ -1,12 +1,12 @@
 // LLM configuration + status UI.
-import { registerActions } from './actions.js';
-import { S } from './state.js';
-import { getActiveCaseKey } from './cases.js';
+import { registerActions } from '../shared/actions.js';
+import { S } from '../shared/state.js';
+import { getActiveCaseKey } from '../shared/cases.js';
 import { ckBrokerLoop, probeLocalAgent } from './agent.js';
-import { fmtTokens } from './llm-debug.js';
-import { llmButtonStart } from './llm-progress.js';
-import { flashButtonDone } from './dom-helpers.js';
-import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from './session.js';
+import { fmtTokens } from '../shared/llm-debug.js';
+import { llmButtonStart } from '../shared/llm-progress.js';
+import { flashButtonDone } from '../shared/dom-helpers.js';
+import { storedSeatLlm, SEAT_LLM_RETIRED_KEY } from '../shared/session.js';
 
 // The LLM choice is PER SEAT (PLAN-seat-setup-and-per-seat-llm.md §5): what this browser
 // applies is stored here and rides on every /api call as X-CK-LLM (session.js). Apply also

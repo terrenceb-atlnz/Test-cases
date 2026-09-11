@@ -54,7 +54,7 @@ ask-ck/
 │       ├── main.py / paths.py
 │       ├── data.py / llm.py / models.py
 │       ├── routers/                # wizard.py + tool stubs
-│       ├── static/index.html       # Ask CK UI (all tools)
+│       ├── frontend/ck-main/current/index.html       # Ask CK UI (all tools)
 │       ├── templates/prompts/      # LLM prompts
 │       ├── templates/outputs/      # Export templates
 │       └── sessions/               # Persisted wizard sessions

@@ -1,11 +1,11 @@
 // Page Object for the Objective/Test-Case Generator golden journey.
 // ALL selectors live here so DOM churn in index.html is a one-file fix.
 // Selectors were grounded in the real markup (index.html) + render code
-// (static/js/tables.js, db-search.js, generator.js) on 2026-07-27 — not guessed.
+// (frontend/ck-main/current/generator/tables.js, db-search.js, generator.js) on 2026-07-27 — not guessed.
 import { expect } from '@playwright/test';
 
 // The three DB-search "kinds" share an identical structure; drive them by config.
-// `emptyTop` / `emptyChosen` are copied from static/js/tables.js TABLE_KINDS — the
+// `emptyTop` / `emptyChosen` are copied from frontend/ck-main/current/generator/tables.js TABLE_KINDS — the
 // strings the render code actually emits. Asserting the real text is what makes the
 // "candidates not fetched yet" state distinguishable from "there are none", which is
 // the whole point of the deferred-load specs.

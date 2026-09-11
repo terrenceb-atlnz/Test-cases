@@ -31,7 +31,7 @@
 > `pytest_create._pt_persist` (holder = the `X-CK-Session` ContextVar, no signature change) —
 > raising `locks.LockError` → HTTP 409 via one app-wide handler. `load_case` acquires on load
 > and serves a read-only snapshot when another holds it (D6a). Endpoints:
-> `POST /api/locks/{kind}/{case_key}/acquire|heartbeat|release`. Frontend `static/js/locks.js`:
+> `POST /api/locks/{kind}/{case_key}/acquire|heartbeat|release`. Frontend `frontend/ck-main/current/shared/locks.js`:
 > acquire-on-load, 5-min heartbeat, `navigator.sendBeacon` release on `pagehide`, read-only
 > banner + disabled inputs + "Take over" once idle. Tests: `tests/test_case_locks.py` (24) +
 > `tests/test_no_unguarded_session_write.py` (structural — no write bypasses the guard) +
@@ -64,7 +64,7 @@ middleware that checks identity, and no endpoint inspects `request.client`. The 
 in play is `X-CK-Session`, and it is **not a credential**:
 
 ```js
-// static/js/session.js
+// frontend/ck-main/current/shared/session.js
 let id = sessionStorage.getItem('ckSessionId');   // the tab invents it
 headers.set('X-CK-Session', CK_SESSION_ID);       // server never verifies it
 ```

@@ -94,7 +94,7 @@ def test_force_flag_is_reachable_but_opt_in():
 
 def test_ui_does_not_send_force():
     """The frontend must get the protected behaviour without opting in."""
-    js = (_CK / "CK_server" / "static" / "js" / "generator.js").read_text(encoding="utf-8")
+    js = (_CK.parent / "frontend" / "ck-main" / "current" / "generator" / "generator.js").read_text(encoding="utf-8")
     push_call = js.split("push_to_zephyr", 1)[1][:300]
     assert "force" not in push_call, "the UI now forces pushes again"
 

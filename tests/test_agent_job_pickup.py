@@ -213,7 +213,7 @@ def test_an_absent_agent_is_still_detected(registry, fast_pickup):
 def test_the_pickup_grace_is_longer_than_the_long_poll_window(registry):
     """Ties the constant to the client that has to beat it. agent.js polls with wait=25,
     so a grace at or under 25s would abandon jobs a healthy broker was about to claim."""
-    agent_js = (_SERVER / "static" / "js" / "agent.js").read_text(encoding="utf-8")
+    agent_js = (_SERVER.parents[1] / "frontend" / "ck-main" / "current" / "llm-config" / "agent.js").read_text(encoding="utf-8")
     assert "wait=25" in agent_js, "agent.js's long-poll window changed — re-check the grace"
     assert agent_jobs._PICKUP_GRACE_SECONDS > 25, (
         f"pickup grace {agent_jobs._PICKUP_GRACE_SECONDS}s is not comfortably above the "

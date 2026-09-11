@@ -7,7 +7,7 @@ import {
   chooseByIds,
   restoreChosenFromSelections,
   chosenSelections,
-} from '../../ask-ck/CK-main/CK_server/static/js/chosen.js';
+} from '../../ask-ck/frontend/ck-main/current/generator/chosen.js';
 import { mountFromIndex, resetDom } from './helpers/fixture-dom.js';
 
 // chooseByIds/restore call renderStepTables → both the top and chosen containers

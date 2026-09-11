@@ -10,9 +10,9 @@
 //      literal once moved the whole workspace to a different backend on a model toggle.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mountFromIndex } from './helpers/fixture-dom.js';
-import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
+import { S } from '../../ask-ck/frontend/ck-main/current/shared/state.js';
 import { applyClaudeMode, restoreLLMUI, claudeRoutingFromUI }
-  from '../../ask-ck/CK-main/CK_server/static/js/llm.js';
+  from '../../ask-ck/frontend/ck-main/current/llm-config/llm.js';
 
 function radios(method) {
   return `<label><input type="radio" name="llmAuthMethod" value="local_llm" ${method === 'local_llm' ? 'checked' : ''}></label>

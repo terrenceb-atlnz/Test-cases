@@ -1,7 +1,7 @@
 // Unit specs for the frontend half of adversarial-review batch D — missing res.ok
 // checks (provenance.js:75, generator.js:480).
 //
-// These were the only two fetches in static/js/ without a status check. Both failed
+// These were the only two fetches in the front-end modules without a status check. Both failed
 // silently in the worst way: provRefresh rendered an HTTP error as a GREEN success with
 // "(empty)" content, discarding the actionable `detail`; confirmStep assigned
 // `data.session` from an error body, setting S.currentSession to undefined and wiping
@@ -14,10 +14,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { modulePath } from './helpers/frontend-paths.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const JS = (name) =>
-  resolve(HERE, `../../ask-ck/CK-main/CK_server/static/js/${name}`);
+const JS = (name) => modulePath(name);
 
 const read = (name) => readFileSync(JS(name), 'utf8');
 

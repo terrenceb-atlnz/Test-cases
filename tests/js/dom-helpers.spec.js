@@ -8,7 +8,7 @@ import {
   showStatus,
   escapeHtml,
   truncateText,
-} from '../../ask-ck/CK-main/CK_server/static/js/dom-helpers.js';
+} from '../../ask-ck/frontend/ck-main/current/shared/dom-helpers.js';
 
 function makeButton(label = 'Suggest') {
   const b = document.createElement('button');

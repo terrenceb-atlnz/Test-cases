@@ -9,10 +9,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-import { onCaseLoaded, _renderBanner } from '../../ask-ck/CK-main/CK_server/static/js/locks.js';
+import { onCaseLoaded, _renderBanner } from '../../ask-ck/frontend/ck-main/current/shared/locks.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const LOCKS_JS = resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/locks.js');
+const LOCKS_JS = resolve(HERE, '../../ask-ck/frontend/ck-main/current/shared/locks.js');
 
 beforeEach(() => {
   document.body.innerHTML = `

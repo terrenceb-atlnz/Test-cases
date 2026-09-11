@@ -1,11 +1,16 @@
-# `static/js/` — Ask CK frontend modules
+# `ask-ck/frontend/ck-main/current/` — the current Ask CK front-end
+
+**Layout (2026-09-11):** `index.html`, `styles.css` and the assets sit here; the ES modules are
+sorted into **page directories** — `generator/`, `pytest-creator/`, `llm-config/`, `admin/` — plus
+`shared/` for modules more than one page imports. The server mounts this directory at `/static`.
+The Svelte rewrite lives beside it at `../svelte/`.
 
 The Ask CK frontend used to be one 2663-line classic script (`static/app.js`).
 It is now browser-native ES modules — **no bundler, no build step, no
 package.json**. `index.html` loads a single entry point:
 
 ```html
-<script type="module" src="/static/js/main.js?v=1"></script>
+<script type="module" src="/static/shared/main.js?v=1"></script>
 ```
 
 `type="module"` is deferred by default, so end-of-body DOM is ready when the
@@ -13,26 +18,26 @@ graph evaluates.
 
 ## Module map
 
-| File | Responsibility |
-|------|----------------|
-| `main.js` | Entry point: ordered imports, `loadToolStatus`, boot block, form-control bindings |
-| `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` / `X-CK-Panel` (side-effect) |
-| `state.js` | Shared mutable `S` state object (see below) |
-| `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
-| `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs`, `showStatus` (in-page `.status-banner` helper), `setButtonBusy`/`flashButtonDone` (LLM-button press/spinner/disable + ✓/✗ feedback) |
-| `tables.js` | Candidate-table renderers shared by Generator + DB-search |
-| `generator.js` | Objective / Test Case Generator wizard |
-| `llm.js` | LLM Configure panel + status |
-| `agent.js` | Local ck-agent bridge (broker long-poll, CLI status probes) |
-| `cases.js` | Case-select plumbing shared by Generator + PyTest Creator |
-| `nav.js` | Sidebar accordion + panel/step navigation |
-| `pytest.js` | PyTest Creator (7 visible steps; internal session keys still `step2`–`step8` — see `_step_label` / PLAN-pytest-creator.md 2026-07-23 flow revision) |
-| `session-restore.js` | Refresh-safe UI state (sessionStorage, per tab): remembers active panel + each tool's loaded case so F5 doesn't dump the user at panel-main; `main.js` captures the snapshot BEFORE the boot default panel overwrites it |
-| `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
-| `llm-progress.js` | Live LLM-button state: elapsed / ~typical / streamed counters polled from `/api/llm/inflight/{id}`, the 2px fill bar, and click-to-STOP (true server-side cancel via `/api/llm/cancel/{id}` — routed in actions.js before data-action so a busy button can't re-fire itself) |
-| `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
-| `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
-| `theme.js` | Light/dark toggle (side-effect) |
+| Dir | File | Responsibility |
+|-----|------|----------------|
+| `shared/` | `main.js` | Entry point: ordered imports, `loadToolStatus`, boot block, form-control bindings |
+| `shared/` | `session.js` | Per-tab session id + `window.fetch` monkeypatch injecting `X-CK-Session` / `X-CK-Panel` (side-effect) |
+| `shared/` | `state.js` | Shared mutable `S` state object (see below) |
+| `shared/` | `actions.js` | Action registry (`registerActions`) + delegated click/keydown dispatch |
+| `shared/` | `dom-helpers.js` | `escapeHtml`, `truncateText`, `dataArgs`, `showStatus` (in-page `.status-banner` helper), `setButtonBusy`/`flashButtonDone` (LLM-button press/spinner/disable + ✓/✗ feedback) |
+| `generator/` | `tables.js` | Candidate-table renderers shared by Generator + DB-search |
+| `generator/` | `generator.js` | Objective / Test Case Generator wizard |
+| `llm-config/` | `llm.js` | LLM Configure panel + status |
+| `llm-config/` | `agent.js` | Local ck-agent bridge (broker long-poll, CLI status probes) |
+| `shared/` | `cases.js` | Case-select plumbing shared by Generator + PyTest Creator |
+| `shared/` | `nav.js` | Sidebar accordion + panel/step navigation |
+| `pytest-creator/` | `pytest.js` | PyTest Creator (7 visible steps; internal session keys still `step2`–`step8` — see `_step_label` / PLAN-pytest-creator.md 2026-07-23 flow revision) |
+| `shared/` | `session-restore.js` | Refresh-safe UI state (sessionStorage, per tab): remembers active panel + each tool's loaded case so F5 doesn't dump the user at panel-main; `main.js` captures the snapshot BEFORE the boot default panel overwrites it |
+| `generator/` | `db-search.js` | merge + manual-search + LLM-suggest for TestLink/Zephyr/ATP |
+| `shared/` | `llm-progress.js` | Live LLM-button state: elapsed / ~typical / streamed counters polled from `/api/llm/inflight/{id}`, the 2px fill bar, and click-to-STOP (true server-side cancel via `/api/llm/cancel/{id}` — routed in actions.js before data-action so a busy button can't re-fire itself) |
+| `shared/` | `llm-debug.js` | LLM observability: per-panel "last LLM request" footer + token badges (`/api/llm/recent`) |
+| `admin/` | `admin.js` | Hidden admin panel (double-click CK's face): reset sessions, restart server (`/api/admin/*`). (DB/embeddings rebuild was removed once `ck.db` became the permanent committed source of truth.) |
+| `shared/` | `theme.js` | Light/dark toggle (side-effect) |
 
 ## Conventions
 
@@ -55,7 +60,7 @@ To audit the contract, the registered keys must equal the `data-action` names in
 markup + runtime templates:
 
 ```sh
-grep -ho 'data-action="[a-zA-Z_$][a-zA-Z0-9_$]*"' index.html js/*.js | sort -u
+grep -ho 'data-action="[a-zA-Z_$][a-zA-Z0-9_$]*"' index.html */*.js | sort -u
 ```
 
 **2. No top-level cross-module calls outside `main.js` (and `registerActions`).**
@@ -77,8 +82,8 @@ module-private.
 **4. Cache-busting: bump `?v=N` on the `main.js` tag when shipping.**
 FastAPI `StaticFiles` sends `ETag` but no `Cache-Control`, so browsers may serve
 a stale module. On a shipped change, bump the `?v=` query on the `<script>` tag
-in `index.html` and tell users to hard-refresh once. (A `Cache-Control: no-cache`
-middleware for `/static/js/*` is a possible future improvement — not done yet.)
+in `index.html` and tell users to hard-refresh once. `main.py` also sends
+`Cache-Control: no-cache` for every `/static/**/*.js`, so child modules revalidate on each load.
 
 ## Known debt
 

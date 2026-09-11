@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ask-ck/CK-main/CK_server/static/ckc.jpg" alt="Ask CK" width="140" style="border-radius:50%;" />
+  <img src="ask-ck/frontend/ck-main/current/ckc.jpg" alt="Ask CK" width="140" style="border-radius:50%;" />
 </p>
 
 <h1 align="center">Ask CK</h1>
@@ -204,7 +204,7 @@ Test-cases/
 ├── ask-ck/
 │   ├── ARCHITECTURE.md             # Executive summary — read before the deep reference
 │   ├── CK-main/                    # App: run.sh, requirements.txt, SERVER-README.md
-│   │   └── CK_server/              # FastAPI server (main.py, routers/, static/js/, templates/)
+│   │   └── CK_server/              # FastAPI server (main.py, routers/, frontend/ck-main/current/, templates/)
 │   ├── objective-drafting/         # Generator: process docs, PROGRESS.md, data/, refined-cases/
 │   ├── pytest-create/              # PyTest Creator: plans, specs, generated/<Group>/<Name>.py
 │   ├── plans/                # Subsystem plans (PLAN-*.md)

@@ -161,7 +161,7 @@ suite-state classes outright and are small) → G4 (no untouched writes) → G2 
 (verify-before-store, incl. the suite-owned-command lint) → G3 + G7 (they share the diff
 machinery and the `held` state). **Gate after every step** (`./tool/run_tests.sh`); tests never write
 the permanent `ck.db`. Existing suite to extend, not duplicate: `tests/test_pt_fix_units.py`.
-Frontend: the `held` state and per-unit diff need a render in `static/js/pytest.js` (G7) —
+Frontend: the `held` state and per-unit diff need a render in `frontend/ck-main/current/pytest-creator/pytest.js` (G7) —
 pairs naturally with PROGRESS #1–#3 (error timestamps, regenerate cue, Fix-button legend).
 
 ## Explicitly NOT in this plan

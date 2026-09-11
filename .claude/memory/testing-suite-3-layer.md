@@ -39,7 +39,7 @@ masks failures across tests.
 
 **How to apply:** run `./tool/run_tests.sh` before committing frontend/backend changes; run the
 E2E on demand (pre-release), not every commit. JS tooling (`package.json`, configs, `e2e/`,
-`tests/js/`) lives at repo root, separate from `static/js`; `node_modules` + PW artifacts are
+`tests/js/`) lives at repo root, separate from the front-end tree (`ask-ck/frontend/ck-main/current/`); `node_modules` + PW artifacts are
 gitignored. No CI runner yet (`.github/workflows`). See [[user-prefers-manual-ui-testing]] — the
 E2E/manual layer still owns the visual checks jsdom can't see (spinner animation, flash colors).
 Plans: `archive/plans/PLAN-playwright-e2e.md`, `PLAN-frontend-unit-tests.md`.

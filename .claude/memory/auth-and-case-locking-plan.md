@@ -45,7 +45,7 @@ Behaviour worth knowing: a tab that does **not** hold the lock gets a **read-onl
 last saved state, not an error, and the handler mutates nothing on that path — no backfill, no
 hydration write (either would 409 against the holder's lock).
 
-**`X-CK-Session` is NOT a credential.** `static/js/session.js` invents it in the browser and the
+**`X-CK-Session` is NOT a credential.** `frontend/ck-main/current/shared/session.js` invents it in the browser and the
 server never verifies it. It correctly scopes agent-bridge jobs per TAB (deliberately per-tab, not
 per-user — see [[llm-provenance-portability]] / PLAN-per-user-agent) and nothing more. It is also
 what holds a lock today; Phase 2 upgrades that to a real user id with **no schema change**, which

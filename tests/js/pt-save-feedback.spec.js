@@ -10,9 +10,9 @@
 // while the request is in flight and after it lands.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import '../../ask-ck/CK-main/CK_server/static/js/actions.js';
-import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
-import { ptLoadCase, renderPtFragPanel } from '../../ask-ck/CK-main/CK_server/static/js/pytest.js';
+import '../../ask-ck/frontend/ck-main/current/shared/actions.js';
+import { S } from '../../ask-ck/frontend/ck-main/current/shared/state.js';
+import { ptLoadCase, renderPtFragPanel } from '../../ask-ck/frontend/ck-main/current/pytest-creator/pytest.js';
 
 // The handlers only touch these; everything else in index.html is irrelevant here.
 const DOM = `

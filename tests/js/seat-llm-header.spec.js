@@ -12,10 +12,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const LLM_SRC = readFileSync(resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/llm.js'), 'utf8')
+const LLM_SRC = readFileSync(resolve(HERE, '../../ask-ck/frontend/ck-main/current/llm-config/llm.js'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-vi.mock('../../ask-ck/CK-main/CK_server/static/js/state.js', () => ({ S: { currentPanel: 'panel-main' } }));
+vi.mock('../../ask-ck/frontend/ck-main/current/shared/state.js', () => ({ S: { currentPanel: 'panel-main' } }));
 
 let session;
 let origFetch;
@@ -25,7 +25,7 @@ beforeEach(async () => {
   origFetch = vi.fn(async () => ({ ok: true }));
   window.fetch = origFetch;
   vi.resetModules();
-  session = await import('../../ask-ck/CK-main/CK_server/static/js/session.js');
+  session = await import('../../ask-ck/frontend/ck-main/current/shared/session.js');
 });
 
 const lastHeaders = () => new Headers(origFetch.mock.calls.at(-1)[1].headers);
@@ -99,7 +99,7 @@ describe('llm.js stores what the header needs (structural)', () => {
   it('loading a case never feeds the case\'s stored llm_config to the status line', () => {
     // Windows demo 2026-09-11: both demo cases carried a retired `claude_code` copy and the
     // status read "No credential" while requests were about to run on the site default.
-    const gen = readFileSync(resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/generator.js'), 'utf8')
+    const gen = readFileSync(resolve(HERE, '../../ask-ck/frontend/ck-main/current/generator/generator.js'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     expect(gen).not.toMatch(/updateLLMStatus\(\s*normalizeLLMConfig\(\s*S\.currentSession/);
   });

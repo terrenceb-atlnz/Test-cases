@@ -1625,7 +1625,7 @@ to know it dropped one, which is precisely the D15 outcome.
 **9.1c — Stop the Lint button destroying the good copy.**
 
 > **Code-verified, and the mechanism is worse than "routes through".** `ptLintScript()`
-> ([pytest.js:893](../CK-main/CK_server/static/js/pytest.js#L893)) calls
+> ([pytest.js:893](../frontend/ck-main/current/pytest-creator/pytest.js#L893)) calls
 > `await ptPushCodeEdits(false)` before linting — *"push current edits into the session first so
 > lint sees them"*. But `ptPushCodeEdits` **always** POSTs to `/save_script/` regardless of its
 > `writeFiles` argument; the `if (!writeFiles)` branch contains **only a comment** and changes

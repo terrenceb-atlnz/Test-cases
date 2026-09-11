@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   ptReadSetupRows,
   ptRenderSetupRows,
-} from '../../ask-ck/CK-main/CK_server/static/js/pytest.js';
+} from '../../ask-ck/frontend/ck-main/current/pytest-creator/pytest.js';
 import { mountFromIndex, resetDom } from './helpers/fixture-dom.js';
 
 beforeEach(() => {

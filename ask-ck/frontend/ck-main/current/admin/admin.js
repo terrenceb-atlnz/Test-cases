@@ -5,9 +5,9 @@
 // DB rebuild is intentionally absent: ck.db is the permanent single source of
 // truth (built once; source couriers retired), so nothing here can wipe/refill
 // corpora — only sessions and the server process are mutable. See routers/admin.py.
-import { registerActions } from './actions.js';
-import { S } from './state.js';
-import { goToPanel } from './nav.js';
+import { registerActions } from '../shared/actions.js';
+import { S } from '../shared/state.js';
+import { goToPanel } from '../shared/nav.js';
 
 export function openAdminPanel() {
   goToPanel('panel-admin');

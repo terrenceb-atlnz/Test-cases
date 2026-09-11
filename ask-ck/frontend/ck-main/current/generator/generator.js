@@ -1,16 +1,16 @@
 // Objective / Test Case Generator wizard.
-import { registerActions } from './actions.js';
-import { S } from './state.js';
-import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from './dom-helpers.js';
-import { llmButtonStart, isCancelMessage } from './llm-progress.js';
+import { registerActions } from '../shared/actions.js';
+import { S } from '../shared/state.js';
+import { escapeHtml, showStatus, setButtonBusy, flashButtonDone } from '../shared/dom-helpers.js';
+import { llmButtonStart, isCancelMessage } from '../shared/llm-progress.js';
 import { renderChosenTable, renderStepTables } from './tables.js';
 import { restoreChosenFromSelections, chosenSelections } from './chosen.js';
-import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from './cases.js';
-import { goToStep, updatePageHeader } from './nav.js';
-import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from './llm.js';
-import { recordLLMDebug } from './llm-debug.js';
-import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from './provenance.js';
-import { onCaseLoaded, registerReloader } from './locks.js';
+import { getActiveCaseKey, refreshCaseSelects, syncHiddenCaseSel } from '../shared/cases.js';
+import { goToStep, updatePageHeader } from '../shared/nav.js';
+import { normalizeLLMConfig, restoreLLMUI, updateLLMStatus } from '../llm-config/llm.js';
+import { recordLLMDebug } from '../shared/llm-debug.js';
+import { registerProvenance, renderProvenanceBlock, seedProvenanceFromStep } from '../shared/provenance.js';
+import { onCaseLoaded, registerReloader } from '../shared/locks.js';
 
 // Let "Take over" (locks.js) re-run the editable load without a circular import.
 registerReloader('wizard', loadCase);

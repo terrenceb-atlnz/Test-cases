@@ -355,7 +355,7 @@ paramiko SSH + SFTP. Per run_id: (1) mkdir remote `{workdir}/{key}/{run_id}`, SF
 
 **Log parser:** pure `parse_framework_log(text) -> dict` — regex over `>> test-<name>`, `TEST_CASE_*` blocks, `PASS:`/`!!FAIL:`, `<< test-<name>: RESULT (numPassed: p numFailed: f)`, stripping timestamp prefixes. Unit-testable offline against a fixture log.
 
-## 3. Frontend — `static/index.html`
+## 3. Frontend — `frontend/ck-main/current/index.html`
 
 Extend PyTest Creator sidebar (~line 1325) to: `1. Cases` (exists) / `2. Sequence` / `3. Script Search` / `4. Fit Decision` / `5. Fragments` / `6. Generate` / `7. Run` / `8. Validate` / `Testboxes`. Use `data-pt-step` + own `updatePtBadges()` fed from session `stepN.confirmed` — do NOT use `data-step` (badge loop is scoped to `#nav-generator` per PLAN-facelift 1h). Repurpose `panel-pt-creator` as `panel-pt-seq`; add panels `panel-pt-search/-fit/-frag/-gen/-run/-validate/-testbox`; register in `PANEL_META` (~line 2674) and dispatch in `goToPanel` (~line 2635). Keep `ptCase` global; add `ptSession` refreshed via `POST /load_case` then `GET /session/{key}`.
 
@@ -395,7 +395,7 @@ Run → parse → failures feed `POST /fix_script` (archives prior code to `hist
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/{llm.py, models.py, data.py, paths.py}` (small additions)
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/pt_exec.py` (new)
 - `copilot/Test-cases/ask-ck/CK-main/CK_server/templates/prompts/pt_*.jinja` + `enrich_script_index.jinja` (new)
-- `copilot/Test-cases/ask-ck/CK-main/CK_server/static/index.html` (~1325, ~2627-2700)
+- `copilot/Test-cases/ask-ck/frontend/ck-main/current/index.html` (~1325, ~2627-2700)
 - `copilot/Test-cases/tool/build_script_index.py` (new)
 
 ---

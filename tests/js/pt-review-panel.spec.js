@@ -20,11 +20,11 @@ import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(resolve(HERE, rel), 'utf8');
-const JS = read('../../ask-ck/CK-main/CK_server/static/js/pytest.js')
+const JS = read('../../ask-ck/frontend/ck-main/current/pytest-creator/pytest.js')
   .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-const HTML = read('../../ask-ck/CK-main/CK_server/static/index.html')
+const HTML = read('../../ask-ck/frontend/ck-main/current/index.html')
   .replace(/<!--[\s\S]*?-->/g, '');
-const CSS = read('../../ask-ck/CK-main/CK_server/static/styles.css');
+const CSS = read('../../ask-ck/frontend/ck-main/current/styles.css');
 
 const RENDER = JS.slice(JS.indexOf('function ptRenderReview'),
                         JS.indexOf('async function ptReviewScript'));

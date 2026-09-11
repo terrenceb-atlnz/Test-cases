@@ -239,6 +239,6 @@ def test_server_and_browser_stop_on_the_same_number():
     assert '"timeout": job_timeout' in bridge, (
         "the bridge no longer forwards the job's timeout to the browser; the local agent "
         "would fall back to its own default and the two ends could diverge again.")
-    agent_js = (_SERVER / "static" / "js" / "agent.js").read_text(encoding="utf-8")
+    agent_js = (_SERVER.parents[1] / "frontend" / "ck-main" / "current" / "llm-config" / "agent.js").read_text(encoding="utf-8")
     assert "job.timeout" in agent_js, (
         "agent.js no longer passes the server's budget to the local ck-agent.")

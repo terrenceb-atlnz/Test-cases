@@ -66,7 +66,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 from data import load_all_data
-from paths import DB_PATH as PERMANENT_DB_PATH, PROCESS_MD
+from paths import DB_PATH as PERMANENT_DB_PATH, PROCESS_MD, FRONTEND_DIR
 from session_store import SessionWriteError
 from locks import LockError
 from routers.wizard import router as wizard_router
@@ -174,13 +174,15 @@ async def _bind_session_id(request: Request, call_next):
     # (symptom: new UI logic silently absent after a code change). StaticFiles
     # sends an ETag but no Cache-Control, so browsers may skip revalidation;
     # no-cache makes them revalidate every load (ETag => 304 when unchanged, so
-    # this is cheap). See static/js/README.md convention #4.
-    if request.url.path.startswith("/static/js/"):
+    # this is cheap). See ask-ck/frontend/ck-main/current/README.md convention #4. Modules now
+    # live in page directories under /static/, so match on the extension, not one directory.
+    if request.url.path.startswith("/static/") and request.url.path.endswith(".js"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
-# Serve the migrated frontend using absolute path relative to this file
-static_dir = os.path.join(BASE_DIR, "static")
+# Serve the current front-end (ask-ck/frontend/ck-main/current/) at /static — the URL prefix is
+# kept so index.html's /static/styles.css and /static/ckc.jpg references stay valid.
+static_dir = str(FRONTEND_DIR)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 app.state.app_data = None
@@ -251,7 +253,7 @@ async def favicon():
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Main wizard UI (migrated from v1)."""
-    index_path = os.path.join(BASE_DIR, "static", "index.html")
+    index_path = os.path.join(static_dir, "index.html")
     with open(index_path) as f:
         return HTMLResponse(f.read())
 

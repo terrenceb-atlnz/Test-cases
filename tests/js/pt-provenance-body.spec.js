@@ -21,10 +21,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { modulePath } from './helpers/frontend-paths.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const read = (name) =>
-  readFileSync(resolve(HERE, `../../ask-ck/CK-main/CK_server/static/js/${name}`), 'utf8');
+const read = (name) => readFileSync(modulePath(name), 'utf8');
 
 /** Source with // and /* *\/ comments removed — assert on code, never on prose. */
 const code = (src) =>

@@ -1,9 +1,9 @@
 // Local ck-agent bridge (broker long-poll + CLI status probes).
-import { registerActions } from './actions.js';
-import { CK_SESSION_ID } from './session.js';
-import { S } from './state.js';
-import { escapeHtml } from './dom-helpers.js';
-import { goToPanel } from './nav.js';
+import { registerActions } from '../shared/actions.js';
+import { CK_SESSION_ID } from '../shared/session.js';
+import { S } from '../shared/state.js';
+import { escapeHtml } from '../shared/dom-helpers.js';
+import { goToPanel } from '../shared/nav.js';
 
 const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
 

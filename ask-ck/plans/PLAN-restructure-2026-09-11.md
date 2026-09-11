@@ -81,7 +81,7 @@
 
 Sweep: `pytest_create.py:1477` (`_MEDIA_HELPER_SRC`), `:2010` (`tool_dir` for `cli_lookup`), `wizard/export.py:492`, `pt_exec.py`/`case_registry.py` docstrings, `pt_media`/`pt_preflight` imports of `pt_profiles`, `tool/`-relative paths in the 14 test files, `./tool/run_tests.sh` in CLAUDE.md / README / both skills / memories → `./ask-ck/tools/run_tests.sh`; the guards' `CK_SERVER` anchor depth; `run_tests.sh` self-location.
 
-### Batch 7 — `ask-ck/frontend/ck-main/current/`  *(server stopped)*
+### ✅ Batch 7 — `ask-ck/frontend/ck-main/current/`  *(server stopped)*
 `CK_server/static/{index.html,styles.css,ckc.jpg,favicon.svg}` → `current/`; `static/js/README.md` → `current/README.md`; the 23 modules sorted:
 
 | page dir | modules |

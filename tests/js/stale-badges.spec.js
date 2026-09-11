@@ -19,7 +19,7 @@ import { dirname, resolve } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const GENERATOR_JS = resolve(
   HERE,
-  '../../ask-ck/CK-main/CK_server/static/js/generator.js',
+  '../../ask-ck/frontend/ck-main/current/generator/generator.js',
 );
 
 // The badge4/badge5 decision table, mirrored from generator.js updateUI().

@@ -13,8 +13,8 @@
 //   * Search/Suggest results already merged into the bus outrank the default view
 //   * a response for a case the user has navigated away from is dropped
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadStepCandidates } from '../../ask-ck/CK-main/CK_server/static/js/generator.js';
-import { S } from '../../ask-ck/CK-main/CK_server/static/js/state.js';
+import { loadStepCandidates } from '../../ask-ck/frontend/ck-main/current/generator/generator.js';
+import { S } from '../../ask-ck/frontend/ck-main/current/shared/state.js';
 import { mountFromIndex, resetDom } from './helpers/fixture-dom.js';
 
 const BUS = { 1: 'currentTestLink', 2: 'currentZephyr', 3: 'currentATP' };

@@ -7,14 +7,14 @@
 // judgement about whether the search was any good. The `precheckIds` option
 // still promotes straight to the chosen bus, but no caller uses it today. Row
 // selection and confirm live in chosen.js.
-import { registerActions } from './actions.js';
-import { S } from './state.js';
+import { registerActions } from '../shared/actions.js';
+import { S } from '../shared/state.js';
 import { renderStepTables } from './tables.js';
 import { chooseByIds } from './chosen.js';
-import { recordLLMDebug } from './llm-debug.js';
-import { flashButtonDone } from './dom-helpers.js';
-import { llmButtonStart, isCancelMessage } from './llm-progress.js';
-import { registerProvenance, renderProvenanceBlock } from './provenance.js';
+import { recordLLMDebug } from '../shared/llm-debug.js';
+import { flashButtonDone } from '../shared/dom-helpers.js';
+import { llmButtonStart, isCancelMessage } from '../shared/llm-progress.js';
+import { registerProvenance, renderProvenanceBlock } from '../shared/provenance.js';
 
 // Mount a suggest panel's provenance block (transient — suggests persist nothing,
 // so it renders empty and Refresh fills it live via dry_run).

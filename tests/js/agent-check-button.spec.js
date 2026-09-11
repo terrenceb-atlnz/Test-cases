@@ -15,17 +15,17 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SRC = readFileSync(resolve(HERE, '../../ask-ck/CK-main/CK_server/static/js/agent.js'), 'utf8');
+const SRC = readFileSync(resolve(HERE, '../../ask-ck/frontend/ck-main/current/llm-config/agent.js'), 'utf8');
 const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-vi.mock('../../ask-ck/CK-main/CK_server/static/js/actions.js', () => ({ registerActions: () => {} }));
-vi.mock('../../ask-ck/CK-main/CK_server/static/js/session.js', () => ({ CK_SESSION_ID: 'sess-test' }));
-vi.mock('../../ask-ck/CK-main/CK_server/static/js/state.js', () => ({ S: {} }));
-vi.mock('../../ask-ck/CK-main/CK_server/static/js/nav.js', () => ({ goToPanel: () => {} }));
+vi.mock('../../ask-ck/frontend/ck-main/current/shared/actions.js', () => ({ registerActions: () => {} }));
+vi.mock('../../ask-ck/frontend/ck-main/current/shared/session.js', () => ({ CK_SESSION_ID: 'sess-test' }));
+vi.mock('../../ask-ck/frontend/ck-main/current/shared/state.js', () => ({ S: {} }));
+vi.mock('../../ask-ck/frontend/ck-main/current/shared/nav.js', () => ({ goToPanel: () => {} }));
 
 let agent;
 beforeEach(async () => {
-  agent = await import('../../ask-ck/CK-main/CK_server/static/js/agent.js');
+  agent = await import('../../ask-ck/frontend/ck-main/current/llm-config/agent.js');
 });
 
 const up = (extra = {}) => ({ ok: true, claude_cli: true, path: '/home/u/.local/bin/claude',

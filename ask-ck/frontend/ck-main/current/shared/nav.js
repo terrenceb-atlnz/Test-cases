@@ -3,8 +3,8 @@ import { registerActions } from './actions.js';
 import { S } from './state.js';
 import { rememberPanel } from './session-restore.js';
 import { renderLlmDebugFooter } from './llm-debug.js';
-import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from './generator.js';
-import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from './pytest.js';
+import { loadStepCandidates, renderObjectiveResult, renderReviewSummary, renderStepsResult, synthesize } from '../generator/generator.js';
+import { ptSession, renderPtFragPanel, renderPtGenPanel, renderPtRunPanel, renderPtSearchPanel, renderPtSeqPanel, renderPtTestboxPanel, renderPtValidatePanel } from '../pytest-creator/pytest.js';
 
 export function initSidebarAccordion() {
   const labels = Array.from(document.querySelectorAll('.sidebar .sidebar-section-label'));

@@ -39,3 +39,9 @@ LOCAL_LLM_SECRETS = CK_SERVER_DIR / "secrets.local.json"    # app-owned Local LL
 VAR_DIR = ASKCK_ROOT / "var"                                # .../ask-ck/var
 DB_PATH = VAR_DIR / "ck.db"                                 # SQLite (FTS5 + sqlite-vec) single file
 EMBED_MODEL_DIR = VAR_DIR / "models"                        # local sentence-transformers cache
+
+# The current (pre-Svelte) front-end: index.html, styles.css, assets and the ES modules sorted
+# into page directories (generator/, pytest-creator/, llm-config/, admin/, shared/). Served at
+# /static by main.py. Moved out of CK_server/static on 2026-09-11 (PLAN-restructure batch 7);
+# the Svelte rewrite will live beside it at frontend/ck-main/svelte/.
+FRONTEND_DIR = ASKCK_ROOT / "frontend" / "ck-main" / "current"

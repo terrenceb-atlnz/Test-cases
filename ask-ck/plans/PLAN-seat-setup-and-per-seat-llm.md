@@ -99,7 +99,7 @@ Two cross-cutting facts from the code that shape everything below:
   "a STALE leftover, never an intentional override". One seat choosing vLLM or "this server"
   flips the transport for every other seat. `PLAN-llm-mode-selection.md` §5 already names
   the unauthenticated global write as unresolved.
-- **The seat already owns its choice, client-side.** `static/js/llm.js` persists
+- **The seat already owns its choice, client-side.** `frontend/ck-main/current/llm-config/llm.js` persists
   `draftingLLMConfig` in `localStorage` and the tab mints `CK_SESSION_ID`, sent as
   `X-CK-Session` on every `/api` call (main.py ≈L146). Per-seat mode has a home already.
 
@@ -554,7 +554,7 @@ current-state docs cleaned; dated records left as records, per D11):
 | `models.py` | `SUPPORTED_AUTH_METHODS = ("local_llm", "claude_agent")`; `grok_cli` joins `RETIRED_AUTH_METHODS` so a persisted session naming it is refused **by name** at the transport, not as "unknown". `LLMConfig.provider` default `"grok"` → `"openai"`. |
 | `llm_config.py` | `_PROVIDER_FOR` and `llm_is_active` lose the Grok entries. |
 | `routers/wizard/config.py` | `GET /api/wizard/grok_cli_status` removed; provider validation is `("claude", "openai")`; the Grok model default and the Grok readiness branch in `_safe_llm_view` go. |
-| `static/js/session.js` | `SEAT_LLM_METHODS = ['local_llm', 'claude_agent']` — a browser still holding `grok_cli` in `localStorage` is handled by the same guard as `claude_code` (§11.3). |
+| `frontend/ck-main/current/shared/session.js` | `SEAT_LLM_METHODS = ['local_llm', 'claude_agent']` — a browser still holding `grok_cli` in `localStorage` is handled by the same guard as `claude_code` (§11.3). |
 | Tests | `test_llm_backend_allowlist.py` (the set is **two**, and `grok_cli` is retired), `test_llm_call_timeouts.py` (the "floor is wired into the dispatch arm" pin had only `grok_cli` left — it is retired with the arm; `claude_agent`'s own pin stays), `test_per_seat_llm.py`, `test_shared_modules_decoupling.py`, `tests/js/llm-task-routing.spec.js`, `tests/js/agent-broker-liveness.spec.js` (comments only). |
 | Docs | `SERVER-README.md` (two duplicated Grok sections, the radio list, the allowlist sentence, the quick-start step), `ARCHITECTURE.md`, `README.md`, `CK_server/README.md`, `run.sh` banner, `main.py` docstring, `llm_debug.py` and `llm-progress.js` comments. The governance wiki (`WIKI-Ask-ck.wiki`) rows naming Grok as a selectable backend are corrected — the allowlist tests exist to keep that page true. |
 

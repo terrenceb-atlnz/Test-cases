@@ -5,8 +5,8 @@
 // the full candidate object so the chosen table reuses the same cell renderers.
 // The top ("candidates") table hides any id already present here; the bottom
 // ("chosen") table renders these in order. Confirm reads these arrays.
-import { S } from './state.js';
-import { registerActions } from './actions.js';
+import { S } from '../shared/state.js';
+import { registerActions } from '../shared/actions.js';
 import { TABLE_KINDS, renderStepTables, renderChosenTable } from './tables.js';
 
 // Monotonic counter so restored + freshly-chosen entries keep a stable order.

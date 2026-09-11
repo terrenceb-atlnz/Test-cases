@@ -11,8 +11,8 @@
 // the top table hides any candidate whose id is already chosen ("disappear
 // from top"). See db-search.js for the choose/clear move actions and confirm
 // reads the chosen arrays in generator.js.
-import { S } from './state.js';
-import { escapeHtml, truncateText } from './dom-helpers.js';
+import { S } from '../shared/state.js';
+import { escapeHtml, truncateText } from '../shared/dom-helpers.js';
 
 // Soft safety only for pathological megabyte fields (real TL/Zephyr bodies are typically < few KB)
 const DESC_SOFT_MAX = 2000;

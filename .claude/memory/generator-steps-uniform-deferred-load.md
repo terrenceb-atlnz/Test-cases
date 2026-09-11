@@ -27,7 +27,7 @@ symmetry is structural, not a convention three call sites must remember. Watch f
 inverse mistake too: the code's own comments are unreliable here — a comment in the wizard
 claimed the module keeps no private copy of the relevance scorer while
 `_ZREF_GENERIC_TOKENS` + `_score_zephyr_candidate` are exactly that, and
-`static/js/generator.js:71` still references the long-removed load-time LLM call.
+`frontend/ck-main/current/generator/generator.js:71` still references the long-removed load-time LLM call.
 
 > **Paths re-checked 2026-08-17.** `routers/wizard.py` no longer exists — it became the
 > `routers/wizard/` **package** on 2026-07-29 (`reviews` / `config` / `synthesis` / `export`

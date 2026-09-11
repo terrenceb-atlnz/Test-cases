@@ -54,7 +54,7 @@ of the handoff log carried most of the value. Budget accordingly:
 | `README.md` | **skip at orientation** unless the task needs it | It is now a short navigational entry point (what the system is, quick start, the invariants, the doc map) — not a status document. Nothing in it changes session to session, so it is not worth the budget. |
 | `ask-ck/CK-main/SERVER-README.md` | **headings first** (`grep -n '^#'`), then only the sections today's task touches | This is the primary technical reference and the deepest well in the repo — read it *on demand*, not cover to cover. |
 
-Skip the `CK_server/README.md` and `CK_server/static/js/README.md` stubs while orienting; the
+Skip the `CK_server/README.md` and `ask-ck/frontend/ck-main/current/README.md` stubs while orienting; the
 first is explicitly a pointer file. Read the JS one when changing front-end module structure.
 
 ## 3. Deferred reads — rules, not steps

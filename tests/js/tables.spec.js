@@ -8,7 +8,7 @@ import {
   renderZephyrTable,
   renderATPTable,
   renderChosenTable,
-} from '../../ask-ck/CK-main/CK_server/static/js/tables.js';
+} from '../../ask-ck/frontend/ck-main/current/generator/tables.js';
 import { mountFromIndex, resetDom } from './helpers/fixture-dom.js';
 
 beforeEach(() => resetDom());

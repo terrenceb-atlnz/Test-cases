@@ -50,7 +50,7 @@
 - `SERVER-README.md` (primary documentation, updated)
 - `drafting_server/` (gating+persistence+real LLM+UI)
 - `LESSONS_LEARNED.md` (this file, extended)
-- `static/index.html` (restructured + design integration + login flows + toggle + spacing)
+- `frontend/ck-main/current/index.html` (restructured + design integration + login flows + toggle + spacing)
 - Updated `PROGRESS.md`
 - Design integration (tokens, components, sidebar/main, SVGs, etc.) from showcase applied
 

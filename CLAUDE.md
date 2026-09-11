@@ -2,7 +2,7 @@
 
 Server-backed workbench that turns sparse manual test cases into refined Zephyr cases and then
 into runnable Allied Telesis `framework` test scripts. FastAPI backend at
-`ask-ck/CK-main/CK_server/`, browser-native ES modules in `static/js/`, all corpora in SQLite.
+`ask-ck/CK-main/CK_server/`, browser-native ES modules in `frontend/ck-main/current/`, all corpora in SQLite.
 
 **Start a session with `/orient-ck`** — it ground-truths the repo, reads the newest handoff, and
 briefs you. **End with `/wrap-ck`.** Both live in `.claude/skills/`. Don't reimplement what they do.

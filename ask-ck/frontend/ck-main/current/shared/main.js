@@ -6,17 +6,17 @@ import './actions.js';           // side-effect: keydown + click dispatcher; exp
 import { S } from './state.js';
 import { initSidebarAccordion, goToPanel, updatePageHeader } from './nav.js';
 import { initCases, onCaseSelectChange } from './cases.js';
-import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from './llm.js';
-import { ptProfileSelected, ptLoadCase } from './pytest.js';
+import { updateAuthMethodUI, updateLLMStatus, loadWorkspaceLLMConfig, applyLocalLlmMode, applyClaudeMode } from '../llm-config/llm.js';
+import { ptProfileSelected, ptLoadCase } from '../pytest-creator/pytest.js';
 import { readSnapshot, waitForOptions, hasOption } from './session-restore.js';
 import { onPtCaseSelectChange } from './cases.js';
-import { openAdminPanel } from './admin.js';
+import { openAdminPanel } from '../admin/admin.js';
 // Tool modules imported for their side-effect registerActions() calls:
 import './provenance.js';        // side-effect: provRefresh/provCopy* actions (shared)
-import './generator.js';
-import './chosen.js';
-import './db-search.js';
-import './agent.js';
+import '../generator/generator.js';
+import '../generator/chosen.js';
+import '../generator/db-search.js';
+import '../llm-config/agent.js';
 import './version.js';    // side-effect: stale-tab guard (polls /api/version)
 
 // Fetch a stub tool router's /status message into a placeholder status element.

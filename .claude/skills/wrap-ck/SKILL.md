@@ -41,7 +41,7 @@ E2E must not.
 - `ask-ck/CK-main/SERVER-README.md` — the deep technical reference (architecture, data layer,
   endpoints, admin panel, LLM config, workflow). Most substantive changes land here.
 - `ask-ck/CK-main/CK_server/README.md` — thin pointer stub; touch only if the pointers moved.
-- `ask-ck/CK-main/CK_server/static/js/README.md` — front-end ES-module conventions; update if
+- `ask-ck/frontend/ck-main/current/README.md` — front-end layout + ES-module conventions; update if
   the JS module structure changed.
 - `TESTBOX-ACCESS.md` — update if this session learned anything non-obvious about reaching or
   driving lab hardware, or about running legacy scripts against the current framework.

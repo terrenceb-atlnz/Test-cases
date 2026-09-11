@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-INDEX_HTML = REPO / "ask-ck" / "CK-main" / "CK_server" / "static" / "index.html"
+INDEX_HTML = REPO / "ask-ck" / "frontend" / "ck-main" / "current" / "index.html"
 
 sys.path.insert(0, str(REPO / "ask-ck" / "CK-main"))
 sys.path.insert(0, str(REPO / "ask-ck" / "CK-main" / "CK_server"))

@@ -5,7 +5,7 @@
 // KNOWN DEBT (unchanged this pass): a second bus still lives on `window.*` —
 // window.currentTestLink / currentZephyr / currentATP / currentCaseTitle /
 // lastLLMConfig. Every use is already `window.`-prefixed, so migrating it here
-// later is a mechanical sed. See static/js/README.md.
+// later is a mechanical sed. See ../README.md (the front-end module map).
 export const S = {
   currentSession: null,
   currentKey: null,
