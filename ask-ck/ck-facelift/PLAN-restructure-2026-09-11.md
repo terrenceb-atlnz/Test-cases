@@ -59,7 +59,7 @@
 - `archive/CK_server/sessions/` — 35 JSON files, frozen pre-migration backups (2026-07-16, per `session_store.py`)
 - `archive/plans/` (completed, per each status header): `PLAN-es-module-split`, `PLAN-backend-module-split`, `PLAN-db-migration`, `PLAN-db-only-search`, `PLAN-facelift`, `PLAN-frontend-unit-tests`, `PLAN-playwright-e2e`, `PLAN-llm-observability`, `PLAN-cli-corpus-combined-followups`, `CK-main/PLAN-per-user-agent`, `CK-main/PLAN-llm-mode-selection`
 
-### Batch 2 — `docs/` (repo-level documents)
+### ✅ Batch 2 — `docs/` (repo-level documents)
 `REVIEWER-ONBOARDING.md`, `TOKEN-EFFICIENCY-REPORT-2026-09-04.md`, `resources.md`, `MEMORY-SPLIT-INVENTORY.md`, `ask-ck/Fragments_prompt.md`, `ask-ck/WIKI-Ask-ck.wiki` (a single file). `TESTBOX-ACCESS.md` / `TB470-HOST-NETWORKING.md`: see §6 Q-a.
 
 ### Batch 3 — tests consolidated under `tests/`

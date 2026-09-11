@@ -171,7 +171,7 @@ def save_global_llm(cfg: LLMConfig) -> None:
 
 # --- per-task model routing (token-efficiency decision 6, 2026-09-07) ---------------
 #
-# Measured on AWPTCM-T44297 (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5): Sonnet 5 matched
+# Measured on AWPTCM-T44297 (docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5): Sonnet 5 matched
 # Opus on 4 of 5 sampled unit fills at ~59% of the cost and returned the same step-match
 # shortlist at under half. The reviewer therefore gets to route those two call classes to a
 # cheaper alias while Review and Fix stay on the toggle model. The routing travels with the

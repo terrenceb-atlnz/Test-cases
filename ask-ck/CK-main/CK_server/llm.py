@@ -448,7 +448,7 @@ def _call_llm_raw(prompt: str, provider: str = "", api_key: Optional[str] = None
             # JSON-only answer the callers want, and sharply curbs the runaway
             # chain-of-thought that otherwise burns the token budget (measured
             # ~22x fewer completion tokens on a trivial JSON ask). Matches the
-            # documented vLLM usage shape (system + user) in resources.md.
+            # documented vLLM usage shape (system + user) in docs/resources.md.
             messages = ([{"role": "system", "content": system}] if system else []) \
                 + [{"role": "user", "content": prompt}]
             payload = {
@@ -1359,7 +1359,7 @@ def analyze_atp_coverage(session: Dict[str, Any], candidates: List[Dict[str, Any
 # A system message that says the same thing up front steers the reasoning
 # models to skip the prose/scratchpad and emit the JSON directly — measured
 # ~22x fewer completion tokens on a trivial ask, and it is the message shape
-# the org vLLM docs (resources.md) demonstrate. Callers can override per-call.
+# the org vLLM docs (docs/resources.md) demonstrate. Callers can override per-call.
 _JSON_SYSTEM_PROMPT = (
     "You are a precise API that returns machine-readable output only. "
     "Respond with exactly the JSON the user's instructions specify — no prose, "

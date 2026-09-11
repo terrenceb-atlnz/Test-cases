@@ -66,7 +66,7 @@ and returned the inner `per_step` list — never the object.
 > before. The health-ping (tiny prompt) always passed, masking them.
 
 ### Follow-on 4 — adopt the documented system+user message shape
-`resources.md` documents the org vLLM usage as a **system + user** message split;
+`docs/resources.md` documents the org vLLM usage as a **system + user** message split;
 the code was sending **user-only**. Adopted it: `run_prompt` now sends a default
 JSON-steering system message (`_JSON_SYSTEM_PROMPT`), threaded through
 `_call_llm_with_meta` → `_call_llm_raw` (OpenAI path uses a `system` role;

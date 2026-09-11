@@ -49,7 +49,7 @@ now unconditional in the agents and pinned in `tests/test_ck_agent_transport.py`
 - **`--bare`** is NOT an option on a seat: it reads only `ANTHROPIC_API_KEY`, never OAuth.
 - `--exclude-dynamic-system-prompt-sections` did NOT restore caching on its own (1,059 read).
 
-Full numbers: `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` (repo root).
+Full numbers: `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md`.
 
 **Transport runner changed 2026-08-26 (contract unchanged, re-verified same day):** the CLI
 paths now run via **`llm._run_cli`** (Popen + stdin/stdout/stderr pump threads), not

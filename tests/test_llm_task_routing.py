@@ -2,7 +2,7 @@
 
 The two fan-out call classes — per-unit generation and per-step script matching — may run
 on a cheaper Claude alias than the workspace toggle, while Review and Fix stay on the
-toggle model. TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5 is the evidence (Sonnet 5: 4 of 5
+toggle model. docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5 is the evidence (Sonnet 5: 4 of 5
 sampled units at ~59% of Opus cost; identical step-match shortlist at under half).
 
 What is pinned: the routing lives on the WORKSPACE config and is applied at dispatch from

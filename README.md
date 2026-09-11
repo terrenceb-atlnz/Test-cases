@@ -225,7 +225,8 @@ Test-cases/
 | [`ask-ck/pytest-create/TOPOLOGY-PROFILES.md`](ask-ck/pytest-create/TOPOLOGY-PROFILES.md) | Topology contract that generated scripts target |
 | [`ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`](ask-ck/pytest-create/SETUP-FILE-REFERENCE.md) | `.setup` topology schema + a worked example |
 | [`ask-ck/objective-drafting/LESSONS_LEARNED.md`](ask-ck/objective-drafting/LESSONS_LEARNED.md) | Prior decisions and pitfalls |
-| [`resources.md`](resources.md) | Links to TestLink, Zephyr, ART |
+| [`docs/resources.md`](docs/resources.md) | Links to TestLink, Zephyr, ART |
+| [`docs/`](docs/) | Repo-level documents: reviewer onboarding, the token-efficiency report, the memory-split inventory, captured prompts |
 
 **Session workflow:** run **`/orient-ck`** at the start of a working session and **`/wrap-ck`** at
 the end — project skills in [`.claude/skills/`](.claude/skills/). `/orient-ck` ground-truths the

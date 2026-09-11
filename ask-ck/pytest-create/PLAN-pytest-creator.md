@@ -929,7 +929,7 @@ So the revised sequence:
 > `--no-session-persistence`. Separately, the `device_note` deferred in §9.9 was moved out of
 > the shared rules to below the line: it ended the prefix at byte 10,934, and the shared
 > prefix on the 38 real prompts is now 19,447 chars (48%). Full measurement:
-> `TOKEN-EFFICIENCY-REPORT-2026-09-04.md` (repo root). The 21.7 % / 11,143-char figures below
+> `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md`. The 21.7 % / 11,143-char figures below
 > are the 2026-09-02 state and are left as written.
 
 Splitting one call into 30 re-sends every invariant block 30 times. Across T44297's 30 real
@@ -968,7 +968,7 @@ prefix toward the full 20,336 invariant chars, and both change what a unit is *t
 
 ### 9.12 Token-efficiency decisions 2–8 — BUILT 2026-09-07
 
-The 2026-09-04 investigation (`TOKEN-EFFICIENCY-REPORT-2026-09-04.md`, repo root) left eight
+The 2026-09-04 investigation (`docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md`) left eight
 decisions. Terrence ordered them 6, 8, 4, 3, 5, 7, 2 and asked for one combined pass to test
 them ("I can't physically afford to incrementally test every single change"). All seven landed
 the same day, each as its own commit with its own test module; the first real 38-unit pass on

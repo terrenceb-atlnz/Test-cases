@@ -450,7 +450,7 @@ def _llm_cfg_for(sess: PtSession, task: str) -> dict:
 
     `task` is "unit_fill" (per-unit generation, per-unit Fix) or "step_match" (per-step
     script matching) — the two fan-out call classes that a cheaper Claude alias was judged
-    good enough for (TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5). Review, whole-script Fix
+    good enough for (docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md §5). Review, whole-script Fix
     and the single-call generate keep `_llm_cfg` and therefore the toggle model. Routing is
     read inside cfg_for_task from the requesting SEAT's header, else the workspace (site
     default) row — never from this session's copy.
