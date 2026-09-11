@@ -21,7 +21,7 @@ _REPO = Path(__file__).resolve().parents[1]
 _SERVER = _REPO / "ask-ck" / "CK-main" / "CK_server"
 sys.path.insert(0, str(_REPO / "ask-ck" / "CK-main"))
 sys.path.insert(0, str(_SERVER))
-sys.path.insert(0, str(_REPO / "tool"))
+sys.path.insert(0, str(_REPO / "ask-ck" / "tools"))
 
 from llm import render_prompt  # noqa: E402
 from routers import pytest_create as pc  # noqa: E402

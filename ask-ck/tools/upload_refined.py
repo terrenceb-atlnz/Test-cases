@@ -15,22 +15,22 @@ Auth: JIRA_KEY from environment variable, or automatically loaded from secrets.m
 
 Usage examples:
   # Safe preview (no network writes). Will auto-load JIRA_KEY from secrets.md if present.
-  python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235
+  python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-T33235
 
   # With explicit env var (takes precedence over secrets.md)
-  JIRA_KEY=... python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235 AWPTCM-T33323
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-T33235 AWPTCM-T33323
 
   # Actual upload of selected cases + post-verify GET
-  JIRA_KEY=... python3 tool/upload_refined.py --execute --keys AWPTCM-T33235 --verify
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-T33235 --verify
 
   # Group-based (directory names under refined-cases)
-  JIRA_KEY=... python3 tool/upload_refined.py --execute --groups "Port (7)" "QoS (22)" --verify
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --groups "Port (7)" "QoS (22)" --verify
 
   # Force overwrite of a case that is already marked refined
-  JIRA_KEY=... python3 tool/upload_refined.py --execute --keys AWPTCM-T33235 --force
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-T33235 --force
 
   # Everything (use with care)
-  JIRA_KEY=... python3 tool/upload_refined.py --execute --all --limit 5
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --all --limit 5
 
 Safety: --dry-run is the default mode. Real changes require --execute.
 The script automatically loads JIRA_KEY from secrets.md (if present) when the
@@ -136,7 +136,7 @@ def load_payload(path):
 # that as a refusal under --execute, never as a pass.
 
 _CK_SERVER_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),  # ask-ck/tools/ -> repo root
     "ask-ck", "CK-main", "CK_server",
 )
 
@@ -209,7 +209,7 @@ def validate_for_push(key, payload):
 # and can quote case content.
 
 AUDIT_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),  # ask-ck/tools/ -> repo root
     "ask-ck", "var", "zephyr-push-audit.jsonl",
 )
 
@@ -855,13 +855,13 @@ def get_relative_group(path):
 
 def _find_secrets_file():
     """Search for secrets.md in a few sensible locations."""
-    here = os.path.dirname(os.path.abspath(__file__))          # .../tool
-    project_root = os.path.dirname(here)                       # .../copilot/Test-cases
+    here = os.path.dirname(os.path.abspath(__file__))          # .../ask-ck/tools
+    project_root = os.path.dirname(os.path.dirname(here))      # repo root (Test-cases)
 
     candidates = [
         os.path.join(project_root, "secrets.md"),              # preferred: next to refined-cases/
         os.path.abspath("secrets.md"),                         # cwd
-        os.path.join(here, "secrets.md"),                      # inside tool/ (unlikely)
+        os.path.join(here, "secrets.md"),                      # inside ask-ck/tools/ (unlikely)
         os.path.join(project_root, "..", "secrets.md"),
     ]
     for cand in candidates:
@@ -923,31 +923,31 @@ EXAMPLES
 
   # Safe dry-run on one or more specific cases
   # (automatically loads JIRA_KEY from secrets.md if not in env)
-  python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235
+  python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-T33235
 
   # Multiple keys
-  python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33235 AWPTCM-T33323
+  python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-T33235 AWPTCM-T33323
 
   # By group (directory name under refined-cases/)
-  python3 tool/upload_refined.py --dry-run --groups "Port (7)" --limit 5
+  python3 ask-ck/tools/upload_refined.py --dry-run --groups "Port (7)" --limit 5
 
   # See a sample of everything
-  python3 tool/upload_refined.py --dry-run --all --limit 3
+  python3 ask-ck/tools/upload_refined.py --dry-run --all --limit 3
 
   # Real upload (updates objective+script + attaches traceability.md)
-  JIRA_KEY=... python3 tool/upload_refined.py --execute --keys AWPTCM-T33235 --verify
+  JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-T33235 --verify
 
   # Force re-upload even if the case already looks refined
-  python3 tool/upload_refined.py --execute --keys AWPTCM-T33235 --force
+  python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-T33235 --force
 
   # Only push web links (skip payload and attach) - use this for investigation
-  python3 tool/upload_refined.py --execute --only-weblinks --keys AWPTCM-T33235 --force
+  python3 ask-ck/tools/upload_refined.py --execute --only-weblinks --keys AWPTCM-T33235 --force
 
   # Update payload but skip attaching traceability.md
-  python3 tool/upload_refined.py --execute --no-attach --keys AWPTCM-T33235 --force
+  python3 ask-ck/tools/upload_refined.py --execute --no-attach --keys AWPTCM-T33235 --force
 
   # Override secrets.md with explicit env var
-  JIRA_KEY=your-token-here python3 tool/upload_refined.py --dry-run --keys AWPTCM-T33241
+  JIRA_KEY=your-token-here python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-T33241
 
 The script will upload the zephyr_payload.json (objective + test steps) and, on successful
 execute, will also attach the matching traceability.md to the same test case via the
@@ -1001,12 +1001,12 @@ MORE INFO
 
     dry_run = not args.execute or args.dry_run
 
-    # Discover payloads (run from project root or tool/).
+    # Discover payloads (run from anywhere; paths are anchored on this file).
     # Post-2026-07-13 restructure, refined-cases live under
     # ask-ck/functions/generator/refined-cases/; fall back to the pre-restructure
     # root location for older checkouts.
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.dirname(script_dir)  # copilot/Test-cases
+    script_dir = os.path.dirname(os.path.abspath(__file__))                  # .../ask-ck/tools
+    root = os.path.dirname(os.path.dirname(script_dir))                      # repo root (Test-cases)
     base = os.path.join(root, "ask-ck", "functions", "generator", "refined-cases")
     if not os.path.isdir(base):
         base = os.path.join(root, "refined-cases")  # pre-restructure fallback

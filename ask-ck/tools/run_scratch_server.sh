@@ -7,18 +7,18 @@
 # working). A test doing it is worthless data landing in the permanent, LFS-committed
 # source of truth, and on 2026-07-28 exactly that had to be undone by hand.
 #
-#   tool/run_scratch_server.sh --bg          # background, port 8123
-#   CK_E2E_PORT=9123 tool/run_scratch_server.sh --bg
-#   tool/run_scratch_server.sh --stop        # stops only the scratch server
+#   ask-ck/tools/run_scratch_server.sh --bg          # background, port 8123
+#   CK_E2E_PORT=9123 ask-ck/tools/run_scratch_server.sh --bg
+#   ask-ck/tools/run_scratch_server.sh --stop        # stops only the scratch server
 #
 # Three things keep it clear of the real dev server:
-#   * CK_DB_PATH  -> a WAL-consistent copy under $TMPDIR (tool/ckdb_scratch.py)
+#   * CK_DB_PATH  -> a WAL-consistent copy under $TMPDIR (ask-ck/tools/ckdb_scratch.py)
 #   * PORT        -> 8123, so it cannot be mistaken for the dev server on 8000
 #   * CK_RUN_TAG  -> its own .ck-server-scratch.{pid,log}, so `run.sh --stop` on one
 #                    never stops or orphans the other
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # ask-ck/tools/ -> repo root
 
 PY="$ROOT/.venv/bin/python"
 [ -x "$PY" ] || PY="$(command -v python3)"

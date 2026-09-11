@@ -30,9 +30,9 @@ Two failure classes, both observed on the real tb470 bench (2026-07-30):
          not on a PDU outlet at all, so the power call has nothing to drive.
 
 Usage:
-  python3 tool/pt_preflight.py --setup /path/to/tb470.setup
-  python3 tool/pt_preflight.py --setup tb470.setup --script ask-ck/functions/pytest-creator/generated/Port/x.py
-  python3 tool/pt_preflight.py --setup tb470.setup --json
+  python3 ask-ck/tools/pt_preflight.py --setup /path/to/tb470.setup
+  python3 ask-ck/tools/pt_preflight.py --setup tb470.setup --script ask-ck/functions/pytest-creator/generated/Port/x.py
+  python3 ask-ck/tools/pt_preflight.py --setup tb470.setup --json
 
 The bench file lives outside this repo. For tb470 use the always-current local copy on
 the NFS lab home -- no scp, and no risk of reading the box mid-apply:
@@ -58,7 +58,7 @@ from typing import Dict, List, Optional, Sequence, Set, Tuple
 # catching the box mid-apply).
 LOCAL_TB470_SETUP = "~/claude/IE520-testing/bench-setup/tb470.setup.current"
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DEFAULT_SCRIPT_ROOT = REPO / "ask-ck" / "functions" / "pytest-creator" / "generated"
 
 TB = "tb"  # the framework's reserved name for the testbox itself
@@ -115,7 +115,7 @@ class Bench:
         self.power: Dict[str, str] = {}              # pwr_c -> '(pdu, 10.36.150.14, 8)'
         # [misc] is a free-form key/value area the framework already accepts (Setup.py
         # stores it verbatim, splitting comma values into a list). It is where a bench
-        # declares which TOPOLOGY PROFILES it implements -- see tool/pt_profiles.py.
+        # declares which TOPOLOGY PROFILES it implements -- see ask-ck/tools/pt_profiles.py.
         self.misc: Dict[str, str] = {}
         self.warnings: List[str] = []
 
@@ -555,7 +555,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--profile", action="append", default=[], metavar="NAME",
                     help="instead of checking scripts, check whether the bench IMPLEMENTS "
                          "this topology profile; repeatable. 'all' checks every known "
-                         "profile. See tool/pt_profiles.py + TOPOLOGY-PROFILES.md")
+                         "profile. See ask-ck/tools/pt_profiles.py + TOPOLOGY-PROFILES.md")
     args = ap.parse_args(argv)
 
     setup_path = Path(args.setup)

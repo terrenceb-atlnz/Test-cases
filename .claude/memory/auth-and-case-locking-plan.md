@@ -32,7 +32,7 @@ forced by the `ck.db` invariant, and this is the part most likely to be got wron
 2. **`rev` rides inside the session payload JSON, NOT a column.**
 
 A durable table or a new column would have been the repo's **first in-place schema mutation of the
-permanent database** — `ck.db` is built once and `tool/build_db.py` refuses to run, so there is no
+permanent database** — `ck.db` is built once and `ask-ck/tools/build_db.py` refuses to run, so there is no
 migration path. Terrence's call was to leave the schema untouched. Enforcement is at the **two
 persist choke points**, not the 32 call sites.
 

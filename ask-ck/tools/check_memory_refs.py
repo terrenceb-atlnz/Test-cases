@@ -27,11 +27,11 @@ testboxes), files deliberately deleted and cited AS history, artifact names as
 deployed rather than as stored, and proposals that were reverted before shipping. A
 blocking check with that signal-to-noise trains everyone to ignore it — the exact
 failure `tests/_prose.py` was written to prevent. So: `/wrap-ck` runs it, a human reads
-it, and it is deliberately NOT in `tool/run_tests.sh`. Memory rot misleads a future
+it, and it is deliberately NOT in `ask-ck/tools/run_tests.sh`. Memory rot misleads a future
 session; it does not break the software.
 
-    ./tool/check_memory_refs.py            # report
-    ./tool/check_memory_refs.py --verbose  # also show what was skipped, and why
+    ./ask-ck/tools/check_memory_refs.py            # report
+    ./ask-ck/tools/check_memory_refs.py --verbose  # also show what was skipped, and why
 
 Exit 0 = nothing unexplained. Exit 1 = at least one citation needs attention (fix it,
 mark it, or allowlist it below). Non-zero here must never block a commit on its own.
@@ -44,7 +44,7 @@ import re
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 MEM_DIR = REPO / ".claude" / "memory"
 
 FILE_EXT = (".py", ".js", ".md", ".sh", ".json", ".jsonl", ".jinja",
@@ -56,7 +56,7 @@ PREFIXES = [
     "ask-ck/CK-main/CK_server/routers/", "ask-ck/CK-main/CK_server/templates/",
     "ask-ck/CK-main/CK_server/templates/prompts/", "ask-ck/CK-main/CK_server/static/",
     "ask-ck/CK-main/CK_server/static/js/", "ask-ck/functions/generator/",
-    "ask-ck/functions/pytest-creator/", "ask-ck/functions/", "ask-ck/plans/", "archive/", "docs/", "tool/", "tests/", "tests/js/",
+    "ask-ck/functions/pytest-creator/", "ask-ck/functions/", "ask-ck/plans/", "archive/", "docs/", "ask-ck/tools/", "tests/", "tests/js/",
     ".claude/memory/", ".claude/skills/",
 ]
 
@@ -107,7 +107,7 @@ ALLOW = {
     "launch.sh": "testbox-side, outside this repo",
     ".atpylib_publisher.json": "testbox-side, outside this repo",
     # --- named as DEPLOYED rather than as stored ---
-    "ck_media.py": "name on the testbox; stored here as tool/pt_media.py (byte-identical)",
+    "ck_media.py": "name on the testbox; stored here as ask-ck/tools/pt_media.py (byte-identical)",
     # --- abbreviations of a real file ---
     "PROCESS.md": "shorthand for OBJECTIVE_DRAFTING_PROCESS.md (paths.py: PROCESS_MD)",
     # --- documentation website, not files ---

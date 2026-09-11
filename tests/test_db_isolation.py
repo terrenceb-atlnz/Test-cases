@@ -263,7 +263,7 @@ def test_writable_uri_forms_are_refused(uri):
 
 
 def test_read_only_access_to_the_real_db_still_works():
-    """The guard must not block legitimate inspection — tool/ckdb_signature.py and the
+    """The guard must not block legitimate inspection — ask-ck/tools/ckdb_signature.py and the
     _real_db_ids() helper in this file both depend on read-only access."""
     con = sqlite3.connect(f"file:{_REAL_DB.resolve()}?mode=ro", uri=True)
     try:

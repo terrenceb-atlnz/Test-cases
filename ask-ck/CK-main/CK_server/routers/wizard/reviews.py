@@ -428,7 +428,7 @@ async def search_atp(q: str = "", keep_ids: str = "", mode: str = "", data=Depen
 # --- Shared keyword relevance scoring ----------------------------------------
 # Commit B: the weighted relevance scorer now lives in db._relevance_score and is
 # applied inside db.search_testlink / search_zephyr / search_atp (single source of
-# truth, shared with tool/ scripts). The three wizard wrappers below delegate to
+# truth, shared with ask-ck/tools/ scripts). The three wizard wrappers below delegate to
 # those; this module no longer keeps a private copy (was a drift risk).
 
 

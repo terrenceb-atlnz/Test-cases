@@ -57,7 +57,7 @@ repo hot-reloads the LAN server within about a second — no restart, no warning
 `routers/pytest_create.py` reloaded live (08:44:48) and the restore reloaded it back
 (08:45:03), leaving the shared server 15 s without the fix. **How to apply:** do
 counterfactual/mutation edits on a COPY or under `git stash` only if you accept a live blip;
-otherwise verify against `tool/run_scratch_server.sh` (its own port + throwaway DB), and after
+otherwise verify against `ask-ck/tools/run_scratch_server.sh` (its own port + throwaway DB), and after
 ANY in-tree edit check `journalctl --user -u ask-ck.service | grep StatReload` to confirm the
 newest worker started AFTER your final file state. `git status --porcelain` on the edited file
 is the authoritative check that the tree — and therefore the live app — is back where you meant

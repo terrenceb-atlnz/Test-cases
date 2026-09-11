@@ -58,21 +58,21 @@ prompt rules reverted on 2026-08-05 came from a single autonomous commit.
 1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Built once, shipped via Git
    LFS, **not** gitignored, **not** rebuildable. No courier JSON, no corpus APIs, no re-fetch.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
-   `tool/guard_db_only.py`.
+   `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
-   local staging path to change anything. Guard: `tool/guard_framework_readonly.py`.
+   local staging path to change anything. Guard: `ask-ck/tools/guard_framework_readonly.py`.
 4. **The org vLLM is the one live external dependency and it is core function**, not an
    inter-dependency to remove. Its models are *reasoning* models. Embeddings are bundled and
    load offline.
 
 Tests, smoke checks and E2E must **not** write the permanent `ck.db` — use
-`tool/run_scratch_server.sh`. `md5`/`mtime` cannot detect a write to it (WAL);
+`ask-ck/tools/run_scratch_server.sh`. `md5`/`mtime` cannot detect a write to it (WAL);
 `tests/test_db_isolation.py` is the authority. Real user traffic *should* dirty it.
 
 ## The gate
 
 ```bash
-./tool/run_tests.sh        # both guards + backend pytest + frontend vitest
+./ask-ck/tools/run_tests.sh        # both guards + backend pytest + frontend vitest
 ```
 
 Run it before and after a change. Playwright E2E (`npm run e2e`) is deliberately **not** in the
@@ -100,7 +100,7 @@ as *relative* symlinks into the sibling store). Consequences:
 - The links are **absolute paths**, so they die when the tree moves — and the harness then
   silently creates an empty directory in their place. That happened with the `copilot/` →
   `claude/` move: every session from 2026-08-17 to 2026-09-04 ran with **no** auto-loaded
-  memories. `tool/check_memory_links.py` detects it (any slug, any state), and since
+  memories. `ask-ck/tools/check_memory_links.py` detects it (any slug, any state), and since
   2026-09-11 also a slug linked to the *other* repo's store (`CROSS_LINK`), a slug outside every
   repo linked anywhere (`STRAY_LINK`) and a dead shared symlink in the store; `--fix` re-points
   or removes links and never deletes content. `/orient-ck` and `/wrap-ck` both run it. If

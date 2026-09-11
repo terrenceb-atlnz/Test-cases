@@ -365,7 +365,7 @@ identity lands, the header value can be attributed; nothing here blocks that.
 > re-homed (agents: `tests/test_ck_agent_transport.py`; server half:
 > `tests/test_claude_agent_dispatch.py`) — only the removed server parser's forensic
 > envelope fields (`message_count`, `text_block_boundaries`) were not re-homed, they had
-> no consumer; `tool/enrich_script_index.py` is vLLM-only; the browser never sends a
+> no consumer; `ask-ck/tools/enrich_script_index.py` is vLLM-only; the browser never sends a
 > retired stored choice as `X-CK-LLM` and drops it (a seat that last applied "(this
 > server)" would otherwise 400 on every call); the `claude-update.timer` on this host is
 > **left in place** — §4.1 layer 3 said "until §6", but Terrence's own agent on this host
@@ -391,7 +391,7 @@ After §3–§5 are verified on a Windows seat and an Ubuntu seat:
   `_call_llm_raw` go with it; the `claude_agent` branch keeps its own steer/split code
   (`_PT_PROMPT_SPLIT` is about prompt caching on both routes and stays).
 - **Named consequence, accepted:** headless tooling on this host has **vLLM only**.
-  `tool/enrich_script_index.py` loses its `claude_code` option; the `llm_health` ping under
+  `ask-ck/tools/enrich_script_index.py` loses its `claude_code` option; the `llm_health` ping under
   a Claude mode needs a browser tab (already true for `claude_agent`).
 - **Docs — current-state docs are scrubbed, records are not rewritten.** SERVER-README's
   "Claude on the server host" section, the README/CHANGELOG *current* feature lists, the
@@ -443,7 +443,7 @@ each is in the last column, marked *Resolved*.
 | D10 | Your own agent on this host was replaced by the served setup (1.0 → 1.1.0 → 1.2.0) with **autostart = no** (no terminal to ask; D6 says the user chooses). | `CK_SETUP_AUTOSTART=yes curl -fsSL http://10.33.22.17:8000/setup/setup.sh \| bash` registers the systemd user unit. **Resolved 2026-09-11: autostart yes** — re-run done, `ck-agent.service` enabled and active, conf `autostart=yes`. The daily `claude-update.timer` stays. |
 | D11 | "No evidence this existed": the removal commit message, a CHANGELOG entry, this plan, the two superseded plans' status notes and git history all **record** that the mode existed. Current-state docs are clean. | **Resolved 2026-09-11: leave records as records.** |
 | D12 | The removed server parser's forensic fields (`message_count`, `text_block_boundaries`) were **not** re-homed to the agents. | **Resolved 2026-09-11: dropped.** Add to the agents only if a future truncation investigation wants them. |
-| D13 | `tool/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | **Superseded 2026-09-11 by §11:** Grok is removed entirely and the creation-time tools (this one included) are retired. |
+| D13 | `ask-ck/tools/enrich_script_index.py` (headless corpus enrichment) is now **vLLM-only** by construction. | **Superseded 2026-09-11 by §11:** Grok is removed entirely and the creation-time tools (this one included) are retired. |
 | D14 | Seats whose browser last applied "(this server)" carry a retired value in `localStorage`. | The page never sends a retired value and drops it (2026-09-10). **Resolved 2026-09-11: add a one-time notice** — §11.3. |
 | D17 | **Two buttons → one** (Terrence, 2026-09-11, seeing them side by side: *"Theres no contextual cues in the UI for using the site default button, and i see no downside from applying its effects invisibly."*). | **Done, `Apply / Login` now sets this seat AND writes the site default**; the "Set as site default" button and its confirm dialog are gone; `set_site_default_llm` stays as a headless-only endpoint. **The one downside, on record:** every Apply by any seat — and the Haiku/Sonnet/Opus and Fast/Thinking toggles, which post the same request — silently changes what a seat that has *never* chosen starts from. Seats that chose are unaffected (their header wins), so this is a weaker form of the D2 concern, not the demo-day hazard. Revert = one commit. |
 | D15 | The site default row still reads `claude_agent / sonnet` (units Sonnet, matching Opus) from demo day. A brand-new seat therefore starts on **Claude via agent**, which fails until that seat runs the one-liner. | Recommended Local LLM. **Resolved 2026-09-11: keep Claude agent as the site default** (Terrence). A bare seat is expected to run the one-liner first. |
@@ -516,7 +516,7 @@ On a Windows seat with no Claude installed, from a fresh browser profile:
 6. Reboot the seat, open Ask-CK. Expect the agent already up.
 Ubuntu: steps 1, 2 and 6.
 
-Gate: `./tool/run_tests.sh` before and after each phase; new pins listed in §4–§6.
+Gate: `./ask-ck/tools/run_tests.sh` before and after each phase; new pins listed in §4–§6.
 
 ## 10. Out of scope
 
@@ -536,7 +536,7 @@ Gate: `./tool/run_tests.sh` before and after each phase; new pins listed in §4�
 - *"I want the grok_cli tooling removed too. Every LLM call on Ask-CK should be runnable by
   both the vLLM and the Claude (your seat) options. If that is not the case, please map out
   what features need to be re-written."*
-- On the headless `tool/` scripts: *"are these tools that only ran for the creation of ask-ck?
+- On the headless `ask-ck/tools/` scripts: *"are these tools that only ran for the creation of ask-ck?
   If so, grok out and retire them. do any run today, with ask-ck? if so, grok out and give
   them a claude path."*
 - `pt_autopilot.py`: **retire it too** (chosen over "keep with a headless Claude broker").
@@ -578,14 +578,14 @@ The headless tools were the other source of LLM calls. Classified by Terrence's 
 
 | Tool | Last real change | What it was for | Runs today? | Verdict |
 |---|---|---|---|---|
-| `tool/enrich_script_index.py` | created 2026-07; edited 2026-09-10 only to drop `claude_code` | Pass 2 of the script index build: LLM summaries/tags appended to a jsonl, merged by `build_script_index.py`, folded into `ck.db` by the DB migration | No — the jsonl it appends to was deleted with the migration; the index lives in `ck.db` | **Retire**, with the `--enrich` hook in `build_script_index.py` and the `enrich_script_index.jinja` template |
-| `tool/pt_model_matrix.py` | 2026-07-22 | Part 2B: generate each case's script on every model, side by side | No | **Retire** |
-| `tool/pt_judge.py` | 2026-07-27 | Part 3a: per-block LLM judge (Opus + vllm-fast) | No — Terrence prefers in-context judging (memory `terrence-prefers-session-model-as-judge`) | **Retire** |
-| `tool/pt_matrix_judge.py` | 2026-07-29 | Companion of the two above; imports both | No | **Retire** |
-| `tool/pt_autopilot.py` | 2026-08-03 | Headless batch driver through the running server; last batch 2026-08-03; its resume note (`autopilot/RESUME.md`) depends on the removed `claude_code` | No | **Retire** (Terrence, 2026-09-11) |
-| `tool/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
+| `ask-ck/tools/enrich_script_index.py` | created 2026-07; edited 2026-09-10 only to drop `claude_code` | Pass 2 of the script index build: LLM summaries/tags appended to a jsonl, merged by `build_script_index.py`, folded into `ck.db` by the DB migration | No — the jsonl it appends to was deleted with the migration; the index lives in `ck.db` | **Retire**, with the `--enrich` hook in `build_script_index.py` and the `enrich_script_index.jinja` template |
+| `ask-ck/tools/pt_model_matrix.py` | 2026-07-22 | Part 2B: generate each case's script on every model, side by side | No | **Retire** |
+| `ask-ck/tools/pt_judge.py` | 2026-07-27 | Part 3a: per-block LLM judge (Opus + vllm-fast) | No — Terrence prefers in-context judging (memory `terrence-prefers-session-model-as-judge`) | **Retire** |
+| `ask-ck/tools/pt_matrix_judge.py` | 2026-07-29 | Companion of the two above; imports both | No | **Retire** |
+| `ask-ck/tools/pt_autopilot.py` | 2026-08-03 | Headless batch driver through the running server; last batch 2026-08-03; its resume note (`autopilot/RESUME.md`) depends on the removed `claude_code` | No | **Retire** (Terrence, 2026-09-11) |
+| `ask-ck/tools/upload_refined.py` | — | Zephyr upload; imports `validate_zephyr_payload` only | Yes, on request | **Untouched** — no LLM call |
 
-`tool/pt_grade.py` and `tool/pt_preflight.py` make no LLM call and stay. The retired tools'
+`ask-ck/tools/pt_grade.py` and `ask-ck/tools/pt_preflight.py` make no LLM call and stay. The retired tools'
 result directories (`ask-ck/functions/pytest-creator/autopilot/`, `comparison/`, `judging/`) are records
 and stay; `autopilot/RESUME.md` gets a "⚠ Historical" banner because its instructions can no
 longer be followed. `.claude/agents/genpop.agent.md` loses its `pt_autopilot` line; the two

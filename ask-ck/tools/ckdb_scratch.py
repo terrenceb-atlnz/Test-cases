@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make a THROWAWAY copy of ck.db and print its path, for a server that tests will drive.
 
-    CK_DB_PATH="$(tool/ckdb_scratch.py)" ./run.sh --bg
+    CK_DB_PATH="$(ask-ck/tools/ckdb_scratch.py)" ./run.sh --bg
 
 Why this exists
 ---------------
@@ -29,7 +29,7 @@ ck.db runs in WAL mode. A copy of the main file alone is consistent only while t
 happens to be checkpointed, which is SQLite's schedule to decide, not ours —
 `Connection.backup()` is consistent by construction and emits a single checkpointed file
 with no `-wal` beside it. Same reasoning as `tests/conftest.py`, and the same reason
-`tool/ckdb_signature.py` exists: any check or copy that looks at the main file alone
+`ask-ck/tools/ckdb_signature.py` exists: any check or copy that looks at the main file alone
 inherits a blind spot that has already cost this project a deleted session row.
 
 The copy is cached under a key built from the (size, mtime_ns) of BOTH ck.db and
@@ -43,7 +43,7 @@ import sqlite3
 import sys
 import tempfile
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 REAL_DB = REPO_ROOT / "ask-ck" / "var" / "ck.db"
 
 

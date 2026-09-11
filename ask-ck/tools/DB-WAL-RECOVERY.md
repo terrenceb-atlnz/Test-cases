@@ -1,6 +1,6 @@
 # Recovering ck.db from a corrupt WAL — runbook
 
-**Tool:** [`tool/db_wal_recover.sh`](db_wal_recover.sh). **First used:** 2026-09-03.
+**Tool:** [`ask-ck/tools/db_wal_recover.sh`](db_wal_recover.sh). **First used:** 2026-09-03.
 
 ## Symptom
 
@@ -57,7 +57,7 @@ to the whole control group (no checkpoint), and the explicit stop marks the unit
 ## Run it
 
 ```bash
-./tool/db_wal_recover.sh                 # real: ask-ck.service + ask-ck/var/ck.db
+./ask-ck/tools/db_wal_recover.sh                 # real: ask-ck.service + ask-ck/var/ck.db
 ```
 
 Fail-closed contract:
@@ -72,7 +72,7 @@ After it finishes, confirm and re-baseline:
 ```bash
 curl -s http://127.0.0.1:8000/health | grep is_permanent_db   # true
 git status --porcelain ask-ck/var/ck.db                       # empty = base unchanged
-./tool/run_tests.sh                                           # gate green again
+./ask-ck/tools/run_tests.sh                                           # gate green again
 ```
 
 Delete the backup dir once satisfied.
@@ -87,7 +87,7 @@ tool with the two override env vars:
 CK_RECOVER_SERVICE=ask-ck-scratchrec.service \
 CK_RECOVER_DB=/path/to/scratch/ck.db \
 CK_RECOVER_BACKUP_DIR=/path/to/scratch-backup \
-  tool/db_wal_recover.sh
+  ask-ck/tools/db_wal_recover.sh
 ```
 
 On 2026-09-03 this rehearsal (a `Restart=always` unit on `:8124` against a copy of the real

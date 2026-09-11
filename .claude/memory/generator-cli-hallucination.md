@@ -32,7 +32,7 @@ So it is a **best-effort guess, not absolute garbage**: correct structure, corre
 
 **FIXED 2026-07-27.** Harvested the real reference into ck.db and grounded BOTH prompts
 (step 2 `pt_extract_sequence.jinja` and step 6 `pt_generate_script.jinja`) via
-`tool/cli_lookup.py::prompt_block`. Measured result across all three cases:
+`ask-ck/tools/cli_lookup.py::prompt_block`. Measured result across all three cases:
 
 | | before | after |
 |---|---|---|
@@ -41,7 +41,7 @@ So it is a **best-effort guess, not absolute garbage**: correct structure, corre
 | T33233 placeholder `portA` refs | 13 | **0** |
 | real output formats quoted | 0 | 14-23 per case |
 
-Verify with: `python3 tool/pt_grade.py` and grep the scripts for `(speed|duplex|state)=`.
+Verify with: `python3 ask-ck/tools/pt_grade.py` and grep the scripts for `(speed|duplex|state)=`.
 
 **Regressions the grounding itself caused (all fixed, keep an eye out):**
 - `speed 2000` — an invented value; the prompt showed valid syntax but never said

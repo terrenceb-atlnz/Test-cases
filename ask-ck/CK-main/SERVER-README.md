@@ -79,11 +79,11 @@ This version replaces the original single-file static `index.html` approach.
 - **Strict DB-only runtime:** the server reads corpora **only** from `ck.db` — **zero runtime
   JSON**. `data.py` sources every reference (zephyr_master, candidates, decisions,
   framework_surface, scripts_index_meta) from `db.*` getters; startup **fails fast** if `ck.db`
-  is missing. Enforced by **`tool/guard_db_only.py`**.
+  is missing. Enforced by **`ask-ck/tools/guard_db_only.py`**.
 - **No rebuild / no source docs.** The intermediate courier/source files the DB was built from
   (`zephyr_cases.jsonl`, `testlink_awp.json`, `test_id_description.*`, `candidates.json`,
   `decisions/*`, the enriched-suite corpus, `scripts_index*.json` / `scripts_sources.jsonl`,
-  `framework_surface.json`) have been **deleted** — the DB is the only copy. `tool/build_db.py`
+  `framework_surface.json`) have been **deleted** — the DB is the only copy. `ask-ck/tools/build_db.py`
   remains only as provenance of how the DB was constructed and **refuses to run** (it would
   delete the committed DB and cannot repopulate it). The one raw original kept is the Zephyr XML
   export, as an immutable provenance root. There are no corpus APIs and no re-fetch — the corpus
@@ -449,7 +449,7 @@ UI step numbers below are the visible 1–6 Generator labels.
 9. **Push to Zephyr** (2026-07-22c; buttons next to Export) — publishes the exported bundle to the live Zephyr case.
    - **Preview Push (dry-run)** shows the exact plan with zero writes; **Push to Zephyr** performs it (with a confirm dialog).
    - On the case, in order: strip a leading `(N)`/`(…)` group from the **Name** → ensure **version 2.0** (`POST /rest/tests/1.0/testcase/{id}/newversion`; idempotent — bumps 1.0→2.0, skips if already ≥2.0) → PUT objective+testScript (lands on the new latest version) → replace `traceability.md` attachment (no duplicates) → post ART web-links.
-   - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `tool/upload_refined.py`** (flags `--fix-title --new-version --verify`; `--force` is opt-in per request since 2026-07-27g and the UI does not send it). The server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
+   - `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` **shells out to `ask-ck/tools/upload_refined.py`** (flags `--fix-title --new-version --verify`; `--force` is opt-in per request since 2026-07-27g and the UI does not send it). The server never holds the JIRA token (the CLI reads it from `secrets.md`). It operates on the **on-disk bundle**, NOT a re-export — re-exporting from an incomplete/backfilled session would degrade `traceability.md`, so Export explicitly first if you edited.
    - **A real push requires a confirmation token** (2026-08-03): `dry_run=false` is rejected with 400 unless the request body carries `{"confirm": "<case key>"}` matching the key in the path. `dry_run` is a query parameter, so without this a production write was one character from a preview for any non-browser client, and the browser-side `confirm()` is not executed by curl. It is not authentication — it is the second fact that has to be supplied deliberately.
    - **Nothing unvalidated reaches a live case** (2026-08-03). `upload_refined.py` imports `validate_zephyr_payload` from `llm.py` — the shape rules have one owner. The import is lazy and **fails closed**: if it cannot be loaded the case is refused, never passed. Validation also runs under `--dry-run`, so the preview reports what would be refused. `--skip-validation` is the deliberate override. A blocked case makes the process exit non-zero, so a refused push cannot read as success in the UI. **(2026-08-05: the added `expectedResult` content rule was removed — a Zephyr manual step is *designed* to leave `expectedResult` empty, so the field is forced empty at generation and never blocks a push. See memory `expected-results-deliberately-absent`.)**
    - **Every `--execute` is audited** to `ask-ck/var/zephyr-push-audit.jsonl` (gitignored; the server never reads it). A `push.intent` record is written **before the first network call** — who, when, key, argv, flags, the pre-push state including the full prior objective/testScript, and what it intends to change — then `push.version` and `push.outcome`. **A case whose audit record cannot be written is refused.** Zephyr keeps no version trail for these pushes (the process is capped at v2.0), so this log is the only local record of replaced content.
@@ -505,7 +505,7 @@ Access via your local IP / hostname that nginx serves.
 ## Data Source
 
 **There is exactly one data source: `ask-ck/var/ck.db`** (shipped via Git LFS). The server reads
-all corpora from it via `db.py` — no JSON, ever (enforced by `tool/guard_db_only.py`). It holds:
+all corpora from it via `db.py` — no JSON, ever (enforced by `ask-ck/tools/guard_db_only.py`). It holds:
 Zephyr (45,427 XML cases + 410 API targets), TestLink historical (21,620), ATPyLib/ATP (10,157),
 the script index + literal source code / chunks (830 scripts / 5,782 chunks), candidates,
 decisions, the framework-surface vocabulary, per-case + workspace sessions, and ~84k semantic
@@ -513,7 +513,7 @@ vectors — everything.
 
 `ck.db` is the **permanent single source of truth**, built once and committed. The intermediate
 source/courier files it was originally built from have been **retired and deleted** — there are no
-JSON/JSONL corpora on disk and **no rebuild step**. `tool/build_db.py` remains only as provenance
+JSON/JSONL corpora on disk and **no rebuild step**. `ask-ck/tools/build_db.py` remains only as provenance
 of how the DB was constructed and refuses to run. The one raw original kept, purely as a provenance
 root (not read by anything), is the Zephyr XML export at
 `ask-ck/functions/generator/data/zephyr_full/Zephyr-Database-*.xml`.
@@ -549,7 +549,7 @@ per-device split, not less.
 
 ```bash
 systemctl --user stop ask-ck.service
-PYTHONNOUSERSITE=1 .venv/bin/python tool/load_cli_docs_from_zips.py \
+PYTHONNOUSERSITE=1 .venv/bin/python ask-ck/tools/load_cli_docs_from_zips.py \
     --combined-zip awplus-cmdref-combined.zip     # add --db <copy> for a dry run
 systemctl --user start ask-ck.service             # then /health -> is_permanent_db: true
 ```
@@ -559,7 +559,7 @@ key on the DB path, so a load under a running server strands it on the old probe
 loader `DROP`s and recreates only `cli_commands` / `cli_command_products` / `cli_commands_fts`
 and stamps `meta.cli_docs_load` (source + `loaded_at`). This does **not** violate the no-rebuild
 invariant: these are the documented renewable tables and it never touches the
-Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 tool/cli_lookup.py
+Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 ask-ck/tools/cli_lookup.py
 <command>`, `--prompt-block`, or `--stats` (which reports the load source).
 
 **Grounding (why it exists):** the PyTest Creator prompts demanded "exact CLI fields" while
@@ -715,7 +715,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    Step-3 change surfaces a stale-warning + re-gather prompt. Untick unwanted, Confirm.
    **Fragment source code comes from `ck.db`** (`scripts.source_text` via
    `db.get_script_source`) — the old script mount (`testsuites_art/` etc.) is retired
-   and no longer read (2026-07-21; guarded by `tool/guard_db_only.py`).
+   and no longer read (2026-07-21; guarded by `ask-ck/tools/guard_db_only.py`).
    **Resolver boundaries (2026-07-27, D1):** `_resolve_symbol_code` bounds every symbol
    (TestSet / TestCase class / helper fn) by its exact index `loc` — `_resolve_end`
    falls back to *next-unit-start − 1*, then `loc_total`, replacing a blind `loc[0]+60`
@@ -773,8 +773,8 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    portlink, and **asserts the bound port's media** via a shipped `ck_media.py`. Generation
    itself still reads **no** bench file — it targets the contract, because a bench-reading
    generator would silently weaken a test to fit the hardware present. Spec:
-   `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`; checker `tool/pt_profiles.py`; script-level
-   check `tool/pt_preflight.py`. **`tests/test_pt_preflight.py` asserts over the real
+   `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`; checker `ask-ck/tools/pt_profiles.py`; script-level
+   check `ask-ck/tools/pt_preflight.py`. **`tests/test_pt_preflight.py` asserts over the real
    `generated/` tree, so what counts as a generated TEST SCRIPT matters (2026-08-31):** it
    globbed every `*.py` under `generated/`, which swept in both the `library` companion the
    generator writes beside a script (a helper module binds no devices, so it read as "no
@@ -861,7 +861,7 @@ a clean sweep to every count-based check. Expected-case count comes from the scr
    comes back and is parsed into per-TestCase PASS/FAIL. **The testbox framework dir
    (`framework_path`, default `/home/st-art/framework`) is READ-ONLY** — `pt_exec.py`
    refuses any SFTP write or remote command that would mutate it (guarded by
-   `tool/guard_framework_readonly.py`); copy a framework file into the run workdir to
+   `ask-ck/tools/guard_framework_readonly.py`); copy a framework file into the run workdir to
    edit it. See the run-chain reference `ask-ck/functions/test-composer/ART-EXECUTION-CHAIN.md`.
 7. **Validate** — Final Validation = run done + every case PASS + zero failures +
    exit 0. On failures, **Fix with LLM** revises the script (previous iteration is
@@ -944,8 +944,8 @@ Seven of the eight decisions in `docs/TOKEN-EFFICIENCY-REPORT-2026-09-04.md` §6
   Inline, a 38-unit Re-render held the single worker's loop for ~40 s and the server answered
   nothing meanwhile. Because the batch handler now yields mid-request, units are marked in
   flight *before* the render (undone if it fails), so a second click cannot double-dispatch.
-  The render itself is cheap now that `tool/cli_lookup.py` caches its probe set per database
-  and prefilters probes by token set (1.5 s → ~55 ms per `detect_commands` call). `tool/` is
+  The render itself is cheap now that `ask-ck/tools/cli_lookup.py` caches its probe set per database
+  and prefilters probes by token set (1.5 s → ~55 ms per `detect_commands` call). `ask-ck/tools/` is
   not watched by `--reload`: a change there reaches the live worker only on the next
   `CK_server` save or `ck` restart.
 - **Primed fan-out (decision 4).** `generate_units` runs the FIRST unit alone to completion,
@@ -1000,7 +1000,7 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
    exactly that and both models wrote `tb.ethA` in every capture unit while the frame had
    bound nothing on the testbox — the 60-error unbound-port flood on T44297 was frame-caused.
    `_ck_bind_link` takes the testbox end without `init_swi`; media role `tb` has no media
-   requirement (`tool/pt_media.py`).
+   requirement (`ask-ck/tools/pt_media.py`).
 2. **The neighbour switch is `peer`, ports `dutA.portPeer` / `peer.portDut`.** ART reserves
    `dut` for the DUT's own stack handle; a partner called `dut` made every model read
    `dut.portA` as the DUT port. Any habitual `portB` / `ck_far_port` read is now a lint error
@@ -1047,7 +1047,7 @@ Fixes, all in `pytest_create.py` unless said: `_build_library` admits a `self`-f
 SOURCE defines it at column 0 (ART helpers take the TestCase as `self`); the frame imports `re`
 and the shortcut block names `portDut = peer.portDut`; three lint checks — `_lint_unbound_names`
 (blocking; silent behind a star import the surface doc cannot see through), `_lint_port_owner`
-(policy; DUT/neighbour boundary only) and `_lint_verdict_echo` (warning); and `tool/cli_lookup.py`
+(policy; DUT/neighbour boundary only) and `_lint_verdict_echo` (warning); and `ask-ck/tools/cli_lookup.py`
 `prompt_block` renders a long sample as head + omitted-marker + tail so a table's rows and header
 reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 
@@ -1056,7 +1056,7 @@ reach the model (`_head_and_tail`). CHANGELOG 2026-09-08 has the measurements.
 - The original single-file `index.html` and `build_drafting_tool.py` logic (wizard UI, session model, selection tables, confirm buttons, export generation) has been migrated/adapted.
 - The old single-file app and its design-system files were archived to `archive/CK-main/` on 2026-09-11.
 - The server version adds LLM synthesis, backend enforcement of the process, templated repeatability — and (2026-07-13) the Ask CK multi-tool shell.
-- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `tool/upload_refined.py`.
+- Output artifacts are drop-in compatible with the existing `refined-cases/` layout and `ask-ck/tools/upload_refined.py`.
 
 ## Adding a New Tool (Ask CK pattern)
 
@@ -1110,7 +1110,7 @@ won and the first person's work vanished with no error. Phase 1 of
 
 > ⚠ **Single-process assumption.** The lock registry is an in-memory dict, authoritative because
 > the server runs as ONE process (`uvicorn … --reload`, no `--workers`; the nginx example proxies a
-> single upstream). ck.db is immutable by design (`tool/build_db.py` refuses to rebuild; no
+> single upstream). ck.db is immutable by design (`ask-ck/tools/build_db.py` refuses to rebuild; no
 > migration path), so a durable lock table was deliberately not added. **If the server is ever run
 > multi-worker/multi-process, promote the registry to a shared store** or the overwrite bug returns
 > silently — the `rev` backstop is then the only remaining guard. See `locks.py`'s module docstring.
@@ -1248,7 +1248,7 @@ tick + choose → Export → assert the validation gate blocks it). Deterministi
 path — a green export needs synthesized objective+steps, so the honest assertion is the blocked
 outcome). Run on demand, e.g. pre-release.
 
-> **E2E runs against a THROWAWAY copy of ck.db, on port 8123** (`tool/run_scratch_server.sh`).
+> **E2E runs against a THROWAWAY copy of ck.db, on port 8123** (`ask-ck/tools/run_scratch_server.sh`).
 > `ask-ck/var/ck.db` going dirty is *correct* when a person operates the app — a case load persists
 > a session row, and that is the tool working. A test doing it is worthless data landing in the
 > permanent, LFS-committed source of truth. Until 2026-07-28 the Playwright `webServer` was
@@ -1258,8 +1258,8 @@ outcome). Run on demand, e.g. pre-release.
 > that DRIVES the app as a test would:
 >
 > ```bash
-> tool/run_scratch_server.sh --bg      # port 8123, throwaway ck.db copy, own pid/log files
-> tool/run_scratch_server.sh --stop    # stops only the scratch server
+> ask-ck/tools/run_scratch_server.sh --bg      # port 8123, throwaway ck.db copy, own pid/log files
+> ask-ck/tools/run_scratch_server.sh --stop    # stops only the scratch server
 > ```
 >
 > `/health` now reports `db.db_path` and `db.is_permanent_db`, so you can tell at a glance which
@@ -1267,14 +1267,14 @@ outcome). Run on demand, e.g. pre-release.
 > `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 ```bash
-./tool/run_tests.sh        # THE GATE: guards + pytest (559) + Vitest (85), one command
+./ask-ck/tools/run_tests.sh        # THE GATE: guards + pytest (559) + Vitest (85), one command
 PYTHONNOUSERSITE=1 .venv/bin/pytest -q     # backend only (559 tests, Python 3.13)
 npm test                                    # frontend units only (vitest run)
 npm run e2e                                 # Playwright E2E — sparingly, not the gate
 ```
 
-`./tool/run_tests.sh` runs the two invariant guards (`tool/guard_db_only.py`,
-`tool/guard_framework_readonly.py`), then pytest, then `npm test`; it **fails loudly** if npm is
+`./ask-ck/tools/run_tests.sh` runs the two invariant guards (`ask-ck/tools/guard_db_only.py`,
+`ask-ck/tools/guard_framework_readonly.py`), then pytest, then `npm test`; it **fails loudly** if npm is
 present but `node_modules` isn't installed (a partial gate that silently drops a layer would falsely
 read "all green"). There is **no CI runner yet** (`.github/workflows`) — running the gate before a
 commit is the current discipline.

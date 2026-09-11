@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Load the AlliedWare Plus CLI reference into ck.db from the AUTHORITATIVE per-device ZIP
 archives at docs.atlnz.lc/preview/data/<device>.zip — REPLACING the rows that
-tool/harvest_cli_docs.py produced by scraping the live HTML.
+ask-ck/tools/harvest_cli_docs.py produced by scraping the live HTML.
 
 WHY replace the scrape: the live-page scrape kept only <pre> blocks, which dropped the
 per-port-type speed VALIDITY TABLE and the Overview/Default/Usage-notes prose — exactly the
@@ -27,9 +27,9 @@ CAVEAT unchanged (memory: awplus-speed-duplex-constraint): cross-command physica
 best-effort permutation model that is fine, the device reveals it at runtime.
 
 Usage:
-  python3 tool/load_cli_docs_from_zips.py --download --all       # fetch 37 zips + load all
-  python3 tool/load_cli_docs_from_zips.py --zip-dir DIR --all    # load from local zips
-  python3 tool/load_cli_docs_from_zips.py --download --products x530,x930
+  python3 ask-ck/tools/load_cli_docs_from_zips.py --download --all       # fetch 37 zips + load all
+  python3 ask-ck/tools/load_cli_docs_from_zips.py --zip-dir DIR --all    # load from local zips
+  python3 ask-ck/tools/load_cli_docs_from_zips.py --download --products x530,x930
 """
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ from html import unescape
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DB = REPO / "ask-ck" / "var" / "ck.db"
 DATA_BASE = "https://docs.atlnz.lc/preview/data"
 

@@ -51,7 +51,7 @@ A human confirms at every step. The tool proposes; it never silently advances.
 **`ask-ck/var/ck.db` is a permanent artefact. It was built once, on 2026-07-20, and it cannot
 be rebuilt.**
 
-The source files it was built from have been deleted. `tool/build_db.py` still exists purely as
+The source files it was built from have been deleted. `ask-ck/tools/build_db.py` still exists purely as
 provenance and **refuses to run**. The database is committed to the repository via Git LFS —
 all 439 MB of it — so a fresh clone gets a complete, populated, semantically-searchable
 database with no build step.
@@ -62,7 +62,7 @@ This has consequences that will otherwise surprise you:
   change; it would be the first in-place schema mutation of the permanent database. When you
   find something that "should obviously be a table", that is why it isn't — see §7.
 - **Tests must never write it.** They run against an isolated copy. If you are running the
-  server for experimentation, use `tool/run_scratch_server.sh`, never the real thing.
+  server for experimentation, use `ask-ck/tools/run_scratch_server.sh`, never the real thing.
 - **You cannot detect a write by checking the file's hash or mtime.** See §3.4. This is not a
   theoretical concern — a mutating test once deleted a real session row while `md5sum`
   reported the file unchanged.
@@ -75,9 +75,9 @@ that run in the test gate.
 1. **`ck.db` is the permanent single source of truth** — built once, shipped via Git LFS, not
    gitignored, not rebuildable.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
-   `tool/guard_db_only.py`.
+   `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only** — never write, edit, or redirect into it. Guard:
-   `tool/guard_framework_readonly.py`.
+   `ask-ck/tools/guard_framework_readonly.py`.
 4. **The organisation's vLLM endpoint is the one live external dependency, and it is core
    function** — not a dependency to be engineered away. The embedding model, by contrast, is
    bundled and loads fully offline.
@@ -154,7 +154,7 @@ drifted.
 
 **The database is in WAL mode.** A committed write can land in `ck.db-wal` and leave the main
 file's bytes and mtime untouched for a long time. So `md5sum ck.db` proving "unchanged" proves
-nothing. The WAL-safe check is `tool/ckdb_signature.py`, which asks SQLite itself and therefore
+nothing. The WAL-safe check is `ask-ck/tools/ckdb_signature.py`, which asks SQLite itself and therefore
 reads main + WAL together. `tests/test_db_isolation.py` is the authority in the test suite.
 
 **Opening the vector tables requires loading the extension.** If you open `ck.db` with plain
@@ -282,7 +282,7 @@ Then set an LLM backend under **LLM → Configure** — most panels need one.
 ### The rule for experimenting
 
 ```bash
-tool/run_scratch_server.sh      # runs on port 8123 against a THROWAWAY copy of ck.db
+ask-ck/tools/run_scratch_server.sh      # runs on port 8123 against a THROWAWAY copy of ck.db
 ```
 
 Use this for anything exploratory. Real user traffic legitimately dirties `ck.db` (loading a
@@ -293,7 +293,7 @@ always tell which database a running server is on.
 ### The test gate
 
 ```bash
-./tool/run_tests.sh     # both guards + backend pytest + frontend Vitest
+./ask-ck/tools/run_tests.sh     # both guards + backend pytest + frontend Vitest
 ```
 
 Currently 1,060 backend tests and 92 frontend tests, plus the two invariant guards. Run it

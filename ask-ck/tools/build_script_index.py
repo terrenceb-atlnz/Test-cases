@@ -10,7 +10,7 @@ Ask CK PyTest Creator (`/api/pytest-create`):
     ask-ck/functions/pytest-creator/data/framework_surface.json   framework vocabulary
     ask-ck/functions/pytest-creator/data/scripts_index.meta.json  build info
 
-Pass 1 (mechanical) needs no LLM. The LLM enrichment pass (tool/enrich_script_index.py)
+Pass 1 (mechanical) needs no LLM. The LLM enrichment pass (ask-ck/tools/enrich_script_index.py)
 was retired 2026-09-11 with the other creation-time tooling (see
 ask-ck/plans/PLAN-seat-setup-and-per-seat-llm.md §11); an existing
 scripts_index_enrich.jsonl is still merged if one is present.
@@ -54,7 +54,7 @@ EXCLUDES = (
 # aren't named test-/library_ but are part of the suite).
 _SUITE_DIR_RX = re.compile(r"^\d+_")
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 PT_DATA_DIR = REPO_ROOT / "ask-ck" / "functions" / "pytest-creator" / "data"
 
 TESTCASE_META_ATTRS = ("testCaseDesc", "testCaseRef", "testCaseMethod")

@@ -999,7 +999,7 @@ def _strip_fill_markers(code: str) -> str:
 # So the block is gone. Predicting output size from skeleton size never worked — re-measured
 # across every stored generation with the fixed recoverer, expansion runs 0.71 to 1.90
 # (median 0.90), a 2.7x spread that no single constant can represent, and `_FILL_EXPANSION`
-# was pinned at 1.95, above the top of the real range. `tool/pt_measure_expansion.py`
+# was pinned at 1.95, above the top of the real range. `ask-ck/tools/pt_measure_expansion.py`
 # reproduces the table.
 #
 # What replaces it: EVIDENCE INSTEAD OF PREDICTION. The reply is reassembled, checked
@@ -1401,7 +1401,7 @@ def _setup_keys_for(switches: List[str]) -> List[str]:
 
     Binding a role successfully is NOT the same as being able to RUN: the bench also has to
     declare the [portlink]s the script asks for, and `init_portlink` returns (None, None)
-    silently when it does not. `tool/pt_preflight.py` checks that offline before a run.
+    silently when it does not. `ask-ck/tools/pt_preflight.py` checks that offline before a run.
     """
     keys: List[str] = []
     letters = "abcdefghijklmnop"
@@ -1474,7 +1474,7 @@ def _skeleton_bound_devices(skeleton: str, dut: str = "") -> List[str]:
 
 
 # parents[2]=CK_server (cf. _TEMPLATES_DIR), [3]=CK-main, [4]=ask-ck, [5]=repo root.
-_MEDIA_HELPER_SRC = Path(__file__).resolve().parents[4] / "tool" / "pt_media.py"
+_MEDIA_HELPER_SRC = Path(__file__).resolve().parents[4] / "ask-ck" / "tools" / "pt_media.py"
 # The workdir filename the generated script imports. Must match the template's `import`.
 MEDIA_HELPER_NAME = "ck_media.py"
 
@@ -1767,7 +1767,7 @@ def _skeleton_bound_ports(skeleton: str) -> List[dict]:
 def _media_helper_source() -> str:
     """The `ck_media.py` shipped alongside a generated script into the run workdir.
 
-    Read from `tool/pt_media.py` rather than duplicated, so the module the testbox executes
+    Read from `ask-ck/tools/pt_media.py` rather than duplicated, so the module the testbox executes
     is byte-identical to the one the in-repo tests cover. Not a corpus read (guard_db_only
     is about corpora), and the script imports it as a workdir sibling.
 
@@ -2007,7 +2007,7 @@ def _cli_reference_for_text(text: str, product: Optional[str] = None,
     try:
         import sys as _sys
         # routers/ -> CK_server/ -> CK-main/ -> ask-ck/ -> repo root
-        tool_dir = str(Path(__file__).resolve().parents[4] / "tool")
+        tool_dir = str(Path(__file__).resolve().parents[4] / "ask-ck" / "tools")
         if tool_dir not in _sys.path:
             _sys.path.insert(0, tool_dir)
         import cli_lookup
@@ -3470,7 +3470,7 @@ async def status(request: Request):
         "framework_modules": len(data.get("framework_surface") or {}),
         "profiles": len(load_profiles()),
         "generated_scripts": generated,
-        "message": ("Run tool/build_db.py --fresh to build the script index."
+        "message": ("Run ask-ck/tools/build_db.py --fresh to build the script index."
                     if not scripts_indexed else None),
     }
 

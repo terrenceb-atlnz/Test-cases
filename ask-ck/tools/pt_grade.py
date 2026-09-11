@@ -17,9 +17,9 @@ Deliberately NOT graded here: criterion 4 (gap-fill quality — the LLM judges' 
 criterion 5 (executes — needs tb470).
 
 Usage:
-  python3 tool/pt_grade.py                      # all pt sessions with a generated script
-  python3 tool/pt_grade.py AWPTCM-T33234        # one case
-  python3 tool/pt_grade.py --json               # machine-readable to stdout
+  python3 ask-ck/tools/pt_grade.py                      # all pt sessions with a generated script
+  python3 ask-ck/tools/pt_grade.py AWPTCM-T33234        # one case
+  python3 ask-ck/tools/pt_grade.py --json               # machine-readable to stdout
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DB = REPO / "ask-ck" / "var" / "ck.db"
 
 # Import the SERVER's own helpers so grading can never drift from generation.

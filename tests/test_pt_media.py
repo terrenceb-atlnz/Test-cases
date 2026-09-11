@@ -1,4 +1,4 @@
-"""Regression tests for the run-time media assertion (`tool/pt_media.py`).
+"""Regression tests for the run-time media assertion (`ask-ck/tools/pt_media.py`).
 
 Every fixture below is REAL `show interface <port> status` output captured from the two tb470
 IE520s on 2026-07-30 — not invented, because the whole point of this module is that it agrees
@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 pt_media = pytest.importorskip("pt_media")
 

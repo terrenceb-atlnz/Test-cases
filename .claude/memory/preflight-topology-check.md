@@ -1,6 +1,6 @@
 ---
 name: preflight-topology-check
-description: "tool/pt_preflight.py checks a generated script's topology demands against a bench .setup offline, because init_portlink fails SILENTLY"
+description: "ask-ck/tools/pt_preflight.py checks a generated script's topology demands against a bench .setup offline, because init_portlink fails SILENTLY"
 metadata: 
   node_type: memory
   type: project
@@ -9,7 +9,7 @@ metadata:
   verified: 2026-09-02
 ---
 
-`tool/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —
+`ask-ck/tools/pt_preflight.py` (built 2026-07-30) answers "can this bench run this script?" offline —
 no LLM, no network, no hardware. Reads the script with `ast`, the bench with `configparser`.
 
 **Why it must exist:** `Setup.init_portlink()` returns **`(None, None)`** when the bench
@@ -25,7 +25,7 @@ cable serves one `init_portlink` call), **either orientation** matches, empty `t
 match any interface, a **stack** stands in for any member. Two problem classes: `LINK` and
 `POWER` (power-cycling a device with no `[powerlink]`).
 
-Usage: `python3 tool/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current`. Exit 0/1/2.
+Usage: `python3 ask-ck/tools/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current`. Exit 0/1/2.
 No scp — that copy on the NFS lab home is always current, because tb470's `.setup` is
 GENERATED from `~/claude/IE520-testing/bench-setup/bench-state.md`, the source of truth
 for that bench.

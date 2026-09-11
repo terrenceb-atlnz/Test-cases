@@ -54,7 +54,7 @@ _DIST_ALIASES = {
 # dependency graph.
 _TRANSITIVE_OF_DECLARED = {"starlette"}
 
-# Modules that live in this repo but outside CK_server (tool/ is on the path at runtime).
+# Modules that live in this repo but outside CK_server (ask-ck/tools/ is on the path at runtime).
 _REPO_LOCAL = {"cli_lookup"}
 
 # Imports that are deliberately undeclared because a DECLARED package covers the same job.

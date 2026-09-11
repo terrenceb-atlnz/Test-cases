@@ -1,6 +1,6 @@
 """The media assertion is actually WIRED — emitted, shipped, and enforced.
 
-`tool/pt_media.py` being correct is worthless if no generated script calls it. Three links in
+`ask-ck/tools/pt_media.py` being correct is worthless if no generated script calls it. Three links in
 that chain, each with its own way of silently breaking:
 
   1. EMITTED  — the skeleton must bind its link through `_ck_bind_link`, not a FILL slot the
@@ -124,7 +124,7 @@ def test_link_role_detection():
 
 def test_the_shipped_helper_is_byte_identical_to_the_tested_module():
     """One source. A copy would let the testbox run logic the in-repo tests never saw."""
-    assert pc._media_helper_source() == (REPO / "tool" / "pt_media.py").read_text(
+    assert pc._media_helper_source() == (REPO / "ask-ck" / "tools" / "pt_media.py").read_text(
         encoding="utf-8")
 
 
@@ -161,7 +161,7 @@ def test_the_helper_read_fails_loudly_if_the_path_is_wrong(monkeypatch):
 
 def test_the_shipped_helper_is_importable_on_its_own():
     """It executes on the testbox with no repo on the path, so it must not import siblings."""
-    src = (REPO / "tool" / "pt_media.py").read_text(encoding="utf-8")
+    src = (REPO / "ask-ck" / "tools" / "pt_media.py").read_text(encoding="utf-8")
     tree = ast.parse(src)
     imported = {n.module.split(".")[0] for n in ast.walk(tree)
                 if isinstance(n, ast.ImportFrom) and n.module}

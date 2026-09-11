@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // E2E drives real case loads, which WRITE session rows. It must never do that to
 // ask-ck/var/ck.db (the permanent, LFS-committed source of truth), so it runs on its own
-// port against a throwaway copy — see tool/run_scratch_server.sh. Port 8123, not 8000,
+// port against a throwaway copy — see ask-ck/tools/run_scratch_server.sh. Port 8123, not 8000,
 // precisely so `reuseExistingServer` can never latch onto the real dev server.
 const E2E_PORT = process.env.CK_E2E_PORT || '8123';
 const BASE_URL = process.env.CK_BASE_URL || `http://localhost:${E2E_PORT}`;
@@ -36,7 +36,7 @@ export default defineConfig({
   // into the permanent ck.db. (Reuse is still effectively free: the scratch copy is cached
   // by ck.db's revision, so start-up is ~0.3s of file copy.)
   webServer: {
-    command: './tool/run_scratch_server.sh --bg',
+    command: './ask-ck/tools/run_scratch_server.sh --bg',
     url: `${BASE_URL}/health`,
     reuseExistingServer: false,
     timeout: 120_000,

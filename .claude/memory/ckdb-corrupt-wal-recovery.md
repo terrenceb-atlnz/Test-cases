@@ -1,6 +1,6 @@
 ---
 name: ckdb-corrupt-wal-recovery
-description: If the gate aborts with "database disk image is malformed", the ck.db BASE is likely fine and only its WAL is corrupt — recover with tool/db_wal_recover.sh, never a bare sqlite3
+description: If the gate aborts with "database disk image is malformed", the ck.db BASE is likely fine and only its WAL is corrupt — recover with ask-ck/tools/db_wal_recover.sh, never a bare sqlite3
 metadata:
   node_type: memory
   type: reference
@@ -16,8 +16,8 @@ sqlite3.DatabaseError: database disk image is malformed`, and `PRAGMA integrity_
 `integrity_check` on the live file reads base+WAL together, so it can report malformed when
 only the uncommitted WAL is bad and the committed base is intact (which is what happened).
 
-**Recover with the tool, not by hand:** `tool/db_wal_recover.sh` (runbook
-`tool/DB-WAL-RECOVERY.md`). It is fail-closed — refuses unless the base alone is `ok`, backs
+**Recover with the tool, not by hand:** `ask-ck/tools/db_wal_recover.sh` (runbook
+`ask-ck/tools/DB-WAL-RECOVERY.md`). It is fail-closed — refuses unless the base alone is `ok`, backs
 up base+wal+shm first, stops the systemd unit with a transient `KillSignal=SIGKILL` drop-in
 (no checkpoint) that also marks it inactive (`Restart=always` would otherwise respawn onto the
 corrupt WAL), discards the WAL, verifies, restarts; restores + leaves the server stopped if
@@ -34,7 +34,7 @@ Two non-obvious facts:
   incidentally protects it, but do not rely on that.
 
 **Root cause of these corruptions found 2026-09-10** — not NFS: a second SQLite library
-(`tool/cli_lookup.py`, stdlib) inside the server process stripped the server's POSIX locks on
+(`ask-ck/tools/cli_lookup.py`, stdlib) inside the server process stripped the server's POSIX locks on
 every close, so the WAL could be deleted from outside or corrupted by concurrent writers. Fixed
 + guarded; before running this recovery again, check `/proc/locks` for the server pid — zero
 entries on ck.db means the cause is back. See [[stale-session-connection-bug]].

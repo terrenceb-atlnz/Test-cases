@@ -5,7 +5,7 @@ does not re-read the DB, and `ck.db` (kind='wizard') is what survives a restart.
 read/write of the persistent half goes through the four functions here.
 
 Extracted from `routers/wizard.py` (PLAN-backend-module-split.md commit 9). Framework-free
-on purpose — no fastapi import — so it can be unit-tested and used by tool/ scripts, the
+on purpose — no fastapi import — so it can be unit-tested and used by ask-ck/tools/ scripts, the
 same rule `db.py` states for itself. The HTTP-shaped wrapper that turns "no session" into
 a 404 (`_authoritative_session`) deliberately stays in the router; see the deviation note
 below.
@@ -51,7 +51,7 @@ log = logging.getLogger(__name__)
 class SessionWriteError(RuntimeError):
     """A session write did not reach ck.db. The user's work is gone; say so.
 
-    A DOMAIN error, not an HTTPException, so this module stays framework-free (tool/
+    A DOMAIN error, not an HTTPException, so this module stays framework-free (ask-ck/tools/
     scripts and unit tests import it with no app in play, and an HTTPException raised
     outside a request is meaningless). `main.py` registers one app-wide handler that
     turns it into a 500 carrying this message, so no call site needs to remember.

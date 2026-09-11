@@ -44,7 +44,7 @@ import pytest
 from _prose import expand_includes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 cli_lookup = pytest.importorskip("cli_lookup")
 DB = REPO / "ask-ck" / "var" / "ck.db"

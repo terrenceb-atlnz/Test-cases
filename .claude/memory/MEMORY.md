@@ -2,12 +2,12 @@
 
 - [Generator steps: uniform deferred load](generator-steps-uniform-deferred-load.md) — all 3 data steps load identically & on-demand, never at case-load; use db.* search + shared _relevance_score
 - [Permutation-expander (deferred)](permutation-expander-deferred.md) — WANTED subsystem: CLI-bounded permutation cross-product; brief at plans/PLAN-permutation-expander.md
-- [Topology profiles contract](topology-profiles-contract.md) — generation targets a PROFILE, never a bench .setup; spec TOPOLOGY-PROFILES.md + tool/pt_profiles.py; roles name LINKS not devices
-- [Preflight topology check](preflight-topology-check.md) — tool/pt_preflight.py: can this bench run this script? init_portlink fails SILENTLY, so a missing cable reads as a script defect
+- [Topology profiles contract](topology-profiles-contract.md) — generation targets a PROFILE, never a bench .setup; spec TOPOLOGY-PROFILES.md + ask-ck/tools/pt_profiles.py; roles name LINKS not devices
+- [Preflight topology check](preflight-topology-check.md) — ask-ck/tools/pt_preflight.py: can this bench run this script? init_portlink fails SILENTLY, so a missing cable reads as a script defect
 - [tb470 routing memory](tb470-topology-and-setup.md) — WHERE each tb470 fact lives (one fact, one home): bench-state.md GENERATES tb470.setup; mechanics → orient-ie520 skill; always `show stack`
 - [Auth + case-locking plan](auth-and-case-locking-plan.md) — multi-user is the end-use; Phase 1 locking SHIPPED 2026-07-29 as an IN-MEMORY registry — do NOT add a case_locks table
 - [Shared tree — status has a short shelf life](shared-tree-status-has-short-shelf-life.md) — a concurrent stream edits this repo; re-run gate + git status before stating either; stage explicit paths
-- [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./tool/run_tests.sh; Playwright E2E is sparingly-run, NOT in the gate
+- [3-layer test suite](testing-suite-3-layer.md) — pytest + Vitest/jsdom run by ./ask-ck/tools/run_tests.sh; Playwright E2E is sparingly-run, NOT in the gate
 
 - [AW+ speed/duplex constraint](awplus-speed-duplex-constraint.md) — half duplex impossible ≥1 Gig; NOT documented, so a docs harvest alone can't capture cross-command physical rules
 - [AW+ ecofriendly + port naming](awplus-ecofriendly-and-port-naming.md) — `ecofriendly` not "ecomode"; `lpi` deprecated but TestLink says LPI; port1.1.x = chassis/slot — never hardcode a port
@@ -54,7 +54,7 @@
 - [No stray scripts](no-stray-scripts.md) — throwaway scripts go in the SESSION SCRATCHPAD, never the lab tree; ENFORCED by ~/.claude/hooks/no-stray-py.py (Bash + Write)
 - [Read the whole function before judging](read-the-whole-function-before-judging.md) — read a function to its END; to claim a path is broken, RUN it (the PDU-401 false alarm); creds in secrets.md
 - [Don't ceremonialize a clear fix](dont-ceremonialize-a-clear-fix.md) — removing a false/misplaced check is a plain fix, not a contract change needing sign-off
-- [ck.db corrupt-WAL recovery](ckdb-corrupt-wal-recovery.md) — "malformed" = bad WAL, fine BASE (check a main-file-only copy); tool/db_wal_recover.sh, never bare sqlite3; cause fixed 2026-09-10
+- [ck.db corrupt-WAL recovery](ckdb-corrupt-wal-recovery.md) — "malformed" = bad WAL, fine BASE (check a main-file-only copy); ask-ck/tools/db_wal_recover.sh, never bare sqlite3; cause fixed 2026-09-10
 - [Prefer a pragmatic fix over infra debugging](prefer-pragmatic-fix-over-infra-debugging.md) — when incidental infra breaks mid-task, take the deterministic fix (static IP, skip); don't rabbit-hole
 - [Terrence prefers the session model as judge](terrence-prefers-session-model-as-judge.md) — quality verdicts: READ AND JUDGE IN-CONTEXT, no claude -p / vLLM judge calls; generation runs are fine
 - [Setup unit re-indent at assembly](setup-unit-reindent-at-assembly.md) — the setup unit is the ONLY non-top-level unit, so models flush-left a def; _assemble_units re-indents it

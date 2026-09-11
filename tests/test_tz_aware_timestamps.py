@@ -345,7 +345,7 @@ def test_confirm_step_stamps_aware(monkeypatch):
 def test_no_utcnow_calls_left_in_the_server():
     """AST, not grep: timeutil's docstring necessarily NAMES datetime.utcnow() while
     explaining why it is gone, and a text search would flag that explanation.
-    `tool/` is deliberately out of scope — those are build scripts and ck.db is built
+    `ask-ck/tools/` is deliberately out of scope — those are build scripts and ck.db is built
     once and never rebuilt.
     """
     offenders = {}

@@ -1,6 +1,6 @@
 ---
 name: stale-session-connection-bug
-description: "Server returns HTTP 200 for a write that outside readers never see — ROOT CAUSE FOUND 2026-09-10: two SQLite libraries in one process (db.py pysqlite3 vs tool/cli_lookup.py stdlib) stripped the server's POSIX locks, so the WAL got deleted/corrupted under it; fixed in cli_lookup + guard test. Symptom + runbook here"
+description: "Server returns HTTP 200 for a write that outside readers never see — ROOT CAUSE FOUND 2026-09-10: two SQLite libraries in one process (db.py pysqlite3 vs ask-ck/tools/cli_lookup.py stdlib) stripped the server's POSIX locks, so the WAL got deleted/corrupted under it; fixed in cli_lookup + guard test. Symptom + runbook here"
 metadata: 
   node_type: memory
   type: project
@@ -35,7 +35,7 @@ by reading `updated_at`/`rev` from a FRESH connection — never trust the 200.
 
 **ROOT CAUSE — found and fixed 2026-09-10.** The 2026-09-09 reading ("the same pattern escalates
 to WAL corruption on NFS") had the mechanism wrong. `db.py` binds **pysqlite3** (SQLite 3.51);
-`tool/cli_lookup.py`, imported by `routers/pytest_create.py` during every unit-prompt render,
+`ask-ck/tools/cli_lookup.py`, imported by `routers/pytest_create.py` during every unit-prompt render,
 opened `ck.db` with the **stdlib sqlite3** (3.37) — read-only, per call, GC-closed. POSIX
 advisory locks belong to the *process* and each SQLite library keeps its own per-inode lock
 accounting, so each stdlib close issued a real `F_UNLCK` that **removed every lock the server's

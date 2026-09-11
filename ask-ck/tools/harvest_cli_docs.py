@@ -29,10 +29,10 @@ RENEWABLE: re-run any time. Rows are replaced per (product, command) and the har
 stamps `meta` with when it ran and what it saw. --since-hours skips a recent harvest.
 
 Usage:
-  python3 tool/harvest_cli_docs.py --products x530,x930      # a subset
-  python3 tool/harvest_cli_docs.py --all                     # every command reference
-  python3 tool/harvest_cli_docs.py --all --dry-run           # enumerate, fetch nothing
-  python3 tool/harvest_cli_docs.py --all --jobs 12
+  python3 ask-ck/tools/harvest_cli_docs.py --products x530,x930      # a subset
+  python3 ask-ck/tools/harvest_cli_docs.py --all                     # every command reference
+  python3 ask-ck/tools/harvest_cli_docs.py --all --dry-run           # enumerate, fetch nothing
+  python3 ask-ck/tools/harvest_cli_docs.py --all --jobs 12
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ from html import unescape
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DB = REPO / "ask-ck" / "var" / "ck.db"
 BASE = "https://docs.atlnz.lc/preview"
 TOC = "_bookmap_files/frontmatter/cmdref_Introduction.html"

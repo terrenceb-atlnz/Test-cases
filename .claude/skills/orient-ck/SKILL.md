@@ -28,7 +28,7 @@ git check-ignore -v ask-ck/var/ck.db && echo "!! ck.db IS GITIGNORED — invaria
 Then launch the full gate **in the background** and keep reading while it runs:
 
 ```bash
-./tool/run_tests.sh                 # both guards + backend pytest + frontend vitest
+./ask-ck/tools/run_tests.sh                 # both guards + backend pytest + frontend vitest
 ```
 
 Note the pass counts it prints. Establishing baseline-green *now* is what makes a failure
@@ -36,7 +36,7 @@ found later in the session attributable to this session. Playwright E2E is delib
 in the gate — do not run it as part of orienting.
 
 **Never start the real server just to look around** — it writes `ask-ck/var/ck.db`, the
-permanent source of truth. Use `tool/run_scratch_server.sh` for any exploratory or test
+permanent source of truth. Use `ask-ck/tools/run_scratch_server.sh` for any exploratory or test
 traffic. Start the real one (`./run.sh --bg`, `--restart`, `--stop`) only when the user
 actually wants the running app; then `/health` should report `is_permanent_db: true`.
 
@@ -82,12 +82,12 @@ waste. Instead treat these as standing rules for later in the session:
   `SSH_AUTH_SOCK` gotcha, why a `.setup` console list cannot be trusted, the fix set every
   legacy script needs against the current framework).
 - `/home/st-art/framework` is **read-only**. Never write or edit it; copy locally to change
-  anything. `tool/guard_framework_readonly.py` enforces this and is part of the gate.
+  anything. `ask-ck/tools/guard_framework_readonly.py` enforces this and is part of the gate.
 
 ## 4. Memory — read the index, never a written-down list
 
 ```bash
-./tool/check_memory_links.py    # FIRST: is the HARNESS actually loading .claude/memory/?
+./ask-ck/tools/check_memory_links.py    # FIRST: is the HARNESS actually loading .claude/memory/?
 ls .claude/memory/*.md          # the directory IS the list
 ```
 
@@ -109,7 +109,7 @@ from 2026-08-17 to 2026-09-04 ran with **zero** auto-loaded memories — unnotic
 step only ever checked the repo side, and reading `MEMORY.md` by hand hid the symptom.
 `check_memory_links.py` checks the harness side, for every slug. If it fails:
 
-- `./tool/check_memory_links.py --fix` re-points dead or wrong links and replaces an *empty*
+- `./ask-ck/tools/check_memory_links.py --fix` re-points dead or wrong links and replaces an *empty*
   directory with a link. It never deletes content.
 - A directory that **has files in it** is reported as STRANDED and left alone — those are
   memories a session wrote that never reached the repo. Merge them into `.claude/memory/` by
@@ -146,7 +146,7 @@ next session to add a `case_locks` table — an option that had been deliberatel
 The mechanical half of that check is available on demand and is **not** in the gate:
 
 ```bash
-./tool/check_memory_refs.py       # dead path citations + file:LINE citations; -v shows skips
+./ask-ck/tools/check_memory_refs.py       # dead path citations + file:LINE citations; -v shows skips
 ```
 
 ## 5. Confirm the invariants (flag immediately if any is violated)
@@ -155,9 +155,9 @@ The mechanical half of that check is available on demand and is **not** in the g
    Git LFS, **not** gitignored, **not** rebuildable. No courier/source JSON files, no corpus
    APIs, no re-fetch.
 2. **The running server reads corpora only from `ck.db`** (`db.py`); zero runtime JSON.
-   Evidence: `tool/guard_db_only.py` (in the gate).
+   Evidence: `ask-ck/tools/guard_db_only.py` (in the gate).
 3. **The testbox framework tree is read-only.** Evidence:
-   `tool/guard_framework_readonly.py` (in the gate).
+   `ask-ck/tools/guard_framework_readonly.py` (in the gate).
 4. **The org vLLM is the one live external dependency, and it is core function** — not an
    inter-dependency to be removed. These are *reasoning* models (they emit reasoning content
    before content). The embedding model is bundled and loads offline.

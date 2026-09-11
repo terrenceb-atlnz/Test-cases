@@ -1,7 +1,7 @@
 """One SQLite library per server process — the lock-stripping bug of 2026-09-10.
 
 db.py binds `sqlite3` to pysqlite3 when it is installed (it is, here), so every server
-connection to ck.db comes from that library. tool/cli_lookup.py — imported by
+connection to ck.db comes from that library. ask-ck/tools/cli_lookup.py — imported by
 routers/pytest_create.py while rendering unit prompts — used to open ck.db through the
 STDLIB sqlite3, read-only, a fresh connection per call, a dozen call sites.
 
@@ -36,7 +36,7 @@ import pytest
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 _CK_SERVER = _REPO_ROOT / "ask-ck" / "CK-main" / "CK_server"
-_TOOL_DIR = _REPO_ROOT / "tool"
+_TOOL_DIR = _REPO_ROOT / "ask-ck" / "tools"
 if str(_TOOL_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOL_DIR))
 
@@ -53,7 +53,7 @@ def _server_sources():
 
 
 def _tool_modules_the_server_imports():
-    """tool/*.py module names imported anywhere under CK_server (today: cli_lookup)."""
+    """ask-ck/tools/*.py module names imported anywhere under CK_server (today: cli_lookup)."""
     tool_stems = {p.stem for p in _TOOL_DIR.glob("*.py")}
     found = set()
     for src in _server_sources():

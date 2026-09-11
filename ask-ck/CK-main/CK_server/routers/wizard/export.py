@@ -455,7 +455,7 @@ async def export(req: SynthesisRequest, data=Depends(get_data)):
 @router.post("/push_to_zephyr/{key}")
 async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
                          confirm: str = Body(default="", embed=True)):
-    """Push a Complete refined case to Zephyr via tool/upload_refined.py.
+    """Push a Complete refined case to Zephyr via ask-ck/tools/upload_refined.py.
 
     Shells out to the CLI (the single owner of Zephyr-write logic), which:
       1. strips a leading '(N)'/'(...)' group from the test-case Name,
@@ -489,7 +489,7 @@ async def push_to_zephyr(key: str, dry_run: bool = True, force: bool = False,
         )
 
     repo_root = ASKCK_ROOT.parent           # .../Test-cases
-    cli = repo_root / "tool" / "upload_refined.py"
+    cli = repo_root / "ask-ck" / "tools" / "upload_refined.py"
     if not cli.is_file():
         raise HTTPException(status_code=500, detail=f"upload tool not found: {cli}")
 

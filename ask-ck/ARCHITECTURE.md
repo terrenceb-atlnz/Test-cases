@@ -37,7 +37,7 @@ TypeScript, no Java, and no build step anywhere.**
 | **Semantic search** | Python | `sentence-transformers`, `torch` (CPU wheel) | bundled model, offline |
 | **Templating** | **Jinja2** | — | LLM prompts + the generated-script skeleton |
 | **Generated output** | **Python 3** | Allied Telesis `framework` (ATTestSet/ATTestCase) | the product of the tool |
-| **Automation / entry points** | **Bash** | — | `setup.sh`, `run.sh`, `tool/*.sh` |
+| **Automation / entry points** | **Bash** | — | `setup.sh`, `run.sh`, `ask-ck/tools/*.sh` |
 
 **The front end has no framework and no bundler by design.** `index.html` loads 20 ES modules
 directly; the browser resolves them natively. There is no JSX, TypeScript, Vue or Svelte
@@ -189,9 +189,9 @@ lies about itself**:
 - A generated script **names no device and no port**. It resolves its topology from the bench's
   own declaration at run time, so the same file runs on a chassis, a stack, or a standalone
   switch unchanged.
-- Before a run, `tool/pt_preflight.py` answers *offline* whether a bench can host a script at
-  all; `tool/pt_profiles.py` answers whether a bench implements the topology contract; and at
-  run time `tool/pt_media.py` asserts the bound port's physical media.
+- Before a run, `ask-ck/tools/pt_preflight.py` answers *offline* whether a bench can host a script at
+  all; `ask-ck/tools/pt_profiles.py` answers whether a bench implements the topology contract; and at
+  run time `ask-ck/tools/pt_media.py` asserts the bound port's physical media.
 
 That last set exists because of a specific, expensive failure class: the framework returns
 `(None, None)` for a link the bench never declared, and the CLI accepts nonsensical settings
@@ -209,16 +209,16 @@ convention:
 1. **`ck.db` is the permanent single source of truth** — built once, Git LFS, not gitignored,
    not rebuildable.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Enforced by
-   `tool/guard_db_only.py`.
+   `ask-ck/tools/guard_db_only.py`.
 3. **The testbox framework tree is read-only.** Enforced by
-   `tool/guard_framework_readonly.py`.
+   `ask-ck/tools/guard_framework_readonly.py`.
 4. **The org vLLM is the only live external dependency**, and it is core function.
 
 ---
 
 ## 9. Quality mechanism
 
-One command, `./tool/run_tests.sh`, runs both invariant guards plus **719 backend tests and 92
+One command, `./ask-ck/tools/run_tests.sh`, runs both invariant guards plus **719 backend tests and 92
 front-end tests**; a Playwright end-to-end test is run sparingly outside that gate. Test traffic
 runs against a throwaway copy of the database, because polluting the permanent one with
 synthetic sessions produces worthless data.

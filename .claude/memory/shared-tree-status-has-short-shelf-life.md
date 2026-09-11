@@ -10,7 +10,7 @@ metadata:
 ---
 
 The Test-cases working tree is shared with an **active parallel stream** (2026-07-27g: CLI-docs
-grounding work — `tool/harvest_cli_docs.py`, `tool/cli_lookup.py`, `tests/test_cli_docs.py`, plus
+grounding work — `ask-ck/tools/harvest_cli_docs.py`, `ask-ck/tools/cli_lookup.py`, `tests/test_cli_docs.py`, plus
 edits inside `routers/pytest_create.py` and the prompt templates). Files appear, change and get
 fixed mid-session without any action from me.
 
@@ -22,7 +22,7 @@ correction so he would not be led astray later. The real count was 208 pytest, n
 quoting (190 mine + 18 theirs).
 
 **How to apply:**
-- Re-run `./tool/run_tests.sh` and `git status --short` **immediately before** stating gate status
+- Re-run `./ask-ck/tools/run_tests.sh` and `git status --short` **immediately before** stating gate status
   or working-tree contents — especially in a session-close summary, which is exactly what the next
   session acts on.
 - Never carry a status observation forward across a long stretch of work. Treat "the gate was

@@ -83,7 +83,7 @@ def _db_revision(real: pathlib.Path) -> str:
 
     This is the SAME blind spot that hid the AWPTCM-T30649 deletion, where `md5sum
     ask-ck/var/ck.db` reported "byte-identical" throughout (see SESSION_STATE.md
-    2026-07-28e, and tool/ckdb_signature.py, which exists because of it). Any check on
+    2026-07-28e, and ask-ck/tools/ckdb_signature.py, which exists because of it). Any check on
     the main file alone inherits it.
 
     Including the WAL's (size, mtime_ns) closes it: a commit appends to the WAL, so both
@@ -320,7 +320,7 @@ if os.environ.get("CK_TEST_USE_REAL_DB") == "1":
         "!! CK_TEST_USE_REAL_DB=1 — ck.db PROTECTIONS ARE OFF.\n"
         "!! The suite will read AND WRITE ask-ck/var/ck.db, the permanent git-LFS\n"
         "!! source of truth. Snapshot first:\n"
-        "!!     tool/ckdb_signature.py > /tmp/before.txt\n"
+        "!!     ask-ck/tools/ckdb_signature.py > /tmp/before.txt\n"
         "!! and verify afterwards. Unset the variable to restore isolation.\n"
         "\n"
     )
@@ -344,13 +344,13 @@ def pytest_report_header(config):
     """Always state which ck.db the run is using, and shout if it is the real one.
 
     The stderr banner above is written at import time, which pytest CAPTURES — it only
-    appears with `-s`, i.e. never during `./tool/run_tests.sh`. That made it useless
+    appears with `-s`, i.e. never during `./ask-ck/tools/run_tests.sh`. That made it useless
     exactly when it mattered. This hook is printed uncaptured at the top of every run.
     """
     if os.environ.get("CK_TEST_USE_REAL_DB") == "1":
         return [
             "ck.db: *** REAL DATABASE, PROTECTIONS OFF (CK_TEST_USE_REAL_DB=1) ***",
-            "ck.db: writes go to ask-ck/var/ck.db — snapshot with tool/ckdb_signature.py",
+            "ck.db: writes go to ask-ck/var/ck.db — snapshot with ask-ck/tools/ckdb_signature.py",
         ]
     target = os.environ.get("CK_DB_PATH")
     if not target:

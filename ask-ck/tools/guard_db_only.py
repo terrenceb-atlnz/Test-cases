@@ -18,13 +18,13 @@ Legitimate NON-corpus file reads are allowed and intentionally NOT flagged:
   - per-case exports:   refined-case zephyr_payload.json, provenance.json
   - debug logs / sftp:  llm-debug/*.jsonl, remote script writes
 
-Usage:  python3 tool/guard_db_only.py        # exit 0 = clean, 1 = violation
+Usage:  python3 ask-ck/tools/guard_db_only.py        # exit 0 = clean, 1 = violation
 """
 import re
 import sys
 from pathlib import Path
 
-CK_SERVER = Path(__file__).resolve().parent.parent / "ask-ck" / "CK-main" / "CK_server"
+CK_SERVER = Path(__file__).resolve().parent.parent / "CK-main" / "CK_server"   # ask-ck/tools/ -> ask-ck/
 
 # Retired corpus sources — the DB is now the only runtime home for these. A read
 # of any of these names inside CK_server/ is a regression.

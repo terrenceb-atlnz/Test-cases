@@ -17,8 +17,8 @@ its `<pre>` blocks (~0.3%); extract those, never store raw pages.
 **Source shape changed 2026-09-08.** The docs team now ships ONE **combined build**
 (`awplus-cmdref-combined.zip`, a single `<group>_cmd/<page>.html` tree with every family in
 it) instead of the July **37 per-device zips**. The old per-device harvester
-(`tool/harvest_cli_docs.py`, `meta.cli_docs_harvest`) is superseded by
-`tool/load_cli_docs_from_zips.py --combined-zip …` (stamps `meta.cli_docs_load`).
+(`ask-ck/tools/harvest_cli_docs.py`, `meta.cli_docs_harvest`) is superseded by
+`ask-ck/tools/load_cli_docs_from_zips.py --combined-zip …` (stamps `meta.cli_docs_load`).
 
 - **Per-product differences are `ss-on-<product>` CSS classes on the `<pre>` blocks**, so the
   combined build is MORE informative, not less. The loader emits one `cli_commands` row per

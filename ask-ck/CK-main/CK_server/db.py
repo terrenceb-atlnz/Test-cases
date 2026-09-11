@@ -7,11 +7,11 @@ extension so Stage D is a drop-in.
 Design notes:
 - **Single connection factory.** `get_connection()` is the ONLY place
   `sqlite3.connect()` is called anywhere in the codebase — every router and every
-  tool/ script goes through it, so PRAGMAs / WAL / extension-load are applied
+  ask-ck/tools/ script goes through it, so PRAGMAs / WAL / extension-load are applied
   identically in one spot. SQLite is an embedded file, so we reuse one connection
   per thread via `threading.local()` (no per-call reopen).
 - **Plain sync sqlite3** — queries are ms-scale; no async ceremony.
-- **No FastAPI imports** — tool/ scripts (build_db.py) import this module directly.
+- **No FastAPI imports** — ask-ck/tools/ scripts (build_db.py) import this module directly.
 - **Search parity:** the scoring helpers below are copied verbatim from the CURRENT
   wizard.py / pytest_create.py (`_relevance_score`, `_score_script_candidate`, the
   tokenizers and stopword sets). NOTE: the DB-migration plan's "Search parity"
@@ -86,7 +86,7 @@ _warned_missing = False
 def _warn_db(e: Exception) -> None:
     global _warned_missing
     if not _warned_missing:
-        print(f"WARNING: ck.db read failed ({e}). Run `python3 tool/build_db.py --fresh`. "
+        print(f"WARNING: ck.db read failed ({e}). Run `python3 ask-ck/tools/build_db.py --fresh`. "
               "Reads degrade to empty until then.")
         _warned_missing = True
 

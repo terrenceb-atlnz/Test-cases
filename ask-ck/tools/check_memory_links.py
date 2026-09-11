@@ -31,14 +31,14 @@ expressly so the two streams stop polluting each other's memories. The rules tha
   * the shared memories this store keeps as relative symlinks into the sibling store
     must resolve — a DEAD_SHARED_LINK is the 2026-08-17 failure in a new coat.
 
-    ./tool/check_memory_links.py          # report; exit 1 if anything needs attention
-    ./tool/check_memory_links.py --fix    # re-point/remove links, replace EMPTY dirs
+    ./ask-ck/tools/check_memory_links.py          # report; exit 1 if anything needs attention
+    ./ask-ck/tools/check_memory_links.py --fix    # re-point/remove links, replace EMPTY dirs
 
 `--fix` never deletes content. A real directory that contains files is reported and left
 alone: merge those files into the owning store by hand, then run `--fix` again. A link
 into an UNKNOWN store that holds files is likewise left for a human.
 
-Deliberately NOT in `tool/run_tests.sh`: it inspects the developer's home directory, not
+Deliberately NOT in `ask-ck/tools/run_tests.sh`: it inspects the developer's home directory, not
 the repo, and the gate must stay a statement about the repo. `/orient-ck` and `/wrap-ck`
 run it.
 """
@@ -52,7 +52,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 MEM_DIR = REPO / ".claude" / "memory"
 
 
@@ -290,7 +290,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     if rep.fatal:
         print(f"\n{len(rep.fatal)} problem(s). Memories are NOT loading correctly for those slugs.")
         if any(f.fixable for f in rep.fatal):
-            print("  run:  ./tool/check_memory_links.py --fix")
+            print("  run:  ./ask-ck/tools/check_memory_links.py --fix")
         if any(not f.fixable for f in rep.fatal):
             print("  and merge the stranded/foreign files into a repo store by hand first —"
                   " --fix will not delete content.")

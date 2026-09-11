@@ -1,6 +1,6 @@
 ---
 name: topology-profiles-contract
-description: "Generated tests target a PROFILE contract, never a bench .setup; spec TOPOLOGY-PROFILES.md + tool/pt_profiles.py; media is deliberately NOT machine-verifiable"
+description: "Generated tests target a PROFILE contract, never a bench .setup; spec TOPOLOGY-PROFILES.md + ask-ck/tools/pt_profiles.py; media is deliberately NOT machine-verifiable"
 metadata: 
   node_type: memory
   type: project
@@ -16,11 +16,11 @@ a bench:
 
 - generation → declares the **profile** its test needs (reads no `.setup`)
 - a bench → declares the profiles it **implements**, in its own `[misc]`
-- `tool/pt_profiles.py` → **matches** them, emits a shopping list
+- `ask-ck/tools/pt_profiles.py` → **matches** them, emits a shopping list
 
 Spec: `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`. Check:
-`python3 tool/pt_preflight.py --setup <bench>.setup --profile all`.
-**`tool/pt_profiles.py` is authoritative**; a test asserts the spec's table and `PROFILES`
+`python3 ask-ck/tools/pt_preflight.py --setup <bench>.setup --profile all`.
+**`ask-ck/tools/pt_profiles.py` is authoritative**; a test asserts the spec's table and `PROFILES`
 list identical names, so they cannot drift (mutation-verified).
 
 **Profiles, not one monolith** — "one canonical topology" accretes (copper/fibre/10G/PoE/hub/
@@ -59,7 +59,7 @@ So `ck_link_copper` is **intent, not a guarantee**. Pinned by
 `test_media_is_NOT_verified_and_the_spec_says_so`, which will fail if the checker ever gains
 media awareness — rewrite the spec's Limitations if so.
 
-**The run-time guard is BUILT: `tool/pt_media.py`** (31 tests). `assert_role_media(out, port,
+**The run-time guard is BUILT: `ask-ck/tools/pt_media.py`** (31 tests). `assert_role_media(out, port,
 'copper')` on `show interface <port> status`. Parses the `Type` column by **column slice off
 the header** — an empty cage prints the two-word `not present`, which `split()[-1]` reads as
 `"present"`. Classifies `twisted_pair`/`fibre`/`direct_attach`/`absent`/`unknown` and
@@ -70,7 +70,7 @@ IE520 output; `1000BASE-T` (u4) vs `10GBASE-TM` (u5) sit on the **same port numb
 the standing proof media can't be inferred from a port name.
 ✅ **WIRED into generation 2026-07-30.** The skeleton's fixed `_ck_bind_link()` resolves
 `ck_link_<role>` from `[misc]`, refuses a `(None, None)` portlink, and asserts media;
-`ck_media.py` ships with every run (read from `tool/pt_media.py`, byte-identical); and a lint
+`ck_media.py` ships with every run (read from `ask-ck/tools/pt_media.py`, byte-identical); and a lint
 makes the helper **the only** path to a bound port — a direct `setup.init_portlink()` outside
 it is an error. Role via `_detect_link_role` (copper default, fibre wording detected); a wrong
 role can't cause a wrong verdict because the assertion stops the run and blames the bench.

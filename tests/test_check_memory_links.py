@@ -1,4 +1,4 @@
-"""tool/check_memory_links.py — the harness-side memory check.
+"""ask-ck/tools/check_memory_links.py — the harness-side memory check.
 
 The 2026-08-17 → 2026-09-04 outage: the tree moved, the absolute symlinks died, the
 harness created an empty real directory for the new slug, and every session ran with
@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-TOOL = Path(__file__).resolve().parent.parent / "tool" / "check_memory_links.py"
+TOOL = Path(__file__).resolve().parent.parent / "ask-ck" / "tools" / "check_memory_links.py"
 spec = importlib.util.spec_from_file_location("check_memory_links", TOOL)
 cml = importlib.util.module_from_spec(spec)
 sys.modules["check_memory_links"] = cml          # dataclasses resolves the module by name

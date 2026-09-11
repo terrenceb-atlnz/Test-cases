@@ -1,4 +1,4 @@
-"""Regression tests for the pre-flight topology check (`tool/pt_preflight.py`).
+"""Regression tests for the pre-flight topology check (`ask-ck/tools/pt_preflight.py`).
 
 The check exists because `Setup.init_portlink()` fails SILENTLY — it returns `(None, None)`
 when the bench declares no matching link, and generated scripts unpack that straight into
@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 pt_preflight = pytest.importorskip("pt_preflight")
 

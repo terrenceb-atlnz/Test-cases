@@ -1,15 +1,15 @@
 # Topology Profiles — the contract between a generated test and a bench
 
 > **Status:** ACTIVE from 2026-07-30. Machine-readable definitions live in
-> [`tool/pt_profiles.py`](../../tool/pt_profiles.py) — **that file is authoritative**; the
+> [`ask-ck/tools/pt_profiles.py`](../../../ask-ck/tools/pt_profiles.py) — **that file is authoritative**; the
 > table below is checked against it by `tests/test_pt_profiles.py`, so the two cannot drift.
-> Checker: `python3 tool/pt_preflight.py --setup <bench>.setup --profile all`
+> Checker: `python3 ask-ck/tools/pt_preflight.py --setup <bench>.setup --profile all`
 
 ## The problem this solves
 
 A generated script must run unchanged on any bench — it never names a port. But generation
 used to pick its `.setup` role keys **positionally**, from whatever device names the selected
-fragments happened to mention ([`_setup_keys_for`](../CK-main/CK_server/routers/pytest_create.py)):
+fragments happened to mention ([`_setup_keys_for`](../../CK-main/CK_server/routers/pytest_create.py)):
 "the third device I saw" became `swi_c`. Nothing had agreed that a bench would provide a
 `swi_c`. That is how `3_Port_Fixed_port_test.py` came to demand a `swi_a`↔`swi_c` link **it
 never uses** — 4 devices and 2 links bound in `init()`, 1 device and 1 link actually
@@ -28,7 +28,7 @@ Generation targets a **contract**, and a contract is not a bench:
 |---|---|---|
 | **Generation** | the **profile** the test needs | **No** |
 | **A bench** | the profiles it **implements**, in its own `[misc]` | is the facts |
-| **`tool/pt_profiles.py`** | **matches** the two, and lists what is missing | Yes |
+| **`ask-ck/tools/pt_profiles.py`** | **matches** the two, and lists what is missing | Yes |
 
 Nothing is permitted to edit a requirement to fit a fact. When they don't match, the output
 is a **shopping list** (cable this, verify that), never a downgraded test.
@@ -135,7 +135,7 @@ problem. `ck_link_tb = tb-swi_a:eth3` is the declaration a bench writes.
    Treat `ck_link_copper` as **intent, not a guarantee**: it says which link the test should
    bind, which is what removes the comma-order accident. Safety comes from a **run-time
    assertion** — read the bound port's media and fail loudly before running a media-specific
-   matrix. That assertion is implemented in [`tool/pt_media.py`](../../tool/pt_media.py):
+   matrix. That assertion is implemented in [`ask-ck/tools/pt_media.py`](../../../ask-ck/tools/pt_media.py):
 
    ```python
    out  = dut.cmd('show interface {} status'.format(port.name))
@@ -153,7 +153,7 @@ problem. `ck_link_tb = tb-swi_a:eth3` is the declaration a bench writes.
    in would reintroduce this bug in a new shape.
 
    ✅ **Wired 2026-07-30.** The skeleton's fixed `_ck_bind_link()` performs it on every bound
-   link, `ck_media.py` ships into the run workdir with every run (read from `tool/pt_media.py`
+   link, `ck_media.py` ships into the run workdir with every run (read from `ask-ck/tools/pt_media.py`
    so it is byte-identical to the tested module), and a lint makes it **the only** path to a
    bound port: a direct `setup.init_portlink()` outside the helper is an error, because a port
    bound that way carries no media guarantee.
@@ -181,7 +181,7 @@ problem. `ck_link_tb = tb-swi_a:eth3` is the declaration a bench writes.
 
 ## Adding a profile
 
-1. Add a `Profile(...)` entry to `PROFILES` in [`tool/pt_profiles.py`](../../tool/pt_profiles.py).
+1. Add a `Profile(...)` entry to `PROFILES` in [`ask-ck/tools/pt_profiles.py`](../../../ask-ck/tools/pt_profiles.py).
 2. Add a row to the table above. `tests/test_pt_profiles.py` asserts the table and the code
    list exactly the same profiles, so a missing row fails the gate.
 3. Declare it in whichever bench files can implement it, and verify with

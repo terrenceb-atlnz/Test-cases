@@ -13,19 +13,19 @@ happily reported no change. The row was recovered from a snapshot.
 Hashing the main file cannot detect a write to a WAL-mode database. Ask SQLite instead:
 opening the DB reads main + WAL together, so a row-level signature sees everything.
 
-    tool/ckdb_signature.py            # FAST (<1s): schema + full hash of the sessions table
-    tool/ckdb_signature.py --tables   # add every table's row count (~15s, NFS-bound)
-    tool/ckdb_signature.py --full     # add a content hash over every table (slow, ~440MB)
+    ask-ck/tools/ckdb_signature.py            # FAST (<1s): schema + full hash of the sessions table
+    ask-ck/tools/ckdb_signature.py --tables   # add every table's row count (~15s, NFS-bound)
+    ask-ck/tools/ckdb_signature.py --full     # add a content hash over every table (slow, ~440MB)
 
 The default covers `sessions` only, because that is the ONLY table the running app
-writes — the corpus tables are built once by tool/build_db.py and never mutated at
+writes — the corpus tables are built once by ask-ck/tools/build_db.py and never mutated at
 runtime. So the cheap signature is also the complete one for "did a test dirty the DB".
 
 Exit code is always 0; compare the printed lines yourself, e.g.
 
-    tool/ckdb_signature.py > /tmp/before.txt
-    ./tool/run_tests.sh
-    tool/ckdb_signature.py > /tmp/after.txt
+    ask-ck/tools/ckdb_signature.py > /tmp/before.txt
+    ./ask-ck/tools/run_tests.sh
+    ask-ck/tools/ckdb_signature.py > /tmp/after.txt
     diff /tmp/before.txt /tmp/after.txt && echo "ck.db untouched"
 
 Read-only by construction (`mode=ro`), so this can never be the thing that dirties the file.
@@ -35,7 +35,7 @@ import pathlib
 import sqlite3
 import sys
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]  # ask-ck/tools/ -> repo root
 DB = REPO_ROOT / "ask-ck" / "var" / "ck.db"
 
 

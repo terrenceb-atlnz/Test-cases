@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 harvest = pytest.importorskip("harvest_cli_docs")
 cli_lookup = pytest.importorskip("cli_lookup")
@@ -44,7 +44,7 @@ def _has_command(name: str) -> bool:
 def needs(command: str):
     return pytest.mark.skipif(
         not _has_command(command),
-        reason=f"{command!r} not harvested yet (run tool/harvest_cli_docs.py --all)")
+        reason=f"{command!r} not harvested yet (run ask-ck/tools/harvest_cli_docs.py --all)")
 
 
 needs_harvest = needs("show interface")

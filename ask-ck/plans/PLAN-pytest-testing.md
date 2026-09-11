@@ -57,7 +57,7 @@
 > - ✅ **§1.5 inline source-provenance tagging** — done 2026-07-22 (was tracked as
 >   debt out of Part 2A); mechanical server-side re-stamp, verified on a real live
 >   T33234 generate. See **§6 below** for the full bug list found while building it.
-> - ✅ **Part 2B build** (comparison harness `tool/pt_model_matrix.py`, retired 2026-09-11) — done
+> - ✅ **Part 2B build** (comparison harness `ask-ck/tools/pt_model_matrix.py`, retired 2026-09-11) — done
 >   2026-07-22; keyword-vs-LLM + 5-model matrix (vLLM-fast/thinking, Claude
 >   Haiku/Sonnet/Opus) run live across all three target cases. Results:
 >   `ask-ck/functions/pytest-creator/comparison/Port (7)/<CaseKey>/<step>.json`. Grok CLI
@@ -78,12 +78,12 @@
 > - ✅ **CLI grounding (§11)** — 2026-07-27h. Root-caused the fabricated `speed=1000`
 >   output schema to a RESOURCING gap, not model quality (all 5 models did it, Opus
 >   included). Harvested the real AlliedWare Plus command reference into `ck.db`
->   (`tool/harvest_cli_docs.py`, 73,006 fetches, 0 failures, 4,652 commands) and grounded
+>   (`ask-ck/tools/harvest_cli_docs.py`, 73,006 fetches, 0 failures, 4,652 commands) and grounded
 >   BOTH the sequence-extraction and generate prompts. Result: `key=value` fabrication
 >   **13→0** in sequences and **57→0** in scripts. Also added an objective-coverage gate
 >   (every Zephyr step needs ≥1 PyTest step) after a re-extraction silently dropped
 >   T33234's whole MDI/MDI-X negative path.
-> - 🔄 **Part 3a — mechanical half DONE** 2026-07-27 (`tool/pt_grade.py` + 21 tests):
+> - 🔄 **Part 3a — mechanical half DONE** 2026-07-27 (`ask-ck/tools/pt_grade.py` + 21 tests):
 >   criteria 1-3 and the offline half of 6, graded for all three cases. T33235's script
 >   was generated this session (it had none). **C1 + C6-offline clean across all three.**
 >   Results: `judging/Port (7)/<CaseKey>/mechanical.json`. See **§10 below**. Remaining:
@@ -94,7 +94,7 @@
 >   (§11 + NEXT-SESSION-REVIEW). This session regenerated all three against the objective-in-Generate
 >   prompts (objective header now in every `.py`; **T33234's duplicate-portlink lint defect cleared**)
 >   and ran a 5-model generation matrix (vllm-fast/thinking + claude haiku/sonnet/opus) judged
->   holistically by opus + vllm-fast (`tool/pt_matrix_judge.py`; artifacts under `comparison/`).
+>   holistically by opus + vllm-fast (`ask-ck/tools/pt_matrix_judge.py`; artifacts under `comparison/`).
 >   **T33233/T33235 → "good" (sonnet/opus); T33234 → 10/10 "bad"** — root-caused NOT to model quality
 >   but to sequence-step `kind` misclassification; see `plans/PLAN-permutation-expander.md`.
 > - ✅ **Part 3b UNBLOCKED + topology corrected (2026-07-29).** `configs/tb470.setup` existed
@@ -164,7 +164,7 @@
 >   5-6 when the cause is **bench cabling** — precisely the false signal Part 3 must not ingest.
 >   Note the stack does **not** help: `init_portlink` expands a stack and tries each member
 >   combination, but stackport cabling is not a data path.
-> - ✅ **`tool/pt_preflight.py` — the offline pre-flight topology check (built 2026-07-30).**
+> - ✅ **`ask-ck/tools/pt_preflight.py` — the offline pre-flight topology check (built 2026-07-30).**
 >   Reads a generated script with `ast` and a bench `.setup` with `configparser`, then reports
 >   every demand the bench cannot satisfy. No LLM, no network, no hardware — same
 >   zero-token-pre-flight idea as `tests/test_prompt_examples.py`. It resolves the local
@@ -177,7 +177,7 @@
 >
 >   ```
 >   scp tb470:/home/st-art/st-art/configs/tb470.setup /tmp/
->   python3 tool/pt_preflight.py --setup /tmp/tb470.setup          # all generated scripts
+>   python3 ask-ck/tools/pt_preflight.py --setup /tmp/tb470.setup          # all generated scripts
 >   ```
 >
 >   Covered by **26 tests** in `tests/test_pt_preflight.py`. Because a check that reported
@@ -208,7 +208,7 @@
 >   ports** on the removed member, leaving it console-only. Neither shows that two **unstacked**
 >   IE520s cannot pass data over that cabling — and per Terrence they can.
 > - ➡️ **What actually unblocks Part 3b now: ONE `[portlink]` line, no rename.** Measured with
->   `tool/pt_preflight.py` against the installed file plus a declared `swi_a-swi_b` data link:
+>   `ask-ck/tools/pt_preflight.py` against the installed file plus a declared `swi_a-swi_b` data link:
 >
 >   | Bench shape (current naming) | Runnable |
 >   |---|---|
@@ -243,7 +243,7 @@
 >     port1.0.7-port1.0.7` added. Installed, parses clean, and round-trip verified by fetching
 >     it back (md5 `cd1e570c77e8614340b44dd4144579a7`). Prior versions kept as
 >     `tb470.setup.bak-2026-07-30b` (the stacked morning version) and `.bak-2026-07-30`.
->   - **`tool/pt_preflight.py` against the installed file: 2/3 runnable** — T33233 autoneg and
+>   - **`ask-ck/tools/pt_preflight.py` against the installed file: 2/3 runnable** — T33233 autoneg and
 >     T33234 MDI/MDI-X both RUNNABLE. `3_Port_Fixed_port_test.py` is still un-runnable for a
 >     **different, open** reason: it also wants `swi_a`↔`swi_c` (the AR4050S), which has no
 >     data cabling. Pinned by `tests/test_pt_preflight.py::test_real_scripts_on_the_live_bench`.
@@ -295,7 +295,7 @@
 >   - Full detail: `FINDINGS-generation-size-ceiling.md` + `autopilot/RESULTS-2026-08-03.md`.
 >
 > - 🧱 **2026-07-30 — TOPOLOGY PROFILES: the contract generated tests target instead of a
->   bench. New spec `TOPOLOGY-PROFILES.md` + `tool/pt_profiles.py`.** Terrence's call, and it
+>   bench. New spec `TOPOLOGY-PROFILES.md` + `ask-ck/tools/pt_profiles.py`.** Terrence's call, and it
 >   supersedes the "teach generation to read the `.setup`" idea floated earlier the same day —
 >   which was wrong, because a bench-reading generator **silently weakens a test to fit the
 >   hardware in front of it** (a 3-switch test generated against a 2-switch bench goes green,
@@ -337,7 +337,7 @@
 >     asserts the spec table and `PROFILES` list identical names; mutation-verified by adding a
 >     profile to the code only, which fails the gate.
 >
-> - 🔌 **2026-07-30 — the run-time MEDIA assertion, `tool/pt_media.py` (31 tests).** Closes the
+> - 🔌 **2026-07-30 — the run-time MEDIA assertion, `ask-ck/tools/pt_media.py` (31 tests).** Closes the
 >   half of the media problem no offline checker can reach. A generated script reads
 >   `show interface <port> status` for the port it just bound, and `assert_role_media(out,
 >   port, 'copper')` returns a verdict whose message **names the bench as the cause, not the
@@ -374,7 +374,7 @@
 >     safe rather than a guess: a wrong role cannot produce a wrong verdict, because the
 >     assertion stops the run and blames the bench.
 >   - **Shipped.** `files[MEDIA_HELPER_NAME] = _media_helper_source()` on every run, read from
->     `tool/pt_media.py` so the testbox executes byte-identically what the tests cover. Guarded
+>     `ask-ck/tools/pt_media.py` so the testbox executes byte-identically what the tests cover. Guarded
 >     three ways: source identity, filename-vs-`import` agreement (two strings that could
 >     drift), and the module importing only `re`/`typing` so it stands alone off-repo. A wrong
 >     path raises instead of silently shipping nothing.
@@ -817,9 +817,9 @@ Enforced in code (added 2026-07-21):
   refused. Read-only references pass: `test -d <fw>`, `PYTHONPATH=<fw>`, copying/
   symlinking FROM the framework, and `ln -s <fw> framework` (pointing a workdir
   symlink AT it — the current run path).
-- `tool/guard_framework_readonly.py` — runnable check (15 cases) proving the guards
+- `ask-ck/tools/guard_framework_readonly.py` — runnable check (15 cases) proving the guards
   block every framework mutation and allow the legit read/copy/run path. Run it
-  alongside `tool/guard_db_only.py` before committing execution-path changes.
+  alongside `ask-ck/tools/guard_db_only.py` before committing execution-path changes.
 
 ## 7. Session log — 2026-07-22 — §1.5 build + Part 2B run: bugs found, fixed, decisions
 
@@ -1271,7 +1271,7 @@ link bounce, **not** a real cable/SFP removal. Physical steps are meant to promp
 for a state change. The script was left exactly as generated so the judging surfaces this
 rather than hiding it behind a manual fix.
 
-### 10.4 The grader — `tool/pt_grade.py`
+### 10.4 The grader — `ask-ck/tools/pt_grade.py`
 
 Reads the generated script + confirmed step2/step5 state straight from `ck.db` and emits a
 per-case report. **It imports the server's own `_step_kind` / `_fragment_tag` /
@@ -1443,14 +1443,14 @@ visible in the diff between families. It IS recoverable from the ART corpus, whi
 
 ### 11.3 What was built
 
-- **`tool/harvest_cli_docs.py`** — renewable harvest into `ck.db` (`cli_commands` +
+- **`ask-ck/tools/harvest_cli_docs.py`** — renewable harvest into `ck.db` (`cli_commands` +
   `cli_command_products` + FTS). Full run: **73,006 fetches, 58.6 min, 0 failures**,
   4,652 unique commands (993 with sample output), 61,240 product×command rows.
-- **`tool/cli_lookup.py`** — retrieval + `prompt_block()` for prompt injection, and
+- **`ask-ck/tools/cli_lookup.py`** — retrieval + `prompt_block()` for prompt injection, and
   `detect_commands()` so only commands the case actually references are injected.
 - **Grounding wired into BOTH prompts** — step 2 (`_cli_reference_for_case`, capped at 8
   output lines, 300-800 chars) and step 6 (`_cli_reference_block`, ~1.9k chars).
-- **`tool/pt_compare_runs.py`** — snapshot/compare grading runs across sessions, so
+- **`ask-ck/tools/pt_compare_runs.py`** — snapshot/compare grading runs across sessions, so
   "did this help, did anything regress" is answerable without re-deriving it.
 
 ### 11.4 The fabrication originates at STEP 2, not step 6
@@ -1576,7 +1576,7 @@ and two independent defects kept it out.
 
 1. **`detect_commands()` is purely lexical.** A feature named in PROSE has no path to its
    commands: "EcoMode", "LPI" and "EEE" appear nowhere inside `ecofriendly lpi`. No matcher
-   tuning bridges that, so `FEATURE_ALIASES` (`tool/cli_lookup.py`) maps feature prose →
+   tuning bridges that, so `FEATURE_ALIASES` (`ask-ck/tools/cli_lookup.py`) maps feature prose →
    command tree + the output terms that prove the field. Hand-curated deliberately: a wrong
    alias injects confidently-wrong grounding, which is worse than none.
 2. **Variant selection hid the field under test — the sharp one.** `prompt_block()` preferred

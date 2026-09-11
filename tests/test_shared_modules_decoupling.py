@@ -85,9 +85,9 @@ def test_the_shared_leaves_never_import_a_router(rel):
 
 @pytest.mark.parametrize("rel", _LEAVES)
 def test_the_shared_leaves_are_importable_without_fastapi_routing(rel):
-    """They must be usable by tool/ scripts and tests with no app in play — which is the
+    """They must be usable by ask-ck/tools/ scripts and tests with no app in play — which is the
     property that makes them unit-testable at all. `db.py` already documents this rule
-    for itself ("No FastAPI imports — tool/ scripts import this module directly")."""
+    for itself ("No FastAPI imports — ask-ck/tools/ scripts import this module directly")."""
     offenders = [f"{mod or name}" for mod, name in _imports(_SERVER / rel)
                  if (mod or name).split(".")[0] in ("fastapi", "starlette")]
     assert not offenders, f"{rel} pulls in the web framework: {offenders}"

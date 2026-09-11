@@ -17,9 +17,9 @@ get rediscovered.
 1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Read it `mode=ro`. Never
    patch a corpus script inside it — extract, verify against `scripts.sha1`, write a staging
    copy with a `.orig` beside it, patch the copy. Your tests and smoke checks must not write
-   it; use `tool/run_scratch_server.sh`. Real user traffic *should* dirty it.
+   it; use `ask-ck/tools/run_scratch_server.sh`. Real user traffic *should* dirty it.
 2. **`/home/st-art/framework` is read-only.** Never write, edit, `cp`, `rsync` or redirect into
-   it. Copy anything you must change into the run workdir first. `tool/guard_framework_readonly.py`
+   it. Copy anything you must change into the run workdir first. `ask-ck/tools/guard_framework_readonly.py`
    enforces this and is in the gate.
 3. **The working tree IS production.** `ask-ck.service` runs uvicorn `--reload` against this
    checkout, so **any save to a `.py` under `ask-ck/CK-main/` hot-reloads the LAN server within
@@ -29,7 +29,7 @@ get rediscovered.
    bench file — it binds roles from the `.setup` at runtime (`init_swi('swi_a')`,
    `init_portlink(...)`). Generation targets a **profile** (a contract), never a bench. Letting
    a bench shape a test silently weakens it, and a false green is unfalsifiable from outside.
-5. **Run `./tool/run_tests.sh` before and after any repo change.** Both guards + backend pytest
+5. **Run `./ask-ck/tools/run_tests.sh` before and after any repo change.** Both guards + backend pytest
    + frontend vitest. Playwright E2E is deliberately not in it.
 
 ## Job 1 — author a `.setup`
@@ -64,7 +64,7 @@ produces nothing `ck.db` knows about. Design docs: `ask-ck/plans/PLAN-pytest-cre
 and `TOPOLOGY-PROFILES.md` — read the status header before changing that subsystem.
 
 Server of record is the LAN host `http://10.33.22.17:8000/`; use
-`tool/run_scratch_server.sh` for anything exploratory. API prefix `/api/pytest-create`.
+`ask-ck/tools/run_scratch_server.sh` for anything exploratory. API prefix `/api/pytest-create`.
 
 ```
 load_case/{key}                                                    (no confirm — 1 isn't a gate)
@@ -102,7 +102,7 @@ needs 2 **and** 5, execution needs 6.
 **Before spending any hardware time**, run the offline check:
 
 ```bash
-python3 tool/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current --script <generated>.py
+python3 ask-ck/tools/pt_preflight.py --setup ~/claude/IE520-testing/bench-setup/tb470.setup.current --script <generated>.py
 ```
 
 This exists because `Setup.init_portlink()` returns **`(None, None)` silently** when the bench
@@ -181,7 +181,7 @@ loops, CLI grounding) runs fine on a box with zero `tb-` portlinks; a data-plane
 
 ## CLI grounding
 
-`python3 tool/cli_lookup.py "show interface"` (also `--product x930`, `--search`,
+`python3 ask-ck/tools/cli_lookup.py "show interface"` (also `--product x930`, `--search`,
 `--prompt-block`, `--stats`) reads AlliedWare Plus syntax and **real sample output** from
 `ck.db`. Use it rather than recalling syntax: every model in the matrix — Opus included —
 invented a `speed=1000`/`state=up` output schema the switch never prints; the real string is

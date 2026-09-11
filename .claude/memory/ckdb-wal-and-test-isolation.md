@@ -1,6 +1,6 @@
 ---
 name: ckdb-wal-and-test-isolation
-description: ck.db is WAL-mode so md5/mtime of the main file CANNOT detect writes — use tool/ckdb_signature.py; tests must not dirty it (tool/run_scratch_server.sh); ONE SQLite library per server process and no read-write outside opens while it runs (2026-09-10)
+description: ck.db is WAL-mode so md5/mtime of the main file CANNOT detect writes — use ask-ck/tools/ckdb_signature.py; tests must not dirty it (ask-ck/tools/run_scratch_server.sh); ONE SQLite library per server process and no read-write outside opens while it runs (2026-09-10)
 metadata: 
   node_type: memory
   type: project
@@ -24,7 +24,7 @@ metadata:
 can leave the main file's bytes AND mtime untouched for a long time. So:
 
 **`md5sum ask-ck/var/ck.db` cannot detect a write. Neither can `stat -c %Y`.** Use
-`tool/ckdb_signature.py` (added 2026-07-28) — it asks SQLite, which reads main+WAL
+`ask-ck/tools/ckdb_signature.py` (added 2026-07-28) — it asks SQLite, which reads main+WAL
 together. Default mode is ~0.4s and covers schema + a full row hash of `sessions`, the only
 table the running app writes. `--tables` adds row counts (~15s, NFS-bound); `--full` adds
 per-table content hashes.
@@ -41,7 +41,7 @@ connection per thread and resolves the path only on first use, so the first conn
 opened wins. Two levels: a pristine snapshot cached in `/tmp/ck-test-db/` keyed on the real
 file's `(size, mtime_ns)` and built with `Connection.backup()` (4.8s, only when ck.db
 changes), then a plain `cp` per run (~0.3s, safe because backup() emits a single
-checkpointed file with no -wal). `./tool/run_tests.sh` now fails if the signature changes.
+checkpointed file with no -wal). `./ask-ck/tools/run_tests.sh` now fails if the signature changes.
 Escape hatches: `CK_TEST_USE_REAL_DB=1`, or set `CK_DB_PATH` yourself.
 Side effect: the suite got ~2-3x faster (12-19s → ~6s) because the corpus is now read from
 local ext4 instead of over NFS.
@@ -62,7 +62,7 @@ monkeypatching stdlib `sqlite3` alone does not affect db.py at all. My first ver
 layer 1 did exactly that and would have been a safeguard that looked right and did nothing.
 
 **The same two-library fact caused the 2026-09-03/09/10 corruptions (found 2026-09-10).**
-`tool/cli_lookup.py` ran inside the server with the *stdlib* sqlite3 while db.py used pysqlite3;
+`ask-ck/tools/cli_lookup.py` ran inside the server with the *stdlib* sqlite3 while db.py used pysqlite3;
 each stdlib close issued a POSIX unlock that stripped the server's locks on ck.db + ck.db-shm, so
 an outside read-write open could delete the WAL under it and concurrent writers could corrupt it.
 Fixed (cli_lookup binds db.py's preference; guard `tests/test_sqlite_single_library.py`). Rules:
@@ -79,18 +79,18 @@ problem — do not "fix" it by making real case loads stop persisting. What matt
 SOURCE of the write. Two paths ran outside conftest's isolation and wrote the real DB:
 Playwright (`webServer: './run.sh --bg'` + `reuseExistingServer: true` → attaches to the
 dev server on :8000) and my own curl smoke checks. Both now use
-**`tool/run_scratch_server.sh`** (CK_DB_PATH → a `backup()` copy, PORT 8123, CK_RUN_TAG for
+**`ask-ck/tools/run_scratch_server.sh`** (CK_DB_PATH → a `backup()` copy, PORT 8123, CK_RUN_TAG for
 its own pid/log). **Use it for anything that drives the app as a test would.**
 `/health` reports `db.db_path` + `db.is_permanent_db` so you can tell which DB a server is
 on. Guarded by `tests/test_test_traffic_never_writes_the_real_db.py`.
 
 If test rows do land in ck.db: stop the server, `rm ck.db-wal ck.db-shm` **before**
 `git checkout -- ask-ck/var/ck.db` (a stale WAL must not replay onto the restored file),
-then verify with `tool/ckdb_signature.py`. Do not "just delete the WAL" — while
+then verify with `ask-ck/tools/ckdb_signature.py`. Do not "just delete the WAL" — while
 un-checkpointed it holds the NEWEST commits, not stale leftovers.
 
 **How to apply:** never assert "ck.db untouched" from a file hash or mtime — use
-`tool/ckdb_signature.py`. Never write a test that names a real session id; the incident test
+`ask-ck/tools/ckdb_signature.py`. Never write a test that names a real session id; the incident test
 picked `sorted(real_ids)[0]` and called `_clear_persisted` on it, reasoning isolation made
 it safe. A test whose failure mode is destroying the source of truth is wrong at any
 confidence level. When testing a safeguard, write the test as the **incident path** (break

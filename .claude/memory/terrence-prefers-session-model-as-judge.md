@@ -8,7 +8,7 @@ metadata:
 
 When a task needs a quality verdict on generated output (whole-script vs per-unit, one model's
 units vs another's), **be the judge yourself, in-context** — read the artifacts and grade them.
-Do not fire batch judge calls to Opus or the vLLM (the `tool/pt_matrix_judge.py` that did so was deleted 2026-09-11).
+Do not fire batch judge calls to Opus or the vLLM (the `ask-ck/tools/pt_matrix_judge.py` that did so was deleted 2026-09-11).
 
 **Why:** Terrence, 2026-09-04, when I proposed the matrix judge for the token-efficiency
 investigation: *"Re: judging - I'd rather you be the solo-judge, as you are the most competent

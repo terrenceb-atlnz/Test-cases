@@ -114,24 +114,24 @@ guards in the test gate.
 
 1. **`ask-ck/var/ck.db` is the permanent single source of truth.** Built **once**, shipped via
    Git LFS, **not** gitignored, **not** rebuildable. A fresh clone gets a complete, populated,
-   semantically-searchable database with no build step. `tool/build_db.py` is kept only as
+   semantically-searchable database with no build step. `ask-ck/tools/build_db.py` is kept only as
    provenance and refuses to run.
 2. **The server reads corpora only from `ck.db`** — zero runtime JSON. Guard:
-   `tool/guard_db_only.py`.
+   `ask-ck/tools/guard_db_only.py`.
 3. **`/home/st-art/framework` is read-only.** Never write, edit or redirect into it; copy to a
-   local staging path instead. Guard: `tool/guard_framework_readonly.py`.
+   local staging path instead. Guard: `ask-ck/tools/guard_framework_readonly.py`.
 4. **The org vLLM is the one live external dependency, and it is core function** — not an
    inter-dependency to remove. Its models are *reasoning* models. The embedding model is
    bundled and loads fully offline.
 
 Tests, smoke checks and E2E must **not** write the permanent `ck.db` — use
-`tool/run_scratch_server.sh`. `md5`/`mtime` cannot detect a write to it (WAL);
+`ask-ck/tools/run_scratch_server.sh`. `md5`/`mtime` cannot detect a write to it (WAL);
 `tests/test_db_isolation.py` is the authority. Real user traffic *should* dirty it.
 
 ## The gate
 
 ```bash
-./tool/run_tests.sh     # both guards + backend pytest + frontend Vitest
+./ask-ck/tools/run_tests.sh     # both guards + backend pytest + frontend Vitest
 ```
 
 Run it before and after a change. Three layers: **backend** (`tests/`, in-process — no mocks,
@@ -179,7 +179,7 @@ refined one over six gated steps: *Cases* → *TestLink* → *Zephyr* → *ATPyL
 2–4 use a two-table "chosen shortlist": search/suggest results land in the top candidates
 table, and **Confirm reads only the bottom chosen table**. A seventh action pushes the
 exported bundle to the live Zephyr case (dry-run Preview first; ensures version 2.0; shells
-out to `tool/upload_refined.py` so the server never holds the JIRA token).
+out to `ask-ck/tools/upload_refined.py` so the server never holds the JIRA token).
 
 **PyTest Creator** — turns a Complete case into a runnable `framework` (ATTestSet /
 ATTestCase) script over seven gated steps: *Cases* → *Sequence* (LLM extracts automatable
@@ -209,7 +209,7 @@ Test-cases/
 │   ├── pytest-create/              # PyTest Creator: plans, specs, generated/<Group>/<Name>.py
 │   ├── plans/                # Subsystem plans (PLAN-*.md)
 │   └── var/ck.db                   # THE permanent database (Git LFS)
-└── tool/                           # Guards, the test gate, upload_refined.py, checkers
+└── ask-ck/tools/                           # Guards, the test gate, upload_refined.py, checkers
 ```
 
 ## Documentation map

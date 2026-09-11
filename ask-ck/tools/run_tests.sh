@@ -5,12 +5,12 @@
 #   3. frontend unit tests (Vitest + jsdom — no browser/server/LLM)
 # The Playwright E2E is NOT part of this gate — it is sparingly-run (npm run e2e).
 #
-#   ./tool/run_tests.sh
+#   ./ask-ck/tools/run_tests.sh
 #
 # Exit 0 = everything green. Non-zero = a guard or test failed.
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # ask-ck/tools/ -> repo root
 cd "$REPO_ROOT"
 
 # Everything runs as `"$PY" -m <tool>`, never as a .venv/bin/ console script. A venv is
@@ -27,8 +27,8 @@ if [[ ! -x "$PY" ]]; then
 fi
 
 echo "== invariant guards =="
-"$PY" tool/guard_db_only.py
-"$PY" tool/guard_framework_readonly.py
+"$PY" ask-ck/tools/guard_db_only.py
+"$PY" ask-ck/tools/guard_framework_readonly.py
 
 # ck.db must be untouched by the gate. tests/conftest.py copies it to a temp file and
 # points CK_DB_PATH there, so nothing here should ever write the real one — this is the
@@ -42,7 +42,7 @@ echo "== invariant guards =="
 _CKDB_SIG_BEFORE="$(mktemp)"
 _CKDB_SIG_AFTER="$(mktemp)"
 trap 'rm -f "$_CKDB_SIG_BEFORE" "$_CKDB_SIG_AFTER"' EXIT
-PYTHONNOUSERSITE=1 "$PY" tool/ckdb_signature.py > "$_CKDB_SIG_BEFORE"
+PYTHONNOUSERSITE=1 "$PY" ask-ck/tools/ckdb_signature.py > "$_CKDB_SIG_BEFORE"
 
 echo
 echo "== pytest =="
@@ -68,7 +68,7 @@ fi
 
 echo
 echo "== ck.db untouched =="
-PYTHONNOUSERSITE=1 "$PY" tool/ckdb_signature.py > "$_CKDB_SIG_AFTER"
+PYTHONNOUSERSITE=1 "$PY" ask-ck/tools/ckdb_signature.py > "$_CKDB_SIG_AFTER"
 if ! diff -u "$_CKDB_SIG_BEFORE" "$_CKDB_SIG_AFTER"; then
   echo >&2
   echo "ERROR: the test run CHANGED ask-ck/var/ck.db — the permanent source of truth." >&2

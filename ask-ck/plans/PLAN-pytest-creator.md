@@ -14,9 +14,9 @@
 > truth). The running PyTest Creator reads only the DB via `db.py` (`db.search_scripts`,
 > `db.search_code`, `db.get_json_doc("framework_surface")`). Rebuild instructions below are historical.
 >
-> **Tooling note (2026-09-11)**: the LLM enrichment pass (`tool/enrich_script_index.py`), the Part 2B / 3a
-> harnesses (`tool/pt_model_matrix.py`, `tool/pt_judge.py`, `tool/pt_matrix_judge.py`) and the headless batch
-> driver (`tool/pt_autopilot.py`) were **retired** as creation-time tooling — every LLM call now starts in a
+> **Tooling note (2026-09-11)**: the LLM enrichment pass (`ask-ck/tools/enrich_script_index.py`), the Part 2B / 3a
+> harnesses (`ask-ck/tools/pt_model_matrix.py`, `ask-ck/tools/pt_judge.py`, `ask-ck/tools/pt_matrix_judge.py`) and the headless batch
+> driver (`ask-ck/tools/pt_autopilot.py`) were **retired** as creation-time tooling — every LLM call now starts in a
 > browser and runs on the org vLLM or the user's own Claude seat. See
 > `plans/PLAN-seat-setup-and-per-seat-llm.md` §11. Their result directories stay as records.
 >
@@ -24,7 +24,7 @@
 > into the skeleton as a `# ==== OBJECTIVE ====` header (rides into both the emitted `.py` and the
 > Generate prompt via the embedded skeleton), and generate-prompt rule 1a grounds each verdict in
 > the objective slice its step covers. Validated by a 5-model matrix + opus/vllm-fast judging
-> (`tool/pt_matrix_judge.py`): T33233/T33235 → "good". The next generation bottleneck is
+> (`ask-ck/tools/pt_matrix_judge.py`): T33233/T33235 → "good". The next generation bottleneck is
 > **sequence-step `kind` misclassification** (T33234), tracked in
 > `plans/PLAN-permutation-expander.md`.
 >
@@ -92,11 +92,11 @@
 
 - [x] **Phase 0 — Plan tracker:** this file saved to `ask-ck/functions/pytest-creator/` (2026-07-14)
 - [x] **Phase A — Index** (no hardware/UI) — DONE 2026-07-14
-  - [x] `tool/build_script_index.py` mechanical AST pass over the 3 script roots (999 files: art 188 tests + 51 libs, svt 77 files, legacy 683 files; 120 py2-vintage regex fallbacks)
+  - [x] `ask-ck/tools/build_script_index.py` mechanical AST pass over the 3 script roots (999 files: art 188 tests + 51 libs, svt 77 files, legacy 683 files; 120 py2-vintage regex fallbacks)
   - [x] `--framework` pass → `framework_surface.json` (55 modules from `DeviceSkrips/framework`)
   - [x] `paths.py` / `data.py` loading + real `GET /api/pytest-create/status`
   - [x] Verified counts + `loc` slicing via `GET /script_source` (test-1332.1001 record checked incl. `+=` method accumulation)
-  - [x] LLM enrichment pass (`tool/enrich_script_index.py`, resumable via sha1 jsonl; `--mechanical-only` flag on the builder) — **script ready; enrichment itself not yet run (needs CLI login); index works unenriched**
+  - [x] LLM enrichment pass (`ask-ck/tools/enrich_script_index.py`, resumable via sha1 jsonl; `--mechanical-only` flag on the builder) — **script ready; enrichment itself not yet run (needs CLI login); index works unenriched**
 - [x] **Phase B — Steps 1–6** (no hardware) — DONE 2026-07-14
   - [x] `PtSession` model + `sessions/pt-{key}.json` persistence + confirm gates (+ downstream invalidation)
   - [x] Step 2: sequence extraction (`pt_extract_sequence.jinja`) + save/edit
@@ -119,7 +119,7 @@
   - [x] SERVER-README update (PyTest Creator section)
 
 ### Remaining / next session
-1. Run the enrichment pass with a logged-in CLI: `tool/enrich_script_index.py --limit 100` (repeat to taste), then `tool/build_script_index.py` to merge.
+1. Run the enrichment pass with a logged-in CLI: `ask-ck/tools/enrich_script_index.py --limit 100` (repeat to taste), then `ask-ck/tools/build_script_index.py` to merge.
 2. First full walkthrough of steps 2–6 with a real LLM on `AWPTCM-T33234` (Port — Auto MDI/MDI-X; the mechanical search already surfaces `legacy/5000_mdi_mdix/*` as top hits).
 3. Add a real testbox in the Testboxes panel, `Check Connection`, and shake out the SSH run path end-to-end.
 4. Consider `.gitignore`/LFS treatment for `ask-ck/functions/pytest-creator/data/` (~2.6 MB regenerable index files) — currently untracked.
@@ -209,7 +209,7 @@
 - **2026-07-15** — Enrichment fully completed (830/830 scripts, 100%) across 3 resumed background runs; found and excluded a nested vendored SQLAlchemy copy (235 files) inside `legacy/tools/memory_leak_tools/` that the LLM correctly refused to tag with networking vocabulary. Verified fix: MDI/MDIX mechanical matching now returns art 13 / svt 11 / legacy 25 (was 0/0/10). Also fixed step-3 UI: per-database result sections, scrollable lists, no horizontal overflow (generalized `.table` overflow guard), and reworked the search/guidance layout (keyword box vs LLM-suggestion box). Confirmed all three DBs are swept by the mechanical scorer — the original zero results for art/svt were purely a 0%-enrichment + numeric-dir-naming issue, not a sweep bug.
 - **2026-07-14** — Plan approved; tracker created.
 - **2026-07-14** — Full implementation landed in one session:
-  - `tool/build_script_index.py` + `tool/enrich_script_index.py` (index: 999 files, 55 framework modules).
+  - `ask-ck/tools/build_script_index.py` + `ask-ck/tools/enrich_script_index.py` (index: 999 files, 55 framework modules).
   - `CK_server`: `paths.py`/`data.py` index loading; `models.py` `PtSession`; `llm.py` gained `timeout` threading + generic `run_prompt`/`extract_json_block`; `pt_exec.py` (profiles/secrets, log parser, SSH runner); `routers/pytest_create.py` full rewrite (status, load_case/session/clear, confirm gates 2–8, extract/save sequence, search/suggest/save matches, script_source, assess/save fit, gather/save fragments, generate/save/lint script, profiles CRUD+check, run + run_status, fix_script, validate).
   - 7 prompt templates (`pt_*.jinja`, `enrich_script_index.jinja`).
   - Frontend: PyTest Creator sidebar expanded to 8 steps + Testboxes; panels with confirm gates + ✓ badges (`data-pt-step`, separate from the Generator's `data-step`).
@@ -236,7 +236,7 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
   `db._relevance_score`**, NOT the wizard — its private `_score_zephyr_candidate` was deleted
   in `4578030` (see *Matching/scoring* below). LLM CLI invocation in `llm.py` (`render_prompt`,
   `_call_llm_with_meta`; hardcoded 180s subprocess timeouts). Secrets convention: `.gitignore`
-  ignores `secrets.*`; loader precedent `tool/upload_refined.py::_find_secrets_file()`.
+  ignores `secrets.*`; loader precedent `ask-ck/tools/upload_refined.py::_find_secrets_file()`.
   paramiko 2.9.3 is installed.
   > ⚠ **CORRECTED 2026-08-03:** that sentence was a fact about ONE machine, not a declaration —
   > `paramiko` was in **no requirements file**, so on any fresh venv the whole "6. Run" step was
@@ -259,7 +259,7 @@ Ask CK (`copilot/Test-cases/ask-ck/CK-main/CK_server/`) is a self-hosted FastAPI
 
 ## 1. Indexer pipeline — new `Test-cases/tool/build_script_index.py`
 
-Standalone script following `tool/` conventions (`#!/usr/bin/env python3`, argv output path).
+Standalone script following `ask-ck/tools/` conventions (`#!/usr/bin/env python3`, argv output path).
 
 **Sources/excludes:**
 ```python

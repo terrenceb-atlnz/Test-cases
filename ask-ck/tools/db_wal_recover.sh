@@ -44,17 +44,17 @@
 #     normal service config is re-armed, the server is left STOPPED, and we exit non-zero.
 #
 # ── Usage ────────────────────────────────────────────────────────────────────────────
-#   tool/db_wal_recover.sh                       # real service + real DB (defaults below)
+#   ask-ck/tools/db_wal_recover.sh                       # real service + real DB (defaults below)
 #   CK_RECOVER_SERVICE=ask-ck-scratchrec.service \
 #     CK_RECOVER_DB=/tmp/.../rehearse/var/ck.db \
-#     tool/db_wal_recover.sh                     # rehearsal against a throwaway unit
+#     ask-ck/tools/db_wal_recover.sh                     # rehearsal against a throwaway unit
 #
 # The SAME script is used to rehearse on a scratch systemd unit and to run for real; only
-# the two env vars change. Rehearse first (see the runbook: tool/DB-WAL-RECOVERY.md).
+# the two env vars change. Rehearse first (see the runbook: ask-ck/tools/DB-WAL-RECOVERY.md).
 #
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # ask-ck/tools/ -> repo root
 
 SERVICE="${CK_RECOVER_SERVICE:-ask-ck.service}"
 DB="${CK_RECOVER_DB:-$ROOT/ask-ck/var/ck.db}"

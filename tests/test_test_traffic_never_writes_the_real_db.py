@@ -17,7 +17,7 @@ paths ran outside it and wrote the real database for real:
     that created a session row for AWPTCM-T45102 and bumped two more stamps; they had to be
     discarded by restoring ck.db from git.
 
-Both now go through `tool/run_scratch_server.sh`, which points CK_DB_PATH at a
+Both now go through `ask-ck/tools/run_scratch_server.sh`, which points CK_DB_PATH at a
 WAL-consistent copy. These tests guard that wiring, because it lives in config and shell —
 neither of which any other test reads, and a silent revert to port 8000 + reuse would look
 exactly like a working E2E suite.
@@ -33,8 +33,8 @@ from _prose import code_lines
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _PW_CONFIG = _ROOT / "playwright.config.js"
-_SCRATCH_SH = _ROOT / "tool" / "run_scratch_server.sh"
-_SCRATCH_PY = _ROOT / "tool" / "ckdb_scratch.py"
+_SCRATCH_SH = _ROOT / "ask-ck" / "tools" / "run_scratch_server.sh"
+_SCRATCH_PY = _ROOT / "ask-ck" / "tools" / "ckdb_scratch.py"
 _REAL_DB = _ROOT / "ask-ck" / "var" / "ck.db"
 
 
@@ -43,7 +43,7 @@ _REAL_DB = _ROOT / "ask-ck" / "var" / "ck.db"
 def test_e2e_launches_the_scratch_server_not_the_real_one():
     src = _PW_CONFIG.read_text(encoding="utf-8")
     assert "run_scratch_server.sh" in src, (
-        "playwright.config.js no longer starts tool/run_scratch_server.sh, so E2E drives a "
+        "playwright.config.js no longer starts ask-ck/tools/run_scratch_server.sh, so E2E drives a "
         "server on the PERMANENT ck.db and every run writes session rows into it")
     assert "'./run.sh --bg'" not in src, "webServer is back to the real-database launcher"
 
@@ -113,7 +113,7 @@ def test_the_scratch_copy_is_wal_consistent_and_not_the_real_file():
 def test_the_scratch_cache_key_sees_a_wal_write(tmp_path):
     """Same blind spot as tests/conftest.py had: a committed write can leave the main
     file's size AND mtime untouched, because it is sitting in ck.db-wal."""
-    sys.path.insert(0, str(_ROOT / "tool"))
+    sys.path.insert(0, str(_ROOT / "ask-ck" / "tools"))
     try:
         import ckdb_scratch
     finally:

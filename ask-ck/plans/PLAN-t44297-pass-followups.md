@@ -29,14 +29,14 @@ loose review taxonomy (#4), and three UI gaps that made the state of the run har
 
 ## #5 — ⚠ DATA-SAFETY: ck.db WAL deleted/corrupted under the live server — ROOT-CAUSED AND FIXED 2026-09-10
 
-**Status: FIXED.** `tool/cli_lookup.py` + `tests/test_sqlite_single_library.py` (+ fixture fix in
+**Status: FIXED.** `ask-ck/tools/cli_lookup.py` + `tests/test_sqlite_single_library.py` (+ fixture fix in
 `tests/test_cli_grounding_phase4.py`); gate green; live server reloaded 2026-09-10 08:55 and
 verified holding its locks on `ck.db`/`ck.db-shm` in `/proc/locks` afterwards. **The 2026-09-09
 diagnosis ("WAL mode is unsafe on NFS") is retracted** — NFS only supplied the `.nfs*`-orphan
 signature; the same bug corrupts on local disk. Options A/B/C below are re-assessed accordingly.
 
 **Root cause — two SQLite libraries in one process.** `db.py` binds `pysqlite3` (SQLite 3.51,
-for `sqlite-vec`). `tool/cli_lookup.py`, imported by `routers/pytest_create.py` while rendering
+for `sqlite-vec`). `ask-ck/tools/cli_lookup.py`, imported by `routers/pytest_create.py` while rendering
 every unit prompt, opened `ck.db` through the **stdlib** `sqlite3` (SQLite 3.37) — read-only, a
 fresh connection per call across a dozen call sites, closed by garbage collection. POSIX advisory
 locks belong to the *process*, not the descriptor, and each library keeps its own per-inode lock
@@ -73,7 +73,7 @@ from the transcripts, and does not change the fix.
 sqlite3` exactly as `db.py`, and resolves `CK_DB_PATH` like `db._resolve_db_path()` (so the test
 copy and the scratch server are honoured). Guard `tests/test_sqlite_single_library.py`: identity
 (`cli_lookup.sqlite3 is db.sqlite3`); a static scan of every module that runs inside the server
-process (CK_server + the `tool/` modules it imports) for stdlib `sqlite3` imports outside the
+process (CK_server + the `ask-ck/tools/` modules it imports) for stdlib `sqlite3` imports outside the
 preference block; the incident path on a tmp WAL db observed through `/proc/locks`; and a
 **negative control** that proves the check sees the bug (with pysqlite3 installed, a stdlib
 connection closing *does* strip the holder's locks). Tests that hand `cli_lookup` a connection
@@ -236,7 +236,7 @@ and its **G7 UI lands with #1–#3** (its D6). Decisions D1–D6 live in that fi
 5. **#7** — per its own plan's order (G1+G5 → G4 → G2+G6 → G3+G7), interleaved with the above
    where it shares code.
 
-**Gate after every step** (`./tool/run_tests.sh`: both guards, pytest, vitest, ck.db-untouched).
+**Gate after every step** (`./ask-ck/tools/run_tests.sh`: both guards, pytest, vitest, ck.db-untouched).
 Tests never write the permanent `ck.db`. This tree is shared — re-check `git status` and stage
 explicit paths. **No push** (Terrence pushes).
 

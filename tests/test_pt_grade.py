@@ -1,4 +1,4 @@
-"""Regression tests for the Part 3a mechanical grader (`tool/pt_grade.py`).
+"""Regression tests for the Part 3a mechanical grader (`ask-ck/tools/pt_grade.py`).
 
 The grader turns PLAN-pytest-testing.md §3 criteria 1-3 + the offline half of 6 into a
 mechanical verdict, so a wrong grade silently corrupts the judging record. These pin the
@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 pt_grade = pytest.importorskip("pt_grade")
 
@@ -287,7 +287,7 @@ def test_fragment_mapped_to_setup_step_is_not_attributed_to_a_testcase():
     """
     import sys, pathlib
     repo = pathlib.Path(__file__).resolve().parents[1]
-    for p in (repo / "tool",):
+    for p in (repo / "ask-ck" / "tools",):
         if str(p) not in sys.path:
             sys.path.insert(0, str(p))
 
@@ -316,7 +316,7 @@ def test_grader_reports_skipped_setup_mappings():
     """Silently dropping them is what the old fallback effectively hid — the skip must be
     stated, or a reader cannot tell 'no fragment' from 'fragment not gradeable here'."""
     import pathlib
-    src = (pathlib.Path(__file__).resolve().parents[1] / "tool" / "pt_grade.py").read_text()
+    src = (pathlib.Path(__file__).resolve().parents[1] / "ask-ck" / "tools" / "pt_grade.py").read_text()
     assert "setup_mapped" in src, "the skipped mappings are not tracked"
     assert "setup_mapped_note" in src, "the skip is not reported"
     assert "orig_to_class.get(orig_n, orig_n)" not in src, (

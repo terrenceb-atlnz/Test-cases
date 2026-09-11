@@ -10,7 +10,7 @@ through `routers.wizard` until commit 8 (PLAN-backend-module-split.md):
 
 "Complete" is defined by the filesystem, not the database: a case is Complete once
 `refined-cases/<Group>/AWPTCM-Txxxx/zephyr_payload.json` exists. That artefact is the
-drop-in bundle the Generator exports and `tool/upload_refined.py` pushes to Zephyr, and
+drop-in bundle the Generator exports and `ask-ck/tools/upload_refined.py` pushes to Zephyr, and
 `guard_db_only.py` explicitly allows reading it — it is the one on-disk runtime read the
 DB-only invariant permits.
 

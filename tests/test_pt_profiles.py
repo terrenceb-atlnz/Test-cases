@@ -1,4 +1,4 @@
-"""Regression tests for the topology-profile contract (`tool/pt_profiles.py`).
+"""Regression tests for the topology-profile contract (`ask-ck/tools/pt_profiles.py`).
 
 A profile check exists to answer "does this bench implement what generated tests target".
 Its dangerous failure mode is being a rubber stamp: a checker that returned `conformant` for
@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "tool"))
+sys.path.insert(0, str(REPO / "ask-ck" / "tools"))
 
 from _prose import flat  # noqa: E402  (repo helper: whitespace-collapsed prose matching)
 

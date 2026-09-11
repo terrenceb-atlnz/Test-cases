@@ -206,7 +206,7 @@ Higher-level cross-references: root [`README.md`](../../../README.md) (framing, 
 **Context**: The tool was renamed **Ask CK** and generalized from single-use to a multi-tool workbench. The user restructured the repo mid-session (`drafting-tool/` → `ask-ck/CK-main/` with `drafting_server/` → `CK_server/`; root `data/` + `refined-cases/` + process docs → `ask-ck/functions/generator/`; per-tool dirs `pytest-create/`, `test-composer/`, `zephyr-tool/` pre-staged). See `archive/plans/PLAN-facelift.md` for the executed plan.
 
 **Restructure / repathing**:
-- Moving a served app breaks silently in three kinds of places: CWD-relative data loads (`BASE = "."` in data.py), `__file__`-relative escapes (`BASE_DIR.parent.parent / "refined-cases"` in wizard.py, `../../../OBJECTIVE_DRAFTING_PROCESS.md` in main.py), and launcher scripts (run.sh `PYTHONPATH`/module target).
+- Moving a served app breaks silently in three kinds of places: CWD-relative data loads (`BASE = "."` in data.py), `__file__`-relative escapes (`BASE_DIR.parent.parent / "refined-cases"` in wizard.py, `OBJECTIVE_DRAFTING_PROCESS.md` in main.py), and launcher scripts (run.sh `PYTHONPATH`/module target).
 - Lesson: centralize filesystem anchors in one module (`CK_server/paths.py`) derived from `__file__`, so future moves are a one-file fix and the working directory never matters.
 - Lesson: when directories move mid-session, re-verify paths with `ls`/`git status` before every phase — two exploration passes in the same session saw two different layouts.
 - Boot-verify with real data counts (410 cases: 368 open / 42 complete) rather than just `/health` — an app can boot "ok" while silently loading zero data.

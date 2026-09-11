@@ -19,7 +19,7 @@
 > | **Phase 11.0** | ✅ **DONE** 2026-08-03c (`f0a94af`). Verified by mutation. **Unproven on hardware.** |
 > | **Phase 11.1, 11.2** (log parsing) | ✅ **DONE** 2026-08-03c (`86c062a`). Real captured fixtures, credentials redacted. |
 > | **Phase 7.8** (generate-prompt contradictions) | ✅ **DONE** — rule 3 2026-08-04 (`9c1a553`), the rest 2026-08-05. Untrimmed device list, on-code FILL markers and the rules 1/8 clash all closed, plus a fourth defect found while fixing them (the stripper's verb allowlist). 20 tests, 12 mutations all caught. |
-> | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `tool/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
+> | **Phase 4** (CLI grounding) | ✅ **DONE 2026-08-04** — all of 4.1–4.6, read-time in `ask-ck/tools/cli_lookup.py` (`ck.db` untouched). Over the 53 refined cases: zero-detection **15 → 10**, commands-but-no-output **19 → 0**, real output/usage **19 → 43**; 5 cases fixed, 0 regressed. Both verification targets pass. 40 tests, 11 mutations all caught. **4.4 deviates** — `tables` cannot replace the speed-forms prose, only one false sentence in it; see `DECISIONS-FOR-REVIEW.md` §13 D-28. |
 > | **Phases 0, 1, 3, 5, 6, 8, 9, 10, 12** | Not started. |
 > | **Phase 11.3 – 11.5** | Not started. 11.4 needs hardware. |
 >
@@ -301,7 +301,7 @@
 
 **What is actually wrong (all verified directly):**
 
-1. **No validation before a live write.** `tool/upload_refined.py` never imports
+1. **No validation before a live write.** `ask-ck/tools/upload_refined.py` never imports
    `validate_zephyr_payload`. It pushes whatever JSON is on disk.
 2. **A silent escape-repair.** [upload_refined.py:76-80] catches a JSON parse failure and
    retries with `raw.replace("\\'", "'").replace("\\ ", " ")`. A malformed bundle is repaired
@@ -459,7 +459,7 @@ missing.** `meta.built_at = 2026-07-20T01:16`, from a `zephyr_cases.jsonl` gener
 **2026-07-15 13:37**. Four extractor fixes never reached the permanent DB:
 
 > **CORRECTION — this plan had the timeline backwards, and the verifier caught it.**
-> An earlier draft said `tool/extract_zephyr_xml.py` was fixed "five hours and forty-seven
+> An earlier draft said `ask-ck/tools/extract_zephyr_xml.py` was fixed "five hours and forty-seven
 > minutes *after* the build", implying a race. It is the opposite. `build_db.py:506` writes
 > `built_at` with `datetime.utcnow()`, so `2026-07-20T01:16:07` is **UTC** = **13:16 local**.
 > The extractor was fixed at **07:03:44 +1200** — **6h12m before** the build. Decisive
@@ -481,7 +481,7 @@ missing.** `meta.built_at = 2026-07-20T01:16`, from a `zephyr_cases.jsonl` gener
 columns are empty in all 45,427 rows.** Two of `zephyr_fts`'s seven indexed columns are dead
 weight reading as live capability.
 
-> **Correction to a widely-held assumption.** The audit checked `tool/guard_db_only.py` directly:
+> **Correction to a widely-held assumption.** The audit checked `ask-ck/tools/guard_db_only.py` directly:
 > it forbids exactly four shapes, **all of them runtime *reads* of retired corpus JSON**. It says
 > nothing about writing or extending `ck.db`. **The permanence invariant does not block a fix
 > here.** The genuine risk is the opposite — there is no migration discipline, so an ad-hoc
@@ -649,8 +649,8 @@ committed); `_coverage_gate_error`; `_parsed_list`; `_step_kind`. The timeout/`m
 invariant **scans only `pytest_create.py`**, so both wizard call sites are structurally exempt.
 
 **Dead entry points still documented as live:** `pt_assess_fit.jinja` (no code reference),
-`tool/build_refined_viewer.py` (both input paths removed), `tool/render_batches.py`
-(`data/candidates.json` deleted). `tool/build_script_index.py` and `enrich_script_index.py`
+`ask-ck/tools/build_refined_viewer.py` (both input paths removed), `ask-ck/tools/render_batches.py`
+(`data/candidates.json` deleted). `ask-ck/tools/build_script_index.py` and `enrich_script_index.py`
 **cannot run on this host** — their source roots do not exist — so every index-level defect above
 is frozen into `ck.db` and must be worked around at read time.
 
@@ -658,11 +658,11 @@ is frozen into `ck.db` and must be worked around at read time.
 
 1. `ck.db` permanent, built once, shipped via LFS. **The guard permits extension; there is no
    migration discipline. Phase 0 creates one.**
-2. Server reads corpora only from `ck.db`. Guard: `tool/guard_db_only.py`.
-3. `/home/st-art/framework` read-only. Guard: `tool/guard_framework_readonly.py`.
+2. Server reads corpora only from `ck.db`. Guard: `ask-ck/tools/guard_db_only.py`.
+3. `/home/st-art/framework` read-only. Guard: `ask-ck/tools/guard_framework_readonly.py`.
 4. The org vLLM is core function; its models are reasoning models.
 
-Gate: `./tool/run_tests.sh` — currently **775 pytest / 92 Vitest, green**.
+Gate: `./ask-ck/tools/run_tests.sh` — currently **775 pytest / 92 Vitest, green**.
 
 ---
 
@@ -970,7 +970,7 @@ and no script ever has.
 > not an audit record. For 41 of the 53 cases we have finished, we cannot say what evidence was
 > consulted, which model wrote it, or whether a human ever looked.
 
-**0.1 — The coverage register** (`tool/ck_coverage.py` + a page in the UI). One row per target
+**0.1 — The coverage register** (`ask-ck/tools/ck_coverage.py` + a page in the UI). One row per target
 case, no exceptions, each carrying:
 
 - **scope**: in-scope / excluded — and for an exclusion, **the reason and who decided**, not a
@@ -1015,7 +1015,7 @@ populated.
 > what the model actually receives. The migration mechanism (0.2) is still built first.
 >
 > **De-risked:** the precedent exists — `cli_commands` was added to the "built once" DB **eight
-> days after the build** by a standalone loader (`tool/load_cli_docs_from_zips.py`). Extending
+> days after the build** by a standalone loader (`ask-ck/tools/load_cli_docs_from_zips.py`). Extending
 > `ck.db` is not unprecedented, and `guard_db_only.py` does not forbid it.
 
 **0.4 — Make the accounting fields trustworthy.** `has_objective` is `1 if obj.strip() else 0`
@@ -1810,7 +1810,7 @@ artefacts; run preflight against `tb470.setup`; replay CLI grounding coverage. T
 hardware-free. This is what stops the next defect being found 25 minutes and dollars into a
 generation.
 
-> **Every piece already exists and is never used together:** `tool/run_scratch_server.sh` (a
+> **Every piece already exists and is never used together:** `ask-ck/tools/run_scratch_server.sh` (a
 > throwaway `ck.db` on port 8123), `tests/conftest.py::_isolate_db`, and the `dry_run` render path.
 > What is missing is **replay** — `dry_run` returns the *prompt*, not an answer, so an end-to-end
 > offline run of the four LLM stages needs recorded fixtures. There is no cassette/VCR machinery
@@ -1862,7 +1862,7 @@ with no router bypassing it, `_pt_persist` raises, and locking Phase 1 shipped. 
   were dropped.
 - The harness **hardcodes `localhost:8000`** with no override, so it can only drive the real
   server and therefore the permanent `ck.db` — it cannot be exercised against
-  `tool/run_scratch_server.sh`.
+  `ask-ck/tools/run_scratch_server.sh`.
 - **Cost control.** $4.65 + $5.24 burned on two agentic-loop failures with `is_error: false`. No
   budget ceiling, duration alarm or spend alert exists. Worse, **a timed-out or killed CLI call
   records no usage and no cost**, so telemetry is systematically biased toward cheap successes —

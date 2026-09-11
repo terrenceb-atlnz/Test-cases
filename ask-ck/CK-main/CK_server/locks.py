@@ -20,7 +20,7 @@ SINGLE-PROCESS ASSUMPTION — READ THIS BEFORE ADDING WORKERS
 -----------------------------------------------------------
 The registry is an in-process dict. It is authoritative ONLY because the server runs as
 ONE process today (`uvicorn CK_server.main:app … --reload`, no `--workers`; the nginx
-example proxies a single upstream). ck.db is immutable by design — `tool/build_db.py`
+example proxies a single upstream). ck.db is immutable by design — `ask-ck/tools/build_db.py`
 refuses to rebuild and there is no migration path — so a durable `case_locks` table was
 deliberately NOT added; that would be the repo's first in-place schema mutation of the
 permanent DB. If the server is ever run multi-worker / multi-process, THIS registry

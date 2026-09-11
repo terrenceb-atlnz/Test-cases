@@ -2,9 +2,9 @@
 Data loading for server-backed drafting tool.
 
 Migrates patterns from:
-- tool/build_drafting_tool.py  (deleted 2026-09-11 — pre-server drafting tool)
-- tool/build_review_html.py    (deleted 2026-09-11)
-- tool/jira_testlink_access.py  (was tool/common.py until 2026-09-11)
+- ask-ck/tools/build_drafting_tool.py  (deleted 2026-09-11 — pre-server drafting tool)
+- ask-ck/tools/build_review_html.py    (deleted 2026-09-11)
+- ask-ck/tools/jira_testlink_access.py  (was ask-ck/tools/common.py until 2026-09-11)
 
 Loads the three databases + indices on server startup.
 """
@@ -52,7 +52,7 @@ def load_all_data() -> Dict[str, Any]:
     script index — now live in ask-ck/var/ck.db and are read on demand via db.*
     (searches) or the _DbMap lazy lookups below (per-id enrichment). This removes
     ~50 MB of boot-time RAM and the per-request zephyr_cases.jsonl scan. Run
-    `python3 tool/build_db.py --fresh` to (re)build the DB from source JSON.
+    `python3 ask-ck/tools/build_db.py --fresh` to (re)build the DB from source JSON.
     """
     print("  Loading lightweight references (corpora served from ck.db)...")
     data = {}
@@ -60,7 +60,7 @@ def load_all_data() -> Dict[str, Any]:
     # Small references kept in RAM (heavily joined; ~3 MB total). Strict DB-only:
     # these come from ck.db, NOT from the source JSON — the DB is the single
     # runtime source of truth (PLAN-db-only-search Phase 1). Rebuild via
-    # `python3 tool/build_db.py --fresh`.
+    # `python3 ask-ck/tools/build_db.py --fresh`.
     data["zephyr_master"] = {c["key"]: c for c in db.get_target_cases()}
     raw_cands = db.all_candidates()
     data["candidates"] = raw_cands
@@ -92,7 +92,7 @@ def load_all_data() -> Dict[str, Any]:
               f"atp {counts.get('atp_tests')} / scripts {counts.get('scripts')}  "
               f"(vector_search={chk.get('has_vec')})")
     else:
-        print(f"  ck.db: NOT READY ({chk.get('error', 'empty')}) — run tool/build_db.py --fresh")
+        print(f"  ck.db: NOT READY ({chk.get('error', 'empty')}) — run ask-ck/tools/build_db.py --fresh")
 
     return data
 

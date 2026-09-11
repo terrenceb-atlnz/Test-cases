@@ -13,7 +13,7 @@
 > ### Phase 1 as built — TWO deviations from §4, both forced by the ck.db invariant
 >
 > The §4 design wanted a durable `case_locks` table + a `rev` column. Investigation
-> confirmed **ck.db is immutable by design** — `tool/build_db.py` refuses to rebuild, there
+> confirmed **ck.db is immutable by design** — `ask-ck/tools/build_db.py` refuses to rebuild, there
 > is no runtime DDL and no migration framework — so adding a table/column would have been the
 > repo's first in-place schema mutation of the permanent DB. Terrence's call was to leave the
 > schema untouched. So Phase 1 shipped **with ZERO ck.db schema change**:

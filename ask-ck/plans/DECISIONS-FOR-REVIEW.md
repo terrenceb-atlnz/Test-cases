@@ -169,7 +169,7 @@ the browser nor `pt_autopilot` could send it, so the documented escape hatch was
 ### D-14 — Expansion is recorded as a RANGE, not a constant
 Re-measured across 36 recovered generations: **0.71–1.90, median 0.90**, against
 `_FILL_EXPANSION = 1.95`. One number cannot carry both marker-stripping (deterministic) and
-model verbosity (variable). `tool/pt_measure_expansion.py` reproduces the table.
+model verbosity (variable). `ask-ck/tools/pt_measure_expansion.py` reproduces the table.
 
 ---
 

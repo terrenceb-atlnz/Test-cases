@@ -51,7 +51,7 @@ from pathlib import Path
 import pytest
 
 _REPO = Path(__file__).resolve().parents[1]
-_TOOL = _REPO / "tool"
+_TOOL = _REPO / "ask-ck" / "tools"
 _DB = _REPO / "ask-ck" / "var" / "ck.db"
 sys.path.insert(0, str(_TOOL))
 

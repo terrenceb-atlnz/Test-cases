@@ -9,12 +9,12 @@ This runs the runtime guards in CK_server/pt_exec.py against a table of allowed/
 operations, so a regression that lets a mutation through (or that breaks the legitimate
 read/copy/run path) fails here.
 
-Usage:  python3 tool/guard_framework_readonly.py     # exit 0 = all pass, 1 = a case failed
+Usage:  python3 ask-ck/tools/guard_framework_readonly.py     # exit 0 = all pass, 1 = a case failed
 """
 import sys
 from pathlib import Path
 
-CK_SERVER = Path(__file__).resolve().parent.parent / "ask-ck" / "CK-main" / "CK_server"
+CK_SERVER = Path(__file__).resolve().parent.parent / "CK-main" / "CK_server"   # ask-ck/tools/ -> ask-ck/
 sys.path.insert(0, str(CK_SERVER))
 
 import pt_exec as p  # noqa: E402

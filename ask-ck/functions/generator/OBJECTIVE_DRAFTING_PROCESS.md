@@ -5,7 +5,7 @@
 > do not**. This doc tells you to read `data/zephyr_full/zephyr_cases.jsonl`,
 > `slim_index.json` and similar courier files — **those files are deleted.** `ck.db` is the
 > permanent single source of truth and the server reads corpora only from it (`db.py`,
-> enforced by `tool/guard_db_only.py`); there is no rebuild step. Read the corpora via
+> enforced by `ask-ck/tools/guard_db_only.py`); there is no rebuild step. Read the corpora via
 > `db.py` / the search endpoints instead, and treat every JSON/JSONL path in this document
 > as a historical reference to how the material was originally assembled.
 
@@ -46,7 +46,7 @@ These steps produce the raw material that is recorded in the standardized per-ca
 | Recent `zephyr-scale-tests-export*.xml` | Current Zephyr case structure, folder, labels (for later steps) |
 | `data/zephyr_master.json` | Master list of cases with fields like `folder`, `labels`, `precondition` |
 | `Zephyr-Database-30_Jun_2026.xml` | Full inherited Zephyr export (120 MB, 2.32M lines, ~45k cases across many projects). **Immutable source of truth. Never load the whole file.** |
-| `data/zephyr_full/zephyr_cases.jsonl` + `slim_index.json` | **Recommended working format** (generated once via streaming parse). 54 MB JSONL (full normalized cases) + tiny fast-load index. Use for all regular Step 3 cross-references. See `data/zephyr_full/README.md` and `tool/extract_zephyr_xml.py`. |
+| `data/zephyr_full/zephyr_cases.jsonl` + `slim_index.json` | **Recommended working format** (generated once via streaming parse). 54 MB JSONL (full normalized cases) + tiny fast-load index. Use for all regular Step 3 cross-references. See `data/zephyr_full/README.md` and `ask-ck/tools/extract_zephyr_xml.py`. |
 | `data/decisions/dec_*.json` | Reviewed primary matches ("m") + confidence ("c") + rationale ("w") for traceability bootstrap |
 
 **Common commands for exploration** (run from `Test-cases/`):
@@ -321,7 +321,7 @@ Use the pre-generated durable artifacts (never touch the raw XML for queries):
 
 - `data/zephyr_full/slim_index.json` — Load this entirely (≈10 MB). Fast in-memory filtering by folder, labels, title keywords, `has_objective`, `num_steps`.
 - `data/zephyr_full/zephyr_cases.jsonl` — Stream only the matching full records when you need the complete `objective` + `steps`.
-- Regenerate anytime with: `python3 tool/extract_zephyr_xml.py --xml Zephyr-Database-30_Jun_2026.xml --out-dir data/zephyr_full --force`
+- Regenerate anytime with: `python3 ask-ck/tools/extract_zephyr_xml.py --xml Zephyr-Database-30_Jun_2026.xml --out-dir data/zephyr_full --force`
 
 See the commands in the "Common commands for exploration" section above and `data/zephyr_full/README.md`.
 
@@ -375,7 +375,7 @@ These cases were reviewed from the full Zephyr database for style, objective str
 
 Always use the full markdown web link format shown above so the keys are clickable. The base URL is `https://jira.atlnz.lc/secure/Tests.jspa#/testCase/{KEY}`.
 
-When you later run the uploader (`tool/upload_refined.py --execute`), the cases listed in this section will automatically have **web links (tracelinks)** created inside the target Zephyr case (exactly like the ATPyLib entries). The full `traceability.md` is also attached.
+When you later run the uploader (`ask-ck/tools/upload_refined.py --execute`), the cases listed in this section will automatically have **web links (tracelinks)** created inside the target Zephyr case (exactly like the ATPyLib entries). The full `traceability.md` is also attached.
 
 Record the final list in `traceability.md`. This becomes part of the permanent traceability for the case.
 
@@ -508,8 +508,8 @@ Example snippet for the Zephyr section (with required web links):
 ---
 
 For **current state** see [`PROGRESS.md`](PROGRESS.md) (newest entry at the top); for how the
-system got here see the root [`CHANGELOG.md`](../../CHANGELOG.md). The root
-[`README.md`](../../README.md) covers framing and setup. Reference exports such as
+system got here see the root [`CHANGELOG.md`](../../../CHANGELOG.md). The root
+[`README.md`](../../../README.md) covers framing and setup. Reference exports such as
 `zephyr-scale-tests-export*.xml` show the desired output format.
 
 ---
@@ -559,16 +559,16 @@ After completing Steps 1–4:
 
    ```
    cd Test-cases
-   JIRA_KEY=... python3 tool/upload_refined.py --dry-run --keys AWPTCM-Txxxx
-   JIRA_KEY=... python3 tool/upload_refined.py --execute --keys AWPTCM-Txxxx --verify
+   JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --dry-run --keys AWPTCM-Txxxx
+   JIRA_KEY=... python3 ask-ck/tools/upload_refined.py --execute --keys AWPTCM-Txxxx --verify
    ```
 
-   Or target groups: `--groups "Port (7)" "IPv4 (44)"` (etc). See `tool/upload_refined.py --help`.
+   Or target groups: `--groups "Port (7)" "IPv4 (44)"` (etc). See `ask-ck/tools/upload_refined.py --help`.
    The script sends `objective` (as `<ul>`) + `testScript` (normalized to `STEP_BY_STEP`) via the ATM REST API.
 
 7. After upload, mark progress (e.g. update review batches or a tracking md) and optionally rebuild `refined-viewer.html`.
 
-See `README.md`, `tool/`, and `data/decisions/` for supporting scripts and prior batch decisions.
+See `README.md`, `ask-ck/tools/`, and `data/decisions/` for supporting scripts and prior batch decisions.
 
 ---
 
@@ -590,13 +590,13 @@ See `README.md`, `tool/`, and `data/decisions/` for supporting scripts and prior
 - ~30+ cases fully processed through the workflow across groups: Port (~7), IPv4 variants (ARP/DHCP/Static/BGP/VRF ~10+), PoE/LED/Sanity (~5), Switching (~4), Auth/Security (~4), Management (~2), Bootloader (~1).
 - Recent focus: IPv4 areas (T43849 Local Proxy ARP, T43851 DHCP ARP Probe, T43853 120-day lease, T43854 DNS Relay, T43855 IPv4 Static, T43858 BGPv4, T43859 VRF-Lite traceroute).
 - Workflow validated on thin Zephyr cases, VRF isolation, platform variation, and mixed TL/ART sources.
-- See [SESSION_STATE.md](../../SESSION_STATE.md) for full chronological activity, detailed lessons learned per batch/case, exact lists, and wrap-up.
+- See [SESSION_STATE.md](../../../SESSION_STATE.md) for full chronological activity, detailed lessons learned per batch/case, exact lists, and wrap-up.
 
 **Recommended next actions:**
 - Process remaining high-confidence decisions from dec_05+ (e.g. T43859 siblings, T43860 IP Route Filter, dec_06+ PoE/ECMP/stack cases).
-- Consider adding a small helper script in `tool/` (e.g. `scaffold_case.py`) to initialize new `refined-cases/<key>/` directories.
+- Consider adding a small helper script in `ask-ck/tools/` (e.g. `scaffold_case.py`) to initialize new `refined-cases/<key>/` directories.
 - When ready, feed `zephyr_payload.json` files into upload tooling targeting Zephyr Scale `objective` + `testScript`.
 - Periodic sync of lessons/counts back to this doc and [`PROGRESS.md`](PROGRESS.md). (Counts
   no longer live in the root `README.md` — it stopped being a status document on 2026-08-17.)
 
-*Document maintained as a living template. All case-specific history and lessons moved to `refined-cases/` subdirectories and [SESSION_STATE.md](../../SESSION_STATE.md).*
+*Document maintained as a living template. All case-specific history and lessons moved to `refined-cases/` subdirectories and [SESSION_STATE.md](../../../SESSION_STATE.md).*

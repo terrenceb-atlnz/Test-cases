@@ -66,7 +66,7 @@ Facts confirmed 2026-08-06 (driving the API end-to-end for the pilot trio):
 
 **2026-08-31 — paths above made repo-relative.** They read `copilot/Test-cases/…`; that
 checkout name no longer exists (the repo is under `claude/Test-cases` now), and
-`tool/check_memory_refs.py` does NOT flag it — the prefix makes the citation look like a file
+`ask-ck/tools/check_memory_refs.py` does NOT flag it — the prefix makes the citation look like a file
 on another machine, which the checker deliberately skips. Repo-relative paths cannot rot that
 way. Four other memories still carry `copilot/` citations, left alone because this session did
 not use them: `bootloader-media-parse-bug`, `db-only-single-source`,

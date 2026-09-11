@@ -198,8 +198,8 @@ async def startup_event():
             f"ck.db is not ready ({chk.get('error') or 'empty / no corpora'}) at "
             f"{chk.get('db_path')}. The server reads all corpora from this database "
             f"and has no JSON fallback. Build it first:\n"
-            f"    python3 tool/build_db.py --fresh --verify\n"
-            f"then (for semantic search)  python3 tool/build_db.py --embed")
+            f"    python3 ask-ck/tools/build_db.py --fresh --verify\n"
+            f"then (for semantic search)  python3 ask-ck/tools/build_db.py --embed")
     app.state.app_data = load_all_data()
     print("Data ready.")
 
@@ -417,7 +417,7 @@ async def health():
             # ask-ck/var/ck.db is meant to be written when a person operates the app (a
             # case load persists a session); a server being DRIVEN BY TESTS must not touch
             # it, and runs against a throwaway copy via CK_DB_PATH (see
-            # tool/run_scratch_server.sh). Until this was reported, the only way to tell
+            # ask-ck/tools/run_scratch_server.sh). Until this was reported, the only way to tell
             # the two apart was to read the process environment.
             "db_path": chk.get("db_path"),
             "is_permanent_db": chk.get("db_path") == str(PERMANENT_DB_PATH),
