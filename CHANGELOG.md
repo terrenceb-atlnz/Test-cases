@@ -40,6 +40,12 @@ verify-before-store, preview/approve) follow in order.
   and the fix rule says a precondition is missing only if neither the suite nor the unit sets
   it. The fix that added `no lldp run` to tc1's tear_down — which would have disabled LLDP for
   the 36 cases behind it — had no way to know the suite owned that command.
+- **G4 — untouched units are never written** (same day). The pre-fix chunk re-sync rewrote
+  every unit's stored chunk from the on-screen script on every fix, a whole-session write per
+  fix whose content was a no-op for the units not being fixed. `_resync_chunks` now writes
+  only a unit whose text differs (a hand-edit, or a unit never stored), stamps it as synced
+  from the script, and leaves every other record untouched, `at` and all; when nothing
+  differs and no stale fix record needs clearing, the session row is not written.
 
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
 

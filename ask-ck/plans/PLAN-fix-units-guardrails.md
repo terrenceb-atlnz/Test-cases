@@ -3,7 +3,9 @@
 > ## Status (read first)
 >
 > **TRANCHE 1 SHIPPED 2026-09-14 — G1 ✅, G5 ✅ (with follow-ups #4, the `kind` enum), G8(a) ✅;
-> G2, G3, G4, G6, G7, G8(b) remain, in the order below. D4 still OPEN.** Pinned against the real
+> G4 ✅ the same day (`_resync_chunks`: only a unit whose on-screen text differs from its stored
+> chunk is written; identical units keep their record byte for byte, and an unchanged script
+> writes no session row). G2, G3, G6, G7, G8(b) remain, in the order below. D4 still OPEN.** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
@@ -113,7 +115,7 @@ non-scaffold lines), are **HELD** — status `held`, diff kept, surfaced for app
 stored and not hard-rejected. Rationale: legitimate fixes can be sizeable (tc6's TLV block),
 so the gate flags *unexpected* breadth and a human decides. → **D1**.
 
-### G4 — untouched units are never written  *(RC3)*
+### G4 — untouched units are never written  *(RC3)*  ✅ 2026-09-14
 `_chunks_from_code`/`_sync` write a chunk **only when its text differs** from the stored
 chunk (i.e. a real hand-edit). Identical text → no write, no `at`/`status` re-stamp. This makes
 "cannot write to any TC not affected" literally true at the storage layer, and shrinks the

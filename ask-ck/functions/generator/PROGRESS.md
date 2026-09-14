@@ -55,8 +55,9 @@ change.
 
 **Gate at close:** guards OK; **pytest 1469 passed / 1 skipped; vitest 281**; ck.db signature unchanged.
 
-**Pick up here:** (1) **guardrails, next in order: G4** (untouched units are never written), then
-G2 + G6 + G8(b), then G3 + G7 (+ follow-ups #1–#3 per D6) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
+**G4 shipped next** (`_resync_chunks`, 3 tests; gate pytest 1472). **Pick up here:** (1)
+**guardrails, next in order: G2 + G6 + G8(b)** (frozen-line check, verify-before-store, the
+suite-owned-command lint), then G3 + G7 (+ follow-ups #1–#3 per D6) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
 §Order; (2) the **D4** decision (still open; G6 is where it lands); (3) the fresh Generate →
 Review → Fix on T44297 is the proof once the plan is complete; (4) the design branch from
 `ask-ck/frontend/ck-main/svelte/`.

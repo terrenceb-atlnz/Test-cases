@@ -5991,6 +5991,27 @@ def _chunks_from_code(code: str, ctx: dict) -> Dict[str, str]:
     return out
 
 
+def _resync_chunks(chunks: Dict[str, dict], synced: Dict[str, str]) -> Tuple[Dict[str, dict], List[str]]:
+    """G4 (RC3 of PLAN-fix-units-guardrails): re-sync the stored chunks from the assembled
+    script, writing ONLY the units whose text differs from what is stored — i.e. a hand-edit
+    made since they landed, or a unit that was never stored. An identical unit is returned as
+    the very record that was stored, `at` and all: "cannot write to a TC the fix is not
+    about" is then literally true at the storage layer, and the per-fix write footprint
+    shrinks to the units that actually changed. Returns (chunks, [ids rewritten])."""
+    out = dict(chunks or {})
+    changed: List[str] = []
+    for uid, text in synced.items():
+        prev = (chunks or {}).get(uid) or {}
+        if prev.get("status") == "ok" and (prev.get("code") or "") == text:
+            continue
+        rec = dict(prev)
+        rec.update({"status": "ok", "code": text, "error": "", "at": utc_now().isoformat(),
+                    "source": "script"})
+        out[uid] = rec
+        changed.append(uid)
+    return out, changed
+
+
 def _fix_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict,
                      current_code: str, reasons: dict) -> str:
     """The generation prompt for this unit — shared half, marker, unit half — followed by the
@@ -6065,17 +6086,20 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
                                  "frame (" + ", ".join(missing) + ") — was it generated "
                                  "whole-script? Use the whole-script Fix.")
 
+    # G4: write only what changed. A unit whose stored text already equals what is on
+    # screen is not touched — not re-stamped, not re-written — and when nothing differs and
+    # there is no previous fix_units record to clear, the session row is not written at all.
+    _, changed = _resync_chunks(step6.get("chunks") or {}, synced)
+
     def _sync(fresh: PtSession) -> None:
         step6_f = dict(fresh.step6 or {})
-        chunks = dict(step6_f.get("chunks") or {})
-        for uid, text in synced.items():
-            prev = dict(chunks.get(uid) or {})
-            prev.update({"status": "ok", "code": text, "error": ""})
-            chunks[uid] = prev
-        step6_f["chunks"] = chunks
+        new_chunks, changed_now = _resync_chunks(step6_f.get("chunks") or {}, synced)
+        if changed_now:
+            step6_f["chunks"] = new_chunks
         step6_f.pop("fix_units", None)
         fresh.step6 = step6_f
-    _pt_persist_fresh(key, _sync, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+    if changed or "fix_units" in step6:
+        _pt_persist_fresh(key, _sync, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
 
     by_id = {u["id"]: u for u in ctx["units"]}
     already = _pt_units_inflight(key)

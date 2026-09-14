@@ -399,3 +399,39 @@ def test_G8a_the_generation_context_carries_the_body_and_the_render_passes_it():
     render = body[body.index("def _render_unit_prompt"):body.index("def _unit_shape_ok")]
     assert '"suite_setup_body": ctx.get("suite_setup_body")' in render
 
+
+# --- G4: untouched units are never written (RC3; 2026-09-14) ------------------------------------
+
+def test_G4_only_a_hand_edited_unit_is_rewritten_the_others_keep_their_record_byte_for_byte():
+    synced = pc._chunks_from_code(SCRIPT, CTX)
+    stored = {uid: {"status": "ok", "code": text, "error": "", "at": f"2026-09-09T0{i}:00:00",
+                    "prompt": "kept"} for i, (uid, text) in enumerate(synced.items())}
+    # tc2 was hand-edited on screen (the plan's "fix targeting tc6 with a hand-edited tc9").
+    edited = dict(synced); edited["tc2"] = synced["tc2"].replace("self.failed('bad')", "self.failed('worse')")
+    out, changed = pc._resync_chunks(stored, edited)
+    assert changed == ["tc2"]
+    assert out["tc2"]["code"] == edited["tc2"] and out["tc2"]["at"] != stored["tc2"]["at"]
+    assert out["tc2"]["source"] == "script" and out["tc2"]["prompt"] == "kept"   # record updated, not replaced
+    assert out["tc1"] is stored["tc1"] and out["setup"] is stored["setup"]       # the very same records
+    assert out["tc1"]["at"] == "2026-09-09T01:00:00"
+
+
+def test_G4_a_unit_never_stored_or_stored_failed_is_synced_from_the_script():
+    synced = pc._chunks_from_code(SCRIPT, CTX)
+    stored = {"tc1": {"status": "error", "code": "", "error": "boom", "at": "x"}}
+    out, changed = pc._resync_chunks(stored, synced)
+    assert sorted(changed) == ["setup", "tc1", "tc2"]
+    assert out["tc1"]["status"] == "ok" and out["tc1"]["error"] == "" and out["tc1"]["code"] == synced["tc1"]
+
+
+def test_G4_nothing_changed_means_no_write_at_all():
+    synced = pc._chunks_from_code(SCRIPT, CTX)
+    stored = {uid: {"status": "ok", "code": text, "at": "t"} for uid, text in synced.items()}
+    out, changed = pc._resync_chunks(stored, synced)
+    assert changed == [] and out == stored
+    # The endpoint persists the sync only when something differs or a stale fix_units
+    # record needs clearing — an unchanged script is not a reason to rewrite the row.
+    assert "_resync_chunks(step6.get(\"chunks\") or {}, synced)" in FIX_UNITS
+    assert 'if changed or "fix_units" in step6:' in FIX_UNITS
+    assert 'prev.update({"status": "ok", "code": text, "error": ""})' not in FIX_UNITS
+
