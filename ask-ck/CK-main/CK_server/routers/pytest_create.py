@@ -2193,6 +2193,7 @@ _POLICY_LINT_MARKERS = (
     "calls setup.init_portlink() directly",    # house binding idiom; script still runs
     "are config only; the verdict belongs in main()",   # a verdict in configure()/tear_down()
     "'s port, on ",                            # a port selected on the switch it does not belong to
+    "the suite owns it",                       # G8(b): a case re-issues / undoes a TestSet.configure() command
 )
 
 
@@ -2719,6 +2720,92 @@ def _lint_port_owner(tree, code: str) -> List[str]:
                     f"is {owner}'s port, on {dev} — the neighbour's own end of the link is "
                     f"`{peer}.portDut` and the DUT's end is `portPeer`; a port name only exists "
                     f"on the switch it belongs to")
+    return out
+
+
+# Mode-navigation and read-only commands are not "state the suite owns": every method
+# re-enters `interface <port>` for itself, and a `show` changes nothing.
+_SUITE_NAV_CMD_RX = re.compile(
+    r"^(interface\b|exit\b|end\b|enable\b|conf(igure)?(\s+t(erminal)?)?\b|write\b|show\b|do\b)", re.I)
+
+
+def _cmd_literals(fn_node) -> List[Tuple[str, str, int]]:
+    """(device, command text, line) for every `<dev>.cmd(<literal>)` in a function — a
+    string constant, a `'...'.format(...)` template or an f-string, placeholders kept as
+    `{}` so `'interface {}'` compares as a template. Whitespace-normalised, lower-cased."""
+    import ast as ast_mod
+    out: List[Tuple[str, str, int]] = []
+    for n in ast_mod.walk(fn_node):
+        if not (isinstance(n, ast_mod.Call) and isinstance(n.func, ast_mod.Attribute)
+                and n.func.attr == "cmd" and isinstance(n.func.value, ast_mod.Name) and n.args):
+            continue
+        a0 = n.args[0]
+        text = None
+        if isinstance(a0, ast_mod.Constant) and isinstance(a0.value, str):
+            text = a0.value
+        elif (isinstance(a0, ast_mod.Call) and isinstance(a0.func, ast_mod.Attribute)
+                and a0.func.attr == "format" and isinstance(a0.func.value, ast_mod.Constant)
+                and isinstance(a0.func.value.value, str)):
+            text = a0.func.value.value
+        elif isinstance(a0, ast_mod.JoinedStr):
+            text = "".join(str(v.value) if isinstance(v, ast_mod.Constant) else "{}" for v in a0.values)
+        if text and text.strip():
+            out.append((n.func.value.id, " ".join(text.split()).lower(), n.lineno))
+    return out
+
+
+def _lint_suite_owned_commands(tree, code: str) -> List[str]:
+    """G8(b) (RC6 of PLAN-fix-units-guardrails): a command a TestCase issues that the suite's
+    `TestSet.configure()`/`tear_down()` also issues, on the same device — re-issued, or undone
+    (`no X` against the suite's `X`, or `X` against the suite's `no X`). The suite owns that
+    state for the whole run; a case that undoes it in its tear_down() disables it for every
+    case after it (T44297 fix run 5 put `no lldp run` in tc1's tear_down — 36 cases behind it).
+    Deterministic, cross-unit, no model. Mode navigation and `show` are not state."""
+    import ast as ast_mod
+    classes = [n for n in tree.body if isinstance(n, ast_mod.ClassDef)]
+
+    def _base_has(c, word):
+        return any(word in getattr(b, "attr", getattr(b, "id", "")) for b in c.bases)
+
+    owned: Dict[Tuple[str, str], str] = {}                 # (dev, cmd) -> which suite method
+    for c in classes:
+        if not _base_has(c, "TestSet"):
+            continue
+        for m in c.body:
+            if isinstance(m, ast_mod.FunctionDef) and m.name in ("configure", "tear_down"):
+                for dev, cmd, _ln in _cmd_literals(m):
+                    if not _SUITE_NAV_CMD_RX.match(cmd):
+                        owned.setdefault((dev, cmd), m.name)
+    if not owned:
+        return []
+
+    def _undo_of(cmd: str) -> str:
+        return cmd[3:] if cmd.startswith("no ") else "no " + cmd
+
+    out: List[str] = []
+    for c in classes:
+        if not _base_has(c, "TestCase"):
+            continue
+        for m in c.body:
+            if not isinstance(m, ast_mod.FunctionDef):
+                continue
+            for dev, cmd, ln in _cmd_literals(m):
+                if _SUITE_NAV_CMD_RX.match(cmd):
+                    continue
+                counter = owned.get((dev, _undo_of(cmd)))
+                if counter == "configure" or (counter and (dev, cmd) not in owned):
+                    # `no X` against the suite's `X` (or `X` against its `no X`): the harm is
+                    # the undo, so name it even when the suite's own tear_down() says the same.
+                    out.append(
+                        f"suite-owned: {c.name}.{m.name}() line {ln} undoes `{_undo_of(cmd)}` "
+                        f"(`{cmd}`) on {dev}, which TestSet.{counter}() issues "
+                        f"for the whole run — the suite owns it; this undo runs before the next "
+                        f"case and breaks every case after this one")
+                elif (dev, cmd) in owned:
+                    out.append(
+                        f"suite-owned: {c.name}.{m.name}() line {ln} re-issues `{cmd}` on {dev}, "
+                        f"which TestSet.{owned[(dev, cmd)]}() already issues — the suite owns it; "
+                        f"a case must neither re-issue nor undo a suite-owned command")
     return out
 
 
@@ -3303,6 +3390,8 @@ def _lint_generated(sess: PtSession) -> dict:
         for _e in _lint_unbound_names(tree, lib):
             errors.append(_e)
         for _e in _lint_port_owner(tree, code):
+            errors.append(_e)
+        for _e in _lint_suite_owned_commands(tree, code):       # G8(b), 2026-09-14
             errors.append(_e)
         warnings.extend(_lint_verdict_echo(tree, (sess.step2 or {}).get("sequence") or []))
 
@@ -5234,6 +5323,90 @@ def _unit_shape_ok(code: str, unit: dict) -> Tuple[bool, str]:
     return True, ""
 
 
+# G2 (RC2 of PLAN-fix-units-guardrails): the lines of a unit that are the FIXED FRAME, read
+# off the frame's own blank block — the class line, the testCase* attribute lines (the `+=`
+# continuation included), the three method signatures and each method's opening shortcut
+# block (`name = dotted.name`, no call). The prompt asked for them "EXACTLY as they are" and
+# nothing checked; tc6 came back re-implemented wholesale and was stored as ok.
+_FROZEN_LINE_RX = re.compile(
+    r"^class TestCase_\d+\(|^\s*testCase(Desc|Ref|Method)\s*\+?=|"
+    r"^\s*(?:async\s+)?def\s+(configure|main|tear_down)\s*\(|^\s*\w+ = [\w.]+$")
+
+
+def _unit_frozen_lines(unit: dict, current_code: str) -> List[str]:
+    """The frozen lines this fix must return unchanged: frame lines of the unit's blank block
+    that the CURRENT unit still carries (a reviewer who hand-edited one of them has decided
+    otherwise, so only what is present now is enforced), plus the current main()'s leading
+    provenance tag, which the frame reserves and the fill supplies."""
+    setup = unit.get("kind") == "setup"
+    cur = [(ln.strip() if setup else ln) for ln in (current_code or "").split("\n")]
+    out: List[str] = []
+    for ln in (unit.get("block") or "").split("\n"):
+        if not ln.strip() or ln.strip().startswith("#") or not _FROZEN_LINE_RX.match(ln):
+            continue
+        key = ln.strip() if setup else ln
+        if key in cur and key not in out:
+            out.append(key)
+    m = re.search(r"(?ms)^[ \t]*def main\(self\):[^\n]*\n((?:[ \t]*\n)*)([^\n]*)", current_code or "")
+    if m and _PROVENANCE_TAG_RX.match(m.group(2)) and m.group(2) not in out:
+        out.append(m.group(2))
+    return out
+
+
+def _unit_frozen_ok(current_code: str, new_code: str, unit: dict) -> Tuple[bool, str]:
+    """G2: every frozen line of the current unit must come back byte-identical (the setup
+    pair is compared stripped: its indentation is re-based at assembly anyway)."""
+    setup = unit.get("kind") == "setup"
+    new = {(ln.strip() if setup else ln) for ln in (new_code or "").split("\n")}
+    for ln in _unit_frozen_lines(unit, current_code):
+        if ln not in new:
+            return False, (f"fix altered a frozen line of the fixed frame: `{ln.strip()[:90]}` "
+                           f"is missing from the reply — the class name, testCase* lines, the "
+                           f"three method signatures, the shortcut lines and the provenance tag "
+                           f"must come back exactly as they are")
+    return True, ""
+
+
+def _unit_lint_regression(guard: dict, new_code: str, unit: dict) -> Optional[str]:
+    """G6(b): splice the returned unit into the CURRENT assembled script and lint the whole
+    thing (syntax, unbound names, house rules — the existing linter). Any error the current
+    script does not already carry, and that maps to this unit or to no unit at all (a file
+    that stopped compiling), is a regression the fix introduced: the old chunk is kept and
+    the reason reported. `guard` = {current_code, assembled_code, sess, baseline_errors}."""
+    assembled = guard.get("assembled_code") or ""
+    units = _skeleton_units(assembled)
+    me = next((u for u in units if u["id"] == unit["id"]), None)
+    if me is None:
+        return None
+    code = (new_code or "").strip("\n")
+    if unit.get("kind") == "setup":
+        d_ind, b_ind = _setup_slot_indents(unit.get("block") or "")
+        code = _reindent_setup_pair(code, d_ind, b_ind)
+    lines = assembled.split("\n")
+    lo, hi = me["lines"]
+    lines[lo - 1:hi] = code.split("\n")
+    spliced = "\n".join(lines)
+    tmp = guard["sess"].model_copy(deep=True)
+    step6_t = dict(tmp.step6 or {})
+    files_t = dict(step6_t.get("files") or {})
+    files_t["test"] = {**(files_t.get("test") or {}), "code": spliced}
+    step6_t["files"] = files_t
+    tmp.step6 = step6_t
+    try:
+        lint = _lint_generated(tmp)
+    except Exception as e:                       # the linter, not the unit, failed: do not refuse on it
+        print(f"[pt] G6 isolated lint could not run for {unit['id']}: {e}")
+        return None
+    baseline = set(guard.get("baseline_errors") or [])
+    new_units = _skeleton_units(spliced)
+    mine = [e for e in (lint.get("errors") or []) if e not in baseline
+            and _unit_id_for_text(str(e), new_units) in (unit["id"], None)]
+    if mine:
+        return ("fix introduces lint error(s) the current unit does not have — kept the current "
+                "unit: " + "; ".join(str(e)[:160] for e in mine[:3]))
+    return None
+
+
 _SETUP_DEF_RE = re.compile(r"[ \t]*(?:async[ \t]+)?def[ \t]+(?:configure|tear_down)\b")
 
 
@@ -5466,7 +5639,8 @@ def _unit_system_prompt(shared_half: str) -> str:
 
 
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
-                         unit: dict, llm_cfg: dict, template: str = "(verbatim)") -> dict:
+                         unit: dict, llm_cfg: dict, template: str = "(verbatim)",
+                         guard: Optional[dict] = None) -> dict:
     """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
 
     Extracted so both the single-unit endpoint and the batch dispatch share exactly one
@@ -5510,6 +5684,17 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
     ok, why = _unit_shape_ok(code, unit)
     if not ok:
         return _fail(why, code)
+    if guard:
+        # VERIFY BEFORE STORE (G2 + G6, 2026-09-14): a fix pass knows the unit it replaces, so
+        # the reply is held to it — frozen frame lines byte-identical, and no lint error the
+        # current script does not already have. Either failure keeps the OLD chunk (the
+        # reply is kept on the record, as every refusal is) and says why.
+        ok, why = _unit_frozen_ok(guard.get("current_code") or "", code, unit)
+        if not ok:
+            return _fail(why, code)
+        why = _unit_lint_regression(guard, code, unit)
+        if why:
+            return _fail(why, code)
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "usage": meta.get("usage"),
@@ -6112,6 +6297,13 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
                  _fix_unit_prompt(key, data, sess, ctx, by_id[uid], synced[uid],
                                   reasons["per_unit"][uid]), False)
                 for uid in targets]
+    # G2 + G6: what each reply is held to. The baseline is the current script's own lint, so
+    # a fix is refused only for errors it INTRODUCES, never for ones it inherited.
+    baseline_errors = (step6.get("lint") or {}).get("errors")
+    if baseline_errors is None:
+        baseline_errors = _lint_generated(sess).get("errors") or []
+    guards = {uid: {"current_code": synced[uid], "assembled_code": code, "sess": sess,
+                    "baseline_errors": list(baseline_errors)} for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
     name = (naming.get("name") or "").strip()
@@ -6126,7 +6318,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
         try:
             async with sem:
                 await run_in_threadpool(_unit_call_and_store, key, uid, prompt, edited,
-                                        unit, llm_cfg, "pt_fix_unit")
+                                        unit, llm_cfg, "pt_fix_unit", guards.get(uid))
         except Exception as e:
             print(f"[pt] {key}/{uid}: unit fix failed: {e}")
             try:

@@ -88,6 +88,9 @@ POLICY = [
     # NEIGHBOUR. The inference (DUT/neighbour boundary) is sound but not infallible, so the
     # reviewer may override with a reason.
     "line 22: `peer.cmd('interface ...')` selects `portPeer`, which is dutA's port, on peer — the neighbour's own end",
+    # 2026-09-14, G8(b) of PLAN-fix-units-guardrails: a case re-issues or undoes a command the
+    # suite's configure()/tear_down() owns. The script runs; the reviewer may have a reason.
+    "suite-owned: TestCase_1.tear_down() line 60 undoes `lldp run` (`no lldp run`) on dutA, which TestSet.configure() issues for the whole run — the suite owns it",
 ]
 
 

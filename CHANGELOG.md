@@ -46,6 +46,18 @@ verify-before-store, preview/approve) follow in order.
   only a unit whose text differs (a hand-edit, or a unit never stored), stamps it as synced
   from the script, and leaves every other record untouched, `at` and all; when nothing
   differs and no stale fix record needs clearing, the session row is not written.
+- **G2 + G6(a)(b) — verify before store** (same day). A fix reply is now held to the unit it
+  replaces: every frozen frame line the current unit carries must come back byte for byte
+  (class line, testCase* lines, the three signatures, the shortcut block, the provenance tag),
+  and the reply spliced into the current script must not add a lint error the script does not
+  already have. Either refusal keeps the old chunk and records the reason. Before this, shape
+  was the only arrival check, and tc6 was stored re-implemented wholesale. **G6(c)** (the
+  finding's evidence must be gone) is deliberately not built: on the real missing-precondition
+  finding it would refuse the correct fix. Terrence to decide its scope.
+- **G8(b) — suite-owned commands are linted.** A TestCase that re-issues, or undoes, a command
+  the suite's `configure()`/`tear_down()` issues on the same device is flagged as a policy
+  error naming the harm ("this undo runs before the next case"). Mode navigation and `show`
+  are not state. Through G6 this refuses fix run 5's real tc1 at the store path.
 
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
 

@@ -5,7 +5,13 @@
 > **TRANCHE 1 SHIPPED 2026-09-14 — G1 ✅, G5 ✅ (with follow-ups #4, the `kind` enum), G8(a) ✅;
 > G4 ✅ the same day (`_resync_chunks`: only a unit whose on-screen text differs from its stored
 > chunk is written; identical units keep their record byte for byte, and an unchanged script
-> writes no session row). G2, G3, G6, G7, G8(b) remain, in the order below. D4 still OPEN.** Pinned against the real
+> writes no session row). **G2 ✅, G6(a)(b) ✅, G8(b) ✅ the same day** — verify-before-store:
+> a fix reply must keep every frozen frame line of the CURRENT unit byte for byte (`_unit_frozen_ok`)
+> and must not introduce a lint error the current script does not already carry when spliced
+> in (`_unit_lint_regression`, whole-file lint incl. the new suite-owned-command lint); either
+> refusal keeps the old chunk and records why. **G6(c) (finding evidence must be gone) is NOT
+> built — see the note under G6: as written it refuses correct fixes of the missing-precondition
+> class; needs Terrence's call.** G3 + G7 remain. D4 still OPEN.** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
@@ -99,7 +105,7 @@ Resolve the target from `where` **alone** first: class name → `tcN`; setup ref
 - Test (pin the real dict): review #2 finding 5 → `setup` (or unmapped under G5), **never**
   `tc1`. Existing `tests/test_pt_fix_units.py` is the home.
 
-### G2 — the frozen scaffold is enforced, not requested  *(RC2)*
+### G2 — the frozen scaffold is enforced, not requested  *(RC2)*  ✅ 2026-09-14
 Turn the prompt's "EXACTLY as they are" list into a hard check in `_unit_call_and_store`
 (extend `_unit_shape_ok` or add `_unit_scope_ok(current, new, unit)`): class name,
 `testCaseDesc`/`testCaseRef`/`testCaseMethod` lines, the three `def` signatures, each method's
@@ -131,12 +137,22 @@ the UI, **excluded from dispatch**. Depends on PROGRESS #4: a constrained `kind`
 `structural` value makes this routable rather than heuristic. → **D3**.
 - Test: finding 5's real dict → structural/unmapped.
 
-### G6 — verify before store  *(RC4)*
+### G6 — verify before store  *(RC4)*  — (a) ✅ (b) ✅ 2026-09-14; (c) OPEN, see note
 Before a returned unit is stored: (a) G2 frozen check; (b) an **isolated lint** of the unit
 spliced into the current frame (unbound names, syntax — the existing linter); (c)
 **finding-addressed**: when the finding carries `evidence`, that exact snippet must no longer
 appear in the new unit, else `_fail("finding evidence still present")`. Any failure keeps the
 old chunk and reports why.
+**(c) as written would refuse correct fixes — 2026-09-14, not built pending Terrence.** The real
+review #1 finding 3 (`missing_precondition`: tc11 configures `lldp management-address` but never
+`lldp tlv-select management-address`) quotes the `management-address` line as its evidence, and
+the correct fix ADDS a line and keeps that one — so "the evidence snippet must no longer
+appear" refuses the right answer. The rule only holds where the evidence line IS the defect
+(`verdict_mismatch`, `weak_observation`, `wrong_symbol`). Options: (i) build (c) scoped to those
+three kinds, hard refusal; (ii) build it for all kinds as a HOLD (G7's state) rather than a
+refusal; (iii) drop it — G2 + G6(b) + G8(b) already refuse the regressions we actually hit.
+Recommendation: (i). A wrong-kind tag folds to `other` (#4), which (i) does not act on.
+
 *Honest limit:* (a)–(c) cannot catch a **fabricated scapy attribute** (tc6's phantom
 `port_desc`) — that is semantics, not syntax. An optional stretch that *would* have caught it:
 a `known-field` check — any `getattr(<layer>, 'name')` / `pkt[<layer>].name` on an `lldp_*`
@@ -149,7 +165,7 @@ review-driven fixes (the class that drifts), **auto-apply** for lint-only fixes 
 low risk). A bad fix then costs one look at a diff, not an Opus review. This is also the
 mechanism G3's "held" state lands in. → **D2**.
 
-### G8 — suite-owned state is shown to the fixer and protected by lint  *(RC6)*  — (a) ✅ 2026-09-14, (b) open
+### G8 — suite-owned state is shown to the fixer and protected by lint  *(RC6)*  ✅ (a) and (b) 2026-09-14
 (a) **Prompt.** Add a *"Given by `TestSet.configure()` — never re-issue, never undo"* block
 carrying the setup unit's `configure()` body verbatim, placed in the **shared half** (cached
 once per case, same for every unit). Reword the fix rule: *"A precondition is missing only if
@@ -177,6 +193,18 @@ kept apart from `unmapped` (which the whole-script Fix owns). G8(a) = `_suite_se
 SELF-CONTAINED rule carved out and the fix rule reworded; the setup unit's own half says the
 block is its current version. Cache consequence, accepted: at first generation the case
 units do not see the block (the setup unit is still being written); every fix pass does.
+
+**G4, then G2 + G6(a)(b) + G8(b), done 2026-09-14.** As built: `_unit_frozen_lines` reads the
+frozen set off the unit's blank block (class line, testCase* lines, method signatures, shortcut
+assignments) intersected with the CURRENT unit, plus main()'s leading provenance tag; the setup
+pair is compared stripped. `_unit_lint_regression` splices the reply into the current assembled
+script, runs `_lint_generated` on a deep copy of the session, and refuses on any error absent
+from the current script's own lint that maps to this unit or to no unit (a file that stopped
+compiling); a linter crash never refuses. Both run in `_unit_call_and_store` only when the
+caller passes a `guard` — fix passes do, generation does not. `_lint_suite_owned_commands` is
+a POLICY error (the script runs; the reviewer may have a reason) keyed on (device, command),
+navigation and `show` excluded, and names the undo as the harm. End-to-end test: fix run 5's
+real tc1 is refused at the store path and the current tc1 kept.
 
 G1 + G5 + G8(a) first (targeting + the prompt block — they stop the wrong-unit and
 suite-state classes outright and are small) → G4 (no untouched writes) → G2 + G6 + G8(b)

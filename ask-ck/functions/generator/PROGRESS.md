@@ -55,9 +55,13 @@ change.
 
 **Gate at close:** guards OK; **pytest 1469 passed / 1 skipped; vitest 281**; ck.db signature unchanged.
 
-**G4 shipped next** (`_resync_chunks`, 3 tests; gate pytest 1472). **Pick up here:** (1)
-**guardrails, next in order: G2 + G6 + G8(b)** (frozen-line check, verify-before-store, the
-suite-owned-command lint), then G3 + G7 (+ follow-ups #1–#3 per D6) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
+**G4 shipped next** (`_resync_chunks`, 3 tests), **then G2 + G6(a)(b) + G8(b)** (verify-before-
+store in `_unit_call_and_store` behind a `guard` the fix pass supplies; the suite-owned-command
+lint as a policy error; 10 tests incl. fix run 5's real tc1 refused end to end; gate pytest 1482).
+**Needs Terrence: G6(c)** — as written it refuses the correct fix of a missing-precondition
+finding; options and recommendation are under G6 in the plan. **Pick up here:** (1) the G6(c)
+call; (2) **guardrails, last in order: G3 + G7** (blast-radius diff → `held`; preview/approve
+with per-unit Apply) **+ follow-ups #1–#3 per D6** (one step-5 UI change) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
 §Order; (2) the **D4** decision (still open; G6 is where it lands); (3) the fresh Generate →
 Review → Fix on T44297 is the proof once the plan is complete; (4) the design branch from
 `ask-ck/frontend/ck-main/svelte/`.

@@ -435,3 +435,242 @@ def test_G4_nothing_changed_means_no_write_at_all():
     assert 'if changed or "fix_units" in step6:' in FIX_UNITS
     assert 'prev.update({"status": "ok", "code": text, "error": ""})' not in FIX_UNITS
 
+
+# --- G2 + G6: verify before store (RC2, RC4; 2026-09-14) ----------------------------------------
+
+def _unit(uid):
+    return next(u for u in UNITS if u["id"] == uid)
+
+
+def test_G2_the_frozen_lines_are_the_frame_lines_the_current_unit_still_carries():
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc1"]
+    frozen = pc._unit_frozen_lines(_unit("tc1"), cur)
+    assert "class TestCase_1(ATTestCase.TestCase):" in frozen
+    assert "    testCaseDesc = 'one'" in frozen and "    testCaseMethod = 'one'" in frozen
+    assert "    def main(self):" in frozen
+    assert "        # ART a.py:x" in frozen                      # the provenance tag, from the CURRENT unit
+    assert not any("self.log" in ln or "passed" in ln for ln in frozen)   # bodies are the model's
+    # A frame line the reviewer already hand-edited away is not enforced.
+    edited = cur.replace("    testCaseRef = 'AWPTCM-T1'", "    testCaseRef = 'AWPTCM-T9'")
+    assert "    testCaseRef = 'AWPTCM-T1'" not in pc._unit_frozen_lines(_unit("tc1"), edited)
+
+
+def test_G2_a_reply_that_alters_a_frozen_line_is_refused_and_a_body_change_is_not():
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc1"]
+    ok, why = pc._unit_frozen_ok(cur, cur.replace("self.log('one')", "self.log('STEP 1: one')"), _unit("tc1"))
+    assert ok, why
+    for bad, needle in ((cur.replace("testCaseRef = 'AWPTCM-T1'", "testCaseRef = 'AWPTCM-T2'"), "testCaseRef"),
+                        (cur.replace("    def main(self):", "    def main(self, x=None):"), "def main"),
+                        (cur.replace("        # ART a.py:x\n", ""), "# ART a.py:x")):
+        ok, why = pc._unit_frozen_ok(cur, bad, _unit("tc1"))
+        assert not ok and "frozen line" in why and needle in why, (needle, why)
+
+
+def test_G2_the_setup_pair_is_compared_stripped_because_assembly_rebases_its_indent():
+    cur = pc._chunks_from_code(SCRIPT, CTX)["setup"]
+    flush = "\n".join(ln.lstrip() if ln.lstrip().startswith("def ") else ln for ln in cur.split("\n"))
+    ok, why = pc._unit_frozen_ok(cur, flush, _unit("setup"))
+    assert ok, why
+    ok, why = pc._unit_frozen_ok(cur, cur.replace("def tear_down(self):", "def teardown(self):"), _unit("setup"))
+    assert not ok and "def tear_down" in why
+
+
+def _guard_for(uid):
+    s = pc.PtSession(key="AWPTCM-T1")
+    s.step6 = {"files": {"test": {"name": "t.py", "code": SCRIPT}}}
+    s.step2 = {"sequence": [{"n": 1, "action": "cfg", "kind": "setup"}, *TC_STEPS]}
+    baseline = pc._lint_generated(s)["errors"]
+    return {"current_code": pc._chunks_from_code(SCRIPT, CTX)[uid], "assembled_code": SCRIPT,
+            "sess": s, "baseline_errors": baseline}
+
+
+def test_G6_a_reply_that_stops_the_script_compiling_is_refused_an_unchanged_one_is_not():
+    g = _guard_for("tc2")
+    assert pc._unit_lint_regression(g, g["current_code"], _unit("tc2")) is None
+    broken = g["current_code"].replace("self.failed('bad')", "self.failed('bad'")
+    why = pc._unit_lint_regression(g, broken, _unit("tc2"))
+    assert why and "introduces lint error" in why and "syntax" in why
+    # A lint error the CURRENT script already carries is not held against the fix.
+    assert g["baseline_errors"], "the fixture script is meant to carry baseline errors"
+    assert pc._unit_lint_regression(g, g["current_code"], _unit("tc2")) is None
+
+
+def test_G6_a_regression_in_ANOTHER_unit_is_not_attributed_to_this_one():
+    g = _guard_for("tc2")
+    # tc2's reply is fine; the error the baseline lacks lives in tc1 — not this unit's doing.
+    g["baseline_errors"] = [e for e in g["baseline_errors"] if "TestCase_1" not in e]
+    assert pc._unit_lint_regression(g, g["current_code"], _unit("tc2")) is None
+
+
+def test_G6_the_store_path_verifies_only_when_a_guard_is_given_and_the_fix_passes_one():
+    body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
+    assert "guard: Optional[dict] = None" in body
+    assert body.index("_unit_shape_ok(code, unit)") < body.index("_unit_frozen_ok(") < body.index("_unit_lint_regression(")
+    assert body.index("_unit_lint_regression(") < body.index('_store({"status": "ok"')
+    assert 'guards = {uid: {"current_code": synced[uid], "assembled_code": code' in FIX_UNITS
+    assert '"pt_fix_unit", guards.get(uid)' in FIX_UNITS
+    assert "baseline_errors = _lint_generated(sess)" in FIX_UNITS      # computed when not stored
+
+
+# --- G8(b): suite-owned commands (RC6; 2026-09-14) ----------------------------------------------
+
+# The REAL shapes: TestSet.configure()/tear_down() of the T44297 script (Management/261_…),
+# and TestCase_1 as fix run 5 returned it (debug log sess-pjkmca6yz2, 2026-09-09 03:19 UTC):
+# `dutA.cmd('lldp run')` added to configure(), `dutA.cmd('no lldp run')` to tear_down().
+SUITE_OWNED_SCRIPT = """import sys
+from framework import ATTestSet, ATTestCase
+
+
+class TestSet(ATTestSet.TestSet):
+    def init(self, setup):
+        self.dutA = setup.init_swi('swi_a')
+        self.peer = setup.init_swi('swi_b')
+
+    def configure(self):
+        dutA = self.dutA
+        peer = self.peer
+        portA = dutA.portA
+        portPeer = dutA.portPeer
+        portDut = peer.portDut
+        dutA.mode(')#')
+        dutA.cmd('lldp run')
+        dutA.cmd('interface {},{}'.format(portA.name, portPeer.name))
+        dutA.cmd('lldp transmit')
+        dutA.cmd('lldp receive')
+        dutA.mode('#')
+        peer.mode(')#')
+        peer.cmd('lldp run')
+        peer.cmd('interface {}'.format(portDut.name))
+        peer.cmd('lldp transmit')
+        peer.mode('#')
+
+    def tear_down(self):
+        dutA = self.dutA
+        peer = self.peer
+        dutA.mode(')#')
+        dutA.cmd('no lldp run')
+        dutA.mode('#')
+        peer.mode(')#')
+        peer.cmd('no lldp run')
+        peer.mode('#')
+
+
+class TestCase_1(ATTestCase.TestCase):
+    testCaseDesc = 'one'
+    testCaseRef = 'AWPTCM-T44297'
+    testCaseMethod = 'one'
+    PORT_DESC_STR = 'lldpTlvT44297desc'
+
+    def configure(self):
+        dutA = self.testSet.dutA
+        portA = dutA.portA
+        dutA.mode(')#')
+        dutA.cmd('lldp run')
+        dutA.cmd('interface {}'.format(portA.name))
+        dutA.cmd('description {}'.format(self.PORT_DESC_STR))
+        dutA.cmd('lldp tlv-select port-description')
+        dutA.mode('#')
+
+    def main(self):
+        # ART 1331_past_issues/test-1331.1001.py lines 760-784
+        self.log('STEP 2')
+        self.passed('ok')
+
+    def tear_down(self):
+        dutA = self.testSet.dutA
+        portA = dutA.portA
+        dutA.mode(')#')
+        dutA.cmd('interface {}'.format(portA.name))
+        dutA.cmd('no lldp tlv-select port-description')
+        dutA.cmd('no description')
+        dutA.mode(')#')
+        dutA.cmd('no lldp run')
+        dutA.mode('#')
+
+
+class TestCase_2(ATTestCase.TestCase):
+    testCaseDesc = 'two'
+    testCaseRef = 'AWPTCM-T44297'
+    testCaseMethod = 'two'
+
+    def configure(self):
+        dutA = self.testSet.dutA
+        peer = self.testSet.peer
+        portA = dutA.portA
+        dutA.mode(')#')
+        dutA.cmd('interface {}'.format(portA.name))
+        dutA.cmd('lldp tlv-select management-address')
+        dutA.cmd(f'lldp management-address {portA.name}')
+        dutA.cmd('show lldp')
+        peer.cmd('lldp receive')
+        dutA.mode('#')
+
+    def main(self):
+        # AI
+        self.log('STEP 3')
+        self.passed('ok')
+
+    def tear_down(self):
+        pass
+
+
+if __name__ == '__main__':
+    ts = TestSet()
+    ts.add_testCase(TestCase_1)
+    ts.add_testCase(TestCase_2)
+    ts.run(sys.argv)
+"""
+
+
+def test_G8b_the_lint_names_exactly_the_two_lines_tc1_gained_and_nothing_case_specific():
+    import ast
+    errs = pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT)
+    assert len(errs) == 2, errs
+    reissue = next(e for e in errs if "re-issues" in e)
+    undo = next(e for e in errs if "undoes" in e)
+    assert "TestCase_1.configure()" in reissue and "`lldp run` on dutA" in reissue and "TestSet.configure()" in reissue
+    assert "TestCase_1.tear_down()" in undo and "undoes `lldp run` (`no lldp run`) on dutA" in undo
+    assert "breaks every case after this one" in undo
+    # tlv-select (case-specific), `interface …` (navigation), `show`, and `lldp receive` on a
+    # DIFFERENT device than the suite issued it on are all left alone.
+    assert not any("tlv-select" in e or "interface" in e or "show" in e or "TestCase_2" in e for e in errs)
+
+
+def test_G8b_is_a_policy_error_the_reviewer_may_override_and_the_linter_raises_it():
+    import ast
+    errs = pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT)
+    blocking, policy = pc._split_lint_errors(errs)
+    assert policy == errs and blocking == []
+    s = pc.PtSession(key="AWPTCM-T44297")
+    s.step6 = {"files": {"test": {"name": "t.py", "code": SUITE_OWNED_SCRIPT}}}
+    s.step2 = {"sequence": [{"n": 1, "action": "cfg", "kind": "setup"},
+                            {"n": 2, "action": "a", "verify": "v"}, {"n": 3, "action": "b", "verify": "w"}]}
+    lint = pc._lint_generated(s)
+    assert [e for e in lint["errors"] if e.startswith("suite-owned:")] == errs
+
+
+def test_G8b_through_G6_the_fix_run_5_reply_is_refused_and_the_current_tc1_kept():
+    """The whole point, end to end: fix run 5's tc1 (the two suite-owned lines) arrives at the
+    store path with a guard whose baseline is the CURRENT script (which has no such error) —
+    it is refused as a lint regression, so the current chunk stays."""
+    # The current script = the same file with tc1's two offending lines removed.
+    current = SUITE_OWNED_SCRIPT.replace("        dutA.cmd('lldp run')\n        dutA.cmd('interface {}'.format(portA.name))\n        dutA.cmd('description",
+                                         "        dutA.cmd('interface {}'.format(portA.name))\n        dutA.cmd('description")
+    current = current.replace("        dutA.mode(')#')\n        dutA.cmd('no lldp run')\n        dutA.mode('#')\n\n\nclass TestCase_2",
+                              "        dutA.mode('#')\n\n\nclass TestCase_2")
+    assert "TestCase_1" in current and current.count("lldp run") == 4   # only the suite's four remain
+    s = pc.PtSession(key="AWPTCM-T44297")
+    s.step6 = {"files": {"test": {"name": "t.py", "code": current}}}
+    s.step2 = {"sequence": [{"n": 1, "action": "cfg", "kind": "setup"},
+                            {"n": 2, "action": "a", "verify": "v"}, {"n": 3, "action": "b", "verify": "w"}]}
+    units = pc._skeleton_units(current)
+    tc1 = next(u for u in units if u["id"] == "tc1")
+    cur_tc1 = pc._chunks_from_code(current, {"units": units})["tc1"]
+    fix5_tc1 = pc._chunks_from_code(SUITE_OWNED_SCRIPT, {"units": pc._skeleton_units(SUITE_OWNED_SCRIPT)})["tc1"]
+    guard = {"current_code": cur_tc1, "assembled_code": current, "sess": s,
+             "baseline_errors": pc._lint_generated(s)["errors"]}
+    ok, _ = pc._unit_frozen_ok(cur_tc1, fix5_tc1, tc1)
+    assert ok                                                # the frame lines were kept — G2 passes it
+    why = pc._unit_lint_regression(guard, fix5_tc1, tc1)
+    assert why and "suite-owned" in why and "no lldp run" in why   # G6 + G8(b) refuse it
+
