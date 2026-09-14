@@ -4136,3 +4136,11 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Gate at close:** guards OK; pytest 1508 passed, 1 skipped; vitest 290 passed; ck.db untouched (the harvest was run
   read-only, payload to the scratchpad).
 - **Resume:** PROGRESS.md top entry (2026-09-15).
+
+## Session Close / Handoff (2026-09-15, later) — the surface doc reloaded; decision (d) built
+
+- Terrence reloaded `json_docs.framework_surface` at 08:44 (lint live) and chose option 1 for (d):
+  the generate prompt lists each layer's DECLARED fields, corpus-read first (`_merge_layer_fields`),
+  and says a field not listed does not exist. Both generate templates, the ART-shape pins, plan
+  item 8, SERVER-README item 8, CHANGELOG updated. The guardrails plan is complete; the proof run
+  on T44297 is next. `ask-ck/db/ck.db` is modified by the reload — Terrence's to commit.

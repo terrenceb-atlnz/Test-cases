@@ -1064,9 +1064,12 @@ and Terrence asked for all eight closed in one pass. What changed, and why each:
    — and the prompt names it as "already imported"; a member whose default argument or
    module-level value names something the library cannot resolve (`csvName = defaultCsvName`)
    is skipped, because that is evaluated at import and would kill the suite before case 1.
-8. **`framework.ATPackets` is rendered as scapy LAYERS with FIELDS** mined from the corpus
-   (`db.script_layer_fields`: `pkt[lldp_cap_tlv].lldp_med_cap` ...), and the frame imports the
-   module whenever the testbox link is bound. Both models had hand-parsed TLV bytes; ART
+8. **`framework.ATPackets` is rendered as scapy LAYERS with FIELDS** — since 2026-09-15 each
+   layer's DECLARED fields (`classes[<layer>].fields` in the surface doc, see "Framework
+   surface"), ordered with the ones the corpus reads (`db.script_layer_fields`:
+   `pkt[lldp_cap_tlv].lldp_med_cap` ...) first; before that only the corpus-read fields, the only
+   list that existed. The same list feeds `_lint_layer_fields`. The frame imports the module
+   whenever the testbox link is bound. Both models had hand-parsed TLV bytes; ART
    decodes with `pkt.haslayer(lldp_cap_tlv)`. Method args are shown for TestBox / Eth /
    SwitchPort / TestCase.
 

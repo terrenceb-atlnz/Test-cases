@@ -1959,8 +1959,15 @@ def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
     as classes with one `guess_payload_class` method each, which told the model nothing.
     ART decodes captures with them — `pkt.haslayer(lldp_cap_tlv)`, `pkt[lldp_cap_tlv]
     .lldp_med_cap` — and both models on T44297 hand-parsed TLV bytes instead. The prompt now
-    lists the layers with the FIELDS the corpus reads off each (mined from `scripts`), which
-    is the only field list that exists.
+    lists the layers with their FIELDS.
+
+    Since 2026-09-15 (D4, decision d — Terrence: option 1) a layer's list is its DECLARED
+    fields from the surface doc (`classes[<layer>].fields`, harvested from `fields_desc`),
+    ordered with the fields the corpus reads off it first (`db.script_layer_fields`), then the
+    rest in declaration order. Until then only the corpus-read fields were shown — the only
+    list that existed — and a 3-of-11 list on `lldp_basic` read as permission to extend it:
+    fix run 5's tc6 invented `port_desc` / `sys_name`. The prompt and `_lint_layer_fields`
+    now judge from the same list. A layer with no declared list falls back to corpus-read.
     """
     surface = data.get("framework_surface") or {}
     core = ["ATTestSet", "ATTestCase", "Setup", "ATPackets",
@@ -1970,9 +1977,22 @@ def _framework_surface_slice(data: dict, extra_modules: List[str]) -> dict:
     ap = out.get("ATPackets")
     if ap and ap.get("classes"):
         layers = sorted(ap["classes"])
+        declared = _surface_layer_fields(surface)
+        corpus = _atpackets_layer_fields(tuple(layers))
         out["ATPackets"] = {"classes": {}, "functions": ap.get("functions") or [],
-                            "layers": _atpackets_layer_fields(tuple(layers))}
+                            "layers": {lay: _merge_layer_fields(corpus.get(lay) or [], declared.get(lay) or [])
+                                       for lay in layers}}
     return out
+
+
+def _merge_layer_fields(corpus_read: List[str], declared: List[str]) -> List[str]:
+    """Declared fields, the corpus-read ones first (most-used order), then the rest in
+    declaration order. A corpus-read name the layer does not declare is dropped — the lint would
+    flag it. No declared list → the corpus-read list as before."""
+    if not declared:
+        return list(corpus_read)
+    head = [f for f in corpus_read if f in declared]
+    return head + [f for f in declared if f not in head]
 
 
 @functools.lru_cache(maxsize=4)

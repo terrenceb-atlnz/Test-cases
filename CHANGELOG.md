@@ -28,8 +28,13 @@ current working thread see
   layer's `fields_desc` (a literal list only; a computed list is no claim). Default action is a
   read-only diff against the current doc; `--write` needs an explicit `--db` and the hosted
   server stopped (stop → load → start, the `cli_commands` precedent). Against the NFS clone the
-  diff is a pure addition: 55 modules unchanged, 28 layers gain a list. **The doc in ck.db is
-  not yet reloaded** — until it is, the lint has no lists and stays silent.
+  diff is a pure addition: 55 modules unchanged, 28 layers gain a list. Terrence reloaded the doc
+  the same morning (08:44), so the lint is live on the hosted server.
+- **The generate prompt lists each layer's DECLARED fields**, the corpus-read ones first
+  (`_merge_layer_fields`), and says a field not listed does not exist. **Why:** the old line
+  showed only the fields the corpus reads — 3 of `lldp_basic`'s 11 — because no other list
+  existed, and a partial list read as permission to extend it (tc6 invented `port_desc`). The
+  prompt and the lint now judge from one list. ~700 tokens more, in the cached shared half.
 
 ## 2026-09-14 — Fix units guardrails, tranche 1: `where` is authoritative, structural findings go to a person, the suite's setup is shown to every unit
 

@@ -4,7 +4,7 @@
 
 **Last Updated**: 2026-09-15 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-15) — D4 BUILT: the scapy known-field lint + the surface harvest tool
+## Latest session (2026-09-15) — D4 BUILT and LIVE: known-field lint, surface harvest, declared fields in the prompt
 
 **Where it stands.** Terrence said "resume"; he had committed the concurrent stream's memories and
 removed the `framework` symlink (decision c). The decision-independent part of D4 shipped:
@@ -22,18 +22,17 @@ removed the `framework` symlink (decision c). The decision-independent part of D
 - 14 tests in `tests/test_pt_lint_layer_fields.py` (tc6 verbatim, blocking, the no-flag cases,
   wired-in, G6 refusal of a fix that introduces a phantom field, extraction refusing to guess,
   the real ATPackets → 28 layers, write goes only to the DB it is given).
-Gate: pytest 1508 passed, 1 skipped / vitest 290 passed; ck.db signature unchanged.
+Gate: pytest 1509 passed, 1 skipped / vitest 290 passed; ck.db signature unchanged.
 
-**The lint is SILENT in production until the doc is reloaded.** That is (b), Terrence's hands:
-`ck off` → `python3 ask-ck/tools/harvest_framework_surface.py --write --db ask-ck/db/ck.db` →
-`ck on` (SERVER-README "Framework surface"). Run the tool without `--write` first to see the diff.
-Still open: (d) whether the generate prompt should list the REAL fields instead of the
-corpus-read ones (`_framework_surface_slice` still calls `db.script_layer_fields`) — a prompt
-change, so design doc first, then ask.
+**Terrence reloaded the doc at 08:44** (`json_docs.framework_surface`, 28 layers with lists), so the
+lint is live on the hosted server. **Decision (d), same morning — option 1:** the generate prompt
+now lists each layer's DECLARED fields, corpus-read first (`_merge_layer_fields`; both generate
+templates; ~700 tokens, cached shared half), and says a field not listed does not exist. The
+guardrails plan is COMPLETE.
 
-**Pick up here:** (1) the reload, then confirm on the hosted server that a phantom read lints red
-(any unit page → the lint panel); (2) **the plan's proof: a fresh Generate → Review → Fix on
-T44297**; (3) decision (d); (4) follow-up #6; (5) the manual UI check of the held-fix flow.
+**Pick up here:** (1) **the plan's proof: a fresh Generate → Review → Fix on T44297** with every
+guardrail in; (2) follow-up #6 (headless review transport); (3) the manual UI check of the
+held-fix flow; (4) `ask-ck/db/ck.db` shows modified after the reload — Terrence's to commit.
 
 ## Session (2026-09-14, night) — D4 SCOPED, not built; paused by Terrence
 

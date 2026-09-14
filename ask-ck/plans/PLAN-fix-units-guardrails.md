@@ -18,8 +18,9 @@
 > the Summary; a lint-only fix still applies itself. Nothing is spliced until applied. Gate at
 > close: pytest 1493 / vitest 290; new routes + module smoke-tested on the scratch server.
 > **D4 ✅ BUILT 2026-09-15** (`_lint_layer_fields`, blocking; `harvest_framework_surface.py`) — the
-> lint is live in code but SILENT until Terrence reloads the surface doc (stop → load → start).
-> **Remaining: that reload, and the proof — a fresh Generate → Review → Fix on T44297.**** Pinned against the real
+> surface doc RELOADED by Terrence 2026-09-15 08:44, so the lint is live; (d) decided: the prompt lists
+> each layer's DECLARED fields, corpus-read first. **The plan is COMPLETE. Remaining: the proof — a
+> fresh Generate → Review → Fix on T44297.**** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
@@ -182,8 +183,9 @@ Decisions before building are in PROGRESS.md's 2026-09-14 (night) entry.
 **Built 2026-09-15.** The `framework` symlink was removed by Terrence (decision c); the harvest
 reads the NFS clone by default (`--framework` for another tree) and its diff against the current
 doc is a pure addition (55 modules unchanged, 28 layers gain a field list), which settles (a) for
-this pass. (b) the reload is Terrence's, with the hosted server stopped. (d) the generate prompt
-still shows the corpus-read fields; whether it should show the real lists is still open.
+this pass. (b) the reload is Terrence's, with the hosted server stopped. (d) **DECIDED 2026-09-15
+(Terrence: option 1)** — the generate prompt lists each layer's DECLARED fields, corpus-read first
+(`_merge_layer_fields`), and says a field not listed does not exist; one source with the lint.
 
 ### G7 — preview / approve mode  *(the direct answer to "unreliable")*  ✅ 2026-09-14
 `fix_units` returns per-unit **diffs** and HOLDS every change (`status: held`) until approved;
@@ -271,7 +273,7 @@ pairs naturally with PROGRESS #1–#3 (error timestamps, regenerate cue, Fix-but
 | D1 | G3 threshold, and do lint-only fixes bypass the gate? | **DECIDED 2026-09-11: as recommended** — 40 % non-scaffold lines; lint-only bypasses. The gate only ever HOLDS, so a wrong threshold costs a click, not a fix |
 | D2 | G7 default: hold-for-approval for review-driven fixes? auto-apply lint-only? | **DECIDED 2026-09-11: yes / yes.** Fix units stops writing straight to the script for review-driven fixes; it shows per-unit diffs with Apply |
 | D3 | G5: a `setup`-mapped finding that asks for a verdict → always structural (never fixed)? | **DECIDED 2026-09-11: yes** — config-only is the contract. Follow-ups #4 (the `kind` enum with `structural`) is built in the same step |
-| D4 | G6 stretch: implement the scapy known-field check (would have caught tc6)? | **OPEN 2026-09-11** — Terrence leaning yes, wants the cost analysis first. Recommendation stands: yes if cheap; it is the one check that catches the class we actually hit. **SCOPED 2026-09-14**, **BUILT 2026-09-15** as designed (blocking lint + harvest tool; 14 tests incl. tc6's real body and the G6 store path). The ck.db reload is Terrence's (server stopped); the prompt-wording question stays open |
+| D4 | G6 stretch: implement the scapy known-field check (would have caught tc6)? | **OPEN 2026-09-11** — Terrence leaning yes, wants the cost analysis first. Recommendation stands: yes if cheap; it is the one check that catches the class we actually hit. **SCOPED 2026-09-14**, **BUILT 2026-09-15** as designed (blocking lint + harvest tool; 14 tests incl. tc6's real body and the G6 store path). Reloaded by Terrence 2026-09-15 08:44 (lint live); (d) decided the same day: the prompt lists declared fields, corpus-read first |
 | D5 | tc1's unapproved step-1 change from fix run 5 — keep or revert? | **RESOLVED 2026-09-10:** keep the step-1 verification (grounded, sound), strip the `lldp run`/`no lldp run` pair (setup owns it). Applied via `save_script`, rev 467, lint ok. **CLOSED 2026-09-11:** the final review is dropped — T44297 is re-generated from scratch once the guardrails are in, and that run is the proof |
 | D6 | Land G7's UI in the same pass as PROGRESS #1–#3, or separately? | **DECIDED 2026-09-11: same pass** — one step-5 UI change, not three. Follow-ups #1–#3 join this plan's last step |
 | D7 | G8(a): show the setup `configure()` body verbatim, or a derived command list? | **DECIDED 2026-09-11: verbatim body** — small, deterministic, cache-shared; a derived list is a second thing to keep in sync |

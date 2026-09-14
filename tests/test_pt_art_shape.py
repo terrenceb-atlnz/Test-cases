@@ -395,6 +395,26 @@ def test_surface_slice_turns_atpackets_classes_into_layers_with_fields(monkeypat
     pc._atpackets_layer_fields.cache_clear()
 
 
+def test_surface_slice_lists_the_declared_fields_with_the_corpus_read_ones_first(monkeypatch):
+    """D4 decision (d), option 1 (2026-09-15): the prompt's list is the layer's DECLARED fields
+    (one source with `_lint_layer_fields`), corpus-read first, then declaration order."""
+    monkeypatch.setattr(pc.dbx, "script_layer_fields",
+                        lambda layers: {l: (["ttl_val", "chassis_id", "not_a_field"] if l == "lldp_basic" else [])
+                                        for l in layers})
+    pc._atpackets_layer_fields.cache_clear()
+    declared = ["chassis_id", "chassis_len", "port_id", "ttl_val"]
+    data = {"framework_surface": {"ATPackets": {"classes": {
+        "lldp_basic": {"methods": [], "fields": declared},
+        "lldp_end_tlv": {"methods": [], "fields": ["lldp_complete"]},
+        "legacy_layer": {"methods": []}}, "functions": []}}}
+    out = pc._framework_surface_slice(data, [])["ATPackets"]["layers"]
+    assert out["lldp_basic"] == ["ttl_val", "chassis_id", "chassis_len", "port_id"]   # corpus order, then declared
+    assert out["lldp_end_tlv"] == ["lldp_complete"]                                   # declared, never read
+    assert out["legacy_layer"] == []                                                  # no list either way
+    assert pc._merge_layer_fields(["a"], []) == ["a"]                                 # no declared list → corpus
+    pc._atpackets_layer_fields.cache_clear()
+
+
 @pytest.mark.skipif(not (_REPO / "ask-ck" / "db" / "ck.db").exists(), reason="ck.db absent")
 def test_corpus_field_mining_finds_the_lldp_med_fields():
     got = pc.dbx.script_layer_fields(["lldp_cap_tlv", "lldp_lacp_tlv"])
@@ -427,6 +447,8 @@ def test_the_unit_prompt_names_the_bound_ports_and_the_layers():
     assert "`dutA.portA` <-> `tb.ethA`" in p and "`dutA.portPeer` <-> `peer.portDut`" in p
     assert "the testbox (a TestBox" in p and "the neighbour switch" in p
     assert "lldp_cap_tlv(lldp_med_cap)" in p
+    assert "Each layer's DECLARED fields follow" in p and "never invent a field for it" in p
+    assert "Fields are the ones the corpus reads" not in p
     assert "start_tcpdump(iface, fileName, optionStr)" in p
     assert "KEEP those lines" in p
     assert "THREE methods to fill" in p

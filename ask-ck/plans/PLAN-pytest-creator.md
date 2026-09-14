@@ -1013,6 +1013,7 @@ for all eight closed in one pass ("it all needs to be done"). Built in order 1-2
 "exactly one verdict" rule became "at least one per path, checkpoints allowed" in both design
 docs; `testCaseMethod` is multi-line and platform gating is `self.supported = False`, never a
 generated `testCaseExcl`; a `library_<case>.py` ships stand-alone fragments; `ATPackets` is
-shown as layers with corpus-mined fields. Details: SERVER-README "ART suite shape";
+shown as layers with corpus-mined fields (**since 2026-09-15: the layer's DECLARED fields, corpus-read first** — D4 decision (d) in
+`PLAN-fix-units-guardrails.md`). Details: SERVER-README "ART suite shape";
 `tests/test_pt_art_shape.py`. Not yet run against a model — Terrence's next 38-unit pass is
 the first measurement.

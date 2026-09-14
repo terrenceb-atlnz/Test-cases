@@ -42,7 +42,7 @@ Reviewer note: {{ f.why }}
 ## Framework surface (relevant modules; call these — do not invent APIs)
 {% for mod, api in framework_surface.items() %}
 {%- if api.layers %}
-- {{ mod }}: scapy packet LAYERS (decode a capture with `pkt.haslayer(<layer>)` and read `pkt[<layer>].<field>`; build a frame by stacking them with `/`). Fields are the ones the corpus reads: {% for lname, fields in api.layers.items() %}{{ lname }}{% if fields %}({{ fields | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+- {{ mod }}: scapy packet LAYERS (decode a capture with `pkt.haslayer(<layer>)` and read `pkt[<layer>].<field>`; build a frame by stacking them with `/`). Each layer's DECLARED fields follow, the ones the corpus reads most listed first — a field not listed does not exist, and a TLV with no layer here cannot be decoded through ATPackets (never invent a field for it): {% for lname, fields in api.layers.items() %}{{ lname }}{% if fields %}({{ fields | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
 {%- else %}
 - {{ mod }}: {% if api.classes %}classes {% for cname, c in api.classes.items() %}{{ cname }}({% for m in c.methods[:12] %}{{ m.name }}{% if m.args and cname in ('TestBox', 'Eth', 'SwitchPort', 'TestCase') %}({{ m.args | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}{% if api.functions %} functions: {% for fn in api.functions[:10] %}{{ fn.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
 {%- endif %}
