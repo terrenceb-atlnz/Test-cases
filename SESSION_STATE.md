@@ -4109,3 +4109,18 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Gate at close:** guards OK; pytest 1493 passed / 1 skipped; vitest 290; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-14), then the plan's status header.
 
+## Session Close / Handoff (2026-09-14, night) — D4 scoped and verified, NOT built; paused
+
+- **Context:** Terrence asked "lets do D4, whats that entail"; the costing was laid out and he
+  added a read-only symlink `framework -> /home/st-art/framework` at the repo root for a
+  re-harvest, then paused the session before any code was written. No product change.
+- **Verified:** the link resolves only on a testbox (dangling here); the harvest tool has always
+  read `<testbox_home>/DeviceSkrips/framework`; tb470's `ATPackets.py` is byte-identical to that
+  copy (md5 0d0828…), while its `ATTestSet.py` is newer than the copy; all 28 layers have clean
+  `fields_desc`; every corpus-read field is real; the surface doc has no writer (renewable-write
+  precedent: `load_cli_docs_from_zips.py`, server stopped).
+- **Open decisions (Terrence):** harvest source (NFS copy vs full re-harvest from tb470); the
+  stop → load → start ck.db write; the symlink's git status; whether the prompt shows real fields.
+- **Not committed by this session:** two memory files + `MEMORY.md` from the concurrent xrdp-seat
+  stream; the `framework` symlink.
+- **Resume:** PROGRESS.md top entry (2026-09-14, night) — it holds the design and the decisions.

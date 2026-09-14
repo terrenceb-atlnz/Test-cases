@@ -2,9 +2,83 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-14 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-14, night (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-14) — hygiene pass, then guardrails TRANCHE 1 shipped (G1 + G5 + #4 + G8(a))
+## Latest session (2026-09-14, night) — D4 SCOPED, not built; paused by Terrence
+
+**Where it stands.** D4 of `ask-ck/plans/PLAN-fix-units-guardrails.md` (the scapy known-field
+check that would have caught tc6's phantom `port_desc` / `sys_name` / `sys_desc`) was costed and
+every fact it rests on verified. Terrence paused the session before any code was written —
+**nothing in the product changed**; this entry is the whole state. Terrence added a symlink
+`framework -> /home/st-art/framework` at the repo root (untracked) so the field lists could be
+re-harvested from the real framework.
+
+**Facts established (all verified this session, 2026-09-14):**
+- **The symlink resolves only on a testbox.** `/home/st-art` does not exist on this dev host, so
+  from here the link is dangling; on tb470 it resolves. It is Terrence's file: untracked,
+  not staged, not gitignored — his call what to do with it (see decisions).
+- **The harvest has always read the NFS copy**, not the testbox: `build_script_index.py`
+  `FRAMEWORK_DIR = <testbox_home>/DeviceSkrips/framework` (a clone of
+  `ssh://git.atlnz.lc/data/git/systest/framework.git`, HEAD d4c21f7, 2026-02-10; human-owned,
+  read it, never write it). The surface doc in ck.db (`json_docs.framework_surface`,
+  `updated_at 2026-07-20T01:15:27`, 55 modules) was built from it.
+- **`ATPackets.py` on tb470 is byte-identical to that NFS copy** (md5 `0d0828393885c098…`, 21,697 B,
+  dated 2026-01-08, checked over read-only SSH as `terrenceb@tb470`). So for D4 the NFS copy is
+  the real thing; no SSH read is needed. The wider tree is NOT identical: `ATTestSet.py` on the
+  box is 143,684 B dated 2026-09-11 vs 135,855 B / 2026-02-10 on the NFS copy, so the surface
+  doc lags the box for ATTestSet — a FULL re-harvest should read the box's tree (over SSH into
+  the scratchpad; the symlink cannot help from this host).
+- **All 28 ATPackets layers carry a clean `fields_desc`** (every entry a `Field('name', …)`
+  call, AST-extractable; the 2026-09-11 costing said 18 — that was the corpus copy
+  `lldp_class.py`). `lldp_basic` = chassis_id, chassis_len, chassis_subtype, system_mac_addr,
+  port_id, port_len, port_subtype, port_val, ttl_id, ttl_len, ttl_val — none of tc6's three.
+  Non-LLDP layers (EPSR, ICMPv6*, LACP, Sflow, IGMP*, LDF) are covered too.
+- **Every corpus-read field is a real field**: `db.script_layer_fields` names 13 layers' fields
+  and all of them appear in the real `fields_desc` lists, so the prompt (corpus-read) and the
+  lint (real list) would never disagree.
+- **The surface doc has no writer** anywhere in the server or tools (`db.get_json_doc` is the
+  only reader; it was loaded at build time). The precedent for a renewable write is
+  `ask-ck/tools/load_cli_docs_from_zips.py`: plain `sqlite3` write with the hosted server
+  STOPPED (stop → load → start, through `ck`, never `run.sh`), single-writer rule after the
+  2026-09-10 WAL corruption. `classes[<layer>]` today = `{bases, methods}`; consumers are
+  `_framework_surface_slice`, `_surface_methods`, `_lint_unbound_names` and the import lint —
+  adding a `fields` key per class is additive. `tests/test_pt_art_shape.py` §8 pins the slice.
+- tc6's real read shapes are in
+  `ask-ck/functions/pytest-creator/generated/.meta/Management/261_Management_LLDP_LLDP_test/history/iter-14/…py`
+  lines 826–836: `pkt[lldp_basic].chassis_id`, `basicLayer = pkt[lldp_basic] if … else None`,
+  `getattr(basicLayer, 'port_desc', None)`, `pkt[lldp_man_tlv].lldp_man_val`.
+
+**Design agreed in principle (Terrence read the proposal, then enabled the harvest):**
+1. `ask-ck/tools/harvest_framework_surface.py --framework PATH [--dry-run|--out FILE|--write]`:
+   the same class/method extraction as `build_framework_surface`, plus `fields` for every
+   `Packet` subclass with a `fields_desc`; `--write` does `INSERT OR REPLACE INTO json_docs`
+   with `updated_at`. Default `PATH` = the NFS copy; a tarred testbox tree later.
+2. `_lint_layer_fields(tree, surface)` in `pytest_create.py`, hooked in `_lint_generated` 3b
+   beside `_lint_suite_owned_commands`: flags `pkt[<layer>].<name>`, `<var>.<name>` and
+   `getattr(<var>, '<name>', …)` where `<var>` was bound from `pkt[<layer>]` /
+   `pkt.getlayer(<layer>)`, flat scoping like `_lint_unbound_names`; silent for a layer with
+   no field list; allowlist scapy's own `Packet` attributes (payload, name, fields, time,
+   show, haslayer, getlayer, …). **Blocking** (a fabricated field observes nothing), so a
+   BLOCKING entry in `tests/test_lint_error_classes.py`. Runs on generation and, through G6,
+   refuses a fix that introduces one.
+3. Tests `tests/test_pt_lint_layer_fields.py`: tc6's three reads flagged; `chassis_id` and
+   `lldp_man_val` not; unknown layer silent; the `_framework_surface_doc` monkeypatch style
+   of `tests/test_pt_lint_unbound_and_owner.py`.
+
+**Decisions for Terrence before building (ask, don't assume):**
+- (a) Harvest source: the NFS copy now (identical for ATPackets, zero blast radius on the other
+  54 modules) — recommended — or a full re-harvest from tb470 (refreshes ATTestSet etc., which
+  the unbound-names and import lints read; wider change, separate step).
+- (b) The ck.db load is stop → load → start on the hosted server: Terrence's hands. Claude
+  produces the tool + a dry-run payload diff in the scratchpad.
+- (c) The `framework` symlink at the repo root: commit, gitignore, or remove.
+- (d) Should the generate prompt show the REAL field lists instead of the corpus-read ones?
+  A prompt change — read its design doc first, then ask.
+
+**Also still pending:** the push (main 4 ahead + this commit); the manual UI check of the
+held-fix flow; the plan's proof run on T44297; follow-up #6.
+
+## Session (2026-09-14) — hygiene pass, then guardrails TRANCHE 1 shipped (G1 + G5 + #4 + G8(a))
 
 **Where it stands.** Orientation found the tree clean and level with origin, gate green (pytest
 1457 / 1 skipped, vitest 280). Nothing shipped in the product; Terrence asked for every hygiene
