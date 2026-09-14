@@ -2,9 +2,40 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-14, night (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-15 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-14, night) — D4 SCOPED, not built; paused by Terrence
+## Latest session (2026-09-15) — D4 BUILT: the scapy known-field lint + the surface harvest tool
+
+**Where it stands.** Terrence said "resume"; he had committed the concurrent stream's memories and
+removed the `framework` symlink (decision c). The decision-independent part of D4 shipped:
+- `_lint_layer_fields` in `routers/pytest_create.py`, hooked in `_lint_generated` 3b after the
+  suite-owned lint (so G6's store path runs it too). Reads `classes[<layer>].fields` from the
+  surface doc via `_surface_layer_fields`; judges `pkt[L].f`, a name bound from `pkt[L]` /
+  `pkt.getlayer(L)`, and `getattr`/`hasattr` with a literal; flat scoping; ambiguous names (also
+  bound from a non-layer, a `for` target, an argument…) are skipped; scapy `Packet` attributes
+  (`_SCAPY_PACKET_ATTRS`) and `_private` names pass. **Blocking** (BLOCKING entry in
+  `tests/test_lint_error_classes.py`). On tc6's real body: exactly port_desc, sys_name, sys_desc.
+- `ask-ck/tools/harvest_framework_surface.py`: `build_framework_surface` + `fields` per class
+  with a literal `fields_desc`; read-only diff by default, `--out`, `--write` only with an
+  explicit `--db`. Run against the NFS clone: **pure addition** — 55 modules unchanged, 28 layers
+  gain a field list (payload dumped to the session scratchpad, not kept).
+- 14 tests in `tests/test_pt_lint_layer_fields.py` (tc6 verbatim, blocking, the no-flag cases,
+  wired-in, G6 refusal of a fix that introduces a phantom field, extraction refusing to guess,
+  the real ATPackets → 28 layers, write goes only to the DB it is given).
+Gate: pytest 1508 passed, 1 skipped / vitest 290 passed; ck.db signature unchanged.
+
+**The lint is SILENT in production until the doc is reloaded.** That is (b), Terrence's hands:
+`ck off` → `python3 ask-ck/tools/harvest_framework_surface.py --write --db ask-ck/db/ck.db` →
+`ck on` (SERVER-README "Framework surface"). Run the tool without `--write` first to see the diff.
+Still open: (d) whether the generate prompt should list the REAL fields instead of the
+corpus-read ones (`_framework_surface_slice` still calls `db.script_layer_fields`) — a prompt
+change, so design doc first, then ask.
+
+**Pick up here:** (1) the reload, then confirm on the hosted server that a phantom read lints red
+(any unit page → the lint panel); (2) **the plan's proof: a fresh Generate → Review → Fix on
+T44297**; (3) decision (d); (4) follow-up #6; (5) the manual UI check of the held-fix flow.
+
+## Session (2026-09-14, night) — D4 SCOPED, not built; paused by Terrence
 
 **Where it stands.** D4 of `ask-ck/plans/PLAN-fix-units-guardrails.md` (the scapy known-field
 check that would have caught tc6's phantom `port_desc` / `sys_name` / `sys_desc`) was costed and

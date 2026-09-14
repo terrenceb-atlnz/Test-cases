@@ -11,6 +11,26 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — D4: a fabricated packet field is a blocking lint error
+
+- **`_lint_layer_fields`** (`routers/pytest_create.py`, run with the other 3b lints and so also
+  at the G6 store path): every attribute read off a `framework.ATPackets` layer — `pkt[L].f`, a
+  name bound from `pkt[L]` / `pkt.getlayer(L)` then `.f`, or `getattr`/`hasattr` with a literal
+  name — must be a field the layer declares or a scapy `Packet` attribute. Flat scoping, like the
+  unbound-names lint; a name also bound from something that is not a layer is not judged; silent
+  for a layer with no field list. **Blocking**, not policy: a read of a field that does not
+  exist observes nothing, so no reviewer judgement turns it into a test. **Why:** fix run 5's tc6
+  on T44297 read `getattr(basicLayer, 'port_desc', None)` off `lldp_basic` (fields chassis_id …
+  ttl_val) and passed on nothing; nothing structural could see it. On tc6's real body the lint
+  reports exactly the three phantom reads and none of the real ones.
+- **`ask-ck/tools/harvest_framework_surface.py`** re-harvests the `framework_surface` json_doc
+  with the same extraction as the original build plus `classes[<layer>].fields` from each
+  layer's `fields_desc` (a literal list only; a computed list is no claim). Default action is a
+  read-only diff against the current doc; `--write` needs an explicit `--db` and the hosted
+  server stopped (stop → load → start, the `cli_commands` precedent). Against the NFS clone the
+  diff is a pure addition: 55 modules unchanged, 28 layers gain a list. **The doc in ck.db is
+  not yet reloaded** — until it is, the lint has no lists and stays silent.
+
 ## 2026-09-14 — Fix units guardrails, tranche 1: `where` is authoritative, structural findings go to a person, the suite's setup is shown to every unit
 
 `ask-ck/plans/PLAN-fix-units-guardrails.md` G1 + G5 + G8(a), plus follow-ups #4. **Why:** the

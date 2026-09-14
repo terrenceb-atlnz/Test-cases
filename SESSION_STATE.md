@@ -4124,3 +4124,15 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Not committed by this session:** two memory files + `MEMORY.md` from the concurrent xrdp-seat
   stream; the `framework` symlink.
 - **Resume:** PROGRESS.md top entry (2026-09-14, night) — it holds the design and the decisions.
+
+## Session Close / Handoff (2026-09-15) — D4 built; the surface-doc reload is Terrence's
+
+- **Context:** "resume" after the 2026-09-14 pause. Terrence had removed the `framework` symlink
+  and committed the other stream's memories. Built only what every open decision leaves the same:
+  the blocking `_lint_layer_fields`, `ask-ck/tools/harvest_framework_surface.py`, 14 tests, the
+  error-class entry, CHANGELOG + SERVER-README ("Framework surface" renewable section).
+- **Not done, by design:** the ck.db reload (server stopped; the lint stays silent until then);
+  decision (d) on the prompt's field lists.
+- **Gate at close:** guards OK; pytest 1508 passed, 1 skipped; vitest 290 passed; ck.db untouched (the harvest was run
+  read-only, payload to the scratchpad).
+- **Resume:** PROGRESS.md top entry (2026-09-15).

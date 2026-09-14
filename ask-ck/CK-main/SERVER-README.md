@@ -572,6 +572,28 @@ invariant: these are the documented renewable tables and it never touches the
 Zephyr/TestLink/ATP/script corpora. Read the reference with `python3 ask-ck/frontend/ck-main/current/pytest-creator/cli_lookup.py
 <command>`, `--prompt-block`, or `--stats` (which reports the load source).
 
+### Framework surface (`json_docs.framework_surface`) — renewable since 2026-09-15
+
+The framework vocabulary the PyTest Creator's prompts and lints read (55 modules: classes,
+methods, functions; and since D4 the **fields** of every `framework.ATPackets` scapy layer, as
+`classes[<layer>].fields`). Built 2026-07-20 from the human-owned NFS clone of the framework
+(`<testbox_home>/DeviceSkrips/framework`; `/home/st-art/framework` exists only on the testboxes,
+and the clone's `ATPackets.py` was byte-identical to tb470's on 2026-09-14). Same class as
+`cli_commands`: a renewable reference, not a built-once corpus.
+
+```bash
+python3 ask-ck/tools/harvest_framework_surface.py                  # read-only diff vs the current doc
+python3 ask-ck/tools/harvest_framework_surface.py --out /tmp/fs.json --framework <tree>
+ck off                                                              # the hosted server MUST be stopped
+python3 ask-ck/tools/harvest_framework_surface.py --write --db ask-ck/db/ck.db
+ck on                                                               # /health -> is_permanent_db: true
+```
+
+`--write` refuses to run without an explicit `--db`, and the write is a single
+`INSERT OR REPLACE` of the one row with `updated_at`. Readers: `_framework_surface_slice`
+(prompt), `_lint_unbound_names`, the import lint, `_surface_methods`, and `_lint_layer_fields`,
+which is silent until the doc carries field lists.
+
 **Grounding (why it exists):** the PyTest Creator prompts demanded "exact CLI fields" while
 showing zero examples of real output, so every model in the Part 2B matrix — Claude Opus
 included — invented a `speed=1000` / `state=up` schema the switch never prints (real output:

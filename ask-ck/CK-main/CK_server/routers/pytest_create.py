@@ -2809,6 +2809,146 @@ def _lint_suite_owned_commands(tree, code: str) -> List[str]:
     return out
 
 
+# --- D4 (PLAN-fix-units-guardrails, 2026-09-15): a field must exist on the layer it is read from
+#
+# Fix run 5's tc6 read `getattr(basicLayer, 'port_desc', None)` off `lldp_basic`, whose real
+# fields are chassis_id … ttl_val — no port_desc, sys_name or sys_desc. The default made every
+# read silently None and the case passed on nothing. Syntax and structure checks cannot see it;
+# only the layer's own field list can. `ask-ck/tools/harvest_framework_surface.py` stores that
+# list as `classes[<layer>].fields` in the surface doc; without it this lint is silent.
+
+# What every scapy `Packet` carries besides its own fields — methods and bookkeeping the script
+# may legitimately reach through `pkt[<layer>]`. Not judged.
+_SCAPY_PACKET_ATTRS = frozenset("""
+    payload underlayer name fields fields_desc default_fields overloaded_fields time sent_time
+    original direction sniffed_on wirelen explicit raw_packet_cache aliastypes packetfields
+    show show2 summary mysummary haslayer getlayer firstlayer lastlayer layers build do_build
+    command copy sprintf answers hashret getfieldval getfield_and_val setfieldval delfieldval
+    get_field fieldtype add_payload remove_payload guess_payload_class dissect do_dissect
+    extract_padding hide_defaults clone_with canvas_dump psdump pdfdump svgdump json route
+    src dst decode_payload_as display fragment iterpayloads
+""".split())
+
+
+def _surface_layer_fields(surface: Optional[dict] = None) -> Dict[str, List[str]]:
+    """{layer: [its real fields]} from the surface doc's ATPackets record. Only layers whose
+    record carries a non-empty `fields` list are returned — the rest cannot be judged."""
+    doc = surface if surface is not None else (_framework_surface_doc() or {})
+    ap = doc.get("ATPackets") or doc.get("framework/ATPackets") or {}
+    out: Dict[str, List[str]] = {}
+    for name, rec in (ap.get("classes") or {}).items():
+        fields = rec.get("fields") if isinstance(rec, dict) else None
+        if isinstance(fields, list) and fields:
+            out[name] = [str(f) for f in fields]
+    return out
+
+
+def _lint_layer_fields(tree, layer_fields: Optional[Dict[str, List[str]]] = None) -> List[str]:
+    """Every attribute read off a `framework.ATPackets` layer — `pkt[<layer>].<f>`, a name bound
+    from `pkt[<layer>]` / `pkt.getlayer(<layer>)` then `.<f>`, or `getattr`/`hasattr` on either
+    with a literal name — must be a field the layer declares, or a scapy `Packet` attribute.
+
+    Scoping is flat, like `_lint_unbound_names`: a name bound from a layer anywhere counts as
+    that layer everywhere, and a name bound from two layers is judged against the union. A name
+    that is ALSO bound from something that is not a layer is ambiguous and is not judged.
+    Silent for a layer with no field list, and entirely when the surface has none.
+    """
+    import ast as ast_mod
+    known = layer_fields if layer_fields is not None else _surface_layer_fields()
+    if not known:
+        return []
+
+    def _layer_of(node) -> Optional[str]:
+        if (isinstance(node, ast_mod.Subscript) and isinstance(node.slice, ast_mod.Name)
+                and node.slice.id in known):
+            return node.slice.id
+        if (isinstance(node, ast_mod.Call) and isinstance(node.func, ast_mod.Attribute)
+                and node.func.attr == "getlayer" and node.args
+                and isinstance(node.args[0], ast_mod.Name) and node.args[0].id in known):
+            return node.args[0].id
+        if isinstance(node, ast_mod.IfExp):
+            return _layer_of(node.body) or _layer_of(node.orelse)
+        return None
+
+    bound: Dict[str, set] = {}
+    ambiguous: set = set()
+    for node in ast_mod.walk(tree):
+        if (isinstance(node, ast_mod.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast_mod.Name)):
+            lay = _layer_of(node.value)
+            if lay:
+                bound.setdefault(node.targets[0].id, set()).add(lay)
+                continue
+            if isinstance(node.value, ast_mod.Constant) and node.value.value is None:
+                continue                              # `x = None` before the real bind
+            ambiguous.add(node.targets[0].id)
+        elif isinstance(node, ast_mod.arg):
+            ambiguous.add(node.arg)
+    for node in ast_mod.walk(tree):                   # for-targets, with-as, comprehensions, walrus
+        if isinstance(node, (ast_mod.For, ast_mod.AsyncFor, ast_mod.comprehension)):
+            for t in ast_mod.walk(node.target):
+                if isinstance(t, ast_mod.Name):
+                    ambiguous.add(t.id)
+        elif isinstance(node, ast_mod.withitem) and node.optional_vars is not None:
+            for t in ast_mod.walk(node.optional_vars):
+                if isinstance(t, ast_mod.Name):
+                    ambiguous.add(t.id)
+        elif isinstance(node, (ast_mod.NamedExpr, ast_mod.AugAssign, ast_mod.AnnAssign)):
+            t = node.target
+            if isinstance(t, ast_mod.Name):
+                ambiguous.add(t.id)
+        elif isinstance(node, ast_mod.Assign) and (len(node.targets) != 1
+                                                   or not isinstance(node.targets[0], ast_mod.Name)):
+            for tgt in node.targets:
+                for t in ast_mod.walk(tgt):
+                    if isinstance(t, ast_mod.Name):
+                        ambiguous.add(t.id)
+    bound = {v: lays for v, lays in bound.items() if v not in ambiguous}
+
+    def _layers_of_target(node) -> set:
+        lay = _layer_of(node)
+        if lay:
+            return {lay}
+        if isinstance(node, ast_mod.Name) and node.id in bound:
+            return bound[node.id]
+        return set()
+
+    spans = [(c.name, c.lineno, c.end_lineno or c.lineno)
+             for c in tree.body if isinstance(c, ast_mod.ClassDef)]
+
+    def _where(line: int) -> str:
+        return next((n for n, a, b in spans if a <= line <= b), "module level")
+
+    hits: Dict[tuple, List[int]] = {}
+    for node in ast_mod.walk(tree):
+        if isinstance(node, ast_mod.Attribute):
+            lays, field = _layers_of_target(node.value), node.attr
+        elif (isinstance(node, ast_mod.Call) and isinstance(node.func, ast_mod.Name)
+              and node.func.id in ("getattr", "hasattr") and len(node.args) >= 2
+              and isinstance(node.args[1], ast_mod.Constant) and isinstance(node.args[1].value, str)):
+            lays, field = _layers_of_target(node.args[0]), node.args[1].value
+        else:
+            continue
+        if not lays or field.startswith("_") or field in _SCAPY_PACKET_ATTRS:
+            continue
+        if any(field in known[lay] for lay in lays):
+            continue
+        hits.setdefault((tuple(sorted(lays)), field), []).append(node.lineno)
+
+    out: List[str] = []
+    for (lays, field), lines in sorted(hits.items(), key=lambda kv: min(kv[1]))[:12]:
+        lines = sorted(set(lines))
+        more = f" (+{len(lines) - 1} more)" if len(lines) > 1 else ""
+        layer = "/".join(lays)
+        declared = ", ".join(known[lays[0]]) if len(lays) == 1 else \
+            "; ".join(f"{lay}: {', '.join(known[lay])}" for lay in lays)
+        out.append(
+            f"unknown field: `{field}` at line {lines[0]}{more} in {_where(lines[0])} — `{layer}` "
+            f"has no such field (declared: {declared}). A read through getattr(..., None) is "
+            f"silently None and a direct read is an AttributeError, so the check observes nothing")
+    return out
+
+
 def _lint_verdict_echo(tree, sequence: List[dict]) -> List[str]:
     """A passed()/failed() reason that IS the step's verify or action text, verbatim. Such a
     reason restates the expectation; the log then carries no evidence of what happened.
@@ -3392,6 +3532,8 @@ def _lint_generated(sess: PtSession) -> dict:
         for _e in _lint_port_owner(tree, code):
             errors.append(_e)
         for _e in _lint_suite_owned_commands(tree, code):       # G8(b), 2026-09-14
+            errors.append(_e)
+        for _e in _lint_layer_fields(tree):                     # D4, 2026-09-15
             errors.append(_e)
         warnings.extend(_lint_verdict_echo(tree, (sess.step2 or {}).get("sequence") or []))
 

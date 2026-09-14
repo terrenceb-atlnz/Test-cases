@@ -73,6 +73,10 @@ BLOCKING = [
     # 2026-09-08: a name nothing defines is a NameError on first use — the first ART-frame
     # pass linted clean with three of them (analyse_lldp_packets, re, LLDP_PHONE_PKT).
     "unbound name: `LLDP_PHONE_PKT` at line 12 in TestCase_28 — nothing defines it: not the frame",
+    # 2026-09-15, D4 of PLAN-fix-units-guardrails: a field the layer does not declare. tc6 read
+    # `getattr(basicLayer, 'port_desc', None)` off lldp_basic and passed on nothing — the test
+    # cannot observe what it claims, so no reviewer judgement makes it a test.
+    "unknown field: `port_desc` at line 834 in TestCase_6 — `lldp_basic` has no such field (declared: chassis_id",
 ]
 
 POLICY = [
