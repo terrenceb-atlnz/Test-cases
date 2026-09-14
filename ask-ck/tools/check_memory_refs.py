@@ -94,6 +94,8 @@ COURIERS = {
 ALLOW = {
     # --- the read-only framework tree + testbox filesystems (never in this repo) ---
     "ATSwitch.py": "framework tree (/home/st-art/framework), read-only, not in repo",
+    "ATPackets.py": "framework tree, read-only, not in repo (NFS clone DeviceSkrips/framework is human-owned)",
+    "ATTestSet.py": "framework tree, read-only, not in repo",
     "Setup.py": "framework tree, read-only, not in repo",
     "DeviceSkrips/framework/Setup.py": "framework tree, read-only, not in repo",
     "ATDrivers/AWPConsoleCore.py": "framework tree, read-only, not in repo",
