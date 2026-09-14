@@ -674,3 +674,50 @@ def test_G8b_through_G6_the_fix_run_5_reply_is_refused_and_the_current_tc1_kept(
     why = pc._unit_lint_regression(guard, fix5_tc1, tc1)
     assert why and "suite-owned" in why and "no lldp run" in why   # G6 + G8(b) refuse it
 
+
+# --- G6(c), scoped: the evidence must be gone — for the kinds where it IS the defect -------------
+
+def test_G6c_a_verdict_mismatch_whose_evidence_line_survives_is_refused_and_a_changed_one_is_not():
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc2"]
+    g = {"current_code": cur, "findings": [{"kind": "verdict_mismatch", "where": "TestCase_2.main",
+                                            "what": "x", "evidence": "self.failed('bad')"}]}
+    why = pc._unit_evidence_gone(g, cur, _unit("tc2"))
+    assert why and "evidence still present" in why and "verdict_mismatch" in why and "self.failed('bad')" in why
+    fixed = cur.replace("self.failed('bad')", "self.failed('OBSERVED: {}'.format(out))")
+    assert pc._unit_evidence_gone(g, fixed, _unit("tc2")) is None
+    # Whitespace-insensitive: a re-indented survivor is still the same line (tokens are not).
+    assert pc._unit_evidence_gone(g, cur.replace("        self.failed('bad')", "            self.failed('bad')"), _unit("tc2"))
+    assert pc._unit_evidence_gone(g, cur.replace("self.failed('bad')", "self.failed( 'bad' )"), _unit("tc2")) is None
+
+
+def test_G6c_does_NOT_judge_the_kinds_whose_evidence_is_context_not_defect():
+    # The real review #1 finding 3: the evidence line is the context of a MISSING line, and
+    # the correct fix keeps it. Scoped out on purpose (Terrence, 2026-09-14).
+    cur = "class TestCase_2(ATTestCase.TestCase):\n    def configure(self):\n        dutA.cmd('lldp management-address {}'.format(a))\n"
+    fixed = cur.replace("        dutA.cmd('lldp management", "        dutA.cmd('lldp tlv-select management-address')\n        dutA.cmd('lldp management")
+    for kind in ("missing_precondition", "cross_unit_inconsistency", "other", "structural"):
+        g = {"current_code": cur, "findings": [{"kind": kind, "where": "TestCase_2.configure", "what": "x",
+                                                "evidence": "dutA.cmd('lldp management-address {}'.format(a))"}]}
+        assert pc._unit_evidence_gone(g, fixed, _unit("tc2")) is None, kind
+
+
+def test_G6c_elided_multi_line_and_foreign_evidence_lines_are_not_judged():
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc2"]
+    g = {"current_code": cur, "findings": [{"kind": "weak_observation", "where": "TestCase_2.main", "what": "x",
+                                            "evidence": "self.log('two') ... self.failed('bad')\n"
+                                                        "some line the unit never had\n"
+                                                        "self.log('two')"}]}
+    # Line 1 is elided (`...`), line 2 is not in the unit; only line 3 counts — and it survives.
+    why = pc._unit_evidence_gone(g, cur, _unit("tc2"))
+    assert why and "self.log('two')" in why
+    assert pc._unit_evidence_gone(g, cur.replace("self.log('two')", "self.log('STEP 4: two')"), _unit("tc2")) is None
+    assert pc._unit_evidence_gone({"current_code": cur, "findings": []}, cur, _unit("tc2")) is None
+
+
+def test_G6c_runs_in_the_store_path_between_the_frozen_check_and_the_lint_and_gets_the_findings():
+    body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
+    assert body.index("_unit_frozen_ok(") < body.index("_unit_evidence_gone(") < body.index("_unit_lint_regression(")
+    assert '"findings": list(reasons["per_unit"][uid]["review"])' in FIX_UNITS
+    assert pc._EVIDENCE_IS_DEFECT_KINDS == ("verdict_mismatch", "weak_observation", "wrong_symbol")
+    assert set(pc._EVIDENCE_IS_DEFECT_KINDS) < set(pc._REVIEW_KINDS)
+

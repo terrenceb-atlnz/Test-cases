@@ -5367,6 +5367,39 @@ def _unit_frozen_ok(current_code: str, new_code: str, unit: dict) -> Tuple[bool,
     return True, ""
 
 
+# G6(c), scoped (Terrence, 2026-09-14): the kinds whose `evidence` quotes the DEFECT itself —
+# a verdict, an observation, a symbol — so a correct fix must change that line. NOT
+# `missing_precondition` / `cross_unit_inconsistency` / `other`: review #1 finding 3 quoted
+# the `lldp management-address` line as evidence of a MISSING `tlv-select`, and the right fix
+# adds a line and keeps that one; applied to those kinds this check refuses correct fixes.
+_EVIDENCE_IS_DEFECT_KINDS = ("verdict_mismatch", "weak_observation", "wrong_symbol")
+
+
+def _norm_ws(s: str) -> str:
+    return " ".join((s or "").split())
+
+
+def _unit_evidence_gone(guard: dict, new_code: str, unit: dict) -> Optional[str]:
+    """For each finding of an evidence-is-defect kind mapped to this unit: every evidence
+    line that is quoted verbatim from the current unit (whitespace-insensitive; elided lines
+    with `...` and lines the current unit does not contain are not judged) must no longer
+    appear in the reply. A line still there means the defect was not addressed."""
+    cur = {_norm_ws(ln) for ln in (guard.get("current_code") or "").split("\n") if ln.strip()}
+    new = {_norm_ws(ln) for ln in (new_code or "").split("\n") if ln.strip()}
+    for f in guard.get("findings") or []:
+        if (f.get("kind") or "") not in _EVIDENCE_IS_DEFECT_KINDS:
+            continue
+        for raw in str(f.get("evidence") or "").split("\n"):
+            ln = _norm_ws(raw)
+            if not ln or "..." in ln or "…" in ln or ln not in cur:
+                continue
+            if ln in new:
+                return (f"finding evidence still present — the {f.get('kind')} finding at "
+                        f"{f.get('where') or '(unit)'} quotes `{ln[:90]}` as the defect and the "
+                        f"reply still contains that line; kept the current unit")
+    return None
+
+
 def _unit_lint_regression(guard: dict, new_code: str, unit: dict) -> Optional[str]:
     """G6(b): splice the returned unit into the CURRENT assembled script and lint the whole
     thing (syntax, unbound names, house rules — the existing linter). Any error the current
@@ -5692,7 +5725,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         ok, why = _unit_frozen_ok(guard.get("current_code") or "", code, unit)
         if not ok:
             return _fail(why, code)
-        why = _unit_lint_regression(guard, code, unit)
+        why = _unit_evidence_gone(guard, code, unit) or _unit_lint_regression(guard, code, unit)
         if why:
             return _fail(why, code)
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
@@ -6303,7 +6336,8 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     if baseline_errors is None:
         baseline_errors = _lint_generated(sess).get("errors") or []
     guards = {uid: {"current_code": synced[uid], "assembled_code": code, "sess": sess,
-                    "baseline_errors": list(baseline_errors)} for uid in targets}
+                    "baseline_errors": list(baseline_errors),
+                    "findings": list(reasons["per_unit"][uid]["review"])} for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
     name = (naming.get("name") or "").strip()

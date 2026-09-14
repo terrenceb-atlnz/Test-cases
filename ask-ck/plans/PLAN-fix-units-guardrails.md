@@ -9,9 +9,9 @@
 > a fix reply must keep every frozen frame line of the CURRENT unit byte for byte (`_unit_frozen_ok`)
 > and must not introduce a lint error the current script does not already carry when spliced
 > in (`_unit_lint_regression`, whole-file lint incl. the new suite-owned-command lint); either
-> refusal keeps the old chunk and records why. **G6(c) (finding evidence must be gone) is NOT
-> built — see the note under G6: as written it refuses correct fixes of the missing-precondition
-> class; needs Terrence's call.** G3 + G7 remain. D4 still OPEN.** Pinned against the real
+> refusal keeps the old chunk and records why. **G6(c) ✅ built SCOPED (Terrence, 2026-09-14,
+> option i): the evidence line must be gone only for `verdict_mismatch` / `weak_observation` /
+> `wrong_symbol`, where the evidence IS the defect; hard refusal.** G3 + G7 remain. D4 still OPEN.** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
@@ -137,13 +137,15 @@ the UI, **excluded from dispatch**. Depends on PROGRESS #4: a constrained `kind`
 `structural` value makes this routable rather than heuristic. → **D3**.
 - Test: finding 5's real dict → structural/unmapped.
 
-### G6 — verify before store  *(RC4)*  — (a) ✅ (b) ✅ 2026-09-14; (c) OPEN, see note
+### G6 — verify before store  *(RC4)*  ✅ (a) (b) 2026-09-14; (c) ✅ scoped, see note
 Before a returned unit is stored: (a) G2 frozen check; (b) an **isolated lint** of the unit
 spliced into the current frame (unbound names, syntax — the existing linter); (c)
 **finding-addressed**: when the finding carries `evidence`, that exact snippet must no longer
 appear in the new unit, else `_fail("finding evidence still present")`. Any failure keeps the
 old chunk and reports why.
-**(c) as written would refuse correct fixes — 2026-09-14, not built pending Terrence.** The real
+**(c) DECIDED 2026-09-14 — built as option (i), `_unit_evidence_gone`: evidence-is-defect kinds only
+(`_EVIDENCE_IS_DEFECT_KINDS`), each evidence line judged whitespace-insensitively, elided (`...`) and
+foreign lines skipped, hard refusal.** The reasoning that scoped it: as written it would refuse correct fixes. The real
 review #1 finding 3 (`missing_precondition`: tc11 configures `lldp management-address` but never
 `lldp tlv-select management-address`) quotes the `management-address` line as its evidence, and
 the correct fix ADDS a line and keeps that one — so "the evidence snippet must no longer

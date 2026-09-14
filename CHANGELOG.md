@@ -52,8 +52,10 @@ verify-before-store, preview/approve) follow in order.
   and the reply spliced into the current script must not add a lint error the script does not
   already have. Either refusal keeps the old chunk and records the reason. Before this, shape
   was the only arrival check, and tc6 was stored re-implemented wholesale. **G6(c)** (the
-  finding's evidence must be gone) is deliberately not built: on the real missing-precondition
-  finding it would refuse the correct fix. Terrence to decide its scope.
+  finding's evidence must be gone) is built SCOPED, on Terrence's call: only for
+  `verdict_mismatch`, `weak_observation` and `wrong_symbol`, where the quoted line is the defect
+  itself. On the real missing-precondition finding the unscoped rule would have refused the
+  correct fix, which adds a line and keeps the quoted one.
 - **G8(b) — suite-owned commands are linted.** A TestCase that re-issues, or undoes, a command
   the suite's `configure()`/`tear_down()` issues on the same device is flagged as a policy
   error naming the harm ("this undo runs before the next case"). Mode navigation and `show`
