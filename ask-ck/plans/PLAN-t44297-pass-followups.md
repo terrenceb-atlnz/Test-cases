@@ -2,7 +2,9 @@
 
 > ## Status (read first)
 >
-> **PROPOSED 2026-09-09 — #5 ROOT-CAUSED AND FIXED 2026-09-10; items 1–4, 6 unimplemented.**
+> **PROPOSED 2026-09-09 — #5 ROOT-CAUSED AND FIXED 2026-09-10; #4 BUILT 2026-09-14 (with
+> guardrails tranche 1: the 7-value enum with `structural`, off-enum → `other` + `kind_raw`, the
+> template/server enum pinned identical); items 1–3, 6 unimplemented.**
 > Written at Terrence's request as the plan
 > for the issues found while driving AWPTCM-T44297 through generate → review → fix on
 > 2026-09-09 (the first full loop on the ART-frame shape). This file is the **authority for
@@ -98,7 +100,7 @@ D5-2 re-scoped.**
 
 ---
 
-## #4 — Tighten the Review(LLM) `kind` vocabulary
+## #4 — Tighten the Review(LLM) `kind` vocabulary  ✅ 2026-09-14 (D4 taken as recommended; built with G5)
 
 **Evidence.** Review #1 on T44297: a parse-index bug (tc6 `baseRow[4]` vs siblings' `[6]`/`[-4]`)
 came back tagged `naming_inconsistency`; a *missing* `lldp tlv-select management-address`

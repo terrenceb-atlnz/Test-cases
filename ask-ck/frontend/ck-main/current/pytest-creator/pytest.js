@@ -1588,11 +1588,15 @@ async function _ptFixUnitsCommon(btn, statusEl) {
   _ptUnitFails = _ptUnitFails.filter(f => !(d.dispatched || []).includes(f.id));
   ptRenderUnits();
   const unm = (d.unmapped || []).length;
+  const structural = d.structural || [];
   if (statusEl) {
     statusEl.textContent = `${(d.dispatched || []).length} unit(s) being fixed`
       + (d.primed ? ` — ${d.primed} first, alone, to warm the prompt cache` : '')
       + `; the script re-assembles and re-lints when they land.`
-      + (unm ? ` ${unm} finding(s) name no unit — use "Fix whole script" for those.` : '');
+      + (unm ? ` ${unm} finding(s) name no unit — use "Fix whole script" for those.` : '')
+      // G5 (PLAN-fix-units-guardrails): a structural finding is a design decision. It is
+      // never sent to a model; the reason is shown so the reviewer can take that decision.
+      + (structural.length ? ` ${structural.length} structural finding(s) need a design decision, not a fix: ${structural.join(' · ')}` : '');
   }
   _ptOnUnitsSettled = async () => {
     await ptRefreshSession();
@@ -1611,7 +1615,8 @@ async function _ptFixUnitsCommon(btn, statusEl) {
         + `(iteration ${((ptSession || {}).step6 || {}).iterations || '?'}); lint `
         + `${fu.lint_ok ? 'ok' : `FAILED (${fu.lint_errors} error(s))`}. `
         + `The old review was cleared — run Review to see what remains.`
-        + ((fu.unmapped || []).length ? ` ${fu.unmapped.length} finding(s) still need "Fix whole script".` : '');
+        + ((fu.unmapped || []).length ? ` ${fu.unmapped.length} finding(s) still need "Fix whole script".` : '')
+        + ((fu.structural || []).length ? ` ${fu.structural.length} structural finding(s) still need a design decision: ${fu.structural.join(' · ')}` : '');
     }
   };
   _ptStartUnitPoll();

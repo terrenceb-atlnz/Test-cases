@@ -4988,7 +4988,44 @@ def _pt_generation_context(key: str, data: dict, sess: PtSession) -> dict:
         # miss for every such unit — so they are answered once for the whole case here.
         "case_py2_flagged": any(f.get("py2_flagged") for f in fragments),
         "case_cli_reference": bool(_cli_reference_block(sequence, fragments)),
+        # G8(a): case-level too — the suite's configure() body is the same for every unit.
+        "suite_setup_body": _suite_setup_body(sess),
     }
+
+
+def _configure_method_of(setup_unit_text: str) -> str:
+    """The `configure()` method of a setup unit, verbatim (D7 of the guardrails plan: the
+    body itself, not a derived command list), dedented; '' when there is none."""
+    import textwrap
+    lines = (setup_unit_text or "").split("\n")
+    start = next((i for i, ln in enumerate(lines) if re.match(r"\s*def configure\(", ln)), None)
+    if start is None:
+        return ""
+    end = next((i for i in range(start + 1, len(lines))
+                if re.match(r"\s*def tear_down\(", lines[i])), len(lines))
+    body = "\n".join(lines[start:end]).rstrip()
+    return textwrap.dedent(body)
+
+
+def _suite_setup_body(sess: PtSession) -> str:
+    """G8(a) (RC6): what `TestSet.configure()` currently issues, for the shared half of
+    every unit prompt. The assembled script on screen wins (it carries hand-edits, and
+    fix_units re-syncs the chunks from it); before any assembly the generated setup chunk
+    is used; before the setup unit exists there is nothing to show and the block is
+    omitted. So at first generation the case units do not see it (the setup unit is still
+    being written) and every fix pass does — the shared half changes once, when the setup
+    lands, which is the honest cache boundary."""
+    step6 = sess.step6 or {}
+    text = ""
+    code = ((step6.get("files") or {}).get("test") or {}).get("code") or ""
+    if code:
+        setup = next((u for u in _skeleton_units(code) if u["id"] == "setup"), None)
+        text = setup["block"] if setup else ""
+    if not text:
+        ch = (step6.get("chunks") or {}).get("setup") or {}
+        if ch.get("status") == "ok":
+            text = ch.get("code") or ""
+    return _configure_method_of(text)
 
 
 def _fragments_for_unit(unit: dict, ctx: dict) -> List[dict]:
@@ -5142,6 +5179,7 @@ def _render_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: 
         "device_note": _fragment_device_note(frags, ctx["devices"]),
         "py2_flagged": ctx["case_py2_flagged"],
         "rules_cli_reference": ctx["case_cli_reference"],
+        "suite_setup_body": ctx.get("suite_setup_body") or "",
         "split_marker": _PT_PROMPT_SPLIT,
         "model_name": (_llm_cfg_for(sess, "unit_fill").get("model") or "unknown"),
         "gen_date": utc_now().strftime("%Y-%m-%d"),
@@ -5729,8 +5767,15 @@ def _review_lint_findings(sess: PtSession) -> List[str]:
     return out
 
 
-_REVIEW_KINDS = ("verdict_mismatch", "helper_signature", "naming_inconsistency",
-                 "duplicate_setup", "weak_observation", "other")
+# The Review(LLM) `kind` vocabulary — follow-ups #4 (PLAN-t44297-pass-followups), built
+# 2026-09-14. Small and DEFINED (each value has a one-line definition in
+# pt_review_script.jinja; a test pins the two lists identical) because G5 of
+# PLAN-fix-units-guardrails ROUTES on it: a `structural` finding goes to a human, never to
+# the fixer. Anything off-enum folds to `other` with the model's tag kept on the finding as
+# `kind_raw` — the 2026-09-09 review tagged a parse-index bug `naming_inconsistency` and a
+# MISSING precondition `duplicate_setup`, so a tag is audit data, never grounds to reject.
+_REVIEW_KINDS = ("verdict_mismatch", "weak_observation", "wrong_symbol",
+                 "cross_unit_inconsistency", "missing_precondition", "structural", "other")
 _REVIEW_SEVERITIES = ("high", "medium", "low")
 _REVIEW_ORDER = {s: i for i, s in enumerate(_REVIEW_SEVERITIES)}
 
@@ -5756,7 +5801,7 @@ def _normalize_findings(raw: Any, sequence: List[dict]) -> List[dict]:
         sev = str(f.get("severity") or "").strip().lower()
         step = f.get("step")
         step_n = str(step) if step is not None and str(step) in valid_steps else None
-        out.append({
+        row = {
             "severity": sev if sev in _REVIEW_SEVERITIES else "medium",
             "kind": kind if kind in _REVIEW_KINDS else "other",
             "where": str(f.get("where") or "").strip(),
@@ -5764,7 +5809,10 @@ def _normalize_findings(raw: Any, sequence: List[dict]) -> List[dict]:
             "what": what,
             "evidence": str(f.get("evidence") or "").strip(),
             "suggestion": str(f.get("suggestion") or "").strip(),
-        })
+        }
+        if kind and kind not in _REVIEW_KINDS:
+            row["kind_raw"] = kind          # never invent a tag; keep what the model said
+        out.append(row)
     out.sort(key=lambda f: _REVIEW_ORDER.get(f["severity"], 1))
     return out
 
@@ -5814,7 +5862,24 @@ def _unit_id_for_text(text: str, code_units: List[dict]) -> Optional[str]:
 
 
 def _unit_id_for_finding(f: dict, ctx: dict, code_units: List[dict]) -> Optional[str]:
-    uid = _unit_id_for_text(f"{f.get('where') or ''} {f.get('evidence') or ''}", code_units)
+    """Which unit a review finding is ABOUT. `where` is authoritative (G1, RC1 of
+    PLAN-fix-units-guardrails): the reviewer's stated location is resolved ALONE first, and
+    `evidence`, then `step`, are consulted only when `where` names nothing.
+
+    Before 2026-09-14 `where` and `evidence` were concatenated and searched for a class
+    name, so prose in the evidence hijacked the target: T44297 review #2 finding 5 said
+    where=TestSet.configure and its evidence mentioned "TestCase_1 logs 'STEP 1'" — the fix
+    landed on tc1, a unit the finding was not about, and cost an Opus review to discover.
+    A `where` on the suite (`TestSet…`) can therefore never yield a TestCase.
+    """
+    ids = {u["id"] for u in code_units}
+    where = str(f.get("where") or "")
+    if re.search(r"\bTestSet\b", where) and "setup" in ids:
+        return "setup"
+    uid = _unit_id_for_text(where, code_units)
+    if uid:
+        return uid
+    uid = _unit_id_for_text(str(f.get("evidence") or ""), code_units)
     if uid:
         return uid
     step = f.get("step")
@@ -5824,6 +5889,37 @@ def _unit_id_for_finding(f: dict, ctx: dict, code_units: List[dict]) -> Optional
         src = _unit_source_step(u, ctx["tc_steps"])
         if src and str(src.get("n")) == str(step):
             return u["id"]
+    return None
+
+
+# G5 (RC5): a finding whose resolution is a DESIGN change is indistinguishable, to the
+# fixer, from a one-line condition fix — so it used to be regenerated like one, producing
+# scope changes nobody approved. Two shapes are routable without a model: the finding asks
+# for a verdict inside the config-only suite setup (D3: ALWAYS structural — the setup unit
+# is config-only by the framework contract), or its suggestion implies adding a case or
+# moving a step. Plus the reviewer's own `structural` tag (follow-ups #4).
+_VERDICT_ASK_RX = re.compile(
+    r"\bpass(ed)?\s*/\s*fail|\bpassed\(|\bfailed\(|\bassert\w*\b|\bverdict\b|"
+    r"\bverif(y|ies|ied|ication)\b|\bcheck(s|ed)?\s+that\b", re.I)
+_CASE_CHANGE_RX = re.compile(
+    # "add a (new) TestCase / case"  — the article or the class word must follow directly,
+    # so "Add `dutA.cmd(...)`" (a fix) and "add a case-specific settle" do not match.
+    r"\b(add|create|introduce)\w*\s+(a |an |one |another )?(new |separate |dedicated )?"
+    r"(test ?case|testcase_?\d*|case)\b(?!-)|"
+    # "split/move … into/to a (new) case / its own case / unit"
+    r"\b(split|move)\b[^.;]{0,60}?\b(to|into)\s+(a |an |another |its own )?"
+    r"(new |separate |dedicated )?(test ?case|testcase_?\d*|case|unit)\b(?!-)", re.I)
+
+
+def _structural_reason(f: dict, uid: Optional[str]) -> Optional[str]:
+    """Why this finding must go to a human instead of the fixer, or None if it is fixable."""
+    if (f.get("kind") or "") == "structural":
+        return "the reviewer tagged it structural"
+    text = f"{f.get('what') or ''} {f.get('suggestion') or ''}"
+    if uid == "setup" and _VERDICT_ASK_RX.search(text):
+        return "asks for a verdict in the config-only suite setup"
+    if _CASE_CHANGE_RX.search(str(f.get("suggestion") or "")):
+        return "implies adding a case or moving a step"
     return None
 
 
@@ -5845,8 +5941,16 @@ def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
             slot(uid)["lint"].append(str(e))
         else:
             unmapped.append(f"lint: {e}")
+    structural: List[str] = []
     for f in ((step6.get("review") or {}).get("findings")) or []:
         uid = _unit_id_for_finding(f, ctx, code_units)
+        why = _structural_reason(f, uid)
+        if why:
+            # G5: reported with its reason and NEVER dispatched — a design decision, not a
+            # regeneration. Kept apart from `unmapped`, which the whole-script Fix owns.
+            structural.append(f"structural: {f.get('where') or '(script)'} — "
+                              f"{f.get('what') or ''} [{why}]")
+            continue
         if uid:
             slot(uid)["review"].append(f)
         else:
@@ -5870,7 +5974,8 @@ def _fix_reasons(sess: PtSession, ctx: dict, code: str) -> dict:
                 sl["excerpt"] = excerpts.get(c.get("name") or "", "")
             else:
                 unmapped.append(f"run: {c.get('name')} {c.get('result')}")
-    return {"per_unit": per, "unmapped": unmapped, "code_units": code_units}
+    return {"per_unit": per, "unmapped": unmapped, "structural": structural,
+            "code_units": code_units}
 
 
 def _chunks_from_code(code: str, ctx: dict) -> Dict[str, str]:
@@ -5941,13 +6046,18 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     if not ctx["units"]:
         raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
     reasons = _fix_reasons(sess, ctx, code)
-    if not reasons["per_unit"] and not reasons["unmapped"]:
+    if not reasons["per_unit"] and not reasons["unmapped"] and not reasons["structural"]:
         raise HTTPException(409, "Nothing to fix: no lint errors, review findings or failed "
                                  "run results.")
     if not reasons["per_unit"]:
-        raise HTTPException(409, f"None of the {len(reasons['unmapped'])} finding(s) names a "
-                                 f"unit — use the whole-script Fix for these: "
-                                 + "; ".join(reasons["unmapped"][:5]))
+        parts = []
+        if reasons["structural"]:
+            parts.append(f"{len(reasons['structural'])} structural finding(s) need a design "
+                         f"decision, not a model fix: " + "; ".join(reasons["structural"][:3]))
+        if reasons["unmapped"]:
+            parts.append(f"{len(reasons['unmapped'])} finding(s) name no unit — use the "
+                         f"whole-script Fix for these: " + "; ".join(reasons["unmapped"][:5]))
+        raise HTTPException(409, " ".join(parts))
     synced = _chunks_from_code(code, ctx)
     missing = [u["id"] for u in ctx["units"] if u["id"] not in synced]
     if missing:
@@ -5972,7 +6082,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     targets = [uid for uid in reasons["per_unit"] if uid in by_id and uid not in already]
     if not targets:
         return {"dispatched": [], "already_running": sorted(already),
-                "unmapped": reasons["unmapped"]}
+                "unmapped": reasons["unmapped"], "structural": reasons["structural"]}
     llm_cfg = _llm_cfg_for(sess, "unit_fill")
     prepared = [(uid, by_id[uid],
                  _fix_unit_prompt(key, data, sess, ctx, by_id[uid], synced[uid],
@@ -6014,7 +6124,8 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     async def _chain():
         await _run_primed_and_wait(prepared, _one)
         record: Dict[str, Any] = {"at": utc_now().isoformat(), "units": targets,
-                                  "unmapped": reasons["unmapped"], "assembled": False}
+                                  "unmapped": reasons["unmapped"],
+                                  "structural": reasons["structural"], "assembled": False}
         try:
             fresh = _pt_load(key)
             chunks = ((fresh.step6 if fresh else None) or {}).get("chunks") or {}
@@ -6044,7 +6155,7 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
 
     asyncio.create_task(_chain())
     return {"dispatched": targets, "already_running": sorted(already),
-            "unmapped": reasons["unmapped"],
+            "unmapped": reasons["unmapped"], "structural": reasons["structural"],
             "primed": targets[0] if len(targets) > 1 else None,
             "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"]),
                              "run": bool(r["run"])}

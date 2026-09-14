@@ -4,7 +4,7 @@
 
 **Last Updated**: 2026-09-14 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-14) — hygiene pass: the restructure's missed pointer sweep, memory citations cleared, 15 memories re-verified
+## Latest session (2026-09-14) — hygiene pass, then guardrails TRANCHE 1 shipped (G1 + G5 + #4 + G8(a))
 
 **Where it stands.** Orientation found the tree clean and level with origin, gate green (pytest
 1457 / 1 skipped, vitest 280). Nothing shipped in the product; Terrence asked for every hygiene
@@ -37,13 +37,29 @@ find from the briefing to be acted on, then this wrap, then the guardrails.
   old transcripts under `~/.claude/projects/` from pre-split launch dirs — outside the write
   boundary, left for Terrence.
 
-**Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db signature unchanged.
+**Later the same day — guardrails tranche 1 shipped** (`PLAN-fix-units-guardrails.md`, status
+header + "Order" record what was built; CHANGELOG top entry has the why). In one sentence each:
+G1 — `_unit_id_for_finding` resolves `where` alone, then `evidence`, then `step`, and a `TestSet`
+`where` can never yield a TestCase. G5 — `_structural_reason()` routes the reviewer's
+`structural` tag, a verdict asked of the config-only setup (D3), or an add-a-case/move-a-step
+suggestion to a separate `structural` list (endpoint reply, stored record, UI status), never
+dispatched. #4 — the 7-value review `kind` enum with definitions in the prompt, off-enum →
+`other` + `kind_raw`, template and server pinned identical. G8(a) — `_suite_setup_body()` puts
+the suite's `configure()` body in the shared half as "Given by `TestSet.configure()` — never
+re-issue, never undo", with the SELF-CONTAINED and fix-rule carve-outs. **Proof:** the real
+T44297 dicts (review #2 finding 5; review #1 finding 3) are the fixtures; mutation-checked (old
+targeting → tc1; without G5 the setup unit is dispatched). 12 new pytest, 1 new Vitest.
+**Observation, not acted on:** the whole-script Fix still reads every review finding,
+structural ones included — the plan scopes G5 to `fix_units`; Terrence to say if that should
+change.
 
-**Pick up here:** unchanged from 2026-09-11 — (1) **guardrails tranche 1: G1 + G5 (+ follow-ups
-#4) + G8(a)** from `ask-ck/plans/PLAN-fix-units-guardrails.md`; (2) the **D4** decision (tranche 1
-does not depend on it); (3) the design branch from `ask-ck/frontend/ck-main/svelte/`. Verified
-this session that nothing of the plan has shipped: `_unit_id_for_finding` still concatenates
-`where` + `evidence` (RC1).
+**Gate at close:** guards OK; **pytest 1469 passed / 1 skipped; vitest 281**; ck.db signature unchanged.
+
+**Pick up here:** (1) **guardrails, next in order: G4** (untouched units are never written), then
+G2 + G6 + G8(b), then G3 + G7 (+ follow-ups #1–#3 per D6) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
+§Order; (2) the **D4** decision (still open; G6 is where it lands); (3) the fresh Generate →
+Review → Fix on T44297 is the proof once the plan is complete; (4) the design branch from
+`ask-ck/frontend/ck-main/svelte/`.
 
 ---
 

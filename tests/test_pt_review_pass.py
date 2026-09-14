@@ -241,3 +241,32 @@ def test_the_prompt_protects_the_fixed_frame_and_the_provenance_tags():
     tpl = (_SERVER / "templates" / "prompts" / "pt_review_script.jinja").read_text(encoding="utf-8")
     assert "fixed frame" in tpl
     assert "provenance" in tpl
+
+
+# --- the kind enum (follow-ups #4, 2026-09-14) — routable because G5 routes on it ----------
+
+def test_the_template_enum_and_the_servers_are_the_same_list():
+    # The two must not drift: the prompt teaches the vocabulary, the server folds to it.
+    tpl = (_SERVER / "templates" / "prompts" / "pt_review_script.jinja").read_text(encoding="utf-8")
+    m = re.search(r'"kind": "([a-z_|]+)"', tpl)
+    assert m, "the review prompt no longer shows the kind enum"
+    assert tuple(m.group(1).split("|")) == pc._REVIEW_KINDS
+    for k in pc._REVIEW_KINDS:                       # each value is DEFINED, not just listed
+        assert re.search(rf"^- `{k}` — ", tpl, re.M), k
+    assert "structural" in pc._REVIEW_KINDS
+
+
+def test_an_off_enum_tag_folds_to_other_and_keeps_the_raw_tag_for_audit():
+    # The two real 2026-09-09 tags: one was in the OLD enum, one never was. Both fold; both
+    # keep what the model said; an in-enum tag carries no `kind_raw`.
+    out = pc._normalize_findings([
+        {"what": "parse index", "kind": "naming_inconsistency", "severity": "medium"},
+        {"what": "missing tlv-select", "kind": "duplicate_setup", "severity": "medium"},
+        {"what": "fine", "kind": "missing_precondition", "severity": "low"},
+        {"what": "blank tag", "kind": "", "severity": "low"}], SEQ)
+    by = {f["what"]: f for f in out}
+    assert by["parse index"]["kind"] == "other" and by["parse index"]["kind_raw"] == "naming_inconsistency"
+    assert by["missing tlv-select"]["kind"] == "other" and by["missing tlv-select"]["kind_raw"] == "duplicate_setup"
+    assert by["fine"]["kind"] == "missing_precondition" and "kind_raw" not in by["fine"]
+    assert by["blank tag"]["kind"] == "other" and "kind_raw" not in by["blank tag"]
+

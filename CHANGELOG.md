@@ -11,6 +11,36 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-14 — Fix units guardrails, tranche 1: `where` is authoritative, structural findings go to a person, the suite's setup is shown to every unit
+
+`ask-ck/plans/PLAN-fix-units-guardrails.md` G1 + G5 + G8(a), plus follow-ups #4. **Why:** the
+T44297 pass (2026-09-09) cost six rework runs out of eight because the per-unit fixer could
+touch units a finding never named. Three of the six root causes are closed here without a
+model in the loop; the rest (frozen-line check, blast-radius diff, no-untouched-writes,
+verify-before-store, preview/approve) follow in order.
+
+- **G1 — the reviewer's `where` alone picks the unit.** `_unit_id_for_finding` used to search
+  `where` + `evidence` together for a class name, so prose in the evidence ("TestCase_1 logs
+  'STEP 1'") hijacked a finding about `TestSet.configure` onto tc1. Now `where` is resolved
+  first and alone; `evidence`, then `step`, are fallbacks; a `where` on the suite can never
+  yield a TestCase. Pinned against the real review #2 finding 5.
+- **G5 — structural findings are a design decision, never a regeneration.** A finding is
+  structural when the reviewer tags it so, when it asks for a verdict inside the config-only
+  suite setup (D3: always), or when its suggestion adds a case or moves a step. They are
+  reported with the reason (endpoint reply, stored `fix_units` record, UI status), excluded from
+  dispatch, and kept apart from `unmapped`, which stays the whole-script Fix's job.
+- **Follow-ups #4 — the review `kind` enum is small and defined**: `verdict_mismatch`,
+  `weak_observation`, `wrong_symbol`, `cross_unit_inconsistency`, `missing_precondition`,
+  `structural`, `other`, each defined in the prompt; an off-enum tag folds to `other` and the
+  model's tag is kept on the finding as `kind_raw`. A test pins the template and server lists
+  identical, because G5 now routes on the value.
+- **G8(a) — every unit sees what `TestSet.configure()` issues.** The suite's `configure()` body
+  (verbatim, D7) renders in the SHARED half of the unit prompt as "Given by `TestSet.configure()`
+  — never re-issue, never undo"; the SELF-CONTAINED rule is carved out to other cases' state
+  and the fix rule says a precondition is missing only if neither the suite nor the unit sets
+  it. The fix that added `no lldp run` to tc1's tear_down — which would have disabled LLDP for
+  the 36 cases behind it — had no way to know the suite owned that command.
+
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
 
 Terrence's brief (`ask-ck/plans/PLAN-restructure-2026-09-11.md`): tidy the root, archive or delete

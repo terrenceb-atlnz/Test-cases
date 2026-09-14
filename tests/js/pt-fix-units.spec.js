@@ -56,6 +56,12 @@ describe('the handler', () => {
     expect(body).toMatch(/unmapped/);
     expect(body).toMatch(/Fix whole script/);
   });
+  it('shows structural findings as a design decision, with the reason, never as a fix (G5)', () => {
+    expect(body).toMatch(/d\.structural/);
+    expect(body).toMatch(/need a design decision/);
+    expect(body).toMatch(/structural\.join/);        // the server's reason text is shown, not just a count
+    expect(body).toMatch(/fu\.structural/);          // and again when the units land
+  });
 });
 
 describe('the poll', () => {

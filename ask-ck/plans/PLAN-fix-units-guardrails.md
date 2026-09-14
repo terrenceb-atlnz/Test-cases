@@ -2,7 +2,15 @@
 
 > ## Status (read first)
 >
-> **DECIDED 2026-09-11 — implementation starting; nothing shipped yet.** Terrence took the
+> **TRANCHE 1 SHIPPED 2026-09-14 — G1 ✅, G5 ✅ (with follow-ups #4, the `kind` enum), G8(a) ✅;
+> G2, G3, G4, G6, G7, G8(b) remain, in the order below. D4 still OPEN.** Pinned against the real
+> T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
+> dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
+> sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
+> vitest 281. One observation for Terrence, not acted on: the whole-script Fix (out of scope
+> here) still reads every review finding, structural ones included — G5 guards `fix_units` only.
+>
+> Previously **DECIDED 2026-09-11 — implementation starting; nothing shipped yet.** Terrence took the
 > recommendations on D1, D2, D3, D6 and D7 as written (table at the end); D4 awaits a cost
 > analysis (leaning yes); D5 is closed. Scope is the WHOLE plan, G1–G8 in the order below,
 > and the proof is a fresh Generate → Review → Fix run on T44297 afterwards — the pre-guardrail
@@ -82,7 +90,7 @@ the correct part and the regression came from following the rules as written. Ha
 
 ## Guardrails — one per root cause
 
-### G1 — `where` is authoritative; `evidence` is fallback only  *(RC1)*
+### G1 — `where` is authoritative; `evidence` is fallback only  *(RC1)*  ✅ 2026-09-14
 Resolve the target from `where` **alone** first: class name → `tcN`; setup reference →
 `setup`. Only when `where` resolves to nothing, fall back to `evidence`, then `step`. A
 `where` that names `TestSet`/`configure()`/`tear_down()` can **never** yield a `tcN`.
@@ -113,7 +121,7 @@ per-fix write footprint that PROGRESS #5 blames.
 - Test (mutate-before-you-claim): run a fix targeting tc6 with a hand-edited tc9; assert tc9's
   chunk is rewritten **and** tc11's `at` is byte-unchanged.
 
-### G5 — structural findings route to a decision, never to the fixer  *(RC5)*
+### G5 — structural findings route to a decision, never to the fixer  *(RC5)*  ✅ 2026-09-14
 Classify a finding **structural** when it maps to `setup` AND asks for a verdict/assertion (the
 setup unit is config-only by contract), or its `suggestion` implies adding a case or moving a
 step. Structural → `unmapped` with reason *"structural — needs a design decision"*, shown in
@@ -139,7 +147,7 @@ review-driven fixes (the class that drifts), **auto-apply** for lint-only fixes 
 low risk). A bad fix then costs one look at a diff, not an Opus review. This is also the
 mechanism G3's "held" state lands in. → **D2**.
 
-### G8 — suite-owned state is shown to the fixer and protected by lint  *(RC6)*
+### G8 — suite-owned state is shown to the fixer and protected by lint  *(RC6)*  — (a) ✅ 2026-09-14, (b) open
 (a) **Prompt.** Add a *"Given by `TestSet.configure()` — never re-issue, never undo"* block
 carrying the setup unit's `configure()` body verbatim, placed in the **shared half** (cached
 once per case, same for every unit). Reword the fix rule: *"A precondition is missing only if
@@ -155,6 +163,18 @@ tc1 gained. Positive form: `lldp run` in tc1 → flagged; `lldp tlv-select port-
   `lldp run` and `no lldp run`; the rendered fix prompt contains the setup body. → **D7**.
 
 ## Order
+
+**Tranche 1 done 2026-09-14.** As built: G1 resolves `where` alone (a `TestSet` `where` can
+never yield a TestCase), then `evidence`, then `step`. G5 = `_structural_reason()`: the
+reviewer's `structural` tag, a verdict asked of the `setup` unit (D3), or a suggestion that
+adds a case / moves a step → a separate `structural` list (reason included) in `_fix_reasons`,
+the endpoint reply, the stored `fix_units` record and the UI status — never dispatched, and
+kept apart from `unmapped` (which the whole-script Fix owns). G8(a) = `_suite_setup_body()`
+(assembled script wins, then the ok setup chunk, else omitted) rendered as a "Given by
+`TestSet.configure()` — never re-issue, never undo" block ABOVE the split marker, with the
+SELF-CONTAINED rule carved out and the fix rule reworded; the setup unit's own half says the
+block is its current version. Cache consequence, accepted: at first generation the case
+units do not see the block (the setup unit is still being written); every fix pass does.
 
 G1 + G5 + G8(a) first (targeting + the prompt block — they stop the wrong-unit and
 suite-state classes outright and are small) → G4 (no untouched writes) → G2 + G6 + G8(b)

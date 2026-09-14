@@ -100,11 +100,27 @@ files outside it — you are returning one block, not a script.
 ## One rule that exists ONLY for units: EVERY UNIT IS SELF-CONTAINED
 Your `TestCase` runs after `TestSet.configure()` and after the previous case's own
 `tear_down()`. Assume NOTHING another `TestCase` configured is still in effect when your
-`main()` starts — only what `configure()` set up. If your step's action presumes a state
-("with all optional TLVs now selected", "with the port already in the VLAN"), ESTABLISH that
-state yourself in `main()` before you verify it, and undo it in your own `tear_down()`. Never
-skip a precondition because an earlier step "already did it": it did, and then it was torn
-down. On a real pass 6 of 38 units failed for exactly this reason and for no product reason.
+`main()` starts — only what `configure()` set up: the suite's `TestSet.configure()`{% if suite_setup_body %} (shown
+next){% endif %}, which IS in effect for every case, and your own. If your step's action presumes a
+state ("with all optional TLVs now selected", "with the port already in the VLAN") that
+neither establishes, ESTABLISH that state yourself in `main()` before you verify it, and undo
+it in your own `tear_down()`. Never skip a precondition because an earlier CASE "already did it":
+it did, and then it was torn down. On a real pass 6 of 38 units failed for exactly this
+reason and for no product reason. This rule is about OTHER TEST CASES' state, never the
+suite's — see the next section.
+{% if suite_setup_body %}
+
+## Given by `TestSet.configure()` — never re-issue, never undo
+The suite's one-time setup below runs ONCE before the first case, and the suite's
+`tear_down()` reverts it after the LAST case. Treat this state as GIVEN in every `TestCase`:
+never re-issue one of these commands in a case's `configure()` or `main()`, and never undo
+one in a case's `tear_down()` — that undo runs before the NEXT case and breaks every case
+after it (on a real pass a fix added `no lldp run` to one case's tear_down and would have
+disabled LLDP for the 36 cases behind it).
+```python
+{{ suite_setup_body }}
+```
+{% endif %}
 {% if library and library.framework_dupes %}
 ## Selected fragments that duplicate `framework.ATPackets` — NOT shipped, already imported by the frame
 {{ library.framework_dupes | join(', ') }}: the frame's `from framework.ATPackets import *` provides the real layers.
@@ -151,6 +167,10 @@ The sequence steps classified as setup:
 {% for s in setup_steps %}
 - **Step {{ s.n }}** — {{ s.action }}
 {%- endfor %}
+{% if suite_setup_body %}
+The "Given by `TestSet.configure()`" section above is the CURRENT version of the pair you are
+filling — it binds the test cases, not you. Return the corrected pair.
+{% endif %}
 {% else %}
 ## Your unit: TestCase_{{ tc_n }}
 This class implements **sequence step {{ source_n }}**.

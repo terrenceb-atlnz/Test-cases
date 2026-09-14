@@ -44,6 +44,10 @@ correspond to it.
    another having run first.
 5. **An observation that cannot support its verdict** — asserting on a field the logged command
    does not print, or a substring match loose enough to pass on unrelated output.
+6. **A defect whose fix is a DESIGN change, not a code change** — a verification that can only
+   live in the config-only `TestSet.configure()`, a step that needs a test case the script does
+   not have, a step that belongs in a different case. Report it with `kind: structural`; it is
+   routed to a person and never auto-fixed, so say what decision is needed.
 
 ## Rules
 - Report a finding only when you can point at the specific lines. No speculative or stylistic
@@ -64,7 +68,7 @@ Return ONLY this JSON object, no prose and no code fences:
   "findings": [
     {
       "severity": "high|medium|low",
-      "kind": "verdict_mismatch|helper_signature|naming_inconsistency|duplicate_setup|weak_observation|other",
+      "kind": "verdict_mismatch|weak_observation|wrong_symbol|cross_unit_inconsistency|missing_precondition|structural|other",
       "where": "TestCase_14.main",
       "step": 14,
       "what": "one sentence naming the defect",
@@ -75,4 +79,14 @@ Return ONLY this JSON object, no prose and no code fences:
 }
 
 `step` is the sequence step number when the finding sits inside a `TestCase_<n>`, otherwise null.
+`where` is the class and method the defect is IN (`TestCase_14.main`, `TestSet.configure`); the
+fix is routed by `where` alone, so name the unit that must change, not one the evidence mentions.
+`kind` is exactly one of:
+- `verdict_mismatch` — the verdict claims more, less or other than what the code checks
+- `weak_observation` — passes on presence or CLI agreement instead of the observed value
+- `wrong_symbol` — an unbound, fabricated or mis-used name, attribute, layer or signature
+- `cross_unit_inconsistency` — units disagree on a shared convention (handles, ports, parsing)
+- `missing_precondition` — state the step depends on is established by nothing
+- `structural` — needs a new case, a moved step, or a verdict in the config-only setup (a design decision)
+- `other` — none of the above; never invent a new tag
 Order findings most severe first.

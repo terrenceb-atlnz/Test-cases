@@ -4068,7 +4068,7 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Resume:** PROGRESS.md top entry (2026-09-11 afternoon), then plan §7.
 
 
-## Session Close / Handoff (2026-09-14) — hygiene pass; guardrails tranche 1 next
+## Session Close / Handoff (2026-09-14) — hygiene pass; then guardrails tranche 1 (see the supplement below)
 
 - **Context:** `/orient-ck` found a clean tree, level with origin, gate green. Terrence asked for
   all hygiene finds to be acted on. Done: the pointer sweep the restructure missed in PROGRESS.md
@@ -4082,3 +4082,16 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-14), then `ask-ck/plans/PLAN-fix-units-guardrails.md`
   — tranche 1 (G1 + G5 + G8(a)) starts in the same session.
+
+## Session Close / Handoff (2026-09-14, later) — guardrails tranche 1 SHIPPED: G1 + G5 (+ follow-ups #4) + G8(a)
+
+- **Context:** after the hygiene commit Terrence said "continue with the guardrails". Built as the
+  plan's tranche 1, one commit: `where`-only targeting (G1), structural routing with the new
+  7-value review `kind` enum (G5 + #4), and the suite's `configure()` body in the shared half of
+  every unit prompt (G8(a)). Fixtures are the real T44297 dicts from the debug log; both
+  guardrails mutation-checked against the pre-change behaviour. Plan status headers (both
+  plans), CHANGELOG (why) and PROGRESS.md (what/next) updated.
+- **Left undone / open:** G4, G2 + G6 + G8(b), G3 + G7 in the plan's order; D4 open; the
+  whole-script Fix still consumes structural findings (out of the plan's scope — flagged).
+- **Gate at close:** guards OK; pytest 1469 passed / 1 skipped; vitest 281; ck.db untouched.
+- **Resume:** PROGRESS.md top entry (2026-09-14), then the guardrails plan §Order → G4.
