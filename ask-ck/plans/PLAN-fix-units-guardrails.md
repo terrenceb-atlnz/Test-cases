@@ -11,7 +11,13 @@
 > in (`_unit_lint_regression`, whole-file lint incl. the new suite-owned-command lint); either
 > refusal keeps the old chunk and records why. **G6(c) ✅ built SCOPED (Terrence, 2026-09-14,
 > option i): the evidence line must be gone only for `verdict_mismatch` / `weak_observation` /
-> `wrong_symbol`, where the evidence IS the defect; hard refusal.** G3 + G7 remain. D4 still OPEN.** Pinned against the real
+> `wrong_symbol`, where the evidence IS the defect; hard refusal.** **G3 ✅ + G7 ✅ (+ follow-ups #1–#3
+> per D6) the same day — the plan is COMPLETE except D4.** A review- or run-driven fix is HELD on
+> its unit with a unified diff and G3's scope record (anchored vs changed methods, change ratio vs
+> the 40 % threshold); the reviewer applies or discards it on the unit page (⏸) or applies all from
+> the Summary; a lint-only fix still applies itself. Nothing is spliced until applied. Gate at
+> close: pytest 1493 / vitest 290; new routes + module smoke-tested on the scratch server.
+> **Remaining: D4 (open) and the proof — a fresh Generate → Review → Fix on T44297.**** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /
@@ -112,7 +118,7 @@ Turn the prompt's "EXACTLY as they are" list into a hard check in `_unit_call_an
 opening shortcut-lines block, and the provenance tag line in `main()` must be **byte-identical**
 to `current_code`. Violation → `_fail("fix altered a frozen line: …")`; the old chunk is kept.
 
-### G3 — a blast-radius diff gate  *(RC2)*
+### G3 — a blast-radius diff gate  *(RC2)*  ✅ 2026-09-14 (as a scope record on the held reply, per D1)
 Diff the returned unit against `current_code` (line-level, `difflib`). Anchor set = the lines
 in `current_code` that the finding's `evidence` matches (fuzzy) + any lint line numbers. A
 change is **in scope** if it falls inside a method containing an anchor. Changes outside every
@@ -160,7 +166,7 @@ Recommendation: (i). A wrong-kind tag folds to `other` (#4), which (i) does not 
 a `known-field` check — any `getattr(<layer>, 'name')` / `pkt[<layer>].name` on an `lldp_*`
 layer must name a field seen in `library_*.py` / the framework's LLDP contrib. → **D4**.
 
-### G7 — preview / approve mode  *(the direct answer to "unreliable")*
+### G7 — preview / approve mode  *(the direct answer to "unreliable")*  ✅ 2026-09-14
 `fix_units` returns per-unit **diffs** and HOLDS every change (`status: held`) until approved;
 an *Apply* per unit (or all) commits and re-assembles. Proposal: default **on** for
 review-driven fixes (the class that drifts), **auto-apply** for lint-only fixes (deterministic,
@@ -207,6 +213,20 @@ caller passes a `guard` — fix passes do, generation does not. `_lint_suite_own
 a POLICY error (the script runs; the reviewer may have a reason) keyed on (device, command),
 navigation and `show` excluded, and names the undo as the harm. End-to-end test: fix run 5's
 real tc1 is refused at the store path and the current tc1 kept.
+
+**G3 + G7 (+ #1–#3), done 2026-09-14 — the plan's last step.** As built: the hold decision is D2's,
+taken per unit in `fix_units` (`hold` = the unit has review findings or a failed run; lint-only →
+auto-apply, D1). In `_unit_call_and_store`, AFTER G2/G6 pass, a held reply is stored on the chunk as
+`held: {code, diff, scope, at, llm, usage}` while `code`/`status` stay the CURRENT unit — assembly
+never sees it. `_unit_diff_scope` = unified diff + anchors (evidence lines, whitespace-insensitive;
+lint `line N` mapped through the unit's position) → anchored vs changed methods → out-of-scope list,
+change ratio over non-frame lines, `over_threshold` at 40 %. `POST /apply_held/{key}` (`{units}` or
+all) promotes via `_apply_held`, archives the previous script and re-assembles through the one
+assembly; `POST /discard_held/{key}` drops the reply. The fix chain records `held` / `applied` and
+re-assembles only when something was applied. UI: `pt-pill-held` (⏸), the unit page's held frame
+(diff, scope warnings, Apply / Discard), "Apply all held fixes" on the Summary, `units_status` /
+`step_prompts` / `unit_code` carry `held`. Follow-ups: #1 timestamps on failed/held states, #2 the
+per-unit Generate button's busy → done cue, #3 the legend names both Fix buttons and both are blue.
 
 G1 + G5 + G8(a) first (targeting + the prompt block — they stop the wrong-unit and
 suite-state classes outright and are small) → G4 (no untouched writes) → G2 + G6 + G8(b)

@@ -721,9 +721,10 @@
           </ol>
           <div class="justification-note">
             <b>If something's wrong &nbsp;·&nbsp;</b>
-            <b>Re-lint</b> re-checks the current script after a hand-edit (no re-assemble).
-            <b>Fix with LLM</b> feeds the lint errors + review findings into a whole-script rewrite — for a blocking error that blocks Confirm; to repair one bad unit, regenerate it from its page above.
-            A Fix rewrites the whole file, so <b>don't re-Assemble after it</b> (that re-splices the units and discards the fix) — Re-lint / Review, then Save &amp; Confirm.
+            <b>Re-lint</b> re-checks the current script after a hand-edit (local, no re-assemble).
+            <b>⤺ Fix units (LLM)</b> re-generates only the units the lint errors, review findings or failed run name, under the cached shared half. A review- or run-driven fix is <b>HELD</b> with a diff on the unit's page (⏸) for you to Apply or Discard; a lint-only fix applies itself. It re-assembles and re-lints for you, so re-Assembling after it is redundant, not harmful.
+            <b>Fix whole script (LLM)</b> rewrites the whole file — for findings that name no unit. <b>Don't re-Assemble after THAT one</b> (it re-splices the units and discards the rewrite): Re-lint / Review, then Save &amp; Confirm.
+            Grey buttons run locally; blue ones call the LLM.
           </div>
         </div>
         <div class="compact-flex mb-2">
@@ -751,8 +752,10 @@
           <button data-action="ptLintScript" class="btn btn-compact">Re-lint</button>
           <button data-action="ptFixUnits" class="btn btn-primary btn-compact" id="pt-fix-units-btn"
                   title="Re-generate only the units the current findings name, then re-assemble">⤺ Fix units (LLM)</button>
-          <button data-action="ptFixFromSummary" class="btn btn-compact" id="pt-fix-summary-btn"
+          <button data-action="ptFixFromSummary" class="btn btn-primary btn-compact" id="pt-fix-summary-btn"
                   title="Whole-file rewrite — for findings that name no unit">Fix whole script (LLM)</button>
+          <button data-action="ptApplyAllHeld" class="btn btn-compact" id="pt-apply-held-btn"
+                  title="Splice in every held fix, re-assemble and re-lint (local)">Apply all held fixes</button>
         </div>
         <div id="pt-gen-status" class="justification-note mb-2"></div>
         <div id="pt-lint-result" class="mb-2"></div>

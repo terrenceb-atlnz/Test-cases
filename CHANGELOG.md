@@ -60,6 +60,16 @@ verify-before-store, preview/approve) follow in order.
   the suite's `configure()`/`tear_down()` issues on the same device is flagged as a policy
   error naming the harm ("this undo runs before the next case"). Mode navigation and `show`
   are not state. Through G6 this refuses fix run 5's real tc1 at the store path.
+- **G7 + G3 — a review- or run-driven fix is HELD, never spliced on arrival** (same day; the
+  plan's last step). After the verify-before-store checks pass, the reply waits on its unit
+  with a unified diff and a scope record: which methods the findings anchor in, which the fix
+  changed, anything outside that set, and the change ratio against the 40 % threshold (D1).
+  The reviewer applies or discards it on the unit page (⏸), or applies all from the Summary;
+  applying re-assembles and re-lints through the one assembly. A lint-only fix still applies
+  itself (D2). **Why:** a bad fix now costs one look at a diff, not an Opus review — the
+  measured sink of the T44297 pass. Follow-ups #1–#3 landed in the same UI pass (D6):
+  timestamps on failed and held states, an in-flight cue on the per-unit Generate button, and a
+  step-5 legend that names both Fix buttons correctly (both LLM buttons are now blue).
 
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
 

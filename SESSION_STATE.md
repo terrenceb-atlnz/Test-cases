@@ -4095,3 +4095,17 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   whole-script Fix still consumes structural findings (out of the plan's scope — flagged).
 - **Gate at close:** guards OK; pytest 1469 passed / 1 skipped; vitest 281; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-14), then the guardrails plan §Order → G4.
+
+## Session Close / Handoff (2026-09-14, evening) — the guardrails plan COMPLETE except D4
+
+- **Context:** after tranche 1, Terrence said "continue"; the rest of `PLAN-fix-units-guardrails.md`
+  shipped in the plan's order, one commit per step: G4 (no untouched writes), G2 + G6(a)(b) + G8(b)
+  (verify before store; suite-owned-command lint), G6(c) scoped on Terrence's call (option i), then
+  G3 + G7 with follow-ups #1–#3 (held fixes with diff + scope, Apply / Discard, the step-5 UI pass).
+  Fixtures throughout are the real T44297 dicts and fix-run-5 tc1 from the debug log. New routes and
+  the edited module smoke-tested on the scratch server; real ck.db signature unchanged.
+- **Left undone / open:** D4 (scapy known-field check); the plan's proof run (fresh Generate → Review
+  → Fix on T44297); follow-up #6; the manual UI check of the held-fix flow (checklist in the report).
+- **Gate at close:** guards OK; pytest 1493 passed / 1 skipped; vitest 290; ck.db untouched.
+- **Resume:** PROGRESS.md top entry (2026-09-14), then the plan's status header.
+

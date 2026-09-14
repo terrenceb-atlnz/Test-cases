@@ -695,6 +695,17 @@ body {
   border-color: #d97706;
   color: #fde68a;
 }
+/* ⏸ HELD (G7, 2026-09-14): the unit's current code stands and a fix waits for Apply /
+   Discard on its page. Blue, dashed — neither "done" nor "in flight" nor "missing". */
+.pt-pill-row button.pt-pill-held {
+  background: var(--status-info-muted, #1e3a5f);
+  border-color: var(--status-info, #3b82f6);
+  border-style: dashed;
+  color: var(--status-info, #93c5fd);
+}
+.pt-unit-frame-held { border-color: var(--status-info, #3b82f6); border-style: dashed; }
+.pt-held-warn { color: var(--status-medium, #d97706); font-size: 12px; margin-top: 2px; }
+.pt-held-diff { max-height: 360px; }
 
 .pt-unit-frame {
   border: 1px solid var(--border-default);

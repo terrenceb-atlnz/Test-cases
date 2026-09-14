@@ -59,7 +59,13 @@ change.
 store in `_unit_call_and_store` behind a `guard` the fix pass supplies; the suite-owned-command
 lint as a policy error; 10 tests incl. fix run 5's real tc1 refused end to end; gate pytest 1482).
 **G6(c) decided and built scoped** (Terrence: option i — evidence-is-defect kinds only; 4 tests).
-**Pick up here:** **guardrails, last in order: G3 + G7** (blast-radius diff → `held`; preview/approve
+**G3 + G7 + follow-ups #1–#3 shipped last** (held fixes with diff + scope, Apply / Discard, the
+UI pass; 7 pytest + 9 Vitest; gate pytest 1493 / vitest 290; new routes and the module smoke-tested
+on the scratch server, real ck.db signature unchanged). **The guardrails plan is complete except
+D4.** Manual UI check still owed (Terrence prefers manual): the checklist is in the session report.
+**Pick up here:** (1) **D4** (scapy known-field check — open); (2) **the proof: a fresh Generate →
+Review → Fix on T44297** with the guardrails in (the plan's stated acceptance); (3) follow-up #6
+(headless review transport); (4) the design branch from `ask-ck/frontend/ck-main/svelte/`. Was: **G3 + G7** (blast-radius diff → `held`; preview/approve
 with per-unit Apply) **+ follow-ups #1–#3 per D6** (one step-5 UI change) — `ask-ck/plans/PLAN-fix-units-guardrails.md`
 §Order; (2) the **D4** decision (still open; G6 is where it lands); (3) the fresh Generate →
 Review → Fix on T44297 is the proof once the plan is complete; (4) the design branch from

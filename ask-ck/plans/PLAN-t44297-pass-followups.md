@@ -4,7 +4,8 @@
 >
 > **PROPOSED 2026-09-09 — #5 ROOT-CAUSED AND FIXED 2026-09-10; #4 BUILT 2026-09-14 (with
 > guardrails tranche 1: the 7-value enum with `structural`, off-enum → `other` + `kind_raw`, the
-> template/server enum pinned identical); items 1–3, 6 unimplemented.**
+> template/server enum pinned identical); **#1–#3 BUILT 2026-09-14** with guardrails G7 (one step-5 UI
+> pass, per D6): error/held timestamps, the per-unit Generate cue, the legend rewritten; #6 unimplemented.**
 > Written at Terrence's request as the plan
 > for the issues found while driving AWPTCM-T44297 through generate → review → fix on
 > 2026-09-09 (the first full loop on the ART-frame shape). This file is the **authority for
@@ -166,7 +167,7 @@ drop the session, reconnect); an uncollected result expires at the TTL; re-assem
 → **D6**.
 ---
 
-## #1 — Error chunks need a timestamp in the UI
+## #1 — Error chunks need a timestamp in the UI  ✅ 2026-09-14 (with G7)
 
 **Evidence.** A failed unit shows its error text but no time, so a fresh failure and a stale
 one from a previous pass are indistinguishable — this is exactly the ambiguity behind the
@@ -182,7 +183,7 @@ stamp `at` on every error chunk. Surface it in the unit-chip tooltip and the sta
 
 ---
 
-## #2 — Per-unit regenerate has no visual cue
+## #2 — Per-unit regenerate has no visual cue  ✅ 2026-09-14 (with G7)
 
 **Evidence.** Clicking a single case's regenerate produced no feedback that it fired or
 succeeded (Terrence, 2026-09-09: "no visual cue appeared to suggest it worked").
@@ -196,7 +197,7 @@ never a second blocking request per unit (`[[browser-fanout-connection-ceiling]]
 
 ---
 
-## #3 — The "If something's wrong" legend and Fix-button styling are out of sync with the buttons
+## #3 — The "If something's wrong" legend and Fix-button styling are out of sync with the buttons  ✅ 2026-09-14 (with G7)
 
 **Evidence.** `frontend/ck-main/current/index.html:708-711` documents only the **whole-script** "Fix with LLM"
 and per-unit *regenerate-from-page*; it never names **"⤺ Fix units (LLM)"** (`:737-740`), whose

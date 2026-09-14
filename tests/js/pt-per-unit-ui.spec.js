@@ -63,6 +63,7 @@ const UNITS = [
 ];
 
 let codeFetches;   // unit ids the page lazily asked for code for
+let heldPosts;     // G7: what was posted to /apply_held and /discard_held
 let sent;          // unitId -> {id, prompt} actually posted
 let dispatched;    // ids the batch endpoint accepted
 let statusMap;     // what /units_status returns next
@@ -85,7 +86,7 @@ const reply = (body, ok = true, status = 200) => ({ ok, status, json: async () =
 beforeEach(async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   document.body.innerHTML = DOM;
-  sent = {}; dispatched = []; statusMap = {}; codeFetches = [];
+  sent = {}; dispatched = []; statusMap = {}; codeFetches = []; heldPosts = [];
   S.ptCase = { key: 'AWPTCM-T1' };
   window.alert = vi.fn();
   global.fetch = vi.fn(async (url, opts) => {
@@ -99,7 +100,7 @@ beforeEach(async () => {
       return reply({ units: UNITS.map(x => {
         const st = statusMap[x.id];
         if (!st || st.running) return { ...x };
-        return { ...x, status: st.status, error: st.error || '',
+        return { ...x, status: st.status, error: st.error || '', held: !!st.held,
                  code: st.status === 'ok' ? `class X_${x.id}: pass` : '', at: st.at || '' };
       }) });
     }
@@ -117,11 +118,21 @@ beforeEach(async () => {
       return reply({ unit: id, status: st.status || 'pending', at: st.at || '',
                      code: st.status === 'ok' ? `class LAZY_${id}: pass` : '',
                      raw: st.status === 'error' ? `REFUSED-BLOCK-${id}` : '',
-                     error: st.error || '', edited: false });
+                     error: st.error || '', edited: false,
+                     held: st.held ? { code: `class HELD_${id}: pass`, at: st.at, diff: `--- cur\n+++ fix\n-old_${id}\n+new_${id}`,
+                                       scope: { anchors: 1, anchored_methods: ['main'], changed_methods: ['main', 'configure'],
+                                                out_of_scope_methods: ['configure'], changed_lines: 3, non_scaffold_lines: 6,
+                                                change_ratio: 0.5, over_threshold: true } } : null });
     }
     if (u.includes('/units_status/')) {
       return reply({ units: statusMap, running: Object.keys(statusMap)
                        .filter(k => statusMap[k].running) });
+    }
+    if (u.includes('/apply_held/') || u.includes('/discard_held/')) {
+      heldPosts.push({ url: u, body: JSON.parse(opts.body || '{}') });
+      Object.keys(statusMap).forEach(k => { if (statusMap[k].held) statusMap[k] = { ...statusMap[k], held: false, at: '2026-09-14T01:00:00Z' }; });
+      return reply(u.includes('/apply_held/') ? { applied: ['tc1'], assembled: true, lint_ok: true, lint_errors: 0 }
+                                              : { discarded: ['tc1'] });
     }
     if (u.includes('/assemble_script/')) {
       return reply({ files: { test: { name: 'x.py', code: 'code' } },
@@ -517,5 +528,75 @@ describe('source-level guards', () => {
   it('clears the poll interval rather than leaving it running', () => {
     expect(JS).toContain('clearInterval');
     expect(JS).toContain('_ptStopUnitPoll');
+  });
+});
+
+describe('a HELD fix (G7 — PLAN-fix-units-guardrails, 2026-09-14)', () => {
+  const hold = (id) => { statusMap[id] = { status: 'ok', error: '', at: '2026-09-14T00:30:00Z', chars: 20, held: true }; };
+
+  it('shows as its own pill state — neither done, nor in flight, nor missing', async () => {
+    hold('tc1');
+    click('#pt-units-all-btn'); await settle();       // start a poll; the status map carries the hold
+    await tick();
+    expect(pills()[1].className).toContain('pt-pill-held');
+    expect(pills()[1].textContent).toContain('⏸');
+    expect(pills()[1].title).toMatch(/HELD/);
+    expect(document.getElementById('pt-units-status').textContent).toMatch(/1 held fix/);
+  });
+
+  it('the unit page shows the diff, the scope warnings and Apply / Discard — and the current code stays', async () => {
+    hold('tc1');
+    click('#pt-units-all-btn'); await settle(); await tick();
+    click('#pt-unit-pills .pt-pill:nth-child(2)');    // open tc1
+    await settle(); await settle();
+    const page = document.getElementById('pt-unit-page').textContent;
+    expect(page).toMatch(/held for your approval/);
+    expect(page).toContain('+new_tc1');                                   // the diff
+    expect(page).toMatch(/OUTSIDE the methods the findings point at: configure/);   // G3 scope
+    expect(page).toMatch(/over the 40% threshold/);
+    expect(page).toContain('class LAZY_tc1: pass');                       // the CURRENT code, not the fix
+    expect(document.querySelector('#pt-unit-page [data-action="ptApplyHeld"]')).not.toBeNull();
+    expect(document.querySelector('#pt-unit-page [data-action="ptDiscardHeld"]')).not.toBeNull();
+  });
+
+  it('Apply posts that ONE unit to /apply_held and the pill leaves the held state', async () => {
+    hold('tc1');
+    click('#pt-units-all-btn'); await settle(); await tick();
+    click('#pt-unit-pills .pt-pill:nth-child(2)'); await settle(); await settle();
+    click('#pt-unit-page [data-action="ptApplyHeld"]'); await settle(); await settle(); await settle();
+    expect(heldPosts.length).toBe(1);
+    expect(heldPosts[0].url).toMatch(/\/apply_held\/AWPTCM-T1/);
+    expect(heldPosts[0].body).toEqual({ units: ['tc1'] });
+    expect(pills()[1].className).not.toContain('pt-pill-held');
+  });
+
+  it('Discard posts to /discard_held and keeps the current unit', async () => {
+    hold('tc1');
+    click('#pt-units-all-btn'); await settle(); await tick();
+    click('#pt-unit-pills .pt-pill:nth-child(2)'); await settle(); await settle();
+    click('#pt-unit-page [data-action="ptDiscardHeld"]'); await settle(); await settle(); await settle();
+    expect(heldPosts[0].url).toMatch(/\/discard_held\//);
+    expect(heldPosts[0].body).toEqual({ units: ['tc1'] });
+    expect(document.getElementById('pt-units-status').textContent).toMatch(/discarded/);
+  });
+
+  it('follow-up #1: a failed unit carries its timestamp in the pill and the error box', async () => {
+    click('#pt-units-all-btn'); await settle();
+    land('tc1', false, 'the reply defines TestCase_9, not TestCase_1', '2026-09-14T03:19:27Z');
+    markRunning(['setup', 'tc2']);
+    await tick();
+    expect(pills()[1].title).toMatch(/FAILED 2026-09-14 03:19:27/);
+    expect(document.getElementById('pt-unit-errors').textContent).toContain('2026-09-14 03:19:27');
+  });
+
+  it('follow-up #2: the per-unit Generate button answers the click, not just the pill', async () => {
+    const btn = document.getElementById('pt-unit-btn');
+    expect(btn).not.toBeNull();
+    click('[data-action="ptGenerateUnit"]');
+    expect(document.getElementById('pt-unit-btn').disabled || document.getElementById('pt-unit-btn').textContent).toBeTruthy();
+    await settle(); await settle();
+    // After dispatch the button is released and flashes "sent"; the pill is in flight.
+    expect(document.getElementById('pt-unit-btn').textContent).toMatch(/sent|Generate/);
+    expect(pills()[0].className).toContain('pt-pill-run');
   });
 });

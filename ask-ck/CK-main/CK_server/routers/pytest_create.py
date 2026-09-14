@@ -5638,6 +5638,7 @@ async def step_prompts(key: str, request: Request):
                 "status": ch.get("status") or "pending",
                 "error": ch.get("error") or "",
                 "at": ch.get("at") or "",
+                "held": bool(ch.get("held")),
             })
         return {"units": out, "skeleton_chars": len(ctx["skeleton"])}
 
@@ -5704,7 +5705,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         # Terrence hit on the first real fan-out (2026-09-02). Capped because a runaway
         # reply would otherwise be persisted into the session row in full.
         _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
-                "raw": (raw or "")[:_PT_RAW_KEEP_CHARS], "code": "",
+                "raw": (raw or "")[:_PT_RAW_KEEP_CHARS], "code": "", "held": None,
                 **({"prompt": prompt} if edited else {})})
         return {"unit": unit_id, "status": "error", "error": reason}
 
@@ -5728,7 +5729,22 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         why = _unit_evidence_gone(guard, code, unit) or _unit_lint_regression(guard, code, unit)
         if why:
             return _fail(why, code)
+        if guard.get("hold"):
+            # G7 (D2): a review- or run-driven fix is HELD — the unit's code and status are
+            # untouched (assembly still sees the current unit) and the reply waits on the
+            # chunk with its diff and G3 scope for a human to Apply or Discard. A bad fix
+            # then costs one look at a diff, not an Opus review.
+            scope = _unit_diff_scope(guard.get("current_code") or "", code, unit,
+                                     guard.get("findings") or [], guard.get("lint_errors") or [],
+                                     int(guard.get("unit_lo") or 1))
+            _store({"held": {"code": code, "at": utc_now().isoformat(), "diff": scope.pop("diff"),
+                             "scope": scope,
+                             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
+                             "usage": meta.get("usage")},
+                    "error": "", **({"prompt": prompt} if edited else {})})
+            return {"unit": unit_id, "status": "held", "edited": edited, "usage": meta.get("usage")}
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
+            "source": "fix" if guard else "generate", "held": None,
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "usage": meta.get("usage"),
             **({"prompt": prompt} if edited else {})})
@@ -5890,7 +5906,8 @@ async def units_status(key: str):
     out = {}
     for uid, ch in chunks.items():
         out[uid] = {"status": ch.get("status") or "pending", "error": ch.get("error") or "",
-                    "at": ch.get("at") or "", "chars": len(ch.get("code") or "")}
+                    "at": ch.get("at") or "", "chars": len(ch.get("code") or ""),
+                    "held": bool(ch.get("held")), "source": ch.get("source") or ""}
     for uid in running:
         out.setdefault(uid, {"status": "pending", "error": "", "at": "", "chars": 0})
         out[uid]["running"] = True
@@ -5921,7 +5938,8 @@ async def unit_code(key: str, unit_id: str):
     return {"unit": unit_id, "status": ch.get("status") or "pending",
             "code": ch.get("code") or "", "raw": ch.get("raw") or "",
             "error": ch.get("error") or "", "at": ch.get("at") or "",
-            "edited": bool(ch.get("prompt"))}
+            "edited": bool(ch.get("prompt")),
+            "held": ch.get("held") or None, "source": ch.get("source") or ""}
 
 
 @router.post("/generate_step/{key}/{unit_id}")
@@ -6230,6 +6248,134 @@ def _resync_chunks(chunks: Dict[str, dict], synced: Dict[str, str]) -> Tuple[Dic
     return out, changed
 
 
+# G3 (RC2): the blast radius of a fix. D1 (2026-09-11): 40 % of the unit's NON-SCAFFOLD lines.
+_PT_FIX_SCOPE_RATIO = 0.40
+
+
+def _unit_methods(unit: dict, code: str) -> List[Tuple[str, int, int]]:
+    """[(method, first_line, last_line)] in the unit's own 1-based line numbering. The setup
+    pair is two bare methods, so it is parsed inside a synthetic class (its text from the
+    assembled script carries class-body indentation). Unparseable → [] (scope unknown)."""
+    import ast as ast_mod
+    setup = unit.get("kind") == "setup"
+    src = ("class _P:\n" + code) if setup else code
+    try:
+        tree = ast_mod.parse(src)
+    except SyntaxError:
+        return []
+    off = 1 if setup else 0
+    out: List[Tuple[str, int, int]] = []
+    for node in ast_mod.walk(tree):
+        if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef)):
+            out.append((node.name, node.lineno - off, node.end_lineno - off))
+    return out
+
+
+def _unit_diff_scope(current_code: str, new_code: str, unit: dict, findings: List[dict],
+                     lint_errors: List[str], unit_lo: int = 1) -> dict:
+    """The diff of a fix reply against the current unit, and how far it reaches.
+
+    Anchors = the current lines a finding's `evidence` quotes (whitespace-insensitive) + the
+    lines lint errors name (`line N` in the ASSEMBLED script, mapped through `unit_lo`). A
+    changed method that contains no anchor is OUT OF SCOPE — the fix touched something the
+    reasons never pointed at. The change ratio is counted over the unit's non-scaffold lines
+    (frozen frame lines excluded). Neither refuses anything: legitimate fixes can be sizeable
+    (tc6's TLV block), so G7 HOLDS the unit with this record and a human decides."""
+    import difflib
+    cur = (current_code or "").split("\n")
+    new = (new_code or "").split("\n")
+    diff = "\n".join(difflib.unified_diff(cur, new, fromfile=f"{unit.get('label')} (current)",
+                                          tofile=f"{unit.get('label')} (fix)", lineterm="", n=2))
+    methods = _unit_methods(unit, current_code or "")
+
+    def _method_of(line_no: int) -> Optional[str]:
+        for name, lo, hi in methods:
+            if lo <= line_no <= hi:
+                return name
+        return None
+
+    anchors: set = set()
+    quoted = set()
+    for f in findings or []:
+        for raw in str(f.get("evidence") or "").split("\n"):
+            ln = _norm_ws(raw)
+            if ln and "..." not in ln and "…" not in ln:
+                quoted.add(ln)
+    for i, ln in enumerate(cur, 1):
+        if _norm_ws(ln) in quoted:
+            anchors.add(i)
+    for e in lint_errors or []:
+        for m in _LINE_REF_RX.finditer(str(e)):
+            n = int(m.group(1) or m.group(2)) - unit_lo + 1
+            if 1 <= n <= len(cur):
+                anchors.add(n)
+
+    changed_cur: set = set()
+    changed_lines = 0
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, cur, new, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        changed_lines += max(i2 - i1, j2 - j1)
+        span = range(i1 + 1, i2 + 1) if i2 > i1 else [max(1, i1)]   # an insertion sits at i1
+        changed_cur.update(span)
+    anchored = sorted({m for m in (_method_of(a) for a in anchors) if m})
+    changed = sorted({m for m in (_method_of(c) for c in changed_cur) if m})
+    frozen = set(_unit_frozen_lines(unit, current_code or ""))
+    setup = unit.get("kind") == "setup"
+    non_scaffold = sum(1 for ln in cur if ln.strip()
+                       and (ln.strip() if setup else ln) not in frozen)
+    ratio = changed_lines / max(1, non_scaffold)
+    return {
+        "diff": diff,
+        "anchors": len(anchors),
+        "anchored_methods": anchored,
+        "changed_methods": changed,
+        "out_of_scope_methods": [m for m in changed if m not in anchored] if anchored else [],
+        "changed_lines": changed_lines,
+        "non_scaffold_lines": non_scaffold,
+        "change_ratio": round(ratio, 2),
+        "over_threshold": ratio > _PT_FIX_SCOPE_RATIO,
+    }
+
+
+def _apply_held(chunks: Dict[str, dict], ids: Optional[List[str]]) -> Tuple[Dict[str, dict], List[str]]:
+    """G7 Apply: promote each held fix (all of them when `ids` is None) to the unit's code.
+    Returns (chunks, applied ids). A unit with nothing held is left alone."""
+    out = dict(chunks or {})
+    applied: List[str] = []
+    for uid, ch in (chunks or {}).items():
+        held = (ch or {}).get("held")
+        if not held or (ids is not None and uid not in ids):
+            continue
+        rec = dict(ch)
+        rec.update({"status": "ok", "code": held.get("code") or rec.get("code") or "",
+                    "error": "", "raw": "", "at": utc_now().isoformat(), "source": "fix",
+                    "llm": held.get("llm"), "usage": held.get("usage"), "held": None})
+        out[uid] = rec
+        applied.append(uid)
+    return out, applied
+
+
+def _discard_held(chunks: Dict[str, dict], ids: Optional[List[str]]) -> Tuple[Dict[str, dict], List[str]]:
+    out = dict(chunks or {})
+    dropped: List[str] = []
+    for uid, ch in (chunks or {}).items():
+        if (ch or {}).get("held") and (ids is None or uid in ids):
+            rec = dict(ch); rec["held"] = None
+            out[uid] = rec
+            dropped.append(uid)
+    return out, dropped
+
+
+def _archive_script_history(group: str, name: str, iteration: int, file_name: str,
+                            previous_code: str) -> str:
+    """Archive what a fix replaces, as the whole-script Fix does. Returns the directory."""
+    hist_dir = _meta_dir(group or "Ungrouped", name or "unnamed") / "history" / f"iter-{iteration}"
+    hist_dir.mkdir(parents=True, exist_ok=True)
+    (hist_dir / file_name).write_text(previous_code, encoding="utf-8")
+    return str(hist_dir)
+
+
 def _fix_unit_prompt(key: str, data: dict, sess: PtSession, ctx: dict, unit: dict,
                      current_code: str, reasons: dict) -> str:
     """The generation prompt for this unit — shared half, marker, unit half — followed by the
@@ -6335,9 +6481,16 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
     baseline_errors = (step6.get("lint") or {}).get("errors")
     if baseline_errors is None:
         baseline_errors = _lint_generated(sess).get("errors") or []
+    lo_by_id = {u["id"]: u["lines"][0] for u in reasons["code_units"]}
     guards = {uid: {"current_code": synced[uid], "assembled_code": code, "sess": sess,
                     "baseline_errors": list(baseline_errors),
-                    "findings": list(reasons["per_unit"][uid]["review"])} for uid in targets}
+                    "findings": list(reasons["per_unit"][uid]["review"]),
+                    "lint_errors": list(reasons["per_unit"][uid]["lint"]),
+                    "unit_lo": lo_by_id.get(uid, 1),
+                    # D2: review- or run-driven fixes are HELD for approval (G7); a lint-only
+                    # fix is deterministic and applies itself (D1: it bypasses the gate).
+                    "hold": bool(reasons["per_unit"][uid]["review"]) or bool(reasons["per_unit"][uid]["run"])}
+              for uid in targets}
     naming = step6.get("naming") or {}
     group = (naming.get("group") or "").strip()
     name = (naming.get("name") or "").strip()
@@ -6380,17 +6533,18 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
             fresh = _pt_load(key)
             chunks = ((fresh.step6 if fresh else None) or {}).get("chunks") or {}
             failed = [u for u in targets if (chunks.get(u) or {}).get("status") != "ok"]
+            held = [u for u in targets if u not in failed and (chunks.get(u) or {}).get("held")]
+            applied = [u for u in targets if u not in failed and u not in held]
             record["failed"] = failed
-            if fresh is not None and not failed:
-                # Archive what the fix replaces, as the whole-script Fix does.
-                hist_dir = _meta_dir(group or "Ungrouped", name or "unnamed") / "history" / f"iter-{iteration}"
-                hist_dir.mkdir(parents=True, exist_ok=True)
-                (hist_dir / file_name).write_text(previous_code, encoding="utf-8")
+            record["held"] = held            # G7: waiting on the unit pages for Apply / Discard
+            record["applied"] = applied      # lint-only fixes, spliced straight in (D2)
+            if fresh is not None and not failed and applied:
+                record["previous_archived"] = _archive_script_history(
+                    group, name, iteration, file_name, previous_code)
                 res = await run_in_threadpool(_assemble_and_store, key, fresh, ctx, group, name)
                 record["assembled"] = True
                 record["lint_ok"] = bool((res.get("lint") or {}).get("ok"))
                 record["lint_errors"] = len((res.get("lint") or {}).get("errors") or [])
-                record["previous_archived"] = str(hist_dir)
         except Exception as e:
             record["error"] = str(getattr(e, "detail", e))
 
@@ -6410,6 +6564,63 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
             "counts": {uid: {"lint": len(r["lint"]), "review": len(r["review"]),
                              "run": bool(r["run"])}
                        for uid, r in reasons["per_unit"].items()}}
+
+
+@router.post("/apply_held/{key}")
+async def apply_held(key: str, request: Request, body: dict = Body(default={})):
+    """G7 Apply: promote the held fix of the named units (`{"units": [...]}`; omitted = all
+    held) into their chunks, archive the previous script, re-assemble and re-lint through the
+    one assembly. LOCAL — no model. A unit whose held reply has since been superseded (the
+    unit was regenerated) has nothing held and is skipped."""
+    data = _data(request)
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    want = body.get("units")
+    ids = [str(u) for u in want] if isinstance(want, list) else None
+    _, applied = _apply_held(step6.get("chunks") or {}, ids)
+    if not applied:
+        raise HTTPException(409, "Nothing held to apply" + (f" for {', '.join(ids)}" if ids else "") + ".")
+    ctx = _pt_generation_context(key, data, sess)
+    naming = step6.get("naming") or {}
+    group = (naming.get("group") or "").strip()
+    name = (naming.get("name") or "").strip()
+    test = (step6.get("files") or {}).get("test") or {}
+    previous_code = test.get("code") or ""
+    iteration = int(step6.get("iterations") or 1)
+    file_name = test.get("name") or f"{name}.py"
+
+    def _promote(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        new_chunks, _done = _apply_held(step6_f.get("chunks") or {}, applied)
+        step6_f["chunks"] = new_chunks
+        fresh.step6 = step6_f
+    fresh = _pt_persist_fresh(key, _promote, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+    archived = _archive_script_history(group, name, iteration, file_name, previous_code) if previous_code else ""
+    res = await run_in_threadpool(_assemble_and_store, key, fresh, ctx, group, name)
+    return {"applied": applied, "assembled": True,
+            "lint_ok": bool((res.get("lint") or {}).get("ok")),
+            "lint_errors": len((res.get("lint") or {}).get("errors") or []),
+            "previous_archived": archived}
+
+
+@router.post("/discard_held/{key}")
+async def discard_held(key: str, body: dict = Body(default={})):
+    """G7 Discard: drop the held fix of the named units (omitted = all). The unit's current
+    code stays exactly as it is. LOCAL."""
+    sess = _pt_get(key)
+    want = body.get("units")
+    ids = [str(u) for u in want] if isinstance(want, list) else None
+    _, dropped = _discard_held((sess.step6 or {}).get("chunks") or {}, ids)
+    if not dropped:
+        raise HTTPException(409, "Nothing held to discard.")
+
+    def _drop(fresh: PtSession) -> None:
+        step6_f = dict(fresh.step6 or {})
+        new_chunks, _ = _discard_held(step6_f.get("chunks") or {}, dropped)
+        step6_f["chunks"] = new_chunks
+        fresh.step6 = step6_f
+    _pt_persist_fresh(key, _drop, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+    return {"discarded": dropped}
 
 
 @router.post("/review_script/{key}")

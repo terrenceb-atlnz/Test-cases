@@ -721,3 +721,92 @@ def test_G6c_runs_in_the_store_path_between_the_frozen_check_and_the_lint_and_ge
     assert pc._EVIDENCE_IS_DEFECT_KINDS == ("verdict_mismatch", "weak_observation", "wrong_symbol")
     assert set(pc._EVIDENCE_IS_DEFECT_KINDS) < set(pc._REVIEW_KINDS)
 
+
+# --- G3 + G7: diff scope, hold / apply / discard (RC2; D1, D2; 2026-09-14) -----------------------
+
+def _so_unit(uid, script=SUITE_OWNED_SCRIPT):
+    units = pc._skeleton_units(script)
+    return next(u for u in units if u["id"] == uid), pc._chunks_from_code(script, {"units": units})[uid]
+
+
+def test_G3_a_change_in_the_method_the_finding_points_at_is_in_scope():
+    tc1, cur = _so_unit("tc1")
+    new = cur.replace("self.passed('ok')", "self.passed('OBSERVED: port-description TLV present')")
+    sc = pc._unit_diff_scope(cur, new, tc1, [{"kind": "verdict_mismatch", "evidence": "self.passed('ok')"}], [], 1)
+    assert sc["anchors"] == 1 and sc["anchored_methods"] == ["main"] and sc["changed_methods"] == ["main"]
+    assert sc["out_of_scope_methods"] == [] and sc["changed_lines"] == 1 and not sc["over_threshold"]
+    assert "-        self.passed('ok')" in sc["diff"] and "+        self.passed('OBSERVED" in sc["diff"]
+    assert sc["non_scaffold_lines"] > 5
+
+
+def test_G3_a_change_in_a_method_no_finding_points_at_is_OUT_of_scope_and_a_rewrite_trips_the_ratio():
+    tc1, cur = _so_unit("tc1")
+    # The fix also edits configure() — nothing anchored there.
+    new = cur.replace("self.passed('ok')", "self.passed('x')").replace("        dutA.cmd('lldp run')\n", "")
+    sc = pc._unit_diff_scope(cur, new, tc1, [{"kind": "verdict_mismatch", "evidence": "self.passed('ok')"}], [], 1)
+    assert sc["out_of_scope_methods"] == ["configure"] and sorted(sc["changed_methods"]) == ["configure", "main"]
+    # A wholesale rewrite of main() crosses the 40 % threshold (D1).
+    big = cur.replace("        self.passed('ok')", "\n".join(f"        out{i} = dutA.cmd('show lldp {i}')" for i in range(30)) + "\n        self.passed('ok')")
+    sc = pc._unit_diff_scope(cur, big, tc1, [{"kind": "verdict_mismatch", "evidence": "self.passed('ok')"}], [], 1)
+    assert sc["over_threshold"] and sc["change_ratio"] > 0.4
+
+
+def test_G3_lint_line_numbers_anchor_through_the_units_position_and_no_anchor_means_no_verdict_on_scope():
+    tc1, cur = _so_unit("tc1")
+    units = pc._skeleton_units(SUITE_OWNED_SCRIPT)
+    lo = next(u for u in units if u["id"] == "tc1")["lines"][0]
+    td_line = lo + cur.split("\n").index("    def tear_down(self):") + 3     # a line inside tear_down
+    new = cur.replace("dutA.cmd('no description')", "dutA.cmd('no description ')")
+    sc = pc._unit_diff_scope(cur, new, tc1, [], [f"line {td_line}: something in tear_down"], lo)
+    assert sc["anchored_methods"] == ["tear_down"] and sc["out_of_scope_methods"] == []
+    sc0 = pc._unit_diff_scope(cur, new, tc1, [{"kind": "other", "evidence": ""}], [], lo)
+    assert sc0["anchors"] == 0 and sc0["out_of_scope_methods"] == [] and sc0["changed_methods"] == ["tear_down"]
+
+
+def test_G3_the_setup_pair_is_scoped_too():
+    setup, cur = _so_unit("setup")
+    new = cur.replace("dutA.cmd('lldp transmit')", "dutA.cmd('lldp transmit')\n        dutA.cmd('lldp timer 5')")
+    sc = pc._unit_diff_scope(cur, new, setup, [{"kind": "other", "evidence": "dutA.cmd('lldp transmit')"}], [], 1)
+    assert sc["anchored_methods"] == ["configure"] and sc["changed_methods"] == ["configure"]
+
+
+def test_G7_apply_promotes_only_the_held_units_and_discard_drops_only_the_held_reply():
+    chunks = {"tc1": {"status": "ok", "code": "CUR1", "at": "t1", "held": {"code": "FIX1", "llm": {"model": "opus"}, "usage": {"n": 1}}},
+              "tc2": {"status": "ok", "code": "CUR2", "at": "t2", "held": {"code": "FIX2"}},
+              "tc3": {"status": "ok", "code": "CUR3", "at": "t3"}}
+    out, applied = pc._apply_held(chunks, ["tc1"])
+    assert applied == ["tc1"] and out["tc1"]["code"] == "FIX1" and out["tc1"]["source"] == "fix"
+    assert out["tc1"]["held"] is None and out["tc1"]["llm"] == {"model": "opus"} and out["tc1"]["at"] != "t1"
+    assert out["tc2"] is chunks["tc2"] and out["tc3"] is chunks["tc3"]        # untouched (G4 discipline)
+    out, applied = pc._apply_held(chunks, None)
+    assert sorted(applied) == ["tc1", "tc2"] and out["tc2"]["code"] == "FIX2"
+    out, dropped = pc._discard_held(chunks, ["tc2"])
+    assert dropped == ["tc2"] and out["tc2"]["code"] == "CUR2" and out["tc2"]["held"] is None
+    assert out["tc1"]["held"]["code"] == "FIX1"
+
+
+def test_G7_the_store_path_HOLDS_a_review_or_run_driven_fix_and_splices_a_lint_only_one():
+    body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
+    assert 'if guard.get("hold"):' in body
+    assert '"held": {"code": code' in body and '"scope": scope' in body
+    assert body.index('if guard.get("hold"):') > body.index("_unit_lint_regression(")    # verified first
+    assert body.index('if guard.get("hold"):') < body.index('_store({"status": "ok"')     # held returns before the splice
+    assert '"status": "held"' in body
+    # The hold decision is D2's: review- or run-driven → hold; lint-only → apply.
+    assert '"hold": bool(reasons["per_unit"][uid]["review"]) or bool(reasons["per_unit"][uid]["run"])' in FIX_UNITS
+    # The chain assembles only what was APPLIED and records what is held.
+    assert 'record["held"] = held' in FIX_UNITS and 'record["applied"] = applied' in FIX_UNITS
+    assert "if fresh is not None and not failed and applied:" in FIX_UNITS
+
+
+def test_G7_apply_and_discard_are_local_endpoints_that_go_through_the_one_assembly():
+    apply_src = _CODE[_CODE.index('@router.post("/apply_held/'):_CODE.index('@router.post("/discard_held/')]
+    discard_src = _CODE[_CODE.index('@router.post("/discard_held/'):_CODE.index('@router.post("/review_script/')]
+    assert "_apply_held(" in apply_src and "_assemble_and_store, key, fresh, ctx, group, name" in apply_src
+    assert "_archive_script_history(" in apply_src and "run_prompt" not in apply_src
+    assert "_discard_held(" in discard_src and "run_prompt" not in discard_src and "_assemble" not in discard_src
+    # The UI learns about a held reply from every unit-facing endpoint.
+    for needle in ('"held": bool(ch.get("held"))',):
+        assert _SRC.count(needle) >= 2, needle                     # units_status + step_prompts
+    assert '"held": ch.get("held") or None' in _SRC                # unit_code carries the payload
+

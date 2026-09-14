@@ -40,6 +40,21 @@ describe('the buttons', () => {
     expect(HTML).toMatch(/data-action="ptFixFromSummary"/);
     expect(HTML).toMatch(/data-action="ptFixScript"/);
   });
+  it('follow-up #3: the legend names BOTH Fix buttons and both LLM buttons are blue', () => {
+    const legend = HTML.slice(HTML.indexOf("If something's wrong &nbsp;"), HTML.indexOf('id="pt-gen-group"'));
+    expect(legend).toMatch(/Fix units \(LLM\)/);
+    expect(legend).toMatch(/Fix whole script \(LLM\)/);
+    expect(legend).toMatch(/HELD/);                               // what a review-driven fix now does
+    expect(legend).toMatch(/redundant, not harmful/);             // re-Assemble after Fix units is safe
+    expect(legend).toMatch(/Don't re-Assemble after THAT one/);   // …and after the whole-script one is not
+    expect(HTML).toMatch(/data-action="ptFixFromSummary" class="btn btn-primary btn-compact"/);
+    expect(HTML).toMatch(/data-action="ptFixUnits" class="btn btn-primary btn-compact"/);
+    expect(HTML).toMatch(/data-action="ptApplyAllHeld"[^>]*class="btn btn-compact"/);   // local = grey
+  });
+  it('G7: the hold actions are registered', () => {
+    const reg = JS.slice(JS.indexOf('registerActions({'));
+    for (const a of ['ptApplyHeld', 'ptDiscardHeld', 'ptApplyAllHeld']) expect(reg).toMatch(new RegExp(`\\b${a}\\b`));
+  });
 });
 
 describe('the handler', () => {
@@ -55,6 +70,11 @@ describe('the handler', () => {
   it('tells the reviewer about findings that name no unit', () => {
     expect(body).toMatch(/unmapped/);
     expect(body).toMatch(/Fix whole script/);
+  });
+  it('G7: tells the reviewer when fixes are HELD and that nothing was spliced', () => {
+    expect(body).toMatch(/fu\.held/);
+    expect(body).toMatch(/HELD for your approval/);
+    expect(body).toMatch(/Nothing was spliced/);
   });
   it('shows structural findings as a design decision, with the reason, never as a fix (G5)', () => {
     expect(body).toMatch(/d\.structural/);

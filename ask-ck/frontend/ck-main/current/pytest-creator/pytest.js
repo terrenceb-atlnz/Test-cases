@@ -1059,27 +1059,33 @@ function _ptUnitState(u) {
   // not ship code back (30 units x ~2.5KB every 2s is 150KB/minute of unchanged bytes), so
   // a unit that lands while others are still running has status 'ok' and no local code. It
   // was requiring both, which left every early finisher red until the whole run ended.
+  if (u.held) return 'held';               // G7: current code stands; a fix waits for Apply/Discard
   if (u.status === 'ok') return 'ok';
   return 'gap';                            // pending OR error — both are "not generated"
 }
+
+// Follow-up #1 (2026-09-14): a timestamp on every error / held state, so a fresh failure
+// can be told from a stale one. ISO → "2026-09-14 03:19:27".
+function _fmtAt(iso) { return iso ? String(iso).replace('T', ' ').slice(0, 19) : ''; }
 
 function ptRenderUnitPills() {
   const el = document.getElementById('pt-unit-pills');
   if (!el) return;
   if (!_ptUnits.length) { el.innerHTML = ''; return; }
-  const cls = { ok: 'pt-pill-ok', run: 'pt-pill-run', gap: 'pt-pill-gap' };
+  const cls = { ok: 'pt-pill-ok', run: 'pt-pill-run', gap: 'pt-pill-gap', held: 'pt-pill-held' };
   const pills = _ptUnits.map((u, i) => {
     const st = _ptUnitState(u);
-    const glyph = st === 'ok' ? '✓' : (st === 'run' ? '…' : '✗');
+    const glyph = st === 'ok' ? '✓' : (st === 'run' ? '…' : (st === 'held' ? '⏸' : '✗'));
     const cur = (i === _ptUnitIdx) ? ' pt-pill-current' : '';
     const label = u.kind === 'setup' ? 'setup' : String(u.tc_n);
-    const why = u.status === 'error' && u.error ? ` — FAILED: ${u.error}` : '';
+    const why = u.status === 'error' && u.error ? ` — FAILED ${_fmtAt(u.at)}: ${u.error}`
+      : (st === 'held' ? ' — HELD: a fix is waiting for your Apply / Discard (open the unit)' : '');
     return `<button class="pt-pill ${cls[st]}${cur}" data-action="ptGoUnit" data-args='[${i}]' `
       + `title="${escapeHtml(u.label)}${escapeHtml(why)}">${glyph} ${escapeHtml(label)}</button>`;
   }).join('');
   // Summary is red until every unit is green, then YELLOW — not green. Green is earned by
   // assembling and passing the checks, not by the units merely existing.
-  const done = _ptUnits.every(u => _ptUnitState(u) === 'ok');
+  const done = _ptUnits.every(u => ['ok', 'held'].includes(_ptUnitState(u)));   // held = current code stands
   const assembled = !!((ptSession && (ptSession.step6 || {}).assembled_at));
   const lintOk = !!(((ptSession || {}).step6 || {}).lint || {}).ok;
   const sumCls = (done && assembled && lintOk) ? 'pt-pill-ok' : (done ? 'pt-pill-run' : 'pt-pill-gap');
@@ -1090,8 +1096,10 @@ function ptRenderUnitPills() {
     + `title="Assemble the units into the frame, lint, review">${sumGlyph} Summary</button>`;
   const st = document.getElementById('pt-units-status');
   if (st && !st.dataset.busy) {
-    const n = _ptUnits.filter(u => _ptUnitState(u) === 'ok').length;
-    st.textContent = `${n}/${_ptUnits.length} unit(s) generated.`;
+    const n = _ptUnits.filter(u => ['ok', 'held'].includes(_ptUnitState(u))).length;
+    const held = _ptUnits.filter(u => _ptUnitState(u) === 'held').length;
+    st.textContent = `${n}/${_ptUnits.length} unit(s) generated.`
+      + (held ? ` ⏸ ${held} held fix(es) waiting for Apply / Discard.` : '');
   }
 }
 
@@ -1107,7 +1115,7 @@ function ptRenderUnitErrors() {
   el.innerHTML = '<div class="pt-unit-errbox"><b>✗ ' + _ptUnitFails.length
     + ' unit(s) failed</b> <button class="btn btn-compact-small" data-action="ptClearUnitErrors">dismiss</button>'
     + _ptUnitFails.map(f => `<div class="pt-unit-errrow">
-        <b>${escapeHtml(f.label)}</b> — ${escapeHtml(f.why)}
+        <b>${escapeHtml(f.label)}</b> — ${escapeHtml(f.why)} <span class="justification-note">${escapeHtml(_fmtAt(f.at))}</span>
         <button class="btn btn-compact-small" data-action="ptGenerateUnit" data-args='["${escapeHtml(f.id)}"]'>re-run</button>
       </div>`).join('') + '</div>';
 }
@@ -1144,10 +1152,12 @@ function ptRenderUnitPage() {
       <button class="btn btn-primary btn-compact" data-action="ptGenerateUnit" data-args='["${escapeHtml(u.id)}"]' id="pt-unit-btn">Generate ${escapeHtml(u.kind === 'setup' ? 'setup' : u.label)} (LLM)</button>
       <span class="justification-note" id="pt-unit-status">${
         st === 'ok' ? '✓ returned ' + escapeHtml(u.at || '')
-        : (u.status === 'error' ? '✗ ' + escapeHtml(u.error || 'failed')
-        : (st === 'run' ? 'in flight…' : 'not generated yet'))}</span>
+        : (st === 'held' ? '⏸ a fix is held for your approval' + (u.heldInfo && u.heldInfo.at ? ' (returned ' + escapeHtml(_fmtAt(u.heldInfo.at)) + ')' : '')
+        : (u.status === 'error' ? '✗ ' + escapeHtml(u.error || 'failed') + (u.at ? ' · ' + escapeHtml(_fmtAt(u.at)) : '')
+        : (st === 'run' ? 'in flight…' : 'not generated yet')))}</span>
       ${u.edited ? '<span class="badge">prompt edited</span>' : ''}
     </div>
+    ${st === 'held' ? _ptHeldFrame(u) : ''}
 
     <div class="pt-unit-frame mt-2">
       <div class="pt-unit-frame-label">Returned code — what the LLM sent back for this unit</div>
@@ -1172,7 +1182,8 @@ function ptRenderUnitPage() {
     </div>`;
   // Fetch on OPEN — the behaviour units_status's docstring has always claimed. Covers both
   // "landed while others are still running" and "regenerated, cached copy just dropped".
-  if ((u.status === 'ok' && !u.code) || (u.status === 'error' && !u.raw)) _ptFetchUnitCode(u.id);
+  if ((u.status === 'ok' && !u.code) || (u.status === 'error' && !u.raw)
+      || (u.held && !u.heldInfo)) _ptFetchUnitCode(u.id);
 
   const ta = document.getElementById('pt-unit-prompt');
   if (ta) ta.addEventListener('input', () => {
@@ -1182,6 +1193,59 @@ function ptRenderUnitPage() {
     if (cur) { cur.prompt = ta.value; cur._dirty = true; }
   });
 }
+
+// G7 (PLAN-fix-units-guardrails, 2026-09-14): a review- or run-driven fix is never spliced
+// on arrival. It waits on the unit as a HELD reply with its diff against the current code
+// and G3's scope record; the reviewer applies or discards it here. A lint-only fix applies
+// itself (D2) and never shows this frame.
+function _ptHeldFrame(u) {
+  const h = u.heldInfo;
+  if (!h) return `<div class="pt-unit-frame pt-unit-frame-held mt-2"><div class="pt-unit-frame-label">Held fix — loading the diff…</div></div>`;
+  const sc = h.scope || {};
+  const pct = Math.round((sc.change_ratio || 0) * 100);
+  const warn = [];
+  if ((sc.out_of_scope_methods || []).length) {
+    warn.push(`⚠ changes OUTSIDE the methods the findings point at: ${sc.out_of_scope_methods.join(', ')}`);
+  }
+  if (sc.over_threshold) warn.push(`⚠ ${pct}% of the unit's own lines changed — over the 40% threshold`);
+  const reach = sc.anchors
+    ? `${sc.changed_lines} line(s) changed (${pct}% of ${sc.non_scaffold_lines} non-frame lines); the findings anchor in ${(sc.anchored_methods || []).join(', ') || 'no method'}; the fix changes ${(sc.changed_methods || []).join(', ') || 'nothing'}.`
+    : `${sc.changed_lines} line(s) changed (${pct}% of ${sc.non_scaffold_lines} non-frame lines); the findings quote no line, so scope could not be anchored.`;
+  return `
+    <div class="pt-unit-frame pt-unit-frame-held mt-2">
+      <div class="pt-unit-frame-label">Held fix — diff against the current unit (the current code below is what the script still contains)</div>
+      <div class="justification-note">${escapeHtml(reach)}</div>
+      ${warn.map(w => `<div class="pt-held-warn">${escapeHtml(w)}</div>`).join('')}
+      <pre class="session-pre pt-unit-out pt-held-diff">${escapeHtml(h.diff || '(no textual change)')}</pre>
+      <div class="compact-flex mt-1">
+        <button class="btn btn-compact" data-action="ptApplyHeld" data-args='["${escapeHtml(u.id)}"]'>Apply this fix</button>
+        <button class="btn btn-compact" data-action="ptDiscardHeld" data-args='["${escapeHtml(u.id)}"]'>Discard</button>
+        <span class="justification-note">Apply splices it in and re-assembles + re-lints (local). Discard keeps the current unit.</span>
+      </div>
+    </div>`;
+}
+
+async function _ptHeldAction(path, ids, label) {
+  if (!ptRequireCase()) return null;
+  const st = ptStatusEl('pt-units-status');
+  const d = await ptApi(`/${path}/${S.ptCase.key}`, {
+    method: 'POST', body: JSON.stringify(ids ? { units: ids } : {}),
+  }, st);
+  if (!d) return null;
+  await ptRefreshSession();
+  await ptLoadUnits();
+  renderPtGenPanel();
+  ptRenderUnits();
+  if (st) {
+    st.textContent = path === 'apply_held'
+      ? `${label}: ${(d.applied || []).length} fix(es) applied and re-assembled; lint ${d.lint_ok ? 'ok' : `FAILED (${d.lint_errors} error(s))`}. The old review was cleared — run Review to see what remains.`
+      : `${label}: ${(d.discarded || []).length} held fix(es) discarded; the current units stand.`;
+  }
+  return d;
+}
+async function ptApplyHeld(unitId) { return _ptHeldAction('apply_held', [unitId], 'Apply'); }
+async function ptDiscardHeld(unitId) { return _ptHeldAction('discard_held', [unitId], 'Discard'); }
+async function ptApplyAllHeld() { return _ptHeldAction('apply_held', null, 'Apply all'); }
 
 // Units whose code we are already fetching, so re-rendering cannot start a second
 // request for the same unit (ptRenderUnitPage runs on every poll tick).
@@ -1202,6 +1266,8 @@ async function _ptFetchUnitCode(id) {
     if (d.at && u.at && d.at !== u.at) return;
     u.code = d.code || '';
     u.raw = d.raw || '';
+    u.held = !!d.held;
+    u.heldInfo = d.held || null;
     if (d.at) u.at = d.at;
     if (_ptUnits[_ptUnitIdx] && _ptUnits[_ptUnitIdx].id === id) ptRenderUnitPage();
   } catch (_) {
@@ -1277,6 +1343,8 @@ function _ptApplyUnitStatus(map, running) {
       // 2026-09-02. Any change of `at` means new bytes exist: drop what we cached.
       if (st.at && st.at !== u.at) { u.at = st.at; u.code = ''; u.raw = ''; }
       if (u.status !== 'ok') { u.status = 'ok'; u.error = ''; u.at = st.at || u.at; }
+      // G7: a held fix arrived (or was applied / discarded) — refetch so the page shows it.
+      if (!!st.held !== !!u.held) { u.held = !!st.held; u.heldInfo = null; u.code = ''; }
     } else if (st.status === 'error') {
       if (u.status !== 'error' || u.error !== st.error || (st.at && st.at !== u.at)) {
         u.status = 'error';
@@ -1287,7 +1355,7 @@ function _ptApplyUnitStatus(map, running) {
         // window.alert would freeze the event loop mid-fan-out.
         if (!_ptUnitFails.some(f => f.id === u.id)) {
           _ptUnitFails.push({ id: u.id, label: u.label, why: u.error,
-                              at: new Date().toISOString() });
+                              at: u.at || new Date().toISOString() });
         }
       }
     }
@@ -1312,9 +1380,11 @@ async function _ptPollUnitsOnce() {
     const st = ptStatusEl('pt-units-status');
     if (st) {
       delete st.dataset.busy;
-      const ok = _ptUnits.filter(u => _ptUnitState(u) === 'ok').length;
+      const ok = _ptUnits.filter(u => ['ok', 'held'].includes(_ptUnitState(u))).length;
+      const held = _ptUnits.filter(u => _ptUnitState(u) === 'held').length;
       st.textContent = `${ok}/${_ptUnits.length} unit(s) generated`
-        + (_ptUnitFails.length ? ` — ${_ptUnitFails.length} failed; re-run them individually.` : '.');
+        + (_ptUnitFails.length ? ` — ${_ptUnitFails.length} failed; re-run them individually.` : '.')
+        + (held ? ` ⏸ ${held} held fix(es) waiting for Apply / Discard.` : '');
     }
     // A Fix-units run re-assembles server-side after its last unit lands; whoever started
     // it wants the Summary refreshed once that has happened.
@@ -1375,7 +1445,14 @@ async function ptGenerateUnit(unitId) {
   if (!ptRequireCase()) return;
   if (!_ptUnitById(unitId)) return;
   if (_ptUnitSending[unitId]) return;                 // already in flight
-  return await _ptDispatchUnits([unitId]);
+  // Follow-up #2 (2026-09-14): the same in-flight → done affordance the bulk button has.
+  // The pill turns amber on dispatch too, but the button under the pointer must answer.
+  const btn = document.getElementById('pt-unit-btn');
+  setButtonBusy(btn, true, { label: 'Dispatching…' });
+  const d = await _ptDispatchUnits([unitId]);
+  setButtonBusy(btn, false);
+  flashButtonDone(btn, !!d, d ? { label: '✓ sent — in flight' } : undefined);
+  return d;
 }
 
 async function ptGenerateAllUnits() {
@@ -1610,8 +1687,14 @@ async function _ptFixUnitsCommon(btn, statusEl) {
     } else if ((fu.failed || []).length) {
       el.textContent = `Fix units: ${fu.failed.length} unit(s) failed (${fu.failed.join(', ')}); `
         + `not re-assembled — re-run them individually, then Assemble.`;
+    } else if ((fu.held || []).length && !fu.assembled) {
+      el.textContent = `Fix units: ${fu.held.length} fix(es) HELD for your approval (${fu.held.join(', ')}) — `
+        + `open each ⏸ unit to see its diff and Apply or Discard, or use "Apply all held fixes". `
+        + `Nothing was spliced; the script is unchanged until you apply.`
+        + ((fu.structural || []).length ? ` ${fu.structural.length} structural finding(s) still need a design decision: ${fu.structural.join(' · ')}` : '');
     } else if (fu.assembled) {
-      el.textContent = `Fix units: ${(fu.units || []).length} unit(s) re-generated and re-assembled `
+      el.textContent = `Fix units: ${(fu.applied || fu.units || []).length} unit(s) re-generated and re-assembled `
+        + ((fu.held || []).length ? `(+ ${fu.held.length} HELD for approval: ${fu.held.join(', ')} — open the ⏸ units) ` : '')
         + `(iteration ${((ptSession || {}).step6 || {}).iterations || '?'}); lint `
         + `${fu.lint_ok ? 'ok' : `FAILED (${fu.lint_errors} error(s))`}. `
         + `The old review was cleared — run Review to see what remains.`
@@ -2103,6 +2186,7 @@ async function ptCheckProfileNamed(name) {
 
 // Register this tool's data-action handlers.
 registerActions({
+  ptApplyHeld, ptDiscardHeld, ptApplyAllHeld,
   ptLoadCase, ptRefreshCases, ptExtractSequence,
   ptAddSeqRow, ptRemoveSeqRow, ptSaveSequence,
   ptConfirm, ptSuggestStep, ptSuggestAllSteps, ptSearchStep,
