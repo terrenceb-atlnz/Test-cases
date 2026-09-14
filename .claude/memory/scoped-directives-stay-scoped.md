@@ -3,6 +3,7 @@ name: scoped-directives-stay-scoped
 description: A short directive applies to the layer under discussion, not to every layer it could plausibly touch — apply it there and name the others rather than assuming
 metadata:
   type: feedback
+  verified: 2026-09-14
 ---
 
 Terrence's directives are often one line and land mid-topic. **Apply them to the thing being

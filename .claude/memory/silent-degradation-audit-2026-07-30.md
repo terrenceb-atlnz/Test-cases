@@ -3,6 +3,7 @@ name: silent-degradation-audit-2026-07-30
 description: Three features were silently dead or degraded because their failure paths were polite — paramiko undeclared, lib2to3 removed in py3.13, unparseable LLM reply read as "empty"; check declared deps and parse-failure paths first
 metadata:
   type: feedback
+  verified: 2026-09-14
 ---
 
 Three defects found in one session (2026-07-30) shared a shape: **the feature was off, nothing
@@ -34,4 +35,4 @@ before believing the emptiness. (3) An "unavailable"/"degraded" branch deserves 
 capability is actually present, not just that the fallback exists.
 
 Related: [[claude-code-cli-transport-contract]], [[mutate-before-you-claim]],
-[[d3-py2-fragment-translation]], [[testbox-console-access]].
+[[testbox-console-access]]; the D3 py2-translation memory was retired 2026-09-11.

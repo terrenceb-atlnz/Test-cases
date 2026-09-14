@@ -8,7 +8,7 @@ in particular *why* each decision was made.
 
 For session-by-session narrative see [`SESSION_STATE.md`](SESSION_STATE.md); for the
 current working thread see
-[`ask-ck/objective-drafting/PROGRESS.md`](ask-ck/objective-drafting/PROGRESS.md).
+[`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
 ## 2026-09-11 (afternoon) — The Ask-CK tree restructured for the Svelte front-end branch
@@ -905,7 +905,7 @@ is a lint **error** that blocks confirmation.
 
 The earlier "9–20 `TestCase` class ceiling" and its `_size_overflow()` gate were a defect in
 `_parse_generated_blocks`, which stopped at the first *continuation* fence and discarded the
-rest. Both are gone. `ask-ck/pytest-create/FINDINGS-generation-size-ceiling.md` carries a ⚠
+rest. Both are gone. `archive/records/FINDINGS-generation-size-ceiling.md` carries a ⚠
 banner because it records **parser** output, not model output.
 
 ## 2026-08-03 — Zephyr push validates before it writes; preflight stops guessing
@@ -947,8 +947,8 @@ grade as a *script* defect on hardware. Verdicts move with the bench: with only 
 declared it found all three Port (7) scripts un-runnable; declaring the two verified
 `swi_a`↔`swi_b` links took that to 2 of 3.
 
-Spec: `ask-ck/pytest-create/TOPOLOGY-PROFILES.md`. Checkers: `tool/pt_profiles.py`,
-`tool/pt_preflight.py`, `tool/pt_media.py`.
+Spec: `ask-ck/functions/pytest-creator/TOPOLOGY-PROFILES.md`. Checkers: `ask-ck/tools/pt_profiles.py`,
+`ask-ck/tools/pt_preflight.py`, `ask-ck/tools/pt_media.py`.
 
 ## 2026-07-29 — Backend module split complete; the objective reaches Generate
 
@@ -1114,5 +1114,5 @@ Renamed to **Ask CK**; the single-purpose drafting tool became a multi-tool work
 sidebar (Generator, PyTest Creator, Test Composer, Zephyr Templating Tool) and a relocated
 LLM Configure panel. The repo was restructured at the same time: `drafting-tool/` →
 `ask-ck/CK-main/` (+ `CK_server/`), and root `data/`, `refined-cases/` and the process docs
-moved under `ask-ck/objective-drafting/`. Historical documents may still reference pre-move
+moved under `ask-ck/objective-drafting/` (and since 2026-09-11 under `ask-ck/functions/generator/`). Historical documents may still reference pre-move
 paths.

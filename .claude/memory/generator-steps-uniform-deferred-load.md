@@ -4,7 +4,7 @@ description: "Generator's three data steps must have IDENTICAL startup behavior 
 metadata: 
   node_type: memory
   type: project
-  verified: 2026-08-17
+  verified: 2026-09-14
   originSessionId: 5eff94ba-b305-4e2c-8e60-efda5ba8e420
   modified: 2026-07-27T22:31:01.104Z
 ---
@@ -17,8 +17,8 @@ from each other (besides getting different sets of data)."*
 
 **Why:** load-time prefetching for panels the user hasn't opened yet has bitten this tool
 twice — ATP's `analyze_atp_coverage` LLM call added ~60s to every case load (removed), and
-Zephyr's 45k-row scan added a measured 3.8s **on the event loop** (still present as of
-2026-07-28). Both did work for a step the user might never visit, then the panel's own
+Zephyr's 45k-row scan added a measured 3.8s **on the event loop** (deleted in the module
+split — `routers/wizard/reviews.py` records the removal). Both did work for a step the user might never visit, then the panel's own
 search/suggest button did it again.
 
 **How to apply:** when touching Generator step data, don't add anything to `load_case`.
@@ -26,14 +26,17 @@ Prefer ONE `/step_candidates/{key}/{step}` endpoint over per-step bespoke handle
 symmetry is structural, not a convention three call sites must remember. Watch for the
 inverse mistake too: the code's own comments are unreliable here — a comment in the wizard
 claimed the module keeps no private copy of the relevance scorer while
-`_ZREF_GENERIC_TOKENS` + `_score_zephyr_candidate` are exactly that, and
-`frontend/ck-main/current/generator/generator.js:71` still references the long-removed load-time LLM call.
+`_ZREF_GENERIC_TOKENS` + `_score_zephyr_candidate` were exactly that, and a `generator.js`
+comment still described the long-removed load-time LLM call. Both are gone as of 2026-09-14:
+the scorer copy was removed (`_ZREF_GENERIC_TOKENS` survives only in `generator/descriptions.py`,
+for descriptions) and the header comment above `_CANDIDATE_CONTAINERS` in
+`frontend/ck-main/current/generator/generator.js` now records the two pre-load incidents as the *reason* for deferral.
 
 > **Paths re-checked 2026-08-17.** `routers/wizard.py` no longer exists — it became the
 > `routers/wizard/` **package** on 2026-07-29 (`reviews` / `config` / `synthesis` / `export`
 > + `_shared.py`), so every `wizard.py:NNNN` line number in this memory is dead. The
 > review/search handlers are now in `routers/wizard/reviews.py`; the shared scorer is
-> `CK_server/db.py:155`. Re-grep for the symbol rather than trusting a line number.
+> `_relevance_score` in `CK_server/db.py`. Re-grep for the symbol rather than trusting a line number.
 
 Corollary: **prefer `db.*` search + `db._relevance_score` over bespoke per-step scorers.**
 `db.search_zephyr` (FTS-indexed, shared scorer, same exclude semantics) already did what

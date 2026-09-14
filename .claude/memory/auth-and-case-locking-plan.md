@@ -22,7 +22,7 @@ keyed by case with **no owner column** and every persist is an unconditional who
 two tabs on one case each read, edit and save, and the second write silently won — no error, no
 trace. That is read-modify-write across *separate* requests, which event-loop serialisation cannot
 prevent. (It does **not** contradict the review's refutation of the within-request race once cited
-as `wizard.py:1648` — that refutation was correct, and that file is now the `routers/wizard/`
+as `wizard.py` line 1648 — that refutation was correct, and that file is now the `routers/wizard/`
 package anyway, so the line number is dead.)
 
 **How it was actually built — two deliberate deviations from the plan's §4 design.** Both were

@@ -4,6 +4,7 @@ description: "All 5 models fabricate AlliedWare Plus CLI output formats — a re
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-14
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T04:08:48.720Z
 ---
@@ -72,5 +73,13 @@ So "we ground the prompt in real CLI output" is true of the mechanism and false 
 Fixing it is normalisation (match on a de-hyphenated *and* hyphenated form) plus harvesting more
 sample output — not a change to `prompt_block`, which ranks correctly once it has candidates.
 
-Related: [[part3-grading-session]], [[physical-interaction-steps]] (T33235 step 6's
+**Re-measured 2026-09-14, after the 2026-09-08 CLI rebuild from one combined zip**
+([[atlnz-docs-cli-reference]]): 3,535 `cli_commands` rows (was 6,323), **847 with a
+`sample_output` (24 %)**, 3,415 distinct command names of which **~993 (29 %) are de-hyphenated**
+against their own `syntax` (conservative: a hyphenated literal keyword in `syntax` that appears in
+`command` with the hyphen dropped or spaced). The 2026-08-03 figures above are as-of that date; the
+shape of the problem is unchanged and the per-case net effect was not re-measured. The `command`
+column's mangling is [[ckdb-cli-command-hyphen-collapse]].
+
+Related: the 2026-07-27 Part 3 grading session (its memory was retired 2026-09-11), [[physical-interaction-steps]] (T33235 step 6's
 shutdown/no-shutdown substitution is a separate, non-CLI defect).

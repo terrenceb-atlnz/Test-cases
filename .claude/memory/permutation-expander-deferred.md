@@ -4,6 +4,7 @@ description: "deterministic CLI-bounded permutation-expander is a WANTED subsyst
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-14
   originSessionId: 2a141e3e-5a6e-4153-b006-2e724f5ec026
   modified: 2026-07-29T03:40:40.566Z
 ---
@@ -25,7 +26,8 @@ is a waste of time; include all permutations and check each as best-effort.
 `cli_commands.tables` JSON shape across ~5 varied devices. Honour [[awplus-speed-duplex-constraint]]
 (half-duplex≥1G prune is the one place hardware knowledge enters, as a deterministic rule) and
 the "no silent caps" rule. The complementary half — objective wired into Generate + baked into
-the `.py` header — was DONE 2026-07-29 (Generate prompt rule 1a + skeleton `==== OBJECTIVE ====`).
+the `.py` header — was DONE 2026-07-29 (rule 1a, now in `pt_fill_rules.jinja` + the skeleton's objective comment header, rendered in
+`pytest_create.py`; the literal `==== OBJECTIVE ====` banner no longer appears).
 
 **KEY EVIDENCE (2026-07-29 model matrix):** a 5-model × 3-case generation matrix + opus/vllm-fast
 holistic judging showed the objective fix worked on the GENERATION half (T33233/T33235 → "good"

@@ -2,9 +2,52 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-11, afternoon (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-14 (by Claude, with Terrence for every decision)
 
-## Latest session (2026-09-11, afternoon) — the Ask-CK tree RESTRUCTURED (PLAN-restructure-2026-09-11, batches 0–9); this file now lives at ask-ck/functions/generator/PROGRESS.md
+## Latest session (2026-09-14) — hygiene pass: the restructure's missed pointer sweep, memory citations cleared, 15 memories re-verified
+
+**Where it stands.** Orientation found the tree clean and level with origin, gate green (pytest
+1457 / 1 skipped, vitest 280). Nothing shipped in the product; Terrence asked for every hygiene
+find from the briefing to be acted on, then this wrap, then the guardrails.
+
+**What was done (all verified, gate green after):**
+- **Pointer sweep completed.** The 2026-09-11 batch 4/5 sweeps missed this file because it moved
+  in batch 5: 21 `ask-ck/pytest-create/` and 7 `ask-ck/objective-drafting/` references here, plus
+  four lines in CHANGELOG (incl. its "current working thread" link at the top), now name the
+  current homes (`ask-ck/plans/`, `ask-ck/functions/<page>/`, `archive/...`). Three lines keep the
+  old path on purpose and say the directory was deleted or moved again. **Not swept:** the 46
+  historical `tool/` tokens here and 15 in CHANGELOG — batch 6a scoped itself to anchors and live
+  docs; Terrence to say if he wants that completed the same way.
+- **`check_memory_refs.py` clean** (was 4 dead paths + 4 line cites): symbol/section names replace
+  line numbers (two more found in `pipeline-layer-contract`'s table the regex cannot see);
+  `ALLOW` gains `library_NNNN.py`, `lldp_class.py` (corpus files in ck.db) and `bench-state.md`,
+  `after-action-17688.md` (device-testing files cited by the shared tb470 memory).
+- **15 repo-owned unstamped memories re-verified against code + a read-only ck.db** and stamped
+  `verified: 2026-09-14`. Ten held. Five were corrected, not just stamped: `expected-results-
+  deliberately-absent` (the non-empty rule is REVERSED, `validate_for_push`'s blank rule deleted,
+  `steps_compliance` gone), `generator-cli-hallucination` (post-2026-09-08 rebuild: 3,535 rows,
+  847 with `sample_output` = 24 %, ~29 % of names de-hyphenated), `physical-interaction-steps`
+  (extractor half BUILT — `physical`/`manual` kinds; Generate half NOT), `generator-steps-uniform-
+  deferred-load` (both "unreliable comment" examples since removed), `permutation-expander-
+  deferred` / `autonomous-judgement-divergence` (a banner and a test that no longer exist). Six
+  links to memories retired in the 2026-09-11 split replaced with plain text, as the split record
+  asked. Still unstamped: 8 shared device-testing lab memories (hardware claims — that stream's to
+  verify) and `MEMORY.md` (the index).
+- **`check_memory_links.py --fix`** removed the three STRAY_LINK slugs. Three UNLINKED slugs remain:
+  old transcripts under `~/.claude/projects/` from pre-split launch dirs — outside the write
+  boundary, left for Terrence.
+
+**Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db signature unchanged.
+
+**Pick up here:** unchanged from 2026-09-11 — (1) **guardrails tranche 1: G1 + G5 (+ follow-ups
+#4) + G8(a)** from `ask-ck/plans/PLAN-fix-units-guardrails.md`; (2) the **D4** decision (tranche 1
+does not depend on it); (3) the design branch from `ask-ck/frontend/ck-main/svelte/`. Verified
+this session that nothing of the plan has shipped: `_unit_id_for_finding` still concatenates
+`where` + `evidence` (RC1).
+
+---
+
+## Previous session (2026-09-11, afternoon) — the Ask-CK tree RESTRUCTURED (PLAN-restructure-2026-09-11, batches 0–9); this file now lives at ask-ck/functions/generator/PROGRESS.md
 
 **Where it stands.** Terrence set the target layout in conversation (every decision his; the
 plan records them) and stopped the hosted server; nine batches ran as pure-move commit + sweep
@@ -198,7 +241,7 @@ route cut lasted under a minute and was fixed before any request hit it — see 
 surfaces. (2) ~~T44297's final Opus review → Save → Confirm~~ — **dropped 2026-09-11
 (Terrence):** there is no point reviewing the pre-guardrail artefact; once the guardrails are
 in, T44297 gets a fresh Generate and that run is what shows they work. The guardrails plan
-decisions (`ask-ck/pytest-create/PLAN-fix-units-guardrails.md` D1–D4, D6, D7) are the active
+decisions (`ask-ck/plans/PLAN-fix-units-guardrails.md` D1–D4, D6, D7) are the active
 thread. (3) `git push` — denied to Claude by permission mode on 2026-09-10; pushed by Terrence
 2026-09-11 midday.
 
@@ -275,7 +318,7 @@ If it recurs, capture BEFORE restarting: `py-spy dump --pid <worker>` (or
 clients; then restart. Worker pid = the child of the unit's Main PID (the reloader).
 
 **Also noted, not this session's:** untracked
-`ask-ck/objective-drafting/refined-cases/Sanity Check (15)/AWPTCM-T37871/` (session.json,
+`ask-ck/functions/generator/refined-cases/Sanity Check (15)/AWPTCM-T37871/` (session.json,
 traceability.md, zephyr_payload.json, 14:03) — a wizard export from live UI traffic; its
 siblings are tracked (`856adc6`), so it is Terrence's to commit when the case is final.
 
@@ -340,7 +383,7 @@ remaining plan decisions (follow-ups D4, D6, D1, D3, D-UI; guardrails D1–D4, D
 **Where it stands.** No code changed in this stretch (the last code commit is `6abec4b`, this
 morning). The session *operated* the PyTest Creator end-to-end on AWPTCM-T44297 to judge the new
 ART-frame shape, and the loop exposed seven issues — now planned, not fixed:
-`ask-ck/pytest-create/PLAN-t44297-pass-followups.md` (items 1–6, ordered by severity) and
+`ask-ck/plans/PLAN-t44297-pass-followups.md` (items 1–6, ordered by severity) and
 `PLAN-fix-units-guardrails.md` (item 7). **Thirteen decisions are pending Terrence** (7 + 6, in
 each plan's closing table). The "Pending fixes" block below is the index and defers to them.
 
@@ -406,7 +449,7 @@ prompt, or the step-5 UI.
 
 ## Pending fixes (deferred, not started) — PyTest Creator
 
-**Planned 2026-09-09 — the authority is now `ask-ck/pytest-create/PLAN-t44297-pass-followups.md`
+**Planned 2026-09-09 — the authority is now `ask-ck/plans/PLAN-t44297-pass-followups.md`
 (items 1–6, with order + decisions) and `PLAN-fix-units-guardrails.md` (item 7).** The list
 below is the index; read the plans before touching any of it.
 
@@ -459,9 +502,9 @@ Review step; **item 5 is a data-safety hazard** and outranks the rest.
    2026-09-07 — a memory that had fallen off the over-length MEMORY.md when the draft was
    written). The fix stays on `claude_agent`: durable agent job results collected on reconnect
    (job TTL) + never invalidate the stored review until a new one lands (mark it STALE).
-   Details and D6 in `ask-ck/pytest-create/PLAN-t44297-pass-followups.md` #6.
+   Details and D6 in `ask-ck/plans/PLAN-t44297-pass-followups.md` #6.
 7. **⚠ Guardrail `fix_units` so it can only write the unit a finding actually names** — full
-   plan at `ask-ck/pytest-create/PLAN-fix-units-guardrails.md` (**PROPOSED 2026-09-09**, six
+   plan at `ask-ck/plans/PLAN-fix-units-guardrails.md` (**PROPOSED 2026-09-09**, six
    decisions D1–D6 pending Terrence). Motivation: on T44297, 6 of 8 review/fix runs in 24 h were
    rework, and the reviews that policed the fixes (~90k in each) were the token sink. Root causes
    proven from code: the finding's `evidence` prose hijacks the target unit (finding 5 →
@@ -1127,7 +1170,7 @@ untouched by tests.**
 
 **State the next session must know / pick up here:**
 - **`PLAN-pytest-creator.md` §8 (server-side setup templates) is DESIGN ONLY, agreed with
-  Terrence, not built.** Storage = shared committed `ask-ck/pytest-create/setups/` + personal
+  Terrence, not built.** Storage = shared committed `ask-ck/functions/pytest-creator/setups/` + personal
   `ask-ck/var/setups/` (already gitignored); templates never a generation input; the per-run
   file is uploaded, the shared bench file is never overwritten. Two scenarios agreed: the
   interim **authors** a `.setup` from observed bench state, the long-term treats the template
@@ -1964,7 +2007,7 @@ Built from a 27-agent adversarially-verified audit — **284 findings, 206 CONFI
 **Focus: take 10 "Not Executed" AWPTCM cases end-to-end (objectives → refined cases → pytest →
 judges → tb470) automatedly with Opus.** Two of the three deliverables landed; the third is
 blocked by a measured, quantified limit rather than by anything left half-done. Gate **719 → 775**
-pytest (+92 Vitest unchanged). Full record: `ask-ck/pytest-create/autopilot/RESULTS-2026-08-03.md`.
+pytest (+92 Vitest unchanged). Full record: `archive/pytest-create/autopilot/RESULTS-2026-08-03.md`.
 
 - **Objectives + refined test cases: 10/10, all `valid=True`, zero warnings** — 422 refined steps
   under `refined-cases/{IPv4 (44),Management (71),Switching (75)}/`. The inputs were nearly empty
@@ -2271,7 +2314,7 @@ headline is that a rule stated in three places was simply wrong, and only hardwa
   silently on precisely the new cases it was for. The right fix is to PARSE the `.setup`,
   which nothing in `CK_server` does today; that would make the stackport rule exact instead
   of heuristic. Not started.
-- **`.setup` schema captured at last** — `ask-ck/pytest-create/SETUP-FILE-REFERENCE.md`,
+- **`.setup` schema captured at last** — `ask-ck/functions/pytest-creator/SETUP-FILE-REFERENCE.md`,
   from a real testbox, closing the open TODO in `ART-EXECUTION-CHAIN.md` that asked for a
   working example. Also records `[switch] swi_a = /dev/u0` (the console mapping is the same
   `uN` namespace as the shell aliases) and that TFTP boot means CLEARING `[boot_from_flash]`,
@@ -2660,7 +2703,7 @@ critical/high cluster. Uncommitted at write time — Terrence commits himself.**
 - **Tests:** +16 regression tests (`tests/test_security_fixes.py`, `test_export_note_and_admin.py`)
   → **30/30 green**, both guards green, `/health` 200, redaction + setup-rejection verified live via
   TestClient.
-- **Remaining ~45 candidate findings preserved** to `ask-ck/pytest-create/ADVERSARIAL-REVIEW-BACKLOG.md`
+- **Remaining ~45 candidate findings preserved** to `archive/records/ADVERSARIAL-REVIEW-BACKLOG.md`
   for a later triage pass (marked "verify before fixing" — the review's own gate refuted ~⅓ of
   candidates). Notable still-open: LLM JSON-parser greedy-regex bugs (`llm.py`, ~5 findings), the
   agent-bridge job-ownership/CORS gap, `confirm_step` invalidation cascade, a couple more path-traversal
@@ -2786,7 +2829,7 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
   - `--new-version`: **idempotent toward v2.0** — bumps 1.0→2.0 via the internal `POST /rest/tests/1.0/testcase/{id}/newversion` (reverse-engineered from a devtools HAR of the UI "New Version" → Accept), but does NOTHING if already at v2.0+ (never produces 3.0). New helpers `create_new_version` + `get_case_version_info`. Order per Terrence's spec: **fix-title → new-version → payload PUT** (atm PUT-by-key lands on the new latest version).
   - **Attachment de-dup (replace semantics):** `attach_file` now deletes any existing same-named attachment before uploading (the API has no update; repeated pushes were accumulating duplicate `traceability.md`). New `get_attachments` + `delete_attachment` (DELETE → 204).
   - **Looser link parser:** `parse_atpylib_links` now reads **un-backticked** ART suite IDs from the ATPyLib Cases section (most files author them in prose), filters year tokens (19xx/20xx), de-dupes per-suite, and skips a reviewed non-suite denylist (`1024`).
-  - **Repathed discovery** to `ask-ck/objective-drafting/refined-cases/` (was still on the pre-2026-07-13 root path → found 0 cases). Fixed the misleading `Summary: 0 ok` counter (success was only counted on the web-links branch).
+  - **Repathed discovery** to `ask-ck/functions/generator/refined-cases/` (was still on the pre-2026-07-13 root path → found 0 cases). Fixed the misleading `Summary: 0 ok` counter (success was only counted on the web-links branch).
 - **Server + UI:** new `POST /api/wizard/push_to_zephyr/{key}?dry_run=…` (`routers/wizard.py`) shells out to the CLI — the **server never handles the JIRA token** (the CLI loads it from `secrets.md`). "Preview Push (dry-run)" + "Push to Zephyr" buttons in the Generator step-6 export actions (`static/js/generator.js` + `styles.css`).
 - **`_backfill_from_refined` (load fix, `routers/wizard.py`):** loading a previously-Complete case showed empty objective/steps because its runtime session in `ck.db` had empty step4/step5 (cases refined before the session captured them). Load now rehydrates step4/step5 from the canonical on-disk `zephyr_payload.json` (guard_db_only allows that read) and self-heals the DB session.
 - **Push does NOT export-first (important):** an early version re-exported the bundle before pushing, which **degraded** a backfilled case's `traceability.md` (the incomplete session lacks step1–3 selections). Removed — Push now operates on the canonical on-disk bundle; click **Export Repeatable Bundle** first if you edited. One case (T33241) was hit + fully repaired (restored file, re-attached, `2024` link re-added).
@@ -2795,29 +2838,29 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-22b) — vLLM streaming transport + stale-`llm_config` re-sync
 
-**Focus: (1) built the streaming transport that Part 2B §7.7 named as the real fix for `vllm-thinking` read-timing-out on `generate_script`; (2) fixed the §7.3 stale-`llm_config` root cause in both routers. Committed at session close; push to main pending (this environment lacks GitHub SSH auth — Terrence to push).** Living doc: `ask-ck/pytest-create/PLAN-pytest-testing.md` §8 (streaming) + §9 (re-sync).
+**Focus: (1) built the streaming transport that Part 2B §7.7 named as the real fix for `vllm-thinking` read-timing-out on `generate_script`; (2) fixed the §7.3 stale-`llm_config` root cause in both routers. Committed at session close; push to main pending (this environment lacks GitHub SSH auth — Terrence to push).** Living doc: `ask-ck/plans/PLAN-pytest-testing.md` §8 (streaming) + §9 (re-sync).
 
 - **Streaming the vLLM path (`llm.py`).** The OpenAI-compatible branch of `_call_llm_raw` now sends `stream: true` + `stream_options: {include_usage: true}` and consumes the SSE body, accumulating `content`/`reasoning_content` deltas + final `finish_reason`/usage into the **same triplet** the non-streamed path produced — so every guard (length/null/truncation) and the token-usage badges are unchanged. **Why structural, not a bigger ceiling:** with a streamed body the HTTP `read` timeout is the gap *between* chunks, not the whole-response wall clock; vLLM streams `reasoning_content` throughout the thinking phase, so a reasoning pass of any length completes as long as chunks keep flowing. The prior static 600s floor could still be exceeded (§7.7: it was); this removes the ceiling. Anthropic native path left non-streaming (no such failure).
 - **Verified live (real org vLLM):** `vllm-fast` trivial ask 1.0s + correct badges; `vllm-thinking` `generate_script`-scale prompt completed at 395.6s (`finish=stop`, was failing at 600s in Part 2B); **ceiling-gone proof** — a `vllm-thinking` call with a deliberately short **30s** read timeout ran **21+ min with no timeout** (killed for time, not failure), proving the read budget is now inter-chunk.
-- **Token-processing-over-time capture (in progress).** Identical prompt through both models, chunk-instrumented. **`vllm-fast` baseline:** 48.7s, **first answer token at 21.3s** (21s of reasoning-only first), 8,733 completion tokens, 8,731 chunks. **Key finding: `vllm-fast` is *also* a reasoning model** — both reason and both stream `reasoning_content`; the difference is reasoning-phase *duration*, not reasoning-vs-not. The vLLM SSE structure is identical for both. **`vllm-thinking` on the same prompt: 2,149s (35.8 min, 44× slower), `finish=length`, ZERO answer emitted** — it spent the entire 32k-token budget on reasoning (29,137 reasoning tokens) and never transitioned to the answer. **Streaming fixed the transport (the 35.8-min call completed with no read-timeout — the 600s ceiling would have aborted it) but NOT the model's fitness:** `vllm-thinking` is unfit for `generate_script`-scale generation. Strengthens the vllm-fast-default recommendation. Infographic (token curves over time, both models): `ask-ck/pytest-create/comparison/vllm_tokens.html` (+ published artifact).
+- **Token-processing-over-time capture (in progress).** Identical prompt through both models, chunk-instrumented. **`vllm-fast` baseline:** 48.7s, **first answer token at 21.3s** (21s of reasoning-only first), 8,733 completion tokens, 8,731 chunks. **Key finding: `vllm-fast` is *also* a reasoning model** — both reason and both stream `reasoning_content`; the difference is reasoning-phase *duration*, not reasoning-vs-not. The vLLM SSE structure is identical for both. **`vllm-thinking` on the same prompt: 2,149s (35.8 min, 44× slower), `finish=length`, ZERO answer emitted** — it spent the entire 32k-token budget on reasoning (29,137 reasoning tokens) and never transitioned to the answer. **Streaming fixed the transport (the 35.8-min call completed with no read-timeout — the 600s ceiling would have aborted it) but NOT the model's fitness:** `vllm-thinking` is unfit for `generate_script`-scale generation. Strengthens the vllm-fast-default recommendation. Infographic (token curves over time, both models): `archive/pytest-create/comparison/vllm_tokens.html` (+ published artifact).
 - **Stale-`llm_config` re-sync (`routers/wizard.py` + `routers/pytest_create.py`, §9).** Fixed the §7.3 root cause: both workspace-apply functions gated only on `_llm_is_active`, which reports headless CLI modes (`claude_agent`/`claude_code`/`grok_cli`) active unconditionally — so a session whose *stale* config was a headless mode could never re-sync to the workspace default and kept silently hitting the wrong backend. Now the **active workspace default is authoritative**: re-sync whenever the session config is inactive OR diverges from it (new `_same_backend` helper compares auth_method/provider/model). `_llm_is_active` left untouched (its status/`has_key` uses are correct as-is). Safe because `set_llm_config` is the only writer of a case's config and always writes it === the workspace default — no legitimate per-case divergence exists. Unit-verified 8/8 (no vLLM) + concurrency-reviewed. **Surfaced pre-existing debt (§9.4):** dual-instance sessions (in-memory cache vs fresh DB load) can drop unrelated state under concurrency — logged, not this fix's fault, not a blocker.
 - **Still deferred:** Part 3a/3b (the `wizard.py` twin bug is now fixed).
 
 ## Latest session (2026-07-22) — vLLM read-timeout fix + §1.5 provenance tags + Part 2B model matrix
 
-**Focus: continued the plan after the standing "fix next session" vLLM read-timeout note. All work uncommitted at session end — Terrence commits himself.** Living doc: `ask-ck/pytest-create/PLAN-pytest-testing.md` §7 (full bug-by-bug log with rationale).
+**Focus: continued the plan after the standing "fix next session" vLLM read-timeout note. All work uncommitted at session end — Terrence commits himself.** Living doc: `ask-ck/plans/PLAN-pytest-testing.md` §7 (full bug-by-bug log with rationale).
 
 - **vLLM read-timeout fixed (`llm.py`).** The two HTTP calls hardcoded `timeout=120`, ignoring every caller's requested timeout entirely — the actual cause of the `suggest_zephyr`/`synthesize_objectives` failures logged in the prior handoff. Now a `(connect=10, read=<caller's timeout>)` split, with the `local_llm` read floor raised to 600s (only when the caller asked for ≥120s, so the health-ping's 30s still fails fast). Verified against real requests.
 - **§1.5 inline source-provenance tags — built** (was tracked debt from Part 2A). `# ART/SVT/legacy <suite/file> lines a-b` tags derived mechanically from fragment metadata, or `# AI <model> <date>` for gap-fill; stamped authoritatively server-side after generation (never trusting LLM self-report). Verified on a real live T33234 regenerate — found and fixed a real duplicate-tag bug along the way (model echoed the prompt's instruction text as a second comment line; fixed by stripping the whole leading comment run, not just the first line). Also scrubbed a `— not yet implemented` string leaking into the skeleton's placeholder `failed()` text.
 - **`max_tokens` was never overridable — found live.** Verifying §1.5 hit a real `finish_reason=length` on `generate_script` at the 16000-token default (a full generated script is the biggest-output step). Threaded an optional `max_tokens` param end-to-end (`run_prompt`→`_call_llm_with_meta`→`_call_llm_raw`); `generate_script`/`fix_script` now request 32000.
 - **Two more real bugs found and fixed while setting up Part 2B** (both blocked the pipeline, not cosmetic): (1) a session's stale `llm_config` (leftover `claude_agent`) never re-syncs to the workspace default because `_llm_is_active()` treats headless-CLI auth methods as unconditionally active — same latent gap exists in `wizard.py`, left unfixed there (bigger blast radius); (2) `confirm_step` rejected a legitimate `fragments: []`/`matches: []` answer (empty list is a valid "no reuse needed" result, e.g. a `decision: new` case) because Python falsy-checks an empty list the same as "never ran" — blocked the ENTIRE rest of the pipeline for any case with a genuinely empty Fit Decision. Both fixed narrowly, verified live.
-- **Part 2B built and run for real** (`tool/pt_model_matrix.py`, new): 75 real LLM calls (3 target cases × 5 LLM-bearing steps × vLLM-fast/thinking + Claude Haiku/Sonnet/Opus). Grok CLI is logged in but genuinely quota-exhausted (real 403) — logged as an omission, not silently dropped. Results committed at `ask-ck/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. **Headline finding: `vllm-fast` is the clear reliability+latency winner (0/15 errors); `vllm-thinking` failed 3/15 — including `generate_script` timing out even at the raised 600s floor** — confirms the plan's own hypothesis that streaming, not just a bigger static timeout, is the real fix needed for the thinking model on large-output steps. Keyword-vs-LLM step-3 search: one case showed full agreement with mechanical rank, the other showed the LLM genuinely promoting a better-matching script the keyword scorer under-ranked (misleading vocabulary overlap between two suite families) — both real, useful signal.
+- **Part 2B built and run for real** (`tool/pt_model_matrix.py`, new): 75 real LLM calls (3 target cases × 5 LLM-bearing steps × vLLM-fast/thinking + Claude Haiku/Sonnet/Opus). Grok CLI is logged in but genuinely quota-exhausted (real 403) — logged as an omission, not silently dropped. Results committed at `archive/pytest-create/comparison/Port (7)/<CaseKey>/<step>.json`. **Headline finding: `vllm-fast` is the clear reliability+latency winner (0/15 errors); `vllm-thinking` failed 3/15 — including `generate_script` timing out even at the raised 600s floor** — confirms the plan's own hypothesis that streaming, not just a bigger static timeout, is the real fix needed for the thinking model on large-output steps. Keyword-vs-LLM step-3 search: one case showed full agreement with mechanical rank, the other showed the LLM genuinely promoting a better-matching script the keyword scorer under-ranked (misleading vocabulary overlap between two suite families) — both real, useful signal.
 - **Verified LLM access live before assuming blocks:** vLLM key present + working, Claude Haiku/Sonnet/Opus all reachable via `claude -p --model <alias>`, Grok logged in but quota-exhausted, tb470 reachable (SSH/sudo/framework) but `configs/tb470.setup` genuinely absent (Terrence-side physical-topology prerequisite — the one real remaining block, per §5b).
 - **Still pending:** Part 3a (offline judging, criteria 1-4, two LLM judges) and Part 3b (tb470 execution, criteria 5-6) — gated only on `configs/tb470.setup` + a stored testbox profile.
 
 ## Latest session (2026-07-21b) — PyTest Creator Part 2A: first real vLLM walkthrough + vLLM-path hardening
 
-**Focus: Part 2A — first real end-to-end walkthrough of the 8-step PyTest Creator flow on T33234 (`AWPTCM-T33234`, Port Auto MDI/MDI-X), driven headless via the org vLLM against the permanent `ck.db`. All committed + pushed to main (`e6c0d64`, `1ccf1a7`).** Full record: `ask-ck/pytest-create/PART2A-WALKTHROUGH.md`.
+**Focus: Part 2A — first real end-to-end walkthrough of the 8-step PyTest Creator flow on T33234 (`AWPTCM-T33234`, Port Auto MDI/MDI-X), driven headless via the org vLLM against the permanent `ck.db`. All committed + pushed to main (`e6c0d64`, `1ccf1a7`).** Full record: `ask-ck/functions/pytest-creator/PART2A-WALKTHROUGH.md`.
 
 - **Pipeline works end-to-end steps 1–6.** load_case → extract_sequence → suggest_scripts → assess_fit → gather_fragments → generate_script all return correct output against the live DB; the generated ~24–35 KB script **compiles + passes conformance lint**. Step 7 (run) correctly gates with a clean `400` when no testbox profile exists (fails safe). Every step verdict: **KEEP**; the 8-step decomposition + confirm-gating is sound, nothing mergeable. Live execution (7–8) is blocked only on the `tb470` profile + `.setup` prereq (Part 3b).
 - **Three real vLLM-path bugs found + fixed (`e6c0d64`, all in `llm.py`).** All rooted in the org models being **reasoning models** (chain-of-thought in `message.reasoning_content` before the answer in `message.content`): (1) `max_tokens=2000` exhausted mid-reasoning → `content` null → raised to 16000 for `local_llm`; (2) parser assumed non-null string — crashed on `None` and silently degraded on cap-truncated JSON → now guards + raises a clear `finish_reason=length` error + falls back to `reasoning_content`; (3) `extract_json_block` tried `[` before `{` so a top-level object with a nested array returned the inner array → now picks whichever bracket appears first. The health-ping's tiny prompt had masked all three — no headless vLLM run had ever completed before.
@@ -2827,11 +2870,11 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-21) — PyTest Creator: DB-only source fix, framework read-only guard, standardized template (Part 1)
 
-**Focus: planning + building the PyTest Creator standardization/testing effort. All committed + pushed to main.** Living plan: `ask-ck/pytest-create/PLAN-pytest-testing.md`.
+**Focus: planning + building the PyTest Creator standardization/testing effort. All committed + pushed to main.** Living plan: `ask-ck/plans/PLAN-pytest-testing.md`.
 
 - **Fixed a live DB-only violation (`c29f53e`).** `routers/pytest_create.py::_read_source` was reading script source off the retired `testsuites_art/` mount (`Path(rec["path"]).read_text()`), which no longer exists on disk. Now reads from `ck.db` (`rec["source_text"]` / `db.get_script_source`); `rec["path"]` is provenance-only. A 4-agent full audit of all 17 `CK_server/*.py` confirmed this was the ONLY live violation; cleaned up dead scaffolding (removed `DATA_DIR`/`PT_DATA_DIR` anchors, vestigial `SESSIONS_DIR`/`_session_path`/`GLOBAL_LLM_PATH`, stale comments). **Extended `tool/guard_db_only.py`** from 1 to 4 detected shapes (retired corpus JSON; script source off disk; retired mount roots; retired corpus-dir anchors).
 - **Testbox framework dir is READ-ONLY (`152e86b`).** `/home/st-art/framework` (profile `framework_path`) must never be written/edited/mutated; copy locally to edit. Enforced in `pt_exec.py` (`_assert_write_allowed` on SFTP targets, `_assert_command_allowed` on remote commands, source-vs-dest aware) + new runnable `tool/guard_framework_readonly.py` (15 cases).
-- **Part 0 — logging contract (`ca90ff8`).** `ask-ck/pytest-create/LOGGING-CONTRACT.md`: the required per-step log format, verified against the framework source on tb470 + a real 101-case log + the tool's `parse_framework_log` (all three agree). Gotchas: empty `passed()/failed()` emits no marker; results are 4-valued (PASS/FAIL/ERROR/UNSUPPORTED).
+- **Part 0 — logging contract (`ca90ff8`).** `ask-ck/functions/pytest-creator/LOGGING-CONTRACT.md`: the required per-step log format, verified against the framework source on tb470 + a real 101-case log + the tool's `parse_framework_log` (all three agree). Gotchas: empty `passed()/failed()` emits no marker; results are 4-valued (PASS/FAIL/ERROR/UNSUPPORTED).
 - **Part 1 — standardized script template (latest commit).** Generation now **fills a fixed skeleton** (`templates/pt_script_template.py.jinja`) instead of composing freely: data-driven `init` (switches/stacks/portlink detected from sequence+fragments), suite `configure`/`tear_down` (no pass/fail), one `TestCase_<n>` per verification step with the logging contract + per-case `tear_down`, `__main__` footer. `pt_generate_script.jinja` rewritten to fill-not-compose; `_lint_generated` extended for template/logging-contract conformance. Static exemplar chosen: `art/1363_ipv6/test-1363.1002.py` (replaces the dynamic 6011). Inline source-provenance tags planned (§1.5: `# ART/SVT/legacy <id> <lines>` / `# AI <model> <date>`). Docs: `TEMPLATE-SPEC.md`.
 - **ART execution chain documented** (`ask-ck/test-composer/ART-EXECUTION-CHAIN.md`) — the full ATPyLib run chain in dependency order (`<hostname>.cfg` → `.setup` → build load → `runAll` → `runTestSuite` → `test-*.py` → log → parse), the two entry points (suite runner vs our direct single-script path), and what Test Composer should reuse vs emulate. Finding: our direct `-s <setup>` path likely does NOT need `config.cfg` (a suite-runner concern) — to verify on the first real tb470 run.
 - **Testbox reachable this seat:** `ssh tb470` (device on u5, passwordless sudo, framework present). Neither `configs/tb470.setup` nor `tb470.cfg` exists yet — prerequisites before Part 3b execution.
@@ -2885,20 +2928,20 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 
 ## Latest session (2026-07-14) — PyTest Creator built + UI polish
 
-- **PyTest Creator fully implemented** (was a 501 stub). 8-step gated flow turning a Complete refined case into a runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test script, executed on a real testbox, iterated via an LLM fix loop to Final Validation. Plan + living tracker: **`ask-ck/pytest-create/PLAN-pytest-creator.md`** (start there for PyTest Creator work).
+- **PyTest Creator fully implemented** (was a 501 stub). 8-step gated flow turning a Complete refined case into a runnable Allied Telesis `framework` (ATTestSet/ATTestCase) test script, executed on a real testbox, iterated via an LLM fix loop to Final Validation. Plan + living tracker: **`ask-ck/plans/PLAN-pytest-creator.md`** (start there for PyTest Creator work).
   - Sidebar steps: 1. Cases / 2. Sequence / 3. Script Search / 4. Fit Decision / 5. Fragments / 6. Generate / 7. Run / 8. Validate, plus a **Testboxes** panel.
-  - New files: `tool/build_script_index.py` + `tool/enrich_script_index.py` (script index: 999 files across testsuites_art/svt_scripts/test_scripts + 55-module `framework_surface.json`; outputs to `ask-ck/pytest-create/data/`); `CK_server/pt_exec.py` (testbox profiles in gitignored `secrets.testboxes.json`, framework-log parser, threaded paramiko SSH runner); full rewrite of `routers/pytest_create.py`; 7 prompt templates (`pt_*.jinja`, `enrich_script_index.jinja`); `models.py` `PtSession`; `llm.py` `run_prompt`/`extract_json_block` + `timeout` param.
+  - New files: `tool/build_script_index.py` + `tool/enrich_script_index.py` (script index: 999 files across testsuites_art/svt_scripts/test_scripts + 55-module `framework_surface.json`; outputs to `ask-ck/pytest-create/data/`, a directory deleted in the 2026-09-11 restructure); `CK_server/pt_exec.py` (testbox profiles in gitignored `secrets.testboxes.json`, framework-log parser, threaded paramiko SSH runner); full rewrite of `routers/pytest_create.py`; 7 prompt templates (`pt_*.jinja`, `enrich_script_index.jinja`); `models.py` `PtSession`; `llm.py` `run_prompt`/`extract_json_block` + `timeout` param.
   - Robustness fix: LLM replies that come back as a bare JSON array (instead of the wrapped object) are now tolerated across sequence/matches/fragments parsing.
-- **Export path fix**: the Generator's *Export Repeatable Bundle* wrote to the pre-restructure `ask-ck/refined-cases/` (didn't exist). Now uses the `REFINED_DIR` anchor → `ask-ck/objective-drafting/refined-cases/`. Verified by exporting T33233 (complete count 42 → 43).
+- **Export path fix**: the Generator's *Export Repeatable Bundle* wrote to the pre-restructure `ask-ck/refined-cases/` (didn't exist). Now uses the `REFINED_DIR` anchor → `ask-ck/functions/generator/refined-cases/`. Verified by exporting T33233 (complete count 42 → 43).
 - **UI**: new **Help → Main** splash page (default landing) with the CK photo, welcome blurb, and collapsible per-tool guides in inverse-sidebar order (Generator open, PyTest Creator, then Test Composer / Zephyr as TBD); CK photo added to the sidebar "Ask CK" logo line; buttons/dropdowns/search bars no longer stretch full-width; Generator panels gained an "Objective / Test Case Generator" eyebrow header above the dynamic case title.
 - **Docs**: root `README.md` (hero CK image + per-tool guides matching Main), `SERVER-README.md` (PyTest Creator section), `SESSION_STATE.md`, and this file updated. `ckc.jpg` copied into `CK_server/static/` so it serves at `/static/ckc.jpg`.
 
-**Remaining for PyTest Creator** (needs credentials/hardware): run `tool/enrich_script_index.py` with a logged-in CLI then rebuild; first real-LLM walkthrough (suggested case AWPTCM-T33234); first real-testbox SSH run; gitignore/LFS decision for the regenerable `ask-ck/pytest-create/data/`.
+**Remaining for PyTest Creator** (needs credentials/hardware): run `tool/enrich_script_index.py` with a logged-in CLI then rebuild; first real-LLM walkthrough (suggested case AWPTCM-T33234); first real-testbox SSH run; gitignore/LFS decision for the regenerable `ask-ck/pytest-create/data/` (deleted 2026-09-11 — `ask-ck/plans/PLAN-restructure-2026-09-11.md`).
 
 ---
 
 **Prior session theme (2026-07-13)**:
-- **Repo restructure**: `drafting-tool/` → `ask-ck/CK-main/` (server code in `CK_server/`, was `drafting_server/`); root `data/`, `refined-cases/`, and process docs → `ask-ck/objective-drafting/`; per-tool dirs pre-staged (`ask-ck/pytest-create/`, `test-composer/`, `zephyr-tool/`).
+- **Repo restructure**: `drafting-tool/` → `ask-ck/CK-main/` (server code in `CK_server/`, was `drafting_server/`); root `data/`, `refined-cases/`, and process docs → `ask-ck/objective-drafting/`; per-tool dirs pre-staged (`ask-ck/pytest-create/`, `test-composer/`, `zephyr-tool/`). Moved again 2026-09-11: `ask-ck/objective-drafting/` → `ask-ck/functions/generator/`, `ask-ck/pytest-create/` → `ask-ck/functions/pytest-creator/`.
 - **Repathing**: new `CK_server/paths.py` single source of truth (DATA_DIR, REFINED_DIR, PROCESS_MD); `data.py`, `wizard.py`, `main.py`, `run.sh` fixed for the new layout. Boot-verified (410 cases: 368 open / 42 complete / 3 in progress).
 - **Ask CK multi-tool facelift** (see `ask-ck/ck-facelift/PLAN-facelift.md`): app renamed **Ask CK**; sidebar sections (top→bottom) LLM (+ **Configure** panel), **Zephyr Templating Tool** (4 stub steps), **Test Composer** (1 stub step), **PyTest Creator** (Cases wired + Creator stub), **Objective/Test Case Generator** (the full wizard, visible steps renumbered **1–6**, display-only).
 - LLM login UI moved out of old Step 0 into a main-area **Configure** panel (all element ids preserved; `showLLMConfig`/`#llmCredential`/`#llm-config-card` dead code removed).
@@ -2922,7 +2965,7 @@ preserved in memory (`d1-fragment-resolver-boundaries`, `d3-py2-fragment-transla
 | Repeatable Outputs | Advanced | Templates + note construction; export → `objective-drafting/refined-cases/`; gaps generated at synth/export |
 | Process Enforcement | Implemented | Server-side confirms (domain steps 1–3) before synthesize |
 | Frontend UI | Advanced (multi-tool) | Ask CK sidebar: Help→Main splash + tool sections; Generator + PyTest Creator full; Test Composer/Zephyr stubs; `goToPanel` navigation |
-| PyTest Creator | **Complete (2026-07-14)** | 8-step gated flow (Cases→Validate) + Testboxes; script index + framework-surface; SSH execution; LLM fix loop. Tracker: `ask-ck/pytest-create/PLAN-pytest-creator.md`. Pending: enrichment run, real-LLM/testbox shakeout |
+| PyTest Creator | **Complete (2026-07-14)** | 8-step gated flow (Cases→Validate) + Testboxes; script index + framework-surface; SSH execution; LLM fix loop. Tracker: `ask-ck/plans/PLAN-pytest-creator.md`. Pending: enrichment run, real-LLM/testbox shakeout |
 | Test Composer / Zephyr Templating | Scaffolded (TBD) | Placeholder panels + router stubs only |
 | Documentation | Updated 2026-07-13 | PROGRESS / SERVER-README / LESSONS / READMEs / BoS-EoS prompts repathed |
 | Hosting / nginx | Ready | Example config (paths may need the CK-main update) |
@@ -3024,7 +3067,7 @@ ask-ck/
   Load is now keyword-scored + instant (~64s → ~2.4s), LLM ranking is on-demand via the
   ATPyLib step's "Suggest with LLM" button.
 - ~~**Repath/verify `tool/` scripts** (`upload_refined.py` etc.)~~ — **done.** `upload_refined.py`
-  is fully on the `ask-ck/objective-drafting/refined-cases/` layout and was used to push all
+  is fully on the `ask-ck/functions/generator/refined-cases/` layout and was used to push all
   43 Complete cases to live Zephyr (2026-07-22c).
 - ~~**`requirements.txt` / setup**~~ — **exists** at `ask-ck/CK-main/requirements.txt`. (The
   SERVER-README's manual `pip install fastapi uvicorn …` prose was stale and has been repointed.)
@@ -3145,9 +3188,9 @@ ask-ck/
 ## 11. Session Handoff Checklist
 
 When starting a new session:
-- [ ] Read `ask-ck/objective-drafting/PROGRESS.md` (this file)
+- [ ] Read `ask-ck/functions/generator/PROGRESS.md` (this file)
 - [ ] Read `ask-ck/CK-main/SERVER-README.md`
-- [ ] Skim `ask-ck/objective-drafting/LESSONS_LEARNED.md` (2026-07-13)
+- [ ] Skim `ask-ck/functions/generator/LESSONS_LEARNED.md` (2026-07-13)
 - [ ] Run `./ask-ck/CK-main/run.sh`; hard-refresh browser
 - [ ] Confirm Ask CK sidebar: LLM Configure + 4 tool sections; Generator "1. Cases" active
 - [ ] Apply LLM once (Configure panel); switch cases — status must stick

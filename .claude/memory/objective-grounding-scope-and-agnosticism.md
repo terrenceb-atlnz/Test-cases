@@ -3,6 +3,7 @@ name: objective-grounding-scope-and-agnosticism
 description: Objective/step grounding has NO scope-boundary model → cross-case scope bleed; grounding on product-specific corpus cases breaks platform-agnosticism (absolute); Phase 2.4 must be HYBRID + scope-filtered, not autonomous regeneration
 metadata:
   type: project
+  verified: 2026-09-14
 ---
 
 Proven on **T33233 (Port - Auto Negotiation)** 2026-08-05b, driving the full wizard (load_case →

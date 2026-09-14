@@ -4,6 +4,7 @@ description: "The speed=1000 CLI fabrication starts at step 2 (Sequence Extracti
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-14
   originSessionId: da9b3bee-f2e0-4c80-972d-0db43518083d
   modified: 2026-07-27T02:51:32.751Z
 ---
@@ -46,4 +47,4 @@ Prompt-size breakdown while investigating (26,043 chars): skeleton **62%** (of w
 chars are `# >>> FILL <<<` comments the model is then told to delete), framework surface
 15%, rules 12%, CLI grounding 7%.
 
-See [[generator-cli-hallucination]], [[atlnz-docs-cli-reference]], [[part3-grading-session]].
+See [[generator-cli-hallucination]], [[atlnz-docs-cli-reference]]; the Part 3 grading session's memory was retired 2026-09-11.

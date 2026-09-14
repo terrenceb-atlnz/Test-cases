@@ -3,6 +3,7 @@ name: ckdb-cli-command-hyphen-collapse
 description: ck.db cli_commands.command mangles hyphenated CLI tokens (config-check→"configcheck", common-segments→"common segments"); trust syntax/examples or the device's own ? — a wrong token reads as a MISSING command
 metadata:
   type: reference
+  verified: 2026-09-14
 ---
 
 The `command` column of ck.db's `cli_commands` table is a **human label, not the exact CLI

@@ -4,6 +4,7 @@ description: "Where a prompt's prose and its code EXAMPLE disagree, the model im
 metadata: 
   node_type: memory
   type: feedback
+  verified: 2026-09-14
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
   modified: 2026-07-27T22:44:41.806Z
 ---

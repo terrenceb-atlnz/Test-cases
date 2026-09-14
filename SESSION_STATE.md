@@ -4067,3 +4067,18 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
 - **Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db untouched.
 - **Resume:** PROGRESS.md top entry (2026-09-11 afternoon), then plan §7.
 
+
+## Session Close / Handoff (2026-09-14) — hygiene pass; guardrails tranche 1 next
+
+- **Context:** `/orient-ck` found a clean tree, level with origin, gate green. Terrence asked for
+  all hygiene finds to be acted on. Done: the pointer sweep the restructure missed in PROGRESS.md
+  and CHANGELOG (28 + 4 lines to current homes); `check_memory_refs.py` cleared (line cites →
+  symbols, four reasoned `ALLOW` entries); 15 repo-owned memories re-verified against code and a
+  read-only ck.db, five corrected (details in PROGRESS.md top entry); three stray harness-side
+  memory links removed. Nothing in the product changed; no CHANGELOG entry.
+- **Left undone:** historical `tool/` tokens in dated entries (not in the finds; Terrence to
+  decide); 8 shared lab memories unstamped (device-testing's to verify); 3 UNLINKED old-transcript
+  slugs under `~/.claude/projects/` (outside the write boundary).
+- **Gate at close:** guards OK; pytest 1457 passed / 1 skipped; vitest 280; ck.db untouched.
+- **Resume:** PROGRESS.md top entry (2026-09-14), then `ask-ck/plans/PLAN-fix-units-guardrails.md`
+  — tranche 1 (G1 + G5 + G8(a)) starts in the same session.

@@ -3,6 +3,7 @@ name: autonomous-judgement-divergence
 description: Measured base rate — 5 of 12 autonomous judgement calls matched Terrence's; verification confirms what IS, never what SHOULD be, so check design docs not just code
 metadata:
   type: feedback
+  verified: 2026-09-14
 ---
 
 **Do not trust your own judgement calls at the rate the tooling's confidence implies.** This has
@@ -28,7 +29,7 @@ gap and becomes self-justifying: a push gate asserted "a step with no expected r
 test", then the prompt was rewritten to satisfy that gate, citing the gate refusing the corpus.
 
 **Two amplifiers.** (1) Tests freeze the deviation — once `test_blank_expected_result_blocks_the_push`
-exists, the wrong rule is protected by the mechanism meant to catch wrongness. (2) Overreach is
+existed (deleted with the rule on 2026-08-05), the wrong rule was protected by the mechanism meant to catch wrongness. (2) Overreach is
 intermittently rewarded: roughly half of it produces something genuinely useful, which is the
 same ~50% and exactly the schedule that makes the habit stick.
 

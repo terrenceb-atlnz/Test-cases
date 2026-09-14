@@ -104,6 +104,11 @@ ALLOW = {
     "0009_..._Master_reboot.py": "legacy corpus script (elided name), lives in ck.db",
     "library_5700.py": "testbox-side 5700 suite, outside this repo",
     "test-5700.200x.py": "testbox-side 5700 suite, outside this repo",
+    "library_NNNN.py": "placeholder for a corpus suite's library module (ART house shape), lives in ck.db",
+    "lldp_class.py": "legacy corpus copy of the LLDP layers (5003_feature_limits), lives in ck.db",
+    # --- the sibling device-testing repo, cited by the memories shared into this store ---
+    "bench-state.md": "device-testing repo, bench-setup/bench-state.md (shared tb470 memory)",
+    "after-action-17688.md": "device-testing repo, IE520/stack-tests/resiliency-link/ (shared tb470 memory)",
     "launch.sh": "testbox-side, outside this repo",
     ".atpylib_publisher.json": "testbox-side, outside this repo",
     # --- named as DEPLOYED rather than as stored ---

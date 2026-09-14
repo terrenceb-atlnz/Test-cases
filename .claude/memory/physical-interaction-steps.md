@@ -4,6 +4,7 @@ description: "Physical steps (plug/unplug, cable in/out) are IN scope — genera
 metadata: 
   node_type: memory
   type: project
+  verified: 2026-09-14
   originSessionId: 05c21640-4b4b-4ca4-a470-32f6bfa5c600
   modified: 2026-07-23T01:56:58.537Z
 ---
@@ -19,4 +20,9 @@ Physical-interaction test steps (hot-remove/insert a pluggable, unplug/replug a 
 
 So the fix for the generator is NOT to drop physical steps but to make the **Sequence extractor classify them as `physical`/`interactive`** and have **Generate emit the wait-for-state-change pattern** (prompt operator → poll for port state change → continue), preferably modeled on `waitForReplugEvent`. Do NOT tell the LLM to drive the removal via `.cmd()` (that's the current bug — fabricates a false CLI action).
 
-Relates to the PyTest Creator artefact-review worklist ([[pending-approved-plans]] area). Ties to LOGGING-CONTRACT's UNSUPPORTED result only when the platform genuinely lacks the feature, NOT for physical steps.
+**Status 2026-09-14:** the extractor half is BUILT — `pt_extract_sequence.jinja` classifies every step
+as one of setup/verify/`physical`/`manual` and keeps the action + verify text for the human steps. The
+Generate half is NOT — no Generate/fill prompt mentions physical steps, an operator prompt, `yesNo` or a
+wait-for-state-change pattern, so the ask above still stands for step 6.
+
+Relates to the PyTest Creator artefact-review worklist (its memory was retired 2026-09-11). Ties to LOGGING-CONTRACT's UNSUPPORTED result only when the platform genuinely lacks the feature, NOT for physical steps.

@@ -4,6 +4,7 @@ description: "AW+ domain facts — ecofriendly vs ecomode slang, LPI is deprecat
 metadata: 
   node_type: memory
   type: reference
+  verified: 2026-09-14
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
   modified: 2026-07-27T19:28:17.595Z
 ---

@@ -4,6 +4,7 @@ description: Generated test scripts must run on ALL platforms interchangeably â€
 metadata: 
   node_type: memory
   type: feedback
+  verified: 2026-09-14
   originSessionId: 14818525-5627-4f16-882d-6bbbef6aed41
   modified: 2026-07-27T19:51:39.974Z
 ---
@@ -39,4 +40,4 @@ missing platform data.
 - `.setup` notes: `[stack]` takes a member list (`stk_a = swi_a, swi_b`); non-default
   stackports need a `[configured_stackport]` section above `[portlink]`; empty
   `[boot_from_flash]` when booting over TFTP. tb470 configs live in
-  `/home/st-art/st-art/configs/` (see [[part3-grading-session]]).
+  `/home/st-art/st-art/configs/` (see [[tb470-topology-and-setup]]).
