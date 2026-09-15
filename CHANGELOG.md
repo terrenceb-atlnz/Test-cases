@@ -11,6 +11,37 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Negative tests are legitimate: suite-owned lint reworked, arrival stops fighting policy, drafts are kept
+
+Found on the T44297 self-healing proof run: **tc25 was refused and left with empty code.** Its
+own objective is a transmit-only port (`no lldp receive`), and it *restores* `lldp receive`
+before it ends — a well-formed negative test — but the suite-owned lint flagged both the unset
+and the restore, arrival refusal treated the policy finding as fatal, and the terminal refusal
+zeroed a 6 KB draft. Terrence's calls, and what shipped:
+
+- **The suite-owned lint now flags only an *unrestored* unset.** `_lint_suite_owned_commands` was
+  a per-line "a case must not re-issue or undo a suite-owned command" check; it is now cross-case:
+  a case may unset (`no X`) or re-issue a command `TestSet.configure()` owns, and the only harm —
+  all it flags — is an unset **never re-set later** (same case or a later one). tc25 restores, so
+  it produces *no finding*; fix run 5's tc1 (`no lldp run` in tear_down, never restored — 36 cases
+  behind it ran with LLDP off) still flags. The redundant re-issue finding is dropped (a re-set is
+  the cure, not a smell). Still a **policy** finding — the reviewer is the authority — so it
+  surfaces at Review and never blocks assembly. *Why:* fulfilling the test step's requirement
+  outranks "don't undo a config"; a negative test does exactly that on purpose.
+- **Arrival refusal no longer refuses on a suite-owned finding.** It is a cross-case flag judged
+  over the whole script at Review — a later case may restore the unset and may not be generated
+  yet — so `_arrival_refusal` excludes it (every other per-unit class still refuses + repairs).
+- **A generation refusal keeps its draft.** `_fail(…, keep_code=True)` on the shape and arrival
+  paths records `status=error` *with the parsed draft as `code`*, so the reviewer opens and edits
+  it instead of a red box. Assembly still blocks on the error status — kept to act on, not shipped.
+  *Why (Terrence):* "losing the tokens AND the code is the worst-case scenario."
+- **Scope held:** the fix path still refuses a *fix* that introduces an unrestored unset (a leak);
+  "allow all unsets" was scoped to generation. Open for Terrence to extend to the fix path.
+
+Gate: pytest 1544 / 1 skipped, vitest 292, both guards, `ck.db` signature unchanged. Live on the
+hosted tree. Verified on the real tc25 draft: the reworked lint returns zero findings.
+
+
 ## 2026-09-15 — Self-healing generation R1: fragment dependency closure (prevents the NameError class)
 
 - **The library now ships the definitions its fragments depend on.** `_close_fragment_deps`

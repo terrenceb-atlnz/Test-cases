@@ -19,7 +19,7 @@ import db as dbmod  # noqa: E402
 def test_lint_class_of_covers_every_per_unit_class():
     cases = {
         "unbound name: `x` at line 3 in TestCase_1 — nothing": "unbound",
-        "suite-owned: TestCase_1.main() line 5 undoes `lldp run`": "suite-owned",
+        "suite-owned: TestCase_1.main() line 5 unsets `lldp run` — no later case re-sets it": "suite-owned",
         "unknown field: `port_desc` at line 8 in TestCase_6 — `lldp_basic`": "field",
         "line 22: `peer.cmd('x')` selects `portPeer`, which is dutA's port, on peer": "port-owner",
         "contract: TestCase_1.configure() line 40 calls self.failed() — configure()/tear_down() "

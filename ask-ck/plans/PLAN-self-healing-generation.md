@@ -2,10 +2,14 @@
 
 > ## Status (read first)
 >
-> **REVIEWED 2026-09-15 — every decision made (D1–D6, §5); the §6.4 thresholds accepted; nothing
-> built yet.** Build order (§4): R2 + R3 + R5 first, then R1 (+ R1(b)), then R4, then the D6
-> re-measurement and R6. Each step gated and smoke-tested on the scratch server before the
-> hosted tree changes. Grew out of the guardrails plan's proof run (`PLAN-fix-units-guardrails.md`,
+> **BUILT 2026-09-15 — R1–R5 shipped and live on the hosted tree (see each section); R1(b) group
+> libraries deferred, R5's two JS surfaces deferred, R6's 4th bar awaits the D6 re-measurement
+> (Terrence's scratch-server Opus run).** Every decision made (D1–D6, §5); the §6.4 thresholds
+> accepted. Each step gated. **Refinement 2026-09-15 (the proof run's tc25):** a generation
+> refusal now KEEPS its parsed draft as `code` (`_fail(keep_code=True)`) — the refused-fix "keep
+> the unit" fix (PLAN-fix-units-guardrails) generalized to generation, so a refused unit is
+> editable, not an empty box; and `_arrival_refusal` excludes the (now cross-case) suite-owned
+> finding, since a policy flag judged over the whole script is not an arrival call. Grew out of the guardrails plan's proof run (`PLAN-fix-units-guardrails.md`,
 > complete the same day): the fresh Generate → Assemble on T44297 produced 9 lint errors in
 > 38 units, every one of a class the tool can already detect, and every one still needing a
 > person to read the summary, pick units, press Fix and re-assemble. Terrence's framing:

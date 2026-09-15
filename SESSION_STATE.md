@@ -4160,3 +4160,28 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   recovered (the whole session will be regenerated once R1–R5 land, which is the acceptance run).
 - Gate at close: guards OK; pytest 1514 passed / 1 skipped; vitest 290; ck.db untouched.
 - Resume: PROGRESS.md top entry, then PLAN-self-healing-generation.md §4 (build order).
+
+## Session Close / Handoff (2026-09-16) — negative tests legitimized; suite-owned lint reworked; drafts kept
+
+- Ran the self-healing acceptance Generate on T44297. 37/37 `tc` units returned; several arrived
+  dirty and self-repaired in one turn (R2/R3 working as intended). One unit, tc25 — a transmit-only
+  negative test that restores `lldp receive` after it — was WRONGLY refused and left empty. That
+  drove three changes (Terrence's calls), all built, gated, and live on the hosted tree:
+  1. `_lint_suite_owned_commands` reworked to cross-case: flags ONLY an unset of a suite-owned
+     command never re-set later. tc25 (restores) → no finding; tc1's leak → still flags, as policy.
+     Redundant re-issue finding dropped. Verified zero findings on the real tc25 draft.
+  2. `_arrival_refusal` excludes suite-owned findings (cross-case, un-judgeable mid-generation).
+  3. `_fail(keep_code=True)` on the generation shape + arrival paths — a refused generated unit
+     KEEPS its parsed draft as editable code, not an empty box (Terrence: "losing tokens AND code
+     is the worst case"). Generalizes the 2026-09-15 refused-fix "keep the unit" fix.
+- Docs: CHANGELOG top entry; PLAN-fix-units-guardrails G8(b) "REWORKED" note; PLAN-self-healing
+  status header corrected (R1–R5 were already built) + the keep-draft/arrival-policy refinement;
+  PROGRESS top entry; memory `opus-for-per-unit-fix` gains the self-healing-seat nuance (arrival
+  repair + settle run on the unit dropdown at Generate time) and is re-stamped 2026-09-16.
+- Gate at close: guards OK; pytest 1544 passed / 1 skipped; vitest 292; ck.db signature unchanged.
+- OPEN (Terrence): (a) the acceptance proof is still owed — re-gen tc25 (should be clean now) →
+  Assemble + settle → Review on T44297; the live tc25 is still in its pre-fix empty-error state.
+  (b) Decide whether to extend "allow all unsets" to the FIX path (today it still refuses a fix
+  that introduces an unrestored unset — scoped to generation). Also still pending: D6 Opus
+  re-measurement, R1(b) group libraries, R5's two JS surfaces.
+- Resume: PROGRESS.md top entry.

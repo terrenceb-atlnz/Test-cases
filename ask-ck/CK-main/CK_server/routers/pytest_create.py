@@ -2915,12 +2915,18 @@ def _cmd_literals(fn_node) -> List[Tuple[str, str, int]]:
 
 
 def _lint_suite_owned_commands(tree, code: str) -> List[str]:
-    """G8(b) (RC6 of PLAN-fix-units-guardrails): a command a TestCase issues that the suite's
-    `TestSet.configure()`/`tear_down()` also issues, on the same device — re-issued, or undone
-    (`no X` against the suite's `X`, or `X` against the suite's `no X`). The suite owns that
-    state for the whole run; a case that undoes it in its tear_down() disables it for every
-    case after it (T44297 fix run 5 put `no lldp run` in tc1's tear_down — 36 cases behind it).
-    Deterministic, cross-unit, no model. Mode navigation and `show` are not state."""
+    """G8(b) (RC6 of PLAN-fix-units-guardrails; reworked 2026-09-15 per Terrence's call on the
+    T44297 proof run). The suite's `TestSet.configure()` owns a command for the whole run. A case
+    is FREE to unset it (`no X`) when its own step needs to — a transmit-only negative test does
+    exactly that (T44297 tc25: `no lldp receive`) — PROVIDED it re-sets it, so the suite baseline
+    is whole for the cases behind it. What leaks, and all this flags, is an unset that is NEVER
+    re-set later (fix run 5 put `no lldp run` in tc1's tear_down and never restored it — 36 cases
+    behind it ran with LLDP off). A re-set is the cure, so a re-set is never flagged; a redundant
+    re-issue is not state harm, so that is dropped too. Deterministic, cross-case, no model; a
+    POLICY finding (the reviewer is the authority — a case may legitimately own the tail of a
+    run). Mode navigation and `show` are not state. Because restoration is judged over the WHOLE
+    script, this is an Assemble/Review check, not an arrival one: a later case that restores the
+    unset may not be generated yet, so `_arrival_refusal` never refuses a unit on it."""
     import ast as ast_mod
     classes = [n for n in tree.body if isinstance(n, ast_mod.ClassDef)]
 
@@ -2939,33 +2945,40 @@ def _lint_suite_owned_commands(tree, code: str) -> List[str]:
     if not owned:
         return []
 
-    def _undo_of(cmd: str) -> str:
-        return cmd[3:] if cmd.startswith("no ") else "no " + cmd
-
-    out: List[str] = []
-    for c in classes:
-        if not _base_has(c, "TestCase"):
-            continue
+    # Every unset and re-set of a suite-owned command a CASE issues, tagged with an execution
+    # position (case order in the file, then configure < main < tear_down, then line) so
+    # "re-set LATER" is a strict ordering. A re-set is a case re-issuing the suite's own `X`; an
+    # unset is a case issuing `no X` against it. A re-set later than the unset (same case or a
+    # later one) means the suite baseline is whole for the cases behind it — a well-formed
+    # negative test (T44297 tc25: `no lldp receive` then `lldp receive`). An unset with no later
+    # re-set leaks (fix run 5's tc1). A redundant re-issue is not state harm, so it is dropped.
+    _PHASE = {"configure": 0, "main": 1, "tear_down": 2}
+    unsets: List[tuple] = []
+    resets: Dict[Tuple[str, str], List[tuple]] = {}
+    cases = [c for c in classes if _base_has(c, "TestCase")]
+    for ci, c in enumerate(cases):
         for m in c.body:
             if not isinstance(m, ast_mod.FunctionDef):
                 continue
+            phase = _PHASE.get(m.name, 1)
             for dev, cmd, ln in _cmd_literals(m):
                 if _SUITE_NAV_CMD_RX.match(cmd):
                     continue
-                counter = owned.get((dev, _undo_of(cmd)))
-                if counter == "configure" or (counter and (dev, cmd) not in owned):
-                    # `no X` against the suite's `X` (or `X` against its `no X`): the harm is
-                    # the undo, so name it even when the suite's own tear_down() says the same.
-                    out.append(
-                        f"suite-owned: {c.name}.{m.name}() line {ln} undoes `{_undo_of(cmd)}` "
-                        f"(`{cmd}`) on {dev}, which TestSet.{counter}() issues "
-                        f"for the whole run — the suite owns it; this undo runs before the next "
-                        f"case and breaks every case after this one")
-                elif (dev, cmd) in owned:
-                    out.append(
-                        f"suite-owned: {c.name}.{m.name}() line {ln} re-issues `{cmd}` on {dev}, "
-                        f"which TestSet.{owned[(dev, cmd)]}() already issues — the suite owns it; "
-                        f"a case must neither re-issue nor undo a suite-owned command")
+                pos = (ci, phase, ln)
+                if cmd.startswith("no ") and (dev, cmd[3:]) in owned:
+                    unsets.append((dev, cmd[3:], pos, c.name, m.name, ln))
+                elif not cmd.startswith("no ") and (dev, cmd) in owned:
+                    resets.setdefault((dev, cmd), []).append(pos)
+
+    out: List[str] = []
+    for dev, base, pos, cname, mname, ln in unsets:
+        if any(rp > pos for rp in resets.get((dev, base), [])):
+            continue                                       # re-set later — a well-formed override
+        owner = owned.get((dev, base))
+        out.append(
+            f"suite-owned: {cname}.{mname}() line {ln} unsets `{base}` (`no {base}`) on {dev}, "
+            f"which TestSet.{owner}() issues for the whole run — the suite owns it — and no "
+            f"later case re-sets it, so it leaks to every case after this one")
     return out
 
 
@@ -5781,6 +5794,13 @@ def _arrival_refusal(key: str, unit: dict, code: str, ctx: dict, sess) -> Option
     guard = {"assembled_code": placeholder_partial, "sess": fresh, "baseline_errors": baseline}
     mine = _spliced_new_errors(guard, code, unit, include_unmapped=False)
     if mine:
+        # Suite-owned unset findings (D-2026-09-15) are a cross-case POLICY flag judged over the
+        # WHOLE assembled script at Review — a later case may re-set the unset, and may not be
+        # generated yet — so a unit is never arrival-refused (nor repair-thrashed) for one. A
+        # negative test that unsets a suite command for its own step is legitimate; the Review
+        # flag is what checks it is re-set. Every other per-unit class still refuses here.
+        mine = [e for e in mine if not str(e).startswith("suite-owned:")]
+    if mine:
         return "generated unit has lint error(s): " + "; ".join(str(e)[:160] for e in mine[:3])
     return None
 
@@ -6226,7 +6246,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
             fresh.step6 = step6_f
         _pt_persist_fresh(key, _apply, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
 
-    def _fail(reason: str, raw: str = "") -> dict:
+    def _fail(reason: str, raw: str = "", keep_code: bool = False) -> dict:
         # KEEP THE REPLY. A refused unit is the one you most need to read: the reviewer has
         # to see what came back to judge whether to re-run it or edit the prompt. Discarding
         # it left a red pill with an error string and no way to act on it — which is what
@@ -6239,16 +6259,27 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         #    current unit — and park the refused reply + reason under `refused`, the way a held
         #    fix parks under `held`. Zeroing the code here wiped two reviewed units while the
         #    surrounding comment claimed it "keeps the OLD chunk".
-        #  * GENERATION (no guard, or the R2 arrival guard): there is no prior unit to keep, so
+        #  * GENERATION with a real code draft (`keep_code`, 2026-09-15 per Terrence): there is
+        #    no prior unit, but the reply parsed to a whole unit that only failed a shape/lint
+        #    check. Record status=error AND KEEP that draft as `code`, so the reviewer opens it,
+        #    sees the two lines to fix, and edits it — losing the tokens AND the code is the
+        #    worst case. Assembly still blocks on the error status; the draft is not silently
+        #    shipped, only kept to act on.
+        #  * GENERATION with no usable draft (an LLM error, or a reply with no fenced block):
         #    record status=error with an empty code and the raw reply, so the pill can say why.
         if guard and not guard.get("generation"):
             _store({"refused": {"code": (raw or "")[:_PT_RAW_KEEP_CHARS], "reason": reason,
                                 "at": utc_now().isoformat()},
                     **({"prompt": prompt} if edited else {})})
             return {"unit": unit_id, "status": "refused", "error": reason}
-        _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
-                "raw": (raw or "")[:_PT_RAW_KEEP_CHARS], "code": "", "held": None,
-                **({"prompt": prompt} if edited else {})})
+        if keep_code:
+            _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
+                    "code": raw or "", "raw": "", "held": None,
+                    **({"prompt": prompt} if edited else {})})
+        else:
+            _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
+                    "raw": (raw or "")[:_PT_RAW_KEEP_CHARS], "code": "", "held": None,
+                    **({"prompt": prompt} if edited else {})})
         return {"unit": unit_id, "status": "error", "error": reason}
 
     if meta.get("error"):
@@ -6259,7 +6290,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         return _fail("the reply contained no fenced python block", meta.get("content", ""))
     ok, why = _unit_shape_ok(code, unit)
     if not ok:
-        return _fail(why, code)
+        return _fail(why, code, keep_code=True)
     if guard and guard.get("generation"):
         # R2 (2026-09-15): arrival-time lint. A freshly generated unit that introduces a
         # per-unit lint error is refused HERE, seconds after the reply, not at Assemble minutes
@@ -6267,7 +6298,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         # turn (R3) before it stands. No prior unit exists, so nothing is "kept".
         why = _arrival_refusal(key, unit, code, guard.get("ctx") or {}, guard.get("sess"))
         if why:
-            _fail(why, code)
+            _fail(why, code, keep_code=True)
             return {"unit": unit_id, "status": "arrival_refused", "reason": why,
                     "code": code, "usage": meta.get("usage")}
     elif guard:

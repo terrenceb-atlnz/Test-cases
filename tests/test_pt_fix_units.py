@@ -622,18 +622,61 @@ if __name__ == '__main__':
 """
 
 
-def test_G8b_the_lint_names_exactly_the_two_lines_tc1_gained_and_nothing_case_specific():
+def test_G8b_flags_only_the_unrestored_unset_and_drops_the_redundant_reissue():
+    # Reworked 2026-09-15 (Terrence's call on the T44297 proof run): a case may unset OR re-issue
+    # a suite-owned command; the only harm — and all this flags — is an unset never re-set later.
+    # tc1.tear_down's `no lldp run` is never restored (a leak: 36 cases behind it ran with LLDP
+    # off). tc1.configure's redundant `lldp run` re-issue is no longer flagged at all.
     import ast
     errs = pc._lint_suite_owned_commands(ast.parse(SUITE_OWNED_SCRIPT), SUITE_OWNED_SCRIPT)
-    assert len(errs) == 2, errs
-    reissue = next(e for e in errs if "re-issues" in e)
-    undo = next(e for e in errs if "undoes" in e)
-    assert "TestCase_1.configure()" in reissue and "`lldp run` on dutA" in reissue and "TestSet.configure()" in reissue
-    assert "TestCase_1.tear_down()" in undo and "undoes `lldp run` (`no lldp run`) on dutA" in undo
-    assert "breaks every case after this one" in undo
+    assert len(errs) == 1, errs
+    leak = errs[0]
+    assert "TestCase_1.tear_down()" in leak and "unsets `lldp run` (`no lldp run`) on dutA" in leak
+    assert "no later case re-sets it" in leak and "leaks to every case after this one" in leak
+    assert not any("re-issues" in e for e in errs)   # a redundant re-issue is not state harm
     # tlv-select (case-specific), `interface …` (navigation), `show`, and `lldp receive` on a
     # DIFFERENT device than the suite issued it on are all left alone.
     assert not any("tlv-select" in e or "interface" in e or "show" in e or "TestCase_2" in e for e in errs)
+
+
+def test_G8b_a_self_contained_negative_test_that_re_sets_is_not_flagged():
+    # T44297 tc25: the step's requirement is a transmit-only port (`no lldp receive`), and the
+    # unit restores `lldp receive` before it finishes. Unset + re-set in the same case: the suite
+    # baseline is whole for the next case, so there is nothing to flag.
+    import ast
+    script = (
+        "import sys\n"
+        "from framework import ATTestSet, ATTestCase\n\n\n"
+        "class TestSet(ATTestSet.TestSet):\n"
+        "    def init(self, setup):\n"
+        "        self.dutA = setup.init_swi('swi_a')\n\n"
+        "    def configure(self):\n"
+        "        dutA = self.dutA\n"
+        "        dutA.mode(')#')\n"
+        "        dutA.cmd('lldp run')\n"
+        "        dutA.cmd('lldp receive')\n"
+        "        dutA.mode('#')\n\n\n"
+        "class TestCase_1(ATTestCase.TestCase):\n"
+        "    testCaseDesc = 'transmit-only'\n"
+        "    testCaseRef = 'AWPTCM-T44297'\n"
+        "    testCaseMethod = 'transmit-only'\n\n"
+        "    def main(self):\n"
+        "        # AI\n"
+        "        dutA = self.testSet.dutA\n"
+        "        dutA.mode(')#')\n"
+        "        dutA.cmd('no lldp receive')\n"          # the negative-test action (line ~19)
+        "        dutA.mode('#')\n"
+        "        self.log('STEP: transmit-only')\n"
+        "        self.passed('captured only egress LLDPDUs')\n"
+        "        dutA.mode(')#')\n"
+        "        dutA.cmd('lldp receive')\n"             # restore the suite baseline (later line)
+        "        dutA.mode('#')\n\n\n"
+        "if __name__ == '__main__':\n"
+        "    ts = TestSet()\n"
+        "    ts.add_testCase(TestCase_1)\n"
+        "    ts.run(sys.argv)\n")
+    errs = pc._lint_suite_owned_commands(ast.parse(script), script)
+    assert errs == [], errs
 
 
 def test_G8b_is_a_policy_error_the_reviewer_may_override_and_the_linter_raises_it():
@@ -856,10 +899,35 @@ def test_a_refused_fix_keeps_the_current_unit_and_records_the_refused_reply(monk
     assert ch["refused"]["reason"] == res["error"] and ch["refused"]["code"], "the refused reply is recorded"
 
 
-def test_generation_failure_without_a_guard_still_records_error_and_empties_code(monkeypatch):
+def test_a_generation_refusal_with_a_real_draft_keeps_the_draft_to_edit(monkeypatch):
+    # Change C (2026-09-15, Terrence): losing the tokens AND the code is the worst case. A
+    # generation refusal that parsed a real draft (a shape or arrival-lint failure) KEEPS that
+    # draft as `code` under an error status, so the reviewer opens and edits it. Assembly still
+    # blocks on the error status — the draft is kept to act on, not silently shipped.
     res, ch = _drive_store(monkeypatch, "def main(self):\n    pass", guard=False, current_code="")
-    assert res["status"] == "error" and ch["status"] == "error" and ch["code"] == ""
+    assert res["status"] == "error" and ch["status"] == "error"
+    assert ch["code"] == "def main(self):\n    pass", "the draft is kept, not zeroed"
     assert ch.get("refused") is None
+
+
+def test_a_generation_reply_with_no_code_block_still_empties_code(monkeypatch):
+    # The other generation path: a reply with no fenced python block has no draft to keep, so the
+    # chunk records the error with an empty code and the raw reply, so the pill can still say why.
+    unit = _unit("tc2")
+    sess = _FakeSess({"tc2": {"status": "ok", "code": "", "source": "generate"}})
+    monkeypatch.setattr(pc, "run_prompt_text",
+                        lambda *a, **k: {"content": "no fences here", "provider": "p",
+                                         "model": "m", "auth_method": "x", "usage": {}})
+
+    def _fake_persist(key, apply_fn, attempts=0):
+        apply_fn(sess)
+        return sess
+    monkeypatch.setattr(pc, "_pt_persist_fresh", _fake_persist)
+    res = pc._unit_call_and_store("AWPTCM-T00001", "tc2", "s\n" + pc._PT_PROMPT_SPLIT + "\nu",
+                                  False, unit, {"model": "m"}, "(verbatim)", None)
+    ch = sess.step6["chunks"]["tc2"]
+    assert res["status"] == "error" and ch["status"] == "error" and ch["code"] == ""
+    assert "no fences" in ch["raw"]
 
 
 def test_a_clean_fix_clears_a_stale_refusal(monkeypatch):
@@ -959,9 +1027,32 @@ def test_generation_guard_returns_arrival_refused_without_wiping_a_prior_run(mon
     res = pc._unit_call_and_store("AWPTCM-T00001", "tc1", "s\n" + pc._PT_PROMPT_SPLIT + "\nu",
                                   False, _unit("tc1"), {"model": "m"}, "(verbatim)", g)
     assert res["status"] == "arrival_refused" and "undefined_helper" in res["reason"]
-    # the generation path records an error chunk (no prior unit to keep), with the reply as raw
+    # the generation path records an error chunk (no prior unit), and KEEPS the draft as code so
+    # the reviewer can open and edit it — losing the tokens AND the code is the worst case
+    # (2026-09-15, Terrence's call: `keep_code=True` on the generation refusal paths).
     ch = sess.step6["chunks"]["tc1"]
-    assert ch["status"] == "error" and ch["code"] == "" and "undefined_helper" in ch["raw"]
+    assert ch["status"] == "error" and "undefined_helper" in ch["code"]
+
+
+def test_arrival_does_not_refuse_a_unit_only_for_a_suite_owned_unset(monkeypatch):
+    # Change A (2026-09-15): a suite-owned unset is a cross-case POLICY flag judged over the whole
+    # script at Review — a later case may re-set it and may not be generated yet — so a unit is
+    # never arrival-refused for one. Here the spliced lint returns only a suite-owned finding;
+    # _arrival_refusal must return None (every other class would still refuse).
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
+    monkeypatch.setattr(pc, "_spliced_new_errors",
+                        lambda *a, **k: ["suite-owned: TestCase_1.tear_down() line 5 unsets `lldp run` "
+                                         "(`no lldp run`) on dutA — the suite owns it — and no later "
+                                         "case re-sets it, so it leaks to every case after this one"])
+    assert pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], {**CTX, "skeleton": SCRIPT}, sess) is None
+    # a blocking class alongside it still refuses
+    monkeypatch.setattr(pc, "_spliced_new_errors",
+                        lambda *a, **k: ["suite-owned: … the suite owns it …",
+                                         "unbound name: undefined_helper (used in TestCase_1.main())"])
+    why = pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], {**CTX, "skeleton": SCRIPT}, sess)
+    assert why and "undefined_helper" in why and "suite-owned" not in why
 
 
 def test_a_clean_generated_unit_stores_ok_through_the_arrival_guard(monkeypatch):

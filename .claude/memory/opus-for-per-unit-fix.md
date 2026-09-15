@@ -3,7 +3,7 @@ name: opus-for-per-unit-fix
 description: Terrence's standing call (2026-09-09) — run the PyTest Creator's per-unit Fix on Opus, not Sonnet, because a plausible-but-wrong fix costs a full Opus re-review; and verify a fix at ATTRIBUTE level (do the symbols exist), not by its shape
 metadata:
   type: feedback
-  verified: 2026-09-09
+  verified: 2026-09-16
 ---
 
 Run **Fix units (LLM) on Opus**. The lever is the **unit-model dropdown** (`claudeUnitModel`) —
@@ -32,6 +32,13 @@ rework.
   fastest oracle. A structure-only check is how a regression reaches a paid review.
 - This is a per-*unit* question; it does not change which model generates or reviews. The
   durable fix for the rework itself is `ask-ck/plans/PLAN-fix-units-guardrails.md`.
+- **Self-healing generation (built 2026-09-15) inherits this knob, in the GENERATION direction.**
+  The arrival-time auto-repair (R3, one turn) and the assemble-and-settle rounds (R4) both call
+  `_llm_cfg_for(sess, "unit_fill")` — the SAME unit-model dropdown — so they run on whatever the
+  seat is set to at **Generate** time, not on a fix-time Opus. If you want those automatic
+  repairs done by Opus, set the dropdown to Opus **before** Generate; leaving it on Sonnet means
+  Sonnet clears its own lint (cheaper, and R5 measures whether that suffices). Confirmed against
+  `routers/pytest_create.py` (2026-09-16).
 
 Related: [[terrence-prefers-session-model-as-judge]] (judge in-context — but judge *deeply*),
 [[mutate-before-you-claim]], [[prompt-cache-needs-block-boundaries]] (why a fix reads the

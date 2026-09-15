@@ -24,7 +24,15 @@
 > **D4 ✅ BUILT 2026-09-15** (`_lint_layer_fields`, blocking; `harvest_framework_surface.py`) — the
 > surface doc RELOADED by Terrence 2026-09-15 08:44, so the lint is live; (d) decided: the prompt lists
 > each layer's DECLARED fields, corpus-read first. **The plan is COMPLETE. Remaining: the proof — a
-> fresh Generate → Review → Fix on T44297.**** Pinned against the real
+> fresh Generate → Review → Fix on T44297.**
+> **G8(b) REWORKED 2026-09-15** (Terrence's call on the self-healing proof run, where tc25 — a
+> transmit-only negative test — was wrongly refused): the suite-owned lint no longer forbids a case
+> re-issuing or unsetting a suite-owned command. A case may do either; the **only** finding is an
+> unset (`no X`) that is **never re-set later** (cross-case). A negative test that restores what it
+> unsets (tc25: `no lldp receive` then `lldp receive`) produces no finding; an unrestored leak
+> (fix run 5's tc1) still flags, as **policy** (Review-surfaced, non-blocking). `_arrival_refusal`
+> now excludes suite-owned findings (cross-case, un-judgeable mid-generation). Scope: the fix path
+> still refuses a fix that *introduces* an unrestored unset — "allow all unsets" was generation-only.** Pinned against the real
 > T44297 dicts in `tests/test_pt_fix_units.py` (review #2 finding 5 → `setup`, structural, never
 > dispatched; review #1 finding 3 → an ordinary fix) and mutation-checked: the old targeting
 > sends finding 5 to tc1, and without G5 the setup unit is dispatched. Gate: pytest 1469 /

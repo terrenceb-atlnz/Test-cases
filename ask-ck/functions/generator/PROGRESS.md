@@ -2,7 +2,41 @@
 
 **Purpose**: This file exists so future sessions can quickly understand exactly where we are, what has been built, what the priorities are, and how to continue seamlessly.
 
-**Last Updated**: 2026-09-15 (by Claude, with Terrence for every decision)
+**Last Updated**: 2026-09-16 (by Claude, with Terrence for every decision)
+
+## Latest session (2026-09-16) — negative tests made legitimate; suite-owned lint reworked; drafts kept
+
+Ran the self-healing acceptance Generate on **T44297** (37/37 `tc` units returned; several
+arrived dirty and self-repaired in one turn, exactly as R2/R3 intend). One unit, **tc25**, was
+wrongly refused and left with **empty code** — and that exposed three things Terrence then
+decided and I built (all live on the hosted tree, gate pytest 1544 / 1 skipped, vitest 292,
+ck.db untouched):
+
+- **tc25 is a legitimate negative test.** Its objective is a transmit-only port (`no lldp
+  receive`) and it restores `lldp receive` before it ends. The old suite-owned lint flagged both
+  the unset AND the restore; arrival refusal treated the (policy) finding as fatal; the terminal
+  refusal zeroed a 6 KB draft.
+- **Suite-owned lint reworked** (`_lint_suite_owned_commands`): now cross-case, it flags ONLY an
+  unset (`no X`) of a `TestSet.configure()`-owned command that is **never re-set later** (same
+  case or a later one). tc25 restores → no finding; fix run 5's tc1 (`no lldp run`, never
+  restored) → still flags, as **policy** (Review-surfaced, non-blocking). Redundant re-issues no
+  longer flagged. Verified: zero findings on the real tc25 draft.
+- **Arrival refusal excludes suite-owned findings** (cross-case, un-judgeable mid-generation —
+  a later case that restores may not be generated yet). Every other per-unit class still refuses.
+- **Generation refusals keep the draft** (`_fail(keep_code=True)` on the shape + arrival paths):
+  `status=error` WITH the parsed draft as `code`, so the reviewer edits it, not an empty box.
+  Assembly still blocks on error status. Terrence: "losing the tokens AND the code is the worst
+  case." (Generalizes the refused-fix "keep the unit" fix to generation.)
+
+**Pick up here:**
+- **Acceptance proof still owed** (Terrence drives): re-generate tc25 (or the whole case) — it
+  should come back clean now — then **Assemble + settle → Review** on T44297, everything live.
+  The current live tc25 is still in its pre-fix empty-error state.
+- **Open decision (Terrence):** extend "allow all unsets" to the FIX path too? Today the fix path
+  still refuses a *fix* that INTRODUCES an unrestored unset (a leak); "allow unsets" was scoped to
+  generation. One-line change + test if he wants it.
+- Still pending from the prior entry: **D6** Opus re-measurement (fills the R6 infographic's 4th
+  bar), **R1(b)** group libraries, **R5's** two JS surfaces.
 
 ## Latest session (2026-09-15, cont.) — SELF-HEALING GENERATION built (R1–R5), plus the refused-fix bug fix
 
