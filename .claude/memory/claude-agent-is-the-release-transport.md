@@ -3,7 +3,7 @@ name: claude-agent-is-the-release-transport
 description: "`claude_agent` (browser broker -> ck-agent on the user's seat) is the ONLY Claude transport as of 2026-09-10, and since 2026-09-11 Ask-CK has exactly TWO backends (org vLLM, claude_agent) — Grok is gone; seats install the agent from the home page one-liner; the LLM choice is per seat (X-CK-LLM)"
 metadata:
   type: project
-  verified: 2026-09-11
+  verified: 2026-09-16
 ---
 
 **The Claude path is the per-user agent, and nothing else.** A browser tab brokers each call

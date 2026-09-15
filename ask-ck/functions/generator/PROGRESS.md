@@ -4,6 +4,29 @@
 
 **Last Updated**: 2026-09-16 (by Claude, with Terrence for every decision)
 
+## Latest session (2026-09-16, cont.) — seat access over VPN + agent on a non-8765 port
+
+Support tail after the suite-owned work; two small commits + housekeeping, all pushed:
+
+- **`?agent-port=` override (`3447dac`, feat).** The page hard-coded the local ck-agent at
+  `127.0.0.1:8765` with no override, so a seat whose 8765 was taken (a homelab laptop — VS Code on
+  8765, Portainer on 9000 — reached over an SSH tunnel) could not use the local-CLI transport at
+  all: the agent couldn't bind 8765 and the browser had nowhere else to look. `agent.js` now
+  resolves via `resolveAgentUrl()`: `?agent-port=`/`?agent-url=` → `localStorage` (remembered) →
+  `window.CK_AGENT_URL` → `127.0.0.1:8765`, **restricted to localhost** so a crafted link can't
+  send Claude traffic off-box. Verified live: agent on 8770, page at `?agent-port=8770`, "Local
+  agent ready." 8 vitest cases. SERVER-README + the in-UI "not reachable" message document it.
+- **Memory `askck-vpn-access` (`9712a92`).** Reaching the hosted server from a VPN seat: ping works
+  but `:8000` times out because the VPN blocks direct internal TCP:8000 (not a server fault); fix =
+  `ssh -L 8000:localhost:8000` then browse `localhost:8000`. Records the proof-it's-not-the-server
+  checks so nobody restarts a healthy service.
+- **csg-tool memory store (`1c48608`, in the csg-tool repo).** Found via the wrap's memory-link
+  check: the third repo `claude/csg-tool/` had 6 memories stranded in `~/.claude` (loading, but not
+  committed → lost if `~/.claude` is wiped). Set up its in-repo `.claude/memory/` + slug symlink and
+  committed there, like Test-cases and device-testing.
+
+Nothing new is pending from this tail. The acceptance items from the entry below still stand.
+
 ## Latest session (2026-09-16) — negative tests made legitimate; suite-owned lint reworked; drafts kept
 
 Ran the self-healing acceptance Generate on **T44297** (37/37 `tc` units returned; several

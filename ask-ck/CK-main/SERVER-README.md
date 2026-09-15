@@ -327,6 +327,13 @@ The shared server queues a prompt job keyed to the browser's session id
 2. Start the agent: `cd ask-ck/agent && ./run-agent.sh` (leave it running). See `ask-ck/agent/README.md`. To pin CORS to your server: `CK_AGENT_ORIGIN=http://ck-box.lan:8000 ./run-agent.sh`.
 3. In the UI (**LLM → Configure**): select **Claude Code CLI (my local machine)** → pick a model (**Haiku / Sonnet / Opus**, default Sonnet) → **Check my local agent** → **Apply / Login**.
 
+**If port 8765 is already taken on your machine** (another dev tool, a homelab container): start the
+agent on a free port and tell the page where to look — the browser otherwise only checks 8765.
+`CK_AGENT_PORT=8770 CK_AGENT_ORIGIN=http://<page-origin> ./run-agent.sh`, then open the page once
+with `?agent-port=8770` (`resolveAgentUrl` in `llm-config/agent.js` remembers it in `localStorage`
+for that origin). The URL is restricted to localhost, so a crafted `?agent-url=` link can never
+point a seat at an off-box agent. Added 2026-09-16 for a homelab seat reached over an SSH tunnel.
+
 Notes:
 - The agent binds `127.0.0.1` only and restricts CORS to the Ask CK origin; no token (it can only spend that user's own seat).
 - Server-side, blocking LLM calls run in a threadpool so the agent long-poll stays serviceable (no event-loop deadlock). One job at a time per session; a job whose browser/agent never answers times out cleanly.

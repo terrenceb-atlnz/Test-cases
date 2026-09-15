@@ -4185,3 +4185,24 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   that introduces an unrestored unset — scoped to generation). Also still pending: D6 Opus
   re-measurement, R1(b) group libraries, R5's two JS surfaces.
 - Resume: PROGRESS.md top entry.
+
+## Session Close / Handoff (2026-09-16, cont.) — seat access over VPN + agent-port override
+
+Support tail after the suite-owned work; all commits pushed by Terrence, tree level with origin.
+
+- **Seat-access diagnosis (no code):** the hosted server was healthy throughout; Terrence's VPN seat
+  timed out on `:8000` because the VPN blocks direct internal TCP:8000 (ping + SSH pass). Fix =
+  SSH tunnel `ssh -L 8000:localhost:8000`. Captured as memory `askck-vpn-access` (`9712a92`).
+- **`?agent-port=` override (`3447dac`):** the browser hard-coded the ck-agent at `127.0.0.1:8765`;
+  on a homelab seat 8765 (VS Code) and 9000 (Portainer) were taken, so the local-CLI transport was
+  unusable. `agent.js` `resolveAgentUrl()` now takes `?agent-port=`/`?agent-url=` → localStorage →
+  `window.CK_AGENT_URL` → 8765, restricted to localhost. Verified live (agent on 8770, page at
+  `?agent-port=8770`, "Local agent ready"). 8 vitest cases; SERVER-README + the "not reachable"
+  message updated.
+- **csg-tool memory store (`1c48608`, csg-tool repo):** the third repo had 6 memories stranded in
+  `~/.claude` (loading but uncommitted); set up its in-repo `.claude/memory/` + slug symlink and
+  committed there. Found by this session's memory-link check.
+- Gate at close: guards OK; pytest unchanged; vitest 300 (+8); ck.db signature unchanged.
+- OPEN (unchanged from the entry above): the T44297 acceptance proof (re-gen tc25 → Assemble +
+  settle → Review), the fix-path "allow unsets" decision, D6 Opus re-measurement, R1(b), R5's JS.
+- Resume: PROGRESS.md top entry.
