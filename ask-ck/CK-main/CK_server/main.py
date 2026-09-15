@@ -407,6 +407,17 @@ async def api_version():
     return {"build": _static_build_id()}
 
 
+def _pt_lint_alarms():
+    """R5/6.4: the count and classes of any live lint-trend alarm, cheap for /health (cached
+    aggregation). Never raises — a monitor hitting /health must not 500 on a trend read."""
+    try:
+        from routers.pytest_create import _pt_lint_trends_cached
+        al = _pt_lint_trends_cached().get("alarms") or []
+        return {"count": len(al), "classes": sorted({a.get("class") for a in al})}
+    except Exception as e:
+        return {"count": 0, "classes": [], "error": str(e)[:120]}
+
+
 @app.get("/health")
 async def health():
     import db
@@ -432,6 +443,7 @@ async def health():
             "built_at": chk.get("built_at"),
             "error": chk.get("error"),
         },
+        "pt_lint_alarms": _pt_lint_alarms(),
     }
 
 if __name__ == "__main__":

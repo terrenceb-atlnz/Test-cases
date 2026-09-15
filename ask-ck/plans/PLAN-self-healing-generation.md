@@ -152,7 +152,7 @@ without a request, the step-5 Summary. **Test:** a script whose only errors are 
 in one round; one with review findings assembles, lints, and stops with the findings intact; the
 loop never exceeds its round budget.
 
-### R5 — Measurement  *(so the next prompt change is judged by data)*
+### R5 — Measurement  ✅ BUILT 2026-09-15 (backend; two JS surfaces deferred)  *(so the next prompt change is judged by data)*
 
 **Change:** every lint result is appended to `step6.lint_history` as
 `{at, round, source: generate|assemble|settle|fix|repair, counts: {blocking, policy, warning},
@@ -166,6 +166,14 @@ one LLDP run. Same for `repaired` and settle rounds.
 the new tool (read-only `file:…?mode=ro` open, like every other reader). **Test:** the history
 grows by one entry per lint; the report reproduces today's proof run as 1 blocking (unbound) +
 8 policy (suite-owned) on 38 units.
+
+**As built (2026-09-15):** `lint_history` per assembly (by class, by authority, prompt version,
+units); `_pt_lint_trends` aggregates the trailing window + the chunks' repair figures and raises
+the 6.4 alarms; `GET /api/pytest-create/lint_trends` and the read-only `ask-ck/tools/pt_lint_report.py`
+share it; `/health.pt_lint_alarms` and a `[pt] LINT-TREND ALARM` log line notify a server admin;
+`_effective_repair_turns` raises D1's budget to 2 below a 50% return rate. **Deferred** (no trend
+data exists until the tool is used across runs, so they would render empty): the step-5 Summary
+banner and the admin-panel "Lint trends" card — a small JS follow-up once real data accrues.
 
 ### R6 — Cost comparison for the higher-ups  *(D6)*
 

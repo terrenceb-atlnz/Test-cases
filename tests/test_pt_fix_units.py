@@ -984,8 +984,10 @@ def test_generate_units_takes_one_repair_turn_on_the_unit_model():
     src = _CODE[_CODE.index("async def _one(uid"):]
     one = src[:src.index("asyncio.create_task(_dispatch_primed")]
     assert 'gen_guard = {"generation": True' in one
-    assert "while res.get(\"status\") == \"arrival_refused\" and turns < _PT_REPAIR_TURNS" in one
-    assert "_fix_unit_prompt" in one and 'llm_cfg, "pt_fix_unit", gen_guard, True' in one
+    assert "budget = _effective_repair_turns()" in one
+    assert "while res.get(\"status\") == \"arrival_refused\" and turns < budget" in one
+    assert "_fix_unit_prompt" in one and '"pt_fix_unit", gen_guard' in one
+    assert "True, first_class" in one, "the repair call passes repaired=True and the class"
     assert pc._PT_REPAIR_TURNS == 1
 
 

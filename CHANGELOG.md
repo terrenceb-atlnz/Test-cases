@@ -11,6 +11,25 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Self-healing generation R5: lint-trend measurement + prompt-defect alarms
+
+- **A lint history per assembly** (`step6.lint_history`, rolling 50): counts by authority
+  (blocking/policy/warning) and by CLASS (unbound, suite-owned, field, port-owner,
+  verdict-config, verdict-echo, coverage, …), tagged with the generate prompt's version hash so a
+  prompt edit starts a fresh series. `_lint_class_of` maps a message to its class by the same
+  signatures the error-class test enumerates.
+- **Trend aggregation + the 6.4 alarms.** `_pt_lint_trends` reads the trailing window of assembly
+  runs (any case) plus the repair figures on those sessions' chunks and raises: a **prompt defect**
+  when a class touches >=10% of units or appears in 3 consecutive runs, a **lint-text defect** when
+  a class's repair return rate < 50% (Terrence's thresholds, 2026-09-15). Served read-only at
+  `GET /api/pytest-create/lint_trends` and by the CLI `ask-ck/tools/pt_lint_report.py`; surfaced on
+  `/health.pt_lint_alarms` and as a `[pt] LINT-TREND ALARM` log line when a class first crosses.
+- **The repair budget is now dynamic (D1).** `_effective_repair_turns` raises the one repair turn
+  to two while the overall return rate is below 50%, from the cached trend. **Why:** analytics-driven
+  revision — a class the repair loop keeps fixing is a prompt defect with a number attached, not a
+  cost to pay forever (§6.4). Deferred: the in-app Summary banner and admin card (no data until the
+  tool runs across cases). Part of `ask-ck/plans/PLAN-self-healing-generation.md`.
+
 ## 2026-09-15 — Self-healing generation R2 + R3: lint each unit on arrival, one repair turn
 
 - **Arrival-time lint (R2).** Every freshly generated unit is now linted the moment it lands —

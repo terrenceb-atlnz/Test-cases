@@ -5774,6 +5774,10 @@ def _assemble_and_store(key: str, sess: PtSession, ctx: dict, group: str, name: 
     def _apply_lint(fresh: PtSession) -> None:
         step6_f = dict(fresh.step6 or {})
         step6_f["lint"] = lint
+        history = list(step6_f.get("lint_history") or [])
+        history.append(_lint_history_entry(lint, step6_f.get("iterations") or 0,
+                                           "assemble", len(ctx.get("units") or [])))
+        step6_f["lint_history"] = history[-50:]           # a rolling window, per session
         fresh.step6 = step6_f
 
     _pt_persist_fresh(key, _apply_lint)
@@ -5865,6 +5869,69 @@ async def step_prompts(key: str, request: Request):
 # prompt that lost the marker is sent whole as the user message (correct, just uncached).
 _PT_PROMPT_SPLIT = "==== SHARED CONTEXT ABOVE THIS LINE · THIS UNIT BELOW IT ===="
 
+# R5 (measurement, 2026-09-15). The class of a lint message, by its signature — the same slugs
+# the error-class test enumerates. Ordered: a verdict-in-config is a `contract:` message, so its
+# specific test comes before the generic one. Used by the lint history and the 6.4 alarms.
+_LINT_CLASS_RULES = [
+    ("unbound", lambda m: m.startswith("unbound name:")),
+    ("suite-owned", lambda m: m.startswith("suite-owned:")),
+    ("field", lambda m: m.startswith("unknown field:")),
+    ("port-owner", lambda m: "selects `" in m and "'s port, on " in m),
+    ("verdict-config", lambda m: "config only; the verdict belongs in main()" in m),
+    ("verdict-echo", lambda m: "reason is the step's verify" in m or "reason IS the step" in m
+                    or "verbatim — a verdict should say what was OBSERVED" in m),
+    ("incomplete", lambda m: m.startswith("incomplete:")),
+    ("coverage", lambda m: m.startswith("coverage") or "objective" in m and "no PyTest step" in m),
+    ("syntax", lambda m: m.startswith("syntax:")),
+    ("imports", lambda m: m.startswith("imports:")),
+    ("structure", lambda m: m.startswith("structure:")),
+    ("pep8", lambda m: m.startswith("pep8 ")),
+    ("contract", lambda m: m.startswith("contract:")),
+]
+
+
+def _lint_class_of(msg: str) -> str:
+    m = str(msg or "")
+    for slug, pred in _LINT_CLASS_RULES:
+        try:
+            if pred(m):
+                return slug
+        except Exception:
+            pass
+    return "other"
+
+
+@functools.lru_cache(maxsize=1)
+def _generate_prompt_version() -> str:
+    """A short hash of the two generate templates, so a prompt edit starts a new trend series
+    (R5 / 6.4). Cached; a template edit reloads the server, clearing it."""
+    import hashlib
+    h = hashlib.sha1()
+    for name in ("pt_generate_step.jinja", "pt_generate_script.jinja"):
+        try:
+            h.update((_TEMPLATES_DIR / "prompts" / name).read_bytes())
+        except Exception:
+            pass
+    return h.hexdigest()[:10]
+
+
+def _lint_history_entry(lint: dict, iteration: int, source: str, units: int) -> dict:
+    """One trend row: counts by authority and by class, for this assembly's lint."""
+    from collections import Counter
+    errors = [str(e) for e in (lint.get("errors") or [])]
+    warnings = [str(w) for w in (lint.get("warnings") or [])]
+    by_class: Counter = Counter()
+    for e in errors:
+        by_class[_lint_class_of(e)] += 1
+    for w in warnings:
+        by_class["pep8" if w.startswith("pep8 ") else _lint_class_of(w)] += 1
+    return {"at": utc_now().isoformat(), "iteration": int(iteration or 0), "source": source,
+            "units": int(units or 0), "prompt_version": _generate_prompt_version(),
+            "blocking": len(lint.get("blocking_errors") or []),
+            "policy": len(lint.get("policy_errors") or []),
+            "warning": len(warnings), "errors": len(errors),
+            "by_class": dict(by_class)}
+
 
 def _split_unit_prompt(prompt: str) -> Tuple[str, str]:
     """(shared_half, unit_half). No marker -> ("", prompt): everything goes as the user turn."""
@@ -5883,7 +5950,8 @@ def _unit_system_prompt(shared_half: str) -> str:
 
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                          unit: dict, llm_cfg: dict, template: str = "(verbatim)",
-                         guard: Optional[dict] = None, repaired: bool = False) -> dict:
+                         guard: Optional[dict] = None, repaired: bool = False,
+                         repaired_class: str = "") -> dict:
     """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
 
     Extracted so both the single-unit endpoint and the batch dispatch share exactly one
@@ -5979,6 +6047,7 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
             "source": "fix" if (guard and not guard.get("generation")) else "generate",
             "held": None, "refused": None, "repaired": bool(repaired),
+            **({"repaired_class": repaired_class} if repaired and repaired_class else {}),
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "usage": meta.get("usage"),
             **({"prompt": prompt} if edited else {})})
@@ -6097,14 +6166,18 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
             async with sem:
                 res = await run_in_threadpool(_unit_call_and_store, key, uid, prompt,
                                               edited, unit, llm_cfg, "(verbatim)", gen_guard)
+                budget = _effective_repair_turns()
+                first_class = _lint_class_of((res.get("reason") or "").split(": ", 1)[-1]) \
+                    if res.get("status") == "arrival_refused" else ""
                 turns = 0
-                while res.get("status") == "arrival_refused" and turns < _PT_REPAIR_TURNS:
+                while res.get("status") == "arrival_refused" and turns < budget:
                     turns += 1
                     reasons = {"lint": [res.get("reason") or ""], "review": [], "run": None}
                     repair_prompt = await run_in_threadpool(
                         _fix_unit_prompt, key, data, sess, ctx, unit, res.get("code") or "", reasons)
                     res = await run_in_threadpool(_unit_call_and_store, key, uid, repair_prompt,
-                                                  edited, unit, llm_cfg, "pt_fix_unit", gen_guard, True)
+                                                  edited, unit, llm_cfg, "pt_fix_unit", gen_guard,
+                                                  True, first_class)
         except Exception as e:
             # A task that dies silently leaves a pill yellow forever. Record the reason on
             # the chunk so the row can say what happened and offer a re-run.
@@ -6134,6 +6207,134 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
             "already_running": sorted(already),
             "max_concurrent": _PT_UNIT_DISPATCH_MAX,
             "primed": prepared[0][0] if len(prepared) > 1 else None}
+
+
+# --- R5 trends + 6.4 alarms ------------------------------------------------------------------
+#
+# Thresholds ACCEPTED by Terrence 2026-09-15. A class is a PROMPT defect (the generate prompt
+# should stop producing it) when, over the trailing window, it was repaired-or-refused on >=10%
+# of units OR appeared in 3 consecutive runs. A class is a LINT-TEXT defect (the message does not
+# tell the model what to change — D1) when its repair RETURN RATE is < 50%. A "run" is one
+# assembly's lint-history entry; the repair figures come from the units' chunks.
+_PT_TREND_WINDOW = 5
+_PT_PROMPT_DEFECT_UNIT_FRACTION = 0.10
+_PT_PROMPT_DEFECT_CONSECUTIVE = 3
+_PT_LINT_TEXT_RETURN_RATE = 0.50
+_pt_trend_cache: dict = {"at": 0.0, "value": None}
+_PT_TREND_TTL = 60.0
+
+
+def _pt_repair_stats_from_chunks(chunks: dict) -> dict:
+    """{class: {"repaired_ok": n, "arrival_failed": n}} from one session's chunks. A repaired-ok
+    unit carries `repaired_class`; an arrival failure is an error chunk whose message is the
+    arrival lint's."""
+    from collections import defaultdict
+    out: dict = defaultdict(lambda: {"repaired_ok": 0, "arrival_failed": 0})
+    for ch in (chunks or {}).values():
+        if ch.get("repaired") and ch.get("status") == "ok":
+            out[ch.get("repaired_class") or "other"]["repaired_ok"] += 1
+        err = ch.get("error") or ""
+        if ch.get("status") == "error" and err.startswith("generated unit has lint error"):
+            out[_lint_class_of(err.split(": ", 1)[-1])]["arrival_failed"] += 1
+    return {k: dict(v) for k, v in out.items()}
+
+
+def _pt_lint_trends(window: int = _PT_TREND_WINDOW) -> dict:
+    """Aggregate the last `window` assembly runs (any case) plus the repair figures on their
+    sessions, and raise the 6.4 alarms. Read-only over the sessions table."""
+    import db as _db
+    from collections import Counter, defaultdict
+    runs = []                                            # (updated_at, entry, chunks)
+    try:
+        rows = _db.snapshot_sessions()
+    except Exception as e:
+        return {"error": str(e), "alarms": [], "runs": 0}
+    for sid, kind, case_key, payload, _llm, updated_at in rows:
+        if kind != "pt":
+            continue
+        try:
+            raw = json.loads(payload) if isinstance(payload, str) else (payload or {})
+        except Exception:
+            continue
+        s6 = raw.get("step6") or {}
+        hist = s6.get("lint_history") or []
+        if hist:
+            runs.append((updated_at or "", hist[-1], s6.get("chunks") or {}, case_key or sid))
+    runs.sort(key=lambda r: r[0], reverse=True)
+    runs = runs[:window]
+    if not runs:
+        return {"runs": 0, "window": window, "alarms": [], "by_class": {}, "prompt_version": _generate_prompt_version()}
+    total_units = sum(int(e.get("units") or 0) for _, e, _, _ in runs) or 1
+    class_lint = Counter()
+    class_runs = defaultdict(int)                        # in how many runs a class appeared
+    repair = defaultdict(lambda: {"repaired_ok": 0, "arrival_failed": 0})
+    for _at, entry, chunks, _ck in runs:
+        for cls, n in (entry.get("by_class") or {}).items():
+            class_lint[cls] += n
+            class_runs[cls] += 1
+        for cls, st in _pt_repair_stats_from_chunks(chunks).items():
+            repair[cls]["repaired_ok"] += st["repaired_ok"]
+            repair[cls]["arrival_failed"] += st["arrival_failed"]
+    alarms = []
+    for cls in sorted(set(class_lint) | set(repair)):
+        rep = repair.get(cls, {"repaired_ok": 0, "arrival_failed": 0})
+        touched = rep["repaired_ok"] + rep["arrival_failed"] + class_lint.get(cls, 0)
+        frac = touched / total_units
+        if frac >= _PT_PROMPT_DEFECT_UNIT_FRACTION or class_runs.get(cls, 0) >= _PT_PROMPT_DEFECT_CONSECUTIVE:
+            alarms.append({"class": cls, "kind": "prompt_defect",
+                           "detail": f"class `{cls}` touched {touched}/{total_units} units "
+                                     f"({frac:.0%}) over {len(runs)} runs — change the generate prompt, not the repair"})
+        attempts = rep["repaired_ok"] + rep["arrival_failed"]
+        if attempts >= 3 and (rep["repaired_ok"] / attempts) < _PT_LINT_TEXT_RETURN_RATE:
+            alarms.append({"class": cls, "kind": "lint_text_defect",
+                           "detail": f"class `{cls}` repair return rate {rep['repaired_ok']}/{attempts} "
+                                     f"(<50%) — the lint message is not specific enough"})
+    total_ok = sum(r["repaired_ok"] for r in repair.values())
+    total_att = total_ok + sum(r["arrival_failed"] for r in repair.values())
+    return {"runs": len(runs), "window": window, "total_units": total_units,
+            "prompt_version": _generate_prompt_version(),
+            "by_class": dict(class_lint), "repair": {k: v for k, v in repair.items()},
+            "return_rate": (total_ok / total_att) if total_att else None,
+            "alarms": alarms}
+
+
+def _pt_lint_trends_cached() -> dict:
+    import time as _t
+    now = _t.time()
+    if _pt_trend_cache["value"] is not None and (now - _pt_trend_cache["at"]) < _PT_TREND_TTL:
+        return _pt_trend_cache["value"]
+    val = _pt_lint_trends()
+    # 6.4: log a line the moment a class first crosses a threshold, so a server admin is notified
+    # (a monitor can also read /health.pt_lint_alarms). Only NEW alarms log, not every 60s poll.
+    try:
+        was = {(a["class"], a["kind"]) for a in ((_pt_trend_cache.get("value") or {}).get("alarms") or [])}
+        for a in (val.get("alarms") or []):
+            if (a["class"], a["kind"]) not in was:
+                print(f"[pt] LINT-TREND ALARM ({a['kind']}): {a['detail']}")
+    except Exception:
+        pass
+    _pt_trend_cache.update({"at": now, "value": val})
+    return val
+
+
+def _effective_repair_turns() -> int:
+    """D1: 1 by default; 2 while the overall repair return rate is below 50% (the second turn is
+    then buying units the first did not fix); back to 1 if that does not move it (an admin call,
+    later). Reads the cached trend so it costs nothing per dispatch."""
+    try:
+        rr = _pt_lint_trends_cached().get("return_rate")
+    except Exception:
+        rr = None
+    if rr is not None and rr < _PT_LINT_TEXT_RETURN_RATE:
+        return min(2, _PT_REPAIR_TURNS + 1)
+    return _PT_REPAIR_TURNS
+
+
+@router.get("/lint_trends")
+async def lint_trends():
+    """R5: the lint trend over the last few runs and the 6.4 alarms. Read-only; the Summary
+    banner and the admin panel poll it, and `pt_lint_report.py` prints the same aggregation."""
+    return _pt_lint_trends_cached()
 
 
 @router.get("/units_status/{key}")
