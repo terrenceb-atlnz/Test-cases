@@ -1562,6 +1562,125 @@ def _library_stem(case_key: str) -> str:
 _LIB_SKIP_IMPORTS = {"sys", "framework.ATTestCase", "framework.ATTestSet"}
 
 
+def _fragment_loaded_names(code: str) -> set:
+    """The FREE names a fragment reads — names it Loads but does not itself bind (so not its
+    own defs, assignments, params or comprehension targets). These are what it depends on."""
+    import ast as ast_mod
+    try:
+        tree = ast_mod.parse(textwrap_dedent(code))
+    except SyntaxError:
+        return set()
+    bound: set = set()
+    for n in ast_mod.walk(tree):
+        if isinstance(n, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef, ast_mod.ClassDef)):
+            bound.add(n.name)
+        elif isinstance(n, ast_mod.Name) and isinstance(n.ctx, (ast_mod.Store, ast_mod.Del)):
+            bound.add(n.id)
+        elif isinstance(n, ast_mod.arg):
+            bound.add(n.arg)
+        elif isinstance(n, (ast_mod.Import, ast_mod.ImportFrom)):
+            bound.update((a.asname or a.name).split(".")[0] for a in n.names)
+    loaded = {n.id for n in ast_mod.walk(tree)
+              if isinstance(n, ast_mod.Name) and isinstance(n.ctx, ast_mod.Load)}
+    return loaded - bound
+
+
+def _find_top_level_def(name: str, source: str) -> Optional[str]:
+    """The source text of a top-level `name = …` / `def name` / `class name` in `source`, or
+    None. AST + get_source_segment, so the definition comes back verbatim."""
+    import ast as ast_mod
+    if not source:
+        return None
+    try:
+        tree = ast_mod.parse(source)
+    except SyntaxError:
+        return None
+    for node in tree.body:
+        if isinstance(node, (ast_mod.FunctionDef, ast_mod.AsyncFunctionDef, ast_mod.ClassDef)) \
+                and node.name == name:
+            return ast_mod.get_source_segment(source, node)
+        if isinstance(node, ast_mod.Assign) and any(
+                isinstance(tt, ast_mod.Name) and tt.id == name for tt in node.targets):
+            return ast_mod.get_source_segment(source, node)
+    return None
+
+
+def _framework_star_imports_of(source: str) -> List[str]:
+    """The `from framework… import *` (and `import scapy…`) lines a source uses — the imports a
+    module-level dependency lifted from it needs to evaluate at import time."""
+    import ast as ast_mod
+    out: List[str] = []
+    try:
+        tree = ast_mod.parse(source or "")
+    except SyntaxError:
+        return out
+    for node in tree.body:
+        if isinstance(node, ast_mod.ImportFrom) and (node.module or "").startswith("framework") \
+                and any(a.name == "*" for a in node.names):
+            out.append(f"from {node.module} import *")
+    return out
+
+
+_PT_MAX_DEPS = 40
+
+
+def _close_fragment_deps(fragments: List[dict], data: dict, already: set,
+                         fw_classes: set) -> Tuple[List[dict], List[str]]:
+    """R1 (2026-09-15): the module-level definitions the SHOWN fragments depend on but nothing
+    ships. A fragment offered "to adapt" may call a name defined at its source suite's module
+    level or in its `library_<suite>.py` (`LLDP_PHONE_PKT` in 1332_lldp_med/library_1332.py); the
+    model adapts the fragment and keeps the name, and if nothing ships it, that is a NameError on
+    the bench. Resolve each free name against the fragment's source script and sibling library,
+    ship the definition in OUR library (marked auto-added), and recurse on its own free names.
+    Returns (dep_members, import_lines). A class the framework already provides is never shipped
+    (it would shadow the real layer). Bounded at `_PT_MAX_DEPS`."""
+    def _sources(f: dict) -> Tuple[str, str]:
+        sid = f.get("source_id", "")
+        rec = (data.get("scripts_index_by_id") or {}).get(sid) or {}
+        src = _fragment_source_text(sid)
+        try:
+            suite_lib = dbx.get_suite_library(rec.get("suite_dir") or "", rec.get("db")) or ""
+        except Exception:
+            suite_lib = ""
+        return src, suite_lib
+
+    seen = set(already)
+    members: List[dict] = []
+    import_lines: List[str] = []
+    queue: List[tuple] = []
+    for f in fragments or []:
+        src, suite_lib = _sources(f)
+        try:
+            tag = _fragment_tag(f.get("source_id", ""), f.get("loc"), f.get("py2_translated", False))
+        except Exception:
+            tag = f.get("source_id", "") or "(fragment)"
+        for nm in _fragment_loaded_names(f.get("code") or ""):
+            queue.append((nm, src, suite_lib, tag))
+    import ast as ast_mod
+    while queue and len(members) < _PT_MAX_DEPS:
+        name, src, suite_lib, tag = queue.pop(0)
+        if name in seen:                               # builtins/scapy/framework are pre-seeded
+            continue
+        seen.add(name)
+        definition = _find_top_level_def(name, src) or _find_top_level_def(name, suite_lib)
+        if not definition:
+            continue                                   # framework/scapy/unknown — not ours to ship
+        try:
+            deftree = ast_mod.parse(definition)
+        except SyntaxError:
+            continue
+        if any(isinstance(n, ast_mod.ClassDef) and n.name in fw_classes for n in deftree.body):
+            continue                                   # would shadow the framework's real layer
+        members.append({"tag": f"# AI: dependency `{name}` of {tag}", "symbol": name,
+                        "names": [name], "code": textwrap_dedent(definition), "why": "", "auto": True})
+        for line in _framework_star_imports_of(src) + _framework_star_imports_of(suite_lib):
+            if line not in import_lines:
+                import_lines.append(line)
+        for nm in _fragment_loaded_names(definition):
+            queue.append((nm, src, suite_lib, tag))
+    return members, import_lines
+
+
 def _build_library(case_key: str, fragments: List[dict], data: dict,
                    surface: Optional[dict] = None) -> Optional[dict]:
     """The suite's own helper module, the way every ART suite ships one (`library_1332.py`
@@ -1691,6 +1810,19 @@ def _build_library(case_key: str, fragments: List[dict], data: dict,
             line = f"from {m} import *" if m.startswith("framework.") else f"import {m}"
             if line not in imports:
                 imports.append(line)
+    # R1: close the shown fragments' module-level dependencies into the library (see
+    # _close_fragment_deps). Runs on the FULL shown set, so a dep of a fragment offered only "to
+    # adapt" is shipped too. Auto-added members are tagged `# AI: dependency …` so a review prune
+    # can drop them without touching reviewer-selected members.
+    _already = set(_bi.__dict__) | fw_classes | _SCAPY_STAR_NAMES | {c for c in dupes}
+    _already |= {m["symbol"] for m in members} | {nm for m in members for nm in m["names"]}
+    _dep_members, _dep_imports = _close_fragment_deps(fragments, data, _already, fw_classes)
+    for _dm in _dep_members:
+        members.append(_dm)
+    for _line in _dep_imports:
+        if _line not in imports:
+            imports.append(_line)
+
     if not members and not dupes:
         return None
     if not members:

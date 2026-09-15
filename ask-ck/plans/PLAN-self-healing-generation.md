@@ -47,7 +47,7 @@ approval for a judgement call), and anything that touches hardware.
 
 ## 3. The work
 
-### R1 — Fragment closure  *(prevents class 1)*
+### R1 — Fragment closure  ✅ BUILT 2026-09-15 (closure; R1(b) group libraries deferred)  *(prevents class 1)*
 
 **Now:** `_build_library` copies each SELECTED stand-alone fragment verbatim and already
 computes its unresolved names (to refuse members that would die at import). A fragment that is
@@ -68,6 +68,19 @@ suite directory in `db.py`, read-only), the step-4 fragment cards in
 **Test:** the real T44297 fragment 14 closes to `LLDP_PHONE_PKT`'s definition; a fragment whose
 dependency is a framework layer stays a `framework_dupe`; a dependency that cannot be resolved
 is reported, never guessed.
+
+**As built (2026-09-15):** `_close_fragment_deps` resolves each shown fragment's free names
+against its source script and its sibling `library_<suite>.py` (`db.get_suite_library`), ships the
+resolved module-level definitions into the library marked `# AI: dependency … of <tag>`, adds the
+`from framework.ATPackets import *` they need, and recurses (bounded at 40). A class the framework
+already provides is never shipped (it would shadow the real layer). On the real T44297 fragments it
+ships LLDP_PHONE_PKT + 5 others, so the tc28 NameError is now PREVENTED, not just detected. Built
+into the current per-case library. **DEFERRED — R1(b), the group-library reorganisation** (one
+`library_<group>` per mother folder, merge-by-tag across a group's scripts, precise prune of
+auto-added members): it changes the library naming CONTRACT (filename, the frame's import,
+persistence) and Terrence framed it as future ("until we solidify a naming convention … a polishing
+pass in the future anyway"). Best done deliberately when the suite structure settles; the closure
+above delivers the class-1 prevention now, into whatever library the case ships.
 
 **R1(b) — one library per group (Terrence, D4).** We are re-structuring ART's features into our
 own suites, so the library is OURS, not ART's: named after the script's mother folder

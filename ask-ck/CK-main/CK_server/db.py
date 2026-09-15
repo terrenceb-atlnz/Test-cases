@@ -453,6 +453,23 @@ def get_script_source(sid: str) -> Optional[str]:
     return r["source_text"] if r else None
 
 
+def get_suite_library(suite_dir: str, db: Optional[str] = None) -> Optional[str]:
+    """The source of the `library_<suite>.py` that sits in a suite directory — where an ART
+    suite keeps the module-level packets and constants its test scripts reference by name
+    (`LLDP_PHONE_PKT` in `1332_lldp_med/library_1332.py`). Scoped by corpus (`db`) so two suites
+    that share a directory name in different corpora do not collide. Read-only; None if the
+    suite has no library file. Used by the PyTest Creator's fragment dependency closure (R1)."""
+    if not suite_dir:
+        return None
+    if db:
+        r = _one("SELECT source_text FROM scripts WHERE suite_dir=? AND db=? AND kind='library' "
+                 "ORDER BY length(path) LIMIT 1", (suite_dir, db))
+    else:
+        r = _one("SELECT source_text FROM scripts WHERE suite_dir=? AND kind='library' "
+                 "ORDER BY length(path) LIMIT 1", (suite_dir,))
+    return r["source_text"] if r else None
+
+
 def get_script_chunks(sid: str) -> List[dict]:
     """Literal-code chunks for a script id, in source order."""
     rows = _rows(

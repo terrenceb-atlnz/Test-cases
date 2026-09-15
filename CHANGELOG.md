@@ -11,6 +11,24 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Self-healing generation R1: fragment dependency closure (prevents the NameError class)
+
+- **The library now ships the definitions its fragments depend on.** `_close_fragment_deps`
+  resolves every shown fragment's free names against its source script and that suite's
+  `library_<suite>.py` (new `db.get_suite_library`), ships each resolved module-level definition
+  into OUR library marked `# AI: dependency \`<name>\` of <tag>`, adds the
+  `from framework.ATPackets import *` those definitions need, and recurses (bounded at 40). A class
+  the framework already provides is never shipped (it would shadow the real scapy layer). **Why:**
+  a fragment offered "to adapt" may call a name defined only in its source suite's library
+  (`LLDP_PHONE_PKT` in 1332_lldp_med/library_1332.py); the model adapts the fragment, keeps the
+  name, and nothing shipped it — a NameError on the bench (fix run 5's tc28; 7 units in the
+  2026-09-08 pass). On the real T44297 fragments the closure now ships LLDP_PHONE_PKT and 5 other
+  dependencies, so that class is PREVENTED, not just detected by the arrival lint. Auto-added
+  members are tagged so a later prune can drop the unused ones without touching reviewer-selected
+  members. **Deferred:** R1(b), the group-library reorganisation (one library per mother folder,
+  merge-by-tag, prune) — a naming-contract change for when the suite structure settles. Part of
+  `ask-ck/plans/PLAN-self-healing-generation.md`.
+
 ## 2026-09-15 — Self-healing generation R4: Assemble-and-settle (no human step to a clean lint)
 
 - **`POST /api/pytest-create/assemble_and_settle`** assembles, then automatically clears the

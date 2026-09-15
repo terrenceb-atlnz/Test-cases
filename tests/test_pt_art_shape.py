@@ -517,7 +517,14 @@ def test_a_source_module_global_in_a_default_is_skipped_even_when_the_source_sta
                         lambda sid: "from framework.ATTools import *\ndefaultCsvName = 'x.csv'\n")
     data = {"scripts_index_by_id": {"svt/libSvt/portCoToCsv.py": {"imports": ["framework.ATLibrary.ATTools", "csv"]}}}
     lib = pc._build_library("AWPTCM-T1", [BAD_DEFAULT], data, surface=SURFACE)
-    assert lib is None or lib["members"] == []
+    # The MEMBER with the unresolvable default is still not shipped verbatim.
+    assert lib is None or not any(
+        m["symbol"] not in ("defaultCsvName",) and not m.get("auto") for m in lib["members"])
+    # R1 (2026-09-15): but the closure now SHIPS `defaultCsvName` as an auto-added dependency,
+    # so an adapt-fragment that keeps that default resolves instead of a NameError at import.
+    if lib and lib.get("members"):
+        assert all(m.get("auto") for m in lib["members"])
+        assert any(m["symbol"] == "defaultCsvName" for m in lib["members"])
 
 
 def test_frame_class_fragments_are_neither_members_nor_framework_dupes():
