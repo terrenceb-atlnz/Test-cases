@@ -83,7 +83,7 @@ convention is settled — today it is `library_<case>` (`_library_stem`). Conseq
   member only, nothing else in the file moves. Reviewer-selected members are never pruned.
 - A later **polishing pass** over scripts and libraries is expected; this plan does not do it.
 
-### R2 — Arrival-time lint  *(detects classes 1–3 within seconds of the reply)*
+### R2 — Arrival-time lint  ✅ BUILT 2026-09-15  *(detects classes 1–3 within seconds of the reply)*
 
 **Now:** `_unit_call_and_store` runs the shape check on every reply and the full guard
 (`_unit_frozen_ok`, `_unit_evidence_gone`, `_unit_lint_regression`) only when the caller passes a
@@ -103,7 +103,7 @@ per-line: unbound names, suite-owned commands, port owner, layer fields, verdict
 is refused at arrival with the G8(b) text; a reply using `getattr(layer, 'port_desc', None)` is
 refused with the D4 text; the placeholders of ungenerated units never refuse anything.
 
-### R3 — One repair turn  *(corrects what R2 catches, without a person)*
+### R3 — One repair turn  ✅ BUILT 2026-09-15  *(corrects what R2 catches, without a person)*
 
 **Now:** a refused fix keeps the current unit; a failed generation shows FAILED with the reason
 and the UI says "re-run them individually".

@@ -355,6 +355,10 @@ _PT_UNIT_DISPATCH_MAX = 8
 # How much of a REFUSED reply to keep for the reviewer. Enough to read the whole of a
 # plausible unit (they run 3-5KB) without letting a runaway reply bloat the session row.
 _PT_RAW_KEEP_CHARS = 24000
+# R3 repair turns per unit at GENERATION (D1, 2026-09-15). Start at 1; R5's return rate
+# (repaired replies that pass / repair turns taken) raises it to 2 below 50%, back to 1 if
+# that does not move it. Admin-settable later; a module constant until then.
+_PT_REPAIR_TURNS = 1
 
 # Units dispatched and not yet settled, per case key. In memory only: a server restart
 # loses the tracking, and the poll then reports whatever landed in step6.chunks, which is
@@ -5562,17 +5566,21 @@ def _unit_evidence_gone(guard: dict, new_code: str, unit: dict) -> Optional[str]
     return None
 
 
-def _unit_lint_regression(guard: dict, new_code: str, unit: dict) -> Optional[str]:
-    """G6(b): splice the returned unit into the CURRENT assembled script and lint the whole
-    thing (syntax, unbound names, house rules — the existing linter). Any error the current
-    script does not already carry, and that maps to this unit or to no unit at all (a file
-    that stopped compiling), is a regression the fix introduced: the old chunk is kept and
-    the reason reported. `guard` = {current_code, assembled_code, sess, baseline_errors}."""
+def _spliced_new_errors(guard: dict, new_code: str, unit: dict,
+                        include_unmapped: bool = True) -> Optional[List[str]]:
+    """Splice `new_code` into `guard['assembled_code']` at this unit's slot, lint the whole
+    file, and return the errors it INTRODUCES (absent from `guard['baseline_errors']`) that map
+    to this unit — and, when `include_unmapped`, to no unit at all (a file that stopped
+    compiling). `None` only when the linter itself could not run (never refuse on that).
+
+    The one splice-and-lint both the fix guard (G6(b), include_unmapped=True) and the
+    generation arrival guard (R2, include_unmapped=False — whole-file classes are Assemble's
+    job) share, so they cannot drift."""
     assembled = guard.get("assembled_code") or ""
     units = _skeleton_units(assembled)
     me = next((u for u in units if u["id"] == unit["id"]), None)
     if me is None:
-        return None
+        return []
     code = (new_code or "").strip("\n")
     if unit.get("kind") == "setup":
         d_ind, b_ind = _setup_slot_indents(unit.get("block") or "")
@@ -5590,15 +5598,54 @@ def _unit_lint_regression(guard: dict, new_code: str, unit: dict) -> Optional[st
     try:
         lint = _lint_generated(tmp)
     except Exception as e:                       # the linter, not the unit, failed: do not refuse on it
-        print(f"[pt] G6 isolated lint could not run for {unit['id']}: {e}")
+        print(f"[pt] isolated lint could not run for {unit['id']}: {e}")
         return None
     baseline = set(guard.get("baseline_errors") or [])
     new_units = _skeleton_units(spliced)
-    mine = [e for e in (lint.get("errors") or []) if e not in baseline
-            and _unit_id_for_text(str(e), new_units) in (unit["id"], None)]
+    ok_ids = (unit["id"], None) if include_unmapped else (unit["id"],)
+    return [e for e in (lint.get("errors") or []) if e not in baseline
+            and _unit_id_for_text(str(e), new_units) in ok_ids]
+
+
+def _unit_lint_regression(guard: dict, new_code: str, unit: dict) -> Optional[str]:
+    """G6(b): a FIX reply must not add a lint error the current script does not already carry.
+    Any such error mapping to this unit or to no unit (a file that stopped compiling) keeps the
+    old chunk. `guard` = {current_code, assembled_code, sess, baseline_errors}."""
+    mine = _spliced_new_errors(guard, new_code, unit, include_unmapped=True)
     if mine:
         return ("fix introduces lint error(s) the current unit does not have — kept the current "
                 "unit: " + "; ".join(str(e)[:160] for e in mine[:3]))
+    return None
+
+
+def _arrival_refusal(key: str, unit: dict, code: str, ctx: dict, sess) -> Optional[str]:
+    """R2 (arrival-time lint, 2026-09-15). A freshly GENERATED unit, spliced into the frame plus
+    the units that have landed so far (the setup unit is primed first, so it is always present),
+    must not introduce a PER-UNIT lint error — an unbound name, a command the suite owns, a port
+    on the wrong switch, an unknown scapy field, a verdict in configure()/tear_down(). Whole-file
+    classes (coverage, completeness, imports) stay for Assemble; only errors mapping to THIS unit
+    are judged. Returns the reason, or None. Never refuses on a linter crash."""
+    try:
+        fresh = _pt_load(key) or sess
+        if fresh is None:
+            return None
+        chunks = dict((fresh.step6 or {}).get("chunks") or {})
+        base_chunks = {k: v for k, v in chunks.items() if k != unit["id"]}
+        placeholder_partial, _missing = _assemble_units(ctx, base_chunks)
+        tmp = fresh.model_copy(deep=True)
+        step6_t = dict(tmp.step6 or {})
+        files_t = dict(step6_t.get("files") or {})
+        files_t["test"] = {**(files_t.get("test") or {}), "code": placeholder_partial}
+        step6_t["files"] = files_t
+        tmp.step6 = step6_t
+        baseline = _lint_generated(tmp).get("errors") or []
+    except Exception as e:
+        print(f"[pt] R2 arrival baseline could not run for {unit['id']}: {e}")
+        return None
+    guard = {"assembled_code": placeholder_partial, "sess": fresh, "baseline_errors": baseline}
+    mine = _spliced_new_errors(guard, code, unit, include_unmapped=False)
+    if mine:
+        return "generated unit has lint error(s): " + "; ".join(str(e)[:160] for e in mine[:3])
     return None
 
 
@@ -5836,7 +5883,7 @@ def _unit_system_prompt(shared_half: str) -> str:
 
 def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                          unit: dict, llm_cfg: dict, template: str = "(verbatim)",
-                         guard: Optional[dict] = None) -> dict:
+                         guard: Optional[dict] = None, repaired: bool = False) -> dict:
     """Run ONE unit's LLM call and persist the chunk. Blocking; runs in a worker thread.
 
     Extracted so both the single-unit endpoint and the batch dispatch share exactly one
@@ -5873,9 +5920,9 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         #    current unit — and park the refused reply + reason under `refused`, the way a held
         #    fix parks under `held`. Zeroing the code here wiped two reviewed units while the
         #    surrounding comment claimed it "keeps the OLD chunk".
-        #  * GENERATION (no guard): there is no prior unit to keep, so record status=error with
-        #    an empty code and the raw reply, so the pill can say why.
-        if guard:
+        #  * GENERATION (no guard, or the R2 arrival guard): there is no prior unit to keep, so
+        #    record status=error with an empty code and the raw reply, so the pill can say why.
+        if guard and not guard.get("generation"):
             _store({"refused": {"code": (raw or "")[:_PT_RAW_KEEP_CHARS], "reason": reason,
                                 "at": utc_now().isoformat()},
                     **({"prompt": prompt} if edited else {})})
@@ -5894,7 +5941,17 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
     ok, why = _unit_shape_ok(code, unit)
     if not ok:
         return _fail(why, code)
-    if guard:
+    if guard and guard.get("generation"):
+        # R2 (2026-09-15): arrival-time lint. A freshly generated unit that introduces a
+        # per-unit lint error is refused HERE, seconds after the reply, not at Assemble minutes
+        # later. The error is recorded (so the pill can say why) and the caller gets one repair
+        # turn (R3) before it stands. No prior unit exists, so nothing is "kept".
+        why = _arrival_refusal(key, unit, code, guard.get("ctx") or {}, guard.get("sess"))
+        if why:
+            _fail(why, code)
+            return {"unit": unit_id, "status": "arrival_refused", "reason": why,
+                    "code": code, "usage": meta.get("usage")}
+    elif guard:
         # VERIFY BEFORE STORE (G2 + G6, 2026-09-14): a fix pass knows the unit it replaces, so
         # the reply is held to it — frozen frame lines byte-identical, and no lint error the
         # current script does not already have. Either failure keeps the OLD chunk (the
@@ -5920,12 +5977,13 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                     "error": "", "refused": None, **({"prompt": prompt} if edited else {})})
             return {"unit": unit_id, "status": "held", "edited": edited, "usage": meta.get("usage")}
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
-            "source": "fix" if guard else "generate", "held": None, "refused": None,
+            "source": "fix" if (guard and not guard.get("generation")) else "generate",
+            "held": None, "refused": None, "repaired": bool(repaired),
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "usage": meta.get("usage"),
             **({"prompt": prompt} if edited else {})})
     return {"unit": unit_id, "status": "ok", "code": code, "edited": edited,
-            "usage": meta.get("usage")}
+            "usage": meta.get("usage"), "repaired": bool(repaired)}
 
 
 async def _dispatch_primed(items: list, run) -> None:
@@ -6031,10 +6089,22 @@ async def generate_units(key: str, request: Request, body: dict = Body(default={
     sem = asyncio.Semaphore(_PT_UNIT_DISPATCH_MAX)
 
     async def _one(uid: str, unit: dict, prompt: str, edited: bool):
+        # R2: the arrival guard lints each reply the moment it lands, against the frame + the
+        # units generated so far. R3: on a refusal, one repair turn on the SAME (unit) model
+        # (D2) with the lint text and the refused reply, through the fix prompt.
+        gen_guard = {"generation": True, "ctx": ctx, "sess": sess}
         try:
             async with sem:
-                await run_in_threadpool(_unit_call_and_store, key, uid, prompt,
-                                        edited, unit, llm_cfg)
+                res = await run_in_threadpool(_unit_call_and_store, key, uid, prompt,
+                                              edited, unit, llm_cfg, "(verbatim)", gen_guard)
+                turns = 0
+                while res.get("status") == "arrival_refused" and turns < _PT_REPAIR_TURNS:
+                    turns += 1
+                    reasons = {"lint": [res.get("reason") or ""], "review": [], "run": None}
+                    repair_prompt = await run_in_threadpool(
+                        _fix_unit_prompt, key, data, sess, ctx, unit, res.get("code") or "", reasons)
+                    res = await run_in_threadpool(_unit_call_and_store, key, uid, repair_prompt,
+                                                  edited, unit, llm_cfg, "pt_fix_unit", gen_guard, True)
         except Exception as e:
             # A task that dies silently leaves a pill yellow forever. Record the reason on
             # the chunk so the row can say what happened and offer a re-run.

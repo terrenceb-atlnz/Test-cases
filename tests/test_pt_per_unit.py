@@ -491,7 +491,8 @@ def test_a_failed_unit_records_its_error_before_raising():
     calls = len(re.findall(r"(?<![_A-Za-z])_fail\(", CALL))
     # 2026-09-14 (G2 + G6): two more refusal paths, both fix-pass only — a frozen frame
     # line altered, and a lint regression against the current script.
-    assert calls == 6, "5 refusal paths + the definition itself"
+    # 2026-09-15 (R2): one more — a freshly generated unit refused by the arrival lint.
+    assert calls == 7, "6 refusal paths + the definition itself"
     # A crashed batch task must not leave a pill yellow forever with no reason.
     assert '"status": "error"' in BATCH
     assert "dispatch failed" in BATCH

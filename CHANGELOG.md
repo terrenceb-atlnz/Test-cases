@@ -11,6 +11,25 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Self-healing generation R2 + R3: lint each unit on arrival, one repair turn
+
+- **Arrival-time lint (R2).** Every freshly generated unit is now linted the moment it lands —
+  spliced into the frame plus the units generated so far (the setup unit is primed first, so it
+  is always present) — instead of only at Assemble. Only PER-UNIT classes are judged (unbound
+  name, suite-owned command, port owner, unknown field, verdict in configure/tear_down); coverage
+  and completeness stay for Assemble. `generate_units` passes a `{generation: True}` guard;
+  `_arrival_refusal` builds the partial assembly and reuses the one splice-and-lint
+  (`_spliced_new_errors`, extracted from `_unit_lint_regression`, with an `include_unmapped` flag
+  so a whole-file class does not refuse a unit).
+- **One repair turn (R3).** On an arrival refusal the unit gets ONE re-prompt on the same (unit)
+  model — Sonnet (D2) — through the fix prompt, carrying the exact lint text and the refused
+  reply. If it passes it stores ok with `repaired: true`; if not it stands as an error with the
+  reason. Budget `_PT_REPAIR_TURNS = 1` (D1: R5 will raise it to 2 below a 50% return rate).
+- **Why:** the T44297 proof run produced 9 lint errors in 38 units, every one a class the tool
+  already detects but only surfaced at Assemble, needing a person to read, pick, Fix and
+  re-assemble. R2/R3 move that to seconds after each reply, automatically. Part of
+  `ask-ck/plans/PLAN-self-healing-generation.md`.
+
 ## 2026-09-15 — Fix: a refused fix keeps the current unit instead of wiping it
 
 - **`_unit_call_and_store._fail` is now guard-aware.** On the FIX path (a `guard` is present) a

@@ -893,7 +893,104 @@ def test_the_fix_chain_classifies_refused_and_will_not_auto_assemble_over_one():
 def test_the_fail_helper_keeps_the_unit_only_on_the_guard_path():
     body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
     fail = body[body.index("def _fail("):body.index("if meta.get(")]
-    assert "if guard:" in fail and '"refused":' in fail, "the guard branch records refused, not error"
+    assert 'if guard and not guard.get("generation"):' in fail and '"refused":' in fail, "the FIX-guard branch records refused, not error"
     assert '"code": ""' in fail, "the generation branch still empties code"
     us = _CODE[_CODE.index('@router.get("/units_status'):_CODE.index('@router.get("/unit_code')]
     assert '"refused": bool(ch.get("refused"))' in us
+
+
+# --- R2 arrival-time lint + R3 one repair turn (PLAN-self-healing-generation, 2026-09-15) -----
+# A freshly generated unit is linted against the frame + the units landed so far, the moment it
+# lands — the T44297 proof run's 9 errors would all have been caught here, not at Assemble.
+
+from models import PtSession as _PtSession  # noqa: E402
+
+
+def _arrival_sess(chunks):
+    s = _PtSession(key="AWPTCM-T00001")
+    s.step6 = {"chunks": {k: {"status": "ok", "code": v} for k, v in chunks.items()},
+               "files": {"test": {"code": SCRIPT}}}
+    s.step2 = {"sequence": [{"n": 1, "action": "a", "verify": "b"}, {"n": 2, "action": "a", "verify": "b"}]}
+    return s
+
+
+def test_spliced_new_errors_scopes_to_this_unit_when_include_unmapped_is_false():
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    baseline = pc._lint_generated(sess).get("errors") or []
+    guard = {"assembled_code": SCRIPT, "sess": sess, "baseline_errors": baseline}
+    bad = good["tc1"].replace("self.log(", "undefined_helper()\n        self.log(", 1)
+    mapped = pc._spliced_new_errors(guard, bad, _unit("tc1"), include_unmapped=False)
+    both = pc._spliced_new_errors(guard, bad, _unit("tc1"), include_unmapped=True)
+    assert any("undefined_helper" in str(e) for e in mapped)
+    assert set(map(str, mapped)) <= set(map(str, both)), "unmapped=True is a superset"
+    assert pc._spliced_new_errors(guard, good["tc1"], _unit("tc1"), include_unmapped=False) == []
+
+
+def test_arrival_refusal_catches_an_unbound_name_and_passes_a_clean_unit(monkeypatch):
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
+    ctx_arr = {**CTX, "skeleton": SCRIPT}
+    bad = good["tc1"].replace("self.log(", "undefined_helper()\n        self.log(", 1)
+    why = pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), bad, ctx_arr, sess)
+    assert why and "lint error" in why and "undefined_helper" in why
+    assert pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], ctx_arr, sess) is None
+
+
+def test_arrival_refusal_is_silent_when_the_lint_cannot_run(monkeypatch):
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
+    monkeypatch.setattr(pc, "_lint_generated", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert pc._arrival_refusal("AWPTCM-T00001", _unit("tc1"), good["tc1"], {**CTX, "skeleton": SCRIPT}, sess) is None
+
+
+def test_generation_guard_returns_arrival_refused_without_wiping_a_prior_run(monkeypatch):
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
+    monkeypatch.setattr(pc, "_pt_persist_fresh", lambda key, fn, attempts=0: (fn(sess), sess)[1])
+    monkeypatch.setattr(pc, "run_prompt_text",
+                        lambda *a, **k: {"content": "```python\n" + good["tc1"].replace(
+                            "self.log(", "undefined_helper()\n        self.log(", 1) + "\n```",
+                            "usage": {}, "provider": "p", "model": "m", "auth_method": "x"})
+    g = {"generation": True, "ctx": {**CTX, "skeleton": SCRIPT}, "sess": sess}
+    res = pc._unit_call_and_store("AWPTCM-T00001", "tc1", "s\n" + pc._PT_PROMPT_SPLIT + "\nu",
+                                  False, _unit("tc1"), {"model": "m"}, "(verbatim)", g)
+    assert res["status"] == "arrival_refused" and "undefined_helper" in res["reason"]
+    # the generation path records an error chunk (no prior unit to keep), with the reply as raw
+    ch = sess.step6["chunks"]["tc1"]
+    assert ch["status"] == "error" and ch["code"] == "" and "undefined_helper" in ch["raw"]
+
+
+def test_a_clean_generated_unit_stores_ok_through_the_arrival_guard(monkeypatch):
+    good = pc._chunks_from_code(SCRIPT, CTX)
+    sess = _arrival_sess(good)
+    monkeypatch.setattr(pc, "_pt_load", lambda key: sess)
+    monkeypatch.setattr(pc, "_pt_persist_fresh", lambda key, fn, attempts=0: (fn(sess), sess)[1])
+    monkeypatch.setattr(pc, "run_prompt_text",
+                        lambda *a, **k: {"content": "```python\n" + good["tc1"] + "\n```",
+                                         "usage": {}, "provider": "p", "model": "m", "auth_method": "x"})
+    g = {"generation": True, "ctx": {**CTX, "skeleton": SCRIPT}, "sess": sess}
+    res = pc._unit_call_and_store("AWPTCM-T00001", "tc1", "s\n" + pc._PT_PROMPT_SPLIT + "\nu",
+                                  False, _unit("tc1"), {"model": "m"}, "(verbatim)", g, repaired=True)
+    assert res["status"] == "ok" and res.get("repaired") is True
+    assert sess.step6["chunks"]["tc1"]["status"] == "ok"
+    assert sess.step6["chunks"]["tc1"]["repaired"] is True and sess.step6["chunks"]["tc1"]["source"] == "generate"
+
+
+def test_generate_units_takes_one_repair_turn_on_the_unit_model():
+    src = _CODE[_CODE.index("async def _one(uid"):]
+    one = src[:src.index("asyncio.create_task(_dispatch_primed")]
+    assert 'gen_guard = {"generation": True' in one
+    assert "while res.get(\"status\") == \"arrival_refused\" and turns < _PT_REPAIR_TURNS" in one
+    assert "_fix_unit_prompt" in one and 'llm_cfg, "pt_fix_unit", gen_guard, True' in one
+    assert pc._PT_REPAIR_TURNS == 1
+
+
+def test_the_arrival_branch_runs_before_the_fix_checks_and_records_repaired():
+    body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
+    assert 'if guard and guard.get("generation"):' in body
+    assert body.index('if guard and guard.get("generation"):') < body.index("_unit_frozen_ok(")
+    assert '"repaired": bool(repaired)' in body
