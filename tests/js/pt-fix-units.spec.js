@@ -92,3 +92,21 @@ describe('the poll', () => {
     expect(poll).toMatch(/_ptOnUnitsSettled = null/);
   });
 });
+
+
+describe('R4 assemble-and-settle (2026-09-15)', () => {
+  it('the default Assemble button settles; Assemble-only is kept as a secondary action', () => {
+    expect(HTML).toMatch(/data-action="ptAssembleAndSettle"[^>]*id="pt-assemble-btn"[^>]*>1 · Assemble \+ settle/);
+    expect(HTML).toMatch(/data-action="ptAssembleScript"[^>]*id="pt-assemble-only-btn"/);
+    const reg = JS.slice(JS.indexOf('registerActions({'));
+    expect(reg).toMatch(/\bptAssembleAndSettle\b/);
+  });
+  it('the handler posts to /assemble_and_settle then polls the settle record and shows rounds', () => {
+    const body = fnBody('ptAssembleAndSettle');
+    expect(body).toMatch(/\/assemble_and_settle\//);
+    expect(body).toMatch(/step6[\s\S]*settle/);
+    expect(body).toMatch(/s\.running === false/);
+    expect(body).toMatch(/round \$\{r\.round\}/);
+    expect(body).toMatch(/run Review/);
+  });
+});

@@ -359,6 +359,10 @@ _PT_RAW_KEEP_CHARS = 24000
 # (repaired replies that pass / repair turns taken) raises it to 2 below 50%, back to 1 if
 # that does not move it. Admin-settable later; a module constant until then.
 _PT_REPAIR_TURNS = 1
+# R4 settle rounds after an Assemble (D3: 2, default on, rounds shown live). A round fixes
+# the units whose lint errors are all LINT-CLASS and per-unit — never a held (review/run)
+# unit, never a whole-file error — re-assembles and re-lints.
+_PT_SETTLE_ROUNDS = 2
 
 # Units dispatched and not yet settled, per case key. In memory only: a server restart
 # loses the tracking, and the poll then reports whatever landed in step6.chunks, which is
@@ -5809,6 +5813,121 @@ async def assemble_script(key: str, request: Request, body: dict = Body(default=
     group = (body.get("group") or naming.get("group") or "").strip()
     name = (body.get("name") or naming.get("name") or "").strip()
     return _assemble_and_store(key, sess, ctx, group, name)
+
+
+def _settleable_units(sess: "PtSession", ctx: dict, code: str, already: set) -> List[str]:
+    """R4/D3: the units a settle round may touch — those whose reasons are LINT-ONLY (a lint
+    error mapped to the unit, no review finding, no failed run), present in the frame, not
+    already in flight. A unit with a review or run finding is HELD (guardrails D2) and left for
+    the reviewer; a whole-file error names no unit (`_fix_reasons` puts it in `unmapped`), so it
+    can never enter the settle set. Blocking or policy — both are settleable; the reviewer sees
+    what survives the rounds."""
+    reasons = _fix_reasons(sess, ctx, code)
+    in_frame = set(_chunks_from_code(code, ctx))
+    return [uid for uid, r in reasons["per_unit"].items()
+            if r["lint"] and not r["review"] and not r["run"]
+            and uid in in_frame and uid not in already]
+
+
+async def _run_fix_round(key: str, data: dict, sess: "PtSession", ctx: dict,
+                         targets: List[str], group: str, name: str) -> "PtSession":
+    """One settle round: fix `targets` (lint-only, hold=False so they auto-apply — D2/D1), wait,
+    and re-assemble + re-lint. Uses the same `_fix_reasons` / `_fix_unit_prompt` / guard shape /
+    `_unit_call_and_store` / `_assemble_and_store` as the manual Fix, and the same model routing
+    (`unit_fill`), so settle and Fix cannot drift. A reply refused by G2/G6 keeps its unit (the
+    2026-09-15 fix), so a round never destroys a unit it could not clean."""
+    step6 = sess.step6 or {}
+    code = ((step6.get("files") or {}).get("test") or {}).get("code") or ""
+    synced = _chunks_from_code(code, ctx)
+    reasons = _fix_reasons(sess, ctx, code)
+    by_id = {u["id"]: u for u in ctx["units"]}
+    baseline_errors = (step6.get("lint") or {}).get("errors") or []
+    lo_by_id = {u["id"]: u["lines"][0] for u in reasons["code_units"]}
+    llm_cfg = _llm_cfg_for(sess, "unit_fill")
+    prepared, guards = [], {}
+    for uid in targets:
+        prepared.append((uid, by_id[uid],
+                         _fix_unit_prompt(key, data, sess, ctx, by_id[uid], synced[uid],
+                                          reasons["per_unit"][uid]), False))
+        guards[uid] = {"current_code": synced[uid], "assembled_code": code, "sess": sess,
+                       "baseline_errors": list(baseline_errors), "findings": [],
+                       "lint_errors": list(reasons["per_unit"][uid]["lint"]),
+                       "unit_lo": lo_by_id.get(uid, 1), "hold": False}
+    _pt_unit_mark(key, targets, True)
+
+    async def _one(uid: str, unit: dict, prompt: str, edited: bool):
+        try:
+            await run_in_threadpool(_unit_call_and_store, key, uid, prompt, edited,
+                                    unit, llm_cfg, "pt_fix_unit", guards.get(uid))
+        except Exception as e:
+            print(f"[pt] {key}/{uid}: settle fix failed: {e}")
+        finally:
+            _pt_unit_mark(key, [uid], False)
+
+    await _run_primed_and_wait(prepared, _one)
+    fresh = _pt_load(key) or sess
+    await run_in_threadpool(_assemble_and_store, key, fresh, ctx, group, name)
+    return _pt_load(key) or fresh
+
+
+@router.post("/assemble_and_settle/{key}")
+async def assemble_and_settle(key: str, request: Request, body: dict = Body(default={})):
+    """R4 (2026-09-15): Assemble, then automatically clear the lint-only errors — Fix units on
+    the settleable set, re-assemble, re-lint — for up to `_PT_SETTLE_ROUNDS` rounds, so there is
+    no human step between Generate and Review for the classes a lint can fix (D3, default on).
+    Held (review/run) fixes are never touched. Assembles synchronously, then settles in the
+    background; poll /units_status and read step6.settle for the rounds."""
+    data = _data(request)
+    sess = _pt_get(key)
+    step6 = sess.step6 or {}
+    ctx = _pt_generation_context(key, data, sess)
+    if not ctx["units"]:
+        raise HTTPException(409, "The skeleton has no fillable units — confirm step 4 first.")
+    naming = step6.get("naming") or {}
+    group = (body.get("group") or naming.get("group") or "").strip()
+    name = (body.get("name") or naming.get("name") or "").strip()
+    res = await run_in_threadpool(_assemble_and_store, key, sess, ctx, group, name)
+
+    async def _settle_chain():
+        rounds: List[dict] = []
+        try:
+            for rnd in range(_PT_SETTLE_ROUNDS):
+                cur = _pt_get(key)
+                code = ((cur.step6 or {}).get("files") or {}).get("test", {}).get("code") or ""
+                targets = _settleable_units(cur, ctx, code, _pt_units_inflight(key))
+                if not targets:
+                    break
+                cur = await _run_fix_round(key, data, cur, ctx, targets, group, name)
+                lint = (cur.step6 or {}).get("lint") or {}
+                rounds.append({"round": rnd + 1, "units": targets,
+                               "lint_errors": len(lint.get("errors") or []),
+                               "blocking": len(lint.get("blocking_errors") or [])})
+
+                def _apply_progress(fresh: PtSession, _r=list(rounds)) -> None:
+                    s6 = dict(fresh.step6 or {})
+                    s6["settle"] = {"at": utc_now().isoformat(), "rounds": _r, "running": True}
+                    fresh.step6 = s6
+                _pt_persist_fresh(key, _apply_progress, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+        except Exception as e:
+            print(f"[pt] {key}: settle chain failed: {e}")
+        final = ((_pt_get(key).step6 or {}).get("lint") or {})
+        record = {"at": utc_now().isoformat(), "rounds": rounds, "running": False,
+                  "settled": not (final.get("blocking_errors")),
+                  "lint_errors": len(final.get("errors") or []),
+                  "lint_ok": bool(final.get("ok"))}
+
+        def _apply_final(fresh: PtSession) -> None:
+            s6 = dict(fresh.step6 or {})
+            s6["settle"] = record
+            fresh.step6 = s6
+        try:
+            _pt_persist_fresh(key, _apply_final, attempts=_PT_CHUNK_WRITE_ATTEMPTS)
+        except Exception as e:
+            print(f"[pt] {key}: could not record the settle outcome: {e}")
+
+    asyncio.create_task(_settle_chain())
+    return {"assembled": True, "settling": True, "rounds": _PT_SETTLE_ROUNDS,
+            "lint": res.get("lint"), "manifest": res.get("manifest")}
 
 
 @router.get("/step_prompts/{key}")

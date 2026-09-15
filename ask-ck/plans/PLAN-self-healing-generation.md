@@ -135,7 +135,7 @@ the fix path once for that unit with lint-only reasons, `hold: False`, on the un
 and a clean second reply → stored, `repaired: true`; two bad replies → `error` with the lint text;
 a fix pass (not generation) never repairs — it holds or refuses as today.
 
-### R4 — Assemble and settle  *(the net for anything that slipped R1–R3)*
+### R4 — Assemble and settle  ✅ BUILT 2026-09-15  *(the net for anything that slipped R1–R3)*
 
 **Now:** Assemble lints and stops. Fix units is a separate click per round.
 

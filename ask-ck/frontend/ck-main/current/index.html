@@ -737,7 +737,8 @@
         <!-- The happy-path flow, numbered 1-4 and contiguous so the sequence reads cleanly.
              LOCAL steps are grey; the one LLM step (Review) is blue. -->
         <div class="compact-flex mb-1">
-          <button data-action="ptAssembleScript" class="btn btn-compact" id="pt-assemble-btn">1 · Assemble + lint</button>
+          <button data-action="ptAssembleAndSettle" class="btn btn-compact" id="pt-assemble-btn">1 · Assemble + settle</button>
+          <button data-action="ptAssembleScript" class="btn btn-compact" id="pt-assemble-only-btn" title="Assemble + lint only — do not auto-fix lint errors">Assemble only</button>
           <button data-action="ptReviewScript" class="btn btn-primary btn-compact" id="pt-review-btn">2 · Review (LLM)</button>
           <button data-action="ptSaveScript" class="btn btn-compact">3 · Save to generated/</button>
           <button data-action="ptConfirm" data-args='[6]' class="btn btn-compact">4 · Confirm step 5</button>

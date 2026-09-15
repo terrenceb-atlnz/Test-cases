@@ -1493,6 +1493,38 @@ async function ptAssembleScript() {
     + `lint ${d.lint && d.lint.ok ? 'ok' : 'FAILED'}. Run Review for the holistic pass.`;
 }
 
+// R4 (PLAN-self-healing-generation, 2026-09-15): Assemble, then automatically clear the
+// lint-only errors — Fix units on the settleable set, re-assemble, re-lint — for up to two
+// rounds (D3, default on), so there is no human step between Generate and Review for the
+// classes a lint can fix. Held (review/run) fixes are never touched. The server assembles
+// synchronously and settles in the background; this polls step6.settle and shows the rounds.
+async function ptAssembleAndSettle() {
+  if (!ptRequireCase()) return;
+  const btn = document.getElementById('pt-assemble-btn');
+  const st = ptStatusEl('pt-gen-status');
+  const d = await ptApi(`/assemble_and_settle/${S.ptCase.key}`, {
+    method: 'POST', btn, busyLabel: 'Assembling…', body: JSON.stringify(ptGenNaming()),
+  }, st);
+  if (!d) return;
+  st.textContent = `Assembled — settling lint errors (up to ${d.rounds} round(s))…`;
+  const fmt = (s) => (s.rounds || []).map(
+    (r) => `round ${r.round}: ${r.units.length} unit(s) → ${r.lint_errors} left`).join('; ');
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    await ptRefreshSession();
+    const s = (((ptSession || {}).step6) || {}).settle || {};
+    if (s.running === false) {
+      renderPtGenPanel(); ptRenderUnits();
+      const rs = fmt(s);
+      st.textContent = `Settled${rs ? ': ' + rs : ' (nothing to settle)'}. `
+        + (s.lint_ok ? 'Lint clean — run Review.'
+                     : `${s.lint_errors} error(s) remain — Review, or Fix what a lint cannot.`);
+      return;
+    }
+    st.textContent = `Settling… ${fmt(s) || 'round 1'}`;
+  }
+}
+
 // --- Step 6: Generate ---------------------------------------------------------
 
 function ptUpdateGenPath() {
@@ -2196,7 +2228,7 @@ registerActions({
   ptGatherFragments, ptSaveFragments, ptGenerateScript,
   ptFragGoStep, ptFragPrevStep, ptFragNextStep, ptFragToggle, ptPreviewFragments,
   ptLintScript, ptReviewScript, ptFixScript, ptFixFromSummary, ptFixUnits, ptFixUnitsFromValidate, ptSaveScript,
-  ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript,
+  ptLoadUnits, ptGenerateUnit, ptGenerateAllUnits, ptAssembleScript, ptAssembleAndSettle,
   ptGoUnit, ptGoSummary, ptUnitPrev, ptUnitNext, ptClearUnitErrors,
   ptViewSource, ptRun, ptValidate,
   ptEditProfile, ptSaveProfile, ptCheckProfile, ptResetProfileForm,

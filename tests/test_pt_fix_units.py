@@ -996,3 +996,43 @@ def test_the_arrival_branch_runs_before_the_fix_checks_and_records_repaired():
     assert 'if guard and guard.get("generation"):' in body
     assert body.index('if guard and guard.get("generation"):') < body.index("_unit_frozen_ok(")
     assert '"repaired": bool(repaired)' in body
+
+
+# --- R4 assemble-and-settle (PLAN-self-healing-generation, 2026-09-15) -----------------------
+# After Assemble, the lint-only errors are cleared automatically (Fix units on the settleable
+# set, re-assemble, re-lint) for up to two rounds — no human step between Generate and Review.
+# Held (review/run) fixes are never touched.
+
+def test_settleable_units_are_lint_only_and_exclude_held_and_in_flight(monkeypatch):
+    sess = _PtSession(key="AWPTCM-T00001")
+    sess.step6 = {"files": {"test": {"code": SCRIPT}}}
+    monkeypatch.setattr(pc, "_fix_reasons", lambda s, c, code: {"per_unit": {
+        "tc1": {"lint": ["e"], "review": [], "run": None},          # settleable
+        "tc2": {"lint": ["e"], "review": ["a finding"], "run": None},  # HELD by review
+        "tc3": {"lint": ["e"], "review": [], "run": {"result": "FAIL"}},  # HELD by run
+        "setup": {"lint": [], "review": [], "run": None}},          # no lint reason
+        "unmapped": [], "structural": [], "code_units": []})
+    assert pc._settleable_units(sess, CTX, SCRIPT, set()) == ["tc1"]
+    assert pc._settleable_units(sess, CTX, SCRIPT, {"tc1"}) == []   # already in flight
+
+
+def test_settle_round_reuses_the_fix_primitives_and_the_fix_model():
+    src = _CODE
+    rf = src[src.index("async def _run_fix_round"):src.index("@router.post(\"/assemble_and_settle/")]
+    for needle in ("_fix_reasons(sess, ctx, code)", "_fix_unit_prompt(", '_llm_cfg_for(sess, "unit_fill")',
+                   "_run_primed_and_wait(prepared, _one)", "_assemble_and_store, key, fresh, ctx, group, name"):
+        assert needle in rf, needle
+    assert '"hold": False' in rf, "settle fixes auto-apply (lint-only, D2)"
+
+
+def test_assemble_and_settle_endpoint_loops_bounded_and_records_rounds():
+    ep = _CODE[_CODE.index('@router.post("/assemble_and_settle/'):]
+    ep = ep[:ep.index("@router.", 10)]
+    assert "for rnd in range(_PT_SETTLE_ROUNDS):" in ep
+    assert "_settleable_units(cur, ctx, code, _pt_units_inflight(key))" in ep
+    assert "if not targets:" in ep and "break" in ep
+    assert 's6["settle"]' in ep and '"running": False' in ep
+    assert pc._PT_SETTLE_ROUNDS == 2
+    # it assembles synchronously first, then settles in the background
+    assert "_assemble_and_store, key, sess, ctx, group, name" in ep
+    assert '"settling": True' in ep

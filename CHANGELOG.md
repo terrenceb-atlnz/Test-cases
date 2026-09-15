@@ -11,6 +11,23 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Self-healing generation R4: Assemble-and-settle (no human step to a clean lint)
+
+- **`POST /api/pytest-create/assemble_and_settle`** assembles, then automatically clears the
+  lint-only errors: Fix units on the settleable set, re-assemble, re-lint, for up to
+  `_PT_SETTLE_ROUNDS = 2` rounds (D3, default on). A unit is settleable when its reasons are
+  LINT-ONLY — a lint error mapped to it, no review finding, no failed run (a review/run finding is
+  HELD for the reviewer, guardrails D2); whole-file errors name no unit and never enter the set.
+  `_run_fix_round` reuses the manual Fix's `_fix_reasons` / `_fix_unit_prompt` / guard shape /
+  `_unit_call_and_store` / `_assemble_and_store` and the same model routing, so settle and Fix
+  cannot drift; a reply refused by G2/G6 keeps its unit (the 2026-09-15 fix), so a round never
+  destroys a unit it could not clean. Assembles synchronously, settles in the background; the UI
+  polls `step6.settle` and shows the rounds live.
+- **The Assemble button now settles by default** ("1 · Assemble + settle"); "Assemble only" is
+  kept as a secondary action. **Why:** the plan's acceptance is no human step between Generate and
+  Review; the manual read-pick-Fix-reassemble loop was the measured sink of the T44297 pass. Part
+  of `ask-ck/plans/PLAN-self-healing-generation.md`.
+
 ## 2026-09-15 — Self-healing generation R5: lint-trend measurement + prompt-defect alarms
 
 - **A lint history per assembly** (`step6.lint_history`, rolling 50): counts by authority
