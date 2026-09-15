@@ -11,6 +11,21 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-15 — Fix: a refused fix keeps the current unit instead of wiping it
+
+- **`_unit_call_and_store._fail` is now guard-aware.** On the FIX path (a `guard` is present) a
+  reply refused by the frozen-frame, evidence or lint-regression checks now KEEPS the current
+  unit — its code and `ok` status untouched, assembly still sees it — and parks the refused reply
+  and reason under a new `refused` field, the way a held fix parks under `held`. On the GENERATION
+  path (no prior unit) it still records `status: error` with empty code. The fix chain classifies
+  refused units separately (never as `applied`) and does not auto-assemble a run that refused any
+  unit; `units_status` / `unit_code` expose `refused`. **Why:** on the T44297 proof fix-run
+  (2026-09-15) Opus returned WORSE replies for tc25 and tc28 (new suite-owned toggles), the
+  lint-regression guard correctly refused them — and `_fail` then zeroed their code, destroying two
+  reviewed units while the surrounding comment claimed it "keeps the OLD chunk". This is a
+  precondition for the self-healing plan: R3's repair turn and R4's settle loop both refuse fixes
+  and must not destroy units when they do (`ask-ck/plans/PLAN-self-healing-generation.md`).
+
 ## 2026-09-15 — D4: a fabricated packet field is a blocking lint error
 
 - **`_lint_layer_fields`** (`routers/pytest_create.py`, run with the other 3b lints and so also

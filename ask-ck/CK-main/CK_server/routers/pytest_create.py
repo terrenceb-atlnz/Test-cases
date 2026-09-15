@@ -5866,6 +5866,20 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
         # it left a red pill with an error string and no way to act on it — which is what
         # Terrence hit on the first real fan-out (2026-09-02). Capped because a runaway
         # reply would otherwise be persisted into the session row in full.
+        #
+        # WHERE it lands depends on the path (2026-09-15, the T44297 proof fix-run):
+        #  * FIX PASS (guard present): the current unit is valid, reviewed code, and a refused
+        #    fix must not cost it. KEEP its code and status untouched — assembly still sees the
+        #    current unit — and park the refused reply + reason under `refused`, the way a held
+        #    fix parks under `held`. Zeroing the code here wiped two reviewed units while the
+        #    surrounding comment claimed it "keeps the OLD chunk".
+        #  * GENERATION (no guard): there is no prior unit to keep, so record status=error with
+        #    an empty code and the raw reply, so the pill can say why.
+        if guard:
+            _store({"refused": {"code": (raw or "")[:_PT_RAW_KEEP_CHARS], "reason": reason,
+                                "at": utc_now().isoformat()},
+                    **({"prompt": prompt} if edited else {})})
+            return {"unit": unit_id, "status": "refused", "error": reason}
         _store({"status": "error", "error": reason, "at": utc_now().isoformat(),
                 "raw": (raw or "")[:_PT_RAW_KEEP_CHARS], "code": "", "held": None,
                 **({"prompt": prompt} if edited else {})})
@@ -5903,10 +5917,10 @@ def _unit_call_and_store(key: str, unit_id: str, prompt: str, edited: bool,
                              "scope": scope,
                              "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
                              "usage": meta.get("usage")},
-                    "error": "", **({"prompt": prompt} if edited else {})})
+                    "error": "", "refused": None, **({"prompt": prompt} if edited else {})})
             return {"unit": unit_id, "status": "held", "edited": edited, "usage": meta.get("usage")}
     _store({"status": "ok", "code": code, "error": "", "raw": "", "at": utc_now().isoformat(),
-            "source": "fix" if guard else "generate", "held": None,
+            "source": "fix" if guard else "generate", "held": None, "refused": None,
             "llm": {k: meta.get(k) for k in ("provider", "model", "auth_method")},
             "usage": meta.get("usage"),
             **({"prompt": prompt} if edited else {})})
@@ -6069,7 +6083,9 @@ async def units_status(key: str):
     for uid, ch in chunks.items():
         out[uid] = {"status": ch.get("status") or "pending", "error": ch.get("error") or "",
                     "at": ch.get("at") or "", "chars": len(ch.get("code") or ""),
-                    "held": bool(ch.get("held")), "source": ch.get("source") or ""}
+                    "held": bool(ch.get("held")), "source": ch.get("source") or "",
+                    "refused": bool(ch.get("refused")),
+                    "refused_reason": (ch.get("refused") or {}).get("reason", "")}
     for uid in running:
         out.setdefault(uid, {"status": "pending", "error": "", "at": "", "chars": 0})
         out[uid]["running"] = True
@@ -6101,7 +6117,8 @@ async def unit_code(key: str, unit_id: str):
             "code": ch.get("code") or "", "raw": ch.get("raw") or "",
             "error": ch.get("error") or "", "at": ch.get("at") or "",
             "edited": bool(ch.get("prompt")),
-            "held": ch.get("held") or None, "source": ch.get("source") or ""}
+            "held": ch.get("held") or None, "source": ch.get("source") or "",
+            "refused": ch.get("refused") or None}
 
 
 @router.post("/generate_step/{key}/{unit_id}")
@@ -6695,12 +6712,17 @@ async def fix_units(key: str, request: Request, body: dict = Body(default={})):
             fresh = _pt_load(key)
             chunks = ((fresh.step6 if fresh else None) or {}).get("chunks") or {}
             failed = [u for u in targets if (chunks.get(u) or {}).get("status") != "ok"]
-            held = [u for u in targets if u not in failed and (chunks.get(u) or {}).get("held")]
-            applied = [u for u in targets if u not in failed and u not in held]
+            refused = [u for u in targets if u not in failed and (chunks.get(u) or {}).get("refused")]
+            held = [u for u in targets if u not in failed and u not in refused and (chunks.get(u) or {}).get("held")]
+            applied = [u for u in targets if u not in failed and u not in refused and u not in held]
             record["failed"] = failed
+            record["refused"] = refused      # G2/G6: the reply was worse; the CURRENT unit is kept
             record["held"] = held            # G7: waiting on the unit pages for Apply / Discard
             record["applied"] = applied      # lint-only fixes, spliced straight in (D2)
-            if fresh is not None and not failed and applied:
+            # A refused unit keeps valid code, so the assembly WOULD splice — but a run that
+            # could not clean every unit it touched should not silently ship a partial result;
+            # the reviewer sees what was refused and re-runs or edits. (R4 will settle these.)
+            if fresh is not None and not failed and not refused and applied:
                 record["previous_archived"] = _archive_script_history(
                     group, name, iteration, file_name, previous_code)
                 res = await run_in_threadpool(_assemble_and_store, key, fresh, ctx, group, name)

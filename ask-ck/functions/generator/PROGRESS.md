@@ -6,6 +6,18 @@
 
 ## Latest session (2026-09-15) — D4 BUILT and LIVE: known-field lint, surface harvest, declared fields in the prompt
 
+**Update (2026-09-15, later): the plan REVIEWED and a precondition bug FIXED.**
+`ask-ck/plans/PLAN-self-healing-generation.md` is written and reviewed with Terrence (all six
+decisions made). The T44297 proof run exposed a bug that had to be fixed first: a fix REFUSED by
+G2/G6 wiped the reviewed unit instead of keeping it (`_unit_call_and_store._fail` zeroed the code
+on the fix path). Fixed — `_fail` is guard-aware, a refused fix keeps the unit and records the
+reply under `refused`; the chain classifies refused units and will not auto-assemble over one.
+5 tests; gate pytest 1514 / vitest 290; fix is live on the hosted server (reloaded clean). Next:
+build the plan in order — R2 (arrival-time lint) + R3 (one Sonnet repair turn) + R5 (measurement),
+then R1 (fragment closure into our per-group library), then R4 (assemble-and-settle), then the
+D6 re-measurement + R6 (cost infographic). Then regenerate T44297 as the acceptance run.
+
+
 **Where it stands.** Terrence said "resume"; he had committed the concurrent stream's memories and
 removed the `framework` symlink (decision c). The decision-independent part of D4 shipped:
 - `_lint_layer_fields` in `routers/pytest_create.py`, hooked in `_lint_generated` 3b after the

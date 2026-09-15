@@ -796,7 +796,7 @@ def test_G7_the_store_path_HOLDS_a_review_or_run_driven_fix_and_splices_a_lint_o
     assert '"hold": bool(reasons["per_unit"][uid]["review"]) or bool(reasons["per_unit"][uid]["run"])' in FIX_UNITS
     # The chain assembles only what was APPLIED and records what is held.
     assert 'record["held"] = held' in FIX_UNITS and 'record["applied"] = applied' in FIX_UNITS
-    assert "if fresh is not None and not failed and applied:" in FIX_UNITS
+    assert "if fresh is not None and not failed and not refused and applied:" in FIX_UNITS
 
 
 def test_G7_apply_and_discard_are_local_endpoints_that_go_through_the_one_assembly():
@@ -810,3 +810,90 @@ def test_G7_apply_and_discard_are_local_endpoints_that_go_through_the_one_assemb
         assert _SRC.count(needle) >= 2, needle                     # units_status + step_prompts
     assert '"held": ch.get("held") or None' in _SRC                # unit_code carries the payload
 
+
+# --- BUG (T44297 proof fix-run, 2026-09-15): a refused fix must KEEP the current unit --------
+# `_fail` zeroed `code` on the FIX path too, so a fix refused by the frozen/evidence/lint guards
+# destroyed the reviewed unit it was meant to protect. On the real run tc25 and tc28 came back
+# from Opus WORSE (new suite-owned toggles), the lint-regression guard refused them — and they
+# were wiped to empty error chunks. A refused fix must leave the current unit usable.
+
+class _FakeSess:
+    def __init__(self, chunks):
+        self.step6 = {"chunks": dict(chunks)}
+        self.key = "AWPTCM-T00001"
+        self.updated_at = "now"
+
+
+def _drive_store(monkeypatch, reply_code, *, guard, current_code, hold=False):
+    """Run _unit_call_and_store once with a mocked LLM reply and an in-memory persist, and
+    return (result, the resulting tc2 chunk)."""
+    unit = _unit("tc2")
+    sess = _FakeSess({"tc2": {"status": "ok", "code": current_code, "source": "generate"}})
+    monkeypatch.setattr(pc, "run_prompt_text",
+                        lambda *a, **k: {"content": "```python\n" + reply_code + "\n```",
+                                         "provider": "p", "model": "m", "auth_method": "x", "usage": {}})
+
+    def _fake_persist(key, apply_fn, attempts=0):
+        apply_fn(sess)
+        return sess
+    monkeypatch.setattr(pc, "_pt_persist_fresh", _fake_persist)
+    g = None
+    if guard:
+        g = {"current_code": current_code, "assembled_code": SCRIPT, "sess": sess,
+             "baseline_errors": [], "findings": [], "lint_errors": [], "unit_lo": 1, "hold": hold}
+    res = pc._unit_call_and_store("AWPTCM-T00001", "tc2", "shared\n" + pc._PT_PROMPT_SPLIT + "\nunit",
+                                  False, unit, {"model": "m"}, "pt_fix_unit", g)
+    return res, sess.step6["chunks"]["tc2"]
+
+
+def test_a_refused_fix_keeps_the_current_unit_and_records_the_refused_reply(monkeypatch):
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc2"]
+    # A reply that fails the shape check (no TestCase_2 class) — a guarded refusal path.
+    res, ch = _drive_store(monkeypatch, "def main(self):\n    self.passed('x')", guard=True, current_code=cur)
+    assert res["status"] == "refused"
+    assert ch["status"] == "ok", "the current unit's status is untouched"
+    assert ch["code"] == cur, "the current unit's code is KEPT byte for byte, never zeroed"
+    assert ch["refused"]["reason"] == res["error"] and ch["refused"]["code"], "the refused reply is recorded"
+
+
+def test_generation_failure_without_a_guard_still_records_error_and_empties_code(monkeypatch):
+    res, ch = _drive_store(monkeypatch, "def main(self):\n    pass", guard=False, current_code="")
+    assert res["status"] == "error" and ch["status"] == "error" and ch["code"] == ""
+    assert ch.get("refused") is None
+
+
+def test_a_clean_fix_clears_a_stale_refusal(monkeypatch):
+    cur = pc._chunks_from_code(SCRIPT, CTX)["tc2"]
+    sess = _FakeSess({"tc2": {"status": "ok", "code": cur, "source": "generate",
+                             "refused": {"reason": "old", "code": "x", "at": "t"}}})
+    monkeypatch.setattr(pc, "run_prompt_text",
+                        lambda *a, **k: {"content": "```python\n" + cur + "\n```",
+                                         "provider": "p", "model": "m", "auth_method": "x", "usage": {}})
+    monkeypatch.setattr(pc, "_pt_persist_fresh", lambda key, fn, attempts=0: (fn(sess), sess)[1])
+    # Let the reply through the guards so it reaches the ok store; the point here is only that a
+    # clean store clears the stale `refused` (the whole-file lint is exercised elsewhere).
+    monkeypatch.setattr(pc, "_unit_frozen_ok", lambda *a, **k: (True, ""))
+    monkeypatch.setattr(pc, "_unit_evidence_gone", lambda *a, **k: None)
+    monkeypatch.setattr(pc, "_unit_lint_regression", lambda *a, **k: None)
+    g = {"current_code": cur, "assembled_code": SCRIPT, "sess": sess, "baseline_errors": [],
+         "findings": [], "lint_errors": [], "unit_lo": 1, "hold": False}
+    pc._unit_call_and_store("AWPTCM-T00001", "tc2", "s\n" + pc._PT_PROMPT_SPLIT + "\nu", False,
+                            _unit("tc2"), {"model": "m"}, "pt_fix_unit", g)
+    assert sess.step6["chunks"]["tc2"]["status"] == "ok"
+    assert sess.step6["chunks"]["tc2"].get("refused") is None, "a clean store clears the stale refusal"
+
+
+def test_the_fix_chain_classifies_refused_and_will_not_auto_assemble_over_one():
+    body = FIX_UNITS
+    assert 'record["refused"] = refused' in body
+    assert "not failed and not refused and applied" in body, "a refused unit blocks the auto-assemble"
+    assert "u not in refused" in body, "refused units are excluded from applied"
+
+
+def test_the_fail_helper_keeps_the_unit_only_on_the_guard_path():
+    body = _CODE[_CODE.index("def _unit_call_and_store"):_CODE.index("def _dispatch_primed")]
+    fail = body[body.index("def _fail("):body.index("if meta.get(")]
+    assert "if guard:" in fail and '"refused":' in fail, "the guard branch records refused, not error"
+    assert '"code": ""' in fail, "the generation branch still empties code"
+    us = _CODE[_CODE.index('@router.get("/units_status'):_CODE.index('@router.get("/unit_code')]
+    assert '"refused": bool(ch.get("refused"))' in us

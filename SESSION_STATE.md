@@ -4144,3 +4144,19 @@ twice. The 2026-08-26 SERVER-README/memory statement that `system` is passed as
   and says a field not listed does not exist. Both generate templates, the ART-shape pins, plan
   item 8, SERVER-README item 8, CHANGELOG updated. The guardrails plan is complete; the proof run
   on T44297 is next. `ask-ck/db/ck.db` is modified by the reload — Terrence's to commit.
+
+## Session Close / Handoff (2026-09-15, evening) — self-healing plan reviewed; refused-fix bug fixed
+
+- The T44297 proof run (Generate → Assemble) produced 9 lint errors in 38 Sonnet units, all of
+  classes the tool already detects. From that, `PLAN-self-healing-generation.md` was written and
+  reviewed with Terrence — all six decisions made (repair: 1 Sonnet turn, raise to 2 below a 50%
+  return rate; settle: 2 Opus rounds, default on, visible; closure: automatic into our per-group
+  library; echoed verdict → policy; re-measure Opus then a cost infographic).
+- The manual fix run on that assembly exposed a real bug: a fix refused by G2/G6 WIPED the
+  reviewed unit (`_fail` zeroed code on the fix path). Fixed the same day — guard-aware `_fail`,
+  refused units kept and recorded under `refused`, chain classifies them, no auto-assemble over a
+  refusal. 5 tests. It is a precondition for the plan's R3/R4. Live on the hosted server.
+- tc25/tc28 on the hosted T44297 session are still wiped from the buggy run — deliberately NOT
+  recovered (the whole session will be regenerated once R1–R5 land, which is the acceptance run).
+- Gate at close: guards OK; pytest 1514 passed / 1 skipped; vitest 290; ck.db untouched.
+- Resume: PROGRESS.md top entry, then PLAN-self-healing-generation.md §4 (build order).

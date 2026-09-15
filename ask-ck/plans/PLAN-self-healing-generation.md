@@ -181,6 +181,16 @@ $4.37). Coverage is checked before a bar is drawn: a run whose usage was not log
 "not measured", never estimated. Errors per unit come from R5 for the new runs and from the
 session-state notes for the old ones (3 hidden NameErrors on a lint-clean 09-08 script).
 
+## 3a. Precondition landed 2026-09-15 — a refused fix keeps the unit
+
+Found while running the manual fix on the T44297 proof assembly: `_unit_call_and_store._fail`
+zeroed a unit's code on the FIX path, so a fix refused by G2/G6 destroyed the reviewed unit it
+was protecting (tc25, tc28 came back from Opus worse, were refused, and were wiped). Fixed the
+same day — `_fail` is guard-aware, a refused fix keeps the current unit and records the reply
+under `refused`, the chain classifies refused units and will not auto-assemble over one. **This
+gates R3 and R4:** the repair turn and the settle loop both refuse fixes, and would have
+destroyed units on every refusal. Shipped with 5 tests; gate pytest 1514.
+
 ## 4. Order and cost
 
 R2 first (smallest change, reuses the fix guard verbatim, would have caught all nine errors

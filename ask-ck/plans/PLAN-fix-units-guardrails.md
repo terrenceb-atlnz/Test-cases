@@ -9,7 +9,11 @@
 > a fix reply must keep every frozen frame line of the CURRENT unit byte for byte (`_unit_frozen_ok`)
 > and must not introduce a lint error the current script does not already carry when spliced
 > in (`_unit_lint_regression`, whole-file lint incl. the new suite-owned-command lint); either
-> refusal keeps the old chunk and records why. **G6(c) ✅ built SCOPED (Terrence, 2026-09-14,
+> refusal keeps the old chunk and records why. **[FIXED 2026-09-15] "keeps the old chunk" was
+> ASPIRATIONAL until then: `_fail` zeroed the unit's code on the fix path too, so a refusal
+> destroyed the reviewed unit (found on the T44297 proof fix-run — tc25/tc28). `_fail` is now
+> guard-aware: a refused fix keeps the current unit and records the reply under `refused`.**
+> **G6(c) ✅ built SCOPED (Terrence, 2026-09-14,
 > option i): the evidence line must be gone only for `verdict_mismatch` / `weak_observation` /
 > `wrong_symbol`, where the evidence IS the defect; hard refusal.** **G3 ✅ + G7 ✅ (+ follow-ups #1–#3
 > per D6) the same day — the plan is COMPLETE except D4.** A review- or run-driven fix is HELD on
