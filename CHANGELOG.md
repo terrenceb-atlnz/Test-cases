@@ -16,7 +16,7 @@ current working thread see
 - **The library now ships the definitions its fragments depend on.** `_close_fragment_deps`
   resolves every shown fragment's free names against its source script and that suite's
   `library_<suite>.py` (new `db.get_suite_library`), ships each resolved module-level definition
-  into OUR library marked `# AI: dependency \`<name>\` of <tag>`, adds the
+  into OUR library marked `# AI: dependency <name> of <tag>`, adds the
   `from framework.ATPackets import *` those definitions need, and recurses (bounded at 40). A class
   the framework already provides is never shipped (it would shadow the real scapy layer). **Why:**
   a fragment offered "to adapt" may call a name defined only in its source suite's library

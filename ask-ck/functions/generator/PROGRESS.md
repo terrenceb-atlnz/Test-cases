@@ -4,6 +4,34 @@
 
 **Last Updated**: 2026-09-15 (by Claude, with Terrence for every decision)
 
+## Latest session (2026-09-15, cont.) — SELF-HEALING GENERATION built (R1–R5), plus the refused-fix bug fix
+
+`ask-ck/plans/PLAN-self-healing-generation.md` is BUILT end to end and live on the hosted server —
+six commits, each gated (final gate pytest 1541 / vitest 292, ck.db untouched) and smoke-tested:
+- **Precondition bug fix** — a fix REFUSED by G2/G6 was wiping the reviewed unit (`_fail` zeroed the
+  code on the fix path). Now guard-aware: a refused fix keeps the unit and records the reply under
+  `refused`. This gated R3/R4 (they refuse fixes and must not destroy units).
+- **R2 arrival-time lint** — every generated unit is linted the moment it lands (frame + units so
+  far), only per-unit classes refuse; **R3 one repair turn** on the unit model (Sonnet, D2) via the
+  fix prompt, `_PT_REPAIR_TURNS=1` (D1, raised to 2 below a 50% return rate by R5).
+- **R5 measurement** — `step6.lint_history` by class + prompt version; `_pt_lint_trends` + the 6.4
+  alarms; `GET /lint_trends`, `/health.pt_lint_alarms`, a log line, and the read-only CLI
+  `ask-ck/tools/pt_lint_report.py`. Deferred: the in-app Summary banner + admin card (no data yet).
+- **R4 assemble-and-settle** — `POST /assemble_and_settle` clears lint-only errors automatically
+  (Fix units on the settleable set, re-assemble, re-lint, 2 rounds, D3) — no human step to a clean
+  lint. The Assemble button settles by default; held (review/run) fixes are never touched.
+- **R1 fragment closure** — the library now ships the module-level defs its fragments call
+  (`_close_fragment_deps` + `db.get_suite_library`); on the real T44297 fragments it ships
+  LLDP_PHONE_PKT + 5 others, so that NameError class is PREVENTED. Deferred: R1(b) group libraries.
+- **R6 cost infographic** SCAFFOLDED (`ask-ck/functions/generator/cost-comparison.html`) with the 3
+  measured bars; the 4th awaits D6.
+
+**Pick up here (needs Terrence):** (1) **D6** — an Opus generation of T44297 on a scratch server to
+fill the 4th bar (R5 records it); (2) **the acceptance proof** — a fresh Generate → (auto-repair) →
+Assemble+settle → Review on T44297 with everything live; (3) **R1(b)** group-library reorg decision;
+(4) the deferred R5 UI (Summary banner + admin card) once trend data accrues. Terrence pushes the
+commits (Claude cannot push).
+
 ## Latest session (2026-09-15) — D4 BUILT and LIVE: known-field lint, surface harvest, declared fields in the prompt
 
 **Update (2026-09-15, later): the plan REVIEWED and a precondition bug FIXED.**

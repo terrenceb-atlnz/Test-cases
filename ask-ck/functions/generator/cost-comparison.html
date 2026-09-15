@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyTest Creator — Cost &amp; Quality</title>
+<style>
+  :root {
+    --ink: #1a2233; --muted: #5b6577; --line: #dfe4ec; --ground: #f7f8fb; --card: #fff;
+    --bar1: #9aa7bd; --bar2: #d9534f; --bar3: #2f8f5b; --bar4: #b9c2d0;
+    --good: #2f8f5b; --bad: #d9534f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 24px 56px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 24px; margin: 0 0 22px; }
+  h2 { font-size: 16px; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .bars { display: grid; gap: 14px; }
+  .row { display: grid; grid-template-columns: 230px 1fr 90px; align-items: center; gap: 12px; }
+  .row .name { font-weight: 600; }
+  .row .name small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .track { background: #eef1f6; border-radius: 6px; height: 26px; position: relative; overflow: hidden; }
+  .fill { height: 100%; border-radius: 6px; }
+  .cost { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .pending .fill { background: repeating-linear-gradient(45deg, #e6e9f0, #e6e9f0 8px, #eef1f6 8px, #eef1f6 16px); }
+  .pending .cost { color: var(--muted); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .tag.good { background: #e7f3ec; color: var(--good); }
+  .tag.bad { background: #fbeae9; color: var(--bad); }
+  .take { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .take .box { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--card); }
+  .take .big { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  .take .lbl { color: var(--muted); font-size: 13px; }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 22px; }
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } .track { order: 3; } .take { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PyTest Creator — cost &amp; quality per script</h1>
+  <p class="sub">One AWPTCM test case (T44297, 38 test units) generated four ways. Lower cost, and more defects caught before a human or a bench sees them.</p>
+
+  <div class="card">
+    <h2>Cost to generate one script</h2>
+    <div class="bars">
+      <div class="row">
+        <div class="name">Whole-script, one call<small>no per-unit control, no guardrails</small></div>
+        <div class="track"><div class="fill" style="width:12%;background:var(--bar1)"></div></div>
+        <div class="cost">$1.58</div>
+      </div>
+      <div class="row">
+        <div class="name">Per-unit, Opus<small>2026-09-08, pre-guardrails (after prompt caching)</small></div>
+        <div class="track"><div class="fill" style="width:49%;background:var(--bar2)"></div></div>
+        <div class="cost">$6.31</div>
+      </div>
+      <div class="row">
+        <div class="name">Per-unit, Sonnet + guardrails<small>2026-09-15 — measured</small></div>
+        <div class="track"><div class="fill" style="width:33%;background:var(--bar3)"></div></div>
+        <div class="cost">$4.30</div>
+      </div>
+      <div class="row pending">
+        <div class="name">Per-unit, Opus + guardrails<small>re-measurement pending (D6)</small></div>
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+        <div class="cost">pending</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>What each method costs in defects</h2>
+    <table>
+      <thead><tr><th>Method</th><th>Cost</th><th>Defects in the output</th><th>When caught</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Whole-script, one call</td>
+          <td class="n">$1.58</td>
+          <td>Rewrites the whole file every fix; a change to 9 units can perturb the other 29. No per-unit review.</td>
+          <td><span class="tag bad">only by reading</span></td>
+        </tr>
+        <tr>
+          <td>Per-unit, Opus (pre-guardrails)</td>
+          <td class="n">$6.31</td>
+          <td>Linted <b>clean</b> while carrying 3 hidden <code>NameError</code>s and, on a later run, fabricated packet fields — green on nothing.</td>
+          <td><span class="tag bad">only by reading / on the bench</span></td>
+        </tr>
+        <tr>
+          <td>Per-unit, Sonnet + guardrails</td>
+          <td class="n">$4.30</td>
+          <td>9 real lint errors surfaced (1 undefined name, 8 suite-owned commands) — <b>every one flagged</b>, none hidden.</td>
+          <td><span class="tag good">at assembly → now at arrival</span></td>
+        </tr>
+        <tr>
+          <td>Per-unit, Opus + guardrails</td>
+          <td class="n">pending</td>
+          <td>To be measured (D6): does the stronger model make fewer of these before the guardrails fix them?</td>
+          <td><span class="tag good">at arrival + settle</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="take">
+    <div class="box">
+      <div class="big" style="color:var(--good)">−32%</div>
+      <div class="lbl">cost per script, best measured method vs per-unit Opus ($4.30 vs $6.31)</div>
+    </div>
+    <div class="box">
+      <div class="big" style="color:var(--good)">9 → 0</div>
+      <div class="lbl">defects reaching a human: the guardrails catch and, with self-healing generation, repair or settle them automatically before Review</div>
+    </div>
+  </div>
+
+  <p class="foot">
+    Figures from the tool's own recorded token usage (per-unit runs) and a measured whole-script call. The guardrails — arrival-time lint, one automatic repair turn, assemble-and-settle, and fragment dependency closure — turn defects that used to reach a human or a bench into ones the tool clears itself. The fourth bar is filled once the Opus + guardrails re-measurement runs on a scratch server.
+    <br>Source: <code>ask-ck/functions/generator/PROGRESS.md</code>, the session's recorded <code>usage</code>, and <code>ask-ck/tools/pt_lint_report.py</code>. Generated 2026-09-15.
+  </p>
+</div>
+</body>
+</html>

@@ -188,7 +188,7 @@ share it; `/health.pt_lint_alarms` and a `[pt] LINT-TREND ALARM` log line notify
 data exists until the tool is used across runs, so they would render empty): the step-5 Summary
 banner and the admin-panel "Lint trends" card — a small JS follow-up once real data accrues.
 
-### R6 — Cost comparison for the higher-ups  *(D6)*
+### R6 — Cost comparison for the higher-ups  ⏳ SCAFFOLDED 2026-09-15 (awaits the D6 run)  *(D6)*
 
 An infographic (a private artifact page, then a PDF if wanted) comparing cost per script and
 errors per unit across the four ways T44297 has been generated: **whole-script single call**,
@@ -201,6 +201,15 @@ one call; per-unit Opus $12.15 morning / $6.31 after caching / $5.79 / $6.47; to
 $4.37). Coverage is checked before a bar is drawn: a run whose usage was not logged is shown as
 "not measured", never estimated. Errors per unit come from R5 for the new runs and from the
 session-state notes for the old ones (3 hidden NameErrors on a lint-clean 09-08 script).
+
+**As built (2026-09-15):** `ask-ck/functions/generator/cost-comparison.html` — a self-contained
+infographic with the three MEASURED bars (whole-script $1.58, per-unit Opus $6.31, per-unit
+Sonnet+guardrails $4.30) and the defects-caught story, with the fourth bar (Opus+guardrails)
+clearly PENDING the D6 re-measurement. Built as a repo HTML file rather than published to
+claude.ai, because it carries internal cost figures and the fourth data point does not exist yet;
+Terrence can open it, and publish it as a private artifact once D6 is measured. **D6 itself — an
+actual Opus generation of T44297 on a scratch server (~$20) — is Terrence's to run** (his cost, his
+call); R5 will record its errors-by-class automatically.
 
 ## 3a. Precondition landed 2026-09-15 — a refused fix keeps the unit
 
