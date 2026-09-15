@@ -5,7 +5,54 @@ import { S } from '../shared/state.js';
 import { escapeHtml } from '../shared/dom-helpers.js';
 import { goToPanel } from '../shared/nav.js';
 
-const CK_AGENT_URL = (window.CK_AGENT_URL || 'http://127.0.0.1:8765');
+const CK_AGENT_URL_DEFAULT = 'http://127.0.0.1:8765';
+const CK_AGENT_URL_KEY = 'ck.agentUrl';
+
+function _isLocalAgentUrl(u) {
+  // The ck-agent is ALWAYS on the same machine as the browser, so a supplied URL must point at
+  // localhost. Refusing anything else means a crafted `?agent-url=` link can never redirect a
+  // seat's Claude traffic (prompts, completions) off-box.
+  try {
+    const p = new URL(u);
+    return (p.protocol === 'http:' || p.protocol === 'https:')
+      && (p.hostname === '127.0.0.1' || p.hostname === 'localhost' || p.hostname === '[::1]');
+  } catch (_) { return false; }
+}
+
+// Resolve the local ck-agent URL. Default 127.0.0.1:8765, but a seat whose 8765 is taken by
+// another service (VS Code, a homelab container) can point the page at a free port with
+// `?agent-port=8770` (or `?agent-url=http://127.0.0.1:8770`); the choice is remembered in
+// localStorage so it sticks across reloads without the query string. `window.CK_AGENT_URL` still
+// overrides, for the old userscript path. Pure + injectable so the unit test can pin the order.
+export function resolveAgentUrl({ search = '', store = null, injected = undefined } = {}) {
+  const q = new URLSearchParams(search || '');
+  const rawUrl = (q.get('agent-url') || '').trim();
+  const rawPort = (q.get('agent-port') || '').trim();
+  const port = Number(rawPort);
+  let picked = '';
+  if (rawUrl && _isLocalAgentUrl(rawUrl)) picked = rawUrl;
+  else if (rawPort && Number.isInteger(port) && port >= 1 && port <= 65535) picked = `http://127.0.0.1:${port}`;
+  if (picked) {
+    try { if (store) store.setItem(CK_AGENT_URL_KEY, picked); } catch (_) { /* private mode: skip */ }
+    return picked;
+  }
+  if (injected) return injected;                       // window.CK_AGENT_URL — explicit override
+  try {
+    const saved = store ? store.getItem(CK_AGENT_URL_KEY) : null;
+    if (saved) return saved;
+  } catch (_) { /* private mode: fall through */ }
+  return CK_AGENT_URL_DEFAULT;
+}
+
+function _browserStore() {
+  try { return window.localStorage; } catch (_) { return null; }
+}
+
+const CK_AGENT_URL = resolveAgentUrl({
+  search: (typeof window !== 'undefined' && window.location) ? window.location.search : '',
+  store: _browserStore(),
+  injected: (typeof window !== 'undefined') ? window.CK_AGENT_URL : undefined,
+});
 
 export async function probeLocalAgent() {
   // Ask the user's own ck-agent whether it's up, whether claude is installed, and — since
@@ -289,7 +336,9 @@ if (typeof document !== 'undefined' && document.addEventListener) {
 export function renderAgentStatus(s, upd) {
   if (!s || !s.ok) {
     return `<span class="status-err">&#10007; Agent not reachable at ${escapeHtml(CK_AGENT_URL)}.</span> `
-      + `Run the one-line seat setup from the Ask CK home page (or <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code>), then retry.`;
+      + `Run the one-line seat setup from the Ask CK home page (or <code>cd ask-ck/agent &amp;&amp; ./run-agent.sh</code>), then retry. `
+      + `If port 8765 is taken on your machine, start the agent on a free port `
+      + `(<code>CK_AGENT_PORT=8770 …</code>) and open this page with <code>?agent-port=8770</code>.`;
   }
   if (!s.claude_cli) {
     return `<span class="status-err">&#10007; Agent up, but Claude CLI not found on your machine.</span> ${escapeHtml(s.hint || "Install Claude Code and run 'claude auth login'.")}`;

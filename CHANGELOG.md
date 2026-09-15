@@ -11,6 +11,23 @@ current working thread see
 [`ask-ck/functions/generator/PROGRESS.md`](ask-ck/functions/generator/PROGRESS.md).
 
 
+## 2026-09-16 — Seat agent: the browser can find it on a port other than 8765
+
+The page hard-coded the local ck-agent at `127.0.0.1:8765`, with no override. On a seat whose
+8765 is already taken — a homelab laptop where VS Code held 8765 and Portainer held 9000, reached
+over an SSH tunnel — the "Claude Code CLI (my local machine)" transport was simply unusable: the
+agent couldn't bind 8765, and the browser had nowhere else to look. `agent.js` now resolves the
+agent URL through `resolveAgentUrl(...)`: a `?agent-port=<n>` (or `?agent-url=http://127.0.0.1:<n>`)
+query param, **remembered in `localStorage`** so it sticks across reloads, falling back to the
+`window.CK_AGENT_URL` userscript path and then `127.0.0.1:8765`. The supplied URL is **restricted
+to localhost** (the agent is always on the same machine), so a crafted `?agent-url=` link can never
+redirect a seat's Claude traffic — prompts or completions — off-box. The "agent not reachable"
+message now tells the user about the knob. *Why:* the local-CLI transport should work on any
+machine, not only one whose 8765 happens to be free. Usage: start the agent with
+`CK_AGENT_PORT=8770 …` and open `…/?agent-port=8770` once. 8 vitest cases pin the resolution order
+and the off-box refusal.
+
+
 ## 2026-09-15 — Negative tests are legitimate: suite-owned lint reworked, arrival stops fighting policy, drafts are kept
 
 Found on the T44297 self-healing proof run: **tc25 was refused and left with empty code.** Its
